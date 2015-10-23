@@ -1,5 +1,6 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
+#include "EncryptionDialog.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
@@ -147,6 +148,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-generic.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-todo.css\">"
                  "<title></title></head>"),
+    m_lastSelectedHtml(),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
@@ -531,10 +533,10 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
                                                                             m_decryptedTextManager, q));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,QString,bool),
-                     this,QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool));
-    QNTRACE("Will exec note decryption dialog now");
+                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool));
+    QNTRACE("Will exec decryption dialog now");
     pDecryptionDialog->exec();
-    QNTRACE("Executed note decryption dialog");
+    QNTRACE("Executed decryption dialog");
 }
 
 void NoteEditorPrivate::onOpenResourceButtonClicked(const QString & resourceHash)
@@ -657,10 +659,10 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
     determineContextMenuEventTarget();
 }
 
-void NoteEditorPrivate::onContextMenuEventReply(QString contentType, bool hasSelection, quint64 sequenceNumber)
+void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml, quint64 sequenceNumber)
 {
     QNDEBUG("NoteEditorPrivate::onContextMenuEventReply: content type = " << contentType
-            << ", has selection = " << (hasSelection ? "true" : "false")
+            << ", selected html = " << selectedHtml
             << ", sequence number = " << sequenceNumber);
 
     if (!checkContextMenuSequenceNumber(sequenceNumber)) {
@@ -671,7 +673,7 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, bool hasSel
     ++m_contextMenuSequenceNumber;
 
     if (contentType == "GenericText") {
-        setupGenericTextContextMenu(hasSelection);
+        setupGenericTextContextMenu(selectedHtml);
     }
     else if (contentType == "ImageResource") {
         setupImageResourceContextMenu();
@@ -987,6 +989,67 @@ void NoteEditorPrivate::changeIndentation(const bool increase)
     execJavascriptCommand((increase ? "indent" : "outdent"));
     Q_Q(NoteEditor);
     q->setFocus();
+}
+
+void NoteEditorPrivate::replaceSelectedTextWithEncryptedText(const QString & selectedText,
+                                                             const QString & encryptedText,
+                                                             const QString & hint)
+{
+    QNDEBUG("NoteEditorPrivate::replaceSelectedTextWithEncryptedText: encrypted text = "
+            << encryptedText << ", hint = " << hint);
+
+    Q_UNUSED(selectedText);
+
+    QString encryptedTextHtmlObject;
+
+#ifdef USE_QT_WEB_ENGINE
+    encryptedTextHtmlObject = "<img ";
+#else
+    encryptedTextHtmlObject = "<object type=\"application/vnd.qutenote.encrypt\" ";
+#endif
+    encryptedTextHtmlObject +=  "en-tag=\"en-crypt\" "
+                                "cipher=\"AES\" length=\"128\" class=\"en-crypt hvr-border-color\" "
+                                "encrypted_text=\"";
+    encryptedTextHtmlObject += encryptedText;
+    encryptedTextHtmlObject += "\" ";
+
+    if (!hint.isEmpty()) {
+        encryptedTextHtmlObject += "hint=\"";
+
+        QString hintWithEscapedDoubleQuotes = hint;
+        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
+        {
+            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
+            {
+                if (i == 0) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
+                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
+                }
+            }
+        }
+
+        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
+        encryptedTextHtmlObject += "\" ";
+    }
+
+#ifdef USE_QT_WEB_ENGINE
+    encryptedTextHtmlObject += ">";
+#else
+    encryptedTextHtmlObject += ">some fake characters to prevent self-enclosing html tag confusing webkit</object>";
+#endif
+
+    QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
+    // TODO: for QtWebKit: see whether contentChanged signal would be emitted automatically
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+
+#ifdef USE_QT_WEB_ENGINE
+    provideSrcAndOnClickScriptForImgEnCryptTags();
+#endif
 }
 
 void NoteEditorPrivate::clearEditorContent()
@@ -1799,12 +1862,13 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 
 #endif
 
-void NoteEditorPrivate::setupGenericTextContextMenu(const bool hasSelection)
+void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml)
 {
-    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: hasSelection = "
-            << (hasSelection ? "true" : "false"));
+    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: selected html = " << selectedHtml);
 
     Q_Q(NoteEditor);
+
+    m_lastSelectedHtml = selectedHtml;
 
     delete m_pGenericTextContextMenu;
     m_pGenericTextContextMenu = new QMenu(q);
@@ -1825,7 +1889,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const bool hasSelection)
         menu->addAction(action); \
     }
 
-    if (hasSelection) {
+    if (!selectedHtml.isEmpty()) {
         ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pGenericTextContextMenu, cut);
         ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pGenericTextContextMenu, copy);
     }
@@ -1876,7 +1940,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const bool hasSelection)
     ADD_ACTION_WITH_SHORTCUT(Unindent, Decrease indentation, pParagraphSubMenu, decreaseIndentation);
     Q_UNUSED(pParagraphSubMenu->addSeparator());
 
-    if (hasSelection) {
+    if (!selectedHtml.isEmpty()) {
         ADD_ACTION_WITH_SHORTCUT(Increase font size, Increase font size, pParagraphSubMenu, increaseFontSize);
         ADD_ACTION_WITH_SHORTCUT(Decrease font size, Decrease font size, pParagraphSubMenu, decreaseFontSize);
         Q_UNUSED(pParagraphSubMenu->addSeparator());
@@ -1908,7 +1972,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const bool hasSelection)
     ADD_ACTION_WITH_SHORTCUT(, Copy, pHyperlinkMenu, copyHyperlink);
     ADD_ACTION_WITH_SHORTCUT(Remove hyperlink, Remove, pHyperlinkMenu, removeHyperlink);
 
-    if (hasSelection) {
+    if (!selectedHtml.isEmpty()) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         ADD_ACTION_WITH_SHORTCUT(Encrypt, Encrypt selected fragment..., m_pGenericTextContextMenu, encryptSelectedTextDialog);
     }
@@ -2350,6 +2414,7 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
         return;
     }
 
+    m_lastSelectedHtml.resize(0);
     m_htmlCachedMemory = html;
     m_enmlCachedMemory.resize(0);
     m_errorCachedMemory.resize(0);
@@ -2418,46 +2483,7 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         return;
     }
 
-    QString encryptedTextHtmlObject = "<object type=\"application/octet-stream\" en-tag=\"en-crypt\" >"
-                                      "<param name=\"cipher\" value=\"";
-    encryptedTextHtmlObject += cipher;
-    encryptedTextHtmlObject += "\" />";
-    encryptedTextHtmlObject += "<param name=\"length\" value=\"";
-    encryptedTextHtmlObject += "\" />";
-    encryptedTextHtmlObject += "<param name=\"encryptedText\" value=\"";
-    encryptedTextHtmlObject += encryptedText;
-    encryptedTextHtmlObject += "\" />";
-
-    if (!hint.isEmpty())
-    {
-        encryptedTextHtmlObject = "<param name=\"hint\" value=\"";
-
-        QString hintWithEscapedDoubleQuotes = hint;
-        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
-        {
-            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
-            {
-                if (i == 0) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-            }
-        }
-
-        encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
-        encryptedTextHtmlObject += "\" />";
-    }
-
-    encryptedTextHtmlObject += "<object/>";
-
-    QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
-    // TODO: for QtWebKit: see whether contentChanged signal would be emitted automatically
-
-    Q_Q(NoteEditor);
-    GET_PAGE()
-    page->executeJavaScript(javascript);
+    replaceSelectedTextWithEncryptedText(selectedHtml, encryptedText, hint);
 }
 
 #define COMMAND_TO_JS(command) \
@@ -3111,10 +3137,25 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
 {
     QNDEBUG("NoteEditorPrivate::encryptSelectedTextDialog");
 
-    // TODO: implement
+    if (m_lastSelectedHtml.isEmpty()) {
+        QString error = QT_TR_NOOP("Requested encrypt selected text dialog "
+                                   "but last selected html is empty");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
 
     Q_Q(NoteEditor);
-    q->setFocus();
+
+    QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_lastSelectedHtml,
+                                                                            m_encryptionManager,
+                                                                            m_decryptedTextManager, q));
+    pEncryptionDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,bool),
+                     this, QNSLOT(NoteEditorPrivate,onSelectedTextEncryption,QString,QString,QString,bool));
+    QNTRACE("Will exec encryption dialog now");
+    pEncryptionDialog->exec();
+    QNTRACE("Executed encryption dialog");
 }
 
 void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
@@ -3194,6 +3235,16 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString
     Q_UNUSED(decryptedText)
     Q_UNUSED(rememberForSession)
     noteToEditorContent();
+}
+
+void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString encryptedText,
+                                                 QString hint, bool rememberForSession)
+{
+    QNDEBUG("NoteEditorPrivate::onSelectedTextEncryption: "
+            << "encrypted text = " << encryptedText << ", hint = " << hint
+            << ", remember for session = " << (rememberForSession ? "true" : "false"));
+
+    replaceSelectedTextWithEncryptedText(selectedText, encryptedText, hint);
 }
 
 void NoteEditorPrivate::onNoteLoadCancelled()

@@ -65,13 +65,13 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     }
 
     if (foundImageResource) {
-        contextMenuEventHandler.setContextMenuContent("ImageResource", false, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("ImageResource", "", contextMenuSequenceNumber);
     }
     else if (foundNonImageResource) {
-        contextMenuEventHandler.setContextMenuContent("NonImageResource", false, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("NonImageResource", "", contextMenuSequenceNumber);
     }
     else if (foundEnCryptTag) {
-        contextMenuEventHandler.setContextMenuContent("EncryptedText", false, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("EncryptedText", "", contextMenuSequenceNumber);
     }
     else {
         var selectedHtml = getSelectionHtml();
@@ -80,6 +80,6 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
             selectedHtml = getSelectionHtml();
         }
 
-        contextMenuEventHandler.setContextMenuContent("GenericText", (selectedHtml ? true : false), contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, contextMenuSequenceNumber);
     }
 }

@@ -165,6 +165,8 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
+    void onSelectedTextEncryption(QString selectedText, QString encryptedText,
+                                  QString hint, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
 
@@ -186,7 +188,7 @@ private Q_SLOTS:
 #endif
 
     void contextMenuEvent(QContextMenuEvent * pEvent);
-    void onContextMenuEventReply(QString contentType, bool hasSelection, quint64 sequenceNumber);
+    void onContextMenuEventReply(QString contentType, QString selectedHtml, quint64 sequenceNumber);
 
     void onTextCursorPositionChange();
 
@@ -217,6 +219,10 @@ private:
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
 
+    void replaceSelectedTextWithEncryptedText(const QString & selectedText,
+                                              const QString & encryptedText,
+                                              const QString & hint);
+
     void clearEditorContent();
     void noteToEditorContent();
     void updateColResizableTableBindings();
@@ -246,7 +252,7 @@ private:
     void setupTextCursorPositionTracking();
 #endif
 
-    void setupGenericTextContextMenu(const bool hasSelection);
+    void setupGenericTextContextMenu(const QString &selectedHtml);
     void setupImageResourceContextMenu();
     void setupNonImageResourceContextMenu();
     void setupEncryptedTextContextMenu();
@@ -447,6 +453,8 @@ private:
     QMenu *                                 m_pEncryptedTextContextMenu;
 
     const QString     m_pagePrefix;
+
+    QString     m_lastSelectedHtml;
 
     QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
     QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions
