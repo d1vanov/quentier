@@ -3,6 +3,7 @@
         <file>onFixedWidthTableResize.js</file>
         <file>getSelectionHtml.js</file>
         <file>snapSelectionToWord.js</file>
+        <file>replaceSelectionWithHtml.js</file>
         <file>provideSrcForResourceImgTags.js</file>
         <file>pageMutationObserver.js</file>
         <file>qWebChannelSetup.js</file>
