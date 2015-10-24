@@ -25,10 +25,10 @@ public:
     explicit ContextMenuEventJavaScriptHandler(QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void contextMenuEventReply(QString contentType, QString selectedHtml, quint64 sequenceNumber);
+    void contextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment, quint64 sequenceNumber);
 
 public Q_SLOTS:
-    void setContextMenuContent(QString contentType, QString selectedHtml, quint64 sequenceNumber);
+    void setContextMenuContent(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment, quint64 sequenceNumber);
 };
 
 } // namespace qute_note

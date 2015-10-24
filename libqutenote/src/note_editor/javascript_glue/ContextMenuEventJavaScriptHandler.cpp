@@ -6,9 +6,10 @@ ContextMenuEventJavaScriptHandler::ContextMenuEventJavaScriptHandler(QObject * p
     QObject(parent)
 {}
 
-void ContextMenuEventJavaScriptHandler::setContextMenuContent(QString contentType, QString selectedHtml, quint64 sequenceNumber)
+void ContextMenuEventJavaScriptHandler::setContextMenuContent(QString contentType, QString selectedHtml,
+                                                              bool insideDecryptedTextFragment, quint64 sequenceNumber)
 {
-    emit contextMenuEventReply(contentType, selectedHtml, sequenceNumber);
+    emit contextMenuEventReply(contentType, selectedHtml, insideDecryptedTextFragment, sequenceNumber);
 }
 
 } // namespace qute_note

@@ -657,10 +657,11 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
     determineContextMenuEventTarget();
 }
 
-void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml, quint64 sequenceNumber)
+void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment, quint64 sequenceNumber)
 {
     QNDEBUG("NoteEditorPrivate::onContextMenuEventReply: content type = " << contentType
-            << ", selected html = " << selectedHtml
+            << ", selected html = " << selectedHtml << ", inside decrypted text fragment = "
+            << (insideDecryptedTextFragment ? "true" : "false")
             << ", sequence number = " << sequenceNumber);
 
     if (!checkContextMenuSequenceNumber(sequenceNumber)) {
@@ -671,7 +672,7 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
     ++m_contextMenuSequenceNumber;
 
     if (contentType == "GenericText") {
-        setupGenericTextContextMenu(selectedHtml);
+        setupGenericTextContextMenu(selectedHtml, insideDecryptedTextFragment);
     }
     else if (contentType == "ImageResource") {
         setupImageResourceContextMenu();
@@ -1824,9 +1825,10 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 
 #endif
 
-void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml)
+void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml, bool insideDecryptedTextFragment)
 {
-    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: selected html = " << selectedHtml);
+    QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: selected html = " << selectedHtml
+            << "; inside decrypted text fragment = " << (insideDecryptedTextFragment ? "true" : "false"));
 
     Q_Q(NoteEditor);
 
@@ -1934,7 +1936,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     ADD_ACTION_WITH_SHORTCUT(, Copy, pHyperlinkMenu, copyHyperlink);
     ADD_ACTION_WITH_SHORTCUT(Remove hyperlink, Remove, pHyperlinkMenu, removeHyperlink);
 
-    if (!selectedHtml.isEmpty()) {
+    if (!insideDecryptedTextFragment && !selectedHtml.isEmpty()) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         ADD_ACTION_WITH_SHORTCUT(Encrypt, Encrypt selected fragment..., m_pGenericTextContextMenu, encryptSelectedTextDialog);
     }
@@ -2232,8 +2234,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif
 
-    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,quint64),
-                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,quint64));
+    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,quint64));
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));

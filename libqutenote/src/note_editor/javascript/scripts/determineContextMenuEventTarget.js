@@ -15,6 +15,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     var cipher = "";
     var encryptedText = "";
     var length = "";
+    var insideDecryptedTextFragment = false;
 
     // get context menu event target
     var element = document.elementFromPoint(x, y);
@@ -58,6 +59,11 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                             ", cipher = " + cipher + ", length = " + length);
                 break;
             }
+            else if (enTag == "en-decrypted") {
+                insideDecryptedTextFragment = true;
+                console.log("Found decrypted text fragment");
+                break;
+            }
         }
 
         element = element.parentNode;
@@ -65,13 +71,13 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     }
 
     if (foundImageResource) {
-        contextMenuEventHandler.setContextMenuContent("ImageResource", "", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("ImageResource", "", insideDecryptedTextFragment, contextMenuSequenceNumber);
     }
     else if (foundNonImageResource) {
-        contextMenuEventHandler.setContextMenuContent("NonImageResource", "", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("NonImageResource", "", insideDecryptedTextFragment, contextMenuSequenceNumber);
     }
     else if (foundEnCryptTag) {
-        contextMenuEventHandler.setContextMenuContent("EncryptedText", "", contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("EncryptedText", "", insideDecryptedTextFragment, contextMenuSequenceNumber);
     }
     else {
         var selectedHtml = getSelectionHtml();
@@ -80,6 +86,6 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
             selectedHtml = getSelectionHtml();
         }
 
-        contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, insideDecryptedTextFragment, contextMenuSequenceNumber);
     }
 }
