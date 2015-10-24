@@ -49,6 +49,9 @@ public:
     static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
                                      const QString & cipher, const size_t keyLength);
 
+    static QString decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
+                                     const QString & hint, const QString & cipher, const size_t keyLength);
+
 private:
     static bool isForbiddenXhtmlTag(const QString & tagName);
     static bool isForbiddenXhtmlAttribute(const QString & attributeName);
@@ -74,6 +77,10 @@ private:
                             ) const;
 
     void toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer) const;
+
+    static void decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
+                                  const QString & hint, const QString & cipher, const size_t keyLength,
+                                  QXmlStreamWriter & writer);
 
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)

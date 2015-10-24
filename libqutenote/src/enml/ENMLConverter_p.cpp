@@ -652,6 +652,16 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
     return encryptedTextHtmlObject;
 }
 
+QString ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
+                                                const QString & hint, const QString & cipher, const size_t keyLength)
+{
+    QString result;
+    QXmlStreamWriter writer(&result);
+    decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength, writer);
+    return result;
+}
+
+
 bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
 {
     auto it = forbiddenXhtmlTags.find(tagName);
@@ -751,64 +761,18 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
         QNTRACE("Found encrypted text which has already been decrypted and cached; "
                 "encrypted text = " << encryptedTextCharacters);
 
-        writer.writeStartElement("div");
-        writer.writeAttribute("en-tag", "en-decrypted");
-        writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
-
-        if (!cipher.isEmpty()) {
-            writer.writeAttribute("cipher", cipher);
-        }
-
-        if (!length.isEmpty()) {
-            writer.writeAttribute("length", length);
-        }
-
-        if (!hint.isEmpty()) {
-            writer.writeAttribute("hint", hint);
-        }
-
-        QString formattedDecryptedText = decryptedText;
-        formattedDecryptedText.prepend("<?xml version=\"1.0\"?>"
-                                       "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
-                                       "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
-                                       "<div class=\"en-decrypted hvr-border-color\">");
-        formattedDecryptedText.append("</div>");
-
-        QXmlStreamReader decryptedTextReader(formattedDecryptedText);
-        bool foundFormattedText = false;
-
-        while(!decryptedTextReader.atEnd())
+        size_t keyLength = 0;
+        if (!length.isEmpty())
         {
-            Q_UNUSED(decryptedTextReader.readNext());
-
-            if (decryptedTextReader.isStartElement()) {
-                writer.writeStartElement(decryptedTextReader.name().toString());
-                writer.writeAttributes(decryptedTextReader.attributes());
-                foundFormattedText = true;
-                QNTRACE("Wrote start element from decrypted text: " << decryptedTextReader.name());
-            }
-
-            if (decryptedTextReader.isCharacters()) {
-                writer.writeCharacters(decryptedTextReader.text().toString());
-                foundFormattedText = true;
-                QNTRACE("Wrote characters from decrypted text: " << decryptedTextReader.text());
-            }
-
-            if (decryptedTextReader.isEndElement()) {
-                writer.writeEndElement();
-                QNTRACE("Wrote end element from decrypted text: " << decryptedTextReader.name());
+            bool conversionResult = false;
+            keyLength = static_cast<size_t>(length.toUInt(&conversionResult));
+            if (!conversionResult) {
+                QNWARNING("Can't convert encryption key length from string to unsigned integer: " << length);
+                keyLength = 0;
             }
         }
 
-        if (decryptedTextReader.hasError()) {
-            QNWARNING("Decrypted text reader has error: " << decryptedTextReader.errorString());
-        }
-
-        if (!foundFormattedText) {
-            writer.writeCharacters(decryptedText);
-            QNTRACE("Wrote unformatted decrypted text: " << decryptedText);
-        }
-
+        decryptedTextHtml(decryptedText, encryptedTextCharacters.toString(), hint, cipher, keyLength, writer);
         return true;
     }
 
@@ -1039,6 +1003,68 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
 
     QNTRACE("Wrote en-crypt ENML tag from en-decrypted div tag");
     return true;
+}
+
+void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText, const QString & hint,
+                                             const QString & cipher, const size_t keyLength, QXmlStreamWriter & writer)
+{
+    writer.writeStartElement("div");
+    writer.writeAttribute("en-tag", "en-decrypted");
+    writer.writeAttribute("encrypted_text", encryptedText);
+
+    if (!cipher.isEmpty()) {
+        writer.writeAttribute("cipher", cipher);
+    }
+
+    if (keyLength != 0) {
+        writer.writeAttribute("length", QString::number(keyLength));
+    }
+
+    if (!hint.isEmpty()) {
+        writer.writeAttribute("hint", hint);
+    }
+
+    QString formattedDecryptedText = decryptedText;
+    formattedDecryptedText.prepend("<?xml version=\"1.0\"?>"
+                                   "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
+                                   "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
+                                   "<div class=\"en-decrypted hvr-border-color\">");
+    formattedDecryptedText.append("</div>");
+
+    QXmlStreamReader decryptedTextReader(formattedDecryptedText);
+    bool foundFormattedText = false;
+
+    while(!decryptedTextReader.atEnd())
+    {
+        Q_UNUSED(decryptedTextReader.readNext());
+
+        if (decryptedTextReader.isStartElement()) {
+            writer.writeStartElement(decryptedTextReader.name().toString());
+            writer.writeAttributes(decryptedTextReader.attributes());
+            foundFormattedText = true;
+            QNTRACE("Wrote start element from decrypted text: " << decryptedTextReader.name());
+        }
+
+        if (decryptedTextReader.isCharacters()) {
+            writer.writeCharacters(decryptedTextReader.text().toString());
+            foundFormattedText = true;
+            QNTRACE("Wrote characters from decrypted text: " << decryptedTextReader.text());
+        }
+
+        if (decryptedTextReader.isEndElement()) {
+            writer.writeEndElement();
+            QNTRACE("Wrote end element from decrypted text: " << decryptedTextReader.name());
+        }
+    }
+
+    if (decryptedTextReader.hasError()) {
+        QNWARNING("Decrypted text reader has error: " << decryptedTextReader.errorString());
+    }
+
+    if (!foundFormattedText) {
+        writer.writeCharacters(decryptedText);
+        QNTRACE("Wrote unformatted decrypted text: " << decryptedText);
+    }
 }
 
 } // namespace qute_note

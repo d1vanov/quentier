@@ -78,5 +78,11 @@ QString ENMLConverter::encryptedTextHtml(const QString & encryptedText, const QS
     return ENMLConverterPrivate::encryptedTextHtml(encryptedText, hint, cipher, keyLength);
 }
 
+QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
+                                         const QString & hint, const QString & cipher, const size_t keyLength)
+{
+    return ENMLConverterPrivate::decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength);
+}
+
 } // namespace qute_note
 
