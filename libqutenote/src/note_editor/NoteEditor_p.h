@@ -130,7 +130,8 @@ public:
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
     void addAttachmentDialog();
     void encryptSelectedTextDialog();
-    void encryptSelectedText(const QString & passphrase, const QString & hint);
+    void encryptSelectedText(const QString & passphrase, const QString & hint,
+                             const bool rememberForSession);
     void addHyperlinkDialog();
     void editHyperlinkDialog();
     void copyHyperlink();
@@ -219,9 +220,8 @@ private:
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
 
-    void replaceSelectedTextWithEncryptedText(const QString & selectedText,
-                                              const QString & encryptedText,
-                                              const QString & hint);
+    void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
+                                                         const QString & hint, const bool rememberForSession);
 
     void clearEditorContent();
     void noteToEditorContent();

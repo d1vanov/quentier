@@ -992,19 +992,23 @@ void NoteEditorPrivate::changeIndentation(const bool increase)
     q->setFocus();
 }
 
-void NoteEditorPrivate::replaceSelectedTextWithEncryptedText(const QString & selectedText,
-                                                             const QString & encryptedText,
-                                                             const QString & hint)
+void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
+                                                                        const QString & hint, const bool rememberForSession)
 {
-    QNDEBUG("NoteEditorPrivate::replaceSelectedTextWithEncryptedText: encrypted text = "
-            << encryptedText << ", hint = " << hint);
+    QNDEBUG("NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText: encrypted text = "
+            << encryptedText << ", hint = " << hint << ", rememberForSession = " << (rememberForSession ? "true" : "false"));
 
     Q_UNUSED(selectedText);
 
-    QString encryptedTextHtmlObject = ENMLConverter::encryptedTextHtml(encryptedText, hint, "AES", 128);
-    QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(encryptedTextHtmlObject);
+    QString encryptedTextHtmlObject = (rememberForSession
+                                       ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, "AES", 128)
+                                       : ENMLConverter::encryptedTextHtml(encryptedText, hint, "AES", 128));
+    QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
 
     QNTRACE("script: " << javascript);
+
+    // Protect ourselves from the note's html update during the process of changing the selected text to encrypted/decrypted text
+    m_pendingConversionToNote = false;
 
     Q_Q(NoteEditor);
 #ifndef USE_QT_WEB_ENGINE
@@ -2415,6 +2419,8 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
 
     QString passphrase;
     QString hint;
+    bool rememberForSession = false;
+
     typedef QVector<QPair<QString,QString> >::const_iterator CIter;
     CIter extraDataEnd = extraData.constEnd();
     for(CIter it = extraData.constBegin(); it != extraDataEnd; ++it)
@@ -2425,6 +2431,9 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         }
         else if (itemPair.first == "hint") {
             hint = itemPair.second;
+        }
+        else if (itemPair.first == "rememberForSession") {
+            rememberForSession = (itemPair.second == "true");
         }
     }
 
@@ -2449,7 +2458,7 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         return;
     }
 
-    replaceSelectedTextWithEncryptedText(selectedHtml, encryptedText, hint);
+    replaceSelectedTextWithEncryptedOrDecryptedText(selectedHtml, encryptedText, hint, rememberForSession);
 }
 
 void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData)
@@ -3144,14 +3153,15 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
     QNTRACE("Executed encryption dialog");
 }
 
-void NoteEditorPrivate::encryptSelectedText(const QString & passphrase,
-                                            const QString & hint)
+void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QString & hint,
+                                            const bool rememberForSession)
 {
     QNDEBUG("NoteEditorPrivate::encryptSelectedText");
 
     Q_Q(NoteEditor);
     QVector<QPair<QString,QString> > extraData;
-    extraData << QPair<QString,QString>("passphrase",passphrase) << QPair<QString,QString>("hint",hint);
+    extraData << QPair<QString,QString>("passphrase",passphrase) << QPair<QString,QString>("hint",hint)
+              << QPair<QString,QString>("rememberForSession",(rememberForSession ? "true" : "false"));
 
 #ifndef USE_QT_WEB_ENGINE
     if (!q->page()->hasSelection()) {
@@ -3230,7 +3240,7 @@ void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString e
             << "encrypted text = " << encryptedText << ", hint = " << hint
             << ", remember for session = " << (rememberForSession ? "true" : "false"));
 
-    replaceSelectedTextWithEncryptedText(selectedText, encryptedText, hint);
+    replaceSelectedTextWithEncryptedOrDecryptedText(selectedText, encryptedText, hint, rememberForSession);
 }
 
 void NoteEditorPrivate::onNoteLoadCancelled()

@@ -145,7 +145,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             lastElementAttributes = reader.attributes();
 
-            if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "div")) &&
+            if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "p")) &&
                  lastElementAttributes.hasAttribute("en-tag") )
             {
                 const QString enTag = lastElementAttributes.value("en-tag").toString();
@@ -658,6 +658,7 @@ QString ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, c
     QString result;
     QXmlStreamWriter writer(&result);
     decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength, writer);
+    writer.writeEndElement();
     return result;
 }
 
@@ -1001,16 +1002,17 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
     writer.writeCharacters(encryptedText);
     writer.writeEndElement();
 
-    QNTRACE("Wrote en-crypt ENML tag from en-decrypted div tag");
+    QNTRACE("Wrote en-crypt ENML tag from en-decrypted p tag");
     return true;
 }
 
 void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText, const QString & hint,
                                              const QString & cipher, const size_t keyLength, QXmlStreamWriter & writer)
 {
-    writer.writeStartElement("div");
+    writer.writeStartElement("p");
     writer.writeAttribute("en-tag", "en-decrypted");
     writer.writeAttribute("encrypted_text", encryptedText);
+    writer.writeAttribute("class", "en-decrypted hvr-border-color");
 
     if (!cipher.isEmpty()) {
         writer.writeAttribute("cipher", cipher);
@@ -1028,7 +1030,7 @@ void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, cons
     formattedDecryptedText.prepend("<?xml version=\"1.0\"?>"
                                    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" "
                                    "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
-                                   "<div class=\"en-decrypted hvr-border-color\">");
+                                   "<div id=\"decrypted_text_html_to_enml_temporary\">");
     formattedDecryptedText.append("</div>");
 
     QXmlStreamReader decryptedTextReader(formattedDecryptedText);
@@ -1038,9 +1040,16 @@ void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, cons
     {
         Q_UNUSED(decryptedTextReader.readNext());
 
-        if (decryptedTextReader.isStartElement()) {
+        if (decryptedTextReader.isStartElement())
+        {
+            const QXmlStreamAttributes attributes = decryptedTextReader.attributes();
+            if (attributes.hasAttribute("id") && (attributes.value("id") == "decrypted_text_html_to_enml_temporary")) {
+                QNTRACE("Skipping the start of temporarily added div");
+                continue;
+            }
+
             writer.writeStartElement(decryptedTextReader.name().toString());
-            writer.writeAttributes(decryptedTextReader.attributes());
+            writer.writeAttributes(attributes);
             foundFormattedText = true;
             QNTRACE("Wrote start element from decrypted text: " << decryptedTextReader.name());
         }
@@ -1051,7 +1060,14 @@ void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, cons
             QNTRACE("Wrote characters from decrypted text: " << decryptedTextReader.text());
         }
 
-        if (decryptedTextReader.isEndElement()) {
+        if (decryptedTextReader.isEndElement())
+        {
+            const QXmlStreamAttributes attributes = decryptedTextReader.attributes();
+            if (attributes.hasAttribute("id") && (attributes.value("id") == "decrypted_text_html_to_enml_temporary")) {
+                QNTRACE("Skipping the end of temporarily added div");
+                continue;
+            }
+
             writer.writeEndElement();
             QNTRACE("Wrote end element from decrypted text: " << decryptedTextReader.name());
         }

@@ -263,10 +263,10 @@ void NoteEditor::encryptSelectedTextDialog()
     d->encryptSelectedTextDialog();
 }
 
-void NoteEditor::encryptSelectedText(const QString & passphrase, const QString & hint)
+void NoteEditor::encryptSelectedText(const QString & passphrase, const QString & hint, const bool rememberForSession)
 {
     Q_D(NoteEditor);
-    d->encryptSelectedText(passphrase, hint);
+    d->encryptSelectedText(passphrase, hint, rememberForSession);
 }
 
 void NoteEditor::addHyperlinkDialog()
