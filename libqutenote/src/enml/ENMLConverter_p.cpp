@@ -589,7 +589,7 @@ QStringList ENMLConverterPrivate::plainTextToListOfWords(const QString & plainTe
     return plainText.split(QRegExp("\\W+"), QString::SkipEmptyParts);
 }
 
-QString ENMLConverterPrivate::getToDoCheckboxHtml(const bool checked)
+QString ENMLConverterPrivate::toDoCheckboxHtml(const bool checked)
 {
     QString html = "<img src=\"qrc:/checkbox_icons/checkbox_";
     if (checked) {

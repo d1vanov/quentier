@@ -2865,7 +2865,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
 {
     QNDEBUG("NoteEditorPrivate::insertToDoCheckbox");
 
-    QString html = ENMLConverter::getToDoCheckboxHtml(/* checked = */ false);
+    QString html = ENMLConverter::toDoCheckboxHtml(/* checked = */ false);
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
     javascript += m_setupEnToDoTagsJs;
 

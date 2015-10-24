@@ -41,7 +41,7 @@ public:
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
-    static QString getToDoCheckboxHtml(const bool checked);
+    static QString toDoCheckboxHtml(const bool checked);
 
     static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
                                      const QString & cipher, const size_t keyLength);

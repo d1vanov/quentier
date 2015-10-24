@@ -67,9 +67,9 @@ QStringList ENMLConverter::plainTextToListOfWords(const QString & plainText)
     return ENMLConverterPrivate::plainTextToListOfWords(plainText);
 }
 
-QString ENMLConverter::getToDoCheckboxHtml(const bool checked)
+QString ENMLConverter::toDoCheckboxHtml(const bool checked)
 {
-    return ENMLConverterPrivate::getToDoCheckboxHtml(checked);
+    return ENMLConverterPrivate::toDoCheckboxHtml(checked);
 }
 
 QString ENMLConverter::encryptedTextHtml(const QString & encryptedText, const QString & hint,
