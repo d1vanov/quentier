@@ -2638,7 +2638,7 @@ NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory()
 }
 #endif
 
-void NoteEditorPrivate::onDropEvent(QDropEvent *pEvent)
+void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
 {
     QNDEBUG("NoteEditorPrivate::onDropEvent");
 
@@ -2679,7 +2679,11 @@ QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const Q
 
     ResourceWrapper resource;
     resource.setDataBody(data);
-    resource.setDataHash(dataHash);
+
+    if (!dataHash.isEmpty()) {
+        resource.setDataHash(dataHash);
+    }
+
     resource.setDataSize(data.size());
     resource.setMime(mimeType.name());
     resource.setDirty(true);
