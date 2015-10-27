@@ -1,4 +1,5 @@
 function replaceSelectionWithHtml(html) {
+    console.log("replaceSelectionWithHtml: " + html);
     var range, html;
     if (window.getSelection && window.getSelection().getRangeAt) {
         range = window.getSelection().getRangeAt(0);

@@ -41,7 +41,7 @@ private Q_SLOTS:
     void onRememberPassphraseStateChanged(int checked);
     void onShowPasswordStateChanged(int checked);
 
-    virtual void accept();
+    virtual void accept() Q_DECL_OVERRIDE;
 
 private:
     void setError(const QString & error);

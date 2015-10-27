@@ -165,6 +165,7 @@ Q_SIGNALS:
     void textCursorPositionInsideTableState(bool state);
 
 private Q_SLOTS:
+    void onUrlEditingFinished(QUrl url);
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString hint, bool rememberForSession);
@@ -366,6 +367,7 @@ private:
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
+    QString     m_setHyperlinkToSelectionJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;

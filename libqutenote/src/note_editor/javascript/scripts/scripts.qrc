@@ -19,5 +19,6 @@
         <file>genericResourceOnClickHandler.js</file>
         <file>setupGenericResourceOnClickHandler.js</file>
         <file>changeFontSizeForSelection.js</file>
+        <file>setHyperlinkToSelection.js</file>
     </qresource>
 </RCC>

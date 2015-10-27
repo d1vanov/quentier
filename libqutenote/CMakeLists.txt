@@ -162,6 +162,7 @@ set(PRIVATE_HEADERS
     src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
+    src/note_editor/EditUrlDialog.h
     src/note_editor/EncryptionDialog.h
     src/note_editor/DecryptionDialog.h
     src/note_editor/ResourceFileStorageManager_p.h
@@ -217,6 +218,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
     src/note_editor/NoteEditor_p.cpp
+    src/note_editor/EditUrlDialog.cpp
     src/note_editor/EncryptionDialog.cpp
     src/note_editor/DecryptionDialog.cpp
     src/note_editor/ResourceFileStorageManager.cpp
@@ -340,6 +342,7 @@ endif()
 
 set(FORMS
     src/note_editor/AttachmentStoragePathConfigDialog.ui
+    src/note_editor/EditUrlDialog.ui
     src/note_editor/EncryptionDialog.ui
     src/note_editor/DecryptionDialog.ui)
 
