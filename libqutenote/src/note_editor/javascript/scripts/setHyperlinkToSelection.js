@@ -1,22 +1,25 @@
-function setHyperlinkToSelection(link) {
-    console.log("setHyperlinkToSelection: " + link);
+function setHyperlinkToSelection(text, link) {
+    console.log("setHyperlinkToSelection: text = " + text + "; link = " + link);
 
     var element = findSelectedHyperlinkElement();
     if (element) {
-        console.log("Found link node within the selection, " +
-                    "will use its text as link text");
+        console.log("Found link node within the selection");
         element.href = link;
+        if (text) {
+            element.innerHtml = text;
+        }
         return;
     }
 
-    console.log("Found no link node within the selection, will use " +
-                "selection converted to string as link text");
-    var selectedText = window.getSelection().toString();
-    if (!selectedText) {
-        console.log("Selection converted to string yields empty string, " +
-                    "will use the link itself as link text");
-        selectedText = link;
+    console.log("Found no link node within the selection");
+    if (!text) {
+        text = window.getSelection().toString();
+        if (!text) {
+            console.log("Selection converted to string yields empty string, " +
+                        "will use the link itself as link text");
+            text = link;
+        }
     }
 
-    replaceSelectionWithHtml('<a href="' + link + '">' + selectedText + "</a>");
+    replaceSelectionWithHtml('<a href="' + link + '">' + text + "</a>");
 }

@@ -4,7 +4,8 @@
 
 namespace qute_note {
 
-EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupUrl) :
+EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupText,
+                             const QString & startupUrl) :
     QDialog(parent),
     m_pUI(new Ui::EditUrlDialog)
 {
@@ -15,6 +16,10 @@ EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupUrl) :
                      this, QNSLOT(EditUrlDialog,onUrlEdited,QString));
     QObject::connect(m_pUI->urlLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(EditUrlDialog,onUrlEditingFinished));
+
+    if (!startupText.isEmpty()) {
+        m_pUI->textLineEdit->setText(startupText);
+    }
 
     if (!startupUrl.isEmpty()) {
         QUrl url(startupUrl, QUrl::TolerantMode);
@@ -42,7 +47,7 @@ void EditUrlDialog::accept()
         return;
     }
 
-    emit accepted(url);
+    emit accepted(m_pUI->textLineEdit->text(), url);
     QDialog::accept();
 }
 

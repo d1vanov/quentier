@@ -169,7 +169,7 @@ private Q_SLOTS:
                                 const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
-    void onUrlEditingFinished(QUrl url);
+    void onUrlEditingFinished(QString text, QUrl url);
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString hint, bool rememberForSession);
@@ -228,7 +228,7 @@ private:
     void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
                                                          const QString & hint, const bool rememberForSession);
 
-    void raiseEditUrlDialog(const QString & startupUrl = QString());
+    void raiseEditUrlDialog(const QString & startupText = QString(), const QString & startupUrl = QString());
 
     void clearEditorContent();
     void noteToEditorContent();

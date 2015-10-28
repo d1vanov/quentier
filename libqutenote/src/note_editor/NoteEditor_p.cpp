@@ -1030,15 +1030,16 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
 #endif
 }
 
-void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupUrl)
+void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QString & startupUrl)
 {
-    QNDEBUG("NoteEditorPrivate::raiseEditUrlDialog: startupUrl = " << startupUrl);
+    QNDEBUG("NoteEditorPrivate::raiseEditUrlDialog: startup text = " << startupText
+            << ", startup url = " << startupUrl);
 
     Q_Q(NoteEditor);
-    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(q, startupUrl));
+    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(q, startupText, startupUrl));
     pEditUrlDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QUrl),
-                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QUrl));
+    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl),
+                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl));
     QNTRACE("Will exec edit URL dialog now");
     pEditUrlDialog->exec();
     QNTRACE("Executed edit URL dialog");
@@ -3219,7 +3220,7 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QS
 void NoteEditorPrivate::addHyperlinkDialog()
 {
     QNDEBUG("NoteEditorPrivate::addHyperlinkDialog");
-    raiseEditUrlDialog();
+    editHyperlinkDialog();
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()
@@ -3238,8 +3239,15 @@ void NoteEditorPrivate::editHyperlinkDialog()
         return;
     }
 
-    QString hyperlink = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toString();
-    raiseEditUrlDialog(hyperlink);
+    QStringList hyperlinkData = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toStringList();
+    if (hyperlinkData.size() != 2) {
+        QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text and hyperlink from JavaScript");
+        QNWARNING(error << "; hyperlink data: " << hyperlinkData.join(","));
+        emit notifyError(error);
+        return;
+    }
+
+    raiseEditUrlDialog(hyperlinkData[0], hyperlinkData[1]);
 #else
     GET_PAGE()
     page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
@@ -3312,7 +3320,22 @@ void NoteEditorPrivate::onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
 {
     QNDEBUG("NoteEditorPrivate::onFoundHyperlinkToEdit: " << hyperlinkData);
     Q_UNUSED(extraData);
-    raiseEditUrlDialog(hyperlinkData.toString());
+
+    QStringList hyperlinkDataList = hyperlinkData.toStringList();
+    if (hyperlinkDataList.isEmpty()) {
+        QNTRACE("Hyperlink data was not found, starting with empty startup text and url");
+        raiseEditUrlDialog();
+        return;
+    }
+
+    if (hyperlinkDataList.size() != 2) {
+        QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text and hyperlink from JavaScript");
+        QNWARNING(error << "; hyperlink data: " << hyperlinkDataList.join(","));
+        emit notifyError(error);
+        return;
+    }
+
+    raiseEditUrlDialog(hyperlinkDataList[0], hyperlinkDataList[1]);
 }
 
 void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
@@ -3321,28 +3344,41 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
     QNDEBUG("NoteEditorPrivate::onFoundHyperlinkToCopy: " << hyperlinkData);
     Q_UNUSED(extraData);
 
+    QStringList hyperlinkDataList = hyperlinkData.toStringList();
+    if (hyperlinkDataList.isEmpty()) {
+        QNTRACE("Hyperlink data to copy was not found");
+        return;
+    }
+
+    if (hyperlinkDataList.size() != 2) {
+        QString error = QT_TR_NOOP("Can't copy hyperlink: can't get text and hyperlink from JavaScript");
+        QNWARNING(error << "; hyperlink data: " << hyperlinkDataList.join(","));
+        emit notifyError(error);
+        return;
+    }
+
     QClipboard * pClipboard = QApplication::clipboard();
     if (Q_UNLIKELY(!pClipboard)) {
         QNWARNING("Unable to get window system clipboard");
     }
     else {
-        pClipboard->setText(hyperlinkData.toString());
+        pClipboard->setText(hyperlinkDataList[1]);
     }
 }
 
-void NoteEditorPrivate::onUrlEditingFinished(QUrl url)
+void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url)
 {
+    QNDEBUG("NoteEditorPrivate::onUrlEditingFinished: text = " << text << "; url = " << url);
+
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString urlString = url.toString(QUrl::FullyEncoded);
 #else
     QString urlString = url.toString(QUrl::None);
 #endif
 
-    QNDEBUG("URL: " << url << "; URL string: " << urlString);
-
     Q_Q(NoteEditor);
     GET_PAGE()
-    page->executeJavaScript("setHyperlinkToSelection('" + urlString + "');");
+    page->executeJavaScript("setHyperlinkToSelection('" + text + "', '" + urlString + "');");
     q->setFocus();
 }
 

@@ -3,8 +3,11 @@ function getHyperlinkFromSelection() {
 
     var element = findSelectedHyperlinkElement();
     if (!element) {
-        return;
+        console.log("Haven't found hyperlink under selection");
+        var text = getSelectionHtml();
+        return [text, ""];
     }
 
-    return element.href;
+    console.log("Found hyperlink under selection, returning [" + element.innerHTML + ", " + element.href + "]");
+    return [element.innerHTML, element.href];
 }

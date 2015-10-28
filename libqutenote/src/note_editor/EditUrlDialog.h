@@ -16,11 +16,12 @@ class EditUrlDialog: public QDialog
     Q_OBJECT
 public:
     explicit EditUrlDialog(QWidget * parent = Q_NULLPTR,
+                           const QString & startupText = QString(),
                            const QString & startupUrl = QString());
     virtual ~EditUrlDialog();
 
 Q_SIGNALS:
-    void accepted(QUrl url);
+    void accepted(QString text, QUrl url);
 
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
