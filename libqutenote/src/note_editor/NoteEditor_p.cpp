@@ -3227,7 +3227,7 @@ void NoteEditorPrivate::editHyperlinkDialog()
     Q_UNUSED(extraData);
 
     if (!q->page()->hasSelection()) {
-        QNINFO("Note editor page has no selected text, hence no hyperlink to edit is available");
+        QNDEBUG("Note editor page has no selected text, hence no hyperlink to edit is available");
         raiseEditUrlDialog();
         return;
     }
@@ -3244,10 +3244,21 @@ void NoteEditorPrivate::copyHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::copyHyperlink");
 
-    // TODO: implement
-
     Q_Q(NoteEditor);
-    q->setFocus();
+    QVector<QPair<QString,QString> > extraData;
+
+#ifndef USE_QT_WEB_ENGINE
+    if (!q->page()->hasSelection()) {
+        QNDEBUG("Note editor page has no selected text, hence no hyperlink to copy is available");
+        return;
+    }
+
+    QVariant hyperlink = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
+    onFoundHyperlinkToCopy(hyperlink, extraData);
+#else
+    GET_PAGE()
+    page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToCopy, extraData));
+#endif
 }
 
 void NoteEditorPrivate::removeHyperlink()
@@ -3296,6 +3307,21 @@ void NoteEditorPrivate::onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
     QNDEBUG("NoteEditorPrivate::onFoundHyperlinkToEdit: " << hyperlinkData);
     Q_UNUSED(extraData);
     raiseEditUrlDialog(hyperlinkData.toString());
+}
+
+void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
+                                               const QVector<QPair<QString, QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onFoundHyperlinkToCopy: " << hyperlinkData);
+    Q_UNUSED(extraData);
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        QNWARNING("Unable to get window system clipboard");
+    }
+    else {
+        pClipboard->setText(hyperlinkData.toString());
+    }
 }
 
 void NoteEditorPrivate::onUrlEditingFinished(QUrl url)

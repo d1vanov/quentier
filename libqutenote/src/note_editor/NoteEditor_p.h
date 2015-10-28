@@ -167,6 +167,8 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
+    void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
+                                const QVector<QPair<QString, QString> > & extraData);
     void onUrlEditingFinished(QUrl url);
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
