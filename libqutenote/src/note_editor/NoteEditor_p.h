@@ -165,6 +165,8 @@ Q_SIGNALS:
     void textCursorPositionInsideTableState(bool state);
 
 private Q_SLOTS:
+    void onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
+                                const QVector<QPair<QString, QString> > & extraData);
     void onUrlEditingFinished(QUrl url);
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
@@ -223,6 +225,8 @@ private:
 
     void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
                                                          const QString & hint, const bool rememberForSession);
+
+    void raiseEditUrlDialog(const QString & startupUrl = QString());
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -368,6 +372,7 @@ private:
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
     QString     m_setHyperlinkToSelectionJs;
+    QString     m_getHyperlinkFromSelectionJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;

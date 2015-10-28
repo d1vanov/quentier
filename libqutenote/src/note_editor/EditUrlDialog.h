@@ -15,7 +15,8 @@ class EditUrlDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit EditUrlDialog(QWidget * parent = Q_NULLPTR);
+    explicit EditUrlDialog(QWidget * parent = Q_NULLPTR,
+                           const QString & startupUrl = QString());
     virtual ~EditUrlDialog();
 
 Q_SIGNALS:

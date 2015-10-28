@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>102</height>
+    <height>114</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
       <bool>true</bool>
      </property>
      <property name="placeholderText">
-      <string>Please enter Url here</string>
+      <string>Please enter the url here</string>
      </property>
     </widget>
    </item>

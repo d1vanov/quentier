@@ -20,5 +20,6 @@
         <file>setupGenericResourceOnClickHandler.js</file>
         <file>changeFontSizeForSelection.js</file>
         <file>setHyperlinkToSelection.js</file>
+        <file>getHyperlinkFromSelection.js</file>
     </qresource>
 </RCC>

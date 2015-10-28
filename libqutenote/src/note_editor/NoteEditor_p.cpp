@@ -86,6 +86,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
     m_setHyperlinkToSelectionJs(),
+    m_getHyperlinkFromSelectionJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
@@ -268,6 +269,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
+    page->executeJavaScript(m_getHyperlinkFromSelectionJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
@@ -1022,6 +1024,20 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     QVector<QPair<QString,QString> > extraData;
     q->page()->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
 #endif
+}
+
+void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupUrl)
+{
+    QNDEBUG("NoteEditorPrivate::raiseEditUrlDialog: startupUrl = " << startupUrl);
+
+    Q_Q(NoteEditor);
+    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(q, startupUrl));
+    pEditUrlDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QUrl),
+                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QUrl));
+    QNTRACE("Will exec edit URL dialog now");
+    pEditUrlDialog->exec();
+    QNTRACE("Executed edit URL dialog");
 }
 
 void NoteEditorPrivate::clearEditorContent()
@@ -2186,6 +2202,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
+    SETUP_SCRIPT("javascript/scripts/getHyperlinkFromSelection.js", m_getHyperlinkFromSelectionJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
@@ -2218,11 +2235,12 @@ void NoteEditorPrivate::setupNoteEditorPage()
 
     NoteEditorPage * page = new NoteEditorPage(*q);
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
-    page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, true);
+    page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, false);
 
 #ifndef USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
+    page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
     page->setContentEditable(true);
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
@@ -3195,25 +3213,31 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QS
 void NoteEditorPrivate::addHyperlinkDialog()
 {
     QNDEBUG("NoteEditorPrivate::addHyperlinkDialog");
-
-    Q_Q(NoteEditor);
-    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(q));
-    pEditUrlDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QUrl),
-                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QUrl));
-    QNTRACE("Will exec edit URL dialog now");
-    pEditUrlDialog->exec();
-    QNTRACE("Executed edit URL dialog");
+    raiseEditUrlDialog();
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()
 {
     QNDEBUG("NoteEditorPrivate::editHyperlinkDialog");
 
-    // TODO: implement
-
     Q_Q(NoteEditor);
-    q->setFocus();
+    QVector<QPair<QString,QString> > extraData;
+
+#ifndef USE_QT_WEB_ENGINE
+    Q_UNUSED(extraData);
+
+    if (!q->page()->hasSelection()) {
+        QNINFO("Note editor page has no selected text, hence no hyperlink to edit is available");
+        raiseEditUrlDialog();
+        return;
+    }
+
+    QString hyperlink = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toString();
+    raiseEditUrlDialog(hyperlink);
+#else
+    GET_PAGE()
+    page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
+#endif
 }
 
 void NoteEditorPrivate::copyHyperlink()
@@ -3266,9 +3290,22 @@ void NoteEditorPrivate::onNoteLoadCancelled()
     // TODO: add some overlay widget for NoteEditor to properly indicate visually that the note load has been cancelled
 }
 
+void NoteEditorPrivate::onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
+                                               const QVector<QPair<QString, QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onFoundHyperlinkToEdit: " << hyperlinkData);
+    Q_UNUSED(extraData);
+    raiseEditUrlDialog(hyperlinkData.toString());
+}
+
 void NoteEditorPrivate::onUrlEditingFinished(QUrl url)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString urlString = url.toString(QUrl::FullyEncoded);
+#else
+    QString urlString = url.toString(QUrl::None);
+#endif
+
     QNDEBUG("URL: " << url << "; URL string: " << urlString);
 
     Q_Q(NoteEditor);

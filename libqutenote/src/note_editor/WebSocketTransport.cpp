@@ -26,6 +26,7 @@ void WebSocketTransport::textMessageReceived(const QString & messageData)
     QJsonParseError error;
     QJsonDocument message = QJsonDocument::fromJson(messageData.toUtf8(), &error);
     if (error.error) {
+        // TODO: workaround "garbage at the end of the document" error
         QNWARNING("Failed to parse text message as JSON object:" << messageData
                    << "Error is:" << error.errorString());
         return;
