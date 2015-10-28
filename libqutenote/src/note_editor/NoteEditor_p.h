@@ -376,6 +376,7 @@ private:
     QString     m_findSelectedHyperlinkElementJs;
     QString     m_setHyperlinkToSelectionJs;
     QString     m_getHyperlinkFromSelectionJs;
+    QString     m_removeHyperlinkFromSelectionJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_onResourceInfoReceivedJs;

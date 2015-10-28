@@ -88,6 +88,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_findSelectedHyperlinkElementJs(),
     m_setHyperlinkToSelectionJs(),
     m_getHyperlinkFromSelectionJs(),
+    m_removeHyperlinkFromSelectionJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_onResourceInfoReceivedJs(),
@@ -272,6 +273,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
+    page->executeJavaScript(m_removeHyperlinkFromSelectionJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
@@ -2206,6 +2208,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
     SETUP_SCRIPT("javascript/scripts/getHyperlinkFromSelection.js", m_getHyperlinkFromSelectionJs);
+    SETUP_SCRIPT("javascript/scripts/removeHyperlinkFromSelection.js", m_removeHyperlinkFromSelectionJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
@@ -3268,9 +3271,9 @@ void NoteEditorPrivate::removeHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::removeHyperlink");
 
-    // TODO: implement
-
     Q_Q(NoteEditor);
+    GET_PAGE()
+    page->executeJavaScript("removeHyperlinkFromSelection();");
     q->setFocus();
 }
 

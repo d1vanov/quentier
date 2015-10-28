@@ -22,5 +22,6 @@
         <file>setHyperlinkToSelection.js</file>
         <file>getHyperlinkFromSelection.js</file>
         <file>findSelectedHyperlinkElement.js</file>
+        <file>removeHyperlinkFromSelection.js</file>
     </qresource>
 </RCC>
