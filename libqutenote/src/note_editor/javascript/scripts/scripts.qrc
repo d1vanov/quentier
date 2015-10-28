@@ -21,5 +21,6 @@
         <file>changeFontSizeForSelection.js</file>
         <file>setHyperlinkToSelection.js</file>
         <file>getHyperlinkFromSelection.js</file>
+        <file>findSelectedHyperlinkElement.js</file>
     </qresource>
 </RCC>
