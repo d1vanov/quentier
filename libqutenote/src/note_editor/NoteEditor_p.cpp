@@ -1961,8 +1961,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     ADD_ACTION_WITH_SHORTCUT(ToDo, Insert ToDo tag, m_pGenericTextContextMenu, insertToDoCheckbox);
 
     QMenu * pHyperlinkMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Hyperlink"));
-    ADD_ACTION_WITH_SHORTCUT(Add hyperlink, Add..., pHyperlinkMenu, addHyperlinkDialog);
-    ADD_ACTION_WITH_SHORTCUT(Edit hyperlink, Edit..., pHyperlinkMenu, editHyperlinkDialog);
+    ADD_ACTION_WITH_SHORTCUT(Edit hyperlink, Add/edit..., pHyperlinkMenu, editHyperlinkDialog);
     ADD_ACTION_WITH_SHORTCUT(, Copy, pHyperlinkMenu, copyHyperlink);
     ADD_ACTION_WITH_SHORTCUT(Remove hyperlink, Remove, pHyperlinkMenu, removeHyperlink);
 
@@ -2126,11 +2125,8 @@ void NoteEditorPrivate::setupActionShortcut(const QString & key, QAction & actio
     else if (key == "ToDo") {
         action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_C);
     }
-    else if (key == "Add hyperlink") {
-        action.setShortcut(Qt::CTRL + Qt::Key_K);
-    }
     else if (key == "Edit hyperlink") {
-        action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_K);
+        action.setShortcut(Qt::CTRL + Qt::Key_K);
     }
     else if (key == "Remove hyperlink") {
         action.setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_R);
@@ -3215,12 +3211,6 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QS
 #else
     q->page()->runJavaScript("getSelectionHtml", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
 #endif
-}
-
-void NoteEditorPrivate::addHyperlinkDialog()
-{
-    QNDEBUG("NoteEditorPrivate::addHyperlinkDialog");
-    editHyperlinkDialog();
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()
