@@ -140,6 +140,7 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/EventLoopWithExitStatus.h
     headers/qute_note/utility/FileIOThreadWorker.h
     headers/qute_note/utility/Linkage.h
+    headers/qute_note/utility/ShortcutManager.h
     headers/qute_note/utility/SysInfo.h
     headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
@@ -190,7 +191,8 @@ set(PRIVATE_HEADERS
     src/synchronization/SendLocalChangesManager.h
     src/synchronization/SynchronizationManager_p.h
     src/utility/EncryptionManager_p.h
-    src/utility/FileIOThreadWorker_p.h)
+    src/utility/FileIOThreadWorker_p.h
+    src/utility/ShortcutManager_p.h)
 
 if(NOT USE_QT_WEB_ENGINE)
   list(APPEND PRIVATE_HEADERS
@@ -293,6 +295,8 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/IQuteNoteException.cpp
     src/utility/Printable.cpp
     src/utility/QuteNoteApplication.cpp
+    src/utility/ShortcutManager.cpp
+    src/utility/ShortcutManager_p.cpp
     src/utility/Utility.cpp)
 
 if(NOT USE_QT_WEB_ENGINE)
