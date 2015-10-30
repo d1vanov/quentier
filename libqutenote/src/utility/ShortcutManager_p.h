@@ -27,6 +27,12 @@ public Q_SLOTS:
     void setNonStandardUserShortcut(QString nonStandardKey, QKeySequence shortcut, QString context);
 
 private:
+    QKeySequence defaultShortcut(const QKeySequence::StandardKey standardKey, const QString & context) const;
+    QKeySequence defaultShortcut(const QString & nonStandardKey, const QString & context) const;
+
+    QString standardKeyToString(const QKeySequence::StandardKey standardKey) const;
+
+private:
     ShortcutManager * const q_ptr;
     Q_DECLARE_PUBLIC(ShortcutManager);
 };
