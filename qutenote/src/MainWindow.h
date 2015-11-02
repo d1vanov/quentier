@@ -4,6 +4,7 @@
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/utility/Qt4Helper.h>
+#include <qute_note/utility/ShortcutManager.h>
 
 #include <QtCore>
 
@@ -108,6 +109,8 @@ private:
 
     int                    m_lastFontSizeComboBoxIndex;
     QString                m_lastFontComboBoxFontFamily;
+
+    qute_note::ShortcutManager  m_shortcutManager;
 };
 
 #endif // __QUTE_NOTE__MAINWINDOW_H

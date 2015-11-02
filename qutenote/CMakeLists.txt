@@ -31,6 +31,7 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
+    src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp

@@ -28,6 +28,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <QMessageBox>
 #include <QtDebug>
 #include <QFontDatabase>
+#include <QKeySequence>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -44,7 +45,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNotebook(),
     m_testNote(),
     m_lastFontSizeComboBoxIndex(-1),
-    m_lastFontComboBoxFontFamily()
+    m_lastFontComboBoxFontFamily(),
+    m_shortcutManager(this)
 {
     QNTRACE("MainWindow constructor");
 
@@ -102,7 +104,7 @@ void MainWindow::connectActionsToEditorSlots()
     // Copy/cut/paste actions
     QObject::connect(m_pUI->ActionCopy, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,copy));
     QObject::connect(m_pUI->ActionCut, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,cut));
-    QObject::connect(m_pUI->ActionInsert, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,paste));
+    QObject::connect(m_pUI->ActionPaste, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,paste));
     // Copy/cut/paste buttons
     QObject::connect(m_pUI->copyPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,copy));
     QObject::connect(m_pUI->cutPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,cut));
@@ -113,7 +115,7 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionFontBold, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
     QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
     QObject::connect(m_pUI->ActionFontUnderlined, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
-    QObject::connect(m_pUI->ActionFontStrikeout, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
+    QObject::connect(m_pUI->ActionFontStrikethrough, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
     QObject::connect(m_pUI->ActionIncreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextIncreaseFontSizeAction));
     QObject::connect(m_pUI->ActionDecreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextDecreaseFontSizeAction));
     QObject::connect(m_pUI->ActionFontHighlight, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextHighlightAction));
@@ -754,7 +756,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     if (!QIcon::hasThemeIcon("edit-paste")) {
         QIcon editPasteIcon(":/fallback_icons/png/edit-paste-6.png");
         m_pUI->pastePushButton->setIcon(editPasteIcon);
-        m_pUI->ActionInsert->setIcon(editPasteIcon);
+        m_pUI->ActionPaste->setIcon(editPasteIcon);
         QNTRACE("set fallback edit-paste icon");
     }
 
@@ -850,7 +852,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     if (!QIcon::hasThemeIcon("format-text-strikethrough")) {
         QIcon formatTextStrikethroughIcon(":/fallback_icons/png/format-text-strikethrough-3.png");
         m_pUI->fontStrikethroughPushButton->setIcon(formatTextStrikethroughIcon);
-        m_pUI->ActionFontStrikeout->setIcon(formatTextStrikethroughIcon);
+        m_pUI->ActionFontStrikethrough->setIcon(formatTextStrikethroughIcon);
         QNTRACE("set fallback format-text-strikethrough icon");
     }
 
@@ -908,7 +910,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
     if (!QIcon::hasThemeIcon("preferences-other")) {
         QIcon preferencesOtherIcon(":/fallback_icons/png/preferences-other-3.png");
-        m_pUI->ActionSettings->setIcon(preferencesOtherIcon);
+        m_pUI->ActionPreferences->setIcon(preferencesOtherIcon);
         QNTRACE("set fallback preferences-other icon");
     }
 
@@ -940,14 +942,64 @@ void MainWindow::setupDefaultShortcuts()
 {
     QNDEBUG("MainWindow::setupDefaultShortcuts");
 
-    // TODO: implement
+#define PROCESS_ACTION_SHORTCUT(action, key, ...) \
+    { \
+        QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
+        if (shortcut.isEmpty()) { \
+            QNTRACE("No shortcut was found for action " #action); \
+        } \
+        else { \
+            m_shortcutManager.setDefaultShortcut(key, shortcut, QString(#__VA_ARGS__)); \
+        } \
+    }
+
+#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
+    { \
+        QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
+        if (shortcut.isEmpty()) { \
+            QNTRACE("No shortcut was found for action " #action); \
+        } \
+        else { \
+            m_shortcutManager.setNonStandardDefaultShortcut(#action, shortcut, QString(#__VA_ARGS__)); \
+        } \
+    }
+
+#include "ActionShortcuts.inl"
+
+#undef PROCESS_NON_STANDARD_ACTION_SHORTCUT
+#undef PROCESS_ACTION_SHORTCUT
 }
 
 void MainWindow::setupUserShortcuts()
 {
     QNDEBUG("MainWindow::setupUserShortcuts");
 
-    // TODO: implement
+#define PROCESS_ACTION_SHORTCUT(action, key, ...) \
+    { \
+        QKeySequence shortcut = m_shortcutManager.shortcut(key, QString(#__VA_ARGS__)); \
+        if (shortcut.isEmpty()) { \
+            QNTRACE("No shortcut was found for action " #action); \
+        } \
+        else { \
+            m_pUI->Action##action->setShortcut(shortcut); \
+        } \
+    }
+
+#define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
+    { \
+        QKeySequence shortcut = m_shortcutManager.shortcut(#action, QString(#__VA_ARGS__)); \
+        if (shortcut.isEmpty()) { \
+            QNTRACE("No shortcut was found for action " #action); \
+        } \
+        else { \
+            m_pUI->Action##action->setShortcut(shortcut); \
+        } \
+    }
+
+#include "ActionShortcuts.inl"
+
+#undef PROCESS_NON_STANDARD_ACTION_SHORTCUT
+#undef PROCESS_ACTION_SHORTCUT
 }
 
 bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error)
@@ -990,4 +1042,3 @@ bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerS
 
     return true;
 }
-

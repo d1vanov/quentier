@@ -8,7 +8,7 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(ShortcutManagerPrivate);
+QT_FORWARD_DECLARE_CLASS(ShortcutManagerPrivate)
 
 class QUTE_NOTE_EXPORT ShortcutManager: public QObject
 {
@@ -32,7 +32,7 @@ public Q_SLOTS:
 
 private:
     ShortcutManagerPrivate * const d_ptr;
-    Q_DECLARE_PRIVATE(ShortcutManager);
+    Q_DECLARE_PRIVATE(ShortcutManager)
 };
 
 } // namespace qute_note
