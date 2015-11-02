@@ -49,6 +49,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE("MainWindow constructor");
 
     m_pUI->setupUi(this);
+    setupDefaultShortcuts();
+    setupUserShortcuts();
+
     m_pUI->noteSourceView->setHidden(true);
 
     m_pUI->fontSizeComboBox->clear();
@@ -931,6 +934,20 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 void MainWindow::updateNoteHtmlView(QString html)
 {
     m_pUI->noteSourceView->setPlainText(html);
+}
+
+void MainWindow::setupDefaultShortcuts()
+{
+    QNDEBUG("MainWindow::setupDefaultShortcuts");
+
+    // TODO: implement
+}
+
+void MainWindow::setupUserShortcuts()
+{
+    QNDEBUG("MainWindow::setupUserShortcuts");
+
+    // TODO: implement
 }
 
 bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error)

@@ -92,6 +92,9 @@ private:
     void checkThemeIconsAndSetFallbacks();
     void updateNoteHtmlView(QString html);
 
+    void setupDefaultShortcuts();
+    void setupUserShortcuts();
+
     bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error);
 
 private:
