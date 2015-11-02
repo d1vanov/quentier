@@ -32,4 +32,16 @@ void ShortcutManager::setNonStandardUserShortcut(QString nonStandardKey, QKeySeq
     d->setNonStandardUserShortcut(nonStandardKey, shortcut, context);
 }
 
+void ShortcutManager::setDefaultShortcut(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context)
+{
+    Q_D(ShortcutManager);
+    d->setDefaultShortcut(standardKey, shortcut, context);
+}
+
+void ShortcutManager::setNonStandardDefaultShortcut(QString nonStandardKey, QKeySequence shortcut, QString context)
+{
+    Q_D(ShortcutManager);
+    d->setNonStandardDefaultShortcut(nonStandardKey, shortcut, context);
+}
+
 } // namespace qute_note

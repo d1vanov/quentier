@@ -20,12 +20,15 @@ public:
     QKeySequence shortcut(const QString & nonStandardKey, const QString & context = QString()) const;
 
 Q_SIGNALS:
-    void userShortcutChanged(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context);
-    void userNonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut, QString context);
+    void shortcutChanged(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context);
+    void nonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut, QString context);
 
 public Q_SLOTS:
     void setUserShortcut(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context = QString());
     void setNonStandardUserShortcut(QString nonStandardKey, QKeySequence shortcut, QString context = QString());
+
+    void setDefaultShortcut(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context = QString());
+    void setNonStandardDefaultShortcut(QString nonStandardKey, QKeySequence shortcut, QString context = QString());
 
 private:
     ShortcutManagerPrivate * const d_ptr;
