@@ -8,10 +8,10 @@ ShortcutManager::ShortcutManager(QObject * parent) :
     d_ptr(new ShortcutManagerPrivate(*this))
 {}
 
-QKeySequence ShortcutManager::shortcut(const QKeySequence::StandardKey standardKey, const QString & context) const
+QKeySequence ShortcutManager::shortcut(const int key, const QString & context) const
 {
     Q_D(const ShortcutManager);
-    return d->shortcut(standardKey, context);
+    return d->shortcut(key, context);
 }
 
 QKeySequence ShortcutManager::shortcut(const QString & nonStandardKey, const QString & context) const
@@ -20,10 +20,10 @@ QKeySequence ShortcutManager::shortcut(const QString & nonStandardKey, const QSt
     return d->shortcut(nonStandardKey, context);
 }
 
-void ShortcutManager::setUserShortcut(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context)
+void ShortcutManager::setUserShortcut(int key, QKeySequence shortcut, QString context)
 {
     Q_D(ShortcutManager);
-    d->setUserShortcut(standardKey, shortcut, context);
+    d->setUserShortcut(key, shortcut, context);
 }
 
 void ShortcutManager::setNonStandardUserShortcut(QString nonStandardKey, QKeySequence shortcut, QString context)
@@ -32,10 +32,10 @@ void ShortcutManager::setNonStandardUserShortcut(QString nonStandardKey, QKeySeq
     d->setNonStandardUserShortcut(nonStandardKey, shortcut, context);
 }
 
-void ShortcutManager::setDefaultShortcut(QKeySequence::StandardKey standardKey, QKeySequence shortcut, QString context)
+void ShortcutManager::setDefaultShortcut(int key, QKeySequence shortcut, QString context)
 {
     Q_D(ShortcutManager);
-    d->setDefaultShortcut(standardKey, shortcut, context);
+    d->setDefaultShortcut(key, shortcut, context);
 }
 
 void ShortcutManager::setNonStandardDefaultShortcut(QString nonStandardKey, QKeySequence shortcut, QString context)

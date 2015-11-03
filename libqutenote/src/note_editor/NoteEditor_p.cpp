@@ -1868,33 +1868,17 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     delete m_pGenericTextContextMenu;
     m_pGenericTextContextMenu = new QMenu(q);
 
-#define ADD_ACTION(name, menu, slot) \
-    { \
-        QAction * action = new QAction(QObject::tr(#name), menu); \
-        menu->addAction(action); \
-        QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
-    }
-
 #define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
     { \
-        QAction * action = new QAction(QObject::tr(#name), menu); \
-        setupActionShortcut(QKeySequence::key, QString(#__VA_ARGS__), *action); \
-        QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
-        menu->addAction(action); \
-    }
-
-#define ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(key, name, menu, slot, ...) \
-    { \
         QAction * action = new QAction(QObject::tr(name), menu); \
-        setupActionWithNonStandardShortcut(#key, QString(#__VA_ARGS__), *action); \
-        QNTRACE("Set up shortcut for action " #name ": " << action->shortcut()); \
+        setupActionShortcut(key, QString(#__VA_ARGS__), *action); \
         QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
         menu->addAction(action); \
     }
 
     if (!selectedHtml.isEmpty()) {
-        ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pGenericTextContextMenu, cut);
-        ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pGenericTextContextMenu, copy);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pGenericTextContextMenu, cut);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pGenericTextContextMenu, copy);
     }
 
     bool clipboardHasHtml = false;
@@ -1922,72 +1906,73 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
 
     if (clipboardHasHtml || clipboardHasText || clipboardHasImage || clipboardHasUrls) {
         QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pGenericTextContextMenu, paste);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pGenericTextContextMenu, paste);
     }
 
     if (clipboardHasHtml) {
         QNTRACE("Clipboard buffer has html, adding paste unformatted action");
-        ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(PasteUnformatted, "Paste as unformatted text",
-                                              m_pGenericTextContextMenu, pasteUnformatted);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::PasteUnformatted, "Paste as unformatted text",
+                                 m_pGenericTextContextMenu, pasteUnformatted);
     }
 
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(Font, "Font...", m_pGenericTextContextMenu, fontMenu);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Font, "Font...", m_pGenericTextContextMenu, fontMenu);
 
     QMenu * pParagraphSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Paragraph"));
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(AlignLeft, "Align left", pParagraphSubMenu, alignLeft);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(AlignCenter, "Center text", pParagraphSubMenu, alignCenter);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(AlignRight, "Align right", pParagraphSubMenu, alignRight);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignLeft, "Align left", pParagraphSubMenu, alignLeft);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignCenter, "Center text", pParagraphSubMenu, alignCenter);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignRight, "Align right", pParagraphSubMenu, alignRight);
     Q_UNUSED(pParagraphSubMenu->addSeparator());
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(IncreaseIndentation, "Increase indentation",
-                                          pParagraphSubMenu, increaseIndentation);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(Unindent, "Decrease indentation",
-                                          pParagraphSubMenu, decreaseIndentation);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::IncreaseIndentation, "Increase indentation",
+                             pParagraphSubMenu, increaseIndentation);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::DecreaseIndentation, "Decrease indentation",
+                             pParagraphSubMenu, decreaseIndentation);
     Q_UNUSED(pParagraphSubMenu->addSeparator());
 
     if (!selectedHtml.isEmpty()) {
-        ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(IncreaseFontSize, "Increase font size",
-                                              pParagraphSubMenu, increaseFontSize);
-        ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(DecreaseFontSize, "Decrease font size",
-                                              pParagraphSubMenu, decreaseFontSize);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::IncreaseFontSize, "Increase font size",
+                                 pParagraphSubMenu, increaseFontSize);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::DecreaseFontSize, "Decrease font size",
+                                 pParagraphSubMenu, decreaseFontSize);
         Q_UNUSED(pParagraphSubMenu->addSeparator());
     }
 
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(InsertNumberedList, "Numbered list",
-                                          pParagraphSubMenu, insertNumberedList);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(InsertBulletedList, "Bulleted list",
-                                          pParagraphSubMenu, insertBulletedList);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertNumberedList, "Numbered list",
+                             pParagraphSubMenu, insertNumberedList);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertBulletedList, "Bulleted list",
+                             pParagraphSubMenu, insertBulletedList);
 
     QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Style"));
-    ADD_ACTION_WITH_SHORTCUT(Bold, Bold, pStyleSubMenu, textBold);
-    ADD_ACTION_WITH_SHORTCUT(Italic, Italic, pStyleSubMenu, textItalic);
-    ADD_ACTION_WITH_SHORTCUT(Underline, Underline, pStyleSubMenu, textUnderline);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(Strikethrough, "Strikethrough", pStyleSubMenu, textStrikethrough);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(Highlight, "Highlight", pStyleSubMenu, textHighlight);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Bold, "Bold", pStyleSubMenu, textBold);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Italic, "Italic", pStyleSubMenu, textItalic);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Underline, "Underline", pStyleSubMenu, textUnderline);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Strikethrough, "Strikethrough", pStyleSubMenu, textStrikethrough);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Highlight, "Highlight", pStyleSubMenu, textHighlight);
 
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(InsertTable, "Insert table...", m_pGenericTextContextMenu, insertTableDialog);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(InsertHorizontalLine, "Insert horizontal line",
-                                          m_pGenericTextContextMenu, insertHorizontalLine);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(AddAttachment, "Add attachment...",
-                                          m_pGenericTextContextMenu, addAttachmentDialog);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertTable, "Insert table...",
+                             m_pGenericTextContextMenu, insertTableDialog);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertHorizontalLine, "Insert horizontal line",
+                             m_pGenericTextContextMenu, insertHorizontalLine);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AddAttachment, "Add attachment...",
+                             m_pGenericTextContextMenu, addAttachmentDialog);
 
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(InsertToDoTag, "Insert ToDo tag",
-                                          m_pGenericTextContextMenu, insertToDoCheckbox);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertToDoTag, "Insert ToDo tag",
+                             m_pGenericTextContextMenu, insertToDoCheckbox);
 
     QMenu * pHyperlinkMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Hyperlink"));
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(EditHyperlink, "Add/edit...", pHyperlinkMenu, editHyperlinkDialog);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(CopyHyperlink, "Copy", pHyperlinkMenu, copyHyperlink);
-    ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(RemoveHyperlink, "Remove", pHyperlinkMenu, removeHyperlink);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::EditHyperlink, "Add/edit...", pHyperlinkMenu, editHyperlinkDialog);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyHyperlink, "Copy", pHyperlinkMenu, copyHyperlink);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveHyperlink, "Remove", pHyperlinkMenu, removeHyperlink);
 
     if (!insideDecryptedTextFragment && !selectedHtml.isEmpty()) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
-        ADD_ACTION_WITH_NON_STANDARD_SHORTCUT(Encrypt, "Encrypt selected fragment...",
-                                              m_pGenericTextContextMenu, encryptSelectedTextDialog);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Encrypt, "Encrypt selected fragment...",
+                                 m_pGenericTextContextMenu, encryptSelectedTextDialog);
     }
 
     m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
@@ -2002,13 +1987,13 @@ void NoteEditorPrivate::setupImageResourceContextMenu()
     delete m_pImageResourceContextMenu;
     m_pImageResourceContextMenu = new QMenu(q);
 
-    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pImageResourceContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pImageResourceContextMenu, copy);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pImageResourceContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pImageResourceContextMenu, copy);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
         QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pImageResourceContextMenu, paste);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pImageResourceContextMenu, paste);
     }
 
     // TODO: continue filling the menu items
@@ -2025,13 +2010,13 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu()
     delete m_pNonImageResourceContextMenu;
     m_pNonImageResourceContextMenu = new QMenu(q);
 
-    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pNonImageResourceContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pNonImageResourceContextMenu, copy);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
         QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pNonImageResourceContextMenu, paste);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pNonImageResourceContextMenu, paste);
     }
 
     // TODO: continue filling the menu items
@@ -2048,13 +2033,13 @@ void NoteEditorPrivate::setupEncryptedTextContextMenu()
     delete m_pEncryptedTextContextMenu;
     m_pEncryptedTextContextMenu = new QMenu(q);
 
-    ADD_ACTION_WITH_SHORTCUT(Cut, Cut, m_pEncryptedTextContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(Copy, Copy, m_pEncryptedTextContextMenu, copy);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pEncryptedTextContextMenu, cut);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pEncryptedTextContextMenu, copy);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
         QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(Paste, Paste, m_pEncryptedTextContextMenu, paste);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pEncryptedTextContextMenu, paste);
     }
 
     // TODO: continue filling the menu items
@@ -2062,22 +2047,11 @@ void NoteEditorPrivate::setupEncryptedTextContextMenu()
     m_pEncryptedTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupActionShortcut(const QKeySequence::StandardKey key,
+void NoteEditorPrivate::setupActionShortcut(const int key,
                                             const QString & context, QAction & action)
 {
     ShortcutManager shortcutManager;
     QKeySequence shortcut = shortcutManager.shortcut(key, context);
-    if (!shortcut.isEmpty()) {
-        QNTRACE("Setting shortcut " << shortcut << " for action " << action.objectName());
-        action.setShortcut(shortcut);
-    }
-}
-
-void NoteEditorPrivate::setupActionWithNonStandardShortcut(const QString & nonStandardKey,
-                                                           const QString & context, QAction & action)
-{
-    ShortcutManager shortcutManager;
-    QKeySequence shortcut = shortcutManager.shortcut(nonStandardKey, context);
     if (!shortcut.isEmpty()) {
         QNTRACE("Setting shortcut " << shortcut << " for action " << action.objectName());
         action.setShortcut(shortcut);

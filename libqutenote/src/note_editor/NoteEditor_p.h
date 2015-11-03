@@ -263,9 +263,7 @@ private:
     void setupNonImageResourceContextMenu();
     void setupEncryptedTextContextMenu();
 
-    void setupActionShortcut(const QKeySequence::StandardKey key, const QString & context, QAction & action);
-    void setupActionWithNonStandardShortcut(const QString & nonStandardKey, const QString & context,
-                                            QAction & action);
+    void setupActionShortcut(const int key, const QString & context, QAction & action);
 
     void setupFileIO();
     void setupScripts();
