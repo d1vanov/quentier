@@ -1363,6 +1363,14 @@ background-color: rgb(205, 221, 229);
      <addaction name="ActionIncreaseFontSize"/>
      <addaction name="ActionDecreaseFontSize"/>
     </widget>
+    <widget class="QMenu" name="menuHyperlink">
+     <property name="title">
+      <string>Hyperlink</string>
+     </property>
+     <addaction name="ActionEditHyperlink"/>
+     <addaction name="ActionCopyHyperlink"/>
+     <addaction name="ActionRemoveHyperlink"/>
+    </widget>
     <addaction name="ActionFontBold"/>
     <addaction name="ActionFontUnderlined"/>
     <addaction name="ActionFontItalic"/>
@@ -1380,6 +1388,7 @@ background-color: rgb(205, 221, 229);
     <addaction name="menuAlign"/>
     <addaction name="menuList"/>
     <addaction name="menuIndentation"/>
+    <addaction name="menuHyperlink"/>
    </widget>
    <widget class="QMenu" name="menuService">
     <property name="locale">
@@ -2647,6 +2656,30 @@ stop: 1 #0EB7FF);
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionEditHyperlink">
+   <property name="icon">
+    <iconset theme="insert-link"/>
+   </property>
+   <property name="text">
+    <string>Add/edit...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="ActionCopyHyperlink">
+   <property name="text">
+    <string>Copy</string>
+   </property>
+  </action>
+  <action name="ActionRemoveHyperlink">
+   <property name="text">
+    <string>Remove</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+K</string>
    </property>
   </action>
  </widget>

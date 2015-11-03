@@ -73,6 +73,10 @@ PROCESS_ACTION_SHORTCUT(InsertNumberedList, ShortcutManager::InsertNumberedList)
 PROCESS_ACTION_SHORTCUT(IncreaseIndentation, ShortcutManager::IncreaseIndentation);
 PROCESS_ACTION_SHORTCUT(DecreaseIndentation, ShortcutManager::DecreaseIndentation);
 
+PROCESS_ACTION_SHORTCUT(EditHyperlink, ShortcutManager::EditHyperlink);
+PROCESS_ACTION_SHORTCUT(CopyHyperlink, ShortcutManager::CopyHyperlink);
+PROCESS_ACTION_SHORTCUT(RemoveHyperlink, ShortcutManager::RemoveHyperlink);
+
 // Service menu
 PROCESS_ACTION_SHORTCUT(Synchronize, ShortcutManager::Synchronize);
 PROCESS_ACTION_SHORTCUT(AccountInfo, ShortcutManager::AccountInfo);

@@ -55,6 +55,9 @@ private Q_SLOTS:
     void onNoteTextDecreaseIndentationAction();
     void onNoteTextInsertUnorderedListAction();
     void onNoteTextInsertOrderedListAction();
+    void onNoteTextEditHyperlinkAction();
+    void onNoteTextCopyHyperlinkAction();
+    void onNoteTextRemoveHyperlinkAction();
 
     void onNoteChooseTextColor(QColor color);
     void onNoteChooseBackgroundColor(QColor color);

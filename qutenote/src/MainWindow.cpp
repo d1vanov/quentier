@@ -138,6 +138,9 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionInsertBulletedList, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
     QObject::connect(m_pUI->ActionInsertNumberedList, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
     QObject::connect(m_pUI->ActionInsertTable, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
+    QObject::connect(m_pUI->ActionEditHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextEditHyperlinkAction));
+    QObject::connect(m_pUI->ActionCopyHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextCopyHyperlinkAction));
+    QObject::connect(m_pUI->ActionRemoveHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextRemoveHyperlinkAction));
     // Format buttons
     QObject::connect(m_pUI->formatJustifyLeftPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
     QObject::connect(m_pUI->formatJustifyCenterPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
@@ -293,6 +296,24 @@ void MainWindow::onNoteTextInsertUnorderedListAction()
 void MainWindow::onNoteTextInsertOrderedListAction()
 {
     m_pNoteEditor->insertNumberedList();
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onNoteTextEditHyperlinkAction()
+{
+    m_pNoteEditor->editHyperlinkDialog();
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onNoteTextCopyHyperlinkAction()
+{
+    m_pNoteEditor->copyHyperlink();
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onNoteTextRemoveHyperlinkAction()
+{
+    m_pNoteEditor->removeHyperlink();
     m_pNoteEditor->setFocus();
 }
 
