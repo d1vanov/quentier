@@ -165,9 +165,18 @@ QKeySequence ShortcutManagerPrivate::defaultShortcut(const int key, const QStrin
     QVariant value = settings.value(keyString);
     settings.endGroup();
 
-    if (!value.isValid() || ((value.type() != QVariant::KeySequence) && !value.canConvert(QVariant::KeySequence))) {
-        QNTRACE("Can't find default shortcut in app settings, returning the platform-specific default from QKeySequence");
-        return QKeySequence(key);
+    if (!value.isValid() || ((value.type() != QVariant::KeySequence) && !value.canConvert(QVariant::KeySequence)))
+    {
+        QNTRACE("Can't find default shortcut in app settings");
+
+        if ((key >= 0) && (key < QKeySequence::UnknownKey)) {
+            QNTRACE("Returning the platform-specific default from QKeySequence");
+            return QKeySequence(key);
+        }
+        else {
+            QNTRACE("Returning empty shortcut");
+            return QKeySequence();
+        }
     }
 
     return qvariant_cast<QKeySequence>(value);
@@ -184,8 +193,8 @@ QKeySequence ShortcutManagerPrivate::defaultShortcut(const QString & nonStandard
     settings.endGroup();
 
     if (!value.isValid() || ((value.type() != QVariant::KeySequence) && !value.canConvert(QVariant::KeySequence))) {
-        QNTRACE("Can't find default shortcut in app settings, returning the platform-specific default (or invalid shortcut) from QKeySequence");
-        return QKeySequence(nonStandardKey);
+        QNTRACE("Can't find default shortcut in app settings, returning empty shortcut");
+        return QKeySequence();
     }
 
     return qvariant_cast<QKeySequence>(value);
