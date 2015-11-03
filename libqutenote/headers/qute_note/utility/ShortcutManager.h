@@ -40,6 +40,8 @@ public:
         ShowToolBar,
         PasteUnformatted,
         Font,
+        UpperIndex,
+        LowerIndex,
         AlignLeft,
         AlignCenter,
         AlignRight,

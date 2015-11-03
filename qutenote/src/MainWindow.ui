@@ -1215,10 +1215,6 @@ background-color: rgb(205, 221, 229);
     <addaction name="separator"/>
     <addaction name="ActionPrint"/>
     <addaction name="separator"/>
-    <addaction name="ActionBackupCopy"/>
-    <addaction name="ActionRestoreDatabase"/>
-    <addaction name="separator"/>
-    <addaction name="ActionClearTrash"/>
     <addaction name="ActionQuit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
@@ -1395,7 +1391,7 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionSynchronize"/>
     <addaction name="separator"/>
     <addaction name="ActionAccountInfo"/>
-    <addaction name="ActionLocalDatabaseStatus"/>
+    <addaction name="ActionLocalStorageStatus"/>
     <addaction name="separator"/>
     <addaction name="ActionImportFolders"/>
     <addaction name="separator"/>
@@ -2257,7 +2253,7 @@ stop: 1 #0EB7FF);
     <string>Encrypt database</string>
    </property>
   </action>
-  <action name="ActionLocalDatabaseStatus">
+  <action name="ActionLocalStorageStatus">
    <property name="text">
     <string>Local database status</string>
    </property>

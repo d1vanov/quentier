@@ -942,6 +942,8 @@ void MainWindow::setupDefaultShortcuts()
 {
     QNDEBUG("MainWindow::setupDefaultShortcuts");
 
+    using qute_note::ShortcutManager;
+
 #define PROCESS_ACTION_SHORTCUT(action, key, ...) \
     { \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
