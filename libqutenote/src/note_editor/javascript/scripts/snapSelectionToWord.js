@@ -10,14 +10,14 @@ function snapSelectionToWord() {
         return;
     }
 
-    var rng2 = sel.getRangeAt(0);
-    if (!rng2 || !rng2.startContainer || !rng2.startContainer.data) {
+    var rng = sel.getRangeAt(0);
+    if (!rng || !rng.startContainer || !rng.startContainer.data) {
         return;
     }
 
     var startOffset = 0;
-    for(var i = rng2.startOffset; i >= 0; i--) {
-        var str = rng2.startContainer.data[i];
+    for(var i = rng.startOffset; i >= 0; i--) {
+        var str = rng.startContainer.data[i];
         if (!str) {
             return;
         }
@@ -36,8 +36,8 @@ function snapSelectionToWord() {
     }
 
     var endOffset = 0;
-    for(var i = rng2.endOffset; i < rng2.endContainer.data.length; i++) {
-        var str = rng2.startContainer.data[i];
+    for(var i = rng.endOffset; i < rng.endContainer.data.length; i++) {
+        var str = rng.startContainer.data[i];
         if (!str) {
             return;
         }
@@ -50,14 +50,14 @@ function snapSelectionToWord() {
         }
     }
 
-    startOffset = rng2.startOffset - startOffset;
+    startOffset = rng.startOffset - startOffset;
     startOffset = startOffset < 0 ? 0 : startOffset;
 
-    endOffset = rng2.endOffset + endOffset;
-    endOffset = endOffset >= rng2.endContainer.data.length ? rng2.endContainer.data.length - 1 : endOffset;
+    endOffset = rng.endOffset + endOffset;
+    endOffset = endOffset > rng.endContainer.data.length ? rng.endContainer.data.length : endOffset;
 
-    rng2.setStart(rng2.startContainer, startOffset);
-    rng2.setEnd(rng2.endContainer, endOffset);
+    rng.setStart(rng.startContainer, startOffset);
+    rng.setEnd(rng.endContainer, endOffset);
     sel.removeAllRanges();
-    sel.addRange(rng2);
+    sel.addRange(rng);
 }
