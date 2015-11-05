@@ -11,7 +11,7 @@ DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString 
                                    const QString & hint, const size_t keyLength,
                                    QSharedPointer<EncryptionManager> encryptionManager,
                                    DecryptedTextManager & decryptedTextManager,
-                                   QWidget * parent) :
+                                   QWidget * parent, bool decryptPermanentlyFlag) :
     QDialog(parent),
     m_pUI(new Ui::DecryptionDialog),
     m_encryptedText(encryptedText),
@@ -24,6 +24,8 @@ DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString 
 {
     m_pUI->setupUi(this);
     QUTE_NOTE_CHECK_PTR(encryptionManager.data())
+
+    m_pUI->decryptPermanentlyCheckBox->setChecked(decryptPermanentlyFlag);
 
     setHint(m_hint);
 
@@ -41,6 +43,8 @@ DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString 
                      this, QNSLOT(DecryptionDialog,onShowPasswordStateChanged,int));
     QObject::connect(m_pUI->rememberPasswordCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
                      this, QNSLOT(DecryptionDialog,onRememberPassphraseStateChanged,int));
+    QObject::connect(m_pUI->decryptPermanentlyCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
+                     this, QNSLOT(DecryptionDialog,onDecryptPermanentlyStateChanged,int));
 }
 
 DecryptionDialog::~DecryptionDialog()
@@ -100,6 +104,11 @@ void DecryptionDialog::onShowPasswordStateChanged(int checked)
     m_pUI->passwordLineEdit->setFocus();
 }
 
+void DecryptionDialog::onDecryptPermanentlyStateChanged(int checked)
+{
+    m_pUI->rememberPasswordCheckBox->setEnabled(!static_cast<bool>(checked));
+}
+
 void DecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
@@ -123,12 +132,15 @@ void DecryptionDialog::accept()
     }
 
     bool rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
+    bool decryptPermanently = m_pUI->decryptPermanentlyCheckBox->isChecked();
+
     m_decryptedTextManager.addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
                                     passphrase, m_cipher, m_keyLength);
     QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
-            << "; remember for session = " << (rememberForSession ? "true" : "false"));
+            << "; remember for session = " << (rememberForSession ? "true" : "false")
+            << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));
 
-    emit accepted(m_encryptedText, m_cachedDecryptedText, rememberForSession);
+    emit accepted(m_encryptedText, m_cachedDecryptedText, rememberForSession, decryptPermanently);
     QDialog::accept();
 }
 

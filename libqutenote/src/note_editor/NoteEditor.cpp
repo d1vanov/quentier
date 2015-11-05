@@ -287,10 +287,11 @@ void NoteEditor::removeHyperlink()
     d->removeHyperlink();
 }
 
-void NoteEditor::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)
+void NoteEditor::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
+                                           bool rememberForSession, bool decryptPermanently)
 {
     Q_D(NoteEditor);
-    d->onEncryptedAreaDecryption(encryptedText, decryptedText, rememberForSession);
+    d->onEncryptedAreaDecryption(encryptedText, decryptedText, rememberForSession, decryptPermanently);
 }
 
 void NoteEditor::onNoteLoadCancelled()

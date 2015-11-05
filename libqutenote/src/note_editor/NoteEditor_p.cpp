@@ -96,6 +96,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
     m_changeFontSizeForSelectionJs(),
+    m_decryptEncryptedTextPermanentlyJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -280,6 +281,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
+    page->executeJavaScript(m_decryptEncryptedTextPermanentlyJs);
 
     setPageEditable(true);
     updateColResizableTableBindings();
@@ -542,8 +544,8 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
                                                                             m_encryptionManager,
                                                                             m_decryptedTextManager, q));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,QString,bool),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool));
+    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,QString,bool,bool),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool,bool));
     QNTRACE("Will exec decryption dialog now");
     pDecryptionDialog->exec();
     QNTRACE("Executed decryption dialog");
@@ -2134,6 +2136,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
     SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
+    SETUP_SCRIPT("javascript/scripts/decryptEncryptedTextPermanently.js", m_decryptEncryptedTextPermanentlyJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -3197,15 +3200,30 @@ void NoteEditorPrivate::removeHyperlink()
     q->setFocus();
 }
 
-void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession)
+void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
+                                                  bool rememberForSession, bool decryptPermanently)
 {
-    QNDEBUG("NoteEditorPrivate::onEncryptedAreaDecryption");
+    QNDEBUG("NoteEditorPrivate::onEncryptedAreaDecryption: encrypted text = " << encryptedText
+            << "; remember for session = " << (rememberForSession ? "true" : "false")
+            << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));
+
+    Q_UNUSED(decryptedText)
+
+    if (decryptPermanently) {
+        Q_Q(NoteEditor);
+        GET_PAGE();
+        // FIXME: find some way to pass the decrypted text string to JavaScript and avoid the syntax error
+        /*
+        QString javascript = "decryptEncryptedTextPermanently('" + encryptedText +
+                             "', '" + decryptedText + "');";
+                             */
+        QString javascript = "decryptEncryptedTextPermanently('" + encryptedText + "', 'aaa');";
+        QNTRACE("script: " << javascript);
+        page->executeJavaScript(javascript);
+        return;
+    }
 
     // TODO: optimize this, it can be done way more efficiently
-
-    Q_UNUSED(encryptedText)
-    Q_UNUSED(decryptedText)
-    Q_UNUSED(rememberForSession)
     noteToEditorContent();
 }
 

@@ -169,7 +169,8 @@ private Q_SLOTS:
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
     void onUrlEditingFinished(QString text, QUrl url);
-    void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText, bool rememberForSession);
+    void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
+                                   bool rememberForSession, bool decryptPermanently);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString hint, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
@@ -383,6 +384,7 @@ private:
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;
     QString     m_changeFontSizeForSelectionJs;
+    QString     m_decryptEncryptedTextPermanentlyJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

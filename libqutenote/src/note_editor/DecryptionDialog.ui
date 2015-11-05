@@ -72,6 +72,13 @@ spacing: 4px;
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="decryptPermanentlyCheckBox">
+     <property name="text">
+      <string>Decrypt permanently</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>

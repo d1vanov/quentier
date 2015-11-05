@@ -24,7 +24,8 @@ public:
                               const size_t keyLength,
                               QSharedPointer<EncryptionManager> encryptionManager,
                               DecryptedTextManager & decryptedTextManager,
-                              QWidget * parent = Q_NULLPTR);
+                              QWidget * parent = Q_NULLPTR,
+                              bool decryptPermanentlyFlag = false);
     virtual ~DecryptionDialog();
 
     QString passphrase() const;
@@ -33,13 +34,16 @@ public:
     QString decryptedText() const;
 
 Q_SIGNALS:
-    void accepted(QString encryptedText, QString decryptedText, bool rememberPassphrase);
+    void accepted(QString encryptedText, QString decryptedText,
+                  bool rememberPassphrase, bool decryptPermanently);
 
 private Q_SLOTS:
     void setHint(const QString & hint);
     void setRememberPassphraseDefaultState(const bool checked);
     void onRememberPassphraseStateChanged(int checked);
     void onShowPasswordStateChanged(int checked);
+
+    void onDecryptPermanentlyStateChanged(int checked);
 
     virtual void accept() Q_DECL_OVERRIDE;
 
