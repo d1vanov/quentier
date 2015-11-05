@@ -24,6 +24,10 @@ QKeySequence ShortcutManagerPrivate::shortcut(const int key, const QString & con
     QNDEBUG("ShortcutManagerPrivate::shortcut: key = " << keyString << " ("
             << key << "), context = " << context);
 
+    if (Q_UNLIKELY(keyString.isEmpty())) {
+        return QKeySequence();
+    }
+
     ApplicationSettings settings;
 
     settings.beginGroup(shortcutGroupString(context, /* default shortcut = */ false,
@@ -54,6 +58,10 @@ QKeySequence ShortcutManagerPrivate::shortcut(const int key, const QString & con
 QKeySequence ShortcutManagerPrivate::shortcut(const QString & nonStandardKey, const QString & context) const
 {
     QNDEBUG("ShortcutManagerPrivate::shortcut: non-standard key = " << nonStandardKey << ", context = " << context);
+
+    if (Q_UNLIKELY(nonStandardKey.isEmpty())) {
+        return QKeySequence();
+    }
 
     ApplicationSettings settings;
 
@@ -88,6 +96,10 @@ void ShortcutManagerPrivate::setUserShortcut(int key, QKeySequence shortcut, QSt
     QNDEBUG("ShortcutManagerPrivate::setUserShortcut: key = " << keyString << " (" << key
             << "), shortcut = " << shortcut << ", context = " << context);
 
+    if (Q_UNLIKELY(keyString.isEmpty())) {
+        return;
+    }
+
     ApplicationSettings settings;
     settings.beginGroup(shortcutGroupString(context, /* default shortcut = */ false, /* non-standard shortcut = */ false));
     settings.setValue(keyString, shortcut.operator QVariant());  // Need this esoteric syntax to make compilers happy with Qt4
@@ -100,6 +112,10 @@ void ShortcutManagerPrivate::setNonStandardUserShortcut(QString nonStandardKey, 
 {
     QNDEBUG("ShortcutManagerPrivate::setNonStandardUserShortcut: non-standard key = " << nonStandardKey << ", shortcut = "
             << shortcut << ", context = " << context);
+
+    if (Q_UNLIKELY(nonStandardKey.isEmpty())) {
+        return;
+    }
 
     ApplicationSettings settings;
     settings.beginGroup(shortcutGroupString(context, /* default shortcut = */ false, /* non-standard shortcut = */ true));
@@ -115,6 +131,10 @@ void ShortcutManagerPrivate::setDefaultShortcut(int key, QKeySequence shortcut, 
 
     QNDEBUG("ShortcutManagerPrivate::setDefaultShortcut: key = " << keyString << " (" << key
             << "), shortcut = " << shortcut << ", context = " << context);
+
+    if (Q_UNLIKELY(keyString.isEmpty())) {
+        return;
+    }
 
     ApplicationSettings settings;
     settings.beginGroup(shortcutGroupString(context, /* default shortcut = */ true, /* non-standard shortcut = */ false));
@@ -137,6 +157,10 @@ void ShortcutManagerPrivate::setNonStandardDefaultShortcut(QString nonStandardKe
     QNDEBUG("ShortcutManagerPrivate::setNonStandardDefaultShortcut: non-standard key = " << nonStandardKey
             << ", shortcut = " << shortcut << ", context = " << context);
 
+    if (Q_UNLIKELY(nonStandardKey.isEmpty())) {
+        return;
+    }
+
     ApplicationSettings settings;
     settings.beginGroup(shortcutGroupString(context, /* default shortcut = */ true, /* non-standard shortcut = */ true));
     settings.setValue(nonStandardKey, shortcut.operator QVariant());   // Need this esoteric syntax to make compilers happy with Qt4
@@ -158,6 +182,10 @@ QKeySequence ShortcutManagerPrivate::defaultShortcut(const int key, const QStrin
 {
     QNDEBUG("ShortcutManagerPrivate::defaultShortcut: key = " << keyString << " (" << key
             << "), context = " << context);
+
+    if (Q_UNLIKELY(keyString.isEmpty())) {
+        return QKeySequence();
+    }
 
     ApplicationSettings settings;
 
@@ -185,6 +213,10 @@ QKeySequence ShortcutManagerPrivate::defaultShortcut(const int key, const QStrin
 QKeySequence ShortcutManagerPrivate::defaultShortcut(const QString & nonStandardKey, const QString & context) const
 {
     QNDEBUG("ShortcutManagerPrivate::defaultShortcut: non-standard key = " << nonStandardKey << ", context = " << context);
+
+    if (Q_UNLIKELY(nonStandardKey.isEmpty())) {
+        return QKeySequence();
+    }
 
     ApplicationSettings settings;
 
@@ -318,6 +350,8 @@ QString ShortcutManagerPrivate::keyToString(const int key) const
     PRINT_ITEM(ShowToolBar);
     PRINT_ITEM(PasteUnformatted);
     PRINT_ITEM(Font);
+    PRINT_ITEM(UpperIndex);
+    PRINT_ITEM(LowerIndex);
     PRINT_ITEM(AlignLeft);
     PRINT_ITEM(AlignCenter);
     PRINT_ITEM(AlignRight);
