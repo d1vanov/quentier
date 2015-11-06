@@ -30,6 +30,7 @@ public:
 
     QString passphrase() const;
     bool rememberPassphrase() const;
+    bool decryptPermanently() const;
 
     QString decryptedText() const;
 

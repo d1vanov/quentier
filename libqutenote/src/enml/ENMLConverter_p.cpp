@@ -626,18 +626,7 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
         encryptedTextHtmlObject += "hint=\"";
 
         QString hintWithEscapedDoubleQuotes = hint;
-        for(int i = 0; i < hintWithEscapedDoubleQuotes.size(); ++i)
-        {
-            if (hintWithEscapedDoubleQuotes.at(i) == QChar('"'))
-            {
-                if (i == 0) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-                else if (hintWithEscapedDoubleQuotes.at(i-1) != QChar('\\')) {
-                    hintWithEscapedDoubleQuotes.insert(i, QChar('\\'));
-                }
-            }
-        }
+        escapeString(hintWithEscapedDoubleQuotes);
 
         encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
         encryptedTextHtmlObject += "\" ";
@@ -662,6 +651,26 @@ QString ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, c
     return result;
 }
 
+void ENMLConverterPrivate::escapeString(QString & string)
+{
+    QChar singleQuoteChar('\'');
+    QChar doubleQuoteChar('"');
+    QChar escapeChar('\\');
+
+    for(int i = 0; i < string.size(); ++i)
+    {
+        QChar currentChar = string[i];
+        if ((currentChar == singleQuoteChar) || (currentChar == doubleQuoteChar))
+        {
+            if (i == 0) {
+                string.insert(i, escapeChar);
+            }
+            else if (string[i-1] != escapeChar) {
+                string.insert(i, escapeChar);
+            }
+        }
+    }
+}
 
 bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
 {

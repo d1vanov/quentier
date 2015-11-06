@@ -22,7 +22,7 @@ public:
     virtual ~EncryptedAreaPlugin();
 
 Q_SIGNALS:
-    void decrypted(QString encryptedText, QString decryptedText, bool rememberForSession);
+    void decrypted(QString encryptedText, QString decryptedText, bool rememberForSession, bool decryptPermanently);
 
 private:
     // INoteEditorEncryptedAreaPlugin interface

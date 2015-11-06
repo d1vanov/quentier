@@ -11,9 +11,6 @@ function decryptEncryptedTextPermanently(encryptedText, decryptedText) {
             continue;
         }
 
-        // FIXME: for some reason this doesn't seem to work properly
-        var replacementElement = document.createElement("div");
-        replacementElement.outerHtml = decryptedText;
-        element.parentNode.replaceChild(replacementElement, element);
+        element.outerHTML = decryptedText;
     }
 }

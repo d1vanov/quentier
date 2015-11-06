@@ -84,5 +84,10 @@ QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QS
     return ENMLConverterPrivate::decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength);
 }
 
+void ENMLConverter::escapeString(QString & string)
+{
+    ENMLConverterPrivate::escapeString(string);
+}
+
 } // namespace qute_note
 

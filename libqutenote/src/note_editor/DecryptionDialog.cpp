@@ -62,6 +62,11 @@ bool DecryptionDialog::rememberPassphrase() const
     return m_pUI->rememberPasswordCheckBox->isChecked();
 }
 
+bool DecryptionDialog::decryptPermanently() const
+{
+    return m_pUI->decryptPermanentlyCheckBox->isChecked();
+}
+
 QString DecryptionDialog::decryptedText() const
 {
     return m_cachedDecryptedText;

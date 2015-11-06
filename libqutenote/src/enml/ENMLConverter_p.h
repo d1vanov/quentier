@@ -52,6 +52,8 @@ public:
     static QString decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
                                      const QString & hint, const QString & cipher, const size_t keyLength);
 
+    static void escapeString(QString & string);
+
 private:
     static bool isForbiddenXhtmlTag(const QString & tagName);
     static bool isForbiddenXhtmlAttribute(const QString & attributeName);

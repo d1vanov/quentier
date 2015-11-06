@@ -3207,17 +3207,14 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString
             << "; remember for session = " << (rememberForSession ? "true" : "false")
             << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));
 
-    Q_UNUSED(decryptedText)
+    if (decryptPermanently)
+    {
+        ENMLConverter::escapeString(decryptedText);
 
-    if (decryptPermanently) {
         Q_Q(NoteEditor);
         GET_PAGE();
-        // FIXME: find some way to pass the decrypted text string to JavaScript and avoid the syntax error
-        /*
         QString javascript = "decryptEncryptedTextPermanently('" + encryptedText +
                              "', '" + decryptedText + "');";
-                             */
-        QString javascript = "decryptEncryptedTextPermanently('" + encryptedText + "', 'aaa');";
         QNTRACE("script: " << javascript);
         page->executeJavaScript(javascript);
         return;

@@ -49,6 +49,8 @@ public:
     static QString decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
                                      const QString & hint, const QString & cipher, const size_t keyLength);
 
+    static void escapeString(QString & string);
+
 private:
     Q_DISABLE_COPY(ENMLConverter)
 
