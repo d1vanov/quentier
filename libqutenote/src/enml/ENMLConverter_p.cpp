@@ -145,7 +145,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             lastElementAttributes = reader.attributes();
 
-            if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "p")) &&
+            if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "div")) &&
                  lastElementAttributes.hasAttribute("en-tag") )
             {
                 const QString enTag = lastElementAttributes.value("en-tag").toString();
@@ -1018,7 +1018,7 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
 void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText, const QString & hint,
                                              const QString & cipher, const size_t keyLength, QXmlStreamWriter & writer)
 {
-    writer.writeStartElement("p");
+    writer.writeStartElement("div");
     writer.writeAttribute("en-tag", "en-decrypted");
     writer.writeAttribute("encrypted_text", encryptedText);
     writer.writeAttribute("class", "en-decrypted hvr-border-color");
