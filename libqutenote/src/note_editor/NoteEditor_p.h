@@ -132,6 +132,7 @@ public:
     void encryptSelectedTextDialog();
     void encryptSelectedText(const QString & passphrase, const QString & hint,
                              const bool rememberForSession);
+    void decryptEncryptedTextUnderCursor();
     void editHyperlinkDialog();
     void copyHyperlink();
     void removeHyperlink();
@@ -185,16 +186,17 @@ private Q_SLOTS:
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
 
-    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
-
     void onOpenResourceButtonClicked(const QString & resourceHash);
     void onSaveResourceButtonClicked(const QString & resourceHash);
 
     void onJavaScriptLoaded();
 #endif
 
+    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+
     void contextMenuEvent(QContextMenuEvent * pEvent);
-    void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment, quint64 sequenceNumber);
+    void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
+                                 QStringList extraData, quint64 sequenceNumber);
 
     void onTextCursorPositionChange();
 
@@ -262,7 +264,8 @@ private:
     void setupGenericTextContextMenu(const QString &selectedHtml, bool insideDecryptedTextFragment);
     void setupImageResourceContextMenu();
     void setupNonImageResourceContextMenu();
-    void setupEncryptedTextContextMenu();
+    void setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
+                                       const QString & encryptedText, const QString & hint);
 
     void setupActionShortcut(const int key, const QString & context, QAction & action);
 
@@ -500,6 +503,20 @@ private:
     QSet<QUuid>                     m_saveGenericResourceImageToFileRequestIds;
 #endif
 
+    // Holds some data required for certain context menu actions, like the encrypted text data for its decryption,
+    // the hash of the resource under cursor for which the action is toggled etc.
+    struct CurrentContextMenuExtraData
+    {
+        QString     m_contentType;
+
+        // Encrypted text extra data
+        QString     m_encryptedText;
+        QString     m_keyLength;
+        QString     m_cipher;
+        QString     m_hint;
+    };
+
+    CurrentContextMenuExtraData     m_currentContextMenuExtraData;
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
     NoteEditor * const q_ptr;

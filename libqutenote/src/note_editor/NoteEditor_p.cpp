@@ -1,6 +1,7 @@
 #include "NoteEditor_p.h"
 #include "NoteEditorPage.h"
 #include "EncryptionDialog.h"
+#include "DecryptionDialog.h"
 #include "EditUrlDialog.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
@@ -17,7 +18,6 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
 #include "javascript_glue/GenericResourceImageJavaScriptHandler.h"
-#include "DecryptionDialog.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
 #include "GenericResourceImageWriter.h"
@@ -177,6 +177,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pGenericResoureImageJavaScriptHandler(new GenericResourceImageJavaScriptHandler(m_genericResourceImageFilePathsByResourceHash, this)),
     m_saveGenericResourceImageToFileRequestIds(),
 #endif
+    m_currentContextMenuExtraData(),
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     q_ptr(&noteEditor)
 {
@@ -519,38 +520,6 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
     }
 }
 
-void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
-{
-    QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
-
-    if (cipher.isEmpty()) {
-        cipher = "AES";
-    }
-
-    if (length.isEmpty()) {
-        length = "128";
-    }
-
-    bool conversionResult = false;
-    size_t keyLength = static_cast<size_t>(length.toInt(&conversionResult));
-    if (!conversionResult) {
-        QNFATAL("NoteEditorPrivate::onEnCryptElementClicked: can't convert encryption key from string to number: " << length);
-        return;
-    }
-
-    Q_Q(NoteEditor);
-    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(encryptedText,
-                                                                            cipher, hint, keyLength,
-                                                                            m_encryptionManager,
-                                                                            m_decryptedTextManager, q));
-    pDecryptionDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,QString,bool,bool),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool,bool));
-    QNTRACE("Will exec decryption dialog now");
-    pDecryptionDialog->exec();
-    QNTRACE("Executed decryption dialog");
-}
-
 void NoteEditorPrivate::onOpenResourceButtonClicked(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::onOpenResourceButtonClicked: " << resourceHash);
@@ -646,6 +615,38 @@ void NoteEditorPrivate::onJavaScriptLoaded()
 
 #endif
 
+void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
+{
+    QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
+
+    if (cipher.isEmpty()) {
+        cipher = "AES";
+    }
+
+    if (length.isEmpty()) {
+        length = "128";
+    }
+
+    bool conversionResult = false;
+    size_t keyLength = static_cast<size_t>(length.toInt(&conversionResult));
+    if (!conversionResult) {
+        QNFATAL("NoteEditorPrivate::onEnCryptElementClicked: can't convert encryption key from string to number: " << length);
+        return;
+    }
+
+    Q_Q(NoteEditor);
+    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(encryptedText,
+                                                                            cipher, hint, keyLength,
+                                                                            m_encryptionManager,
+                                                                            m_decryptedTextManager, q));
+    pDecryptionDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,QString,bool,bool),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,QString,bool,bool));
+    QNTRACE("Will exec decryption dialog now");
+    pDecryptionDialog->exec();
+    QNTRACE("Executed decryption dialog");
+}
+
 void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
 {
     QNTRACE("NoteEditorPrivate::contextMenuEvent");
@@ -671,12 +672,13 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
     determineContextMenuEventTarget();
 }
 
-void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment, quint64 sequenceNumber)
+void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
+                                                QStringList extraData, quint64 sequenceNumber)
 {
     QNDEBUG("NoteEditorPrivate::onContextMenuEventReply: content type = " << contentType
             << ", selected html = " << selectedHtml << ", inside decrypted text fragment = "
-            << (insideDecryptedTextFragment ? "true" : "false")
-            << ", sequence number = " << sequenceNumber);
+            << (insideDecryptedTextFragment ? "true" : "false") << ", extraData: [" << extraData.join(", ")
+            << "], sequence number = " << sequenceNumber);
 
     if (!checkContextMenuSequenceNumber(sequenceNumber)) {
         QNTRACE("Sequence number is not valid, not doing anything");
@@ -694,8 +696,28 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
     else if (contentType == "NonImageResource") {
         setupNonImageResourceContextMenu();
     }
-    else if (contentType == "EncryptedText") {
-        setupEncryptedTextContextMenu();
+    else if (contentType == "EncryptedText")
+    {
+        if (extraData.empty()) {
+            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: extra data from JavaScript is empty");
+            QNWARNING(error);
+            emit notifyError(error);
+            return;
+        }
+
+        if (extraData.size() != 4) {
+            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: extra data from JavaScript has wrong size");
+            QNWARNING(error << ": " << extraData.join(", "));
+            emit notifyError(error);
+            return;
+        }
+
+        const QString & cipher = extraData[0];
+        const QString & keyLength = extraData[1];
+        const QString & encryptedText = extraData[2];
+        const QString & hint = extraData[3];
+
+        setupEncryptedTextContextMenu(cipher, keyLength, encryptedText, hint);
     }
     else {
         QNWARNING("Unknown content type on context menu event reply: " << contentType << ", sequence number " << sequenceNumber);
@@ -2026,25 +2048,24 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu()
     m_pNonImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupEncryptedTextContextMenu()
+void NoteEditorPrivate::setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
+                                                      const QString & encryptedText, const QString & hint)
 {
-    QNDEBUG("NoteEditorPrivate::setupEncryptedTextContextMenu");
+    QNDEBUG("NoteEditorPrivate::setupEncryptedTextContextMenu: cipher = " << cipher << ", key length = " << keyLength
+            << ", encrypted text = " << encryptedText << ", hint = " << hint);
 
     Q_Q(NoteEditor);
+
+    m_currentContextMenuExtraData.m_contentType = "EncryptedText";
+    m_currentContextMenuExtraData.m_encryptedText = encryptedText;
+    m_currentContextMenuExtraData.m_keyLength = keyLength;
+    m_currentContextMenuExtraData.m_cipher = cipher;
+    m_currentContextMenuExtraData.m_hint = hint;
 
     delete m_pEncryptedTextContextMenu;
     m_pEncryptedTextContextMenu = new QMenu(q);
 
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pEncryptedTextContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pEncryptedTextContextMenu, copy);
-
-    QClipboard * pClipboard = QApplication::clipboard();
-    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
-        QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pEncryptedTextContextMenu, paste);
-    }
-
-    // TODO: continue filling the menu items
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Decrypt, "Decrypt...", m_pEncryptedTextContextMenu, decryptEncryptedTextUnderCursor);
 
     m_pEncryptedTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
@@ -2191,8 +2212,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif
 
-    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,quint64),
-                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,quint64));
+    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
@@ -3136,6 +3157,23 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QS
 #else
     q->page()->runJavaScript("getSelectionHtml", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
 #endif
+}
+
+void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::decryptEncryptedTextUnderCursor");
+
+    if (m_currentContextMenuExtraData.m_contentType != "EncryptedText") {
+        QString error = QT_TR_NOOP("Can't decrypt the encrypted text under cursor: wrong current context menu extra data's content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    onEnCryptElementClicked(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
+                            m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
+
+    m_currentContextMenuExtraData.m_contentType.clear();
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

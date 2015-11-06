@@ -15,7 +15,10 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     var cipher = "";
     var encryptedText = "";
     var length = "";
+    var hint = "";
     var insideDecryptedTextFragment = false;
+
+    var extraData = [];
 
     // get context menu event target
     var element = document.elementFromPoint(x, y);
@@ -40,12 +43,14 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                 if (element.nodeName == "IMG") {
                     foundImageResource = true;
                     resourceHash = element.getAttribute("hash");
+                    extraData.push(resourceHash);
                     console.log("Found image resource with hash " + resourceHash);
                     break;
                 }
                 else if ((element.nodeName == "DIV") || (element.nodeName == "OBJECT")) {
                     foundNonImageResource = true;
                     resourceHash = element.getAttribute("hash");
+                    extraData.push(resourceHash);
                     console.log("Found non-image resource with hash " + resourceHash);
                     break;
                 }
@@ -55,8 +60,13 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                 cipher = element.getAttribute("cipher");
                 length = element.getAttribute("length");
                 encryptedText = element.getAttribute("encrypted_text");
+                hint = element.getAttribute("hint");
+                extraData.push(cipher);
+                extraData.push(length);
+                extraData.push(encryptedText);
+                extraData.push(hint);
                 console.log("Found en-crypt tag: encryptedText = " + encryptedText +
-                            ", cipher = " + cipher + ", length = " + length);
+                            ", cipher = " + cipher + ", length = " + length << ", hint = " + hint);
                 break;
             }
             else if (enTag == "en-decrypted") {
@@ -71,13 +81,13 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     }
 
     if (foundImageResource) {
-        contextMenuEventHandler.setContextMenuContent("ImageResource", "", insideDecryptedTextFragment, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("ImageResource", "", insideDecryptedTextFragment, extraData, contextMenuSequenceNumber);
     }
     else if (foundNonImageResource) {
-        contextMenuEventHandler.setContextMenuContent("NonImageResource", "", insideDecryptedTextFragment, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("NonImageResource", "", insideDecryptedTextFragment, extraData, contextMenuSequenceNumber);
     }
     else if (foundEnCryptTag) {
-        contextMenuEventHandler.setContextMenuContent("EncryptedText", "", insideDecryptedTextFragment, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("EncryptedText", "", insideDecryptedTextFragment, extraData, contextMenuSequenceNumber);
     }
     else {
         var selectedHtml = getSelectionHtml();
@@ -86,6 +96,6 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
             selectedHtml = getSelectionHtml();
         }
 
-        contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, insideDecryptedTextFragment, contextMenuSequenceNumber);
+        contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, insideDecryptedTextFragment, extraData, contextMenuSequenceNumber);
     }
 }
