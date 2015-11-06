@@ -3255,6 +3255,14 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString
                              "', '" + decryptedText + "');";
         QNTRACE("script: " << javascript);
         page->executeJavaScript(javascript);
+
+        if (decryptPermanently) {
+            // The default scheme with contentChanged signal seems to be working but its auto-postponing by timer
+            // may prevent the note's ENML from updating in time, so enforce the conversion from ENML to note content
+            m_errorCachedMemory.resize(0);
+            Q_UNUSED(htmlToNoteContent(m_errorCachedMemory));
+        }
+
         return;
     }
 
