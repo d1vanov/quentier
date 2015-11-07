@@ -22,7 +22,6 @@ typedef QWebSettings WebSettings;
 #include "WebSocketTransport.h"
 #include "GenericResourceImageWriter.h"
 #include <qute_note/utility/ApplicationSettings.h>
-#include <QDesktopServices>
 #include <QPainter>
 #include <QIcon>
 #include <QFontMetrics>
@@ -61,6 +60,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QMenu>
 #include <QKeySequence>
 #include <QContextMenuEvent>
+#include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QFontDialog>
 #include <QFontDatabase>
@@ -167,12 +167,12 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resourceLocalFileStorageFolder(),
     m_genericResourceLocalGuidBySaveToStorageRequestIds(),
     m_resourceFileStoragePathsByResourceLocalGuid(),
-#ifdef USE_QT_WEB_ENGINE
     m_localGuidsOfResourcesWantedToBeSaved(),
     m_localGuidsOfResourcesWantedToBeOpened(),
+    m_manualSaveResourceToFileRequestIds(),
     m_fileSuffixesForMimeType(),
     m_fileFilterStringForMimeType(),
-    m_manualSaveResourceToFileRequestIds(),
+#ifdef USE_QT_WEB_ENGINE
     m_genericResourceImageFilePathsByResourceHash(),
     m_pGenericResoureImageJavaScriptHandler(new GenericResourceImageJavaScriptHandler(m_genericResourceImageFilePathsByResourceHash, this)),
     m_saveGenericResourceImageToFileRequestIds(),
@@ -341,7 +341,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         return;
     }
 
-    const QString & localGuid = it.value();
+    const QString localGuid = it.value();
     m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
 
     QString resourceDisplayName;
@@ -382,7 +382,6 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         provideSrcForResourceImgTags();
     }
 
-#ifdef USE_QT_WEB_ENGINE
     auto saveIt = m_localGuidsOfResourcesWantedToBeSaved.find(localGuid);
     if (saveIt != m_localGuidsOfResourcesWantedToBeSaved.end())
     {
@@ -419,7 +418,6 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         Q_UNUSED(m_localGuidsOfResourcesWantedToBeOpened.erase(openIt));
         openResource(fileStoragePath);
     }
-#endif
 }
 
 void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
@@ -520,6 +518,13 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
     }
 }
 
+void NoteEditorPrivate::onJavaScriptLoaded()
+{
+    QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
+}
+
+#endif
+
 void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::onOpenResourceRequest: " << resourceHash);
@@ -607,13 +612,6 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
 
     manualSaveResourceToFile(resource);
 }
-
-void NoteEditorPrivate::onJavaScriptLoaded()
-{
-    QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
-}
-
-#endif
 
 void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
 {
@@ -913,7 +911,6 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
         m_pendingNotePageLoad = true;
     }
 
-#ifdef USE_QT_WEB_ENGINE
     auto manualSaveResourceIt = m_manualSaveResourceToFileRequestIds.find(requestId);
     if (manualSaveResourceIt != m_manualSaveResourceToFileRequestIds.end())
     {
@@ -927,7 +924,6 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
         Q_UNUSED(m_manualSaveResourceToFileRequestIds.erase(manualSaveResourceIt));
         return;
     }
-#endif
 }
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
@@ -1390,30 +1386,6 @@ void NoteEditorPrivate::provideSrcForResourceImgTags()
     page->executeJavaScript("provideSrcForResourceImgTags();");
 }
 
-#ifdef USE_QT_WEB_ENGINE
-void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
-{
-    QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
-
-    if (!m_pNote) {
-        QNTRACE("No note is set for the editor");
-        return;
-    }
-
-    if (!m_pNote->containsEncryption()) {
-        QNTRACE("Current note doesn't contain any encryption, nothing to do");
-        return;
-    }
-
-    QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
-    QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
-
-    Q_Q(NoteEditor);
-    GET_PAGE()
-
-    page->executeJavaScript(javascript);
-}
-
 void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 {
     QNDEBUG("NoteEditorPrivate::manualSaveResourceToFile");
@@ -1590,6 +1562,30 @@ void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
 {
     QNDEBUG("NoteEditorPrivate::openResource: " << resourceAbsoluteFilePath);
     QDesktopServices::openUrl(QUrl("file://" + resourceAbsoluteFilePath));
+}
+
+#ifdef USE_QT_WEB_ENGINE
+void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
+{
+    QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
+
+    if (!m_pNote) {
+        QNTRACE("No note is set for the editor");
+        return;
+    }
+
+    if (!m_pNote->containsEncryption()) {
+        QNTRACE("Current note doesn't contain any encryption, nothing to do");
+        return;
+    }
+
+    QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
+    QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::setupGenericResourceImages()
@@ -2124,10 +2120,8 @@ void NoteEditorPrivate::setupFileIO()
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeImageResourceToFile,QString,QByteArray,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-#ifdef USE_QT_WEB_ENGINE
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-#endif
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
 

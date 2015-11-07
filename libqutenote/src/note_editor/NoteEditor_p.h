@@ -150,8 +150,8 @@ Q_SIGNALS:
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
-#ifdef USE_QT_WEB_ENGINE
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
+#ifdef USE_QT_WEB_ENGINE
     void saveGenericResourceImageToFile(const QString resourceLocalGuid, const QByteArray resourceImageData,
                                         const QString resourceFileSuffix, const QByteArray resourceActualHash,
                                         const QString resourceDisplayName, const QUuid requestId);
@@ -190,11 +190,11 @@ private Q_SLOTS:
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
 
-    void onOpenResourceRequest(const QString & resourceHash);
-    void onSaveResourceRequest(const QString & resourceHash);
-
     void onJavaScriptLoaded();
 #endif
+
+    void onOpenResourceRequest(const QString & resourceHash);
+    void onSaveResourceRequest(const QString & resourceHash);
 
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
 
@@ -245,11 +245,11 @@ private:
     void saveNoteResourcesToLocalFiles();
     void provideSrcForResourceImgTags();
 
-#ifdef USE_QT_WEB_ENGINE
-    void provideSrcAndOnClickScriptForImgEnCryptTags();
-
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
+
+#ifdef USE_QT_WEB_ENGINE
+    void provideSrcAndOnClickScriptForImgEnCryptTags();
 
     void setupGenericResourceImages();
 
@@ -492,14 +492,16 @@ private:
 
     QHash<QUuid, QString>           m_genericResourceLocalGuidBySaveToStorageRequestIds;
     QHash<QString, QString>         m_resourceFileStoragePathsByResourceLocalGuid;
-#ifdef USE_QT_WEB_ENGINE
+
     QSet<QString>                   m_localGuidsOfResourcesWantedToBeSaved;
     QSet<QString>                   m_localGuidsOfResourcesWantedToBeOpened;
+
+    QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
 
     QHash<QString, QStringList>     m_fileSuffixesForMimeType;
     QHash<QString, QString>         m_fileFilterStringForMimeType;
 
-    QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
+#ifdef USE_QT_WEB_ENGINE
 
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
     GenericResourceImageJavaScriptHandler *  m_pGenericResoureImageJavaScriptHandler;
