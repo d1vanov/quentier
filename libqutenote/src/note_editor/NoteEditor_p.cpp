@@ -520,9 +520,9 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
     }
 }
 
-void NoteEditorPrivate::onOpenResourceButtonClicked(const QString & resourceHash)
+void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::onOpenResourceButtonClicked: " << resourceHash);
+    QNDEBUG("NoteEditorPrivate::onOpenResourceRequest: " << resourceHash);
 
     if (Q_UNLIKELY(!m_pNote)) {
         QString error = QT_TR_NOOP("Can't open resource: no note is set to the editor");
@@ -564,9 +564,9 @@ void NoteEditorPrivate::onOpenResourceButtonClicked(const QString & resourceHash
     openResource(it.value());
 }
 
-void NoteEditorPrivate::onSaveResourceButtonClicked(const QString & resourceHash)
+void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::onSaveResourceButtonClicked: " << resourceHash);
+    QNDEBUG("NoteEditorPrivate::onSaveResourceRequest: " << resourceHash);
 
     if (Q_UNLIKELY(!m_pNote)) {
         QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
@@ -672,7 +672,8 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
     determineContextMenuEventTarget();
 }
 
-void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
+void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString selectedHtml,
+                                                bool insideDecryptedTextFragment,
                                                 QStringList extraData, quint64 sequenceNumber)
 {
     QNDEBUG("NoteEditorPrivate::onContextMenuEventReply: content type = " << contentType
@@ -690,23 +691,43 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
     if (contentType == "GenericText") {
         setupGenericTextContextMenu(selectedHtml, insideDecryptedTextFragment);
     }
-    else if (contentType == "ImageResource") {
-        setupImageResourceContextMenu();
+    else if (contentType == "ImageResource")
+    {
+        if (Q_UNLIKELY(extraData.empty())) {
+            QString error = QT_TR_NOOP("Can't display context menu for image resource: "
+                                       "extra data from JavaScript is empty");
+            QNWARNING(error);
+            emit notifyError(error);
+            return;
+        }
+
+        if (Q_UNLIKELY(extraData.size() != 1)) {
+            QString error = QT_TR_NOOP("Can't display context menu for image resource: "
+                                       "extra data from JavaScript has wrong size");
+            QNWARNING(error);
+            emit notifyError(error);
+            return;
+        }
+
+        const QString & resourceHash = extraData[0];
+        setupImageResourceContextMenu(resourceHash);
     }
     else if (contentType == "NonImageResource") {
         setupNonImageResourceContextMenu();
     }
     else if (contentType == "EncryptedText")
     {
-        if (extraData.empty()) {
-            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: extra data from JavaScript is empty");
+        if (Q_UNLIKELY(extraData.empty())) {
+            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: "
+                                       "extra data from JavaScript is empty");
             QNWARNING(error);
             emit notifyError(error);
             return;
         }
 
-        if (extraData.size() != 4) {
-            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: extra data from JavaScript has wrong size");
+        if (Q_UNLIKELY(extraData.size() != 4)) {
+            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: "
+                                       "extra data from JavaScript has wrong size");
             QNWARNING(error << ": " << extraData.join(", "));
             emit notifyError(error);
             return;
@@ -1843,16 +1864,20 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementOnClickHandler::decrypt,
                      this, &NoteEditorPrivate::onEnCryptElementClicked);
 
-    QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler, &GenericResourceOpenAndSaveButtonsOnClickHandler::saveResourceRequest,
-                     this, &NoteEditorPrivate::onSaveResourceButtonClicked);
+    QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler,
+                     &GenericResourceOpenAndSaveButtonsOnClickHandler::saveResourceRequest,
+                     this, &NoteEditorPrivate::onSaveResourceRequest);
 
-    QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler, &GenericResourceOpenAndSaveButtonsOnClickHandler::openResourceRequest,
-                     this, &NoteEditorPrivate::onOpenResourceButtonClicked);
+    QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler,
+                     &GenericResourceOpenAndSaveButtonsOnClickHandler::openResourceRequest,
+                     this, &NoteEditorPrivate::onOpenResourceRequest);
 
-    QObject::connect(m_pTextCursorPositionJavaScriptHandler, &TextCursorPositionJavaScriptHandler::textCursorPositionChanged,
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler,
+                     &TextCursorPositionJavaScriptHandler::textCursorPositionChanged,
                      this, &NoteEditorPrivate::onTextCursorPositionChange);
 
-    QObject::connect(m_pContextMenuEventJavaScriptHandler, &ContextMenuEventJavaScriptHandler::contextMenuEventReply,
+    QObject::connect(m_pContextMenuEventJavaScriptHandler,
+                     &ContextMenuEventJavaScriptHandler::contextMenuEventReply,
                      this, &NoteEditorPrivate::onContextMenuEventReply);
 
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
@@ -2002,23 +2027,22 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupImageResourceContextMenu()
+void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu");
+    QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu: resource hash = " << resourceHash);
 
     Q_Q(NoteEditor);
+
+    m_currentContextMenuExtraData.m_contentType = "ImageResource";
+    m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
     delete m_pImageResourceContextMenu;
     m_pImageResourceContextMenu = new QMenu(q);
 
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pImageResourceContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pImageResourceContextMenu, copy);
-
-    QClipboard * pClipboard = QApplication::clipboard();
-    if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
-        QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pImageResourceContextMenu, paste);
-    }
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::OpenAttachment, "Open", m_pImageResourceContextMenu,
+                             openAttachmentUnderCursor);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SaveAttachment, "Save as...", m_pImageResourceContextMenu,
+                             saveAttachmentUnderCursor);
 
     // TODO: continue filling the menu items
 
@@ -3103,6 +3127,54 @@ void NoteEditorPrivate::addAttachmentDialog()
     q->setFocus();
 }
 
+void NoteEditorPrivate::saveAttachmentDialog(const QString & resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::saveAttachmentDialog");
+    onSaveResourceRequest(resourceHash);
+}
+
+void NoteEditorPrivate::saveAttachmentUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::saveAttachmentUnderCursor");
+
+    if ((m_currentContextMenuExtraData.m_contentType != "ImageResource") &&
+        (m_currentContextMenuExtraData.m_contentType != "NonImageResource"))
+    {
+        QString error = QT_TR_NOOP("Can't save attachment under cursor: wrong current context menu extra data's' content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    saveAttachmentDialog(m_currentContextMenuExtraData.m_resourceHash);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::openAttachment(const QString & resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::openAttachment");
+    onOpenResourceRequest(resourceHash);
+}
+
+void NoteEditorPrivate::openAttachmentUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::openAttachmentUnderCursor");
+
+    if ((m_currentContextMenuExtraData.m_contentType != "ImageResource") &&
+        (m_currentContextMenuExtraData.m_contentType != "NonImageResource"))
+    {
+        QString error = QT_TR_NOOP("Can't open attachment under cursor: wrong current context menu extra data's' content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    openAttachment(m_currentContextMenuExtraData.m_resourceHash);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
 void NoteEditorPrivate::encryptSelectedTextDialog()
 {
     QNDEBUG("NoteEditorPrivate::encryptSelectedTextDialog");
@@ -3173,7 +3245,7 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
     onEnCryptElementClicked(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
                             m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
 
-    m_currentContextMenuExtraData.m_contentType.clear();
+    m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

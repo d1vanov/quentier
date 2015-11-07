@@ -105,6 +105,10 @@ public Q_SLOTS:
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
     void addAttachmentDialog();
+    void saveAttachmentDialog(const QString & resourceHash);
+    void saveAttachmentUnderCursor();
+    void openAttachment(const QString & resourceHash);
+    void openAttachmentUnderCursor();
     void encryptSelectedTextDialog();
     void encryptSelectedText(const QString & passphrase, const QString & hint, const bool rememberForSession);
     void decryptEncryptedTextUnderCursor();

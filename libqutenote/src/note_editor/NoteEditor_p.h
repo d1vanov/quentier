@@ -129,6 +129,10 @@ public:
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
     void addAttachmentDialog();
+    void saveAttachmentDialog(const QString & resourceHash);
+    void saveAttachmentUnderCursor();
+    void openAttachment(const QString & resourceHash);
+    void openAttachmentUnderCursor();
     void encryptSelectedTextDialog();
     void encryptSelectedText(const QString & passphrase, const QString & hint,
                              const bool rememberForSession);
@@ -186,8 +190,8 @@ private Q_SLOTS:
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
 
-    void onOpenResourceButtonClicked(const QString & resourceHash);
-    void onSaveResourceButtonClicked(const QString & resourceHash);
+    void onOpenResourceRequest(const QString & resourceHash);
+    void onSaveResourceRequest(const QString & resourceHash);
 
     void onJavaScriptLoaded();
 #endif
@@ -262,7 +266,7 @@ private:
 #endif
 
     void setupGenericTextContextMenu(const QString &selectedHtml, bool insideDecryptedTextFragment);
-    void setupImageResourceContextMenu();
+    void setupImageResourceContextMenu(const QString & resourceHash);
     void setupNonImageResourceContextMenu();
     void setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
                                        const QString & encryptedText, const QString & hint);
@@ -514,6 +518,9 @@ private:
         QString     m_keyLength;
         QString     m_cipher;
         QString     m_hint;
+
+        // Resource extra data
+        QString     m_resourceHash;
     };
 
     CurrentContextMenuExtraData     m_currentContextMenuExtraData;

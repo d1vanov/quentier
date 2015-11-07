@@ -257,6 +257,30 @@ void NoteEditor::addAttachmentDialog()
     d->addAttachmentDialog();
 }
 
+void NoteEditor::saveAttachmentDialog(const QString & resourceHash)
+{
+    Q_D(NoteEditor);
+    d->saveAttachmentDialog(resourceHash);
+}
+
+void NoteEditor::saveAttachmentUnderCursor()
+{
+    Q_D(NoteEditor);
+    d->saveAttachmentUnderCursor();
+}
+
+void NoteEditor::openAttachment(const QString & resourceHash)
+{
+    Q_D(NoteEditor);
+    d->openAttachment(resourceHash);
+}
+
+void NoteEditor::openAttachmentUnderCursor()
+{
+    Q_D(NoteEditor);
+    d->openAttachmentUnderCursor();
+}
+
 void NoteEditor::encryptSelectedTextDialog()
 {
     Q_D(NoteEditor);
