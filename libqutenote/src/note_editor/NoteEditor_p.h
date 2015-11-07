@@ -133,6 +133,8 @@ public:
     void saveAttachmentUnderCursor();
     void openAttachment(const QString & resourceHash);
     void openAttachmentUnderCursor();
+    void copyAttachment(const QString & resourceHash);
+    void copyAttachmentUnderCursor();
     void encryptSelectedTextDialog();
     void encryptSelectedText(const QString & passphrase, const QString & hint,
                              const bool rememberForSession);
@@ -290,6 +292,9 @@ private:
     void onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
                                                  const QVector<QPair<QString,QString> > & extraData);
     void onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
+
+    int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
+                            const QString & resourceHash) const;
 
     template <class T>
     class NoteEditorCallbackFunctor

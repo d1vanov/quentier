@@ -531,26 +531,17 @@ void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
 
     if (Q_UNLIKELY(!m_pNote)) {
         QString error = QT_TR_NOOP("Can't open resource: no note is set to the editor");
-        QNINFO(error << ", resource hash = " << resourceHash);
+        QNWARNING(error << ", resource hash = " << resourceHash);
         emit notifyError(error);
         return;
     }
 
-    int resourceIndex = -1;
     QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    int numResources = resourceAdapters.size();
-    for(int i = 0; i < numResources; ++i)
-    {
-        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
-        if (resourceAdapter.hasDataHash() && (resourceAdapter.dataHash() == resourceHash)) {
-            resourceIndex = i;
-            break;
-        }
-    }
-
+    int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QString error = QT_TR_NOOP("Resource to be opened was not found in the note");
-        QNINFO(error << ", resource hash = " << resourceHash);
+        QNWARNING(error << ", resource hash = " << resourceHash);
+        emit notifyError(error);
         return;
     }
 
@@ -580,18 +571,8 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
         return;
     }
 
-    int resourceIndex = -1;
     QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    int numResources = resourceAdapters.size();
-    for(int i = 0; i < numResources; ++i)
-    {
-        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
-        if (resourceAdapter.hasDataHash() && (resourceAdapter.dataHash() == resourceHash)) {
-            resourceIndex = i;
-            break;
-        }
-    }
-
+    int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QString error = QT_TR_NOOP("Resource to be saved was not found in the note");
         QNINFO(error << ", resource hash = " << resourceHash);
@@ -2035,6 +2016,11 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
     delete m_pImageResourceContextMenu;
     m_pImageResourceContextMenu = new QMenu(q);
 
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyAttachment, "Copy", m_pImageResourceContextMenu,
+                             copyAttachmentUnderCursor);
+
+    Q_UNUSED(m_pImageResourceContextMenu->addSeparator());
+
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::OpenAttachment, "Open", m_pImageResourceContextMenu,
                              openAttachmentUnderCursor);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SaveAttachment, "Save as...", m_pImageResourceContextMenu,
@@ -2468,6 +2454,23 @@ void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, con
     q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
     provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
+}
+
+int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
+                                           const QString & resourceHash) const
+{
+    QNDEBUG("NoteEditorPrivate::resourceIndexByHash: hash = " << resourceHash);
+
+    const int numResources = resourceAdapters.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+        if (resourceAdapter.hasDataHash() && (resourceAdapter.dataHash() == resourceHash)) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 #define COMMAND_TO_JS(command) \
@@ -3134,7 +3137,7 @@ void NoteEditorPrivate::saveAttachmentUnderCursor()
     if ((m_currentContextMenuExtraData.m_contentType != "ImageResource") &&
         (m_currentContextMenuExtraData.m_contentType != "NonImageResource"))
     {
-        QString error = QT_TR_NOOP("Can't save attachment under cursor: wrong current context menu extra data's' content type");
+        QString error = QT_TR_NOOP("Can't save attachment under cursor: wrong current context menu extra data's content type");
         QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
         emit notifyError(error);
         return;
@@ -3165,6 +3168,74 @@ void NoteEditorPrivate::openAttachmentUnderCursor()
     }
 
     openAttachment(m_currentContextMenuExtraData.m_resourceHash);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::copyAttachment(const QString & resourceHash)
+{
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't copy attachment: no note is set to the editor");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
+    if (Q_UNLIKELY(resourceIndex < 0)) {
+        QString error = QT_TR_NOOP("Attachment to be copied was not found in the note");
+        QNWARNING(error << ", resource hash = " << resourceHash);
+        emit notifyError(error);
+        return;
+    }
+
+    const ResourceAdapter & resource = resourceAdapters[resourceIndex];
+
+    if (Q_UNLIKELY(!resource.hasDataBody() && !resource.hasAlternateDataBody())) {
+        QString error = QT_TR_NOOP("Can't copy attachment as it has neither data body nor alternate data body");
+        QNWARNING(error << ", resource hash = " << resourceHash);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(!resource.hasMime())) {
+        QString error = QT_TR_NOOP("Can't copy attachment as it has no mime type");
+        QNWARNING(error << ", resource hash = " << resourceHash);
+        emit notifyError(error);
+        return;
+    }
+
+    const QByteArray & data = (resource.hasDataBody() ? resource.dataBody() : resource.alternateDataBody());
+    const QString & mimeType = resource.mime();
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        QString error = QT_TR_NOOP("Can't copy attachment: can't get access to clipboard");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QMimeData * pMimeData = new QMimeData;
+    pMimeData->setData(mimeType, data);
+    pClipboard->setMimeData(pMimeData);
+}
+
+void NoteEditorPrivate::copyAttachmentUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::copyAttachmentUnderCursor");
+
+    if ((m_currentContextMenuExtraData.m_contentType != "ImageResource") &&
+        (m_currentContextMenuExtraData.m_contentType != "NonImageResource"))
+    {
+        QString error = QT_TR_NOOP("Can't copy attachment under cursor: wrong current context menu extra data's content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    copyAttachment(m_currentContextMenuExtraData.m_resourceHash);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }

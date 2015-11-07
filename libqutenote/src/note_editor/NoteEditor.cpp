@@ -281,6 +281,18 @@ void NoteEditor::openAttachmentUnderCursor()
     d->openAttachmentUnderCursor();
 }
 
+void NoteEditor::copyAttachment(const QString & resourceHash)
+{
+    Q_D(NoteEditor);
+    d->copyAttachment(resourceHash);
+}
+
+void NoteEditor::copyAttachmentUnderCursor()
+{
+    Q_D(NoteEditor);
+    d->copyAttachmentUnderCursor();
+}
+
 void NoteEditor::encryptSelectedTextDialog()
 {
     Q_D(NoteEditor);

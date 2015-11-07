@@ -335,6 +335,9 @@ QString ShortcutManagerPrivate::keyToString(const int key) const
     PRINT_ITEM(AddAttachment);
     PRINT_ITEM(SaveAttachment);
     PRINT_ITEM(OpenAttachment);
+    PRINT_ITEM(CopyAttachment);
+    PRINT_ITEM(CutAttachment);
+    PRINT_ITEM(RemoveAttachment);
     PRINT_ITEM(AddAccount);
     PRINT_ITEM(ExitAccount);
     PRINT_ITEM(SwitchAccount);

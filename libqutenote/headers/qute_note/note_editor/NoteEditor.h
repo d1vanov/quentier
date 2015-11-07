@@ -109,6 +109,8 @@ public Q_SLOTS:
     void saveAttachmentUnderCursor();
     void openAttachment(const QString & resourceHash);
     void openAttachmentUnderCursor();
+    void copyAttachment(const QString & resourceHash);
+    void copyAttachmentUnderCursor();
     void encryptSelectedTextDialog();
     void encryptSelectedText(const QString & passphrase, const QString & hint, const bool rememberForSession);
     void decryptEncryptedTextUnderCursor();
