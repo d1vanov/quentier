@@ -1,0 +1,11 @@
+.en-media-image {
+    display: inline-block;
+    cursor: default;
+    height: auto;
+    width: auto;
+    margin: 2px;
+    padding: 2px;
+    vertical-align: bottom;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
