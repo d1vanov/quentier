@@ -26,7 +26,6 @@ function provideSrcAndOnClickScriptForEnCryptImgTags(path) {
         // automatically escape special characters in the path
         path = path.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
         element.setAttribute("src", path);
-        element.setAttribute("onmouseover", "style.cursor=\"default\"");
         element.setAttribute("onclick", "window.enCryptElementClickHandler.onEnCryptElementClicked(" +
                              "this.getAttribute(\"encrypted_text\"), " +
                              "this.getAttribute(\"cipher\") || \"\", " +
