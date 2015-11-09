@@ -18,6 +18,8 @@ public:
                   const bool rememberForSession, const QString & passphrase,
                   const QString & cipher, const size_t keyLength);
 
+    // TODO: add method to remove the particular entry
+
     void clearNonRememberedForSessionEntries();
 
     bool findDecryptedTextByEncryptedText(const QString & encryptedText, QString & decryptedText,
