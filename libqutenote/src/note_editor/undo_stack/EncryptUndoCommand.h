@@ -6,7 +6,6 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
-QT_FORWARD_DECLARE_CLASS(EncryptionManager)
 
 class EncryptUndoCommand: public INoteEditorUndoCommand
 {
@@ -14,17 +13,18 @@ public:
     struct EncryptUndoCommandInfo
     {
         QString     m_encryptedText;
+        QString     m_decryptedText;
+        QString     m_passphrase;
         QString     m_cipher;
         size_t      m_keyLength;
         bool        m_rememberForSession;
-
-        QString     m_enmlWithEncryption;   // ENML after the encryption, for "redo" command
+        bool        m_decryptPermanently;
     };
 
     EncryptUndoCommand(const EncryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
-                       EncryptionManager & encryptionManager, NoteEditor & noteEditor, QUndoCommand * parent = Q_NULLPTR);
+                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
     EncryptUndoCommand(const EncryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
-                       EncryptionManager & encryptionManager, NoteEditor & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~EncryptUndoCommand();
 
     virtual void redo() Q_DECL_OVERRIDE;
@@ -33,7 +33,6 @@ public:
 private:
     EncryptUndoCommandInfo  m_info;
     DecryptedTextManager &  m_decryptedTextManager;
-    EncryptionManager &     m_encryptionManager;
 };
 
 } // namespace qute_note

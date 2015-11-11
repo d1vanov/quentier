@@ -18,7 +18,7 @@ public:
                   const bool rememberForSession, const QString & passphrase,
                   const QString & cipher, const size_t keyLength);
 
-    // TODO: add method to remove the particular entry
+    void removeEntry(const QString & hash);
 
     void clearNonRememberedForSessionEntries();
 

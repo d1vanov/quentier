@@ -6,16 +6,16 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(NoteEditor)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 class INoteEditorUndoCommand: public QUndoCommand
 {
 protected:
-    INoteEditorUndoCommand(NoteEditor & noteEditor, QUndoCommand * parent = Q_NULLPTR);
-    INoteEditorUndoCommand(NoteEditor & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
+    INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~INoteEditorUndoCommand();
 
-    NoteEditor &    m_noteEditor;
+    NoteEditorPrivate &    m_noteEditorPrivate;
 };
 
 } // namespace qute_note

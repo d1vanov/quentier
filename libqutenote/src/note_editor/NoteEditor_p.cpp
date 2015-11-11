@@ -2614,6 +2614,12 @@ void NoteEditorPrivate::convertToNote()
     }
 }
 
+void NoteEditorPrivate::updateFromNote()
+{
+    QNDEBUG("NoteEditorPrivate::updateFromNote");
+    noteToEditorContent();
+}
+
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
@@ -2754,6 +2760,16 @@ void NoteEditorPrivate::undo()
 }
 
 void NoteEditorPrivate::redo()
+{
+    HANDLE_ACTION(redo, Redo);
+}
+
+void NoteEditorPrivate::undoPageAction()
+{
+    HANDLE_ACTION(undo, Undo);
+}
+
+void NoteEditorPrivate::redoPageAction()
 {
     HANDLE_ACTION(redo, Redo);
 }
@@ -3312,6 +3328,17 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
                             m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::decryptEncryptedText(const QString & encryptedText,
+                                             const QString & decryptedText,
+                                             bool rememberForSession,
+                                             bool decryptPermanently)
+{
+    QNDEBUG("NoteEditorPrivate::decryptEncryptedText: encrypted text = " << encryptedText
+            << ", remember for session = " << (rememberForSession ? "true" : "false")
+            << ", decrypt permanently = " << (decryptPermanently ? "true" : "false"));
+    onEncryptedAreaDecryption(encryptedText, decryptedText, rememberForSession, decryptPermanently);
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

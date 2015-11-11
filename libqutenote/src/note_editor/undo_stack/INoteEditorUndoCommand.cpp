@@ -1,16 +1,16 @@
 #include "INoteEditorUndoCommand.h"
-#include <qute_note/note_editor/NoteEditor.h>
+#include "../NoteEditor_p.h"
 
 namespace qute_note {
 
-INoteEditorUndoCommand::INoteEditorUndoCommand(NoteEditor & noteEditor, QUndoCommand * parent) :
+INoteEditorUndoCommand::INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     QUndoCommand(parent),
-    m_noteEditor(noteEditor)
+    m_noteEditorPrivate(noteEditorPrivate)
 {}
 
-INoteEditorUndoCommand::INoteEditorUndoCommand(NoteEditor & noteEditor, const QString & text, QUndoCommand * parent) :
+INoteEditorUndoCommand::INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
     QUndoCommand(text, parent),
-    m_noteEditor(noteEditor)
+    m_noteEditorPrivate(noteEditorPrivate)
 {}
 
 INoteEditorUndoCommand::~INoteEditorUndoCommand()

@@ -8,8 +8,8 @@ namespace qute_note {
 class NoteEditorContentEditUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    NoteEditorContentEditUndoCommand(NoteEditor & noteEditor, QUndoCommand * parent = Q_NULLPTR);
-    NoteEditorContentEditUndoCommand(NoteEditor & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
+    NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~NoteEditorContentEditUndoCommand();
 
     virtual void redo() Q_DECL_OVERRIDE;

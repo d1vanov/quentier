@@ -20,6 +20,12 @@ void DecryptedTextManager::addEntry(const QString & hash, const QString & decryp
     d->addEntry(hash, decryptedText, rememberForSession, passphrase, cipher, keyLength);
 }
 
+void DecryptedTextManager::removeEntry(const QString & hash)
+{
+    Q_D(DecryptedTextManager);
+    d->removeEntry(hash);
+}
+
 void DecryptedTextManager::clearNonRememberedForSessionEntries()
 {
     Q_D(DecryptedTextManager);

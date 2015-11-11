@@ -29,6 +29,20 @@ void DecryptedTextManagerPrivate::addEntry(const QString & hash, const QString &
     entry.m_rememberForSession = rememberForSession;
 }
 
+void DecryptedTextManagerPrivate::removeEntry(const QString & hash)
+{
+    QNDEBUG("DecryptedTextManagerPrivate::removeEntry: hash = " << hash);
+
+    auto it = m_dataHash.find(hash);
+    if (it != m_dataHash.end()) {
+        Q_UNUSED(m_dataHash.erase(it));
+        return;
+    }
+
+    it = m_staleDataHash.find(hash);
+    Q_UNUSED(m_staleDataHash.erase(it));
+}
+
 void DecryptedTextManagerPrivate::clearNonRememberedForSessionEntries()
 {
     QNDEBUG("DecryptedTextManagerPrivate::clearNonRememberedForSessionEntries");

@@ -63,6 +63,9 @@ public:
 
     void convertToNote();
 
+    // Force the conversion from ENML to HTML
+    void updateFromNote();
+
 Q_SIGNALS:
     void convertedToNote(Note note);
     void cantConvertToNote(QString errorDescription);
@@ -139,11 +142,16 @@ public:
     void encryptSelectedText(const QString & passphrase, const QString & hint,
                              const bool rememberForSession);
     void decryptEncryptedTextUnderCursor();
+    void decryptEncryptedText(const QString &encryptedText, const QString &decryptedText,
+                              bool rememberForSession, bool decryptPermanently);
     void editHyperlinkDialog();
     void copyHyperlink();
     void removeHyperlink();
 
     void onNoteLoadCancelled();
+
+    void undoPageAction();
+    void redoPageAction();
 
 // private signals:
 Q_SIGNALS:
