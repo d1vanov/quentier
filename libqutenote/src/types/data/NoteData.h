@@ -4,6 +4,7 @@
 #include "DataElementWithShortcutData.h"
 #include <QEverCloud.h>
 #include <QImage>
+#include <QMutex>
 
 namespace qute_note {
 
@@ -54,6 +55,9 @@ public:
     mutable int  m_lazyContainsCheckedToDo;
     mutable int  m_lazyContainsUncheckedToDo;
     mutable int  m_lazyContainsEncryption;
+
+private:
+    mutable QMutex  m_mutex;
 
 private:
     NoteData & operator=(const NoteData & other) Q_DECL_DELETE;
