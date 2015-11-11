@@ -1,11 +1,11 @@
-#include "EncryptUndoCommand.h"
+#include "DecryptUndoCommand.h"
 #include "../NoteEditor_p.h"
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {
 
-EncryptUndoCommand::EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
+DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
                                        DecryptedTextManager & decryptedTextManager,
                                        NoteEditorPrivate & noteEditorPrivate,
                                        QUndoCommand * parent) :
@@ -14,29 +14,21 @@ EncryptUndoCommand::EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & inf
     m_decryptedTextManager(decryptedTextManager)
 {}
 
-EncryptUndoCommand:: EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
-                                        DecryptedTextManager & decryptedTextManager,
-                                        NoteEditorPrivate & noteEditorPrivate,
-                                        const QString & text, QUndoCommand * parent) :
+DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
+                                       DecryptedTextManager & decryptedTextManager,
+                                       NoteEditorPrivate & noteEditorPrivate,
+                                       const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager)
 {}
 
-EncryptUndoCommand::~EncryptUndoCommand()
+DecryptUndoCommand::~DecryptUndoCommand()
 {}
 
-void EncryptUndoCommand::redo()
+void DecryptUndoCommand::redo()
 {
-    QNDEBUG("EncryptUndoCommand::redo");
-
-    m_decryptedTextManager.removeEntry(m_info.m_encryptedText);
-    m_noteEditorPrivate.updateFromNote();   // Force re-conversion from ENML to HTML
-}
-
-void EncryptUndoCommand::undo()
-{
-    QNDEBUG("EncryptUndoCommand::undo");
+    QNDEBUG("DecryptUndoCommand::redo");
 
     m_decryptedTextManager.addEntry(m_info.m_encryptedText, m_info.m_decryptedText,
                                     m_info.m_rememberForSession, m_info.m_passphrase,
@@ -46,5 +38,12 @@ void EncryptUndoCommand::undo()
                                              m_info.m_rememberForSession, m_info.m_decryptPermanently);
 }
 
-} // namespace qute_note
+void DecryptUndoCommand::undo()
+{
+    QNDEBUG("DecryptUndoCommand::undo");
 
+    m_decryptedTextManager.removeEntry(m_info.m_encryptedText);
+    m_noteEditorPrivate.updateFromNote();   // Force re-conversion from ENML to HTML
+}
+
+} // namespace qute_note
