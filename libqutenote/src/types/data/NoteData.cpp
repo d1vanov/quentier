@@ -75,8 +75,7 @@ bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditi
 
 bool NoteData::containsToDoImpl(const bool checked) const
 {
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
+    QMutexLocker mutexLocker(&m_mutex);
 
     int & refLazyContainsToDo = (checked ? m_lazyContainsCheckedToDo : m_lazyContainsUncheckedToDo);
     if (refLazyContainsToDo > (-1)) {
@@ -137,8 +136,7 @@ bool NoteData::containsToDoImpl(const bool checked) const
 
 bool NoteData::containsEncryption() const
 {
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
+    QMutexLocker mutexLocker(&m_mutex);
 
     if (m_lazyContainsEncryption > (-1)) {
         if (m_lazyContainsEncryption == 0) {
@@ -190,6 +188,8 @@ bool NoteData::containsEncryption() const
 
 void NoteData::setContent(const QString & content)
 {
+    QMutexLocker mutexLocker(&m_mutex);
+
     if (!content.isEmpty()) {
         m_qecNote.content = content;
     }
@@ -206,6 +206,8 @@ void NoteData::setContent(const QString & content)
 
 void NoteData::clear()
 {
+    QMutexLocker mutexLocker(&m_mutex);
+
     m_qecNote = qevercloud::Note();
     m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
     m_lazyListOfWordsIsValid = false;
@@ -390,8 +392,7 @@ bool NoteData::checkParameters(QString & errorDescription) const
 
 QString NoteData::plainText(QString * errorMessage) const
 {
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
+    QMutexLocker mutexLocker(&m_mutex);
 
     if (m_lazyPlainTextIsValid) {
         return m_lazyPlainText;
@@ -422,8 +423,7 @@ QString NoteData::plainText(QString * errorMessage) const
 
 QStringList NoteData::listOfWords(QString * errorMessage) const
 {
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
+    QMutexLocker mutexLocker(&m_mutex);
 
     if (m_lazyListOfWordsIsValid) {
         return m_lazyListOfWords;
