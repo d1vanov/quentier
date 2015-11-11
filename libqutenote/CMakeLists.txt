@@ -176,6 +176,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/EncryptDecryptUndoCommandInfo.h
     src/note_editor/undo_stack/EncryptUndoCommand.h
     src/note_editor/undo_stack/DecryptUndoCommand.h
+    src/note_editor/undo_stack/EditHyperlinkUndoCommand.h
     src/types/data/DataElementWithShortcutData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -238,6 +239,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/NoteEditorContentEditUndoCommand.cpp
     src/note_editor/undo_stack/EncryptUndoCommand.cpp
     src/note_editor/undo_stack/DecryptUndoCommand.cpp
+    src/note_editor/undo_stack/EditHyperlinkUndoCommand.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp

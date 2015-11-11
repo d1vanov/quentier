@@ -2620,6 +2620,20 @@ void NoteEditorPrivate::updateFromNote()
     noteToEditorContent();
 }
 
+void NoteEditorPrivate::updateEnml(const QString & enml)
+{
+    QNDEBUG("NoteEditorPrivate::updateEnml");
+    QNTRACE(enml);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNINFO("Can't update note's enml: no note is set to the editor");
+        return;
+    }
+
+    m_pNote->setContent(enml);
+    updateFromNote();
+}
+
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
