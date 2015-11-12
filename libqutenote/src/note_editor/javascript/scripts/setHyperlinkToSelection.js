@@ -1,5 +1,6 @@
-function setHyperlinkToSelection(text, link) {
-    console.log("setHyperlinkToSelection: text = " + text + "; link = " + link);
+function setHyperlinkToSelection(text, link, hyperlinkIdNumber) {
+    console.log("setHyperlinkToSelection: text = " + text + "; link = " + link +
+                "; id number = " + hyperlinkIdNumber);
 
     var element = findSelectedHyperlinkElement();
     if (element) {
@@ -21,5 +22,6 @@ function setHyperlinkToSelection(text, link) {
         }
     }
 
-    replaceSelectionWithHtml('<a href="' + link + '">' + text + "</a>");
+    replaceSelectionWithHtml('<a href="' + link + '" en-hyperlink-id="' +
+                             hyperlinkIdNumber +'" >' + text + "</a>");
 }

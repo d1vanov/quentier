@@ -5,9 +5,10 @@
 namespace qute_note {
 
 EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupText,
-                             const QString & startupUrl) :
+                             const QString & startupUrl, const quint64 idNumber) :
     QDialog(parent),
-    m_pUI(new Ui::EditUrlDialog)
+    m_pUI(new Ui::EditUrlDialog),
+    m_idNumber(idNumber)
 {
     m_pUI->setupUi(this);
     m_pUI->urlErrorLabel->setVisible(false);
@@ -47,7 +48,7 @@ void EditUrlDialog::accept()
         return;
     }
 
-    emit accepted(m_pUI->textLineEdit->text(), url);
+    emit accepted(m_pUI->textLineEdit->text(), url, m_idNumber);
     QDialog::accept();
 }
 

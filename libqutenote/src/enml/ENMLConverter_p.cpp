@@ -256,6 +256,12 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
                     continue;
                 }
 
+                if ((lastElementName == "a") && (attributeName == "en-hyperlink-id")) {
+                    QNTRACE("Erasing custom attribute en-hyperlink-id");
+                    it = lastElementAttributes.erase(it);
+                    continue;
+                }
+
                 ++it;
             }
 

@@ -5,9 +5,15 @@ function getHyperlinkFromSelection() {
     if (!element) {
         console.log("Haven't found hyperlink under selection");
         var text = getSelectionHtml();
-        return [text, ""];
+        return [text, "", "0"];
     }
 
-    console.log("Found hyperlink under selection, returning [" + element.innerHTML + ", " + element.href + "]");
-    return [element.innerHTML, element.href];
+    var idNumber = element.en-hyperlink-id;
+    if (!idNumber) {
+        idNumber = 0;
+    }
+
+    console.log("Found hyperlink under selection, returning [" + element.innerHTML +
+                ", " + element.href + ", " + idNumber + "]");
+    return [element.innerHTML, element.href, idNumber.toString()];
 }

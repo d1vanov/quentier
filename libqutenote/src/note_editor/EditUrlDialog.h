@@ -17,11 +17,12 @@ class EditUrlDialog: public QDialog
 public:
     explicit EditUrlDialog(QWidget * parent = Q_NULLPTR,
                            const QString & startupText = QString(),
-                           const QString & startupUrl = QString());
+                           const QString & startupUrl = QString(),
+                           const quint64 idNumber = 0);
     virtual ~EditUrlDialog();
 
 Q_SIGNALS:
-    void accepted(QString text, QUrl url);
+    void accepted(QString text, QUrl url, quint64 idNumber);
 
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
@@ -34,6 +35,7 @@ private:
 
 private:
     Ui::EditUrlDialog * m_pUI;
+    const quint64       m_idNumber;
 };
 
 } // namespace qute_note

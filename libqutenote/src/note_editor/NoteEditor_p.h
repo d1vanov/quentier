@@ -188,7 +188,7 @@ private Q_SLOTS:
                                 const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
-    void onUrlEditingFinished(QString text, QUrl url);
+    void onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber);
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
                                    bool rememberForSession, bool decryptPermanently);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
@@ -249,7 +249,8 @@ private:
     void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
                                                          const QString & hint, const bool rememberForSession);
 
-    void raiseEditUrlDialog(const QString & startupText = QString(), const QString & startupUrl = QString());
+    void raiseEditUrlDialog(const QString & startupText = QString(), const QString & startupUrl = QString(),
+                            const quint64 idNumber = 0);
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -548,6 +549,7 @@ private:
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
     quint64      m_lastFreeEnToDoIdNumber;
+    quint64      m_lastFreeHyperlinkIdNumber;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

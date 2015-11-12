@@ -182,6 +182,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_currentContextMenuExtraData(),
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
+    m_lastFreeHyperlinkIdNumber(1),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -1057,16 +1058,17 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
 #endif
 }
 
-void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QString & startupUrl)
+void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QString & startupUrl,
+                                           const quint64 idNumber)
 {
     QNDEBUG("NoteEditorPrivate::raiseEditUrlDialog: startup text = " << startupText
-            << ", startup url = " << startupUrl);
+            << ", startup url = " << startupUrl << ", id number = " << idNumber);
 
     Q_Q(NoteEditor);
     QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(q, startupText, startupUrl));
     pEditUrlDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl),
-                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl));
+    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl,quint64));
     QNTRACE("Will exec edit URL dialog now");
     pEditUrlDialog->exec();
     QNTRACE("Executed edit URL dialog");
@@ -1091,6 +1093,7 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastContextMenuEventPagePos = QPoint();
 
     m_lastFreeEnToDoIdNumber = 1;
+    m_lastFreeHyperlinkIdNumber = 1;
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
@@ -3389,8 +3392,8 @@ void NoteEditorPrivate::editHyperlinkDialog()
     }
 
     QStringList hyperlinkData = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toStringList();
-    if (hyperlinkData.size() != 2) {
-        QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text and hyperlink from JavaScript");
+    if (hyperlinkData.size() != 3) {
+        QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text, hyperlink and id number from JavaScript");
         QNWARNING(error << "; hyperlink data: " << hyperlinkData.join(","));
         emit notifyError(error);
         return;
@@ -3497,14 +3500,23 @@ void NoteEditorPrivate::onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
         return;
     }
 
-    if (hyperlinkDataList.size() != 2) {
-        QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text and hyperlink from JavaScript");
-        QNWARNING(error << "; hyperlink data: " << hyperlinkDataList.join(","));
-        emit notifyError(error);
+    if (hyperlinkDataList.size() != 3) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't edit hyperlink: can't get text, hyperlink and hyperlink id number from JavaScript");
+        QNWARNING(m_errorCachedMemory << "; hyperlink data: " << hyperlinkDataList.join(","));
+        emit notifyError(m_errorCachedMemory);
         return;
     }
 
-    raiseEditUrlDialog(hyperlinkDataList[0], hyperlinkDataList[1]);
+    bool conversionResult = false;
+    quint64 idNumber = hyperlinkDataList[2].toULongLong(&conversionResult);
+    if (!conversionResult) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't edit hyperlink: can't cinvert hyperlink id number to unsigned int");
+        QNWARNING(m_errorCachedMemory << "; hyperlink data: " << hyperlinkDataList.join(","));
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    raiseEditUrlDialog(hyperlinkDataList[0], hyperlinkDataList[1], idNumber);
 }
 
 void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
@@ -3535,9 +3547,10 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
     }
 }
 
-void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url)
+void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber)
 {
-    QNDEBUG("NoteEditorPrivate::onUrlEditingFinished: text = " << text << "; url = " << url);
+    QNDEBUG("NoteEditorPrivate::onUrlEditingFinished: text = " << text << "; url = "
+            << url << ", hyperlink id number = " << hyperlinkIdNumber);
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString urlString = url.toString(QUrl::FullyEncoded);
@@ -3545,9 +3558,14 @@ void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url)
     QString urlString = url.toString(QUrl::None);
 #endif
 
+    if (hyperlinkIdNumber == 0) {
+        hyperlinkIdNumber = m_lastFreeHyperlinkIdNumber++;
+    }
+
     Q_Q(NoteEditor);
     GET_PAGE()
-    page->executeJavaScript("setHyperlinkToSelection('" + text + "', '" + urlString + "');");
+    page->executeJavaScript("setHyperlinkToSelection('" + text + "', '" + urlString +
+                            "', " + QString::number(hyperlinkIdNumber) + ");");
     q->setFocus();
 }
 
