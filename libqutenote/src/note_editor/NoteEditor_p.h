@@ -156,6 +156,8 @@ public:
     void undoPageAction();
     void redoPageAction();
 
+    void flipEnToDoCheckboxState(const quint64 enToDoIdNumber);
+
 // private signals:
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
@@ -403,6 +405,7 @@ private:
     QString     m_removeHyperlinkFromSelectionJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
+    QString     m_flipEnToDoCheckboxStateJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;

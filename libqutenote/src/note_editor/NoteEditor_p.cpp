@@ -92,6 +92,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_removeHyperlinkFromSelectionJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
+    m_flipEnToDoCheckboxStateJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
@@ -281,6 +282,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_removeHyperlinkFromSelectionJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
+    page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
@@ -2161,6 +2163,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/removeHyperlinkFromSelection.js", m_removeHyperlinkFromSelectionJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
+    SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
@@ -2789,6 +2792,17 @@ void NoteEditorPrivate::undoPageAction()
 void NoteEditorPrivate::redoPageAction()
 {
     HANDLE_ACTION(redo, Redo);
+}
+
+void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
+{
+    QNDEBUG("NoteEditorPrivate::flipEnToDoCheckboxState: " << enToDoIdNumber);
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+    QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
+    page->executeJavaScript(javascript);
+    q->setFocus();
 }
 
 void NoteEditorPrivate::cut()
