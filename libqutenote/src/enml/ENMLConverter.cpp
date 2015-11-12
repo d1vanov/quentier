@@ -29,7 +29,7 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
 
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                                       DecryptedTextManager & decryptedTextManager,
-                                      quint64 & lastFreeEnToDoIdNumber
+                                      quint64 & lastFreeEnToDoIdNumber, quint64 & lastFreeHyperlinkIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                       , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -39,7 +39,7 @@ bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & htm
 
     Q_D(const ENMLConverter);
     return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager,
-                                lastFreeEnToDoIdNumber
+                                lastFreeEnToDoIdNumber, lastFreeHyperlinkIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                 , pluginFactory
 #endif

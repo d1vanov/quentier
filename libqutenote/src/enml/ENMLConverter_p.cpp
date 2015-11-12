@@ -337,7 +337,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QString & html,
                                              QString & errorDescription,
                                              DecryptedTextManager & decryptedTextManager,
-                                             quint64 & lastFreeEnToDoIdNumber
+                                             quint64 & lastFreeEnToDoIdNumber, quint64 & lastFreeHyperlinkIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                              , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -346,6 +346,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: " << noteContent);
 
     lastFreeEnToDoIdNumber = 1;
+    lastFreeHyperlinkIdNumber = 1;
 
     html.resize(0);
     errorDescription.resize(0);
@@ -410,6 +411,10 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             {
                 toDoTagsToHtml(reader, writer, lastFreeEnToDoIdNumber);
                 continue;
+            }
+            else if (lastElementName == "a")
+            {
+                lastElementAttributes.append("en-hyperlink-id", QString::number(lastFreeHyperlinkIdNumber++));
             }
 
             // NOTE: do not attempt to process en-todo tags here, it would be done below

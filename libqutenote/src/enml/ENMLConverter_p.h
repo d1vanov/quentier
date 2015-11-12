@@ -28,7 +28,8 @@ public:
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextManager & decryptedTextManager, quint64 & lastFreeEnToDoIdNumber
+                           DecryptedTextManager & decryptedTextManager, quint64 & lastFreeEnToDoIdNumber,
+                           quint64 & lastFreeHyperlinkIdNumber
 #ifndef USE_QT_WEB_ENGINE
                            , const NoteEditorPluginFactory * pluginFactory
 #endif

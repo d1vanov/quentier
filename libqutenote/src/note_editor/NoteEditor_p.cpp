@@ -1120,7 +1120,8 @@ void NoteEditorPrivate::noteToEditorContent()
 
     m_htmlCachedMemory.resize(0);
     bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextManager, m_lastFreeEnToDoIdNumber
+                                                 m_decryptedTextManager, m_lastFreeEnToDoIdNumber,
+                                                 m_lastFreeHyperlinkIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                                  , m_pluginFactory
 #endif
