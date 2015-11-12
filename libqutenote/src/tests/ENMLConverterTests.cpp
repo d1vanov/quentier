@@ -228,7 +228,8 @@ bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextMana
 
     ENMLConverter converter;
     QString html;
-    bool res = converter.noteContentToHtml(originalNoteContent, html, error, decryptedTextManager);
+    quint64 lastFreeEnToDoIdNumber = 1;
+    bool res = converter.noteContentToHtml(originalNoteContent, html, error, decryptedTextManager, lastFreeEnToDoIdNumber);
     if (!res) {
         error.prepend("Unable to convert the note content to HTML: ");
         QNWARNING(error);
@@ -525,7 +526,8 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
 
     QString html;
     ENMLConverter converter;
-    bool res = converter.noteContentToHtml(originalENML, html, error, decryptedTextManager);
+    quint64 lastFreeEnToDoIdNumber = 1;
+    bool res = converter.noteContentToHtml(originalENML, html, error, decryptedTextManager, lastFreeEnToDoIdNumber);
     if (!res) {
         error.prepend("Unable to convert the note content to HTML: ");
         QNWARNING(error);

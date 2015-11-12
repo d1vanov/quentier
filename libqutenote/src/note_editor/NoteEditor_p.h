@@ -544,6 +544,8 @@ private:
     CurrentContextMenuExtraData     m_currentContextMenuExtraData;
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
+    quint64      m_lastFreeEnToDoIdNumber;
+
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)
 };

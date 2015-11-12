@@ -85,7 +85,6 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
     QXmlStreamAttributes lastElementAttributes;
 
     bool insideEnCryptElement = false;
-    QXmlStreamAttributes enCryptAttributes;
 
     bool insideEnMediaElement = false;
     QXmlStreamAttributes enMediaAttributes;
@@ -331,13 +330,16 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
 bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QString & html,
                                              QString & errorDescription,
-                                             DecryptedTextManager & decryptedTextManager
+                                             DecryptedTextManager & decryptedTextManager,
+                                             quint64 & lastFreeEnToDoIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                              , const NoteEditorPluginFactory * pluginFactory
 #endif
                                              ) const
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: " << noteContent);
+
+    lastFreeEnToDoIdNumber = 1;
 
     html.resize(0);
     errorDescription.resize(0);
@@ -400,7 +402,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             }
             else if (lastElementName == "en-todo")
             {
-                toDoTagsToHtml(reader, writer);
+                toDoTagsToHtml(reader, writer, lastFreeEnToDoIdNumber);
                 continue;
             }
 
@@ -589,7 +591,7 @@ QStringList ENMLConverterPrivate::plainTextToListOfWords(const QString & plainTe
     return plainText.split(QRegExp("\\W+"), QString::SkipEmptyParts);
 }
 
-QString ENMLConverterPrivate::toDoCheckboxHtml(const bool checked)
+QString ENMLConverterPrivate::toDoCheckboxHtml(const bool checked, const quint64 idNumber)
 {
     QString html = "<img src=\"qrc:/checkbox_icons/checkbox_";
     if (checked) {
@@ -599,7 +601,9 @@ QString ENMLConverterPrivate::toDoCheckboxHtml(const bool checked)
         html += "no.png\" class=\"checkbox_unchecked\" ";
     }
 
-    html += "en-tag=\"en-todo\" />";
+    html += "en-tag=\"en-todo\" en-todo-id=\"";
+    html += QString::number(idNumber);
+    html += "\" />";
     return html;
 }
 
@@ -716,7 +720,9 @@ bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName)
     }
 }
 
-void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer) const
+void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader,
+                                          QXmlStreamWriter & writer,
+                                          quint64 & lastFreeEnToDoIdNumber) const
 {
     QNDEBUG("ENMLConverterPrivate::toDoTagsToHtml");
 
@@ -737,6 +743,7 @@ void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader, QXmlS
     attributes.append("src", QString("qrc:/checkbox_icons/checkbox_") + QString(checked ? "yes" : "no") + QString(".png"));
     attributes.append("class", QString("checkbox_") + QString(checked ? "checked" : "unchecked"));
     attributes.append("en-tag", "en-todo");
+    attributes.append("en-todo-id", QString::number(lastFreeEnToDoIdNumber++));
     writer.writeAttributes(attributes);
 }
 

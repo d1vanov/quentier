@@ -28,7 +28,8 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
 }
 
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                                      DecryptedTextManager & decryptedTextManager
+                                      DecryptedTextManager & decryptedTextManager,
+                                      quint64 & lastFreeEnToDoIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                       , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -37,7 +38,8 @@ bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & htm
     QNDEBUG("ENMLConverter::noteContentToHtml");
 
     Q_D(const ENMLConverter);
-    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager
+    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager,
+                                lastFreeEnToDoIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                 , pluginFactory
 #endif
@@ -67,9 +69,9 @@ QStringList ENMLConverter::plainTextToListOfWords(const QString & plainText)
     return ENMLConverterPrivate::plainTextToListOfWords(plainText);
 }
 
-QString ENMLConverter::toDoCheckboxHtml(const bool checked)
+QString ENMLConverter::toDoCheckboxHtml(const bool checked, const quint64 idNumber)
 {
-    return ENMLConverterPrivate::toDoCheckboxHtml(checked);
+    return ENMLConverterPrivate::toDoCheckboxHtml(checked, idNumber);
 }
 
 QString ENMLConverter::encryptedTextHtml(const QString & encryptedText, const QString & hint,

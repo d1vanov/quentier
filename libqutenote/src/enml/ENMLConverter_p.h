@@ -28,7 +28,7 @@ public:
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextManager & decryptedTextManager
+                           DecryptedTextManager & decryptedTextManager, quint64 & lastFreeEnToDoIdNumber
 #ifndef USE_QT_WEB_ENGINE
                            , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -44,7 +44,7 @@ public:
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
-    static QString toDoCheckboxHtml(const bool checked);
+    static QString toDoCheckboxHtml(const bool checked, const quint64 idNumber);
 
     static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
                                      const QString & cipher, const size_t keyLength);
@@ -78,7 +78,8 @@ private:
 #endif
                             ) const;
 
-    void toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer) const;
+    void toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
+                        quint64 & lastFreeEnToDoIdNumber) const;
 
     static void decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
                                   const QString & hint, const QString & cipher, const size_t keyLength,

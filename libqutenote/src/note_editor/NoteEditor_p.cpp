@@ -180,6 +180,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #endif
     m_currentContextMenuExtraData(),
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
+    m_lastFreeEnToDoIdNumber(1),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -1087,6 +1088,8 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastContextMenuEventGlobalPos = QPoint();
     m_lastContextMenuEventPagePos = QPoint();
 
+    m_lastFreeEnToDoIdNumber = 1;
+
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
@@ -1112,7 +1115,7 @@ void NoteEditorPrivate::noteToEditorContent()
 
     m_htmlCachedMemory.resize(0);
     bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextManager
+                                                 m_decryptedTextManager, m_lastFreeEnToDoIdNumber
 #ifndef USE_QT_WEB_ENGINE
                                                  , m_pluginFactory
 #endif
@@ -2904,7 +2907,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
 {
     QNDEBUG("NoteEditorPrivate::insertToDoCheckbox");
 
-    QString html = ENMLConverter::toDoCheckboxHtml(/* checked = */ false);
+    QString html = ENMLConverter::toDoCheckboxHtml(/* checked = */ false, m_lastFreeEnToDoIdNumber++);
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
     javascript += m_setupEnToDoTagsJs;
 
