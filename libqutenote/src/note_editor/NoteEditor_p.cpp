@@ -2666,6 +2666,47 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
     m_pNote->removeResource(resource);
 }
 
+void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
+{
+    QNDEBUG("NoteEditorPrivate::replaceResourceInNote");
+    QNTRACE(resource);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't replace resource in note: no note is set to the editor");
+        QNWARNING(m_errorCachedMemory << ", replacement resource: " << resource);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNote->hasResources())) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't replace resource in note: note has no resources");
+        QNWARNING(m_errorCachedMemory << ", replacement resource: " << resource);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    int resourceIndex = -1;
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceWrapper & currentResource = resources[i];
+        if (currentResource.localGuid() == resource.localGuid()) {
+            resourceIndex = i;
+            break;
+        }
+    }
+
+    if (Q_UNLIKELY(resourceIndex < 0)) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't replace resource in note: can't find resource to be replaced in note");
+        QNWARNING(m_errorCachedMemory << ", replacement resource: " << resource);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    resources[resourceIndex] = resource;
+}
+
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;

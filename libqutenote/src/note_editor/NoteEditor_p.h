@@ -74,6 +74,7 @@ public:
 
     void addResourceToNote(const ResourceWrapper & resource);
     void removeResourceFromNote(const ResourceWrapper & resource);
+    void replaceResourceInNote(const ResourceWrapper & resource);
 
 Q_SIGNALS:
     void convertedToNote(Note note);
