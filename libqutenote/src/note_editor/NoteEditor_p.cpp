@@ -2630,18 +2630,10 @@ void NoteEditorPrivate::updateFromNote()
     noteToEditorContent();
 }
 
-void NoteEditorPrivate::updateEnml(const QString & enml)
+void NoteEditorPrivate::setNoteHtml(const QString & html)
 {
-    QNDEBUG("NoteEditorPrivate::updateEnml");
-    QNTRACE(enml);
-
-    if (Q_UNLIKELY(!m_pNote)) {
-        QNINFO("Can't update note's enml: no note is set to the editor");
-        return;
-    }
-
-    m_pNote->setContent(enml);
-    updateFromNote();
+    QNDEBUG("NoteEditorPrivate::setNoteHtml");
+    onPageHtmlReceived(html, QVector<QPair<QString,QString> >());
 }
 
 bool NoteEditorPrivate::isModified() const

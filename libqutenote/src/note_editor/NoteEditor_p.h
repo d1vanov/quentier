@@ -66,8 +66,8 @@ public:
     // Force the conversion from ENML to HTML
     void updateFromNote();
 
-    // Updates current note's ENML (if any note is selected) and forces its conversion to HTML
-    void updateEnml(const QString & enml);
+    // Resets the note's HTML to the given one
+    void setNoteHtml(const QString & html);
 
 Q_SIGNALS:
     void convertedToNote(Note note);

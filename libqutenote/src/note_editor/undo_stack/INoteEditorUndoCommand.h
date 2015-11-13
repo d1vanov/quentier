@@ -10,12 +10,16 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 class INoteEditorUndoCommand: public QUndoCommand
 {
+public:
+    bool ready() const { return m_ready; }
+
 protected:
     INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
     INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~INoteEditorUndoCommand();
 
     NoteEditorPrivate &    m_noteEditorPrivate;
+    bool                   m_ready;
 };
 
 } // namespace qute_note
