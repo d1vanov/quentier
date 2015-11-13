@@ -2636,6 +2636,36 @@ void NoteEditorPrivate::setNoteHtml(const QString & html)
     onPageHtmlReceived(html, QVector<QPair<QString,QString> >());
 }
 
+void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
+{
+    QNDEBUG("NoteEditorPrivate::addResourceToNote");
+    QNTRACE(resource);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't add resource to note: no note is set to the editor");
+        QNWARNING(m_errorCachedMemory << ", resource to add: " << resource);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    m_pNote->addResource(resource);
+}
+
+void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
+{
+    QNDEBUG("NoteEditorPrivate::removeResourceFromNote");
+    QNTRACE(resource);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't remove resource from note: no note is set to the editor");
+        QNWARNING(m_errorCachedMemory << ", resource to remove: " << resource);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    m_pNote->removeResource(resource);
+}
+
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;

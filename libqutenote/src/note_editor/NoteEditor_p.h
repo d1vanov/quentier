@@ -63,11 +63,17 @@ public:
 
     void convertToNote();
 
+public:
+    // Public methods for undo stack
+
     // Force the conversion from ENML to HTML
     void updateFromNote();
 
     // Resets the note's HTML to the given one
     void setNoteHtml(const QString & html);
+
+    void addResourceToNote(const ResourceWrapper & resource);
+    void removeResourceFromNote(const ResourceWrapper & resource);
 
 Q_SIGNALS:
     void convertedToNote(Note note);
