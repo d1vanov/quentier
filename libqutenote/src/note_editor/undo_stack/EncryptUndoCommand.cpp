@@ -12,7 +12,9 @@ EncryptUndoCommand::EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & inf
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager)
-{}
+{
+    init();
+}
 
 EncryptUndoCommand:: EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
                                         DecryptedTextManager & decryptedTextManager,
@@ -21,7 +23,9 @@ EncryptUndoCommand:: EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & in
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager)
-{}
+{
+    init();
+}
 
 EncryptUndoCommand::~EncryptUndoCommand()
 {}
@@ -44,6 +48,11 @@ void EncryptUndoCommand::undo()
 
     m_noteEditorPrivate.decryptEncryptedText(m_info.m_encryptedText, m_info.m_decryptedText,
                                              m_info.m_rememberForSession, m_info.m_decryptPermanently);
+}
+
+void EncryptUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Encrypt text"));
 }
 
 } // namespace qute_note

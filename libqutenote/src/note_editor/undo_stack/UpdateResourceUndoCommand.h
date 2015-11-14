@@ -19,6 +19,9 @@ public:
     virtual void redo() Q_DECL_OVERRIDE;
 
 private:
+    void init();
+
+private:
     ResourceWrapper     m_resourceBefore;
     ResourceWrapper     m_resourceAfter;
 };

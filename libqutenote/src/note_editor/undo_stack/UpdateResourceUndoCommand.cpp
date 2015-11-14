@@ -9,14 +9,18 @@ UpdateResourceUndoCommand::UpdateResourceUndoCommand(const ResourceWrapper & res
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_resourceBefore(resourceBefore),
     m_resourceAfter(resourceAfter)
-{}
+{
+    init();
+}
 
 UpdateResourceUndoCommand::UpdateResourceUndoCommand(const ResourceWrapper & resourceBefore, const ResourceWrapper & resourceAfter,
                                                      NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_resourceBefore(resourceBefore),
     m_resourceAfter(resourceAfter)
-{}
+{
+    init();
+}
 
 UpdateResourceUndoCommand::~UpdateResourceUndoCommand()
 {}
@@ -35,6 +39,11 @@ void UpdateResourceUndoCommand::redo()
 
     m_noteEditorPrivate.replaceResourceInNote(m_resourceAfter);
     m_noteEditorPrivate.updateFromNote();
+}
+
+void UpdateResourceUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Edit attachment"));
 }
 
 } // namespace qute_note

@@ -21,6 +21,9 @@ public:
     virtual void undo() Q_DECL_OVERRIDE;
 
 private:
+    void init();
+
+private:
     EncryptDecryptUndoCommandInfo  m_info;
     DecryptedTextManager &  m_decryptedTextManager;
 };

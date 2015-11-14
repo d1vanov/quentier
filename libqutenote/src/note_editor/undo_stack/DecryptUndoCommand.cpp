@@ -12,7 +12,9 @@ DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & inf
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager)
-{}
+{
+    init();
+}
 
 DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
                                        DecryptedTextManager & decryptedTextManager,
@@ -21,7 +23,9 @@ DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & inf
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager)
-{}
+{
+    init();
+}
 
 DecryptUndoCommand::~DecryptUndoCommand()
 {}
@@ -44,6 +48,11 @@ void DecryptUndoCommand::undo()
 
     m_decryptedTextManager.removeEntry(m_info.m_encryptedText);
     m_noteEditorPrivate.updateFromNote();   // Force re-conversion from ENML to HTML
+}
+
+void DecryptUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Decrypt text"));
 }
 
 } // namespace qute_note

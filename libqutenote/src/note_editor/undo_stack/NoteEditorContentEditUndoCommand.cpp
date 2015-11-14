@@ -9,14 +9,18 @@ NoteEditorContentEditUndoCommand::NoteEditorContentEditUndoCommand(NoteEditorPri
                                                                    QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_resources(resources)
-{}
+{
+    init();
+}
 
 NoteEditorContentEditUndoCommand::NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate,
                                                                    const QList<ResourceWrapper> & resources,
                                                                    const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_resources(resources)
-{}
+{
+    init();
+}
 
 NoteEditorContentEditUndoCommand::~NoteEditorContentEditUndoCommand()
 {}
@@ -32,6 +36,11 @@ void NoteEditorContentEditUndoCommand::undo()
     QNDEBUG("NoteEditorContentEditUndoCommand::undo (" << text() << ")");
     m_noteEditorPrivate.undoPageAction();
     m_noteEditorPrivate.setNoteResources(m_resources);
+}
+
+void NoteEditorContentEditUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Note text edit"));
 }
 
 } // namespace qute_note

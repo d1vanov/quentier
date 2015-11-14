@@ -8,13 +8,17 @@ ToDoCheckboxUndoCommand::ToDoCheckboxUndoCommand(const quint64 enToDoIdNumber, N
                                                  QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_enToDoIdNumber(enToDoIdNumber)
-{}
+{
+    init();
+}
 
 ToDoCheckboxUndoCommand::ToDoCheckboxUndoCommand(const quint64 enToDoIdNumber, NoteEditorPrivate & noteEditorPrivate,
                                                  const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_enToDoIdNumber(enToDoIdNumber)
-{}
+{
+    init();
+}
 
 ToDoCheckboxUndoCommand::~ToDoCheckboxUndoCommand()
 {}
@@ -29,6 +33,11 @@ void ToDoCheckboxUndoCommand::undo()
 {
     QNDEBUG("ToDoCheckboxUndoCommand::undo");
     m_noteEditorPrivate.flipEnToDoCheckboxState(m_enToDoIdNumber);
+}
+
+void ToDoCheckboxUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Change ToDo state"));
 }
 
 } // namespace qute_note

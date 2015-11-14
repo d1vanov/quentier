@@ -14,6 +14,7 @@ RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & res
     m_htmlAfterSet(false)
 {
     m_ready = false;
+    init();
 }
 
 RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
@@ -26,6 +27,7 @@ RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & res
     m_htmlAfterSet(false)
 {
     m_ready = false;
+    init();
 }
 
 RemoveResourceUndoCommand::~RemoveResourceUndoCommand()
@@ -73,6 +75,11 @@ void RemoveResourceUndoCommand::redo()
 
     m_noteEditorPrivate.setNoteHtml(m_htmlAfter);
     m_noteEditorPrivate.removeResourceFromNote(m_resource);
+}
+
+void RemoveResourceUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Remove attachment"));
 }
 
 } // namespace qute_note

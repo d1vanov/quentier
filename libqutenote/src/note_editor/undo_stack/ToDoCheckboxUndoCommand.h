@@ -20,6 +20,9 @@ public:
     virtual void undo() Q_DECL_OVERRIDE;
 
 private:
+    void init();
+
+private:
     quint64     m_enToDoIdNumber;
 };
 

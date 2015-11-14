@@ -19,6 +19,9 @@ public:
     virtual void undo() Q_DECL_OVERRIDE;
 
 private:
+    void init();
+
+private:
     QString     m_htmlBefore;
     QString     m_htmlAfter;
 

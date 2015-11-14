@@ -14,6 +14,7 @@ AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource,
     m_htmlAfterSet(false)
 {
     m_ready = false;
+    init();
 }
 
 AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
@@ -26,6 +27,7 @@ AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource,
     m_htmlAfterSet(false)
 {
     m_ready = false;
+    init();
 }
 
 AddResourceUndoCommand::~AddResourceUndoCommand()
@@ -73,6 +75,11 @@ void AddResourceUndoCommand::redo()
 
     m_noteEditorPrivate.setNoteHtml(m_htmlAfter);
     m_noteEditorPrivate.addResourceToNote(m_resource);
+}
+
+void AddResourceUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Add attachment"));
 }
 
 } // namespace qute_note

@@ -22,6 +22,9 @@ public:
     virtual void undo() Q_DECL_OVERRIDE;
 
 private:
+    void init();
+
+private:
     /**
      * During the editing of the note's content the resources attached to the note
      * might be deleted via simply pressing backspace; the actual fact of the resource's

@@ -13,6 +13,7 @@ EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(NoteEditorPrivate & noteEdito
     m_htmlAfterSet(false)
 {
     m_ready = false;
+    init();
 }
 
 EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
@@ -23,6 +24,7 @@ EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(NoteEditorPrivate & noteEdito
     m_htmlAfterSet(false)
 {
     m_ready = false;
+    init();
 }
 
 EditHyperlinkUndoCommand::~EditHyperlinkUndoCommand()
@@ -68,6 +70,11 @@ void EditHyperlinkUndoCommand::undo()
     }
 
     m_noteEditorPrivate.setNoteHtml(m_htmlBefore);
+}
+
+void EditHyperlinkUndoCommand::init()
+{
+    QUndoCommand::setText(QObject::tr("Add/edit/remove hyperlink"));
 }
 
 } // namespace qute_note
