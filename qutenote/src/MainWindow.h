@@ -20,6 +20,7 @@ class MainWindow;
 }
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
+QT_FORWARD_DECLARE_CLASS(QUndoStack)
 
 namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
@@ -112,6 +113,8 @@ private:
 
     int                    m_lastFontSizeComboBoxIndex;
     QString                m_lastFontComboBoxFontFamily;
+
+    QUndoStack *           m_pUndoStack;
 
     qute_note::ShortcutManager  m_shortcutManager;
 };

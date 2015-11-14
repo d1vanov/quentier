@@ -15,6 +15,8 @@ typedef QWebView WebView;
 typedef QWebPage WebPage;
 #endif
 
+QT_FORWARD_DECLARE_CLASS(QUndoStack)
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Notebook)
@@ -33,6 +35,8 @@ public:
 public:
     explicit NoteEditor(QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditor();
+
+    void setUndoStack(QUndoStack * pUndoStack);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
     const Notebook * getNotebook() const;

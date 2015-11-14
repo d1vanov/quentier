@@ -30,17 +30,17 @@ EncryptUndoCommand:: EncryptUndoCommand(const EncryptDecryptUndoCommandInfo & in
 EncryptUndoCommand::~EncryptUndoCommand()
 {}
 
-void EncryptUndoCommand::redo()
+void EncryptUndoCommand::redoImpl()
 {
-    QNDEBUG("EncryptUndoCommand::redo");
+    QNDEBUG("EncryptUndoCommand::redoImpl");
 
     m_decryptedTextManager.removeEntry(m_info.m_encryptedText);
     m_noteEditorPrivate.updateFromNote();   // Force re-conversion from ENML to HTML
 }
 
-void EncryptUndoCommand::undo()
+void EncryptUndoCommand::undoImpl()
 {
-    QNDEBUG("EncryptUndoCommand::undo");
+    QNDEBUG("EncryptUndoCommand::undoImpl");
 
     m_decryptedTextManager.addEntry(m_info.m_encryptedText, m_info.m_decryptedText,
                                     m_info.m_rememberForSession, m_info.m_passphrase,

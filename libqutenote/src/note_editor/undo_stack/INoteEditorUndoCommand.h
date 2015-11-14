@@ -1,17 +1,17 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__UNDO_STACK__I_NOTE_EDITOR_UNDO_COMMAND_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__UNDO_STACK__I_NOTE_EDITOR_UNDO_COMMAND_H
 
-#include <qute_note/utility/Qt4Helper.h>
-#include <QUndoCommand>
+#include <qute_note/utility/QuteNoteUndoCommand.h>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
-class INoteEditorUndoCommand: public QUndoCommand
+class INoteEditorUndoCommand: public QuteNoteUndoCommand
 {
 public:
     bool ready() const { return m_ready; }
+
     virtual ~INoteEditorUndoCommand();
 
 protected:

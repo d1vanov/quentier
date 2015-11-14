@@ -18,8 +18,8 @@ public:
                                      const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~NoteEditorContentEditUndoCommand();
 
-    virtual void redo() Q_DECL_OVERRIDE;
-    virtual void undo() Q_DECL_OVERRIDE;
+    virtual void redoImpl() Q_DECL_OVERRIDE;
+    virtual void undoImpl() Q_DECL_OVERRIDE;
 
 private:
     void init();

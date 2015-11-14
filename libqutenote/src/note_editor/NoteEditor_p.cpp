@@ -6,6 +6,7 @@
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
+#include "undo_stack/NoteEditorContentEditUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
@@ -64,6 +65,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QDesktopWidget>
 #include <QFontDialog>
 #include <QFontDatabase>
+#include <QUndoStack>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
@@ -119,6 +121,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pGenericResourceImageWriter(Q_NULLPTR),
     m_webSocketServerPort(0),
 #endif
+    m_pUndoStack(Q_NULLPTR),
+    m_pPreliminaryUndoCommandQueue(Q_NULLPTR),
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
     m_lastContextMenuEventGlobalPos(),
     m_lastContextMenuEventPagePos(),
@@ -312,6 +316,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 void NoteEditorPrivate::onContentChanged()
 {
     QNTRACE("NoteEditorPrivate::onContentChanged");
+
+    pushNoteContentEditUndoCommand();
     m_modified = true;
 
     if (Q_LIKELY(m_watchingForContentChange)) {
@@ -944,6 +950,26 @@ void NoteEditorPrivate::timerEvent(QTimerEvent * event)
         m_watchingForContentChange = false;
         m_contentChangedSinceWatchingStart = false;
     }
+}
+
+void NoteEditorPrivate::pushNoteContentEditUndoCommand()
+{
+    QNDEBUG("NoteEditorPrivate::pushNoteTextEditUndoCommand");
+
+    QUTE_NOTE_CHECK_PTR(m_pPreliminaryUndoCommandQueue,
+                        "Preliminaty undo command queue for note editor wasn't initialized");
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNINFO("Ignoring the content changed signal as the note pointer is null");
+        return;
+    }
+
+    QList<ResourceWrapper> resources;
+    if (m_pNote->hasResources()) {
+        resources = m_pNote->resources();
+    }
+
+    m_pPreliminaryUndoCommandQueue->push(new NoteEditorContentEditUndoCommand(*this, resources));
 }
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
@@ -2526,7 +2552,22 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
     COMMAND_WITH_ARGS_TO_JS(command, args);
     Q_Q(NoteEditor);
     GET_PAGE()
-    page->executeJavaScript(javascript);
+            page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
+{
+    QNDEBUG("NoteEditorPrivate::setUndoStack");
+
+    QUTE_NOTE_CHECK_PTR(pUndoStack, "null undo stack passed to note editor");
+    m_pUndoStack = pUndoStack;
+
+    if (Q_UNLIKELY(!m_pPreliminaryUndoCommandQueue)) {
+        m_pPreliminaryUndoCommandQueue = new PreliminaryUndoCommandQueue(pUndoStack, this);
+    }
+    else {
+        m_pPreliminaryUndoCommandQueue->setUndoStack(pUndoStack);
+    }
 }
 
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
@@ -2857,22 +2898,22 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
 
 void NoteEditorPrivate::undo()
 {
-    HANDLE_ACTION(undo, Undo);
+    m_pUndoStack->undo();
 }
 
 void NoteEditorPrivate::redo()
 {
-    HANDLE_ACTION(redo, Redo);
+    m_pUndoStack->redo();
 }
 
 void NoteEditorPrivate::undoPageAction()
 {
-    HANDLE_ACTION(undo, Undo);
+    HANDLE_ACTION(undoPageAction, Undo);
 }
 
 void NoteEditorPrivate::redoPageAction()
 {
-    HANDLE_ACTION(redo, Redo);
+    HANDLE_ACTION(redoPageAction, Redo);
 }
 
 void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)

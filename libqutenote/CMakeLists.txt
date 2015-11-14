@@ -145,6 +145,7 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
     headers/qute_note/utility/QuteNoteCheckPtr.h
+    headers/qute_note/utility/QuteNoteUndoCommand.h
     headers/qute_note/utility/Qt4Helper.h
     headers/qute_note/utility/Utility.h)
 
@@ -322,6 +323,7 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/IQuteNoteException.cpp
     src/utility/Printable.cpp
     src/utility/QuteNoteApplication.cpp
+    src/utility/QuteNoteUndoCommand.cpp
     src/utility/ShortcutManager.cpp
     src/utility/ShortcutManager_p.cpp
     src/utility/Utility.cpp)

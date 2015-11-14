@@ -23,15 +23,15 @@ ToDoCheckboxUndoCommand::ToDoCheckboxUndoCommand(const quint64 enToDoIdNumber, N
 ToDoCheckboxUndoCommand::~ToDoCheckboxUndoCommand()
 {}
 
-void ToDoCheckboxUndoCommand::redo()
+void ToDoCheckboxUndoCommand::redoImpl()
 {
-    QNDEBUG("ToDoCheckboxUndoCommand::redo");
+    QNDEBUG("ToDoCheckboxUndoCommand::redoImpl");
     m_noteEditorPrivate.flipEnToDoCheckboxState(m_enToDoIdNumber);
 }
 
-void ToDoCheckboxUndoCommand::undo()
+void ToDoCheckboxUndoCommand::undoImpl()
 {
-    QNDEBUG("ToDoCheckboxUndoCommand::undo");
+    QNDEBUG("ToDoCheckboxUndoCommand::undoImpl");
     m_noteEditorPrivate.flipEnToDoCheckboxState(m_enToDoIdNumber);
 }
 

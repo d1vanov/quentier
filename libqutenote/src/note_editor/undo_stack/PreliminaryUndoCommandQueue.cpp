@@ -1,4 +1,6 @@
 #include "PreliminaryUndoCommandQueue.h"
+#include <qute_note/logging/QuteNoteLogger.h>
+#include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QUndoStack>
 
 namespace qute_note {
@@ -21,12 +23,19 @@ PreliminaryUndoCommandQueue::~PreliminaryUndoCommandQueue()
 
 void PreliminaryUndoCommandQueue::push(INoteEditorUndoCommand * command)
 {
+    QUTE_NOTE_CHECK_PTR(command, "null pointer to note editor undo command passed "
+                        "to preliminary undo command queue");
+
+    QNDEBUG("PreliminaryUndoCommandQueue::push: " << command->text());
+
     m_queue.enqueue(command);
     checkState();
 }
 
 void PreliminaryUndoCommandQueue::checkState()
 {
+    QNDEBUG("PreliminaryUndoCommandQueue::checkState");
+
     // Something has changed - either the new command was pushed
     // or the state of some command changed i.e. it has become ready
     // for pushing onto the stack; check which commands from the beginning
@@ -41,6 +50,7 @@ void PreliminaryUndoCommandQueue::checkState()
 
         command = m_queue.dequeue();
         m_pStack->push(command);
+        QNTRACE("Pushed command \"" << command->text() << "\" onto undo stack");
     }
 }
 

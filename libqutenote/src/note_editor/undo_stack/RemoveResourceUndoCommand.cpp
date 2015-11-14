@@ -53,9 +53,9 @@ void RemoveResourceUndoCommand::setHtmlAfter(const QString & htmlAfter)
     }
 }
 
-void RemoveResourceUndoCommand::undo()
+void RemoveResourceUndoCommand::undoImpl()
 {
-    QNDEBUG("RemoveResourceUndoCommand::undo");
+    QNDEBUG("RemoveResourceUndoCommand::undoImpl");
 
     if (Q_UNLIKELY(!m_ready)) {
         throw RemoveResourceUndoCommandNotReadyException();
@@ -65,9 +65,9 @@ void RemoveResourceUndoCommand::undo()
     m_noteEditorPrivate.addResourceToNote(m_resource);
 }
 
-void RemoveResourceUndoCommand::redo()
+void RemoveResourceUndoCommand::redoImpl()
 {
-    QNDEBUG("RemoveResourceUndoCommand::redo");
+    QNDEBUG("RemoveResourceUndoCommand::redoImpl");
 
     if (Q_UNLIKELY(!m_ready)) {
         throw RemoveResourceUndoCommandNotReadyException();

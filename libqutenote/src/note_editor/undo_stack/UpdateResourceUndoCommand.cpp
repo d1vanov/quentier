@@ -25,17 +25,17 @@ UpdateResourceUndoCommand::UpdateResourceUndoCommand(const ResourceWrapper & res
 UpdateResourceUndoCommand::~UpdateResourceUndoCommand()
 {}
 
-void UpdateResourceUndoCommand::undo()
+void UpdateResourceUndoCommand::undoImpl()
 {
-    QNDEBUG("UpdateResourceUndoCommand::undo");
+    QNDEBUG("UpdateResourceUndoCommand::undoImpl");
 
     m_noteEditorPrivate.replaceResourceInNote(m_resourceBefore);
     m_noteEditorPrivate.updateFromNote();
 }
 
-void UpdateResourceUndoCommand::redo()
+void UpdateResourceUndoCommand::redoImpl()
 {
-    QNDEBUG("UpdateResourceUndoCommand::redo");
+    QNDEBUG("UpdateResourceUndoCommand::redoImpl");
 
     m_noteEditorPrivate.replaceResourceInNote(m_resourceAfter);
     m_noteEditorPrivate.updateFromNote();

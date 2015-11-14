@@ -25,15 +25,15 @@ NoteEditorContentEditUndoCommand::NoteEditorContentEditUndoCommand(NoteEditorPri
 NoteEditorContentEditUndoCommand::~NoteEditorContentEditUndoCommand()
 {}
 
-void NoteEditorContentEditUndoCommand::redo()
+void NoteEditorContentEditUndoCommand::redoImpl()
 {
-    QNDEBUG("NoteEditorContentEditUndoCommand::redo (" << text() << ")");
+    QNDEBUG("NoteEditorContentEditUndoCommand::redoImpl (" << text() << ")");
     m_noteEditorPrivate.redoPageAction();
 }
 
-void NoteEditorContentEditUndoCommand::undo()
+void NoteEditorContentEditUndoCommand::undoImpl()
 {
-    QNDEBUG("NoteEditorContentEditUndoCommand::undo (" << text() << ")");
+    QNDEBUG("NoteEditorContentEditUndoCommand::undoImpl (" << text() << ")");
     m_noteEditorPrivate.undoPageAction();
     m_noteEditorPrivate.setNoteResources(m_resources);
 }

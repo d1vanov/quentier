@@ -50,9 +50,9 @@ void EditHyperlinkUndoCommand::setHtmlAfter(const QString & htmlAfter)
     }
 }
 
-void EditHyperlinkUndoCommand::redo()
+void EditHyperlinkUndoCommand::redoImpl()
 {
-    QNDEBUG("EditHyperlinkUndoCommand::redo");
+    QNDEBUG("EditHyperlinkUndoCommand::redoImpl");
 
     if (Q_UNLIKELY(!m_ready)) {
         throw EditHyperlinkUndoCommandNotReadyException();
@@ -61,9 +61,9 @@ void EditHyperlinkUndoCommand::redo()
     m_noteEditorPrivate.setNoteHtml(m_htmlAfter);
 }
 
-void EditHyperlinkUndoCommand::undo()
+void EditHyperlinkUndoCommand::undoImpl()
 {
-    QNDEBUG("EditHyperlinkUndoCommand::undo");
+    QNDEBUG("EditHyperlinkUndoCommand::undoImpl");
 
     if (Q_UNLIKELY(!m_ready)) {
         throw EditHyperlinkUndoCommandNotReadyException();

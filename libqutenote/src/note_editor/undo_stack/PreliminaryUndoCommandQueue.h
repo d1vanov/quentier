@@ -34,7 +34,22 @@ public:
 
     void push(INoteEditorUndoCommand * command);
 
+    bool empty() const { return m_queue.empty(); }
+
+    void setUndoStack(QUndoStack * pUndoStack) { m_pStack = pUndoStack; }
+
+Q_SIGNALS:
+    /**
+     * @brief ready - emitted to indicate that all undo commands were passed on to the undo stack
+     */
+    void ready();
+
 public Q_SLOTS:
+    /**
+     * @brief checkState - when any command put in the queue becomes fully ready to call undo/redo on it,
+     * this slot should be triggered, it would then pass all ready commands in the beginning of the queue
+     * to the stack
+     */
     void checkState();
 
 private:

@@ -15,8 +15,8 @@ public:
                               NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~UpdateResourceUndoCommand();
 
-    virtual void undo() Q_DECL_OVERRIDE;
-    virtual void redo() Q_DECL_OVERRIDE;
+    virtual void undoImpl() Q_DECL_OVERRIDE;
+    virtual void redoImpl() Q_DECL_OVERRIDE;
 
 private:
     void init();

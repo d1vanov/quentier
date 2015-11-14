@@ -7,6 +7,7 @@
 
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Notebook.h>
+#include <QUndoStack>
 #include <QFont>
 #include <QColor>
 #include <QContextMenuEvent>
@@ -20,6 +21,12 @@ NoteEditor::NoteEditor(QWidget * parent) :
 
 NoteEditor::~NoteEditor()
 {}
+
+void NoteEditor::setUndoStack(QUndoStack * pUndoStack)
+{
+    Q_D(NoteEditor);
+    d->setUndoStack(pUndoStack);
+}
 
 void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {

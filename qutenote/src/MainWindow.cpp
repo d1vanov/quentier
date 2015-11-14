@@ -29,6 +29,7 @@ using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work
 #include <QtDebug>
 #include <QFontDatabase>
 #include <QKeySequence>
+#include <QUndoStack>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -46,11 +47,14 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNote(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
+    m_pUndoStack(new QUndoStack(this)),
     m_shortcutManager(this)
 {
     QNTRACE("MainWindow constructor");
 
     m_pUI->setupUi(this);
+    m_pUI->noteEditorWidget->setUndoStack(m_pUndoStack);
+
     setupDefaultShortcuts();
     setupUserShortcuts();
 

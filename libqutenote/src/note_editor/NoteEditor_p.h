@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
 #include "ResourceInfo.h"
+#include "undo_stack/PreliminaryUndoCommandQueue.h"
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
@@ -56,6 +57,8 @@ public:
 
     void execJavascriptCommand(const QString & command);
     void execJavascriptCommand(const QString & command, const QString & args);
+
+    void setUndoStack(QUndoStack * pUndoStack);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
     const Note * getNote();
@@ -251,6 +254,10 @@ private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
 
 private:
+    // Helper methods for undo stack
+    void pushNoteContentEditUndoCommand();
+
+private:
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
 
@@ -444,6 +451,9 @@ private:
 
     quint16     m_webSocketServerPort;
 #endif
+
+    QUndoStack * m_pUndoStack;
+    PreliminaryUndoCommandQueue * m_pPreliminaryUndoCommandQueue;
 
     quint64     m_contextMenuSequenceNumber;
     QPoint      m_lastContextMenuEventGlobalPos;
