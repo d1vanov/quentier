@@ -2707,6 +2707,20 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
     resources[resourceIndex] = resource;
 }
 
+void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resources)
+{
+    QNDEBUG("NoteEditorPrivate::setNoteResources");
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't set resources to the note: no note is set to the editor");
+        QNWARNING(m_errorCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    m_pNote->setResources(resources);
+}
+
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
