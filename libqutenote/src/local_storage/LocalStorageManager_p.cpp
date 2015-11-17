@@ -640,7 +640,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & err
                                   "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
                                   "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                                   "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
-                                  "WHERE (Notebooks.%1 = '%2'").arg(column).arg(value);
+                                  "WHERE (Notebooks.%1 = '%2'").arg(column,value);
 
     if (notebook.hasLinkedNotebookGuid()) {
         queryString += QString(" AND Notebooks.linkedNotebookGuid = '%1')").arg(notebook.linkedNotebookGuid());
@@ -944,7 +944,7 @@ bool LocalStorageManagerPrivate::expungeNotebook(const Notebook & notebook, QStr
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Notebooks WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("DELETE FROM Notebooks WHERE %1 = '%2'").arg(column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notebooks\" table in SQL database");
@@ -1368,8 +1368,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
                                   "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
                                   "LEFT OUTER JOIN NoteTags ON Notes.localGuid = NoteTags.localNote "
                                   "WHERE %3 = '%4'")
-                                 .arg(resourcesTable).arg(resourceIndexColumn)
-                                 .arg(column).arg(guid);
+                                 .arg(resourcesTable,resourceIndexColumn,column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
@@ -1519,7 +1518,7 @@ QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook &
     Q_UNUSED(transaction)
 
     QString error;
-    QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column).arg(guid);
+    QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column,guid);
     notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
                                                                          orderDirection, notebookGuidSqlQueryCondition);
     const int numNotes = notes.size();
@@ -1657,7 +1656,7 @@ bool LocalStorageManagerPrivate::deleteNote(const Note & note, QString & errorDe
     }
 
     QString queryString = QString("UPDATE Notes SET isActive=0, isDirty=1, deletionTimestamp=%1 WHERE %2 = '%3'")
-                                  .arg(note.deletionTimestamp()).arg(column).arg(guid);
+                                  .arg(QString::number(note.deletionTimestamp()),column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
@@ -1694,7 +1693,7 @@ bool LocalStorageManagerPrivate::expungeNote(const Note & note, QString & errorD
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Notes WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("DELETE FROM Notes WHERE %1 = '%2'").arg(column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
@@ -2012,7 +2011,7 @@ bool LocalStorageManagerPrivate::linkTagWithNote(const Tag & tag, const Note & n
         valuesString.append(", :note");
     }
 
-    QString queryString = QString("INSERT OR REPLACE INTO NoteTags (%1) VALUES(%2)").arg(columns).arg(valuesString);
+    QString queryString = QString("INSERT OR REPLACE INTO NoteTags (%1) VALUES(%2)").arg(columns,valuesString);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.prepare(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: can't prepare SQL query");
@@ -2092,7 +2091,7 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
 
     QString queryString = QString("SELECT localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                   "name, parentGuid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
-                                  "FROM Tags WHERE (%1 = '%2'").arg(column).arg(value);
+                                  "FROM Tags WHERE (%1 = '%2'").arg(column,value);
 
     if (tag.hasLinkedNotebookGuid()) {
         queryString += QString(" AND linkedNotebookGuid = '%1')").arg(tag.linkedNotebookGuid());
@@ -2151,7 +2150,7 @@ QList<Tag> LocalStorageManagerPrivate::listAllTagsPerNote(const Note & note, QSt
     Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
-    QString queryString = QString("SELECT localTag FROM NoteTags WHERE %1 = '%2'").arg(column).arg(guid);
+    QString queryString = QString("SELECT localTag FROM NoteTags WHERE %1 = '%2'").arg(column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     if (!res) {
@@ -2354,8 +2353,7 @@ bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QString & 
                                   "ON %1.resourceLocalGuid = ResourceAttributesApplicationDataFullMap.resourceLocalGuid "
                                   "LEFT OUTER JOIN NoteResources ON %1.resourceLocalGuid = NoteResources.localResource "
                                   "WHERE %1.%2 = '%3'")
-                                 .arg(withBinaryData ? "Resources" : "ResourcesWithoutBinaryData")
-                                 .arg(column).arg(guid);
+                                 .arg(withBinaryData ? "Resources" : "ResourcesWithoutBinaryData",column,guid);
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
@@ -2406,7 +2404,7 @@ bool LocalStorageManagerPrivate::expungeEnResource(const IResource & resource, Q
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Resources WHERE %1 = \"%2\"").arg(column).arg(guid);
+    QString queryString = QString("DELETE FROM Resources WHERE %1 = \"%2\"").arg(column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete resource from \"Resources\" table in SQL database");
@@ -2610,7 +2608,7 @@ bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QString &
 
     QString queryString = QString("SELECT localGuid, guid, name, query, format, updateSequenceNumber, isDirty, isLocal, "
                                   "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
-                                  "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column).arg(value);
+                                  "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column,value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
@@ -3374,9 +3372,7 @@ bool LocalStorageManagerPrivate::rowExists(const QString & tableName, const QStr
 {
     QSqlQuery query(m_sqlDatabase);
     const QString & queryString = QString("SELECT count(*) FROM %1 WHERE %2=\'%3\'")
-                                  .arg(tableName)
-                                  .arg(uniqueKeyName)
-                                  .arg(uniqueKeyValue.toString());
+                                  .arg(tableName,uniqueKeyName,uniqueKeyValue.toString());
 
     bool res = query.exec(queryString);
     if (!res) {
@@ -4893,7 +4889,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
                          ":applicationDataKeysOnly, :applicationDataKeysMap, "
                          ":applicationDataValues, :classificationKeys, :classificationValues";
 
-        QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns).arg(values);
+        QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns,values);
 
         bool res = m_insertOrReplaceNoteQuery.prepare(queryString);
         if (res) {
@@ -5629,7 +5625,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSavedSearchQuery(
                               ":isLocal, :includeAccount, :includePersonalLinkedNotebooks, "
                               ":includeBusinessLinkedNotebooks, :hasShortcut";
 
-        QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns).arg(valuesNames);
+        QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns,valuesNames);
 
         m_insertOrReplaceSavedSearchQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_insertOrReplaceSavedSearchQuery.prepare(queryString);

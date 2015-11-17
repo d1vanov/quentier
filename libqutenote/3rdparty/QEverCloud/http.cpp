@@ -165,7 +165,7 @@ QPair<QNetworkRequest, QByteArray> Thumbnail::createPostRequest(Guid guid, bool 
     } else {
         urlPattern = QStringLiteral("https://%1/shard/%2/thm/note/%3");
     }
-    QString url = urlPattern.arg(host_).arg(shardId_).arg(guid);
+    QString url = urlPattern.arg(host_,shardId_,guid);
     QString ext;
     switch(imageType_) {
         case ImageType::BMP: ext = QStringLiteral(".bmp"); break;

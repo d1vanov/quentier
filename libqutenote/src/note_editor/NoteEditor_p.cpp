@@ -2514,7 +2514,7 @@ int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resour
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
 
 #define COMMAND_WITH_ARGS_TO_JS(command, args) \
-    QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command).arg(args)
+    QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command,args)
 
 #ifndef USE_QT_WEB_ENGINE
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
