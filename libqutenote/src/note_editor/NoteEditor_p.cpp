@@ -2552,7 +2552,7 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
     COMMAND_WITH_ARGS_TO_JS(command, args);
     Q_Q(NoteEditor);
     GET_PAGE()
-            page->executeJavaScript(javascript);
+    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
