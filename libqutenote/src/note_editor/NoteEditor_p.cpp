@@ -7,6 +7,7 @@
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
+#include "undo_stack/EncryptUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
@@ -134,6 +135,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pendingConversionToNote(false),
     m_pendingNotePageLoad(false),
     m_pendingIndexHtmlWritingToFile(false),
+    m_pendingInitialJavaScriptExecution(false),
     m_pNote(Q_NULLPTR),
     m_pNotebook(Q_NULLPTR),
     m_modified(false),
@@ -241,6 +243,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
+    m_pendingInitialJavaScriptExecution = true;
+
     Q_Q(NoteEditor);
     GET_PAGE()
 
@@ -316,6 +320,11 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 void NoteEditorPrivate::onContentChanged()
 {
     QNTRACE("NoteEditorPrivate::onContentChanged");
+
+    if (Q_UNLIKELY(m_pendingNotePageLoad || m_pendingIndexHtmlWritingToFile || m_pendingInitialJavaScriptExecution)) {
+        QNTRACE("Skipping the content change as the note page has not fully loaded yet");
+        return;
+    }
 
     pushNoteContentEditUndoCommand();
     m_modified = true;
@@ -532,6 +541,7 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
+    m_pendingInitialJavaScriptExecution = false;
 }
 
 #endif
@@ -970,6 +980,25 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
     }
 
     m_pPreliminaryUndoCommandQueue->push(new NoteEditorContentEditUndoCommand(*this, resources));
+}
+
+void NoteEditorPrivate::pushEncryptUndoCommand(const QString & cipher, const size_t keyLength,
+                                               const QString & encryptedText, const QString & decryptedText,
+                                               const QString & passphrase, const bool rememberForSession)
+{
+    QNDEBUG("NoteEditorPrivate::pushEncryptUndoCommand");
+
+    EncryptDecryptUndoCommandInfo info;
+    info.m_cipher = cipher;
+    info.m_keyLength = keyLength;
+    info.m_rememberForSession = rememberForSession;
+    info.m_decryptedText = decryptedText;
+    info.m_decryptPermanently = true;
+    info.m_encryptedText = encryptedText;
+    info.m_passphrase = passphrase;
+
+    m_pPreliminaryUndoCommandQueue->push(new EncryptUndoCommand(info, m_decryptedTextManager, *this));
+    QNTRACE("Pushed EncryptUndoCommand to the undo stack");
 }
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
@@ -2251,6 +2280,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     m_errorCachedMemory.resize(0);
 
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
+#else
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
 #endif
 
     QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
@@ -2422,6 +2453,8 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
 void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
                                                                 const QVector<QPair<QString, QString> > & extraData)
 {
+    QNDEBUG("NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived");
+
     QString selectedHtml = selectedHtmlData.toString();
 
     if (selectedHtml.isEmpty()) {
@@ -2457,6 +2490,9 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         return;
     }
 
+    QUTE_NOTE_CHECK_PTR(m_pPreliminaryUndoCommandQueue,
+                        "Preliminary undo command queue for note editor wasn't initialized");
+
     QString error;
     QString encryptedText;
     QString cipher = "AES";
@@ -2470,6 +2506,7 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         return;
     }
 
+    pushEncryptUndoCommand(cipher, keyLength, encryptedText, selectedHtml, passphrase, rememberForSession);
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedHtml, encryptedText, hint, rememberForSession);
 }
 
@@ -2898,11 +2935,13 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
 
 void NoteEditorPrivate::undo()
 {
+    QNDEBUG("NoteEditorPrivate::undo");
     m_pUndoStack->undo();
 }
 
 void NoteEditorPrivate::redo()
 {
+    QNDEBUG("NoteEditorPrivate::redo");
     m_pUndoStack->redo();
 }
 
@@ -3428,8 +3467,8 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
                                                                             m_encryptionManager,
                                                                             m_decryptedTextManager, q));
     pEncryptionDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,bool),
-                     this, QNSLOT(NoteEditorPrivate,onSelectedTextEncryption,QString,QString,QString,bool));
+    QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,QString,size_t,QString,bool),
+                     this, QNSLOT(NoteEditorPrivate,onSelectedTextEncryption,QString,QString,QString,QString,size_t,QString,bool));
     QNTRACE("Will exec encryption dialog now");
     pEncryptionDialog->exec();
     QNTRACE("Executed encryption dialog");
@@ -3589,12 +3628,15 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString encryptedText, QString
 }
 
 void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString encryptedText,
-                                                 QString hint, bool rememberForSession)
+                                                 QString passphrase, QString cipher,
+                                                 size_t keyLength, QString hint,
+                                                 bool rememberForSession)
 {
     QNDEBUG("NoteEditorPrivate::onSelectedTextEncryption: "
             << "encrypted text = " << encryptedText << ", hint = " << hint
             << ", remember for session = " << (rememberForSession ? "true" : "false"));
 
+    pushEncryptUndoCommand(cipher, keyLength, encryptedText, selectedText, passphrase, rememberForSession);
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedText, encryptedText, hint, rememberForSession);
 }
 

@@ -114,11 +114,11 @@ void EncryptionDialog::accept()
 
     bool rememberForSession = m_pUI->rememberPasswordForSessionCheckBox->isChecked();
     m_decryptedTextManager.addEntry(m_cachedEncryptedText, m_textToEncrypt, rememberForSession,
-                                    passphrase, "AES", 128);
+                                    passphrase, cipher, keyLength);
     QNTRACE("Cached decrypted text for encrypted text " << m_cachedEncryptedText
             << "; remember for session = " << (rememberForSession ? "true" : "false"));
 
-    emit accepted(m_textToEncrypt, m_cachedEncryptedText,
+    emit accepted(m_textToEncrypt, m_cachedEncryptedText, passphrase, cipher, keyLength,
                   m_pUI->hintLineEdit->text(), rememberForSession);
     QDialog::accept();
 }

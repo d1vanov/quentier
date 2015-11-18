@@ -18,7 +18,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
 #endif
 
-class QUTE_NOTE_EXPORT NoteEditorPage:
+class NoteEditorPage:
 #ifndef USE_QT_WEB_ENGINE
         public QWebPage
 #else
@@ -29,13 +29,21 @@ class QUTE_NOTE_EXPORT NoteEditorPage:
 public:
     explicit NoteEditorPage(NoteEditor & parent);
 
+#ifdef USE_QT_WEB_ENGINE
+    bool javaScriptQueueEmpty() const;
+#endif
+
 Q_SIGNALS:
+    void javaScriptLoaded();
     void noteLoadCancelled();
 
 public Q_SLOTS:
     bool shouldInterruptJavaScript();
 
     void executeJavaScript(const QString & script, const bool clearPreviousQueue = false);
+
+private Q_SLOTS:
+    void onJavaScriptQueueEmpty();
 
 private:
 #ifndef USE_QT_WEB_ENGINE

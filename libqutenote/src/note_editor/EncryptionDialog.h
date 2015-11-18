@@ -32,6 +32,7 @@ public:
 
 Q_SIGNALS:
     void accepted(QString textToEncrypt, QString encryptedText,
+                  QString passphrase, QString cipher, size_t keyLength,
                   QString hint, bool rememberForSession);
 
 private Q_SLOTS:

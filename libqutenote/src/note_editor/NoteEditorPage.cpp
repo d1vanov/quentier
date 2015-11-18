@@ -23,7 +23,20 @@ NoteEditorPage::NoteEditorPage(NoteEditor & parent) :
     QUTE_NOTE_CHECK_PTR(m_parent);
     QObject::connect(this, QNSIGNAL(NoteEditorPage,noteLoadCancelled),
                      &parent, QNSLOT(NoteEditor,onNoteLoadCancelled));
+#ifdef USE_QT_WEB_ENGINE
+    QObject::connect(m_pJavaScriptInOrderExecutor, QNSIGNAL(JavaScriptInOrderExecutor,finished),
+                     this, QNSLOT(NoteEditorPage,onJavaScriptQueueEmpty));
+#endif
 }
+
+#ifdef USE_QT_WEB_ENGINE
+bool NoteEditorPage::javaScriptQueueEmpty() const
+{
+    QNDEBUG("NoteEditorPage::javaScriptQueueEmpty: "
+            << (m_pJavaScriptInOrderExecutor->empty() ? "true" : "false"));
+    return m_pJavaScriptInOrderExecutor->empty();
+}
+#endif
 
 bool NoteEditorPage::shouldInterruptJavaScript()
 {
@@ -60,6 +73,12 @@ void NoteEditorPage::executeJavaScript(const QString & script, const bool clearP
     Q_UNUSED(clearPreviousQueue);
     mainFrame()->evaluateJavaScript(script);
 #endif
+}
+
+void NoteEditorPage::onJavaScriptQueueEmpty()
+{
+    QNDEBUG("NoteEditorPage::onJavaScriptQueueEmpty");
+    emit javaScriptLoaded();
 }
 
 #ifndef USE_QT_WEB_ENGINE

@@ -203,6 +203,7 @@ private Q_SLOTS:
     void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
                                    bool rememberForSession, bool decryptPermanently);
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
+                                  QString passphrase, QString cipher, size_t keyLength,
                                   QString hint, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
@@ -256,6 +257,9 @@ private:
 private:
     // Helper methods for undo stack
     void pushNoteContentEditUndoCommand();
+    void pushEncryptUndoCommand(const QString & cipher, const size_t keyLength,
+                                const QString & encryptedText, const QString & decryptedText,
+                                const QString & passphrase, const bool rememberForSession);
 
 private:
     void changeFontSize(const bool increase);
@@ -470,6 +474,7 @@ private:
     bool        m_pendingConversionToNote;
     bool        m_pendingNotePageLoad;
     bool        m_pendingIndexHtmlWritingToFile;
+    bool        m_pendingInitialJavaScriptExecution;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;

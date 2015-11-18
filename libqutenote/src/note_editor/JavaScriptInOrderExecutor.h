@@ -15,6 +15,7 @@ public:
 
     void append(const QString & script);
     int size() const { return m_javaScriptsQueue.size(); }
+    bool empty() const { return m_javaScriptsQueue.empty(); }
     void clear() { m_javaScriptsQueue.clear(); }
 
     void start();

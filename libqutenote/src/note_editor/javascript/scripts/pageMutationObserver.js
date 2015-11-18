@@ -18,10 +18,38 @@ var observer = new MutationObserver(function(mutations, observer) {
     for(var index = 0; index < numMutations; ++index) {
         var mutation = mutations[index];
 
+        var numAddedNodes = (mutation.addedNodes ? mutation.addedNodes.length : 0);
+        var numRemovedNodes = (mutation.removedNodes ? mutation.removedNodes.length : 0);
+
         console.log("Mutation[" + index + "]: type = " + mutation.type + ", target: " +
                     (mutation.target ? mutation.target.nodeName : "null") + ", num added nodes = " +
-                    (mutation.addedNodes ? mutation.addedNodes.length : 0) + ", num removed nodes = " +
-                    (mutation.removedNodes ? mutation.removedNodes.length : 0));
+                    numAddedNodes + ", num removed nodes = " + numRemovedNodes);
+
+        if (numAddedNodes) {
+            for(var addedNodesIndex = 0; addedNodesIndex < numAddedNodes; ++addedNodesIndex) {
+                var addedNode = mutation.addedNodes[addedNodesIndex];
+                console.log("Added node[" + addedNodesIndex + "]: name = " + addedNode.nodeName);
+                var attributes = addedNode.attributes;
+                if (attributes) {
+                    for(var attributesIndex = 0; attributesIndex < attributes.length; ++attributesIndex) {
+                        console.log("attribute: " + attributes[attributesIndex].name + ": " + attributes[attributesIndex].value);
+                    }
+                }
+            }
+        }
+
+        if (numRemovedNodes) {
+            for(var removedNodesIndex = 0; removedNodesIndex < numRemovedNodes; ++removedNodesIndex) {
+                var removedNode = mutation.removedNodes[removedNodesIndex];
+                console.log("Removed node[" + removedNodesIndex + "]: name = " + removedNode.nodeName);
+                attributes = removedNode.attributes;
+                if (attributes) {
+                    for(attributesIndex = 0; attributesIndex < attributes.length; ++attributesIndex) {
+                        console.log("attribute: " + attributes[attributesIndex].name + ": " + attributes[attributesIndex].value);
+                    }
+                }
+            }
+        }
 
         if (mutation.type === "childList") {
             if (mutation.addedNodes && mutation.addedNodes.length &&
@@ -34,9 +62,29 @@ var observer = new MutationObserver(function(mutations, observer) {
                 console.log("Skipping the mutation of HEAD target");
                 continue;
             }
+            else if (mutation.addedNodes && (mutation.addedNodes.length === 1)) {
+                addedNode = mutation.addedNodes[0];
+                if (addedNode) {
+                    if (addedNode.nodeName === "#text") {
+                        console.log("Skipping the addition of #text node");
+                        continue;
+                    }
+                    else if (addedNode.attributes) {
+                        var enTagAttribute = addedNode.attributes.getNamedItem("en-tag");
+                        if (enTagAttribute && enTagAttribute.value === "en-crypt") {
+                            console.log("Skipping the addition of en-crypt node");
+                            continue;
+                        }
+                    }
+                }
+            }
         }
         else if (mutation.type !== "characterData") {
             console.log("Skipping non-characterData mutation");
+            continue;
+        }
+        else if (mutation.target && mutation.target.nodeName === "#text") {
+            console.log("Skipping the mutation of #text node");
             continue;
         }
 
