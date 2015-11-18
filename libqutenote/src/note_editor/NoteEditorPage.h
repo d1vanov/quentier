@@ -13,10 +13,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
-
-#ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
-#endif
 
 class NoteEditorPage:
 #ifndef USE_QT_WEB_ENGINE
@@ -29,9 +26,7 @@ class NoteEditorPage:
 public:
     explicit NoteEditorPage(NoteEditor & parent);
 
-#ifdef USE_QT_WEB_ENGINE
     bool javaScriptQueueEmpty() const;
-#endif
 
 Q_SIGNALS:
     void javaScriptLoaded();
@@ -59,10 +54,7 @@ private:
 
 private:
     NoteEditor * m_parent;
-
-#ifdef USE_QT_WEB_ENGINE
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
-#endif
 };
 
 } // namespace qute_note

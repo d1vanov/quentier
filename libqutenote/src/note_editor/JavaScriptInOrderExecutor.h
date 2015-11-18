@@ -1,17 +1,32 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__JAVA_SCRIPT_IN_ORDER_EXECUTOR_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__JAVA_SCRIPT_IN_ORDER_EXECUTOR_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
-#include <QWebEngineView>
 #include <QQueue>
+
+#ifdef USE_QT_WEB_ENGINE
+#include <QWebEngineView>
+#else
+#include <QWebView>
+#endif
 
 namespace qute_note {
 
 class JavaScriptInOrderExecutor: public QObject
 {
     Q_OBJECT
+private:
+    typedef
+#ifdef USE_QT_WEB_ENGINE
+    QWebEngineView
+#else
+    QWebView
+#endif
+    WebView;
+
 public:
-    explicit JavaScriptInOrderExecutor(QWebEngineView & view, QObject * parent = nullptr);
+    explicit JavaScriptInOrderExecutor(WebView & view, QObject * parent = Q_NULLPTR);
 
     void append(const QString & script);
     int size() const { return m_javaScriptsQueue.size(); }
@@ -43,7 +58,7 @@ private:
     void next();
 
 private:
-    QWebEngineView &    m_view;
+    WebView &           m_view;
     QQueue<QString>     m_javaScriptsQueue;
     bool                m_inProgress;
 };

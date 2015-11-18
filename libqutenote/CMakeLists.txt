@@ -164,6 +164,7 @@ set(PRIVATE_HEADERS
     src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
+    src/note_editor/JavaScriptInOrderExecutor.h
     src/note_editor/EditUrlDialog.h
     src/note_editor/EncryptionDialog.h
     src/note_editor/DecryptionDialog.h
@@ -172,6 +173,7 @@ set(PRIVATE_HEADERS
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
+    src/note_editor/javascript_glue/PageMutationHandler.h
     src/note_editor/undo_stack/INoteEditorUndoCommand.h
     src/note_editor/undo_stack/AddResourceUndoCommand.h
     src/note_editor/undo_stack/AddResourceUndoCommandNotReadyException.h
@@ -217,11 +219,9 @@ if(NOT USE_QT_WEB_ENGINE)
 else()
   list(APPEND PRIVATE_HEADERS
        src/note_editor/GenericResourceImageWriter.h
-       src/note_editor/javascript_glue/PageMutationHandler.h
        src/note_editor/javascript_glue/EnCryptElementOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.h
-       src/note_editor/JavaScriptInOrderExecutor.h
        src/note_editor/WebSocketClientWrapper.h
        src/note_editor/WebSocketTransport.h)
 endif()
@@ -235,6 +235,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
     src/note_editor/NoteEditor_p.cpp
+    src/note_editor/JavaScriptInOrderExecutor.cpp
     src/note_editor/EditUrlDialog.cpp
     src/note_editor/EncryptionDialog.cpp
     src/note_editor/DecryptionDialog.cpp
@@ -244,6 +245,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp
+    src/note_editor/javascript_glue/PageMutationHandler.cpp
     src/note_editor/undo_stack/INoteEditorUndoCommand.cpp
     src/note_editor/undo_stack/AddResourceUndoCommand.cpp
     src/note_editor/undo_stack/AddResourceUndoCommandNotReadyException.cpp
@@ -340,11 +342,9 @@ if(NOT USE_QT_WEB_ENGINE)
 else()
   list(APPEND ${PROJECT_NAME}_SOURCES
     src/note_editor/GenericResourceImageWriter.cpp
-    src/note_editor/javascript_glue/PageMutationHandler.cpp
     src/note_editor/javascript_glue/EnCryptElementOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.cpp
-    src/note_editor/JavaScriptInOrderExecutor.cpp
     src/note_editor/WebSocketTransport.cpp
     src/note_editor/WebSocketClientWrapper.cpp)
 endif()

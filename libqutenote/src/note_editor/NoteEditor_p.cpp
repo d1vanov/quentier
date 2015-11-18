@@ -6,6 +6,7 @@
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
+#include "javascript_glue/PageMutationHandler.h"
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
 #include "undo_stack/EncryptUndoCommand.h"
 
@@ -16,7 +17,6 @@
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
 #else
-#include "javascript_glue/PageMutationHandler.h"
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
 #include "javascript_glue/GenericResourceImageJavaScriptHandler.h"
@@ -101,6 +101,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_determineContextMenuEventTargetJs(),
     m_changeFontSizeForSelectionJs(),
     m_decryptEncryptedTextPermanentlyJs(),
+    m_pageMutationObserverJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -109,19 +110,18 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs(),
     m_qWebChannelJs(),
     m_qWebChannelSetupJs(),
-    m_pageMutationObserverJs(),
     m_notifyTextCursorPositionChangedJs(),
     m_genericResourceOnClickHandlerJs(),
     m_setupGenericResourceOnClickHandlerJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
-    m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
     m_pGenericResourceImageWriter(Q_NULLPTR),
     m_webSocketServerPort(0),
 #endif
+    m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
     m_pPreliminaryUndoCommandQueue(Q_NULLPTR),
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
@@ -249,6 +249,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     GET_PAGE()
 
     page->executeJavaScript(m_jQueryJs);
+    page->executeJavaScript(m_pageMutationObserverJs);
 
 #ifndef USE_QT_WEB_ENGINE
     QWebFrame * frame = page->mainFrame();
@@ -256,6 +257,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
+    frame->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
+                                       QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
@@ -266,7 +269,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
 #else
-    page->executeJavaScript(m_pageMutationObserverJs, /* clear previous queue = */ true);
     page->executeJavaScript(m_qWebChannelJs);
     page->executeJavaScript(QString("(function(){window.websocketserverport = ") +
                             QString::number(m_webSocketServerPort) + QString("})();"));
@@ -538,13 +540,13 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
     }
 }
 
+#endif
+
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
     m_pendingInitialJavaScriptExecution = false;
 }
-
-#endif
 
 void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
 {
@@ -1103,9 +1105,10 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     m_pendingConversionToNote = false;
 
     Q_Q(NoteEditor);
+    GET_PAGE()
+
 #ifndef USE_QT_WEB_ENGINE
-    q->page()->mainFrame()->evaluateJavaScript(javascript);
-    // TODO: for QtWebKit: see whether contentChanged signal would be emitted automatically
+    page->executeJavaScript(javascript);
     onSelectedTextEncryptionDone(QVariant(), QVector<QPair<QString,QString> >());
 #else
     QVector<QPair<QString,QString> > extraData;
@@ -2211,6 +2214,7 @@ void NoteEditorPrivate::setupScripts()
     file.close()
 
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
+    SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
@@ -2234,7 +2238,6 @@ void NoteEditorPrivate::setupScripts()
 #else
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
-    SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
     SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
@@ -2262,9 +2265,13 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
     page->setContentEditable(true);
 
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), q, QNSIGNAL(NoteEditor,contentChanged));
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,contentsChanged), this, QNSLOT(NoteEditorPrivate,onContentChanged));
+    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
+                     q, QNSIGNAL(NoteEditor,contentChanged));
+    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
+                     this, QNSLOT(NoteEditorPrivate,onContentChanged));
 
+    page->mainFrame()->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
+                                                   QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
@@ -2280,10 +2287,9 @@ void NoteEditorPrivate::setupNoteEditorPage()
     m_errorCachedMemory.resize(0);
 
     QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
-#else
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
 #endif
 
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
     QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
                      this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
     QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));

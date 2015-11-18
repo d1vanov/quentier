@@ -1,8 +1,12 @@
 #include "JavaScriptInOrderExecutor.h"
 
+#ifndef USE_QT_WEB_ENGINE
+#include <QWebFrame>
+#endif
+
 namespace qute_note {
 
-JavaScriptInOrderExecutor::JavaScriptInOrderExecutor(QWebEngineView & view, QObject * parent) :
+JavaScriptInOrderExecutor::JavaScriptInOrderExecutor(WebView & view, QObject * parent) :
     QObject(parent),
     m_view(view),
     m_javaScriptsQueue(),
@@ -17,8 +21,15 @@ void JavaScriptInOrderExecutor::append(const QString &script)
 void JavaScriptInOrderExecutor::start()
 {
     QString script = m_javaScriptsQueue.dequeue();
-    m_view.page()->runJavaScript(script, JavaScriptCallback(*this));
+
     m_inProgress = true;
+
+#ifdef USE_QT_WEB_ENGINE
+    m_view.page()->runJavaScript(script, JavaScriptCallback(*this));
+#else
+    m_view.page()->mainFrame()->evaluateJavaScript(script);
+    next();
+#endif
 }
 
 void JavaScriptInOrderExecutor::next()

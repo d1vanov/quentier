@@ -1,42 +1,31 @@
 #include "NoteEditorPage.h"
+#include "JavaScriptInOrderExecutor.h"
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QMessageBox>
 #include <QApplication>
 
-#ifdef USE_QT_WEB_ENGINE
-#include "JavaScriptInOrderExecutor.h"
-#else
-#include <QWebFrame>
-#endif
-
 namespace qute_note {
 
 NoteEditorPage::NoteEditorPage(NoteEditor & parent) :
     WebPage(&parent),
-    m_parent(&parent)
-#ifdef USE_QT_WEB_ENGINE
-    ,m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(parent, this))
-#endif
+    m_parent(&parent),
+    m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(parent, this))
 {
     QUTE_NOTE_CHECK_PTR(m_parent);
     QObject::connect(this, QNSIGNAL(NoteEditorPage,noteLoadCancelled),
                      &parent, QNSLOT(NoteEditor,onNoteLoadCancelled));
-#ifdef USE_QT_WEB_ENGINE
     QObject::connect(m_pJavaScriptInOrderExecutor, QNSIGNAL(JavaScriptInOrderExecutor,finished),
                      this, QNSLOT(NoteEditorPage,onJavaScriptQueueEmpty));
-#endif
 }
 
-#ifdef USE_QT_WEB_ENGINE
 bool NoteEditorPage::javaScriptQueueEmpty() const
 {
     QNDEBUG("NoteEditorPage::javaScriptQueueEmpty: "
             << (m_pJavaScriptInOrderExecutor->empty() ? "true" : "false"));
     return m_pJavaScriptInOrderExecutor->empty();
 }
-#endif
 
 bool NoteEditorPage::shouldInterruptJavaScript()
 {
@@ -61,18 +50,15 @@ bool NoteEditorPage::shouldInterruptJavaScript()
 
 void NoteEditorPage::executeJavaScript(const QString & script, const bool clearPreviousQueue)
 {
-#ifdef USE_QT_WEB_ENGINE
     if (Q_UNLIKELY(clearPreviousQueue)) {
         m_pJavaScriptInOrderExecutor->clear();
     }
+
     m_pJavaScriptInOrderExecutor->append(script);
+
     if (!m_pJavaScriptInOrderExecutor->inProgress()) {
         m_pJavaScriptInOrderExecutor->start();
     }
-#else
-    Q_UNUSED(clearPreviousQueue);
-    mainFrame()->evaluateJavaScript(script);
-#endif
 }
 
 void NoteEditorPage::onJavaScriptQueueEmpty()

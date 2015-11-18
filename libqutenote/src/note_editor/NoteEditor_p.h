@@ -34,9 +34,9 @@ QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
+QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 
 #ifdef USE_QT_WEB_ENGINE
-QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
@@ -217,8 +217,9 @@ private Q_SLOTS:
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
 
-    void onJavaScriptLoaded();
 #endif
+
+    void onJavaScriptLoaded();
 
     void onOpenResourceRequest(const QString & resourceHash);
     void onSaveResourceRequest(const QString & resourceHash);
@@ -431,6 +432,7 @@ private:
     QString     m_determineContextMenuEventTargetJs;
     QString     m_changeFontSizeForSelectionJs;
     QString     m_decryptEncryptedTextPermanentlyJs;
+    QString     m_pageMutationObserverJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
@@ -440,7 +442,6 @@ private:
     QString     m_provideSrcAndOnClickScriptForEnCryptImgTagsJs;
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
-    QString     m_pageMutationObserverJs;
     QString     m_notifyTextCursorPositionChangedJs;
     QString     m_genericResourceOnClickHandlerJs;
     QString     m_setupGenericResourceOnClickHandlerJs;
@@ -448,7 +449,6 @@ private:
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
     QWebChannel * m_pWebChannel;
-    PageMutationHandler * m_pPageMutationHandler;
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
     GenericResourceImageWriter * m_pGenericResourceImageWriter;
@@ -456,6 +456,7 @@ private:
     quint16     m_webSocketServerPort;
 #endif
 
+    PageMutationHandler * m_pPageMutationHandler;
     QUndoStack * m_pUndoStack;
     PreliminaryUndoCommandQueue * m_pPreliminaryUndoCommandQueue;
 
