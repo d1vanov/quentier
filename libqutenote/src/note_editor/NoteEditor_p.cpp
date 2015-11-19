@@ -1,5 +1,4 @@
 #include "NoteEditor_p.h"
-#include "NoteEditorPage.h"
 #include "EncryptionDialog.h"
 #include "DecryptionDialog.h"
 #include "EditUrlDialog.h"
@@ -76,6 +75,12 @@ typedef QWebEngineSettings WebSettings;
     }
 
 namespace qute_note {
+
+void NoteEditorPageDeleter(NoteEditorPage *& page)
+{
+    delete page;
+    page = Q_NULLPTR;
+}
 
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
@@ -189,6 +194,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
     m_lastFreeHyperlinkIdNumber(1),
+    m_pagesStack(NoteEditorPageDeleter),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -204,6 +210,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #endif
 
     setupTextCursorPositionJavaScriptHandlerConnections();
+    setupGeneralSignalSlotConnections();
     setupNoteEditorPage();
     setupScripts();
 
@@ -1001,6 +1008,33 @@ void NoteEditorPrivate::pushEncryptUndoCommand(const QString & cipher, const siz
 
     m_pPreliminaryUndoCommandQueue->push(new EncryptUndoCommand(info, m_decryptedTextManager, *this));
     QNTRACE("Pushed EncryptUndoCommand to the undo stack");
+}
+
+void NoteEditorPrivate::switchEditorPage()
+{
+    QNDEBUG("NoteEditorPrivate::switchEditorPage");
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
+#ifndef USE_QT_WEB_ENGINE
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
+#endif
+
+    m_pagesStack.push(page);
+    setupNoteEditorPage();
+}
+
+void NoteEditorPrivate::popEditorPage()
+{
+    QNDEBUG("NoteEditorPrivate::popEditorPage");
+
+    NoteEditorPage * page = m_pagesStack.pop();
+
+    setupNoteEditorPageConnections(page);
+
+    Q_Q(NoteEditor);
+    q->setPage(page);
 }
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
@@ -2249,6 +2283,26 @@ void NoteEditorPrivate::setupScripts()
 #undef SETUP_SCRIPT
 }
 
+void NoteEditorPrivate::setupGeneralSignalSlotConnections()
+{
+    QNDEBUG("NoteEditorPrivate::setupGeneralSignalSlotConnections");
+
+    Q_Q(NoteEditor);
+
+    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
+                     q, QNSIGNAL(NoteEditor,contentChanged));
+    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
+                     this, QNSLOT(NoteEditorPrivate,onContentChanged));
+    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
+    QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested), q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
+}
+
 void NoteEditorPrivate::setupNoteEditorPage()
 {
     QNDEBUG("NoteEditorPrivate::setupNoteEditorPage");
@@ -2256,6 +2310,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     Q_Q(NoteEditor);
 
     NoteEditorPage * page = new NoteEditorPage(*q);
+    m_pagesStack.push(page);
+
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, false);
 
@@ -2264,11 +2320,6 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
     page->setContentEditable(true);
-
-    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
-                     q, QNSIGNAL(NoteEditor,contentChanged));
-    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
-                     this, QNSLOT(NoteEditorPrivate,onContentChanged));
 
     page->mainFrame()->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
                                                    QScriptEngine::QtOwnership);
@@ -2285,22 +2336,21 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->setPluginFactory(m_pluginFactory);
 
     m_errorCachedMemory.resize(0);
-
-    QObject::connect(page, QNSIGNAL(NoteEditor,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 #endif
-
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
-    QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
-                     this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
-    QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested), q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
 
     q->setPage(page);
     q->setAcceptDrops(true);
+    setupNoteEditorPageConnections(page);
+}
+
+void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
+{
+    QNDEBUG("NoteEditorPrivate::setupNoteEditorPageConnections");
+
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
+#ifndef USE_QT_WEB_ENGINE
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
+#endif
 }
 
 void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()

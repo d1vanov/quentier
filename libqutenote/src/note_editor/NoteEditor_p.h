@@ -2,11 +2,13 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
 #include "ResourceInfo.h"
+#include "NoteEditorPage.h"
 #include "undo_stack/PreliminaryUndoCommandQueue.h"
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/EncryptionManager.h>
+#include <qute_note/utility/LimitedStack.h>
 #include <QObject>
 #include <QMimeType>
 #include <QFont>
@@ -42,6 +44,8 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
 #endif
+
+void NoteEditorPageDeleter(NoteEditorPage *& page);
 
 class NoteEditorPrivate: public QObject
 {
@@ -79,6 +83,9 @@ public:
     void removeResourceFromNote(const ResourceWrapper & resource);
     void replaceResourceInNote(const ResourceWrapper & resource);
     void setNoteResources(const QList<ResourceWrapper> & resources);
+
+    void switchEditorPage();
+    void popEditorPage();
 
 Q_SIGNALS:
     void convertedToNote(Note note);
@@ -311,7 +318,9 @@ private:
 
     void setupFileIO();
     void setupScripts();
+    void setupGeneralSignalSlotConnections();
     void setupNoteEditorPage();
+    void setupNoteEditorPageConnections(NoteEditorPage * page);
     void setupTextCursorPositionJavaScriptHandlerConnections();
 
     void determineStatesForCurrentTextCursorPosition();
@@ -330,6 +339,7 @@ private:
     int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
                             const QString & resourceHash) const;
 
+private:
     template <class T>
     class NoteEditorCallbackFunctor
     {
@@ -404,6 +414,22 @@ private:
         QString m_encryptedText;
         QString m_cipher;
         QString m_length;
+    };
+
+    // Holds some data required for certain context menu actions, like the encrypted text data for its decryption,
+    // the hash of the resource under cursor for which the action is toggled etc.
+    struct CurrentContextMenuExtraData
+    {
+        QString     m_contentType;
+
+        // Encrypted text extra data
+        QString     m_encryptedText;
+        QString     m_keyLength;
+        QString     m_cipher;
+        QString     m_hint;
+
+        // Resource extra data
+        QString     m_resourceHash;
     };
 
 private:
@@ -546,34 +572,19 @@ private:
     QHash<QString, QString>         m_fileFilterStringForMimeType;
 
 #ifdef USE_QT_WEB_ENGINE
-
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
     GenericResourceImageJavaScriptHandler *  m_pGenericResoureImageJavaScriptHandler;
 
     QSet<QUuid>                     m_saveGenericResourceImageToFileRequestIds;
 #endif
 
-    // Holds some data required for certain context menu actions, like the encrypted text data for its decryption,
-    // the hash of the resource under cursor for which the action is toggled etc.
-    struct CurrentContextMenuExtraData
-    {
-        QString     m_contentType;
-
-        // Encrypted text extra data
-        QString     m_encryptedText;
-        QString     m_keyLength;
-        QString     m_cipher;
-        QString     m_hint;
-
-        // Resource extra data
-        QString     m_resourceHash;
-    };
-
     CurrentContextMenuExtraData     m_currentContextMenuExtraData;
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
     quint64      m_lastFreeEnToDoIdNumber;
     quint64      m_lastFreeHyperlinkIdNumber;
+
+    LimitedStack<NoteEditorPage*>    m_pagesStack;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

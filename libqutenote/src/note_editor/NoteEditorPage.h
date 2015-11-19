@@ -2,7 +2,6 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 
 #include <qute_note/utility/Qt4Helper.h>
-#include <qute_note/utility/Linkage.h>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebPage>
