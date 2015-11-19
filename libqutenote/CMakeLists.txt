@@ -139,6 +139,7 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/EncryptionManager.h
     headers/qute_note/utility/EventLoopWithExitStatus.h
     headers/qute_note/utility/FileIOThreadWorker.h
+    headers/qute_note/utility/LimitedStack.h
     headers/qute_note/utility/Linkage.h
     headers/qute_note/utility/ShortcutManager.h
     headers/qute_note/utility/SysInfo.h
