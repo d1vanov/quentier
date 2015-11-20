@@ -41,11 +41,6 @@ void DecryptUndoCommand::redoImpl()
     }
 
     m_noteEditorPrivate.switchEditorPage();
-    m_noteEditorPrivate.decryptEncryptedText(m_info.m_cipher, m_info.m_keyLength,
-                                             m_info.m_encryptedText, m_info.m_decryptedText,
-                                             m_info.m_passphrase, m_info.m_rememberForSession,
-                                             m_info.m_decryptPermanently,
-                                             /* create decrypt undo command = */ false);
 }
 
 void DecryptUndoCommand::undoImpl()
@@ -57,7 +52,6 @@ void DecryptUndoCommand::undoImpl()
     }
 
     m_noteEditorPrivate.popEditorPage();
-    m_noteEditorPrivate.updateFromNote();   // Force re-conversion from ENML to HTML
 }
 
 void DecryptUndoCommand::init()

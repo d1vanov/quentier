@@ -12,6 +12,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
 
 class NoteEditorPage:
@@ -23,9 +24,10 @@ class NoteEditorPage:
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPage(NoteEditor & parent);
+    explicit NoteEditorPage(NoteEditorPrivate & parent, NoteEditor & editor, const quint32 index);
 
     bool javaScriptQueueEmpty() const;
+    quint32 index() const { return m_index; }
 
 Q_SIGNALS:
     void javaScriptLoaded();
@@ -52,8 +54,10 @@ private:
 #endif
 
 private:
-    NoteEditor * m_parent;
+    NoteEditorPrivate *         m_parent;
+    NoteEditor *                m_editor;
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
+    quint32                     m_index;
 };
 
 } // namespace qute_note

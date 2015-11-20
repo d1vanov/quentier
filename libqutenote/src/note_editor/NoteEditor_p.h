@@ -45,8 +45,6 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
 #endif
 
-void NoteEditorPageDeleter(NoteEditorPage *& page);
-
 class NoteEditorPrivate: public QObject
 {
     Q_OBJECT
@@ -273,9 +271,7 @@ private:
 private:
     // Helper methods for undo stack
     void pushNoteContentEditUndoCommand();
-    void pushEncryptUndoCommand(const QString & cipher, const size_t keyLength,
-                                const QString & encryptedText, const QString & decryptedText,
-                                const QString & passphrase, const bool rememberForSession);
+    void pushEncryptUndoCommand();
     void pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
                                 const QString & encryptedText, const QString & decryptedText,
                                 const QString & passphrase, const bool rememberForSession,
@@ -350,6 +346,8 @@ private:
 
     int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
                             const QString & resourceHash) const;
+
+    void updateNoteEditorPagePath(const quint32 index);
 
 private:
     template <class T>
@@ -599,6 +597,7 @@ private:
     quint64      m_lastFreeHyperlinkIdNumber;
 
     LimitedStack<NoteEditorPage*>    m_pagesStack;
+    quint32      m_lastNoteEditorPageFreeIndex;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

@@ -77,12 +77,6 @@ typedef QWebEngineSettings WebSettings;
 
 namespace qute_note {
 
-void NoteEditorPageDeleter(NoteEditorPage *& page)
-{
-    delete page;
-    page = Q_NULLPTR;
-}
-
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QObject(&noteEditor),
     m_noteEditorPageFolderPath(),
@@ -196,12 +190,12 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
     m_lastFreeHyperlinkIdNumber(1),
-    m_pagesStack(NoteEditorPageDeleter),
+    m_pagesStack(),
+    m_lastNoteEditorPageFreeIndex(0),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_noteEditorPageFolderPath = applicationPersistentStoragePath() + "/NoteEditorPage";
-    m_noteEditorPagePath = m_noteEditorPageFolderPath + "/index.html";
     m_noteEditorImageResourcesStoragePath = m_noteEditorPageFolderPath + "/imageResources";
 
     setupFileIO();
@@ -217,6 +211,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupScripts();
 
     Q_Q(NoteEditor);
+    q->setAcceptDrops(true);
 
     m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
@@ -926,7 +921,14 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
 
         Q_Q(NoteEditor);
         QUrl url = QUrl::fromLocalFile(m_noteEditorPagePath);
-        q->load(url);
+
+#ifdef USE_QT_WEB_ENGINE
+        q->page()->setUrl(url);
+        q->page()->load(url);
+#else
+        q->page()->mainFrame()->setUrl(url);
+        q->page()->mainFrame()->load(url);
+#endif
         QNTRACE("Loaded url: " << url);
         m_pendingNotePageLoad = true;
     }
@@ -1000,22 +1002,11 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
     m_pPreliminaryUndoCommandQueue->push(new NoteEditorContentEditUndoCommand(*this, resources));
 }
 
-void NoteEditorPrivate::pushEncryptUndoCommand(const QString & cipher, const size_t keyLength,
-                                               const QString & encryptedText, const QString & decryptedText,
-                                               const QString & passphrase, const bool rememberForSession)
+void NoteEditorPrivate::pushEncryptUndoCommand()
 {
     QNDEBUG("NoteEditorPrivate::pushEncryptUndoCommand");
 
-    EncryptDecryptUndoCommandInfo info;
-    info.m_cipher = cipher;
-    info.m_keyLength = keyLength;
-    info.m_rememberForSession = rememberForSession;
-    info.m_decryptedText = decryptedText;
-    info.m_decryptPermanently = true;
-    info.m_encryptedText = encryptedText;
-    info.m_passphrase = passphrase;
-
-    m_pPreliminaryUndoCommandQueue->push(new EncryptUndoCommand(info, m_decryptedTextManager, *this));
+    m_pPreliminaryUndoCommandQueue->push(new EncryptUndoCommand(*this));
     QNTRACE("Pushed EncryptUndoCommand to the undo stack");
 }
 
@@ -1045,9 +1036,15 @@ void NoteEditorPrivate::switchEditorPage()
 
     Q_Q(NoteEditor);
     GET_PAGE()
+
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
 #ifndef USE_QT_WEB_ENGINE
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
+
+    QWebFrame * frame = page->mainFrame();
+    QObject::disconnect(frame, QNSIGNAL(QWebFrame,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
+#else
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
 #endif
 
     m_pagesStack.push(page);
@@ -1058,12 +1055,41 @@ void NoteEditorPrivate::popEditorPage()
 {
     QNDEBUG("NoteEditorPrivate::popEditorPage");
 
-    NoteEditorPage * page = m_pagesStack.pop();
+    if (Q_UNLIKELY(m_pagesStack.isEmpty())) {
+        m_errorCachedMemory = QT_TR_NOOP("The stack of note pages is unexpectedly empty after popping out the top page");
+        QNWARNING(m_errorCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
 
+    NoteEditorPage * page = m_pagesStack.pop();
+    if (Q_UNLIKELY(!page)) {
+        m_errorCachedMemory = QT_TR_NOOP("Detected null pointer to note editor page in the pages stack");
+        QNWARNING(m_errorCachedMemory);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    --m_lastNoteEditorPageFreeIndex;
+    QNTRACE("Updated last note editor page free index to " << m_lastNoteEditorPageFreeIndex);
+
+    updateNoteEditorPagePath(page->index());
     setupNoteEditorPageConnections(page);
 
     Q_Q(NoteEditor);
+    NoteEditorPage * previousPage = qobject_cast<NoteEditorPage*>(q->page());
     q->setPage(page);
+    delete previousPage;
+
+    QNTRACE("Set note editor page with url: " <<
+#ifdef USE_QT_WEB_ENGINE
+            page->url()
+#else
+            page->mainFrame()->url()
+#endif
+            );
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange()
@@ -2322,7 +2348,6 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
                      this, QNSLOT(NoteEditorPrivate,onContentChanged));
     QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
                      this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
-    QObject::connect(q, QNSIGNAL(NoteEditor,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
@@ -2336,13 +2361,20 @@ void NoteEditorPrivate::setupNoteEditorPage()
 
     Q_Q(NoteEditor);
 
-    NoteEditorPage * page = new NoteEditorPage(*q);
-    m_pagesStack.push(page);
+    NoteEditorPage * page = new NoteEditorPage(*this, *q, m_lastNoteEditorPageFreeIndex++);
+    QNTRACE("Updated last note editor page free index to " << m_lastNoteEditorPageFreeIndex);
 
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, false);
 
-#ifndef USE_QT_WEB_ENGINE
+    updateNoteEditorPagePath(page->index());
+    QUrl url = QUrl::fromLocalFile(m_noteEditorPagePath);
+
+#ifdef USE_QT_WEB_ENGINE
+    page->setUrl(url);
+#else
+    page->mainFrame()->setUrl(url);
+
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
@@ -2365,9 +2397,18 @@ void NoteEditorPrivate::setupNoteEditorPage()
     m_errorCachedMemory.resize(0);
 #endif
 
-    q->setPage(page);
-    q->setAcceptDrops(true);
     setupNoteEditorPageConnections(page);
+    q->setPage(page);
+
+    QNTRACE("Set note editor page with url: " <<
+#ifdef USE_QT_WEB_ENGINE
+            page->url()
+#else
+            page->mainFrame()->url()
+#endif
+            );
+
+    noteToEditorContent();
 }
 
 void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
@@ -2377,6 +2418,11 @@ void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
 #ifndef USE_QT_WEB_ENGINE
     QObject::connect(page, QNSIGNAL(NoteEditorPage,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
+
+    QWebFrame * frame = page->mainFrame();
+    QObject::connect(frame, QNSIGNAL(QWebFrame,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
+#else
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
 #endif
 }
 
@@ -2589,7 +2635,7 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         return;
     }
 
-    pushEncryptUndoCommand(cipher, keyLength, encryptedText, selectedHtml, passphrase, rememberForSession);
+    pushEncryptUndoCommand();
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedHtml, encryptedText, hint, rememberForSession);
 }
 
@@ -2628,6 +2674,11 @@ int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resour
     }
 
     return -1;
+}
+
+void NoteEditorPrivate::updateNoteEditorPagePath(const quint32 index)
+{
+    m_noteEditorPagePath = m_noteEditorPageFolderPath + "/index_" + QString::number(index) + ".html";
 }
 
 #define COMMAND_TO_JS(command) \
@@ -3734,7 +3785,12 @@ void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString e
             << "encrypted text = " << encryptedText << ", hint = " << hint
             << ", remember for session = " << (rememberForSession ? "true" : "false"));
 
-    pushEncryptUndoCommand(cipher, keyLength, encryptedText, selectedText, passphrase, rememberForSession);
+    Q_UNUSED(passphrase)
+    Q_UNUSED(cipher)
+    Q_UNUSED(keyLength)
+
+    switchEditorPage();
+    pushEncryptUndoCommand();
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedText, encryptedText, hint, rememberForSession);
 }
 
