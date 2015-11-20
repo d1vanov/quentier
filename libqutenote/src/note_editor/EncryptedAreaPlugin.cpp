@@ -115,8 +115,8 @@ bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const Q
     }
 
     const NoteEditor & noteEditor = pluginFactory.noteEditor();
-    QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,QString,bool,bool),
-                     &noteEditor, QNSLOT(NoteEditor,onEncryptedAreaDecryption,QString,QString,bool,bool));
+    QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
+                     &noteEditor, QNSLOT(NoteEditor,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
 
     QNTRACE("Initialized encrypted area plugin: cipher = " << m_cipher
             << ", length = " << m_keyLength << ", hint = " << m_hint
@@ -150,8 +150,9 @@ void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
     int res = pDecryptionDialog->exec();
     if (res == QDialog::Accepted) {
         QNTRACE("Successfully decrypted text: " << pDecryptionDialog->decryptedText());
-        emit decrypted(m_encryptedText, pDecryptionDialog->decryptedText(),
-                       pDecryptionDialog->rememberPassphrase(), pDecryptionDialog->decryptPermanently());
+        emit decrypted(m_cipher, m_keyLength, m_encryptedText, pDecryptionDialog->passphrase(),
+                       pDecryptionDialog->decryptedText(), pDecryptionDialog->rememberPassphrase(),
+                       pDecryptionDialog->decryptPermanently());
     }
 }
 

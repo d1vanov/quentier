@@ -145,7 +145,8 @@ void DecryptionDialog::accept()
             << "; remember for session = " << (rememberForSession ? "true" : "false")
             << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));
 
-    emit accepted(m_encryptedText, m_cachedDecryptedText, rememberForSession, decryptPermanently);
+    emit accepted(m_cipher, m_keyLength, m_encryptedText, passphrase,  m_cachedDecryptedText,
+                  rememberForSession, decryptPermanently);
     QDialog::accept();
 }
 

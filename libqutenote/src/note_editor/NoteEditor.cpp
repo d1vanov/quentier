@@ -336,11 +336,15 @@ void NoteEditor::removeHyperlink()
     d->removeHyperlink();
 }
 
-void NoteEditor::onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
-                                           bool rememberForSession, bool decryptPermanently)
+void NoteEditor::onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
+                                           QString passphrase, QString decryptedText,
+                                           bool rememberForSession, bool decryptPermanently,
+                                           bool createDecryptUndoCommand)
 {
     Q_D(NoteEditor);
-    d->onEncryptedAreaDecryption(encryptedText, decryptedText, rememberForSession, decryptPermanently);
+    d->onEncryptedAreaDecryption(cipher, keyLength, encryptedText, passphrase,
+                                 decryptedText, rememberForSession, decryptPermanently,
+                                 createDecryptUndoCommand);
 }
 
 void NoteEditor::onNoteLoadCancelled()

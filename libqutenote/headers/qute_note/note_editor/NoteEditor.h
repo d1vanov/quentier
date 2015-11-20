@@ -122,8 +122,10 @@ public Q_SLOTS:
     void copyHyperlink();
     void removeHyperlink();
 
-    void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
-                                   bool rememberForSession, bool decryptPermanently);
+    void onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
+                                   QString passphrase, QString decryptedText,
+                                   bool rememberForSession, bool decryptPermanently,
+                                   bool createDecryptUndoCommand = true);
     void onNoteLoadCancelled();
 
 private:

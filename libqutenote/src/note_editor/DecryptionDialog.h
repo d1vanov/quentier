@@ -35,8 +35,10 @@ public:
     QString decryptedText() const;
 
 Q_SIGNALS:
-    void accepted(QString encryptedText, QString decryptedText,
-                  bool rememberPassphrase, bool decryptPermanently);
+    void accepted(QString cipher, size_t keyLength, QString encryptedText,
+                  QString passphrase, QString decryptedText,
+                  bool rememberPassphrase, bool decryptPermanently,
+                  bool createDecryptUndoCommand = true);
 
 private Q_SLOTS:
     void setHint(const QString & hint);

@@ -87,6 +87,8 @@ public:
     void switchEditorPage();
     void popEditorPage();
 
+    void skipPushingUndoCommandOnNextContentChange();
+
 Q_SIGNALS:
     void convertedToNote(Note note);
     void cantConvertToNote(QString errorDescription);
@@ -163,8 +165,10 @@ public:
     void encryptSelectedText(const QString & passphrase, const QString & hint,
                              const bool rememberForSession);
     void decryptEncryptedTextUnderCursor();
-    void decryptEncryptedText(const QString &encryptedText, const QString &decryptedText,
-                              bool rememberForSession, bool decryptPermanently);
+    void decryptEncryptedText(const QString & cipher, const size_t keyLength,
+                              const QString & encryptedText, const QString & decryptedText,
+                              const QString & passphrase, bool rememberForSession,
+                              bool decryptPermanently, bool createDecryptUndoCommand = true);
     void editHyperlinkDialog();
     void copyHyperlink();
     void removeHyperlink();
@@ -207,8 +211,12 @@ private Q_SLOTS:
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
     void onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber);
-    void onEncryptedAreaDecryption(QString encryptedText, QString decryptedText,
-                                   bool rememberForSession, bool decryptPermanently);
+
+    void onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
+                                   QString passphrase, QString decryptedText,
+                                   bool rememberForSession, bool decryptPermanently,
+                                   bool createDecryptUndoCommand = true);
+
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString passphrase, QString cipher, size_t keyLength,
                                   QString hint, bool rememberForSession);
@@ -268,6 +276,10 @@ private:
     void pushEncryptUndoCommand(const QString & cipher, const size_t keyLength,
                                 const QString & encryptedText, const QString & decryptedText,
                                 const QString & passphrase, const bool rememberForSession);
+    void pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
+                                const QString & encryptedText, const QString & decryptedText,
+                                const QString & passphrase, const bool rememberForSession,
+                                const bool decryptPermanently);
 
 private:
     void changeFontSize(const bool increase);
@@ -501,7 +513,9 @@ private:
     bool        m_pendingConversionToNote;
     bool        m_pendingNotePageLoad;
     bool        m_pendingIndexHtmlWritingToFile;
-    bool        m_pendingInitialJavaScriptExecution;
+    bool        m_pendingJavaScriptExecution;
+
+    bool        m_skipPushingUndoCommandOnNextContentChange;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;

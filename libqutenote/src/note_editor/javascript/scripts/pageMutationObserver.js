@@ -83,10 +83,6 @@ var observer = new MutationObserver(function(mutations, observer) {
             console.log("Skipping non-characterData mutation");
             continue;
         }
-        else if (mutation.target && mutation.target.nodeName === "#text") {
-            console.log("Skipping the mutation of #text node");
-            continue;
-        }
 
         ++numApprovedMutations;
     }

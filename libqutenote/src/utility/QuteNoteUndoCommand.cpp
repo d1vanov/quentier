@@ -18,12 +18,15 @@ QuteNoteUndoCommand::~QuteNoteUndoCommand()
 
 void QuteNoteUndoCommand::undo()
 {
+    QNTRACE("QuteNoteUndoCommand::undo");
     m_onceUndoExecuted = true;
     undoImpl();
 }
 
 void QuteNoteUndoCommand::redo()
 {
+    QNTRACE("QuteNoteUndoCommand::redo");
+
     if (Q_UNLIKELY(!m_onceUndoExecuted)) {
         QNTRACE("Ignoring the attempt to execute redo for command" << text()
                 << "as there was no previous undo");
