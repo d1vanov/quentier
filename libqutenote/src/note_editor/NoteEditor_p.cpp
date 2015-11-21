@@ -2878,6 +2878,7 @@ void NoteEditorPrivate::updateFromNote()
 void NoteEditorPrivate::setNoteHtml(const QString & html)
 {
     QNDEBUG("NoteEditorPrivate::setNoteHtml");
+    m_pendingConversionToNote = true;
     onPageHtmlReceived(html, QVector<QPair<QString,QString> >());
 }
 
