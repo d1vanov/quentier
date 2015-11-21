@@ -1081,13 +1081,11 @@ void NoteEditorPrivate::popEditorPage()
     q->setPage(page);
     delete previousPage;
 
-    QNTRACE("Set note editor page with url: " <<
 #ifdef USE_QT_WEB_ENGINE
-            page->url()
+    QNTRACE("Set note editor page with url: " << page->url());
 #else
-            page->mainFrame()->url()
+    QNTRACE("Set note editor page with url: " << page->mainFrame()->url());
 #endif
-            );
 
     convertToNote();
 }
@@ -2400,13 +2398,11 @@ void NoteEditorPrivate::setupNoteEditorPage()
     setupNoteEditorPageConnections(page);
     q->setPage(page);
 
-    QNTRACE("Set note editor page with url: " <<
 #ifdef USE_QT_WEB_ENGINE
-            page->url()
+    QNTRACE("Set note editor page with url: " << page->url());
 #else
-            page->mainFrame()->url()
+    QNTRACE("Set note editor page with url: " << page->mainFrame()->url());
 #endif
-            );
 
     noteToEditorContent();
 }
