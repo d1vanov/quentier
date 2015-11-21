@@ -2,6 +2,7 @@
 #include "EncryptionDialog.h"
 #include "DecryptionDialog.h"
 #include "EditUrlDialog.h"
+#include "delegates/EncryptSelectedTextDelegate.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
@@ -165,6 +166,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-todo.css\">"
                  "<title></title></head>"),
     m_lastSelectedHtml(),
+    m_lastSelectedHtmlForEncryption(),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
@@ -628,7 +630,8 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
     manualSaveResourceToFile(resource);
 }
 
-void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint)
+void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher,
+                                                QString length, QString hint, bool *pCancelled)
 {
     QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
 
@@ -656,8 +659,12 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,size_t,QString,QString,QString,bool,bool,bool),
                      this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
     QNTRACE("Will exec decryption dialog now");
-    pDecryptionDialog->exec();
-    QNTRACE("Executed decryption dialog");
+    int res = pDecryptionDialog->exec();
+    if (pCancelled) {
+        *pCancelled = (res == QDialog::Rejected);
+    }
+
+    QNTRACE("Executed decryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
 }
 
 void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
@@ -948,6 +955,19 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
     }
 }
 
+void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished()
+{
+    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateFinished");
+    sender()->deleteLater();
+}
+
+void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateError: " << error);
+    emit notifyError(error);
+    sender()->deleteLater();
+}
+
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
 {
     QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
@@ -1048,7 +1068,9 @@ void NoteEditorPrivate::switchEditorPage()
 #endif
 
     m_pagesStack.push(page);
+
     setupNoteEditorPage();
+    noteToEditorContent();
 }
 
 void NoteEditorPrivate::popEditorPage()
@@ -2403,8 +2425,6 @@ void NoteEditorPrivate::setupNoteEditorPage()
 #else
     QNTRACE("Set note editor page with url: " << page->mainFrame()->url());
 #endif
-
-    noteToEditorContent();
 }
 
 void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
@@ -3595,17 +3615,46 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
         return;
     }
 
+    m_lastSelectedHtmlForEncryption = m_lastSelectedHtml;
+
+    Q_Q(NoteEditor);
+    GET_PAGE()
+
+    EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(*this, page, m_pFileIOThreadWorker);
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QString));
+    delegate->start();
+}
+
+void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
+{
+    QNDEBUG("NoteEditorPrivate::doEncryptSelectedTextDialog");
+
+    if (m_lastSelectedHtmlForEncryption.isEmpty()) {
+        QString error = QT_TR_NOOP("Requested encrypt selected text dialog "
+                                   "but last selected html is empty");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
     Q_Q(NoteEditor);
 
-    QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_lastSelectedHtml,
+    QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_lastSelectedHtmlForEncryption,
                                                                             m_encryptionManager,
                                                                             m_decryptedTextManager, q));
     pEncryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,QString,size_t,QString,bool),
                      this, QNSLOT(NoteEditorPrivate,onSelectedTextEncryption,QString,QString,QString,QString,size_t,QString,bool));
     QNTRACE("Will exec encryption dialog now");
-    pEncryptionDialog->exec();
-    QNTRACE("Executed encryption dialog");
+    int res = pEncryptionDialog->exec();
+    if (pCancelled) {
+        *pCancelled = (res == QDialog::Rejected);
+    }
+
+    m_lastSelectedHtmlForEncryption.resize(0);
+    QNTRACE("Executed encryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
 }
 
 void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QString & hint,
@@ -3639,7 +3688,7 @@ void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QS
 #endif
 }
 
-void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
+void NoteEditorPrivate::decryptEncryptedTextUnderCursor(bool * pCancelled)
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedTextUnderCursor");
 
@@ -3651,7 +3700,8 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
     }
 
     onEnCryptElementClicked(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
-                            m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
+                            m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint,
+                            pCancelled);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
@@ -3785,7 +3835,6 @@ void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString e
     Q_UNUSED(cipher)
     Q_UNUSED(keyLength)
 
-    switchEditorPage();
     pushEncryptUndoCommand();
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedText, encryptedText, hint, rememberForSession);
 }

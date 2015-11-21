@@ -171,6 +171,7 @@ set(PRIVATE_HEADERS
     src/note_editor/DecryptionDialog.h
     src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceInfo.h
+    src/note_editor/delegates/EncryptSelectedTextDelegate.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
@@ -243,6 +244,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceInfo.cpp
+    src/note_editor/delegates/EncryptSelectedTextDelegate.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp

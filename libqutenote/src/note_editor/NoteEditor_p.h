@@ -103,6 +103,8 @@ Q_SIGNALS:
 public:
     bool isModified() const;
 
+    QString noteEditorPagePath() const { return m_noteEditorPagePath; }
+
 #ifndef USE_QT_WEB_ENGINE
     const NoteEditorPluginFactory & pluginFactory() const;
     NoteEditorPluginFactory & pluginFactory();
@@ -159,10 +161,13 @@ public:
     void openAttachmentUnderCursor();
     void copyAttachment(const QString & resourceHash);
     void copyAttachmentUnderCursor();
+
     void encryptSelectedTextDialog();
+    void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
+
     void encryptSelectedText(const QString & passphrase, const QString & hint,
                              const bool rememberForSession);
-    void decryptEncryptedTextUnderCursor();
+    void decryptEncryptedTextUnderCursor(bool * pCancelled = Q_NULLPTR);
     void decryptEncryptedText(const QString & cipher, const size_t keyLength,
                               const QString & encryptedText, const QString & decryptedText,
                               const QString & passphrase, bool rememberForSession,
@@ -237,7 +242,8 @@ private Q_SLOTS:
     void onOpenResourceRequest(const QString & resourceHash);
     void onSaveResourceRequest(const QString & resourceHash);
 
-    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length,
+                                 QString hint, bool * pCancelled = Q_NULLPTR);
 
     void contextMenuEvent(QContextMenuEvent * pEvent);
     void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
@@ -264,6 +270,10 @@ private Q_SLOTS:
     void onTextCursorFontSizeChanged(int fontSize);
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+
+    // Slots for delegates
+    void onEncryptSelectedTextDelegateFinished();
+    void onEncryptSelectedTextDelegateError(QString error);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
@@ -558,6 +568,7 @@ private:
     const QString     m_pagePrefix;
 
     QString     m_lastSelectedHtml;
+    QString     m_lastSelectedHtmlForEncryption;
 
     QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
     QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions

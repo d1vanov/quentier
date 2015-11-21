@@ -315,7 +315,7 @@ void NoteEditor::encryptSelectedText(const QString & passphrase, const QString &
 void NoteEditor::decryptEncryptedTextUnderCursor()
 {
     Q_D(NoteEditor);
-    d->decryptEncryptedTextUnderCursor();
+    d->decryptEncryptedTextUnderCursor(Q_NULLPTR);
 }
 
 void NoteEditor::editHyperlinkDialog()
