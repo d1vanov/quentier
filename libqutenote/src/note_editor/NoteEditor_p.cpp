@@ -70,7 +70,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QUndoStack>
 
 #define GET_PAGE() \
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(q->page()); \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(this->page()); \
     if (Q_UNLIKELY(!page)) { \
         QNFATAL("Can't get access to note editor's underlying page!"); \
         return; \
@@ -78,8 +78,10 @@ typedef QWebEngineSettings WebSettings;
 
 namespace qute_note {
 
+void NoteEditorPageDeleter(NoteEditorPage *& page) { delete page; page = Q_NULLPTR; }
+
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
-    QObject(&noteEditor),
+    INoteEditorBackend(&noteEditor),
     m_noteEditorPageFolderPath(),
     m_noteEditorPagePath(),
     m_noteEditorImageResourcesStoragePath(),
@@ -192,7 +194,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
     m_lastFreeHyperlinkIdNumber(1),
-    m_pagesStack(),
+    m_pagesStack(&NoteEditorPageDeleter),
     m_lastNoteEditorPageFreeIndex(0),
     q_ptr(&noteEditor)
 {
@@ -212,10 +214,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupNoteEditorPage();
     setupScripts();
 
-    Q_Q(NoteEditor);
-    q->setAcceptDrops(true);
+    setAcceptDrops(true);
 
-    m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(q);
+    m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(this);
     if (m_resourceLocalFileStorageFolder.isEmpty()) {
         QString error = QT_TR_NOOP("Can't get resource file storage folder");
         QNWARNING(error);
@@ -251,7 +252,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
     m_pendingJavaScriptExecution = true;
 
-    Q_Q(NoteEditor);
     GET_PAGE()
 
     page->executeJavaScript(m_jQueryJs);
@@ -318,10 +318,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     QNTRACE("Evaluated all JavaScript helper functions");
 
 #ifndef USE_QT_WEB_ENGINE
-    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    m_htmlCachedMemory = page->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
-    q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+    page->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 #endif
 }
 
@@ -650,11 +650,10 @@ void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString c
         return;
     }
 
-    Q_Q(NoteEditor);
     QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(encryptedText,
                                                                             cipher, hint, keyLength,
                                                                             m_encryptionManager,
-                                                                            m_decryptedTextManager, q));
+                                                                            m_decryptedTextManager, this));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,size_t,QString,QString,QString,bool,bool,bool),
                      this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
@@ -778,7 +777,7 @@ void NoteEditorPrivate::onTextCursorBoldStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorBoldStateChanged: " << (state ? "bold" : "not bold"));
     m_currentTextFormattingState.m_bold = state;
 
-    emit textCursorPositionBoldState(state);
+    emit textBoldState(state);
 }
 
 void NoteEditorPrivate::onTextCursorItalicStateChanged(bool state)
@@ -786,7 +785,7 @@ void NoteEditorPrivate::onTextCursorItalicStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorItalicStateChanged: " << (state ? "italic" : "not italic"));
     m_currentTextFormattingState.m_italic = state;
 
-    emit textCursorPositionItalicState(state);
+    emit textItalicState(state);
 }
 
 void NoteEditorPrivate::onTextCursorUnderlineStateChanged(bool state)
@@ -794,7 +793,7 @@ void NoteEditorPrivate::onTextCursorUnderlineStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorUnderlineStateChanged: " << (state ? "underline" : "not underline"));
     m_currentTextFormattingState.m_underline = state;
 
-    emit textCursorPositionUnderlineState(state);
+    emit textUnderlineState(state);
 }
 
 void NoteEditorPrivate::onTextCursorStrikethgouthStateChanged(bool state)
@@ -802,7 +801,7 @@ void NoteEditorPrivate::onTextCursorStrikethgouthStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorStrikethgouthStateChanged: " << (state ? "strikethrough" : "not strikethrough"));
     m_currentTextFormattingState.m_strikethrough = state;
 
-    emit textCursorPositionStrikethgouthState(state);
+    emit textStrikethroughState(state);
 }
 
 void NoteEditorPrivate::onTextCursorAlignLeftStateChanged(bool state)
@@ -813,7 +812,7 @@ void NoteEditorPrivate::onTextCursorAlignLeftStateChanged(bool state)
         m_currentTextFormattingState.m_alignment = Alignment::Left;
     }
 
-    emit textCursorPositionAlignLeftState(state);
+    emit textAlignLeftState(state);
 }
 
 void NoteEditorPrivate::onTextCursorAlignCenterStateChanged(bool state)
@@ -824,7 +823,7 @@ void NoteEditorPrivate::onTextCursorAlignCenterStateChanged(bool state)
         m_currentTextFormattingState.m_alignment = Alignment::Center;
     }
 
-    emit textCursorPositionAlignCenterState(state);
+    emit textAlignCenterState(state);
 }
 
 void NoteEditorPrivate::onTextCursorAlignRightStateChanged(bool state)
@@ -835,7 +834,7 @@ void NoteEditorPrivate::onTextCursorAlignRightStateChanged(bool state)
         m_currentTextFormattingState.m_alignment = Alignment::Right;
     }
 
-    emit textCursorPositionAlignRightState(state);
+    emit textAlignRightState(state);
 }
 
 void NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged(bool state)
@@ -843,7 +842,7 @@ void NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged: " << (state ? "true" : "false"));
     m_currentTextFormattingState.m_insideOrderedList = state;
 
-    emit textCursorPositionInsideOrderedListState(state);
+    emit textInsideOrderedListState(state);
 }
 
 void NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged(bool state)
@@ -851,7 +850,7 @@ void NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorInsideUnorderedListStateChanged: " << (state ? "true" : "false"));
     m_currentTextFormattingState.m_insideUnorderedList = state;
 
-    emit textCursorPositionInsideUnorderedListState(state);
+    emit textInsideUnorderedListState(state);
 }
 
 void NoteEditorPrivate::onTextCursorInsideTableStateChanged(bool state)
@@ -859,7 +858,7 @@ void NoteEditorPrivate::onTextCursorInsideTableStateChanged(bool state)
     QNDEBUG("NoteEditorPrivate::onTextCursorInsideTableStateChanged: " << (state ? "true" : "false"));
     m_currentTextFormattingState.m_insideTable = state;
 
-    emit textCursorPositionInsideTableState(state);
+    emit textInsideTableState(state);
 }
 
 void NoteEditorPrivate::onTextCursorOnImageResourceStateChanged(bool state, QString resourceHash)
@@ -926,15 +925,14 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
             return;
         }
 
-        Q_Q(NoteEditor);
         QUrl url = QUrl::fromLocalFile(m_noteEditorPagePath);
 
 #ifdef USE_QT_WEB_ENGINE
-        q->page()->setUrl(url);
-        q->page()->load(url);
+        page()->setUrl(url);
+        page()->load(url);
 #else
-        q->page()->mainFrame()->setUrl(url);
-        q->page()->mainFrame()->load(url);
+        page()->mainFrame()->setUrl(url);
+        page()->mainFrame()->load(url);
 #endif
         QNTRACE("Loaded url: " << url);
         m_pendingNotePageLoad = true;
@@ -1066,7 +1064,6 @@ void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
     QNDEBUG("NoteEditorPrivate::switchEditorPage: should convert from note = "
             << (shouldConvertFromNote ? "true" : "false"));
 
-    Q_Q(NoteEditor);
     GET_PAGE()
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
@@ -1079,6 +1076,7 @@ void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
 #endif
 
+    page->setParent(Q_NULLPTR);
     m_pagesStack.push(page);
 
     setupNoteEditorPage();
@@ -1113,10 +1111,7 @@ void NoteEditorPrivate::popEditorPage()
     updateNoteEditorPagePath(page->index());
     setupNoteEditorPageConnections(page);
 
-    Q_Q(NoteEditor);
-    NoteEditorPage * previousPage = qobject_cast<NoteEditorPage*>(q->page());
-    q->setPage(page);
-    delete previousPage;
+    setPage(page);
 
 #ifdef USE_QT_WEB_ENGINE
     QNTRACE("Set note editor page with url: " << page->url());
@@ -1212,8 +1207,7 @@ void NoteEditorPrivate::changeIndentation(const bool increase)
     QNDEBUG("NoteEditorPrivate::changeIndentation: increase = " << (increase ? "true" : "false"));
 
     execJavascriptCommand((increase ? "indent" : "outdent"));
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
@@ -1234,7 +1228,6 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     // Protect ourselves from the note's html update during the process of changing the selected text to encrypted/decrypted text
     m_pendingConversionToNote = false;
 
-    Q_Q(NoteEditor);
     GET_PAGE()
 
     m_pendingJavaScriptExecution = true;
@@ -1244,7 +1237,7 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     onSelectedTextEncryptionDone(QVariant(), QVector<QPair<QString,QString> >());
 #else
     QVector<QPair<QString,QString> > extraData;
-    q->page()->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
+    page->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
 #endif
 }
 
@@ -1254,8 +1247,7 @@ void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QS
     QNDEBUG("NoteEditorPrivate::raiseEditUrlDialog: startup text = " << startupText
             << ", startup url = " << startupUrl << ", id number = " << idNumber);
 
-    Q_Q(NoteEditor);
-    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(q, startupText, startupUrl));
+    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(this, startupText, startupUrl));
     pEditUrlDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64),
                      this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl,quint64));
@@ -1361,8 +1353,7 @@ void NoteEditorPrivate::noteToEditorContent()
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
             QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
 #ifndef USE_QT_WEB_ENGINE
-            Q_Q(NoteEditor);
-            QWebPage * page = q->page();
+            QWebPage * page = this->page();
             if (Q_LIKELY(page)) {
                 page->setContentEditable(false);
             }
@@ -1405,7 +1396,6 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 
     QNTRACE("colResizable js code: " << colResizable);
 
-    Q_Q(NoteEditor);
     GET_PAGE()
     page->executeJavaScript(colResizable);
 }
@@ -1446,15 +1436,13 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
         }
     }
 
-    Q_Q(const NoteEditor);
-
     m_pendingConversionToNote = true;
 
 #ifndef USE_QT_WEB_ENGINE
-    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    m_htmlCachedMemory = page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
-    q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+    page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 #endif
 
     return true;
@@ -1560,9 +1548,7 @@ void NoteEditorPrivate::provideSrcForResourceImgTags()
 {
     QNDEBUG("NoteEditorPrivate::provideSrcForResourceImgTags");
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript("provideSrcForResourceImgTags();");
 }
 
@@ -1702,8 +1688,7 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
                                  ? &resourcePreferredFilterString
                                  : Q_NULLPTR);
 
-    Q_Q(NoteEditor);
-    QString absoluteFilePath = QFileDialog::getSaveFileName(q, QObject::tr("Save as..."),
+    QString absoluteFilePath = QFileDialog::getSaveFileName(this, QObject::tr("Save as..."),
                                                             preferredFolderPath, filterString,
                                                             pSelectedFilter);
     if (absoluteFilePath.isEmpty()) {
@@ -1762,9 +1747,7 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
     QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
     QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript(javascript);
 }
 
@@ -1991,9 +1974,7 @@ void NoteEditorPrivate::provideSrcForGenericResourceImages()
 {
     QNDEBUG("NoteEditorPrivate::provideSrcForGenericResourceImages");
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript("provideSrcForGenericResourceImages();");
 }
 
@@ -2001,9 +1982,7 @@ void NoteEditorPrivate::setupGenericResourceOnClickHandler()
 {
     QNDEBUG("NoteEditorPrivate::setupGenericResourceOnClickHandler");
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript("setupGenericResourceOnClickHandler();");
 }
 
@@ -2064,9 +2043,7 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
     QString javascript = "document.body.onkeyup = notifyTextCursorPositionChanged; "
                          "document.body.onmouseup = notifyTextCursorPositionChanged;";
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript(javascript);
 }
 
@@ -2077,18 +2054,16 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: selected html = " << selectedHtml
             << "; inside decrypted text fragment = " << (insideDecryptedTextFragment ? "true" : "false"));
 
-    Q_Q(NoteEditor);
-
     m_lastSelectedHtml = selectedHtml;
 
     delete m_pGenericTextContextMenu;
-    m_pGenericTextContextMenu = new QMenu(q);
+    m_pGenericTextContextMenu = new QMenu(this);
 
 #define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
     { \
         QAction * action = new QAction(QObject::tr(name), menu); \
         setupActionShortcut(key, QString(#__VA_ARGS__), *action); \
-        QObject::connect(action, QNSIGNAL(QAction,triggered), q, QNSLOT(NoteEditor,slot)); \
+        QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,slot)); \
         menu->addAction(action); \
     }
 
@@ -2198,13 +2173,11 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
 {
     QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu: resource hash = " << resourceHash);
 
-    Q_Q(NoteEditor);
-
     m_currentContextMenuExtraData.m_contentType = "ImageResource";
     m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
     delete m_pImageResourceContextMenu;
-    m_pImageResourceContextMenu = new QMenu(q);
+    m_pImageResourceContextMenu = new QMenu(this);
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyAttachment, "Copy", m_pImageResourceContextMenu,
                              copyAttachmentUnderCursor);
@@ -2225,10 +2198,8 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu()
 {
     QNDEBUG("NoteEditorPrivate::setupNonImageResourceContextMenu");
 
-    Q_Q(NoteEditor);
-
     delete m_pNonImageResourceContextMenu;
-    m_pNonImageResourceContextMenu = new QMenu(q);
+    m_pNonImageResourceContextMenu = new QMenu(this);
 
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut);
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy);
@@ -2250,8 +2221,6 @@ void NoteEditorPrivate::setupEncryptedTextContextMenu(const QString & cipher, co
     QNDEBUG("NoteEditorPrivate::setupEncryptedTextContextMenu: cipher = " << cipher << ", key length = " << keyLength
             << ", encrypted text = " << encryptedText << ", hint = " << hint);
 
-    Q_Q(NoteEditor);
-
     m_currentContextMenuExtraData.m_contentType = "EncryptedText";
     m_currentContextMenuExtraData.m_encryptedText = encryptedText;
     m_currentContextMenuExtraData.m_keyLength = keyLength;
@@ -2259,15 +2228,15 @@ void NoteEditorPrivate::setupEncryptedTextContextMenu(const QString & cipher, co
     m_currentContextMenuExtraData.m_hint = hint;
 
     delete m_pEncryptedTextContextMenu;
-    m_pEncryptedTextContextMenu = new QMenu(q);
+    m_pEncryptedTextContextMenu = new QMenu(this);
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Decrypt, "Decrypt...", m_pEncryptedTextContextMenu, decryptEncryptedTextUnderCursor);
 
     m_pEncryptedTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupActionShortcut(const int key,
-                                            const QString & context, QAction & action)
+void NoteEditorPrivate::setupActionShortcut(const int key, const QString & context,
+                                            QAction & action)
 {
     ShortcutManager shortcutManager;
     QKeySequence shortcut = shortcutManager.shortcut(key, context);
@@ -2375,14 +2344,14 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
 {
     QNDEBUG("NoteEditorPrivate::setupGeneralSignalSlotConnections");
 
-    Q_Q(NoteEditor);
-
     QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
-                     q, QNSIGNAL(NoteEditor,contentChanged));
+                     this, QNSIGNAL(NoteEditorPrivate,contentChanged));
     QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
                      this, QNSLOT(NoteEditorPrivate,onContentChanged));
     QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
                      this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
+
+    Q_Q(NoteEditor);
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
@@ -2394,9 +2363,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
 {
     QNDEBUG("NoteEditorPrivate::setupNoteEditorPage");
 
-    Q_Q(NoteEditor);
-
-    NoteEditorPage * page = new NoteEditorPage(*this, *q, m_lastNoteEditorPageFreeIndex++);
+    NoteEditorPage * page = new NoteEditorPage(*this, m_lastNoteEditorPageFreeIndex++);
     QNTRACE("Updated last note editor page free index to " << m_lastNoteEditorPageFreeIndex);
 
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
@@ -2424,6 +2391,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
+    Q_Q(NoteEditor);
     EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
     m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
                                                   encryptedAreaPlugin, page);
@@ -2433,7 +2401,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
 #endif
 
     setupNoteEditorPageConnections(page);
-    q->setPage(page);
+    setPage(page);
 
 #ifdef USE_QT_WEB_ENGINE
     QNTRACE("Set note editor page with url: " << page->url());
@@ -2468,7 +2436,7 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
                      this, QNSLOT(NoteEditorPrivate,onTextCursorItalicStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionUnderlineState,bool),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorUnderlineStateChanged,bool));
-    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionStrikethgouthState,bool),
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionStrikethroughState,bool),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorStrikethgouthStateChanged,bool));
 
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignLeftState,bool),
@@ -2500,18 +2468,18 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
     // Connect signals to signals of public class
     Q_Q(NoteEditor);
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionBoldState,bool), q, QNSIGNAL(NoteEditor,textBoldState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionItalicState,bool), q, QNSIGNAL(NoteEditor,textItalicState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionUnderlineState,bool), q, QNSIGNAL(NoteEditor,textUnderlineState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionStrikethgouthState,bool), q, QNSIGNAL(NoteEditor,textStrikethroughState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textBoldState,bool), q, QNSIGNAL(NoteEditor,textBoldState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textItalicState,bool), q, QNSIGNAL(NoteEditor,textItalicState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textUnderlineState,bool), q, QNSIGNAL(NoteEditor,textUnderlineState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textStrikethroughState,bool), q, QNSIGNAL(NoteEditor,textStrikethroughState,bool));
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionAlignLeftState,bool), q, QNSIGNAL(NoteEditor,textAlignLeftState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionAlignCenterState,bool), q, QNSIGNAL(NoteEditor,textAlignCenterState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionAlignRightState,bool), q, QNSIGNAL(NoteEditor,textAlignRightState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignLeftState,bool), q, QNSIGNAL(NoteEditor,textAlignLeftState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignCenterState,bool), q, QNSIGNAL(NoteEditor,textAlignCenterState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignRightState,bool), q, QNSIGNAL(NoteEditor,textAlignRightState,bool));
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideOrderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideUnorderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textCursorPositionInsideTableState,bool), q, QNSIGNAL(NoteEditor,textInsideTableState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textInsideOrderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textInsideUnorderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textInsideTableState,bool), q, QNSIGNAL(NoteEditor,textInsideTableState,bool));
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textFontFamilyChanged,QString), q, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textFontSizeChanged,int), q, QNSIGNAL(NoteEditor,textFontSizeChanged,int));
@@ -2524,9 +2492,7 @@ void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
 
     QString javascript = "determineStatesForCurrentTextCursorPosition();";
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript(javascript);
 }
 
@@ -2538,9 +2504,7 @@ void NoteEditorPrivate::determineContextMenuEventTarget()
                          ", " + QString::number(m_lastContextMenuEventPagePos.x()) + ", " +
                          QString::number(m_lastContextMenuEventPagePos.y()) + ");";
 
-    Q_Q(NoteEditor);
     GET_PAGE()
-
     page->executeJavaScript(javascript);
 }
 
@@ -2548,7 +2512,6 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
 {
     QNTRACE("NoteEditorPrivate::setPageEditable: " << (editable ? "true" : "false"));
 
-    Q_Q(NoteEditor);
     GET_PAGE()
 
 #ifndef USE_QT_WEB_ENGINE
@@ -2677,15 +2640,13 @@ void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, con
     Q_UNUSED(dummy);
     Q_UNUSED(extraData);
 
-    Q_Q(NoteEditor);
-
     m_pendingConversionToNote = true;
 
 #ifndef USE_QT_WEB_ENGINE
-    m_htmlCachedMemory = q->page()->mainFrame()->toHtml();
+    m_htmlCachedMemory = page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
-    q->page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+    page()->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
     provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
 }
@@ -2721,9 +2682,8 @@ void NoteEditorPrivate::updateNoteEditorPagePath(const quint32 index)
 #ifndef USE_QT_WEB_ENGINE
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
-    Q_Q(NoteEditor);
     COMMAND_TO_JS(command);
-    QWebFrame * frame = q->page()->mainFrame();
+    QWebFrame * frame = page()->mainFrame();
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return result;
@@ -2731,9 +2691,8 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command, const QString & args)
 {
-    Q_Q(NoteEditor);
     COMMAND_WITH_ARGS_TO_JS(command, args);
-    QWebFrame * frame = q->page()->mainFrame();
+    QWebFrame * frame = page()->mainFrame();
     QVariant result = frame->evaluateJavaScript(javascript);
     QNTRACE("Executed javascript command: " << javascript << ", result = " << result.toString());
     return result;
@@ -2744,7 +2703,6 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 {
     COMMAND_TO_JS(command);
 
-    Q_Q(NoteEditor);
     GET_PAGE()
     page->executeJavaScript(javascript);
 }
@@ -2752,7 +2710,7 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
 {
     COMMAND_WITH_ARGS_TO_JS(command, args);
-    Q_Q(NoteEditor);
+
     GET_PAGE()
     page->executeJavaScript(javascript);
 }
@@ -2825,35 +2783,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     noteToEditorContent();
 
     QNTRACE("Done setting the current note and notebook");
-}
-
-const Note * NoteEditorPrivate::getNote()
-{
-    QNDEBUG("NoteEditorPrivate::getNote");
-
-    if (!m_pNote) {
-        QNTRACE("No note was set to the editor");
-        return Q_NULLPTR;
-    }
-
-    if (m_modified)
-    {
-        QNTRACE("Note editor's content was modified, converting into note");
-
-        bool res = htmlToNoteContent(m_errorCachedMemory);
-        if (!res) {
-            return Q_NULLPTR;
-        }
-
-        m_modified = false;
-    }
-
-    return m_pNote;
-}
-
-const Notebook * NoteEditorPrivate::getNotebook() const
-{
-    return m_pNotebook;
 }
 
 void NoteEditorPrivate::convertToNote()
@@ -3096,10 +3025,9 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
 
 #define HANDLE_ACTION(name, item) \
     QNDEBUG("NoteEditorPrivate::" #name); \
-    Q_Q(NoteEditor); \
     GET_PAGE() \
     page->triggerAction(WebPage::item); \
-    q->setFocus()
+    setFocus()
 
 void NoteEditorPrivate::undo()
 {
@@ -3129,11 +3057,10 @@ void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
 {
     QNDEBUG("NoteEditorPrivate::flipEnToDoCheckboxState: " << enToDoIdNumber);
 
-    Q_Q(NoteEditor);
     GET_PAGE()
     QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
     page->executeJavaScript(javascript);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::cut()
@@ -3165,28 +3092,26 @@ void NoteEditorPrivate::fontMenu()
 {
     QNDEBUG("NoteEditorPrivate::fontMenu");
 
-    Q_Q(NoteEditor);
-
     bool fontWasChosen = false;
-    QFont chosenFont = QFontDialog::getFont(&fontWasChosen, m_font, q);
+    QFont chosenFont = QFontDialog::getFont(&fontWasChosen, m_font, this);
     if (!fontWasChosen) {
-        q->setFocus();
+        setFocus();
         return;
     }
 
     setFont(chosenFont);
 
     textBold();
-    emit textCursorPositionBoldState(chosenFont.bold());
+    emit textBoldState(chosenFont.bold());
 
     textItalic();
-    emit textCursorPositionItalicState(chosenFont.italic());
+    emit textItalicState(chosenFont.italic());
 
     textUnderline();
-    emit textCursorPositionUnderlineState(chosenFont.underline());
+    emit textUnderlineState(chosenFont.underline());
 
     textStrikethrough();
-    emit textCursorPositionStrikethgouthState(chosenFont.strikeOut());
+    emit textStrikethroughState(chosenFont.strikeOut());
 }
 
 #undef HANDLE_ACTION
@@ -3194,15 +3119,13 @@ void NoteEditorPrivate::fontMenu()
 #ifndef USE_QT_WEB_ENGINE
 #define HANDLE_ACTION(method, item, command) \
     QNDEBUG("NoteEditorPrivate::" #method); \
-    Q_Q(NoteEditor); \
     GET_PAGE() \
     page->triggerAction(QWebPage::item); \
-    q->setFocus()
+    setFocus()
 #else
 #define HANDLE_ACTION(method, item, command) \
     execJavascriptCommand(#command); \
-    Q_Q(NoteEditor); \
-    q->setFocus()
+    setFocus()
 #endif
 
 void NoteEditorPrivate::textBold()
@@ -3256,10 +3179,9 @@ void NoteEditorPrivate::insertToDoCheckbox()
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
     javascript += m_setupEnToDoTagsJs;
 
-    Q_Q(NoteEditor);
     GET_PAGE()
     page->executeJavaScript(javascript);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::setSpellcheck(bool enabled)
@@ -3268,8 +3190,7 @@ void NoteEditorPrivate::setSpellcheck(bool enabled)
             << (enabled ? "true" : "false"));
     // TODO: implement
 
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::setFont(const QFont & font)
@@ -3277,11 +3198,9 @@ void NoteEditorPrivate::setFont(const QFont & font)
     QNDEBUG("NoteEditorPrivate::setFont: " << font.family()
             << ", point size = " << font.pointSize());
 
-    Q_Q(NoteEditor);
-
     if (m_font.family() == font.family()) {
         QNTRACE("Font family hasn't changed, nothing to to do");
-        q->setFocus();
+        setFocus();
         return;
     }
 
@@ -3289,14 +3208,12 @@ void NoteEditorPrivate::setFont(const QFont & font)
     QString fontName = font.family();
     execJavascriptCommand("fontName", fontName);
     emit textFontFamilyChanged(font.family());
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::setFontHeight(const int height)
 {
     QNDEBUG("NoteEditorPrivate::setFontHeight: " << height);
-
-    Q_Q(NoteEditor);
 
     if (height > 0) {
         m_font.setPointSize(height);
@@ -3310,7 +3227,7 @@ void NoteEditorPrivate::setFontHeight(const int height)
         emit notifyError(error);
     }
 
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::setFontColor(const QColor & color)
@@ -3327,8 +3244,7 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
         emit notifyError(error);
     }
 
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::setBackgroundColor(const QColor & color)
@@ -3345,8 +3261,7 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
         emit notifyError(error);
     }
 
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::insertHorizontalLine()
@@ -3354,8 +3269,7 @@ void NoteEditorPrivate::insertHorizontalLine()
     QNDEBUG("NoteEditorPrivate::insertHorizontalLine");
 
     execJavascriptCommand("insertHorizontalRule");
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::increaseFontSize()
@@ -3383,8 +3297,7 @@ void NoteEditorPrivate::insertBulletedList()
     QNDEBUG("NoteEditorPrivate::insertBulletedList");
 
     execJavascriptCommand("insertUnorderedList");
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::insertNumberedList()
@@ -3392,8 +3305,7 @@ void NoteEditorPrivate::insertNumberedList()
     QNDEBUG("NoteEditorPrivate::insertNumberedList");
 
     execJavascriptCommand("insertOrderedList");
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::insertTableDialog()
@@ -3427,8 +3339,7 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
     CHECK_NUM_COLUMNS();
     CHECK_NUM_ROWS();
 
-    Q_Q(NoteEditor);
-    int pageWidth = q->geometry().width();
+    int pageWidth = geometry().width();
     if (widthInPixels > 2 * pageWidth) {
         QString error = QT_TR_NOOP("Can't insert table, width is too large (more than twice the page width): ") +
                         QString::number(widthInPixels);
@@ -3458,7 +3369,7 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
                                          /* relative = */ false);
     execJavascriptCommand("insertHTML", htmlTable);
     updateColResizableTableBindings();
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
@@ -3489,8 +3400,7 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
                                          /* relative = */ true);
     execJavascriptCommand("insertHTML", htmlTable);
     updateColResizableTableBindings();
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::addAttachmentDialog()
@@ -3499,8 +3409,7 @@ void NoteEditorPrivate::addAttachmentDialog()
 
     // TODO: implement
 
-    Q_Q(NoteEditor);
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::saveAttachmentDialog(const QString & resourceHash)
@@ -3633,7 +3542,6 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
 
     m_lastSelectedHtmlForEncryption = m_lastSelectedHtml;
 
-    Q_Q(NoteEditor);
     GET_PAGE()
 
     EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(*this, page, m_pFileIOThreadWorker);
@@ -3657,11 +3565,10 @@ void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
         emit notifyError(error);
         return;
     }
-    Q_Q(NoteEditor);
 
     QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_lastSelectedHtmlForEncryption,
                                                                             m_encryptionManager,
-                                                                            m_decryptedTextManager, q));
+                                                                            m_decryptedTextManager, this));
     pEncryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,QString,size_t,QString,bool),
                      this, QNSLOT(NoteEditorPrivate,onSelectedTextEncryption,QString,QString,QString,QString,size_t,QString,bool));
@@ -3675,7 +3582,7 @@ void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
     QNTRACE("Executed encryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
 }
 
-void NoteEditorPrivate::decryptEncryptedTextUnderCursor(bool * pCancelled)
+void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedTextUnderCursor");
 
@@ -3687,8 +3594,7 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor(bool * pCancelled)
     }
 
     onEnCryptElementClicked(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
-                            m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint,
-                            pCancelled);
+                            m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
@@ -3697,19 +3603,18 @@ void NoteEditorPrivate::editHyperlinkDialog()
 {
     QNDEBUG("NoteEditorPrivate::editHyperlinkDialog");
 
-    Q_Q(NoteEditor);
     QVector<QPair<QString,QString> > extraData;
 
 #ifndef USE_QT_WEB_ENGINE
     Q_UNUSED(extraData);
 
-    if (!q->page()->hasSelection()) {
+    if (!page()->hasSelection()) {
         QNDEBUG("Note editor page has no selected text, hence no hyperlink to edit is available");
         raiseEditUrlDialog();
         return;
     }
 
-    QStringList hyperlinkData = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toStringList();
+    QStringList hyperlinkData = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toStringList();
     if (hyperlinkData.size() != 3) {
         QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text, hyperlink and id number from JavaScript");
         QNWARNING(error << "; hyperlink data: " << hyperlinkData.join(","));
@@ -3728,16 +3633,15 @@ void NoteEditorPrivate::copyHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::copyHyperlink");
 
-    Q_Q(NoteEditor);
     QVector<QPair<QString,QString> > extraData;
 
 #ifndef USE_QT_WEB_ENGINE
-    if (!q->page()->hasSelection()) {
+    if (!page()->hasSelection()) {
         QNDEBUG("Note editor page has no selected text, hence no hyperlink to copy is available");
         return;
     }
 
-    QVariant hyperlink = q->page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
+    QVariant hyperlink = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
     onFoundHyperlinkToCopy(hyperlink, extraData);
 #else
     GET_PAGE()
@@ -3749,10 +3653,9 @@ void NoteEditorPrivate::removeHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::removeHyperlink");
 
-    Q_Q(NoteEditor);
     GET_PAGE()
     page->executeJavaScript("removeHyperlinkFromSelection();");
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLength,
@@ -3774,7 +3677,6 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLeng
     {
         ENMLConverter::escapeString(decryptedText);
 
-        Q_Q(NoteEditor);
         GET_PAGE();
         QString javascript = "decryptEncryptedTextPermanently('" + encryptedText +
                              "', '" + decryptedText + "');";
@@ -3813,8 +3715,7 @@ void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString e
 
 void NoteEditorPrivate::onNoteLoadCancelled()
 {
-    Q_Q(NoteEditor);
-    q->stop();
+    stop();
     QNINFO("Note load has been cancelled");
     // TODO: add some overlay widget for NoteEditor to properly indicate visually that the note load has been cancelled
 }
@@ -3894,11 +3795,10 @@ void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url, quint64 hyp
         hyperlinkIdNumber = m_lastFreeHyperlinkIdNumber++;
     }
 
-    Q_Q(NoteEditor);
     GET_PAGE()
     page->executeJavaScript("setHyperlinkToSelection('" + text + "', '" + urlString +
                             "', " + QString::number(hyperlinkIdNumber) + ");");
-    q->setFocus();
+    setFocus();
 }
 
 void NoteEditorPrivate::dropFile(QString & filepath)

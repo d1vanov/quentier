@@ -47,7 +47,7 @@ public:
         {
             while (!QStack<T>::isEmpty()) {
                 T t = QStack<T>::pop();
-                m_deleter(t);
+                (*m_deleter)(t);
             }
         }
     }
@@ -71,6 +71,9 @@ public:
     void push(const T & t)
     {
         if ((m_limit > 0) && (QVector<T>::size() == m_limit - 1)) {
+            if (m_deleter) {
+                (*m_deleter)(*QVector<T>::begin());
+            }
             Q_UNUSED(QVector<T>::erase(QVector<T>::begin()));
         }
 

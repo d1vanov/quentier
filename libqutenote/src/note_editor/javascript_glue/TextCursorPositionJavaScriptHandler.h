@@ -22,7 +22,7 @@ Q_SIGNALS:
     void textCursorPositionBoldState(bool bold);
     void textCursorPositionItalicState(bool italic);
     void textCursorPositionUnderlineState(bool underline);
-    void textCursorPositionStrikethgouthState(bool strikethrough);
+    void textCursorPositionStrikethroughState(bool strikethrough);
 
     void textCursorPositionAlignLeftState(bool state);
     void textCursorPositionAlignCenterState(bool state);

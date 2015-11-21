@@ -8,11 +8,10 @@
 
 namespace qute_note {
 
-NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent, NoteEditor & editor, const quint32 index) :
+NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent, const quint32 index) :
     WebPage(&parent),
     m_parent(&parent),
-    m_editor(&editor),
-    m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(editor, this)),
+    m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(parent, this)),
     m_index(index)
 {
     QUTE_NOTE_CHECK_PTR(m_parent);
@@ -36,7 +35,7 @@ bool NoteEditorPage::shouldInterruptJavaScript()
     QString title = QObject::tr("Note editor hanged");
     QString question = QObject::tr("Note editor seems hanged when loading or editing the note. "
                                    "Would you like to cancel loading the note?");
-    QMessageBox::StandardButton reply = QMessageBox::question(m_editor, title, question,
+    QMessageBox::StandardButton reply = QMessageBox::question(m_parent, title, question,
                                                               QMessageBox::Yes | QMessageBox::No,
                                                               QMessageBox::No);
     if (reply == QMessageBox::Yes) {

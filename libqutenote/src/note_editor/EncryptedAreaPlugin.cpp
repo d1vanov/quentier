@@ -114,6 +114,8 @@ bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const Q
         m_hint = parameterValues[hintIndex];
     }
 
+    // FIXME: since I don't want to expose this plugin to the lib interface,
+    // the plugin factory shoud use NoteEditorPrivate
     const NoteEditor & noteEditor = pluginFactory.noteEditor();
     QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
                      &noteEditor, QNSLOT(NoteEditor,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));

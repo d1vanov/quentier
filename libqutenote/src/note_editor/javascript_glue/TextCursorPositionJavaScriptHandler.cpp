@@ -43,7 +43,7 @@ void TextCursorPositionJavaScriptHandler::setTextCursorPositionUnderlineState(bo
 
 void TextCursorPositionJavaScriptHandler::setTextCursorPositionStrikethroughState(bool strikethrough)
 {
-    emit textCursorPositionStrikethgouthState(strikethrough);
+    emit textCursorPositionStrikethroughState(strikethrough);
 }
 
 void TextCursorPositionJavaScriptHandler::setTextCursorPositionAlignLeftState(bool state)

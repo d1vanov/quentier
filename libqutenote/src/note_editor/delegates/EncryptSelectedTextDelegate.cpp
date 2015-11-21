@@ -3,6 +3,10 @@
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
+#ifndef USE_QT_WEB_ENGINE
+#include <QWebFrame>
+#endif
+
 namespace qute_note {
 
 EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate & noteEditor,
@@ -69,12 +73,12 @@ void EncryptSelectedTextDelegate::onOriginalPageModified()
                         this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModified));
 
     QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
-                     this, QNSLOT(EncryptSelectedTextDelegate,onModifiedNoteReceived));
+                     this, QNSLOT(EncryptSelectedTextDelegate,onModifiedNoteReceived,Note));
 
 #ifdef USE_QT_WEB_ENGINE
     m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &EncryptSelectedTextDelegate::onModifiedPageHtmlReceived));
 #else
-    QString html = m_pOriginalPage->toHtml();
+    QString html = m_pOriginalPage->mainFrame()->toHtml();
     onModifiedPageHtmlReceived(html);
 #endif
 
@@ -133,11 +137,12 @@ void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QStr
     }
 
     QUrl url = QUrl::fromLocalFile(m_originalPageFilePath);
-    m_pOriginalPage->setUrl(url);
 
 #ifdef USE_QT_WEB_ENGINE
+    m_pOriginalPage->setUrl(url);
     m_pOriginalPage->load(url);
 #else
+    m_pOriginalPage->mainFrame()->setUrl(url);
     m_pOriginalPage->mainFrame()->load(url);
 #endif
 
@@ -151,7 +156,7 @@ void EncryptSelectedTextDelegate::requestOriginalPageHtml()
 #ifdef USE_QT_WEB_ENGINE
     m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &EncryptSelectedTextDelegate::onOriginalPageHtmlReceived));
 #else
-    QString html = m_pOriginalPage->toHtml();
+    QString html = m_pOriginalPage->mainFrame()->toHtml();
     onOriginalPageHtmlReceived(html);
 #endif
 }

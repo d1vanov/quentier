@@ -4,49 +4,28 @@
 #include <qute_note/types/Note.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
-
-#ifdef USE_QT_WEB_ENGINE
-#include <QWebEngineView>
-typedef QWebEngineView WebView;
-typedef QWebEnginePage WebPage;
-#else
-#include <QWebView>
-typedef QWebView WebView;
-typedef QWebPage WebPage;
-#endif
+#include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(Notebook)
+QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
 
-#ifndef USE_QT_WEB_ENGINE
-QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
-#endif
-
-QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-
-class QUTE_NOTE_EXPORT NoteEditor: public WebView
+class QUTE_NOTE_EXPORT NoteEditor: public QWidget
 {
     Q_OBJECT
 public:
-
-public:
-    explicit NoteEditor(QWidget * parent = Q_NULLPTR);
+    explicit NoteEditor(QWidget * parent = Q_NULLPTR, Qt::WindowFlags flags = 0);
     virtual ~NoteEditor();
 
+    void setBackend(INoteEditorBackend * backend);
+
+    const QUndoStack * undoStack() const;
     void setUndoStack(QUndoStack * pUndoStack);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
-    const Notebook * getNotebook() const;
-
-    bool isModified() const;
-
-#ifndef USE_QT_WEB_ENGINE
-    const NoteEditorPluginFactory & pluginFactory() const;
-    NoteEditorPluginFactory & pluginFactory();
-#endif
 
 Q_SIGNALS:
     void contentChanged();
@@ -83,31 +62,42 @@ public Q_SLOTS:
     void paste();
     void pasteUnformatted();
     void selectAll();
+
     void fontMenu();
     void textBold();
     void textItalic();
     void textUnderline();
     void textStrikethrough();
     void textHighlight();
+
     void alignLeft();
     void alignCenter();
     void alignRight();
+
     void insertToDoCheckbox();
+
     void setSpellcheck(const bool enabled);
+
     void setFont(const QFont & font);
     void setFontHeight(const int height);
     void setFontColor(const QColor & color);
     void setBackgroundColor(const QColor & color);
+
     void insertHorizontalLine();
+
     void increaseFontSize();
     void decreaseFontSize();
+
     void increaseIndentation();
     void decreaseIndentation();
+
     void insertBulletedList();
     void insertNumberedList();
+
     void insertTableDialog();
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
+
     void addAttachmentDialog();
     void saveAttachmentDialog(const QString & resourceHash);
     void saveAttachmentUnderCursor();
@@ -115,25 +105,18 @@ public Q_SLOTS:
     void openAttachmentUnderCursor();
     void copyAttachment(const QString & resourceHash);
     void copyAttachmentUnderCursor();
+
     void encryptSelectedTextDialog();
     void decryptEncryptedTextUnderCursor();
+
     void editHyperlinkDialog();
     void copyHyperlink();
     void removeHyperlink();
 
-    void onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
-                                   QString passphrase, QString decryptedText,
-                                   bool rememberForSession, bool decryptPermanently,
-                                   bool createDecryptUndoCommand = true);
     void onNoteLoadCancelled();
 
 private:
-    virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
-    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
-
-private:
-    NoteEditorPrivate * const   d_ptr;
-    Q_DECLARE_PRIVATE(NoteEditor)
+    INoteEditorBackend * m_backend;
 };
 
 } // namespace qute_note

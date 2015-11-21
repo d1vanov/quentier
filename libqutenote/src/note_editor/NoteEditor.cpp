@@ -1,362 +1,275 @@
-#include <qute_note/note_editor/NoteEditor.h>
 #include "NoteEditor_p.h"
-
-#ifndef USE_QT_WEB_ENGINE
-#include <qute_note/note_editor/NoteEditorPluginFactory.h>
-#endif
-
-#include <qute_note/types/Note.h>
+#include <qute_note/note_editor/NoteEditor.h>
+#include <qute_note/note_editor/INoteEditorBackend.h>
 #include <qute_note/types/Notebook.h>
 #include <QUndoStack>
 #include <QFont>
 #include <QColor>
-#include <QContextMenuEvent>
+#include <QVBoxLayout>
 
 namespace qute_note {
 
-NoteEditor::NoteEditor(QWidget * parent) :
-    WebView(parent),
-    d_ptr(new NoteEditorPrivate(*this))
-{}
+NoteEditor::NoteEditor(QWidget * parent, Qt::WindowFlags flags) :
+    QWidget(parent, flags),
+    m_backend(new NoteEditorPrivate(*this))
+{
+    QVBoxLayout * pLayout = new QVBoxLayout;
+    pLayout->addWidget(m_backend->widget());
+    pLayout->setMargin(0);
+    setLayout(pLayout);
+}
 
 NoteEditor::~NoteEditor()
 {}
 
+void NoteEditor::setBackend(INoteEditorBackend * backend)
+{
+    QLayout * pLayout = layout();
+    pLayout->removeWidget(m_backend->widget());
+
+    backend->widget()->setParent(this, this->windowFlags());
+    m_backend = backend;
+    pLayout->addWidget(m_backend->widget());
+}
+
 void NoteEditor::setUndoStack(QUndoStack * pUndoStack)
 {
-    Q_D(NoteEditor);
-    d->setUndoStack(pUndoStack);
+    m_backend->setUndoStack(pUndoStack);
 }
 
 void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
-    Q_D(NoteEditor);
-    d->setNoteAndNotebook(note, notebook);
-}
-
-const Notebook * NoteEditor::getNotebook() const
-{
-    Q_D(const NoteEditor);
-    return d->getNotebook();
-}
-
-bool NoteEditor::isModified() const
-{
-    Q_D(const NoteEditor);
-    return d->isModified();
+    m_backend->setNoteAndNotebook(note, notebook);
 }
 
 void NoteEditor::convertToNote()
 {
-    Q_D(NoteEditor);
-    d->convertToNote();
+    m_backend->convertToNote();
 }
-
-#ifndef USE_QT_WEB_ENGINE
-const NoteEditorPluginFactory & NoteEditor::pluginFactory() const
-{
-    Q_D(const NoteEditor);
-    return d->pluginFactory();
-}
-
-NoteEditorPluginFactory & NoteEditor::pluginFactory()
-{
-    Q_D(NoteEditor);
-    return d->pluginFactory();
-}
-#endif
 
 void NoteEditor::undo()
 {
-    Q_D(NoteEditor);
-    d->undo();
+    m_backend->undo();
 }
 
 void NoteEditor::redo()
 {
-    Q_D(NoteEditor);
-    d->redo();
+    m_backend->redo();
 }
 
 void NoteEditor::cut()
 {
-    Q_D(NoteEditor);
-    d->cut();
+    m_backend->cut();
 }
 
 void NoteEditor::copy()
 {
-    Q_D(NoteEditor);
-    d->copy();
+    m_backend->copy();
 }
 
 void NoteEditor::paste()
 {
-    Q_D(NoteEditor);
-    d->paste();
+    m_backend->paste();
 }
 
 void NoteEditor::pasteUnformatted()
 {
-    Q_D(NoteEditor);
-    d->pasteUnformatted();
+    m_backend->pasteUnformatted();
 }
 
 void NoteEditor::selectAll()
 {
-    Q_D(NoteEditor);
-    d->selectAll();
+    m_backend->selectAll();
 }
 
 void NoteEditor::fontMenu()
 {
-    Q_D(NoteEditor);
-    d->fontMenu();
+    m_backend->fontMenu();
 }
 
 void NoteEditor::textBold()
 {
-    Q_D(NoteEditor);
-    d->textBold();
+    m_backend->textBold();
 }
 
 void NoteEditor::textItalic()
 {
-    Q_D(NoteEditor);
-    d->textItalic();
+    m_backend->textItalic();
 }
 
 void NoteEditor::textUnderline()
 {
-    Q_D(NoteEditor);
-    d->textUnderline();
+    m_backend->textUnderline();
 }
 
 void NoteEditor::textStrikethrough()
 {
-    Q_D(NoteEditor);
-    d->textStrikethrough();
+    m_backend->textStrikethrough();
 }
 
 void NoteEditor::textHighlight()
 {
-    Q_D(NoteEditor);
-    d->textHighlight();
+    m_backend->textHighlight();
 }
 
 void NoteEditor::alignLeft()
 {
-    Q_D(NoteEditor);
-    d->alignLeft();
+    m_backend->alignLeft();
 }
 
 void NoteEditor::alignCenter()
 {
-    Q_D(NoteEditor);
-    d->alignCenter();
+    m_backend->alignCenter();
 }
 
 void NoteEditor::alignRight()
 {
-    Q_D(NoteEditor);
-    d->alignRight();
+    m_backend->alignRight();
 }
 
 void NoteEditor::insertToDoCheckbox()
 {
-    Q_D(NoteEditor);
-    d->insertToDoCheckbox();
+    m_backend->insertToDoCheckbox();
 }
 
 void NoteEditor::setSpellcheck(const bool enabled)
 {
-    Q_D(NoteEditor);
-    d->setSpellcheck(enabled);
+    m_backend->setSpellcheck(enabled);
 }
 
 void NoteEditor::setFont(const QFont & font)
 {
-    Q_D(NoteEditor);
-    d->setFont(font);
+    m_backend->setFont(font);
 }
 
 void NoteEditor::setFontHeight(const int height)
 {
-    Q_D(NoteEditor);
-    d->setFontHeight(height);
+    m_backend->setFontHeight(height);
 }
 
 void NoteEditor::setFontColor(const QColor & color)
 {
-    Q_D(NoteEditor);
-    d->setFontColor(color);
+    m_backend->setFontColor(color);
 }
 
 void NoteEditor::setBackgroundColor(const QColor & color)
 {
-    Q_D(NoteEditor);
-    d->setBackgroundColor(color);
+    m_backend->setBackgroundColor(color);
 }
 
 void NoteEditor::insertHorizontalLine()
 {
-    Q_D(NoteEditor);
-    d->insertHorizontalLine();
+    m_backend->insertHorizontalLine();
 }
 
 void NoteEditor::increaseFontSize()
 {
-    Q_D(NoteEditor);
-    d->increaseFontSize();
+    m_backend->increaseFontSize();
 }
 
 void NoteEditor::decreaseFontSize()
 {
-    Q_D(NoteEditor);
-    d->decreaseFontSize();
+    m_backend->decreaseFontSize();
 }
 
 void NoteEditor::increaseIndentation()
 {
-    Q_D(NoteEditor);
-    d->increaseIndentation();
+    m_backend->increaseIndentation();
 }
 
 void NoteEditor::decreaseIndentation()
 {
-    Q_D(NoteEditor);
-    d->decreaseIndentation();
+    m_backend->decreaseIndentation();
 }
 
 void NoteEditor::insertBulletedList()
 {
-    Q_D(NoteEditor);
-    d->insertBulletedList();
+    m_backend->insertBulletedList();
 }
 
 void NoteEditor::insertNumberedList()
 {
-    Q_D(NoteEditor);
-    d->insertNumberedList();
+    m_backend->insertNumberedList();
 }
 
 void NoteEditor::insertTableDialog()
 {
-    Q_D(NoteEditor);
-    d->insertTableDialog();
+    m_backend->insertTableDialog();
 }
 
 void NoteEditor::insertFixedWidthTable(const int rows, const int columns, const int widthInPixels)
 {
-    Q_D(NoteEditor);
-    d->insertFixedWidthTable(rows, columns, widthInPixels);
+    m_backend->insertFixedWidthTable(rows, columns, widthInPixels);
 }
 
 void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
 {
-    Q_D(NoteEditor);
-    d->insertRelativeWidthTable(rows, columns, relativeWidth);
+    m_backend->insertRelativeWidthTable(rows, columns, relativeWidth);
 }
 
 void NoteEditor::addAttachmentDialog()
 {
-    Q_D(NoteEditor);
-    d->addAttachmentDialog();
+    m_backend->addAttachmentDialog();
 }
 
 void NoteEditor::saveAttachmentDialog(const QString & resourceHash)
 {
-    Q_D(NoteEditor);
-    d->saveAttachmentDialog(resourceHash);
+    m_backend->saveAttachmentDialog(resourceHash);
 }
 
 void NoteEditor::saveAttachmentUnderCursor()
 {
-    Q_D(NoteEditor);
-    d->saveAttachmentUnderCursor();
+    m_backend->saveAttachmentUnderCursor();
 }
 
 void NoteEditor::openAttachment(const QString & resourceHash)
 {
-    Q_D(NoteEditor);
-    d->openAttachment(resourceHash);
+    m_backend->openAttachment(resourceHash);
 }
 
 void NoteEditor::openAttachmentUnderCursor()
 {
-    Q_D(NoteEditor);
-    d->openAttachmentUnderCursor();
+    m_backend->openAttachmentUnderCursor();
 }
 
 void NoteEditor::copyAttachment(const QString & resourceHash)
 {
-    Q_D(NoteEditor);
-    d->copyAttachment(resourceHash);
+    m_backend->copyAttachment(resourceHash);
 }
 
 void NoteEditor::copyAttachmentUnderCursor()
 {
-    Q_D(NoteEditor);
-    d->copyAttachmentUnderCursor();
+    m_backend->copyAttachmentUnderCursor();
 }
 
 void NoteEditor::encryptSelectedTextDialog()
 {
-    Q_D(NoteEditor);
-    d->encryptSelectedTextDialog();
+    m_backend->encryptSelectedTextDialog();
 }
 
 void NoteEditor::decryptEncryptedTextUnderCursor()
 {
-    Q_D(NoteEditor);
-    d->decryptEncryptedTextUnderCursor(Q_NULLPTR);
+    m_backend->decryptEncryptedTextUnderCursor();
 }
 
 void NoteEditor::editHyperlinkDialog()
 {
-    Q_D(NoteEditor);
-    d->editHyperlinkDialog();
+    m_backend->editHyperlinkDialog();
 }
 
 void NoteEditor::copyHyperlink()
 {
-    Q_D(NoteEditor);
-    d->copyHyperlink();
+    m_backend->copyHyperlink();
 }
 
 void NoteEditor::removeHyperlink()
 {
-    Q_D(NoteEditor);
-    d->removeHyperlink();
-}
-
-void NoteEditor::onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
-                                           QString passphrase, QString decryptedText,
-                                           bool rememberForSession, bool decryptPermanently,
-                                           bool createDecryptUndoCommand)
-{
-    Q_D(NoteEditor);
-    d->onEncryptedAreaDecryption(cipher, keyLength, encryptedText, passphrase,
-                                 decryptedText, rememberForSession, decryptPermanently,
-                                 createDecryptUndoCommand);
+    m_backend->removeHyperlink();
 }
 
 void NoteEditor::onNoteLoadCancelled()
 {
-    Q_D(NoteEditor);
-    d->onNoteLoadCancelled();
-}
-
-void NoteEditor::dropEvent(QDropEvent * pEvent)
-{
-    Q_D(NoteEditor);
-    d->onDropEvent(pEvent);
-}
-
-void NoteEditor::contextMenuEvent(QContextMenuEvent * pEvent)
-{
-    Q_D(NoteEditor);
-    d->contextMenuEvent(pEvent);
+    m_backend->onNoteLoadCancelled();
 }
 
 } // namespace qute_note

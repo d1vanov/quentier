@@ -4,6 +4,7 @@
 #include "ResourceInfo.h"
 #include "NoteEditorPage.h"
 #include "undo_stack/PreliminaryUndoCommandQueue.h"
+#include <qute_note/note_editor/INoteEditorBackend.h>
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
@@ -13,9 +14,16 @@
 #include <QMimeType>
 #include <QFont>
 #include <QColor>
+#include <QImage>
 
 #ifdef USE_QT_WEB_ENGINE
-#include <QImage>
+#include <QWebEngineView>
+typedef QWebEngineView WebView;
+typedef QWebEnginePage WebPage;
+#else
+#include <QWebView>
+typedef QWebView WebView;
+typedef QWebPage WebPage;
 #endif
 
 QT_FORWARD_DECLARE_CLASS(QByteArray)
@@ -45,7 +53,7 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
 #endif
 
-class NoteEditorPrivate: public QObject
+class NoteEditorPrivate: public WebView, public INoteEditorBackend
 {
     Q_OBJECT
 public:
@@ -60,13 +68,29 @@ public:
     void execJavascriptCommand(const QString & command);
     void execJavascriptCommand(const QString & command, const QString & args);
 
-    void setUndoStack(QUndoStack * pUndoStack);
+Q_SIGNALS:
+    void contentChanged();
+    void notifyError(QString error);
 
-    void setNoteAndNotebook(const Note & note, const Notebook & notebook);
-    const Note * getNote();
-    const Notebook * getNotebook() const;
+    void convertedToNote(Note note);
+    void cantConvertToNote(QString error);
 
-    void convertToNote();
+    // Signals to notify anyone interested of the formatting at the current cursor position
+    void textBoldState(bool state);
+    void textItalicState(bool state);
+    void textUnderlineState(bool state);
+    void textStrikethroughState(bool state);
+    void textAlignLeftState(bool state);
+    void textAlignCenterState(bool state);
+    void textAlignRightState(bool state);
+    void textInsideOrderedListState(bool state);
+    void textInsideUnorderedListState(bool state);
+    void textInsideTableState(bool state);
+
+    void textFontFamilyChanged(QString fontFamily);
+    void textFontSizeChanged(int fontSize);
+
+    void insertTableDialogRequested();
 
 public:
     // Public methods for undo stack
@@ -88,17 +112,7 @@ public:
     void skipPushingUndoCommandOnNextContentChange();
 
 Q_SIGNALS:
-    void convertedToNote(Note note);
-    void cantConvertToNote(QString errorDescription);
-
-    void notifyError(QString error);
-
     void noteEditorHtmlUpdated(QString html);
-
-    void textFontFamilyChanged(QString fontFamily);
-    void textFontSizeChanged(int fontSize);
-
-    void insertTableDialogRequested();
 
 public:
     bool isModified() const;
@@ -121,57 +135,64 @@ public:
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
                              const int columns, const bool relative);
 
-public:
-    void undo();
-    void redo();
-    void cut();
-    void copy();
-    void paste();
-    void pasteUnformatted();
-    void selectAll();
-    void fontMenu();
-    void textBold();
-    void textItalic();
-    void textUnderline();
-    void textStrikethrough();
-    void textHighlight();
-    void alignLeft();
-    void alignCenter();
-    void alignRight();
-    void insertToDoCheckbox();
-    void setSpellcheck(bool enabled);
-    void setFont(const QFont & font);
-    void setFontHeight(const int height);
-    void setFontColor(const QColor & color);
-    void setBackgroundColor(const QColor & color);
-    void insertHorizontalLine();
-    void increaseFontSize();
-    void decreaseFontSize();
-    void increaseIndentation();
-    void decreaseIndentation();
-    void insertBulletedList();
-    void insertNumberedList();
-    void insertTableDialog();
-    void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
-    void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
-    void addAttachmentDialog();
-    void saveAttachmentDialog(const QString & resourceHash);
-    void saveAttachmentUnderCursor();
-    void openAttachment(const QString & resourceHash);
-    void openAttachmentUnderCursor();
-    void copyAttachment(const QString & resourceHash);
-    void copyAttachmentUnderCursor();
+public Q_SLOTS:
+    virtual QObject * object() Q_DECL_OVERRIDE { return this; }
+    virtual QWidget * widget() Q_DECL_OVERRIDE { return this; }
+    virtual void setUndoStack(QUndoStack * pUndoStack) Q_DECL_OVERRIDE;
 
-    void encryptSelectedTextDialog();
+    virtual void undo() Q_DECL_OVERRIDE;
+    virtual void redo() Q_DECL_OVERRIDE;
+    virtual void cut() Q_DECL_OVERRIDE;
+    virtual void copy() Q_DECL_OVERRIDE;
+    virtual void paste() Q_DECL_OVERRIDE;
+    virtual void pasteUnformatted() Q_DECL_OVERRIDE;
+    virtual void selectAll() Q_DECL_OVERRIDE;
+    virtual void fontMenu() Q_DECL_OVERRIDE;
+    virtual void textBold() Q_DECL_OVERRIDE;
+    virtual void textItalic() Q_DECL_OVERRIDE;
+    virtual void textUnderline() Q_DECL_OVERRIDE;
+    virtual void textStrikethrough() Q_DECL_OVERRIDE;
+    virtual void textHighlight() Q_DECL_OVERRIDE;
+    virtual void alignLeft() Q_DECL_OVERRIDE;
+    virtual void alignCenter() Q_DECL_OVERRIDE;
+    virtual void alignRight() Q_DECL_OVERRIDE;
+    virtual void insertToDoCheckbox() Q_DECL_OVERRIDE;
+    virtual void setSpellcheck(bool enabled) Q_DECL_OVERRIDE;
+    virtual void setFont(const QFont & font) Q_DECL_OVERRIDE;
+    virtual void setFontHeight(const int height) Q_DECL_OVERRIDE;
+    virtual void setFontColor(const QColor & color) Q_DECL_OVERRIDE;
+    virtual void setBackgroundColor(const QColor & color) Q_DECL_OVERRIDE;
+    virtual void insertHorizontalLine() Q_DECL_OVERRIDE;
+    virtual void increaseFontSize() Q_DECL_OVERRIDE;
+    virtual void decreaseFontSize() Q_DECL_OVERRIDE;
+    virtual void increaseIndentation() Q_DECL_OVERRIDE;
+    virtual void decreaseIndentation() Q_DECL_OVERRIDE;
+    virtual void insertBulletedList() Q_DECL_OVERRIDE;
+    virtual void insertNumberedList() Q_DECL_OVERRIDE;
+    virtual void insertTableDialog() Q_DECL_OVERRIDE;
+    virtual void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels) Q_DECL_OVERRIDE;
+    virtual void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth) Q_DECL_OVERRIDE;
+    virtual void addAttachmentDialog() Q_DECL_OVERRIDE;
+    virtual void saveAttachmentDialog(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void saveAttachmentUnderCursor() Q_DECL_OVERRIDE;
+    virtual void openAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void openAttachmentUnderCursor() Q_DECL_OVERRIDE;
+    virtual void copyAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void copyAttachmentUnderCursor() Q_DECL_OVERRIDE;
+
+    virtual void encryptSelectedTextDialog() Q_DECL_OVERRIDE;
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
 
-    void decryptEncryptedTextUnderCursor(bool * pCancelled = Q_NULLPTR);
+    virtual void decryptEncryptedTextUnderCursor() Q_DECL_OVERRIDE;
 
-    void editHyperlinkDialog();
-    void copyHyperlink();
-    void removeHyperlink();
+    virtual void editHyperlinkDialog() Q_DECL_OVERRIDE;
+    virtual void copyHyperlink() Q_DECL_OVERRIDE;
+    virtual void removeHyperlink() Q_DECL_OVERRIDE;
 
-    void onNoteLoadCancelled();
+    virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
+
+    virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) Q_DECL_OVERRIDE;
+    virtual void convertToNote() Q_DECL_OVERRIDE;
 
     void undoPageAction();
     void redoPageAction();
@@ -191,17 +212,6 @@ Q_SIGNALS:
                                         const QString resourceFileSuffix, const QByteArray resourceActualHash,
                                         const QString resourceDisplayName, const QUuid requestId);
 #endif
-
-    void textCursorPositionBoldState(bool state);
-    void textCursorPositionItalicState(bool state);
-    void textCursorPositionUnderlineState(bool state);
-    void textCursorPositionStrikethgouthState(bool state);
-    void textCursorPositionAlignLeftState(bool state);
-    void textCursorPositionAlignCenterState(bool state);
-    void textCursorPositionAlignRightState(bool state);
-    void textCursorPositionInsideOrderedListState(bool state);
-    void textCursorPositionInsideUnorderedListState(bool state);
-    void textCursorPositionInsideTableState(bool state);
 
 private Q_SLOTS:
     void onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
@@ -240,7 +250,7 @@ private Q_SLOTS:
     void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length,
                                  QString hint, bool * pCancelled = Q_NULLPTR);
 
-    void contextMenuEvent(QContextMenuEvent * pEvent);
+    void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
     void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
                                  QStringList extraData, quint64 sequenceNumber);
 

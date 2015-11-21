@@ -24,7 +24,7 @@ class NoteEditorPage:
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPage(NoteEditorPrivate & parent, NoteEditor & editor, const quint32 index);
+    explicit NoteEditorPage(NoteEditorPrivate & parent, const quint32 index);
 
     bool javaScriptQueueEmpty() const;
     quint32 index() const { return m_index; }
@@ -55,7 +55,6 @@ private:
 
 private:
     NoteEditorPrivate *         m_parent;
-    NoteEditor *                m_editor;
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
     quint32                     m_index;
 };

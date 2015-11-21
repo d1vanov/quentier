@@ -70,6 +70,7 @@ include_directories(headers)
 set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/DecryptedTextManager.h
     headers/qute_note/note_editor/NoteEditor.h
+    headers/qute_note/note_editor/INoteEditorBackend.h
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
 if(NOT USE_QT_WEB_ENGINE)
@@ -236,6 +237,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/DecryptedTextManager_p.cpp
     src/note_editor/NoteEditorPage.cpp
     src/note_editor/NoteEditor.cpp
+    src/note_editor/INoteEditorBackend.cpp
     src/note_editor/NoteEditor_p.cpp
     src/note_editor/JavaScriptInOrderExecutor.cpp
     src/note_editor/EditUrlDialog.cpp
