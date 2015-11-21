@@ -11,9 +11,9 @@ EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate & not
     QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pOriginalPage(pOriginalPage),
-    m_originalPageFilePath(noteEditor.noteEditorPagePath()),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_originalHtml(),
+    m_originalPageFilePath(noteEditor.noteEditorPagePath()),
     m_writeOriginalHtmlToPageSourceRequestId()
 {}
 
