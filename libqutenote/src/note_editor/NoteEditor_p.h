@@ -82,7 +82,7 @@ public:
     void replaceResourceInNote(const ResourceWrapper & resource);
     void setNoteResources(const QList<ResourceWrapper> & resources);
 
-    void switchEditorPage();
+    void switchEditorPage(const bool shouldConvertFromNote = true);
     void popEditorPage();
 
     void skipPushingUndoCommandOnNextContentChange();
@@ -165,13 +165,8 @@ public:
     void encryptSelectedTextDialog();
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
 
-    void encryptSelectedText(const QString & passphrase, const QString & hint,
-                             const bool rememberForSession);
     void decryptEncryptedTextUnderCursor(bool * pCancelled = Q_NULLPTR);
-    void decryptEncryptedText(const QString & cipher, const size_t keyLength,
-                              const QString & encryptedText, const QString & decryptedText,
-                              const QString & passphrase, bool rememberForSession,
-                              bool decryptPermanently, bool createDecryptUndoCommand = true);
+
     void editHyperlinkDialog();
     void copyHyperlink();
     void removeHyperlink();
@@ -274,6 +269,7 @@ private Q_SLOTS:
     // Slots for delegates
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);
+    void onEncryptSelectedTextDelegateModifiedPageHtmlReceived(QString html);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;

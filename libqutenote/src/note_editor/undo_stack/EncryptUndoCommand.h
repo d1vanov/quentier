@@ -15,8 +15,13 @@ public:
     virtual void redoImpl() Q_DECL_OVERRIDE;
     virtual void undoImpl() Q_DECL_OVERRIDE;
 
+    void setHtmlWithEncryption(const QString & html);
+
 private:
     void init();
+
+private:
+    QString     m_htmlWithEncryption;
 };
 
 } // namespace qute_note

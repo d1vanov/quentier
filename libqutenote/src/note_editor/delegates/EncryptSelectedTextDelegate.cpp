@@ -71,7 +71,21 @@ void EncryptSelectedTextDelegate::onOriginalPageModified()
     QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                      this, QNSLOT(EncryptSelectedTextDelegate,onModifiedNoteReceived));
 
+#ifdef USE_QT_WEB_ENGINE
+    m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &EncryptSelectedTextDelegate::onModifiedPageHtmlReceived));
+#else
+    QString html = m_pOriginalPage->toHtml();
+    onModifiedPageHtmlReceived(html);
+#endif
+
     m_noteEditor.convertToNote();
+}
+
+void EncryptSelectedTextDelegate::onModifiedPageHtmlReceived(const QString & html)
+{
+    QNDEBUG("EncryptSelectedTextDelegate::onModifiedPageHtmlReceived");
+
+    emit receivedHtmlWithEncryption(html);
 }
 
 void EncryptSelectedTextDelegate::onModifiedNoteReceived(Note note)
@@ -133,7 +147,13 @@ void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QStr
 void EncryptSelectedTextDelegate::requestOriginalPageHtml()
 {
     QNDEBUG("EncryptSelectedTextDelegate::requestOriginalPageHtml");
+
+#ifdef USE_QT_WEB_ENGINE
     m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &EncryptSelectedTextDelegate::onOriginalPageHtmlReceived));
+#else
+    QString html = m_pOriginalPage->toHtml();
+    onOriginalPageHtmlReceived(html);
+#endif
 }
 
 } // namespace qute_note

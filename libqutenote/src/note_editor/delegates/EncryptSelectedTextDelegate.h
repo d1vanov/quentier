@@ -29,6 +29,7 @@ public:
     void start();
 
 Q_SIGNALS:
+    void receivedHtmlWithEncryption(QString html);
     void finished();
     void notifyError(QString error);
 
@@ -40,6 +41,7 @@ private Q_SLOTS:
 
     void onOriginalPageHtmlReceived(const QString & html);
     void onOriginalPageModified();
+    void onModifiedPageHtmlReceived(const QString & html);
     void onModifiedNoteReceived(Note note);
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);

@@ -968,6 +968,17 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
     sender()->deleteLater();
 }
 
+void NoteEditorPrivate::onEncryptSelectedTextDelegateModifiedPageHtmlReceived(QString html)
+{
+    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateModifiedPageHtmlReceived");
+
+    EncryptUndoCommand * command = new EncryptUndoCommand(*this);
+    command->setHtmlWithEncryption(html);
+
+    m_pPreliminaryUndoCommandQueue->push(command);
+    QNTRACE("Pushed encrypt undo command to undo stack");
+}
+
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
 {
     QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
@@ -1050,9 +1061,10 @@ void NoteEditorPrivate::pushDecryptUndoCommand(const QString & cipher, const siz
     QNTRACE("Pushed DecryptUndoCommand to the undo stack");
 }
 
-void NoteEditorPrivate::switchEditorPage()
+void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
 {
-    QNDEBUG("NoteEditorPrivate::switchEditorPage");
+    QNDEBUG("NoteEditorPrivate::switchEditorPage: should convert from note = "
+            << (shouldConvertFromNote ? "true" : "false"));
 
     Q_Q(NoteEditor);
     GET_PAGE()
@@ -1070,7 +1082,10 @@ void NoteEditorPrivate::switchEditorPage()
     m_pagesStack.push(page);
 
     setupNoteEditorPage();
-    noteToEditorContent();
+
+    if (shouldConvertFromNote) {
+        noteToEditorContent();
+    }
 }
 
 void NoteEditorPrivate::popEditorPage()
@@ -3625,6 +3640,8 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,receivedHtmlWithEncryption,QString),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateModifiedPageHtmlReceived,QString));
     delegate->start();
 }
 
@@ -3657,37 +3674,6 @@ void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
     QNTRACE("Executed encryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
 }
 
-void NoteEditorPrivate::encryptSelectedText(const QString & passphrase, const QString & hint,
-                                            const bool rememberForSession)
-{
-    QNDEBUG("NoteEditorPrivate::encryptSelectedText");
-
-    Q_Q(NoteEditor);
-    QVector<QPair<QString,QString> > extraData;
-    extraData << QPair<QString,QString>("passphrase",passphrase) << QPair<QString,QString>("hint",hint)
-              << QPair<QString,QString>("rememberForSession",(rememberForSession ? "true" : "false"));
-
-#ifndef USE_QT_WEB_ENGINE
-    if (!q->page()->hasSelection()) {
-        QNINFO("Note editor page has no selected text, nothing to encrypt");
-        return;
-    }
-
-    // NOTE: use JavaScript to get the selected text here, not the convenience method of NoteEditorPage
-    // in order to ensure the method returning the selected html and the method replacing the selected html
-    // agree about the selected html
-    QString selectedHtml = execJavascriptCommandWithResult("getSelectionHtml").toString();
-    if (selectedHtml.isEmpty()) {
-        QNINFO("Selected html is empty, nothing to encrypt");
-        return;
-    }
-
-    onPageSelectedHtmlForEncryptionReceived(selectedHtml, extraData);
-#else
-    q->page()->runJavaScript("getSelectionHtml", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived, extraData));
-#endif
-}
-
 void NoteEditorPrivate::decryptEncryptedTextUnderCursor(bool * pCancelled)
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedTextUnderCursor");
@@ -3704,20 +3690,6 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor(bool * pCancelled)
                             pCancelled);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
-}
-
-void NoteEditorPrivate::decryptEncryptedText(const QString & cipher, const size_t keyLength,
-                                             const QString & encryptedText, const QString & decryptedText,
-                                             const QString & passphrase, bool rememberForSession,
-                                             bool decryptPermanently, bool createDecryptUndoCommand)
-{
-    QNDEBUG("NoteEditorPrivate::decryptEncryptedText: encrypted text = " << encryptedText
-            << ", remember for session = " << (rememberForSession ? "true" : "false")
-            << ", decrypt permanently = " << (decryptPermanently ? "true" : "false")
-            << ", create decrypt undo command = " << (createDecryptUndoCommand ? "true" : "false"));
-
-    onEncryptedAreaDecryption(cipher, keyLength, encryptedText, passphrase, decryptedText,
-                              rememberForSession, decryptPermanently, createDecryptUndoCommand);
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()
@@ -3835,7 +3807,6 @@ void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString e
     Q_UNUSED(cipher)
     Q_UNUSED(keyLength)
 
-    pushEncryptUndoCommand();
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedText, encryptedText, hint, rememberForSession);
 }
 
