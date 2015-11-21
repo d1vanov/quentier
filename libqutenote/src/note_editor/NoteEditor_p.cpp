@@ -676,7 +676,7 @@ void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
         return;
     }
 
-    if (m_pendingIndexHtmlWritingToFile || m_pendingNotePageLoad) {
+    if (m_pendingIndexHtmlWritingToFile || m_pendingNotePageLoad || m_pendingJavaScriptExecution) {
         QNINFO("Ignoring context menu event for now, until the note is fully loaded...");
         return;
     }
