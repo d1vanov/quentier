@@ -24,6 +24,7 @@ public:
     bool htmlToNoteContent(const QString & html, QString & noteContent,
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription) const;
+
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
                            DecryptedTextManager & decryptedTextManager,
                            quint64 & lastFreeEnToDoIdNumber, quint64 & lastFreeHyperlinkIdNumber

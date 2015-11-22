@@ -144,6 +144,16 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             lastElementAttributes = reader.attributes();
 
+            // WARNING: hack to make ENML conversion work nicely along with colResizable jQuery plugin
+            if (lastElementName == "div" && lastElementAttributes.hasAttribute("class"))
+            {
+                QStringRef divClass = lastElementAttributes.value("class");
+                if (divClass.startsWith("JCLRgrip") || divClass.startsWith("JColResizer")) {
+                    QNTRACE("Skipping colResizable's helper div");
+                    continue;
+                }
+            }
+
             if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "div")) &&
                  lastElementAttributes.hasAttribute("en-tag") )
             {

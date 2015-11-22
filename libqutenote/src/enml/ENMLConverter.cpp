@@ -19,7 +19,8 @@ ENMLConverter::~ENMLConverter()
 }
 
 bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteContent,
-                                      DecryptedTextManager & decryptedTextManager, QString & errorDescription) const
+                                      DecryptedTextManager & decryptedTextManager,
+                                      QString & errorDescription) const
 {
     QNDEBUG("ENMLConverter::htmlToNoteContent");
 
