@@ -25,9 +25,16 @@ public:
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription) const;
 
+    struct NoteContentToHtmlExtraData
+    {
+        quint64     m_numEnToDoNodes;
+        quint64     m_numHyperlinkNodes;
+        quint64     m_numEnCryptNodes;
+        quint64     m_numEnDecryptedNodes;
+    };
+
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextManager & decryptedTextManager,
-                           quint64 & lastFreeEnToDoIdNumber, quint64 & lastFreeHyperlinkIdNumber
+                           DecryptedTextManager & decryptedTextManager, NoteContentToHtmlExtraData & extraData
 #ifndef USE_QT_WEB_ENGINE
                            , const NoteEditorPluginFactory * pluginFactory = Q_NULLPTR
 #endif
@@ -46,10 +53,12 @@ public:
     static QString toDoCheckboxHtml(const bool checked, const quint64 idNumber);
 
     static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
-                                     const QString & cipher, const size_t keyLength);
+                                     const QString & cipher, const size_t keyLength,
+                                     const quint64 enCryptIndex);
 
     static QString decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
-                                     const QString & hint, const QString & cipher, const size_t keyLength);
+                                     const QString & hint, const QString & cipher,
+                                     const size_t keyLength, const quint64 enDecryptedIndex);
 
     static void escapeString(QString & string);
 

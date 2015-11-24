@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 #define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
 
+#include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QtGlobal>
 #include <QStringList>
@@ -24,12 +25,14 @@ public:
     ENMLConverterPrivate();
     ~ENMLConverterPrivate();
 
+    typedef ENMLConverter::NoteContentToHtmlExtraData NoteContentToHtmlExtraData;
+
     bool htmlToNoteContent(const QString & html, QString & noteContent,
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextManager & decryptedTextManager, quint64 & lastFreeEnToDoIdNumber,
-                           quint64 & lastFreeHyperlinkIdNumber
+                           DecryptedTextManager & decryptedTextManager,
+                           NoteContentToHtmlExtraData & extraData
 #ifndef USE_QT_WEB_ENGINE
                            , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -48,10 +51,12 @@ public:
     static QString toDoCheckboxHtml(const bool checked, const quint64 idNumber);
 
     static QString encryptedTextHtml(const QString & encryptedText, const QString & hint,
-                                     const QString & cipher, const size_t keyLength);
+                                     const QString & cipher, const size_t keyLength,
+                                     const quint64 enCryptIndex);
 
     static QString decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
-                                     const QString & hint, const QString & cipher, const size_t keyLength);
+                                     const QString & hint, const QString & cipher,
+                                     const size_t keyLength, const quint64 enDecryptedIndex);
 
     static void escapeString(QString & string);
 
@@ -68,8 +73,8 @@ private:
 
     // convert ENML en-crypt tag to HTML <object> tag
     bool encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
-                             const QStringRef & encryptedTextCharacters,
-                             QXmlStreamWriter & writer, DecryptedTextManager & decryptedTextManager) const;
+                             const QStringRef & encryptedTextCharacters, const quint64 enCryptIndex, const quint64 enDecryptedIndex,
+                             QXmlStreamWriter & writer, DecryptedTextManager & decryptedTextManager, bool &convertedToEnCryptNode) const;
 
     // convert ENML <en-media> tag to HTML <object> tag
     bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
@@ -79,11 +84,11 @@ private:
 #endif
                             ) const;
 
-    void toDoTagsToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                        quint64 & lastFreeEnToDoIdNumber) const;
+    void toDoTagsToHtml(const QXmlStreamReader & reader, const quint64 enToDoIndex,
+                        QXmlStreamWriter & writer) const;
 
     static void decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
-                                  const QString & hint, const QString & cipher, const size_t keyLength,
+                                  const QString & hint, const QString & cipher, const size_t keyLength, const quint64 enDecryptedIndex,
                                   QXmlStreamWriter & writer);
 
 private:

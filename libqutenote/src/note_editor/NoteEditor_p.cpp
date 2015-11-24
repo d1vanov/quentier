@@ -194,6 +194,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
     m_lastFreeHyperlinkIdNumber(1),
+    m_lastFreeEnCryptIdNumber(1),
+    m_lastFreeEnDecryptedIdNumber(1),
     m_pagesStack(&NoteEditorPageDeleter),
     m_lastNoteEditorPageFreeIndex(0),
     q_ptr(&noteEditor)
@@ -1219,8 +1221,8 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     Q_UNUSED(selectedText);
 
     QString encryptedTextHtmlObject = (rememberForSession
-                                       ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, "AES", 128)
-                                       : ENMLConverter::encryptedTextHtml(encryptedText, hint, "AES", 128));
+                                       ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, "AES", 128, m_lastFreeEnDecryptedIdNumber++)
+                                       : ENMLConverter::encryptedTextHtml(encryptedText, hint, "AES", 128, m_lastFreeEnCryptIdNumber++));
     QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
 
     QNTRACE("script: " << javascript);
@@ -1276,6 +1278,8 @@ void NoteEditorPrivate::clearEditorContent()
 
     m_lastFreeEnToDoIdNumber = 1;
     m_lastFreeHyperlinkIdNumber = 1;
+    m_lastFreeEnCryptIdNumber = 1;
+    m_lastFreeEnDecryptedIdNumber = 1;
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
@@ -1301,9 +1305,11 @@ void NoteEditorPrivate::noteToEditorContent()
     }
 
     m_htmlCachedMemory.resize(0);
-    bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory, m_errorCachedMemory,
-                                                 m_decryptedTextManager, m_lastFreeEnToDoIdNumber,
-                                                 m_lastFreeHyperlinkIdNumber
+
+    ENMLConverter::NoteContentToHtmlExtraData extraData;
+    bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory,
+                                                 m_errorCachedMemory, m_decryptedTextManager,
+                                                 extraData
 #ifndef USE_QT_WEB_ENGINE
                                                  , m_pluginFactory
 #endif
@@ -1314,6 +1320,11 @@ void NoteEditorPrivate::noteToEditorContent()
         clearEditorContent();
         return;
     }
+
+    m_lastFreeEnToDoIdNumber = extraData.m_numEnToDoNodes + 1;
+    m_lastFreeHyperlinkIdNumber = extraData.m_numHyperlinkNodes + 1;
+    m_lastFreeEnCryptIdNumber = extraData.m_numEnCryptNodes + 1;
+    m_lastFreeEnDecryptedIdNumber = extraData.m_numEnDecryptedNodes + 1;
 
     int bodyTagIndex = m_htmlCachedMemory.indexOf("<body>");
     if (bodyTagIndex < 0) {

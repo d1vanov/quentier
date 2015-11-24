@@ -610,8 +610,10 @@ private:
     CurrentContextMenuExtraData     m_currentContextMenuExtraData;
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
-    quint64      m_lastFreeEnToDoIdNumber;
-    quint64      m_lastFreeHyperlinkIdNumber;
+    quint64     m_lastFreeEnToDoIdNumber;
+    quint64     m_lastFreeHyperlinkIdNumber;
+    quint64     m_lastFreeEnCryptIdNumber;
+    quint64     m_lastFreeEnDecryptedIdNumber;
 
     LimitedStack<NoteEditorPage*>    m_pagesStack;
     quint32      m_lastNoteEditorPageFreeIndex;

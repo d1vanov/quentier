@@ -28,9 +28,10 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
     return d->htmlToNoteContent(html, noteContent, decryptedTextManager, errorDescription);
 }
 
-bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
+bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html,
+                                      QString & errorDescription,
                                       DecryptedTextManager & decryptedTextManager,
-                                      quint64 & lastFreeEnToDoIdNumber, quint64 & lastFreeHyperlinkIdNumber
+                                      NoteContentToHtmlExtraData & extraData
 #ifndef USE_QT_WEB_ENGINE
                                       , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -39,8 +40,7 @@ bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & htm
     QNDEBUG("ENMLConverter::noteContentToHtml");
 
     Q_D(const ENMLConverter);
-    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager,
-                                lastFreeEnToDoIdNumber, lastFreeHyperlinkIdNumber
+    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager, extraData
 #ifndef USE_QT_WEB_ENGINE
                                 , pluginFactory
 #endif
@@ -76,15 +76,18 @@ QString ENMLConverter::toDoCheckboxHtml(const bool checked, const quint64 idNumb
 }
 
 QString ENMLConverter::encryptedTextHtml(const QString & encryptedText, const QString & hint,
-                                         const QString & cipher, const size_t keyLength)
+                                         const QString & cipher, const size_t keyLength,
+                                         const quint64 enCryptIndex)
 {
-    return ENMLConverterPrivate::encryptedTextHtml(encryptedText, hint, cipher, keyLength);
+    return ENMLConverterPrivate::encryptedTextHtml(encryptedText, hint, cipher, keyLength, enCryptIndex);
 }
 
 QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
-                                         const QString & hint, const QString & cipher, const size_t keyLength)
+                                         const QString & hint, const QString & cipher,
+                                         const size_t keyLength, const quint64 enDecryptedIndex)
 {
-    return ENMLConverterPrivate::decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength);
+    return ENMLConverterPrivate::decryptedTextHtml(decryptedText, encryptedText,
+                                                   hint, cipher, keyLength, enDecryptedIndex);
 }
 
 void ENMLConverter::escapeString(QString & string)

@@ -54,7 +54,9 @@ ENMLConverterPrivate::~ENMLConverterPrivate()
     delete m_pHtmlCleaner;
 }
 
-bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & noteContent, DecryptedTextManager &decryptedTextManager, QString & errorDescription) const
+bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & noteContent,
+                                             DecryptedTextManager & decryptedTextManager,
+                                             QString & errorDescription) const
 {
     QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: " << html);
 
@@ -347,7 +349,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QString & html,
                                              QString & errorDescription,
                                              DecryptedTextManager & decryptedTextManager,
-                                             quint64 & lastFreeEnToDoIdNumber, quint64 & lastFreeHyperlinkIdNumber
+                                             NoteContentToHtmlExtraData & extraData
 #ifndef USE_QT_WEB_ENGINE
                                              , const NoteEditorPluginFactory * pluginFactory
 #endif
@@ -355,8 +357,10 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: " << noteContent);
 
-    lastFreeEnToDoIdNumber = 1;
-    lastFreeHyperlinkIdNumber = 1;
+    extraData.m_numEnToDoNodes = 0;
+    extraData.m_numHyperlinkNodes = 0;
+    extraData.m_numEnCryptNodes = 0;
+    extraData.m_numEnDecryptedNodes = 0;
 
     html.resize(0);
     errorDescription.resize(0);
@@ -419,12 +423,16 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             }
             else if (lastElementName == "en-todo")
             {
-                toDoTagsToHtml(reader, writer, lastFreeEnToDoIdNumber);
+                quint64 enToDoIndex = extraData.m_numEnToDoNodes + 1;
+                toDoTagsToHtml(reader, enToDoIndex, writer);
+                ++extraData.m_numEnToDoNodes;
                 continue;
             }
             else if (lastElementName == "a")
             {
-                lastElementAttributes.append("en-hyperlink-id", QString::number(lastFreeHyperlinkIdNumber++));
+                quint64 hyperlinkIndex = extraData.m_numHyperlinkNodes + 1;
+                lastElementAttributes.append("en-hyperlink-id", QString::number(hyperlinkIndex));
+                ++extraData.m_numHyperlinkNodes;
             }
 
             // NOTE: do not attempt to process en-todo tags here, it would be done below
@@ -437,8 +445,23 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
 
         if ((writeElementCounter > 0) && reader.isCharacters())
         {
-            if (insideEnCryptTag) {
-                encryptedTextToHtml(lastElementAttributes, reader.text(), writer, decryptedTextManager);
+            if (insideEnCryptTag)
+            {
+                quint64 enCryptIndex = extraData.m_numEnCryptNodes + 1;
+                quint64 enDecryptedIndex = extraData.m_numEnDecryptedNodes + 1;
+                bool convertedToEnCryptNode = false;
+
+                encryptedTextToHtml(lastElementAttributes, reader.text(), enCryptIndex,
+                                    enDecryptedIndex, writer, decryptedTextManager,
+                                    convertedToEnCryptNode);
+
+                if (convertedToEnCryptNode) {
+                    ++extraData.m_numEnCryptNodes;
+                }
+                else {
+                    ++extraData.m_numEnDecryptedNodes;
+                }
+
                 insideEnCryptTag = false;
                 continue;
             }
@@ -629,7 +652,8 @@ QString ENMLConverterPrivate::toDoCheckboxHtml(const bool checked, const quint64
 }
 
 QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, const QString & hint,
-                                                const QString & cipher, const size_t keyLength)
+                                                const QString & cipher, const size_t keyLength,
+                                                const quint64 enCryptIndex)
 {
     QString encryptedTextHtmlObject;
 
@@ -644,6 +668,8 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
     encryptedTextHtmlObject += QString::number(keyLength);
     encryptedTextHtmlObject += "\" class=\"en-crypt hvr-border-color\" encrypted_text=\"";
     encryptedTextHtmlObject += encryptedText;
+    encryptedTextHtmlObject += "\" en-crypt-id=\"";
+    encryptedTextHtmlObject += QString::number(enCryptIndex);
     encryptedTextHtmlObject += "\" ";
 
     if (!hint.isEmpty())
@@ -667,11 +693,12 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
 }
 
 QString ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
-                                                const QString & hint, const QString & cipher, const size_t keyLength)
+                                                const QString & hint, const QString & cipher,
+                                                const size_t keyLength, const quint64 enDecryptedIndex)
 {
     QString result;
     QXmlStreamWriter writer(&result);
-    decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength, writer);
+    decryptedTextHtml(decryptedText, encryptedText, hint, cipher, keyLength, enDecryptedIndex, writer);
     writer.writeEndElement();
     return result;
 }
@@ -742,8 +769,8 @@ bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName)
 }
 
 void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader,
-                                          QXmlStreamWriter & writer,
-                                          quint64 & lastFreeEnToDoIdNumber) const
+                                          const quint64 enToDoIndex,
+                                          QXmlStreamWriter & writer) const
 {
     QNDEBUG("ENMLConverterPrivate::toDoTagsToHtml");
 
@@ -764,16 +791,20 @@ void ENMLConverterPrivate::toDoTagsToHtml(const QXmlStreamReader & reader,
     attributes.append("src", QString("qrc:/checkbox_icons/checkbox_") + QString(checked ? "yes" : "no") + QString(".png"));
     attributes.append("class", QString("checkbox_") + QString(checked ? "checked" : "unchecked"));
     attributes.append("en-tag", "en-todo");
-    attributes.append("en-todo-id", QString::number(lastFreeEnToDoIdNumber++));
+    attributes.append("en-todo-id", QString::number(enToDoIndex));
     writer.writeAttributes(attributes);
 }
 
 bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
                                                const QStringRef & encryptedTextCharacters,
+                                               const quint64 enCryptIndex, const quint64 enDecryptedIndex,
                                                QXmlStreamWriter & writer,
-                                               DecryptedTextManager & decryptedTextManager) const
+                                               DecryptedTextManager & decryptedTextManager,
+                                               bool & convertedToEnCryptNode) const
 {
-    QNDEBUG("ENMLConverterPrivate::encryptedTextToHtml: encrypted text = " << encryptedTextCharacters);
+    QNDEBUG("ENMLConverterPrivate::encryptedTextToHtml: encrypted text = "
+            << encryptedTextCharacters << ", en-crypt index = " << enCryptIndex
+            << ", en-decrypted index = " << enDecryptedIndex);
 
     QString cipher;
     if (enCryptAttributes.hasAttribute("cipher")) {
@@ -810,9 +841,13 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
             }
         }
 
-        decryptedTextHtml(decryptedText, encryptedTextCharacters.toString(), hint, cipher, keyLength, writer);
+        decryptedTextHtml(decryptedText, encryptedTextCharacters.toString(), hint,
+                          cipher, keyLength, enDecryptedIndex, writer);
+        convertedToEnCryptNode = false;
         return true;
     }
+
+    convertedToEnCryptNode = true;
 
 #ifndef USE_QT_WEB_ENGINE
     writer.writeStartElement("object");
@@ -839,6 +874,8 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
     writer.writeAttribute("encrypted_text", encryptedTextCharacters.toString());
     QNTRACE("Wrote element corresponding to en-crypt ENML tag");
+
+    writer.writeAttribute("en-crypt-id", QString::number(enCryptIndex));
 
 #ifndef USE_QT_WEB_ENGINE
     // Required for webkit, otherwise it can't seem to handle self-enclosing object tag properly
@@ -1043,12 +1080,15 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
     return true;
 }
 
-void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText, const QString & hint,
-                                             const QString & cipher, const size_t keyLength, QXmlStreamWriter & writer)
+void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, const QString & encryptedText,
+                                             const QString & hint, const QString & cipher,
+                                             const size_t keyLength, const quint64 enDecryptedIndex,
+                                             QXmlStreamWriter & writer)
 {
     writer.writeStartElement("div");
     writer.writeAttribute("en-tag", "en-decrypted");
     writer.writeAttribute("encrypted_text", encryptedText);
+    writer.writeAttribute("en-decrypted-id", QString::number(enDecryptedIndex));
     writer.writeAttribute("class", "en-decrypted hvr-border-color");
 
     if (!cipher.isEmpty()) {
