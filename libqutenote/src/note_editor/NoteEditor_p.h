@@ -111,6 +111,8 @@ public:
 
     void skipPushingUndoCommandOnNextContentChange();
 
+    void undoLastEncryption();
+
 Q_SIGNALS:
     void noteEditorHtmlUpdated(QString html);
 
@@ -614,6 +616,8 @@ private:
     quint64     m_lastFreeHyperlinkIdNumber;
     quint64     m_lastFreeEnCryptIdNumber;
     quint64     m_lastFreeEnDecryptedIdNumber;
+
+    QString     m_lastEncryptedText;
 
     LimitedStack<NoteEditorPage*>    m_pagesStack;
     quint32      m_lastNoteEditorPageFreeIndex;

@@ -196,6 +196,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_lastFreeHyperlinkIdNumber(1),
     m_lastFreeEnCryptIdNumber(1),
     m_lastFreeEnDecryptedIdNumber(1),
+    m_lastEncryptedText(),
     m_pagesStack(&NoteEditorPageDeleter),
     m_lastNoteEditorPageFreeIndex(0),
     q_ptr(&noteEditor)
@@ -1130,6 +1131,42 @@ void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange()
     m_skipPushingUndoCommandOnNextContentChange = true;
 }
 
+void NoteEditorPrivate::undoLastEncryption()
+{
+    QNDEBUG("NoteEditorPrivate::undoLastEncryption");
+
+    if (m_lastFreeEnCryptIdNumber == 1) {
+        QNWARNING("Detected attempt to undo last encryption even though "
+                  "there're no encrypted text nodes within the current node");
+        return;
+    }
+
+    if (Q_UNLIKELY(m_lastEncryptedText.isEmpty())) {
+        QNWARNING("Detected attempt to undo last encryption even though "
+                  "last encrypted text is empty");
+        return;
+    }
+
+    QString decryptedText;
+    bool rememberForSession;
+    bool found = m_decryptedTextManager.findDecryptedTextByEncryptedText(m_lastEncryptedText,
+                                                                         decryptedText,
+                                                                         rememberForSession);
+    if (!found) {
+        QString error = QT_TR_NOOP("Can't undo last encryption: can't find corresponding decrypted text");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_decryptedTextManager.removeEntry(m_lastEncryptedText);
+
+    QString javascript = "decryptEncryptedTextPermanently('" + m_lastEncryptedText + "', '" +
+                         decryptedText + "', " + QString::number(m_lastFreeEnCryptIdNumber - 1) + ");";
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+}
+
 void NoteEditorPrivate::changeFontSize(const bool increase)
 {
     QNDEBUG("NoteEditorPrivate::changeFontSize: increase = " << (increase ? "true" : "false"));
@@ -1219,6 +1256,7 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
             << encryptedText << ", hint = " << hint << ", rememberForSession = " << (rememberForSession ? "true" : "false"));
 
     Q_UNUSED(selectedText);
+    m_lastEncryptedText = encryptedText;
 
     QString encryptedTextHtmlObject = (rememberForSession
                                        ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, "AES", 128, m_lastFreeEnDecryptedIdNumber++)
@@ -1281,6 +1319,8 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastFreeEnCryptIdNumber = 1;
     m_lastFreeEnDecryptedIdNumber = 1;
 
+    m_lastEncryptedText.resize(0);
+
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
@@ -1325,6 +1365,8 @@ void NoteEditorPrivate::noteToEditorContent()
     m_lastFreeHyperlinkIdNumber = extraData.m_numHyperlinkNodes + 1;
     m_lastFreeEnCryptIdNumber = extraData.m_numEnCryptNodes + 1;
     m_lastFreeEnDecryptedIdNumber = extraData.m_numEnDecryptedNodes + 1;
+
+    m_lastEncryptedText.resize(0);
 
     int bodyTagIndex = m_htmlCachedMemory.indexOf("<body>");
     if (bodyTagIndex < 0) {
@@ -3690,7 +3732,7 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLeng
 
         GET_PAGE();
         QString javascript = "decryptEncryptedTextPermanently('" + encryptedText +
-                             "', '" + decryptedText + "');";
+                             "', '" + decryptedText + "', 0);";
         QNTRACE("script: " << javascript);
         page->executeJavaScript(javascript);
 

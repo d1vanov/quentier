@@ -684,7 +684,7 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
     }
 
 #ifdef USE_QT_WEB_ENGINE
-    encryptedTextHtmlObject += ">";
+    encryptedTextHtmlObject += " />";
 #else
     encryptedTextHtmlObject += ">some fake characters to prevent self-enclosing html tag confusing webkit</object>";
 #endif

@@ -39,15 +39,15 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
 
-    void onOriginalPageHtmlReceived(const QString & html);
     void onOriginalPageModified();
-    void onModifiedPageHtmlReceived(const QString & html);
-    void onModifiedNoteReceived(Note note);
+    void onOriginalPageModificationUndone();
 
+    void onModifiedPageHtmlReceived(const QString & html);
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void onModifiedPageLoaded();
 
 private:
-    void requestOriginalPageHtml();
+    void encryptSelectedText();
 
 private:
     NoteEditorPrivate &     m_noteEditor;
@@ -71,9 +71,8 @@ private:
         Method                          m_method;
     };
 
-    QString                 m_originalHtml;
-    QString                 m_originalPageFilePath;
-    QUuid                   m_writeOriginalHtmlToPageSourceRequestId;
+    QString                 m_modifiedHtml;
+    QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
 };
 
 } // namespace qute_note
