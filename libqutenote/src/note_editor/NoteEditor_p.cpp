@@ -172,6 +172,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
+    m_skipRulesForHtmlToEnmlConversion(),
     m_pIOThread(Q_NULLPTR),
     m_pResourceFileStorageManager(Q_NULLPTR),
     m_pFileIOThreadWorker(Q_NULLPTR),
@@ -205,6 +206,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_noteEditorPageFolderPath = applicationPersistentStoragePath() + "/NoteEditorPage";
     m_noteEditorImageResourcesStoragePath = m_noteEditorPageFolderPath + "/imageResources";
 
+    setupSkipRulesForHtmlToEnmlConversion();
     setupFileIO();
 
 #ifdef USE_QT_WEB_ENGINE
@@ -2539,6 +2541,18 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
 
 }
 
+void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
+{
+    QNDEBUG("NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion");
+
+    ENMLConverter::SkipHtmlElementRule skipRule;
+    skipRule.m_attributeValueToSkip = "JCLRgrip";
+    skipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::StartsWith;
+    skipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+
+    m_skipRulesForHtmlToEnmlConversion << skipRule;
+}
+
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
 {
     QNDEBUG("NoteEditorPrivate::determineStatesForCurrentTextCursorPosition");
@@ -2608,7 +2622,8 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
     m_enmlCachedMemory.resize(0);
     m_errorCachedMemory.resize(0);
     bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory,
-                                                 m_decryptedTextManager, m_errorCachedMemory);
+                                                 m_decryptedTextManager, m_errorCachedMemory,
+                                                 m_skipRulesForHtmlToEnmlConversion);
     if (!res)
     {
         m_errorCachedMemory = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + m_errorCachedMemory;

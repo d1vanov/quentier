@@ -26,11 +26,15 @@ public:
     ~ENMLConverterPrivate();
 
     typedef ENMLConverter::NoteContentToHtmlExtraData NoteContentToHtmlExtraData;
+    typedef ENMLConverter::SkipHtmlElementRule SkipHtmlElementRule;
 
-    bool htmlToNoteContent(const QString & html, QString & noteContent,
+    bool htmlToNoteContent(const QString & html,
+                           const QVector<SkipHtmlElementRule> & skipRules,
+                           QString & noteContent,
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription) const;
-    bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
+    bool noteContentToHtml(const QString & noteContent, QString & html,
+                           QString & errorDescription,
                            DecryptedTextManager & decryptedTextManager,
                            NoteContentToHtmlExtraData & extraData
 #ifndef USE_QT_WEB_ENGINE
@@ -91,6 +95,10 @@ private:
                                   const QString & hint, const QString & cipher, const size_t keyLength, const quint64 enDecryptedIndex,
                                   QXmlStreamWriter & writer);
 
+    bool shouldSkipElement(const QString &elementName,
+                           const QXmlStreamAttributes & attributes,
+                           const QVector<SkipHtmlElementRule> & skipRules) const;
+
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)
 
@@ -100,5 +108,8 @@ private:
 };
 
 } // namespace qute_note
+
+__QUTE_NOTE_DECLARE_PRINTABLE(QXmlStreamAttributes)
+__QUTE_NOTE_DECLARE_PRINTABLE(QVector<qute_note::ENMLConverter::SkipHtmlElementRule>)
 
 #endif // __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H

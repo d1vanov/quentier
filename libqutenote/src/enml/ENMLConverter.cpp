@@ -20,12 +20,13 @@ ENMLConverter::~ENMLConverter()
 
 bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteContent,
                                       DecryptedTextManager & decryptedTextManager,
-                                      QString & errorDescription) const
+                                      QString & errorDescription,
+                                      const QVector<SkipHtmlElementRule> & skipRules) const
 {
     QNDEBUG("ENMLConverter::htmlToNoteContent");
 
     Q_D(const ENMLConverter);
-    return d->htmlToNoteContent(html, noteContent, decryptedTextManager, errorDescription);
+    return d->htmlToNoteContent(html, skipRules, noteContent, decryptedTextManager, errorDescription);
 }
 
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html,
@@ -93,6 +94,53 @@ QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QS
 void ENMLConverter::escapeString(QString & string)
 {
     ENMLConverterPrivate::escapeString(string);
+}
+
+QTextStream & ENMLConverter::SkipHtmlElementRule::Print(QTextStream & strm) const
+{
+#define PRINT_COMPARISON_RULE(rule) \
+    switch(rule) \
+    { \
+        case Equals: \
+            strm << "Equals"; \
+            break; \
+        case StartsWith: \
+            strm << "Starts with"; \
+            break; \
+        case EndsWith: \
+            strm << "Ends with"; \
+            break; \
+        default: \
+            strm << "unknown"; \
+            break; \
+    }
+
+    strm << "SkipHtmlElementRule: {\n";
+    strm << "  element name to skip = " << m_elementNameToSkip
+         << ", rule: ";
+    PRINT_COMPARISON_RULE(m_elementNameComparisonRule)
+    strm << ", case " << (m_elementNameCaseSensitivity == Qt::CaseSensitive
+                          ? "sensitive"
+                          : "insensitive");
+    strm << "\n";
+
+    strm << "  attribute name to skip = " << m_attributeNameToSkip
+         << ", rule: ";
+    PRINT_COMPARISON_RULE(m_attributeNameComparisonRule)
+    strm << ", case " << (m_attributeNameCaseSensitivity == Qt::CaseSensitive
+                          ? "sensitive"
+                          : "insensitive");
+    strm << "\n";
+
+    strm << "  attribute value to skip = " << m_attributeValueToSkip
+         << ", rule: ";
+    PRINT_COMPARISON_RULE(m_attributeValueComparisonRule)
+    strm << ", case " << (m_attributeValueCaseSensitivity == Qt::CaseSensitive
+                          ? "sensitive"
+                          : "insensitive");
+    strm << "\n}\n";
+
+    return strm;
 }
 
 } // namespace qute_note

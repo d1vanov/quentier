@@ -32,9 +32,6 @@ protected:
     Printable();
     Printable(const Printable & other);
     virtual ~Printable();
-
-private:
-    Printable & operator=(const Printable & other) Q_DECL_DELETE;
 };
 
 } // namespace qute_note

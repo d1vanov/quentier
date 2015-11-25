@@ -348,6 +348,7 @@ private:
     void setupNoteEditorPage();
     void setupNoteEditorPageConnections(NoteEditorPage * page);
     void setupTextCursorPositionJavaScriptHandlerConnections();
+    void setupSkipRulesForHtmlToEnmlConversion();
 
     void determineStatesForCurrentTextCursorPosition();
     void determineContextMenuEventTarget();
@@ -581,6 +582,8 @@ private:
     QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
     QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions
     QString     m_errorCachedMemory;  // Cached memory for various errors
+
+    QVector<ENMLConverter::SkipHtmlElementRule>     m_skipRulesForHtmlToEnmlConversion;
 
     QThread *   m_pIOThread;
     ResourceFileStorageManager *    m_pResourceFileStorageManager;

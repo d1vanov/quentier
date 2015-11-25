@@ -54,11 +54,14 @@ ENMLConverterPrivate::~ENMLConverterPrivate()
     delete m_pHtmlCleaner;
 }
 
-bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & noteContent,
+bool ENMLConverterPrivate::htmlToNoteContent(const QString & html,
+                                             const QVector<SkipHtmlElementRule> & skipRules,
+                                             QString & noteContent,
                                              DecryptedTextManager & decryptedTextManager,
                                              QString & errorDescription) const
 {
-    QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: " << html);
+    QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: " << html
+            << "\nskip element rules: " << skipRules);
 
     if (!m_pHtmlCleaner) {
         m_pHtmlCleaner = new HTMLCleaner;
@@ -91,6 +94,8 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
     bool insideEnMediaElement = false;
     QXmlStreamAttributes enMediaAttributes;
 
+    size_t  skippedElementNestingCounter = 0;
+
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
@@ -109,6 +114,12 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
         if (reader.isStartElement())
         {
+            if (skippedElementNestingCounter) {
+                QNTRACE("Skipping everyting inside element skipped by the rules");
+                ++skippedElementNestingCounter;
+                continue;
+            }
+
             lastElementName = reader.name().toString();
             if (lastElementName == "form") {
                 QNTRACE("Skipping <form> tag");
@@ -146,14 +157,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
             lastElementAttributes = reader.attributes();
 
-            // WARNING: hack to make ENML conversion work nicely along with colResizable jQuery plugin
-            if (lastElementName == "div" && lastElementAttributes.hasAttribute("class"))
-            {
-                QStringRef divClass = lastElementAttributes.value("class");
-                if (divClass.startsWith("JCLRgrip") || divClass.startsWith("JColResizer")) {
-                    QNTRACE("Skipping colResizable's helper div");
-                    continue;
-                }
+            bool shouldSkip = shouldSkipElement(lastElementName, lastElementAttributes, skipRules);
+            if (shouldSkip) {
+                QNTRACE("Skipping element " << lastElementName << " per skip rules");
+                ++skippedElementNestingCounter;
+                continue;
             }
 
             if ( ((lastElementName == "img") || (lastElementName == "object") || (lastElementName == "div")) &&
@@ -285,6 +293,10 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
 
         if ((writeElementCounter > 0) && reader.isCharacters())
         {
+            if (skippedElementNestingCounter) {
+                continue;
+            }
+
             if (insideEnMediaElement) {
                 continue;
             }
@@ -305,8 +317,17 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, QString & not
             }
         }
 
-        if ((writeElementCounter > 0) && reader.isEndElement())
+        if (reader.isEndElement())
         {
+            if (skippedElementNestingCounter) {
+                --skippedElementNestingCounter;
+                continue;
+            }
+
+            if (writeElementCounter <= 0) {
+                continue;
+            }
+
             if (insideEnMediaElement) {
                 insideEnMediaElement = false;
             }
@@ -1160,5 +1181,174 @@ void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, cons
     }
 }
 
+bool ENMLConverterPrivate::shouldSkipElement(const QString & elementName,
+                                             const QXmlStreamAttributes & attributes,
+                                             const QVector<SkipHtmlElementRule> & skipRules) const
+{
+    QNDEBUG("ENMLConverterPrivate::shouldSkipElement: element name = " << elementName
+            << ", attributes = " << attributes);
+
+    if (skipRules.isEmpty()) {
+        return false;
+    }
+
+    const int numAttributes = attributes.size();
+
+    const int numSkipRules = skipRules.size();
+    for(int i = 0; i < numSkipRules; ++i)
+    {
+        const SkipHtmlElementRule & rule = skipRules[i];
+
+        if (!rule.m_elementNameToSkip.isEmpty())
+        {
+            bool shouldSkip = false;
+
+            switch(rule.m_elementNameComparisonRule)
+            {
+            case SkipHtmlElementRule::Equals:
+            {
+                if (rule.m_elementNameCaseSensitivity == Qt::CaseSensitive) {
+                    shouldSkip = (elementName == rule.m_elementNameToSkip);
+                }
+                else {
+                    shouldSkip = (elementName.toUpper() == rule.m_elementNameToSkip.toUpper());
+                }
+                break;
+            }
+            case SkipHtmlElementRule::StartsWith:
+                shouldSkip = elementName.startsWith(rule.m_elementNameToSkip, rule.m_elementNameCaseSensitivity);
+                break;
+            case SkipHtmlElementRule::EndsWith:
+                shouldSkip = elementName.endsWith(rule.m_elementNameToSkip, rule.m_elementNameCaseSensitivity);
+                break;
+            default:
+                QNWARNING("Detected unhandled SkipHtmlElementRule::ComparisonRule");
+                break;
+            }
+
+            if (shouldSkip) {
+                return true;
+            }
+        }
+
+        if (!rule.m_attributeNameToSkip.isEmpty())
+        {
+            for(int j = 0; j < numAttributes; ++j)
+            {
+                bool shouldSkip = false;
+
+                const QXmlStreamAttribute & attribute = attributes[j];
+
+                switch(rule.m_attributeNameComparisonRule)
+                {
+                case SkipHtmlElementRule::Equals:
+                {
+                    if (rule.m_attributeNameCaseSensitivity == Qt::CaseSensitive) {
+                        shouldSkip = (attribute.name() == rule.m_attributeNameToSkip);
+                    }
+                    else {
+                        shouldSkip = (attribute.name().toString().toUpper() == rule.m_attributeNameToSkip.toUpper());
+                    }
+                    break;
+                }
+                case SkipHtmlElementRule::StartsWith:
+                    shouldSkip = attribute.name().startsWith(rule.m_attributeNameToSkip, rule.m_attributeNameCaseSensitivity);
+                    break;
+                case SkipHtmlElementRule::EndsWith:
+                    shouldSkip = attribute.name().endsWith(rule.m_attributeNameToSkip, rule.m_attributeNameCaseSensitivity);
+                    break;
+                default:
+                    QNWARNING("Detected unhandled SkipHtmlElementRule::ComparisonRule");
+                    break;
+                }
+
+                if (shouldSkip) {
+                    return true;
+                }
+            }
+        }
+
+        if (!rule.m_attributeValueToSkip.isEmpty())
+        {
+            for(int j = 0; j < numAttributes; ++j)
+            {
+                bool shouldSkip = false;
+
+                const QXmlStreamAttribute & attribute = attributes[j];
+
+                switch(rule.m_attributeValueComparisonRule)
+                {
+                case SkipHtmlElementRule::Equals:
+                {
+                    if (rule.m_attributeValueCaseSensitivity == Qt::CaseSensitive) {
+                        shouldSkip = (attribute.value() == rule.m_attributeValueToSkip);
+                    }
+                    else {
+                        shouldSkip = (attribute.value().toString().toUpper() == rule.m_attributeValueToSkip.toUpper());
+                    }
+                    break;
+                }
+                case SkipHtmlElementRule::StartsWith:
+                    shouldSkip = attribute.value().startsWith(rule.m_attributeValueToSkip, rule.m_attributeValueCaseSensitivity);
+                    break;
+                case SkipHtmlElementRule::EndsWith:
+                    shouldSkip = attribute.value().endsWith(rule.m_attributeValueToSkip, rule.m_attributeValueCaseSensitivity);
+                    break;
+                default:
+                    QNWARNING("Detected unhandled SkipHtmlElementRule::ComparisonRule");
+                    break;
+                }
+
+                if (shouldSkip) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
 } // namespace qute_note
 
+QTextStream & operator<<(QTextStream & strm, const QXmlStreamAttributes & attributes)
+{
+    const int numAttributes = attributes.size();
+
+    strm << "QXmlStreamAttributes(" << numAttributes << "): {\n";
+
+    for(int i = 0; i < numAttributes; ++i) {
+        const QXmlStreamAttribute & attribute = attributes[i];
+        strm << "  [" << i << "]: name = " << attribute.name().toString()
+             << ", value = " << attribute.value().toString() << "\n";
+    }
+
+    strm << "}\n";
+
+    return strm;
+}
+
+QTextStream & operator<<(QTextStream & strm, const QVector<qute_note::ENMLConverter::SkipHtmlElementRule> & rules)
+{
+    strm << "SkipHtmlElementRules";
+
+    if (rules.isEmpty()) {
+        strm << ": <empty>";
+        return strm;
+    }
+
+    const int numRules = rules.size();
+
+    strm << "(" << numRules << "): {\n";
+
+    typedef qute_note::ENMLConverter::SkipHtmlElementRule SkipHtmlElementRule;
+
+    for(int i = 0; i < numRules; ++i) {
+        const SkipHtmlElementRule & rule = rules[i];
+        strm << " [" << i << "]: " << rule << "\n";
+    }
+
+    strm << "}\n";
+
+    return strm;
+}
