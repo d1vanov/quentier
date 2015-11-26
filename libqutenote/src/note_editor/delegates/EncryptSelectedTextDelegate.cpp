@@ -87,6 +87,7 @@ void EncryptSelectedTextDelegate::onModifiedPageHtmlReceived(const QString & htm
     // and set this modified HTML there
 
     m_modifiedHtml = html;
+    m_noteEditor.setNotePageHtmlAfterEncryption(m_modifiedHtml);
 
     QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModificationUndone));

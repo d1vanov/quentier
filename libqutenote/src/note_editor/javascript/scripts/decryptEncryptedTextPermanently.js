@@ -4,7 +4,7 @@ function decryptEncryptedTextPermanently(encryptedText, decryptedText, enCryptIn
     if (enCryptIndex) {
         console.log("Removing encrypted text with index " + enCryptIndex);
         var elements = document.querySelectorAll("[encrypted_text='" + encryptedText +
-                                                 "',en-crypt-id=" + enCryptIndex + "]");
+                                                 "'][en-crypt-id='" + enCryptIndex + "']");
         var numElements = elements.length;
         if (numElements !== 1) {
             console.error("Unexpected number of found en-crypt tags: " + numElements);

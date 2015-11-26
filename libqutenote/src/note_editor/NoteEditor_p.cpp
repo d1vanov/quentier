@@ -1036,14 +1036,6 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
     m_pPreliminaryUndoCommandQueue->push(new NoteEditorContentEditUndoCommand(*this, resources));
 }
 
-void NoteEditorPrivate::pushEncryptUndoCommand()
-{
-    QNDEBUG("NoteEditorPrivate::pushEncryptUndoCommand");
-
-    m_pPreliminaryUndoCommandQueue->push(new EncryptUndoCommand(*this));
-    QNTRACE("Pushed EncryptUndoCommand to the undo stack");
-}
-
 void NoteEditorPrivate::pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
                                                const QString & encryptedText, const QString & decryptedText,
                                                const QString & passphrase, const bool rememberForSession,
@@ -1133,6 +1125,16 @@ void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange()
     m_skipPushingUndoCommandOnNextContentChange = true;
 }
 
+void NoteEditorPrivate::setNotePageHtmlAfterEncryption(const QString & html)
+{
+    QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterEncryption");
+
+    EncryptUndoCommand * pCommand = new EncryptUndoCommand(*this);
+    pCommand->setHtmlWithEncryption(html);
+    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    QNTRACE("Pushed EncryptUndoCommand to the undo stack");
+}
+
 void NoteEditorPrivate::undoLastEncryption()
 {
     QNDEBUG("NoteEditorPrivate::undoLastEncryption");
@@ -1162,6 +1164,8 @@ void NoteEditorPrivate::undoLastEncryption()
     }
 
     m_decryptedTextManager.removeEntry(m_lastEncryptedText);
+
+    skipPushingUndoCommandOnNextContentChange();
 
     QString javascript = "decryptEncryptedTextPermanently('" + m_lastEncryptedText + "', '" +
                          decryptedText + "', " + QString::number(m_lastFreeEnCryptIdNumber - 1) + ");";
@@ -2641,68 +2645,6 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
     emit convertedToNote(*m_pNote);
 }
 
-void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
-                                                                const QVector<QPair<QString, QString> > & extraData)
-{
-    QNDEBUG("NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived");
-
-    QString selectedHtml = selectedHtmlData.toString();
-
-    if (selectedHtml.isEmpty()) {
-        QNDEBUG("Note editor page has no selected text, nothing to encrypt");
-        return;
-    }
-
-    QString passphrase;
-    QString hint;
-    bool rememberForSession = false;
-
-    typedef QVector<QPair<QString,QString> >::const_iterator CIter;
-    CIter extraDataEnd = extraData.constEnd();
-    for(CIter it = extraData.constBegin(); it != extraDataEnd; ++it)
-    {
-        const QPair<QString,QString> & itemPair = *it;
-        if (itemPair.first == "passphrase") {
-            passphrase = itemPair.second;
-        }
-        else if (itemPair.first == "hint") {
-            hint = itemPair.second;
-        }
-        else if (itemPair.first == "rememberForSession") {
-            rememberForSession = (itemPair.second == "true");
-        }
-    }
-
-    if (passphrase.isEmpty()) {
-        m_errorCachedMemory = QT_TR_NOOP("Internal error: passphrase was either not found within extra data "
-                                         "passed along with the selected HTML for encryption or it was passed but is empty");
-        QNWARNING(m_errorCachedMemory << ", extra data: " << extraData);
-        emit notifyError(m_errorCachedMemory);
-        return;
-    }
-
-    QUTE_NOTE_CHECK_PTR(m_pPreliminaryUndoCommandQueue,
-                        "Preliminary undo command queue for note editor wasn't initialized");
-
-    QString error;
-    QString encryptedText;
-    QString cipher = "AES";
-    size_t keyLength = 128;
-    bool res = m_encryptionManager->encrypt(selectedHtml, passphrase, cipher, keyLength,
-                                            encryptedText, error);
-    if (!res) {
-        error.prepend(QT_TR_NOOP("Can't encrypt selected text: "));
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    // FIXME: add entry to decrypted text cache
-
-    pushEncryptUndoCommand();
-    replaceSelectedTextWithEncryptedOrDecryptedText(selectedHtml, encryptedText, hint, rememberForSession);
-}
-
 void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData)
 {
     QNDEBUG("NoteEditorPrivate::onSelectedTextEncryptionDone");
@@ -3647,8 +3589,6 @@ void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
     if (pCancelled) {
         *pCancelled = (res == QDialog::Rejected);
     }
-
-    pushEncryptUndoCommand();
 
     m_lastSelectedHtmlForEncryption.resize(0);
     QNTRACE("Executed encryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));

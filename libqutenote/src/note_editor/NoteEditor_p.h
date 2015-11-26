@@ -111,6 +111,7 @@ public:
 
     void skipPushingUndoCommandOnNextContentChange();
 
+    void setNotePageHtmlAfterEncryption(const QString & html);
     void undoLastEncryption();
 
 Q_SIGNALS:
@@ -289,7 +290,6 @@ private:
 private:
     // Helper methods for undo stack
     void pushNoteContentEditUndoCommand();
-    void pushEncryptUndoCommand();
     void pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
                                 const QString & encryptedText, const QString & decryptedText,
                                 const QString & passphrase, const bool rememberForSession,
@@ -359,8 +359,6 @@ private:
     bool checkContextMenuSequenceNumber(const quint64 sequenceNumber) const;
 
     void onPageHtmlReceived(const QString & html, const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >());
-    void onPageSelectedHtmlForEncryptionReceived(const QVariant & selectedHtmlData,
-                                                 const QVector<QPair<QString,QString> > & extraData);
     void onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 
     int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
