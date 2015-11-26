@@ -260,7 +260,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     GET_PAGE()
 
     page->executeJavaScript(m_jQueryJs);
-    page->executeJavaScript(m_pageMutationObserverJs);
 
 #ifndef USE_QT_WEB_ENGINE
     QWebFrame * frame = page->mainFrame();
@@ -320,14 +319,11 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     setupGenericResourceImages();
 #endif
 
-    QNTRACE("Evaluated all JavaScript helper functions");
+    // NOTE: executing page mutation observer's script last
+    // so that it doesn't catch the mutations originating from the above scripts
+    page->executeJavaScript(m_pageMutationObserverJs);
 
-#ifndef USE_QT_WEB_ENGINE
-    m_htmlCachedMemory = page->mainFrame()->toHtml();
-    onPageHtmlReceived(m_htmlCachedMemory);
-#else
-    page->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
-#endif
+    QNTRACE("Sent commands to execute all the page's necessary scripts");
 }
 
 void NoteEditorPrivate::onContentChanged()
@@ -563,7 +559,30 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
     QNDEBUG("NoteEditorPrivate::onJavaScriptLoaded");
-    m_pendingJavaScriptExecution = false;
+
+    NoteEditorPage * pSenderPage = qobject_cast<NoteEditorPage*>(sender());
+    if (Q_UNLIKELY(!pSenderPage)) {
+        QNWARNING("Can't get the pointer to NoteEditor page from which the event of JavaScrupt loading came in");
+        return;
+    }
+
+    GET_PAGE()
+    if (page != pSenderPage) {
+        QNDEBUG("Skipping JavaScript loaded event from page which is not the currently set one");
+        return;
+    }
+
+    if (m_pendingJavaScriptExecution)
+    {
+        m_pendingJavaScriptExecution = false;
+
+#ifndef USE_QT_WEB_ENGINE
+        m_htmlCachedMemory = page->mainFrame()->toHtml();
+        onPageHtmlReceived(m_htmlCachedMemory);
+#else
+        page->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+#endif
+    }
 }
 
 void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)

@@ -2,7 +2,7 @@ MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
 
 var observer = new MutationObserver(function(mutations, observer) {
     if (!window.hasOwnProperty('pageMutationObserver')) {
-        console.warn("pageMutationObserver global variable is not defined yet");
+        console.log("pageMutationObserver global variable is not defined yet");
         return;
     }
 

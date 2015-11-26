@@ -52,6 +52,8 @@ void PreliminaryUndoCommandQueue::checkState()
         m_pStack->push(command);
         QNTRACE("Pushed command \"" << command->text() << "\" onto undo stack");
     }
+
+    QNTRACE("PreliminaryUndoCommandQueue::checkState done");
 }
 
 } // namespace qute_note
