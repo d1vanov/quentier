@@ -2697,6 +2697,8 @@ void NoteEditorPrivate::onPageSelectedHtmlForEncryptionReceived(const QVariant &
         return;
     }
 
+    // FIXME: add entry to decrypted text cache
+
     pushEncryptUndoCommand();
     replaceSelectedTextWithEncryptedOrDecryptedText(selectedHtml, encryptedText, hint, rememberForSession);
 }
@@ -3645,6 +3647,8 @@ void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
     if (pCancelled) {
         *pCancelled = (res == QDialog::Rejected);
     }
+
+    pushEncryptUndoCommand();
 
     m_lastSelectedHtmlForEncryption.resize(0);
     QNTRACE("Executed encryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
