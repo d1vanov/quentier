@@ -88,6 +88,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_font(),
     m_jQueryJs(),
     m_resizableTableColumnsJs(),
+    m_debounceJs(),
     m_onFixedWidthTableResizeJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
@@ -294,6 +295,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 #endif
 
     page->executeJavaScript(m_resizableTableColumnsJs);
+    page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_onFixedWidthTableResizeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
@@ -2386,6 +2388,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
+    SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
     SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
@@ -3874,6 +3877,7 @@ void __initNoteEditorResources()
     Q_INIT_RESOURCE(generic_resource_icons);
     Q_INIT_RESOURCE(jquery);
     Q_INIT_RESOURCE(colResizable);
+    Q_INIT_RESOURCE(debounce);
     Q_INIT_RESOURCE(scripts);
 
     QNDEBUG("Initialized NoteEditor's resources");

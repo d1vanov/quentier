@@ -469,6 +469,7 @@ private:
     // JavaScript scripts
     QString     m_jQueryJs;
     QString     m_resizableTableColumnsJs;
+    QString     m_debounceJs;
     QString     m_onFixedWidthTableResizeJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;

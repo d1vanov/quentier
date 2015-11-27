@@ -6,7 +6,6 @@ function setupTextCursorPositionTracking() {
         notifyTextCursorPositionChanged();
     }
 
-    // TODO: figure out why $.debounce doesn't work and fix it
-    $body.bind('keyup', debouncedFunc);
-    $body.bind('mouseup', debouncedFunc);
+    $body.bind('keyup', $.throttle(debouncedFunc, 1000));
+    $body.bind('mouseup', $.throttle(debouncedFunc, 1000));
 }

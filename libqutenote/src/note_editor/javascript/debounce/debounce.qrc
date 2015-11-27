@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/javascript/debounce">
+        <file>jquery.debounce-1.0.5.js</file>
+    </qresource>
+</RCC>
