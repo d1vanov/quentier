@@ -9,10 +9,6 @@
 
 namespace qute_note {
 
-#ifndef USE_QT_WEB_ENGINE
-QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
-#endif
-
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 QT_FORWARD_DECLARE_CLASS(ENMLConverterPrivate)
 
@@ -74,8 +70,7 @@ public:
         Qt::CaseSensitivity m_attributeValueCaseSensitivity;
     };
 
-    bool htmlToNoteContent(const QString & html,
-                           QString & noteContent,
+    bool htmlToNoteContent(const QString & html, QString & noteContent,
                            DecryptedTextManager & decryptedTextManager,
                            QString & errorDescription,
                            const QVector<SkipHtmlElementRule> & skipRules = QVector<SkipHtmlElementRule>()) const;
@@ -89,11 +84,7 @@ public:
     };
 
     bool noteContentToHtml(const QString & noteContent, QString & html, QString & errorDescription,
-                           DecryptedTextManager & decryptedTextManager, NoteContentToHtmlExtraData & extraData
-#ifndef USE_QT_WEB_ENGINE
-                           , const NoteEditorPluginFactory * pluginFactory = Q_NULLPTR
-#endif
-                           ) const;
+                           DecryptedTextManager & decryptedTextManager, NoteContentToHtmlExtraData & extraData) const;
 
     bool validateEnml(const QString & enml, QString & errorDescription) const;
 

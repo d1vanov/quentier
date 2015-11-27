@@ -1,10 +1,5 @@
 #include <qute_note/enml/ENMLConverter.h>
 #include "ENMLConverter_p.h"
-
-#ifndef USE_QT_WEB_ENGINE
-#include <qute_note/note_editor/NoteEditorPluginFactory.h>
-#endif
-
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -32,20 +27,12 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html,
                                       QString & errorDescription,
                                       DecryptedTextManager & decryptedTextManager,
-                                      NoteContentToHtmlExtraData & extraData
-#ifndef USE_QT_WEB_ENGINE
-                                      , const NoteEditorPluginFactory * pluginFactory
-#endif
-                                      ) const
+                                      NoteContentToHtmlExtraData & extraData) const
 {
     QNDEBUG("ENMLConverter::noteContentToHtml");
 
     Q_D(const ENMLConverter);
-    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager, extraData
-#ifndef USE_QT_WEB_ENGINE
-                                , pluginFactory
-#endif
-                                );
+    return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager, extraData);
 }
 
 bool ENMLConverter::validateEnml(const QString & enml, QString & errorDescription) const

@@ -1,4 +1,4 @@
-#include <qute_note/note_editor/IGenericResourceDisplayWidget.h>
+#include "IGenericResourceDisplayWidget.h"
 
 namespace qute_note {
 

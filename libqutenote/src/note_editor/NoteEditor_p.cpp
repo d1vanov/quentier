@@ -13,7 +13,6 @@
 
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
-#include <qute_note/note_editor/NoteEditorPluginFactory.h>
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
@@ -994,17 +993,6 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
     sender()->deleteLater();
 }
 
-void NoteEditorPrivate::onEncryptSelectedTextDelegateModifiedPageHtmlReceived(QString html)
-{
-    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateModifiedPageHtmlReceived");
-
-    EncryptUndoCommand * command = new EncryptUndoCommand(*this);
-    command->setHtmlWithEncryption(html);
-
-    m_pPreliminaryUndoCommandQueue->push(command);
-    QNTRACE("Pushed encrypt undo command to undo stack");
-}
-
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
 {
     QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
@@ -1378,11 +1366,7 @@ void NoteEditorPrivate::noteToEditorContent()
     ENMLConverter::NoteContentToHtmlExtraData extraData;
     bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory,
                                                  m_errorCachedMemory, m_decryptedTextManager,
-                                                 extraData
-#ifndef USE_QT_WEB_ENGINE
-                                                 , m_pluginFactory
-#endif
-                                                 );
+                                                 extraData);
     if (!res) {
         QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
         emit notifyError(m_errorCachedMemory);
@@ -2474,10 +2458,10 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
-    Q_Q(NoteEditor);
-    EncryptedAreaPlugin * encryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
-    m_pluginFactory = new NoteEditorPluginFactory(*q, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
-                                                  encryptedAreaPlugin, page);
+    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
+    QObject::connect(pEncryptedAreaPlugin, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
+    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, pEncryptedAreaPlugin, page);
     page->setPluginFactory(m_pluginFactory);
 
     m_errorCachedMemory.resize(0);
@@ -3585,8 +3569,6 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QString));
-    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,receivedHtmlWithEncryption,QString),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateModifiedPageHtmlReceived,QString));
     delegate->start();
 }
 
@@ -3595,8 +3577,7 @@ void NoteEditorPrivate::doEncryptSelectedTextDialog(bool *pCancelled)
     QNDEBUG("NoteEditorPrivate::doEncryptSelectedTextDialog");
 
     if (m_lastSelectedHtmlForEncryption.isEmpty()) {
-        QString error = QT_TR_NOOP("Requested encrypt selected text dialog "
-                                   "but last selected html is empty");
+        QString error = QT_TR_NOOP("Requested encrypt selected text dialog but last selected html is empty");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -3701,7 +3682,8 @@ void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLeng
 {
     QNDEBUG("NoteEditorPrivate::onEncryptedAreaDecryption: encrypted text = " << encryptedText
             << "; remember for session = " << (rememberForSession ? "true" : "false")
-            << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));
+            << "; decrypt permanently = " << (decryptPermanently ? "true" : "false")
+            << "; create decrypt undo command = " << (createDecryptUndoCommand ? "true" : "false"));
 
     if (createDecryptUndoCommand) {
         switchEditorPage();

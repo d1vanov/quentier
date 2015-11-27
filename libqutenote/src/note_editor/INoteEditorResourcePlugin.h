@@ -2,7 +2,6 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_RESOURCE_PLUGIN_H
 
 #include <qute_note/utility/Qt4Helper.h>
-#include <qute_note/utility/Linkage.h>
 #include <QWidget>
 
 namespace qute_note {
@@ -16,7 +15,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
  * built in the note. For example, such plugin could represent the embedded pdf viewer,
  * embedded video viewer etc.
  */
-class QUTE_NOTE_EXPORT INoteEditorResourcePlugin: public QWidget
+class INoteEditorResourcePlugin: public QWidget
 {
 protected:
     explicit INoteEditorResourcePlugin(QWidget * parent = Q_NULLPTR);

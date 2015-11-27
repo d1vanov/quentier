@@ -1,7 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 
-#include <qute_note/note_editor/IGenericResourceDisplayWidget.h>
+#include "IGenericResourceDisplayWidget.h"
 #include <qute_note/utility/Qt4Helper.h>
 #include <QUuid>
 
@@ -21,7 +21,7 @@ class GenericResourceDisplayWidget: public IGenericResourceDisplayWidget
 {
     Q_OBJECT
 public:
-    GenericResourceDisplayWidget(QWidget * parent = nullptr);
+    GenericResourceDisplayWidget(QWidget * parent = Q_NULLPTR);
     virtual ~GenericResourceDisplayWidget();
 
     virtual void initialize(const QIcon & icon, const QString & name,

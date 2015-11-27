@@ -1,9 +1,12 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_H
 
-#include <qute_note/note_editor/INoteEditorResourcePlugin.h>
-#include <qute_note/note_editor/INoteEditorEncryptedAreaPlugin.h>
+#include "INoteEditorResourcePlugin.h"
+#include "INoteEditorEncryptedAreaPlugin.h"
 #include <QWebPluginFactory>
+#include <QMimeDatabase>
+#include <QIcon>
+#include <QHash>
 
 QT_FORWARD_DECLARE_CLASS(QRegExp)
 
@@ -15,18 +18,17 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-QT_FORWARD_DECLARE_CLASS(NoteEditor)
+QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
 QT_FORWARD_DECLARE_CLASS(IGenericResourceDisplayWidget)
-QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactoryPrivate)
 
 /**
  * @brief The NoteEditorPluginFactory class allows one to install and uninstall custom plugins to/from NoteEditor
  */
-class QUTE_NOTE_EXPORT NoteEditorPluginFactory: public QWebPluginFactory
+class NoteEditorPluginFactory: public QWebPluginFactory
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPluginFactory(const NoteEditor & editor,
+    explicit NoteEditorPluginFactory(const INoteEditorBackend & editor,
                                      const ResourceFileStorageManager & resourceFileStorageManager,
                                      const FileIOThreadWorker & fileIOThreadWorker,
                                      INoteEditorEncryptedAreaPlugin * pEncryptedAreaPlugin,
@@ -34,10 +36,10 @@ public:
     virtual ~NoteEditorPluginFactory();
 
     /**
-     * @brief noteEditor - the accessor providing the const reference to NoteEditor object owning the factory
-     * @return const reference to NoteEditor object
+     * @brief noteEditor - the accessor providing the const reference to INoteEditorBackend object owning the factory
+     * @return const reference to INoteEditorBackend object
      */
-    const NoteEditor & noteEditor() const;
+    const INoteEditorBackend & noteEditor() const;
 
     /**
      * @brief ResourcePluginIdentifier - the unique identifier of the plugin assigned to it by the factory;
@@ -138,8 +140,35 @@ private:
     virtual QList<QWebPluginFactory::Plugin> plugins() const;
 
 private:
-    NoteEditorPluginFactoryPrivate * const d_ptr;
-    Q_DECLARE_PRIVATE(NoteEditorPluginFactory)
+    QObject * createResourcePlugin(const QStringList & argumentNames, const QStringList & argumentValues) const;
+    QObject * createEncryptedAreaPlugin(const QStringList & argumentNames, const QStringList & argumentValues) const;
+
+    QIcon getIconForMimeType(const QString & mimeTypeName) const;
+    QStringList getFileSuffixesForMimeType(const QString & mimeType) const;
+    QString getFilterStringForMimeType(const QString & mimeType) const;
+
+private:
+    const INoteEditorBackend &                      m_noteEditor;
+    IGenericResourceDisplayWidget *                 m_genericResourceDisplayWidget;
+
+    typedef QHash<ResourcePluginIdentifier, INoteEditorResourcePlugin*> ResourcePluginsHash;
+    ResourcePluginsHash                             m_resourcePlugins;
+    ResourcePluginIdentifier                        m_lastFreeResourcePluginId;
+
+    const Note *                                    m_pCurrentNote;
+
+    QIcon                                           m_fallbackResourceIcon;
+
+    QMimeDatabase                                   m_mimeDatabase;
+
+    const ResourceFileStorageManager *              m_pResourceFileStorageManager;
+    const FileIOThreadWorker *                      m_pFileIOThreadWorker;
+
+    INoteEditorEncryptedAreaPlugin *                m_pEncryptedAreaPlugin;
+
+    mutable QHash<QString, QIcon>                   m_resourceIconCache;
+    mutable QHash<QString, QStringList>             m_fileSuffixesCache;
+    mutable QHash<QString, QString>                 m_filterStringsCache;
 };
 
 } // namespace qute_note

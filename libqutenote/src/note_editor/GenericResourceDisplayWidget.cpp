@@ -20,10 +20,10 @@ namespace qute_note {
 GenericResourceDisplayWidget::GenericResourceDisplayWidget(QWidget * parent) :
     IGenericResourceDisplayWidget(parent),
     m_pUI(new Ui::GenericResourceDisplayWidget),
-    m_pResource(nullptr),
-    m_pResourceFileStorageManager(nullptr),
-    m_pFileIOThreadWorker(nullptr),
-    m_preferredFileSuffixes(nullptr),
+    m_pResource(Q_NULLPTR),
+    m_pResourceFileStorageManager(Q_NULLPTR),
+    m_pFileIOThreadWorker(Q_NULLPTR),
+    m_preferredFileSuffixes(Q_NULLPTR),
     m_filterString(),
     m_saveResourceToFileRequestId(),
     m_saveResourceToStorageRequestId(),
@@ -111,7 +111,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
                                ? m_pResource->dataBody()
                                : m_pResource->alternateDataBody());
 
-    const QByteArray * dataHash = nullptr;
+    const QByteArray * dataHash = Q_NULLPTR;
     if (m_pResource->hasDataBody() && m_pResource->hasDataHash()) {
         dataHash = &(m_pResource->dataHash());
     }

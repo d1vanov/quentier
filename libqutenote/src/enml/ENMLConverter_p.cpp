@@ -1,11 +1,6 @@
 #include "ENMLConverter_p.h"
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/HTMLCleaner.h>
-
-#ifndef USE_QT_WEB_ENGINE
-#include <qute_note/note_editor/NoteEditorPluginFactory.h>
-#endif
-
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <libxml/xmlreader.h>
 #include <QString>
@@ -54,10 +49,8 @@ ENMLConverterPrivate::~ENMLConverterPrivate()
     delete m_pHtmlCleaner;
 }
 
-bool ENMLConverterPrivate::htmlToNoteContent(const QString & html,
-                                             const QVector<SkipHtmlElementRule> & skipRules,
-                                             QString & noteContent,
-                                             DecryptedTextManager & decryptedTextManager,
+bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector<SkipHtmlElementRule> & skipRules,
+                                             QString & noteContent, DecryptedTextManager & decryptedTextManager,
                                              QString & errorDescription) const
 {
     QNDEBUG("ENMLConverterPrivate::htmlToNoteContent: " << html
@@ -370,11 +363,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html,
 bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QString & html,
                                              QString & errorDescription,
                                              DecryptedTextManager & decryptedTextManager,
-                                             NoteContentToHtmlExtraData & extraData
-#ifndef USE_QT_WEB_ENGINE
-                                             , const NoteEditorPluginFactory * pluginFactory
-#endif
-                                             ) const
+                                             NoteContentToHtmlExtraData & extraData) const
 {
     QNDEBUG("ENMLConverterPrivate::noteContentToHtml: " << noteContent);
 
@@ -426,11 +415,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             }
             else if (lastElementName == "en-media")
             {
-                bool res = resourceInfoToHtml(reader, writer, errorDescription
-#ifndef USE_QT_WEB_ENGINE
-                                              , pluginFactory
-#endif
-                                              );
+                bool res = resourceInfoToHtml(reader, writer, errorDescription);
                 if (!res) {
                     return false;
                 }
@@ -872,7 +857,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
 #ifndef USE_QT_WEB_ENGINE
     writer.writeStartElement("object");
-    writer.writeAttribute("type", ENCRYPTED_AREA_PLUGIN_OBJECT_TYPE);
+    writer.writeAttribute("type", "application/vnd.qutenote.encrypt");
 #else
     writer.writeStartElement("img");
     writer.writeAttribute("src", QString());
@@ -907,11 +892,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
 bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
                                               QXmlStreamWriter & writer,
-                                              QString & errorDescription
-#ifndef USE_QT_WEB_ENGINE
-                                              , const NoteEditorPluginFactory * pluginFactory
-#endif
-                                              ) const
+                                              QString & errorDescription) const
 {
     QNDEBUG("ENMLConverterPrivate::resourceInfoToHtml");
 
@@ -931,7 +912,8 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     bool inlineImage = false;
     if (mimeType.startsWith("image", Qt::CaseInsensitive))
     {
-#ifndef USE_QT_WEB_ENGINE
+        // TODO: consider some proper high-level interface for making it possible to customize ENML <--> HTML conversion
+        /*
         if (pluginFactory)
         {
             QRegExp regex("^image\\/.+");
@@ -942,11 +924,8 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         }
         else
         {
-            inlineImage = true;
-        }
-#else
+        */
         inlineImage = true;
-#endif
     }
 
 #ifndef USE_QT_WEB_ENGINE
@@ -970,7 +949,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
         writer.writeAttribute("class", "en-media-generic hvr-border-color");
 
 #ifndef USE_QT_WEB_ENGINE
-        writer.writeAttribute("type", RESOURCE_PLUGIN_HTML_OBJECT_TYPE);
+        writer.writeAttribute("type", "application/vnd.qutenote.resource");
 
         const int numAttributes = attributes.size();
         for(int i = 0; i < numAttributes; ++i)

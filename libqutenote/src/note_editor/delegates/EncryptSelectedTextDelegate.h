@@ -29,7 +29,6 @@ public:
     void start();
 
 Q_SIGNALS:
-    void receivedHtmlWithEncryption(QString html);
     void finished();
     void notifyError(QString error);
 

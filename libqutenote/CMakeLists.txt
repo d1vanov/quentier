@@ -73,14 +73,6 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/INoteEditorBackend.h
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
-if(NOT USE_QT_WEB_ENGINE)
-  list(APPEND NOTE_EDITOR_HEADERS
-       headers/qute_note/note_editor/IGenericResourceDisplayWidget.h
-       headers/qute_note/note_editor/NoteEditorPluginFactory.h
-       headers/qute_note/note_editor/INoteEditorResourcePlugin.h
-       headers/qute_note/note_editor/INoteEditorEncryptedAreaPlugin.h)
-endif()
-
 set(TYPES_HEADERS
     headers/qute_note/types/IDataElementWithShortcut.h
     headers/qute_note/types/ISharedNotebook.h
@@ -216,9 +208,12 @@ set(PRIVATE_HEADERS
 
 if(NOT USE_QT_WEB_ENGINE)
   list(APPEND PRIVATE_HEADERS
+       src/note_editor/IGenericResourceDisplayWidget.h
+       src/note_editor/NoteEditorPluginFactory.h
+       src/note_editor/INoteEditorResourcePlugin.h
+       src/note_editor/INoteEditorEncryptedAreaPlugin.h
        src/note_editor/EncryptedAreaPlugin.h
-       src/note_editor/GenericResourceDisplayWidget.h
-       src/note_editor/NoteEditorPluginFactory_p.h)
+       src/note_editor/GenericResourceDisplayWidget.h)
 else()
   list(APPEND PRIVATE_HEADERS
        src/note_editor/GenericResourceImageWriter.h
@@ -342,8 +337,7 @@ if(NOT USE_QT_WEB_ENGINE)
     src/note_editor/IGenericResourceDisplayWidget.cpp
     src/note_editor/INoteEditorResourcePlugin.cpp
     src/note_editor/INoteEditorEncryptedAreaPlugin.cpp
-    src/note_editor/NoteEditorPluginFactory.cpp
-    src/note_editor/NoteEditorPluginFactory_p.cpp)
+    src/note_editor/NoteEditorPluginFactory.cpp)
 else()
   list(APPEND ${PROJECT_NAME}_SOURCES
     src/note_editor/GenericResourceImageWriter.cpp

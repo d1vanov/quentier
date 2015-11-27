@@ -21,6 +21,7 @@
 typedef QWebEngineView WebView;
 typedef QWebEnginePage WebPage;
 #else
+#include "NoteEditorPluginFactory.h"
 #include <QWebView>
 typedef QWebView WebView;
 typedef QWebPage WebPage;
@@ -242,7 +243,6 @@ private Q_SLOTS:
     void onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
-
 #endif
 
     void onJavaScriptLoaded();
@@ -282,7 +282,6 @@ private Q_SLOTS:
     // Slots for delegates
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);
-    void onEncryptSelectedTextDelegateModifiedPageHtmlReceived(QString html);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;

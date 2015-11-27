@@ -1,4 +1,4 @@
-#include <qute_note/note_editor/INoteEditorEncryptedAreaPlugin.h>
+#include "INoteEditorEncryptedAreaPlugin.h"
 
 namespace qute_note {
 

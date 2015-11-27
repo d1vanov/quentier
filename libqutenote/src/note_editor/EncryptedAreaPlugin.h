@@ -1,8 +1,8 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 
+#include "INoteEditorEncryptedAreaPlugin.h"
 #include <qute_note/note_editor/DecryptedTextManager.h>
-#include <qute_note/note_editor/INoteEditorEncryptedAreaPlugin.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/EncryptionManager.h>
 

@@ -1,8 +1,7 @@
 #include "EncryptedAreaPlugin.h"
 #include "ui_EncryptedAreaPlugin.h"
 #include "DecryptionDialog.h"
-#include <qute_note/note_editor/NoteEditorPluginFactory.h>
-#include <qute_note/note_editor/NoteEditor.h>
+#include "NoteEditorPluginFactory.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QIcon>
@@ -113,12 +112,6 @@ bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const Q
     else {
         m_hint = parameterValues[hintIndex];
     }
-
-    // FIXME: since I don't want to expose this plugin to the lib interface,
-    // the plugin factory shoud use NoteEditorPrivate
-    const NoteEditor & noteEditor = pluginFactory.noteEditor();
-    QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
-                     &noteEditor, QNSLOT(NoteEditor,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
 
     QNTRACE("Initialized encrypted area plugin: cipher = " << m_cipher
             << ", length = " << m_keyLength << ", hint = " << m_hint
