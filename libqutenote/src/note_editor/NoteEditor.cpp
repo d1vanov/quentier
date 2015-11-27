@@ -272,4 +272,12 @@ void NoteEditor::onNoteLoadCancelled()
     m_backend->onNoteLoadCancelled();
 }
 
+void NoteEditor::setFocus()
+{
+    QWidget * pWidget = m_backend->widget();
+    if (Q_LIKELY(pWidget)) {
+        pWidget->setFocus();
+    }
+}
+
 } // namespace qute_note

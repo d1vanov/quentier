@@ -115,6 +115,8 @@ public Q_SLOTS:
 
     void onNoteLoadCancelled();
 
+    void setFocus();
+
 private:
     INoteEditorBackend * m_backend;
 };
