@@ -25,5 +25,6 @@
         <file>removeHyperlinkFromSelection.js</file>
         <file>decryptEncryptedTextPermanently.js</file>
         <file>flipEnToDoCheckboxState.js</file>
+        <file>setupTextCursorPositionTracking.js</file>
     </qresource>
 </RCC>

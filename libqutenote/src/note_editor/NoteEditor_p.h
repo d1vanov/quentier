@@ -496,6 +496,7 @@ private:
     QString     m_qWebChannelJs;
     QString     m_qWebChannelSetupJs;
     QString     m_notifyTextCursorPositionChangedJs;
+    QString     m_setupTextCursorPositionTrackingJs;
     QString     m_genericResourceOnClickHandlerJs;
     QString     m_setupGenericResourceOnClickHandlerJs;
 

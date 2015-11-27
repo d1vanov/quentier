@@ -114,6 +114,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_qWebChannelJs(),
     m_qWebChannelSetupJs(),
     m_notifyTextCursorPositionChangedJs(),
+    m_setupTextCursorPositionTrackingJs(),
     m_genericResourceOnClickHandlerJs(),
     m_setupGenericResourceOnClickHandlerJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
@@ -315,6 +316,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
 #ifdef USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
+    page->executeJavaScript(m_setupTextCursorPositionTrackingJs);
     setupTextCursorPositionTracking();
     setupGenericResourceImages();
 #endif
@@ -2118,8 +2120,7 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 {
     QNDEBUG("NoteEditorPrivate::setupTextCursorPositionTracking");
 
-    QString javascript = "document.body.onkeyup = notifyTextCursorPositionChanged; "
-                         "document.body.onmouseup = notifyTextCursorPositionChanged;";
+    QString javascript = "setupTextCursorPositionTracking();";
 
     GET_PAGE()
     page->executeJavaScript(javascript);
@@ -2413,6 +2414,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/genericResourceOnClickHandler.js", m_genericResourceOnClickHandlerJs);
     SETUP_SCRIPT("javascript/scripts/setupGenericResourceOnClickHandler.js", m_setupGenericResourceOnClickHandlerJs);
     SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
+    SETUP_SCRIPT("javascript/scripts/setupTextCursorPositionTracking.js", m_setupTextCursorPositionTrackingJs);
 #endif
 
 #undef SETUP_SCRIPT
