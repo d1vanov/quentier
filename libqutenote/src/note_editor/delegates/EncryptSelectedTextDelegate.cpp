@@ -24,8 +24,7 @@ void EncryptSelectedTextDelegate::start()
 {
     QNDEBUG("EncryptSelectedTextDelegate::start");
 
-    if (m_noteEditor.isModified())
-    {
+    if (m_noteEditor.isModified()) {
         QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                          this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
         m_noteEditor.convertToNote();
@@ -129,10 +128,9 @@ void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QStr
     QObject::disconnect(this, QNSIGNAL(EncryptSelectedTextDelegate,writeFile,QString,QByteArray,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
 
-    if (!success) {
+    if (Q_UNLIKELY(!success)) {
         errorDescription = QT_TR_NOOP("Can't finalize the encrypted text processing, "
-                                      "can't write the modified HTML to the note editor : ")
-                                      + errorDescription;
+                                      "can't write the modified HTML to the note editor: ") + errorDescription;
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -141,6 +139,13 @@ void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QStr
     QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
 
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
+    if (Q_UNLIKELY(!page)) {
+        errorDescription = QT_TR_NOOP("Can't finalize the encrypted text processing: "
+                                      "can't get the pointer to note editor page");
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));
@@ -159,6 +164,13 @@ void EncryptSelectedTextDelegate::onModifiedPageLoaded()
     QNDEBUG("EncryptSelectedTextDelegate::onModifiedPageLoaded");
 
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
+    if (Q_UNLIKELY(!page)) {
+        QString errorDescription = QT_TR_NOOP("Can't finalize the encrypted text processing: "
+                                              "can't get the pointer to note editor page");
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));

@@ -116,6 +116,9 @@ public:
     void setNotePageHtmlAfterEncryption(const QString & html);
     void undoLastEncryption();
 
+    void setNotePageHtmlAfterAddingHyperlink(const QString & html);
+    void undoLastHyperlinkAddition();
+
 Q_SIGNALS:
     void noteEditorHtmlUpdated(QString html);
 
@@ -194,6 +197,8 @@ public Q_SLOTS:
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
     virtual void removeHyperlink() Q_DECL_OVERRIDE;
 
+    void doAddHyperlinkToSelectedTextDialog();
+
     virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
 
     virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) Q_DECL_OVERRIDE;
@@ -222,6 +227,8 @@ Q_SIGNALS:
                                         const QString resourceFileSuffix, const QByteArray resourceActualHash,
                                         const QString resourceDisplayName, const QUuid requestId);
 #endif
+
+    void editHyperlinkDialogCancelled();
 
 private Q_SLOTS:
     void onFoundHyperlinkToEdit(const QVariant & hyperlinkData,

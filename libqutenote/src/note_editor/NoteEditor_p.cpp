@@ -10,6 +10,7 @@
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
 #include "undo_stack/EncryptUndoCommand.h"
 #include "undo_stack/DecryptUndoCommand.h"
+#include "undo_stack/AddHyperlinkUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include "EncryptedAreaPlugin.h"
@@ -1172,7 +1173,7 @@ void NoteEditorPrivate::undoLastEncryption()
 
     if (m_lastFreeEnCryptIdNumber == 1) {
         QNWARNING("Detected attempt to undo last encryption even though "
-                  "there're no encrypted text nodes within the current node");
+                  "there're no encrypted text nodes within the current note");
         return;
     }
 
@@ -1200,6 +1201,33 @@ void NoteEditorPrivate::undoLastEncryption()
 
     QString javascript = "decryptEncryptedTextPermanently('" + m_lastEncryptedText + "', '" +
                          decryptedText + "', " + QString::number(m_lastFreeEnCryptIdNumber - 1) + ");";
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink(const QString & html)
+{
+    QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink");
+
+    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(*this);
+    pCommand->setHtmlWithHyperlink(html);
+    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    QNTRACE("Pushed AddHyperlinkUndoCommand to the undo stack");
+}
+
+void NoteEditorPrivate::undoLastHyperlinkAddition()
+{
+    QNDEBUG("NoteEditorPrivate::undoLastHyperlinkAddition");
+
+    if (m_lastFreeHyperlinkIdNumber == 1) {
+        QNWARNING("Detected attempt to undo last hyperlink addition even though "
+                  "there're no hyperlink nodes within the current note");
+        return;
+    }
+
+    skipPushingUndoCommandOnNextContentChange();
+
+    QString javascript;     // FIXME: fill the actual script doing the job here
     GET_PAGE()
     page->executeJavaScript(javascript);
 }
@@ -1329,8 +1357,11 @@ void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QS
     QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64),
                      this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl,quint64));
     QNTRACE("Will exec edit URL dialog now");
-    pEditUrlDialog->exec();
-    QNTRACE("Executed edit URL dialog");
+    int res = pEditUrlDialog->exec();
+    if (res == QDialog::Rejected) {
+        emit editHyperlinkDialogCancelled();
+    }
+    QNTRACE("Executed edit URL dialog: res = " << (res == QDialog::Accepted ? "accepted" : "rejected"));
 }
 
 void NoteEditorPrivate::clearEditorContent()
@@ -3669,7 +3700,16 @@ void NoteEditorPrivate::editHyperlinkDialog()
         return;
     }
 
-    raiseEditUrlDialog(hyperlinkData[0], hyperlinkData[1]);
+    bool conversionResult = false;
+    quint64 idNumber = hyperlinkData[2].toULongLong(&conversionResult);
+    if (!conversionResult) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't edit hyperlink: can't cinvert hyperlink id number to unsigned int");
+        QNWARNING(m_errorCachedMemory << "; hyperlink data: " << hyperlinkData.join(","));
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    raiseEditUrlDialog(hyperlinkData[0], hyperlinkData[1], idNumber);
 #else
     GET_PAGE()
     page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
@@ -3703,6 +3743,12 @@ void NoteEditorPrivate::removeHyperlink()
     GET_PAGE()
     page->executeJavaScript("removeHyperlinkFromSelection();");
     setFocus();
+}
+
+void NoteEditorPrivate::doAddHyperlinkToSelectedTextDialog()
+{
+    QNDEBUG("NoteEditorPrivate::doAddHyperlinkToSelectedTextDialog");
+    // TODO: implement
 }
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLength,
