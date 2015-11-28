@@ -1,6 +1,6 @@
 #include "NoteEditorPluginFactory.h"
 #include "GenericResourceDisplayWidget.h"
-#include <qute_note/note_editor/INoteEditorBackend.h>
+#include "NoteEditor_p.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
@@ -13,7 +13,7 @@
 
 namespace qute_note {
 
-NoteEditorPluginFactory::NoteEditorPluginFactory(const INoteEditorBackend & noteEditor,
+NoteEditorPluginFactory::NoteEditorPluginFactory(NoteEditorPrivate & noteEditor,
                                                  const ResourceFileStorageManager & resourceFileStorageManager,
                                                  const FileIOThreadWorker & fileIOThreadWorker,
                                                  INoteEditorEncryptedAreaPlugin * pEncryptedAreaPlugin,
@@ -46,7 +46,7 @@ NoteEditorPluginFactory::~NoteEditorPluginFactory()
     delete m_pEncryptedAreaPlugin;
 }
 
-const INoteEditorBackend & NoteEditorPluginFactory::noteEditor() const
+const NoteEditorPrivate & NoteEditorPluginFactory::noteEditor() const
 {
     return m_noteEditor;
 }

@@ -12,11 +12,14 @@ QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
+
 class EncryptedAreaPlugin: public INoteEditorEncryptedAreaPlugin
 {
     Q_OBJECT
 public:
-    explicit EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encryptionManager,
+    explicit EncryptedAreaPlugin(NoteEditorPrivate & noteEditor,
+                                 QSharedPointer<EncryptionManager> encryptionManager,
                                  DecryptedTextManager & decryptedTextManager,
                                  QWidget * parent = Q_NULLPTR);
     virtual ~EncryptedAreaPlugin();
@@ -42,6 +45,7 @@ private:
 
 private:
     Ui::EncryptedAreaPlugin *           m_pUI;
+    NoteEditorPrivate &                 m_noteEditor;
     QSharedPointer<EncryptionManager>   m_encryptionManager;
     DecryptedTextManager &              m_decryptedTextManager;
     QString                             m_hint;

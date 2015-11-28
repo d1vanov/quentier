@@ -2469,10 +2469,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
 #ifdef USE_QT_WEB_ENGINE
     QNTRACE("Set note editor page with url: " << page->url());
 #else
-    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
-    QObject::connect(pEncryptedAreaPlugin, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
-
+    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(*this, m_encryptionManager, m_decryptedTextManager);
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, pEncryptedAreaPlugin, page);
     if (Q_LIKELY(m_pNote)) {
         m_pluginFactory->setNote(*m_pNote);

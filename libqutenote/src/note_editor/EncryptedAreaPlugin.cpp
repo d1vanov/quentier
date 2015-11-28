@@ -2,6 +2,7 @@
 #include "ui_EncryptedAreaPlugin.h"
 #include "DecryptionDialog.h"
 #include "NoteEditorPluginFactory.h"
+#include "NoteEditor_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <QIcon>
@@ -9,11 +10,13 @@
 
 namespace qute_note {
 
-EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encryptionManager,
+EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor,
+                                         QSharedPointer<EncryptionManager> encryptionManager,
                                          DecryptedTextManager & decryptedTextManager,
                                          QWidget * parent) :
     INoteEditorEncryptedAreaPlugin(parent),
     m_pUI(new Ui::EncryptedAreaPlugin),
+    m_noteEditor(noteEditor),
     m_encryptionManager(encryptionManager),
     m_decryptedTextManager(decryptedTextManager),
     m_hint(),
@@ -25,6 +28,9 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(QSharedPointer<EncryptionManager> encry
     m_pUI->setupUi(this);
 
     QUTE_NOTE_CHECK_PTR(m_encryptionManager.data())
+
+    QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
+                     &m_noteEditor, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
 
     QAction * showEncryptedTextAction = new QAction(this);
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
@@ -42,7 +48,7 @@ EncryptedAreaPlugin::~EncryptedAreaPlugin()
 
 EncryptedAreaPlugin * EncryptedAreaPlugin::clone() const
 {
-    return new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager,
+    return new EncryptedAreaPlugin(m_noteEditor, m_encryptionManager, m_decryptedTextManager,
                                    qobject_cast<QWidget*>(parent()));
 }
 

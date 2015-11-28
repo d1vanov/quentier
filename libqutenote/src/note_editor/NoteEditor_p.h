@@ -203,6 +203,11 @@ public Q_SLOTS:
 
     void flipEnToDoCheckboxState(const quint64 enToDoIdNumber);
 
+    void onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
+                                   QString passphrase, QString decryptedText,
+                                   bool rememberForSession, bool decryptPermanently,
+                                   bool createDecryptUndoCommand = true);
+
 // private signals:
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
@@ -223,11 +228,6 @@ private Q_SLOTS:
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
     void onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber);
-
-    void onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
-                                   QString passphrase, QString decryptedText,
-                                   bool rememberForSession, bool decryptPermanently,
-                                   bool createDecryptUndoCommand = true);
 
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString passphrase, QString cipher, size_t keyLength,

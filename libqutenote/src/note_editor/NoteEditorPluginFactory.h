@@ -18,7 +18,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 QT_FORWARD_DECLARE_CLASS(IGenericResourceDisplayWidget)
 
 /**
@@ -28,7 +28,7 @@ class NoteEditorPluginFactory: public QWebPluginFactory
 {
     Q_OBJECT
 public:
-    explicit NoteEditorPluginFactory(const INoteEditorBackend & editor,
+    explicit NoteEditorPluginFactory(NoteEditorPrivate & editor,
                                      const ResourceFileStorageManager & resourceFileStorageManager,
                                      const FileIOThreadWorker & fileIOThreadWorker,
                                      INoteEditorEncryptedAreaPlugin * pEncryptedAreaPlugin,
@@ -39,7 +39,7 @@ public:
      * @brief noteEditor - the accessor providing the const reference to INoteEditorBackend object owning the factory
      * @return const reference to INoteEditorBackend object
      */
-    const INoteEditorBackend & noteEditor() const;
+    const NoteEditorPrivate & noteEditor() const;
 
     /**
      * @brief ResourcePluginIdentifier - the unique identifier of the plugin assigned to it by the factory;
@@ -148,7 +148,7 @@ private:
     QString getFilterStringForMimeType(const QString & mimeType) const;
 
 private:
-    const INoteEditorBackend &                          m_noteEditor;
+    NoteEditorPrivate &                                 m_noteEditor;
     IGenericResourceDisplayWidget *                     m_genericResourceDisplayWidget;
 
     typedef QHash<ResourcePluginIdentifier, INoteEditorResourcePlugin*> ResourcePluginsHash;
