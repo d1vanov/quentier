@@ -245,10 +245,11 @@ private Q_SLOTS:
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
 
+    void onHyperlinkClicked(QString url);
+#else
+    void onHyperlinkClicked(QUrl url);
 #endif
     void onJavaScriptLoaded();
-
-    void onHyperlinkClicked(QString url);
 
     void onOpenResourceRequest(const QString & resourceHash);
     void onSaveResourceRequest(const QString & resourceHash);

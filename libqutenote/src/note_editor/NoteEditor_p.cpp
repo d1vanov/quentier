@@ -562,13 +562,19 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
     }
 }
 
-#endif
-
 void NoteEditorPrivate::onHyperlinkClicked(QString url)
 {
-    QNDEBUG("NoteEditorPrivate::onHyperlinkClicked: url = " << url);
     openUrl(QUrl(url));
 }
+
+#else
+
+void NoteEditorPrivate::onHyperlinkClicked(QUrl url)
+{
+    openUrl(url);
+}
+
+#endif
 
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
@@ -2508,6 +2514,8 @@ void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
 
     QWebFrame * frame = page->mainFrame();
     QObject::connect(frame, QNSIGNAL(QWebFrame,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
+
+    QObject::connect(page, QNSIGNAL(QWebPage,linkClicked,QUrl), this, QNSLOT(NoteEditorPrivate,onHyperlinkClicked,QUrl));
 #else
     QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
 #endif
