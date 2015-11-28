@@ -20,10 +20,12 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
 #include "javascript_glue/GenericResourceImageJavaScriptHandler.h"
+#include "javascript_glue/HyperlinkClickJavaScriptHandler.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
 #include "GenericResourceImageWriter.h"
 #include <qute_note/utility/ApplicationSettings.h>
+#include <qute_note/utility/DesktopServices.h>
 #include <QPainter>
 #include <QIcon>
 #include <QFontMetrics>
@@ -117,12 +119,14 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setupTextCursorPositionTrackingJs(),
     m_genericResourceOnClickHandlerJs(),
     m_setupGenericResourceOnClickHandlerJs(),
+    m_clickInterceptorJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
     m_pGenericResourceImageWriter(Q_NULLPTR),
+    m_pHyperlinkClickJavaScriptHandler(new HyperlinkClickJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
     m_pPageMutationHandler(new PageMutationHandler(this)),
@@ -290,6 +294,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_setupGenericResourceOnClickHandlerJs);
     page->executeJavaScript(m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     page->executeJavaScript(m_provideSrcForGenericResourceImagesJs);
+    page->executeJavaScript(m_clickInterceptorJs);
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
 #endif
 
@@ -558,6 +563,12 @@ void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QB
 }
 
 #endif
+
+void NoteEditorPrivate::onHyperlinkClicked(QString url)
+{
+    QNDEBUG("NoteEditorPrivate::onHyperlinkClicked: url = " << url);
+    openUrl(QUrl(url));
+}
 
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
@@ -2094,6 +2105,10 @@ void NoteEditorPrivate::setupJavaScriptObjects()
                      &ContextMenuEventJavaScriptHandler::contextMenuEventReply,
                      this, &NoteEditorPrivate::onContextMenuEventReply);
 
+    QObject::connect(m_pHyperlinkClickJavaScriptHandler,
+                     &HyperlinkClickJavaScriptHandler::hyperlinkClicked,
+                     this, &NoteEditorPrivate::onHyperlinkClicked);
+
     m_pWebChannel->registerObject("resourceCache", m_pResourceInfoJavaScriptHandler);
     m_pWebChannel->registerObject("enCryptElementClickHandler", m_pEnCryptElementClickHandler);
     m_pWebChannel->registerObject("pageMutationObserver", m_pPageMutationHandler);
@@ -2101,6 +2116,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler);
     m_pWebChannel->registerObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler);
     m_pWebChannel->registerObject("genericResourceImageHandler", m_pGenericResoureImageJavaScriptHandler);
+    m_pWebChannel->registerObject("hyperlinkClickHandler", m_pHyperlinkClickJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -2402,6 +2418,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
     SETUP_SCRIPT("javascript/scripts/genericResourceOnClickHandler.js", m_genericResourceOnClickHandlerJs);
     SETUP_SCRIPT("javascript/scripts/setupGenericResourceOnClickHandler.js", m_setupGenericResourceOnClickHandlerJs);
+    SETUP_SCRIPT("javascript/scripts/clickInterceptor.js", m_clickInterceptorJs);
     SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
     SETUP_SCRIPT("javascript/scripts/setupTextCursorPositionTracking.js", m_setupTextCursorPositionTrackingJs);
 #endif

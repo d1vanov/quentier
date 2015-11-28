@@ -52,6 +52,7 @@ QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
+QT_FORWARD_DECLARE_CLASS(HyperlinkClickJavaScriptHandler)
 #endif
 
 class NoteEditorPrivate: public WebView, public INoteEditorBackend
@@ -243,9 +244,11 @@ private Q_SLOTS:
     void onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
                                      const QString filePath, const QString errorDescription,
                                      const QUuid requestId);
-#endif
 
+#endif
     void onJavaScriptLoaded();
+
+    void onHyperlinkClicked(QString url);
 
     void onOpenResourceRequest(const QString & resourceHash);
     void onSaveResourceRequest(const QString & resourceHash);
@@ -499,6 +502,7 @@ private:
     QString     m_setupTextCursorPositionTrackingJs;
     QString     m_genericResourceOnClickHandlerJs;
     QString     m_setupGenericResourceOnClickHandlerJs;
+    QString     m_clickInterceptorJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
@@ -506,6 +510,7 @@ private:
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
     GenericResourceImageWriter * m_pGenericResourceImageWriter;
+    HyperlinkClickJavaScriptHandler * m_pHyperlinkClickJavaScriptHandler;
 
     quint16     m_webSocketServerPort;
 #endif

@@ -26,5 +26,6 @@
         <file>decryptEncryptedTextPermanently.js</file>
         <file>flipEnToDoCheckboxState.js</file>
         <file>setupTextCursorPositionTracking.js</file>
+        <file>clickInterceptor.js</file>
     </qresource>
 </RCC>

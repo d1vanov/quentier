@@ -220,6 +220,7 @@ else()
        src/note_editor/javascript_glue/EnCryptElementOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.h
+       src/note_editor/javascript_glue/HyperlinkClickJavaScriptHandler.h
        src/note_editor/WebSocketClientWrapper.h
        src/note_editor/WebSocketTransport.h)
 endif()
@@ -344,6 +345,7 @@ else()
     src/note_editor/javascript_glue/EnCryptElementOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.cpp
+    src/note_editor/javascript_glue/HyperlinkClickJavaScriptHandler.cpp
     src/note_editor/WebSocketTransport.cpp
     src/note_editor/WebSocketClientWrapper.cpp)
 endif()

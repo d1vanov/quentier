@@ -25,6 +25,7 @@
             window.openAndSaveResourceButtonsHandler = channel.objects.openAndSaveResourceButtonsHandler;
             window.textCursorPositionHandler = channel.objects.textCursorPositionHandler;
             window.contextMenuEventHandler = channel.objects.contextMenuEventHandler;
+            window.hyperlinkClickHandler = channel.objects.hyperlinkClickHandler;
 
             console.log("Created window variables for objects exposed to JavaScript");
         });

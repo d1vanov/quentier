@@ -22,9 +22,9 @@
 
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
-#else
-#include <QDesktopServices>
 #endif
+
+#include <QDesktopServices>
 
 namespace qute_note {
 
@@ -211,6 +211,12 @@ const QString relativePathFromAbsolutePath(const QString & absolutePath, const Q
     }
 
     return absolutePath.mid(position + relativePathRootFolder.length() + 1);   // NOTE: additional symbol for slash
+}
+
+void openUrl(const QUrl url)
+{
+    QNDEBUG("openUrl: " << url);
+    QDesktopServices::openUrl(url);
 }
 
 } // namespace qute_note

@@ -43,6 +43,9 @@ const QString QUTE_NOTE_EXPORT getExistingFolderDialog(QWidget * parent, const Q
 const QString QUTE_NOTE_EXPORT relativePathFromAbsolutePath(const QString & absolutePath,
                                                             const QString & relativePathRootFolder);
 
+// Convenience function to send URL opening request
+void QUTE_NOTE_EXPORT openUrl(const QUrl url);
+
 } // namespace qute_note
 
 #endif // __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
