@@ -52,6 +52,8 @@ bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const Q
     QNDEBUG("EncryptedAreaPlugin::initialize: parameter names = " << parameterNames.join(", ")
             << ", parameter values = " << parameterValues.join(", "));
 
+    Q_UNUSED(pluginFactory)
+
     const int numParameterValues = parameterValues.size();
 
     int cipherIndex = parameterNames.indexOf("cipher");

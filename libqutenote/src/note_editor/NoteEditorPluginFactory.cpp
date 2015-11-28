@@ -38,11 +38,9 @@ NoteEditorPluginFactory::NoteEditorPluginFactory(const INoteEditorBackend & note
 
 NoteEditorPluginFactory::~NoteEditorPluginFactory()
 {
-    auto resourcePluginsEnd = m_resourcePlugins.end();
-    for(auto it = m_resourcePlugins.begin(); it != resourcePluginsEnd; ++it) {
-        INoteEditorResourcePlugin * resourcePlugin = it.value();
-        delete resourcePlugin;
-    }
+    QNDEBUG("NoteEditorPluginFactory::~NoteEditorPluginFactory");
+
+    m_resourcePlugins.clear();
 
     delete m_genericResourceDisplayWidget;
     delete m_pEncryptedAreaPlugin;
@@ -136,7 +134,7 @@ bool NoteEditorPluginFactory::removeResourcePlugin(const NoteEditorPluginFactory
     QNTRACE("Plugin to remove: " << pluginName);
 
     delete plugin;
-    plugin = nullptr;
+    plugin = Q_NULLPTR;
 
     Q_UNUSED(m_resourcePlugins.erase(it));
 

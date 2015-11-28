@@ -148,27 +148,27 @@ private:
     QString getFilterStringForMimeType(const QString & mimeType) const;
 
 private:
-    const INoteEditorBackend &                      m_noteEditor;
-    IGenericResourceDisplayWidget *                 m_genericResourceDisplayWidget;
+    const INoteEditorBackend &                          m_noteEditor;
+    IGenericResourceDisplayWidget *                     m_genericResourceDisplayWidget;
 
     typedef QHash<ResourcePluginIdentifier, INoteEditorResourcePlugin*> ResourcePluginsHash;
-    ResourcePluginsHash                             m_resourcePlugins;
-    ResourcePluginIdentifier                        m_lastFreeResourcePluginId;
+    ResourcePluginsHash                                 m_resourcePlugins;
+    ResourcePluginIdentifier                            m_lastFreeResourcePluginId;
 
-    const Note *                                    m_pCurrentNote;
+    const Note *                                        m_pCurrentNote;
 
-    QIcon                                           m_fallbackResourceIcon;
+    QIcon                                               m_fallbackResourceIcon;
 
-    QMimeDatabase                                   m_mimeDatabase;
+    QMimeDatabase                                       m_mimeDatabase;
 
-    const ResourceFileStorageManager *              m_pResourceFileStorageManager;
-    const FileIOThreadWorker *                      m_pFileIOThreadWorker;
+    const ResourceFileStorageManager *                  m_pResourceFileStorageManager;
+    const FileIOThreadWorker *                          m_pFileIOThreadWorker;
 
-    INoteEditorEncryptedAreaPlugin *                m_pEncryptedAreaPlugin;
+    INoteEditorEncryptedAreaPlugin *                    m_pEncryptedAreaPlugin;
 
-    mutable QHash<QString, QIcon>                   m_resourceIconCache;
-    mutable QHash<QString, QStringList>             m_fileSuffixesCache;
-    mutable QHash<QString, QString>                 m_filterStringsCache;
+    mutable QHash<QString, QIcon>                       m_resourceIconCache;
+    mutable QHash<QString, QStringList>                 m_fileSuffixesCache;
+    mutable QHash<QString, QString>                     m_filterStringsCache;
 };
 
 } // namespace qute_note

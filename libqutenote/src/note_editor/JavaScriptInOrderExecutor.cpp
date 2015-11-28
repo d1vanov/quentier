@@ -1,4 +1,5 @@
 #include "JavaScriptInOrderExecutor.h"
+#include <qute_note/logging/QuteNoteLogger.h>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -16,6 +17,8 @@ JavaScriptInOrderExecutor::JavaScriptInOrderExecutor(WebView & view, QObject * p
 void JavaScriptInOrderExecutor::append(const QString &script)
 {
     m_javaScriptsQueue.enqueue(script);
+    QNTRACE("JavaScriptInOrderExecutor: appended new script, there are "
+            << m_javaScriptsQueue.size() << " to execute now");
 }
 
 void JavaScriptInOrderExecutor::start()
@@ -34,12 +37,16 @@ void JavaScriptInOrderExecutor::start()
 
 void JavaScriptInOrderExecutor::next()
 {
+    QNTRACE("JavaScriptInOrderExecutor::next");
+
     if (m_javaScriptsQueue.empty()) {
-        emit finished();
+        QNTRACE("JavaScriptInOrderExecutor: done");
         m_inProgress = false;
+        emit finished();
         return;
     }
 
+    QNTRACE("JavaScriptInOrderExecutor: " << m_javaScriptsQueue.size() << " more scripts to execute");
     start();
 }
 

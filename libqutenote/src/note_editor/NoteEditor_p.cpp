@@ -794,7 +794,7 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
 void NoteEditorPrivate::onTextCursorPositionChange()
 {
     QNDEBUG("NoteEditorPrivate::onTextCursorPositionChange");
-    if (!m_pendingIndexHtmlWritingToFile && !m_pendingNotePageLoad) {
+    if (!m_pendingIndexHtmlWritingToFile && !m_pendingNotePageLoad && !m_pendingJavaScriptExecution) {
         determineStatesForCurrentTextCursorPosition();
     }
 }
@@ -1084,6 +1084,7 @@ void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
 #endif
 
+    page->setView(Q_NULLPTR);
     page->setParent(Q_NULLPTR);
     m_pagesStack.push(page);
 
@@ -1116,6 +1117,7 @@ void NoteEditorPrivate::popEditorPage()
     --m_lastNoteEditorPageFreeIndex;
     QNTRACE("Updated last note editor page free index to " << m_lastNoteEditorPageFreeIndex);
 
+    page->setView(this);
     updateNoteEditorPagePath(page->index());
     setupNoteEditorPageConnections(page);
 
@@ -2458,12 +2460,6 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
-    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
-    QObject::connect(pEncryptedAreaPlugin, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
-    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, pEncryptedAreaPlugin, page);
-    page->setPluginFactory(m_pluginFactory);
-
     m_errorCachedMemory.resize(0);
 #endif
 
@@ -2473,6 +2469,17 @@ void NoteEditorPrivate::setupNoteEditorPage()
 #ifdef USE_QT_WEB_ENGINE
     QNTRACE("Set note editor page with url: " << page->url());
 #else
+    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_encryptionManager, m_decryptedTextManager);
+    QObject::connect(pEncryptedAreaPlugin, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
+
+    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, pEncryptedAreaPlugin, page);
+    if (Q_LIKELY(m_pNote)) {
+        m_pluginFactory->setNote(*m_pNote);
+    }
+
+    page->setPluginFactory(m_pluginFactory);
+
     QNTRACE("Set note editor page with url: " << page->mainFrame()->url());
 #endif
 }
