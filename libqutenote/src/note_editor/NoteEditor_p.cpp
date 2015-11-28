@@ -171,6 +171,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-generic.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-image.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-todo.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/link.css\">"
                  "<title></title></head>"),
     m_lastSelectedHtml(),
     m_lastSelectedHtmlForEncryption(),
