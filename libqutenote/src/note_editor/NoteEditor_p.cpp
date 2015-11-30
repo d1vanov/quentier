@@ -3734,9 +3734,10 @@ void NoteEditorPrivate::removeHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::removeHyperlink");
 
+    skipPushingUndoCommandOnNextContentChange();
+
     GET_PAGE()
     page->executeJavaScript("removeHyperlinkFromSelection();");
-    setFocus();
 }
 
 void NoteEditorPrivate::doEditHyperlinkDialog()
@@ -3744,6 +3745,7 @@ void NoteEditorPrivate::doEditHyperlinkDialog()
     QNDEBUG("NoteEditorPrivate::doEditHyperlinkDialog");
 
     QVector<QPair<QString,QString> > extraData;
+    skipPushingUndoCommandOnNextContentChange();
 
 #ifndef USE_QT_WEB_ENGINE
     QVariant hyperlinkData = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
@@ -3892,10 +3894,11 @@ void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url, quint64 hyp
         hyperlinkIdNumber = m_lastFreeHyperlinkIdNumber++;
     }
 
+    skipPushingUndoCommandOnNextContentChange();
+
     GET_PAGE()
     page->executeJavaScript("setHyperlinkToSelection('" + text + "', '" + urlString +
                             "', " + QString::number(hyperlinkIdNumber) + ");");
-    setFocus();
 }
 
 void NoteEditorPrivate::dropFile(QString & filepath)
