@@ -4,21 +4,19 @@
 
 namespace qute_note {
 
-EncryptUndoCommand::EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate,
+EncryptUndoCommand::EncryptUndoCommand(const QString & htmlWithEncryption, NoteEditorPrivate & noteEditorPrivate,
                                        QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
-    m_htmlWithEncryption()
+    m_htmlWithEncryption(htmlWithEncryption)
 {
-    init();
+    setText(QObject::tr("Encrypt selected text"));
 }
 
-EncryptUndoCommand:: EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate,
+EncryptUndoCommand:: EncryptUndoCommand(const QString & htmlWithEncryption, NoteEditorPrivate & noteEditorPrivate,
                                         const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
-    m_htmlWithEncryption()
-{
-    init();
-}
+    m_htmlWithEncryption(htmlWithEncryption)
+{}
 
 EncryptUndoCommand::~EncryptUndoCommand()
 {}
@@ -36,20 +34,6 @@ void EncryptUndoCommand::undoImpl()
     QNDEBUG("EncryptUndoCommand::undoImpl");
 
     m_noteEditorPrivate.popEditorPage();
-}
-
-void EncryptUndoCommand::setHtmlWithEncryption(const QString & html)
-{
-    QNDEBUG("EncryptUndoCommand::setHtmlWithEncryption");
-
-    m_htmlWithEncryption = html;
-    m_ready = true;
-}
-
-void EncryptUndoCommand::init()
-{
-    m_ready = false;
-    QUndoCommand::setText(QObject::tr("Encrypt text"));
 }
 
 } // namespace qute_note

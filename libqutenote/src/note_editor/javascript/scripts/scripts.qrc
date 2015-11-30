@@ -23,6 +23,7 @@
         <file>getHyperlinkFromSelection.js</file>
         <file>findSelectedHyperlinkElement.js</file>
         <file>removeHyperlinkFromSelection.js</file>
+        <file>removeHyperlink.js</file>
         <file>decryptEncryptedTextPermanently.js</file>
         <file>flipEnToDoCheckboxState.js</file>
         <file>setupTextCursorPositionTracking.js</file>

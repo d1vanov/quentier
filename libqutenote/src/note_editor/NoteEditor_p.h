@@ -197,7 +197,7 @@ public Q_SLOTS:
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
     virtual void removeHyperlink() Q_DECL_OVERRIDE;
 
-    void doAddHyperlinkToSelectedTextDialog();
+    void doEditHyperlinkDialog();
 
     virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
 
@@ -293,6 +293,9 @@ private Q_SLOTS:
     // Slots for delegates
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);
+
+    void onAddHyperlinkToSelectedTextDelegateFinished();
+    void onAddHyperlinkToSelectedTextDelegateError(QString error);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
@@ -488,6 +491,7 @@ private:
     QString     m_setHyperlinkToSelectionJs;
     QString     m_getHyperlinkFromSelectionJs;
     QString     m_removeHyperlinkFromSelectionJs;
+    QString     m_removeHyperlinkJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;
@@ -590,6 +594,7 @@ private:
 
     QString     m_lastSelectedHtml;
     QString     m_lastSelectedHtmlForEncryption;
+    QString     m_lastSelectedHtmlForHyperlink;
 
     QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
     QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions

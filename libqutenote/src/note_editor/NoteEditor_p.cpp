@@ -3,6 +3,7 @@
 #include "DecryptionDialog.h"
 #include "EditUrlDialog.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
+#include "delegates/AddHyperlinkToSelectedTextDelegate.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
@@ -99,6 +100,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setHyperlinkToSelectionJs(),
     m_getHyperlinkFromSelectionJs(),
     m_removeHyperlinkFromSelectionJs(),
+    m_removeHyperlinkJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
@@ -176,6 +178,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<title></title></head>"),
     m_lastSelectedHtml(),
     m_lastSelectedHtmlForEncryption(),
+    m_lastSelectedHtmlForHyperlink(),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
@@ -310,6 +313,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
     page->executeJavaScript(m_removeHyperlinkFromSelectionJs);
+    page->executeJavaScript(m_removeHyperlinkJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
@@ -1012,6 +1016,19 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
     sender()->deleteLater();
 }
 
+void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished()
+{
+    QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished");
+    sender()->deleteLater();
+}
+
+void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError");
+    emit notifyError(error);
+    sender()->deleteLater();
+}
+
 void NoteEditorPrivate::timerEvent(QTimerEvent * event)
 {
     QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
@@ -1161,8 +1178,7 @@ void NoteEditorPrivate::setNotePageHtmlAfterEncryption(const QString & html)
 {
     QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterEncryption");
 
-    EncryptUndoCommand * pCommand = new EncryptUndoCommand(*this);
-    pCommand->setHtmlWithEncryption(html);
+    EncryptUndoCommand * pCommand = new EncryptUndoCommand(html, *this);
     m_pPreliminaryUndoCommandQueue->push(pCommand);
     QNTRACE("Pushed EncryptUndoCommand to the undo stack");
 }
@@ -1209,8 +1225,7 @@ void NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink(const QString & html
 {
     QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink");
 
-    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(*this);
-    pCommand->setHtmlWithHyperlink(html);
+    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(html, *this);
     m_pPreliminaryUndoCommandQueue->push(pCommand);
     QNTRACE("Pushed AddHyperlinkUndoCommand to the undo stack");
 }
@@ -1227,7 +1242,7 @@ void NoteEditorPrivate::undoLastHyperlinkAddition()
 
     skipPushingUndoCommandOnNextContentChange();
 
-    QString javascript;     // FIXME: fill the actual script doing the job here
+    QString javascript = "removeHyperlink(" + QString::number(m_lastFreeHyperlinkIdNumber - 1) + ");";
     GET_PAGE()
     page->executeJavaScript(javascript);
 }
@@ -2437,6 +2452,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
     SETUP_SCRIPT("javascript/scripts/getHyperlinkFromSelection.js", m_getHyperlinkFromSelectionJs);
     SETUP_SCRIPT("javascript/scripts/removeHyperlinkFromSelection.js", m_removeHyperlinkFromSelectionJs);
+    SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
@@ -3681,39 +3697,17 @@ void NoteEditorPrivate::editHyperlinkDialog()
 {
     QNDEBUG("NoteEditorPrivate::editHyperlinkDialog");
 
-    QVector<QPair<QString,QString> > extraData;
+    // NOTE: when adding the new hyperlink, the selected html can be empty, it's ok
+    m_lastSelectedHtmlForHyperlink = m_lastSelectedHtml;
 
-#ifndef USE_QT_WEB_ENGINE
-    Q_UNUSED(extraData);
-
-    if (!page()->hasSelection()) {
-        QNDEBUG("Note editor page has no selected text, hence no hyperlink to edit is available");
-        raiseEditUrlDialog();
-        return;
-    }
-
-    QStringList hyperlinkData = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();").toStringList();
-    if (hyperlinkData.size() != 3) {
-        QString error = QT_TR_NOOP("Can't edit hyperlink: can't get text, hyperlink and id number from JavaScript");
-        QNWARNING(error << "; hyperlink data: " << hyperlinkData.join(","));
-        emit notifyError(error);
-        return;
-    }
-
-    bool conversionResult = false;
-    quint64 idNumber = hyperlinkData[2].toULongLong(&conversionResult);
-    if (!conversionResult) {
-        m_errorCachedMemory = QT_TR_NOOP("Can't edit hyperlink: can't cinvert hyperlink id number to unsigned int");
-        QNWARNING(m_errorCachedMemory << "; hyperlink data: " << hyperlinkData.join(","));
-        emit notifyError(m_errorCachedMemory);
-        return;
-    }
-
-    raiseEditUrlDialog(hyperlinkData[0], hyperlinkData[1], idNumber);
-#else
     GET_PAGE()
-    page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
-#endif
+
+    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker);
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QString));
+    delegate->start();
 }
 
 void NoteEditorPrivate::copyHyperlink()
@@ -3745,10 +3739,19 @@ void NoteEditorPrivate::removeHyperlink()
     setFocus();
 }
 
-void NoteEditorPrivate::doAddHyperlinkToSelectedTextDialog()
+void NoteEditorPrivate::doEditHyperlinkDialog()
 {
-    QNDEBUG("NoteEditorPrivate::doAddHyperlinkToSelectedTextDialog");
-    // TODO: implement
+    QNDEBUG("NoteEditorPrivate::doEditHyperlinkDialog");
+
+    QVector<QPair<QString,QString> > extraData;
+
+#ifndef USE_QT_WEB_ENGINE
+    QVariant hyperlinkData = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
+    onFoundHyperlinkToEdit(hyperlinkData, extraData);
+#else
+    GET_PAGE()
+    page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
+#endif
 }
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLength,

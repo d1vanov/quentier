@@ -56,7 +56,7 @@ void AddHyperlinkToSelectedTextDelegate::addHyperlinkToSelectedText()
     QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,editHyperlinkDialogCancelled),
                      this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onAddHyperlinkDialogCancelled));
 
-    m_noteEditor.doAddHyperlinkToSelectedTextDialog();
+    m_noteEditor.doEditHyperlinkDialog();
 }
 
 void AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogCancelled()
