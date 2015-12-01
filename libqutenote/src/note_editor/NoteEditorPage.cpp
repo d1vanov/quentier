@@ -21,11 +21,45 @@ NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent, const quint32 index) 
                      this, QNSLOT(NoteEditorPage,onJavaScriptQueueEmpty));
 }
 
+NoteEditorPage::~NoteEditorPage()
+{
+    QNDEBUG("NoteEditorPage::~NoteEditorPage");
+
+    while(QWidget * pWidget = findChild<QWidget*>()) {
+        pWidget->hide();
+        delete pWidget;
+    }
+}
+
 bool NoteEditorPage::javaScriptQueueEmpty() const
 {
     QNDEBUG("NoteEditorPage::javaScriptQueueEmpty: "
             << (m_pJavaScriptInOrderExecutor->empty() ? "true" : "false"));
     return m_pJavaScriptInOrderExecutor->empty();
+}
+
+void NoteEditorPage::setInactive()
+{
+    QNDEBUG("NoteEditorPage::setInactive");
+
+#ifndef USE_QT_WEB_ENGINE
+    NoteEditorPluginFactory * pPluginFactory = qobject_cast<NoteEditorPluginFactory*>(pluginFactory());
+    if (Q_LIKELY(pPluginFactory)) {
+        pPluginFactory->setInactive();
+    }
+#endif
+}
+
+void NoteEditorPage::setActive()
+{
+    QNDEBUG("NoteEditorPage::setActive");
+
+#ifndef USE_QT_WEB_ENGINE
+    NoteEditorPluginFactory * pPluginFactory = qobject_cast<NoteEditorPluginFactory*>(pluginFactory());
+    if (Q_LIKELY(pPluginFactory)) {
+        pPluginFactory->setActive();
+    }
+#endif
 }
 
 bool NoteEditorPage::shouldInterruptJavaScript()

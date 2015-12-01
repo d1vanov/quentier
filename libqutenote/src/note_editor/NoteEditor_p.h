@@ -127,11 +127,6 @@ public:
 
     QString noteEditorPagePath() const { return m_noteEditorPagePath; }
 
-#ifndef USE_QT_WEB_ENGINE
-    const NoteEditorPluginFactory & pluginFactory() const;
-    NoteEditorPluginFactory & pluginFactory();
-#endif
-
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
 

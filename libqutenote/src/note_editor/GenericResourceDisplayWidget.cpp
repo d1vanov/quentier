@@ -18,7 +18,7 @@
 namespace qute_note {
 
 GenericResourceDisplayWidget::GenericResourceDisplayWidget(QWidget * parent) :
-    IGenericResourceDisplayWidget(parent),
+    QWidget(parent),
     m_pUI(new Ui::GenericResourceDisplayWidget),
     m_pResource(Q_NULLPTR),
     m_pResourceFileStorageManager(Q_NULLPTR),
@@ -129,11 +129,6 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_ownFilePath, m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());
-}
-
-GenericResourceDisplayWidget * GenericResourceDisplayWidget::create() const
-{
-    return new GenericResourceDisplayWidget;
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()

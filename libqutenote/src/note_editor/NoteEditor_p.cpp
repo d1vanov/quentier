@@ -14,7 +14,6 @@
 #include "undo_stack/AddHyperlinkUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
-#include "EncryptedAreaPlugin.h"
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
@@ -1120,6 +1119,7 @@ void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
 #endif
 
+    page->setInactive();
     page->setView(Q_NULLPTR);
     page->setParent(Q_NULLPTR);
     m_pagesStack.push(page);
@@ -1158,6 +1158,7 @@ void NoteEditorPrivate::popEditorPage()
     setupNoteEditorPageConnections(page);
 
     setPage(page);
+    page->setActive();
 
 #ifdef USE_QT_WEB_ENGINE
     QNTRACE("Set note editor page with url: " << page->url());
@@ -2540,8 +2541,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
 #ifdef USE_QT_WEB_ENGINE
     QNTRACE("Set note editor page with url: " << page->url());
 #else
-    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(*this, m_encryptionManager, m_decryptedTextManager);
-    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, pEncryptedAreaPlugin, page);
+    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
+                                                  m_encryptionManager, m_decryptedTextManager, page);
     if (Q_LIKELY(m_pNote)) {
         m_pluginFactory->setNote(*m_pNote);
     }
@@ -2997,18 +2998,6 @@ bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
 }
-
-#ifndef USE_QT_WEB_ENGINE
-const NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory() const
-{
-    return *m_pluginFactory;
-}
-
-NoteEditorPluginFactory & NoteEditorPrivate::pluginFactory()
-{
-    return *m_pluginFactory;
-}
-#endif
 
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
 {

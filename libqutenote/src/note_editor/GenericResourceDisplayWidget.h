@@ -1,8 +1,8 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_DISPLAY_WIDGET_H
 
-#include "IGenericResourceDisplayWidget.h"
 #include <qute_note/utility/Qt4Helper.h>
+#include <QWidget>
 #include <QUuid>
 
 QT_FORWARD_DECLARE_CLASS(QMimeDatabase)
@@ -16,22 +16,20 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(IResource)
 
-class GenericResourceDisplayWidget: public IGenericResourceDisplayWidget
+class GenericResourceDisplayWidget: public QWidget
 {
     Q_OBJECT
 public:
     GenericResourceDisplayWidget(QWidget * parent = Q_NULLPTR);
     virtual ~GenericResourceDisplayWidget();
 
-    virtual void initialize(const QIcon & icon, const QString & name,
-                            const QString & size, const QStringList & preferredFileSuffixes,
-                            const QString & filterString,
-                            const IResource & resource,
-                            const ResourceFileStorageManager & resourceFileStorageManager,
-                            const FileIOThreadWorker & fileIOThreadWorker) Q_DECL_OVERRIDE;
-
-    virtual GenericResourceDisplayWidget * create() const Q_DECL_OVERRIDE;
+    void initialize(const QIcon & icon, const QString & name,
+                    const QString & size, const QStringList & preferredFileSuffixes,
+                    const QString & filterString, const IResource & resource,
+                    const ResourceFileStorageManager & resourceFileStorageManager,
+                    const FileIOThreadWorker & fileIOThreadWorker);
 
 Q_SIGNALS:
     void savedResourceToFile();

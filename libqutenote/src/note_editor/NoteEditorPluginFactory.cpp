@@ -1,8 +1,11 @@
 #include "NoteEditorPluginFactory.h"
 #include "GenericResourceDisplayWidget.h"
+#include "EncryptedAreaPlugin.h"
 #include "NoteEditor_p.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
+#include <qute_note/utility/EncryptionManager.h>
+#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/utility/QuteNoteCheckPtr.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/types/Note.h>
@@ -16,11 +19,11 @@ namespace qute_note {
 NoteEditorPluginFactory::NoteEditorPluginFactory(NoteEditorPrivate & noteEditor,
                                                  const ResourceFileStorageManager & resourceFileStorageManager,
                                                  const FileIOThreadWorker & fileIOThreadWorker,
-                                                 INoteEditorEncryptedAreaPlugin * pEncryptedAreaPlugin,
+                                                 const QSharedPointer<EncryptionManager> & encryptionManager,
+                                                 DecryptedTextManager & decryptedTextManager,
                                                  QObject * parent) :
     QWebPluginFactory(parent),
     m_noteEditor(noteEditor),
-    m_genericResourceDisplayWidget(new GenericResourceDisplayWidget),
     m_resourcePlugins(),
     m_lastFreeResourcePluginId(1),
     m_pCurrentNote(Q_NULLPTR),
@@ -28,22 +31,36 @@ NoteEditorPluginFactory::NoteEditorPluginFactory(NoteEditorPrivate & noteEditor,
     m_mimeDatabase(),
     m_pResourceFileStorageManager(&resourceFileStorageManager),
     m_pFileIOThreadWorker(&fileIOThreadWorker),
-    m_pEncryptedAreaPlugin(pEncryptedAreaPlugin),
+    m_pEncryptionManager(encryptionManager),
+    m_decryptedTextManager(decryptedTextManager),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
-    m_filterStringsCache()
-{
-    QUTE_NOTE_CHECK_PTR(m_pEncryptedAreaPlugin);
-}
+    m_filterStringsCache(),
+    m_genericResourceDisplayWidgetPlugins(),
+    m_encryptedAreaPlugins()
+{}
 
 NoteEditorPluginFactory::~NoteEditorPluginFactory()
 {
     QNDEBUG("NoteEditorPluginFactory::~NoteEditorPluginFactory");
 
-    m_resourcePlugins.clear();
+    for(auto it = m_genericResourceDisplayWidgetPlugins.begin(), end = m_genericResourceDisplayWidgetPlugins.end(); it != end; ++it)
+    {
+        QPointer<GenericResourceDisplayWidget> pWidget = *it;
+        if (!pWidget.isNull()) {
+            pWidget->hide();
+            delete pWidget;
+        }
+    }
 
-    delete m_genericResourceDisplayWidget;
-    delete m_pEncryptedAreaPlugin;
+    for(auto it = m_encryptedAreaPlugins.begin(), end = m_encryptedAreaPlugins.end(); it != end; ++it)
+    {
+        QPointer<EncryptedAreaPlugin> pPlugin = *it;
+        if (!pPlugin.isNull()) {
+            pPlugin->hide();
+            delete pPlugin;
+        }
+    }
 }
 
 const NoteEditorPrivate & NoteEditorPluginFactory::noteEditor() const
@@ -203,34 +220,46 @@ void NoteEditorPluginFactory::setFallbackResourceIcon(const QIcon & icon)
     m_fallbackResourceIcon = icon;
 }
 
-void NoteEditorPluginFactory::setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget)
+void NoteEditorPluginFactory::setInactive()
 {
-    QNDEBUG("NoteEditorPluginFactory::setGenericResourceDisplayWidget: "
-            << (genericResourceDisplayWidget ? genericResourceDisplayWidget->objectName() : QString("<null>")));
+    QNDEBUG("NoteEditorPluginFactory::setInactive");
 
-    if (!genericResourceDisplayWidget) {
-        QNWARNING("detected attempt to set null generic resource display widget to note editor plugin factory");
-        return;
+    for(auto it = m_genericResourceDisplayWidgetPlugins.begin(), end = m_genericResourceDisplayWidgetPlugins.end(); it != end; ++it)
+    {
+        QPointer<GenericResourceDisplayWidget> pWidget = *it;
+        if (!pWidget.isNull()) {
+            pWidget->hide();
+        }
     }
 
-    delete m_genericResourceDisplayWidget;
-    m_genericResourceDisplayWidget = genericResourceDisplayWidget;
-    m_genericResourceDisplayWidget->setParent(Q_NULLPTR);
+    for(auto it = m_encryptedAreaPlugins.begin(), end = m_encryptedAreaPlugins.end(); it != end; ++it)
+    {
+        QPointer<EncryptedAreaPlugin> pPlugin = *it;
+        if (!pPlugin.isNull()) {
+            pPlugin->hide();
+        }
+    }
 }
 
-void NoteEditorPluginFactory::setEncryptedAreaPlugin(INoteEditorEncryptedAreaPlugin * encryptedAreaPlugin)
+void NoteEditorPluginFactory::setActive()
 {
-    QNDEBUG("NoteEditorPluginFactory::setEncryptedAreaPlugin: "
-            << (encryptedAreaPlugin ? encryptedAreaPlugin->objectName() : QString("<null>")));
+    QNDEBUG("NoteEditorPluginFactory::setActive");
 
-    if (!encryptedAreaPlugin) {
-        QNWARNING("detected attempt to set null encrypted area plugin to note editor plugin factory");
-        return;
+    for(auto it = m_genericResourceDisplayWidgetPlugins.begin(), end = m_genericResourceDisplayWidgetPlugins.end(); it != end; ++it)
+    {
+        QPointer<GenericResourceDisplayWidget> pWidget = *it;
+        if (!pWidget.isNull()) {
+            pWidget->show();
+        }
     }
 
-    delete m_pEncryptedAreaPlugin;
-    m_pEncryptedAreaPlugin = encryptedAreaPlugin;
-    m_pEncryptedAreaPlugin->setParent(Q_NULLPTR);
+    for(auto it = m_encryptedAreaPlugins.begin(), end = m_encryptedAreaPlugins.end(); it != end; ++it)
+    {
+        QPointer<EncryptedAreaPlugin> pPlugin = *it;
+        if (!pPlugin.isNull()) {
+            pPlugin->show();
+        }
+    }
 }
 
 QObject * NoteEditorPluginFactory::create(const QString & pluginType, const QUrl & url,
@@ -388,38 +417,37 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
         m_filterStringsCache[resourceMimeType] = filterString;
     }
 
-    IGenericResourceDisplayWidget * genericResourceDisplayWidget = m_genericResourceDisplayWidget->create();
-    QUTE_NOTE_CHECK_PTR(genericResourceDisplayWidget, "null pointer to generic resource display widget");
+    QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
+    GenericResourceDisplayWidget * pGenericResourceDisplayWidget = new GenericResourceDisplayWidget(pParentWidget);
 
     // NOTE: upon return this generic resource display widget would be reparented to the caller anyway,
-    // the parent setting below is strictly for possible use within initialize method (for example, if
+    // the parent setting above is strictly for possible use within initialize method (for example, if
     // the widget would need to create some dialog window, it could be modal due to the existence of the parent)
-    genericResourceDisplayWidget->setParent(qobject_cast<QWidget*>(parent()));
 
-    genericResourceDisplayWidget->initialize(cachedIconIt.value(), resourceDisplayName,
-                                             resourceDataSize, fileSuffixes, filterString,
-                                             *pCurrentResource, *m_pResourceFileStorageManager,
-                                             *m_pFileIOThreadWorker);
-    return genericResourceDisplayWidget;
+    pGenericResourceDisplayWidget->initialize(cachedIconIt.value(), resourceDisplayName,
+                                              resourceDataSize, fileSuffixes, filterString,
+                                              *pCurrentResource, *m_pResourceFileStorageManager,
+                                              *m_pFileIOThreadWorker);
+
+    m_genericResourceDisplayWidgetPlugins.push_back(QPointer<GenericResourceDisplayWidget>(pGenericResourceDisplayWidget));
+    return pGenericResourceDisplayWidget;
 }
 
 QObject * NoteEditorPluginFactory::createEncryptedAreaPlugin(const QStringList & argumentNames, const QStringList & argumentValues) const
 {
-    if (!m_pEncryptedAreaPlugin) {
-        QNFATAL("Encrypted area plugin prototype is not set");
-        return Q_NULLPTR;
-    }
+    QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
+    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_noteEditor, m_pEncryptionManager, m_decryptedTextManager, pParentWidget);
 
-    INoteEditorEncryptedAreaPlugin * newPlugin = m_pEncryptedAreaPlugin->clone();
     QString errorDescription;
-    bool res = newPlugin->initialize(argumentNames, argumentValues, *this, errorDescription);
+    bool res = pEncryptedAreaPlugin->initialize(argumentNames, argumentValues, *this, errorDescription);
     if (!res) {
-        QNINFO("Can't initialize note editor encrypted area plugin " << newPlugin->name() << ": " << errorDescription);
-        delete newPlugin;
+        QNINFO("Can't initialize note editor encrypted area plugin " << pEncryptedAreaPlugin->name() << ": " << errorDescription);
+        delete pEncryptedAreaPlugin;
         return Q_NULLPTR;
     }
 
-    return newPlugin;
+    m_encryptedAreaPlugins.push_back(QPointer<EncryptedAreaPlugin>(pEncryptedAreaPlugin));
+    return pEncryptedAreaPlugin;
 }
 
 QList<QWebPluginFactory::Plugin> NoteEditorPluginFactory::plugins() const

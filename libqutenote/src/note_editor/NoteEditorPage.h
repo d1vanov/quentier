@@ -25,9 +25,13 @@ class NoteEditorPage:
     Q_OBJECT
 public:
     explicit NoteEditorPage(NoteEditorPrivate & parent, const quint32 index);
+    virtual ~NoteEditorPage();
 
     bool javaScriptQueueEmpty() const;
     quint32 index() const { return m_index; }
+
+    void setInactive();
+    void setActive();
 
 Q_SIGNALS:
     void javaScriptLoaded();

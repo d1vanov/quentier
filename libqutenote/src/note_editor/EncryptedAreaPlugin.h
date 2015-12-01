@@ -1,10 +1,10 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__ENCRYPTED_AREA_PLUGIN_H
 
-#include "INoteEditorEncryptedAreaPlugin.h"
-#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/utility/Qt4Helper.h>
+#include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/utility/EncryptionManager.h>
+#include <QWidget>
 
 namespace Ui {
 QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
@@ -13,8 +13,9 @@ QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
+QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 
-class EncryptedAreaPlugin: public INoteEditorEncryptedAreaPlugin
+class EncryptedAreaPlugin: public QWidget
 {
     Q_OBJECT
 public:
@@ -24,18 +25,15 @@ public:
                                  QWidget * parent = Q_NULLPTR);
     virtual ~EncryptedAreaPlugin();
 
+    bool initialize(const QStringList & parameterNames, const QStringList & parameterValues,
+                            const NoteEditorPluginFactory & pluginFactory, QString & errorDescription);
+    QString name() const;
+    QString description() const;
+
 Q_SIGNALS:
     void decrypted(QString cipher, size_t keyLength, QString encryptedText, QString passphrase,
                    QString decryptedText, bool rememberForSession, bool decryptPermanently,
                    bool createDecryptUndoAction = true);
-
-private:
-    // INoteEditorEncryptedAreaPlugin interface
-    virtual EncryptedAreaPlugin * clone() const Q_DECL_OVERRIDE;
-    virtual bool initialize(const QStringList & parameterNames, const QStringList & parameterValues,
-                            const NoteEditorPluginFactory & pluginFactory, QString & errorDescription) Q_DECL_OVERRIDE;
-    virtual QString name() const Q_DECL_OVERRIDE;
-    virtual QString description() const Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void decrypt();

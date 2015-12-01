@@ -2,11 +2,12 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PLUGIN_FACTORY_H
 
 #include "INoteEditorResourcePlugin.h"
-#include "INoteEditorEncryptedAreaPlugin.h"
 #include <QWebPluginFactory>
 #include <QMimeDatabase>
 #include <QIcon>
 #include <QHash>
+#include <QSharedPointer>
+#include <QPointer>
 
 QT_FORWARD_DECLARE_CLASS(QRegExp)
 
@@ -18,8 +19,12 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(EncryptionManager)
+QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-QT_FORWARD_DECLARE_CLASS(IGenericResourceDisplayWidget)
+
+QT_FORWARD_DECLARE_CLASS(EncryptedAreaPlugin)
+QT_FORWARD_DECLARE_CLASS(GenericResourceDisplayWidget)
 
 /**
  * @brief The NoteEditorPluginFactory class allows one to install and uninstall custom plugins to/from NoteEditor
@@ -31,7 +36,8 @@ public:
     explicit NoteEditorPluginFactory(NoteEditorPrivate & editor,
                                      const ResourceFileStorageManager & resourceFileStorageManager,
                                      const FileIOThreadWorker & fileIOThreadWorker,
-                                     INoteEditorEncryptedAreaPlugin * pEncryptedAreaPlugin,
+                                     const QSharedPointer<EncryptionManager> & encryptionManager,
+                                     DecryptedTextManager & decryptedTextManager,
                                      QObject * parent = Q_NULLPTR);
     virtual ~NoteEditorPluginFactory();
 
@@ -113,23 +119,8 @@ public:
      */
     void setFallbackResourceIcon(const QIcon & icon);
 
-    /**
-     * @brief setGenericResourceDisplayWidget - note editor plugin factory would create the "generic"
-     * resource display plugin if it finds no "real" plugin installed for the given mime type.
-     * This "generic" plugin is either built-in one or any other plugin implementing IGenericResourceDisplayWidget interface.
-     * This method is used to provide the note editor plugin factory with a sample object of particular
-     * IGenericResourceDisplayWidget subclass
-     * @param genericResourceDisplayWidget - sample object to be used for creation of generic resource display widget;
-     * the ownership of this object is passed to the note editor plugin factory
-     */
-    void setGenericResourceDisplayWidget(IGenericResourceDisplayWidget * genericResourceDisplayWidget);
-
-    /**
-     * @brief setEncryptedAreaPlugin - setter for INoteEditorEncryptedAreaPlugin subclass in the plugin factory
-     * @param encryptedAreaPlugin - sample object to be used for creation of encrypted area plugins;
-     * the ownership of this object is passed to the note editor plugin factory
-     */
-    void setEncryptedAreaPlugin(INoteEditorEncryptedAreaPlugin * encryptedAreaPlugin);
+    void setInactive();
+    void setActive();
 
 private:
     // QWebPluginFactory interface
@@ -149,7 +140,6 @@ private:
 
 private:
     NoteEditorPrivate &                                 m_noteEditor;
-    IGenericResourceDisplayWidget *                     m_genericResourceDisplayWidget;
 
     typedef QHash<ResourcePluginIdentifier, INoteEditorResourcePlugin*> ResourcePluginsHash;
     ResourcePluginsHash                                 m_resourcePlugins;
@@ -164,11 +154,15 @@ private:
     const ResourceFileStorageManager *                  m_pResourceFileStorageManager;
     const FileIOThreadWorker *                          m_pFileIOThreadWorker;
 
-    INoteEditorEncryptedAreaPlugin *                    m_pEncryptedAreaPlugin;
+    QSharedPointer<EncryptionManager>                   m_pEncryptionManager;
+    DecryptedTextManager &                              m_decryptedTextManager;
 
     mutable QHash<QString, QIcon>                       m_resourceIconCache;
     mutable QHash<QString, QStringList>                 m_fileSuffixesCache;
     mutable QHash<QString, QString>                     m_filterStringsCache;
+
+    mutable QVector<QPointer<GenericResourceDisplayWidget> >      m_genericResourceDisplayWidgetPlugins;
+    mutable QVector<QPointer<EncryptedAreaPlugin> >               m_encryptedAreaPlugins;
 };
 
 } // namespace qute_note

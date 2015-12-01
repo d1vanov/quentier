@@ -14,7 +14,7 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor,
                                          QSharedPointer<EncryptionManager> encryptionManager,
                                          DecryptedTextManager & decryptedTextManager,
                                          QWidget * parent) :
-    INoteEditorEncryptedAreaPlugin(parent),
+    QWidget(parent),
     m_pUI(new Ui::EncryptedAreaPlugin),
     m_noteEditor(noteEditor),
     m_encryptionManager(encryptionManager),
@@ -44,12 +44,6 @@ EncryptedAreaPlugin::~EncryptedAreaPlugin()
 {
     QNDEBUG("EncryptedAreaPlugin: destructor");
     delete m_pUI;
-}
-
-EncryptedAreaPlugin * EncryptedAreaPlugin::clone() const
-{
-    return new EncryptedAreaPlugin(m_noteEditor, m_encryptionManager, m_decryptedTextManager,
-                                   qobject_cast<QWidget*>(parent()));
 }
 
 bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const QStringList & parameterValues,
