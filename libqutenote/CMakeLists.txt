@@ -166,6 +166,7 @@ set(PRIVATE_HEADERS
     src/note_editor/ResourceInfo.h
     src/note_editor/delegates/EncryptSelectedTextDelegate.h
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h
+    src/note_editor/delegates/RemoveHyperlinkDelegate.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
@@ -181,6 +182,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/EncryptUndoCommand.h
     src/note_editor/undo_stack/DecryptUndoCommand.h
     src/note_editor/undo_stack/AddHyperlinkUndoCommand.h
+    src/note_editor/undo_stack/RemoveHyperlinkUndoCommand.h
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.h
     src/note_editor/undo_stack/EditHyperlinkUndoCommandNotReadyException.h
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.h
@@ -244,6 +246,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceInfo.cpp
     src/note_editor/delegates/EncryptSelectedTextDelegate.cpp
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.cpp
+    src/note_editor/delegates/RemoveHyperlinkDelegate.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp
@@ -258,6 +261,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/EncryptUndoCommand.cpp
     src/note_editor/undo_stack/DecryptUndoCommand.cpp
     src/note_editor/undo_stack/AddHyperlinkUndoCommand.cpp
+    src/note_editor/undo_stack/RemoveHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/EditHyperlinkUndoCommandNotReadyException.cpp
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.cpp
