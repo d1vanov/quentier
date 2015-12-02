@@ -8,9 +8,9 @@ namespace qute_note {
 class RemoveHyperlinkUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    RemoveHyperlinkUndoCommand(const QString & htmlWithoutHyperlink, NoteEditorPrivate & noteEditor,
+    RemoveHyperlinkUndoCommand(const quint64 removedHyperlinkId, NoteEditorPrivate & noteEditor,
                                QUndoCommand * parent = Q_NULLPTR);
-    RemoveHyperlinkUndoCommand(const QString & htmlWithoutHyperlink, NoteEditorPrivate & noteEditor,
+    RemoveHyperlinkUndoCommand(const quint64 removedHyperlinkId, NoteEditorPrivate & noteEditor,
                                const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~RemoveHyperlinkUndoCommand();
 
@@ -18,7 +18,7 @@ public:
     virtual void undoImpl() Q_DECL_OVERRIDE;
 
 private:
-    QString     m_htmlWithoutHyperlink;
+    quint64     m_hyperlinkId;
 };
 
 } // namespace qute_note

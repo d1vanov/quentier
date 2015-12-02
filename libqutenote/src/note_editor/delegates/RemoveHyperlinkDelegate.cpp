@@ -1,6 +1,5 @@
 #include "RemoveHyperlinkDelegate.h"
 #include "../NoteEditor_p.h"
-#include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
 #ifndef USE_QT_WEB_ENGINE
@@ -9,20 +8,21 @@
 
 namespace qute_note {
 
-RemoveHyperlinkDelegate::RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor,
-                                                 NoteEditorPage * pOriginalPage,
-                                                 FileIOThreadWorker * pFileIOThreadWorker) :
+RemoveHyperlinkDelegate::RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor, NoteEditorPage * pOriginalPage) :
     QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pOriginalPage(pOriginalPage),
-    m_pFileIOThreadWorker(pFileIOThreadWorker),
-    m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId()
+    m_hyperlinkId(0)
 {}
 
 void RemoveHyperlinkDelegate::start()
 {
     QNDEBUG("RemoveHyperlinkDelegate::start");
+
+    if (m_hyperlinkId != 0) {
+        removeHyperlink();
+        return;
+    }
 
     if (m_noteEditor.isModified()) {
         QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
@@ -30,8 +30,14 @@ void RemoveHyperlinkDelegate::start()
         m_noteEditor.convertToNote();
     }
     else {
-        removeHyperlink();
+        findIdOfHyperlinkUnderCursor();
     }
+}
+
+void RemoveHyperlinkDelegate::setHyperlinkId(const quint64 hyperlinkId)
+{
+    QNDEBUG("RemoveHyperlinkDelegate::setHyperlinkId: " << hyperlinkId);
+    m_hyperlinkId = hyperlinkId;
 }
 
 void RemoveHyperlinkDelegate::onOriginalPageConvertedToNote(Note note)
@@ -43,6 +49,49 @@ void RemoveHyperlinkDelegate::onOriginalPageConvertedToNote(Note note)
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(RemoveHyperlinkDelegate,onOriginalPageConvertedToNote,Note));
 
+    findIdOfHyperlinkUnderCursor();
+}
+
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't remove hyperlink: can't get note editor's page"); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
+
+void RemoveHyperlinkDelegate::findIdOfHyperlinkUnderCursor()
+{
+    QNDEBUG("RemoveHyperlinkDelegate::findIdOfHyperlinkUnderCursor");
+
+    QString javascript = "(function() { var element = findSelectedHyperlinkElement(); if (element) { return element.getAttribute(\"en-hyperlink-id\"); } })();";
+    GET_PAGE()
+
+#ifndef USE_QT_WEB_ENGINE
+    QVariant data = page->mainFrame()->evaluateJavaScript(javascript);
+    onHyperlinkIdFound(data);
+#else
+    page->runJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveHyperlinkDelegate::onHyperlinkIdFound));
+#endif
+}
+
+void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)
+{
+    QNDEBUG("RemoveHyperlinkDelegate::onHyperlinkIdFound: " << data);
+
+    QString dataStr = data.toString();
+
+    bool conversionResult = false;
+    quint64 hyperlinkId = dataStr.toULongLong(&conversionResult);
+    if (!conversionResult) {
+        QString error = QT_TR_NOOP("Can't remove hyperlink under cursor: can't convert hyperlink id to a number");
+        QNWARNING(error << ", data from JS: " << data);
+        emit notifyError(error);
+        return;
+    }
+
+    m_hyperlinkId = hyperlinkId;
     removeHyperlink();
 }
 
@@ -50,125 +99,57 @@ void RemoveHyperlinkDelegate::removeHyperlink()
 {
     QNDEBUG("RemoveHyperlinkDelegate::removeHyperlink");
 
-    QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(RemoveHyperlinkDelegate,onOriginalPageModified));
-
-    // TODO: m_noteEditor.doRemoveHyperlinkUnderCursor();
-}
-
-void RemoveHyperlinkDelegate::onOriginalPageModified()
-{
-    QNDEBUG("RemoveHyperlinkDelegate::onOriginalPageModified");
-
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(RemoveHyperlinkDelegate,onOriginalPageModified));
-
-#ifdef USE_QT_WEB_ENGINE
-    m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &RemoveHyperlinkDelegate::onModifiedPageHtmlReceived));
-#else
-    QString html = m_pOriginalPage->mainFrame()->toHtml();
-    onModifiedPageHtmlReceived(html);
-#endif
-}
-
-void RemoveHyperlinkDelegate::onModifiedPageHtmlReceived(const QString & html)
-{
-    QNDEBUG("RemoveHyperlinkDelegate::onModifiedPageHtmlReceived");
-
-    // Now the tricky part begins: we need to undo the change
-    // for the original page and then create the new page
-    // and set this modified HTML there
-
-    m_modifiedHtml = html;
-    // TODO: m_noteEditor.setNotePageHtmlAfterRemovingHyperlink(m_modifiedHtml);
-
-    QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(RemoveHyperlinkDelegate,onOriginalPageModificationUndone));
-
-    // TODO: m_noteEditor.undoLastHyperlinkRemoval
-}
-
-void RemoveHyperlinkDelegate::onOriginalPageModificationUndone()
-{
-    QNDEBUG("RemoveHyperlinkDelegate::onOriginalPageModificationUndone");
-
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(RemoveHyperlinkDelegate,onOriginalPageModificationUndone));
-
     m_noteEditor.switchEditorPage(/* should convert from note = */ false);
+    GET_PAGE()
 
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(RemoveHyperlinkDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(RemoveHyperlinkDelegate,writeFile,QString,QByteArray,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
+                     this, QNSLOT(RemoveHyperlinkDelegate,onNewPageInitialLoadFinished,bool));
 
-    m_writeModifiedHtmlToPageSourceRequestId = QUuid::createUuid();
-    emit writeFile(m_noteEditor.noteEditorPagePath(), m_modifiedHtml.toLocal8Bit(),
-                   m_writeModifiedHtmlToPageSourceRequestId);
+    m_noteEditor.updateFromNote();
 }
 
-void RemoveHyperlinkDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
+void RemoveHyperlinkDelegate::onNewPageInitialLoadFinished(bool ok)
 {
-    if (requestId != m_writeModifiedHtmlToPageSourceRequestId) {
-        return;
-    }
+    QNDEBUG("RemoveHyperlinkDelegate::onNewPageInitialLoadFinished");
+    Q_UNUSED(ok);
 
-    QNDEBUG("RemoveHyperlinkDelegate::onWriteFileRequestProcessed: success = "
-            << (success ? "true" : "false") << ", error description = " << errorDescription
-            << ", request id = " << requestId);
+    GET_PAGE()
 
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(RemoveHyperlinkDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::disconnect(this, QNSIGNAL(RemoveHyperlinkDelegate,writeFile,QString,QByteArray,QUuid),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-
-    if (Q_UNLIKELY(!success)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the removal of hyperlink processing, "
-                                      "can't write the modified HTML to the note editor: ") + errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
-
-    QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
-
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
-    if (Q_UNLIKELY(!page)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the removal of hyperlink processing: "
-                                      "can't get the pointer to note editor page");
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
+                        this, QNSLOT(RemoveHyperlinkDelegate,onNewPageInitialLoadFinished,bool));
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(RemoveHyperlinkDelegate,onModifiedPageLoaded));
-
-#ifdef USE_QT_WEB_ENGINE
-    page->setUrl(url);
-    page->load(url);
-#else
-    page->mainFrame()->setUrl(url);
-    page->mainFrame()->load(url);
-#endif
+                     this, QNSLOT(RemoveHyperlinkDelegate,onNewPageJavaScriptLoaded));
 }
 
-void RemoveHyperlinkDelegate::onModifiedPageLoaded()
+void RemoveHyperlinkDelegate::onNewPageJavaScriptLoaded()
 {
-    QNDEBUG("RemoveHyperlinkDelegate::onModifiedPageLoaded");
+    QNDEBUG("RemoveHyperlinkDelegate::onNewPageJavaScriptLoaded");
 
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
-    if (Q_UNLIKELY(!page)) {
-        QString errorDescription = QT_TR_NOOP("Can't finalize the removal of hyperlink processing: "
-                                              "can't get the pointer to note editor page");
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
+    GET_PAGE()
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(RemoveHyperlinkDelegate,onModifiedPageLoaded));
-    emit finished();
+                        this, QNSLOT(RemoveHyperlinkDelegate,onNewPageJavaScriptLoaded));
+
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
+                     this, QNSLOT(RemoveHyperlinkDelegate,onNewPageModified));
+
+    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
+
+    QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ");";
+    page->executeJavaScript(javascript);
+}
+
+void RemoveHyperlinkDelegate::onNewPageModified()
+{
+    QNDEBUG("RemoveHyperlinkDelegate::onNewPageModified");
+
+    GET_PAGE()
+
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
+                        this, QNSLOT(RemoveHyperlinkDelegate,onNewPageModified));
+
+    emit finished(m_hyperlinkId);
 }
 
 } // namespace qute_note

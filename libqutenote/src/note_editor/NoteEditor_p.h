@@ -193,6 +193,7 @@ public Q_SLOTS:
     virtual void removeHyperlink() Q_DECL_OVERRIDE;
 
     void doEditHyperlinkDialog();
+    void doRemoveHyperlink(const bool shouldTrackDelegate, const quint64 hyperlinkIdToRemove);
 
     virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
 
@@ -291,6 +292,9 @@ private Q_SLOTS:
 
     void onAddHyperlinkToSelectedTextDelegateFinished();
     void onAddHyperlinkToSelectedTextDelegateError(QString error);
+
+    void onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId);
+    void onRemoveHyperlinkDelegateError(QString error);
 
 private:
     virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
@@ -485,7 +489,6 @@ private:
     QString     m_findSelectedHyperlinkElementJs;
     QString     m_setHyperlinkToSelectionJs;
     QString     m_getHyperlinkFromSelectionJs;
-    QString     m_removeHyperlinkFromSelectionJs;
     QString     m_removeHyperlinkJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;

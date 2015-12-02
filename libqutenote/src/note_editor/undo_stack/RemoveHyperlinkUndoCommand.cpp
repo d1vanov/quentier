@@ -4,18 +4,18 @@
 
 namespace qute_note {
 
-RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(const QString & htmlWithoutHyperlink, NoteEditorPrivate & noteEditor,
+RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(const quint64 removedHyperlinkId, NoteEditorPrivate & noteEditor,
                                                        QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, parent),
-    m_htmlWithoutHyperlink(htmlWithoutHyperlink)
+    m_hyperlinkId(removedHyperlinkId)
 {
     setText(QObject::tr("Remove hyperlink"));
 }
 
-RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(const QString & htmlWithoutHyperlink, NoteEditorPrivate & noteEditor,
+RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(const quint64 removedHyperlinkId, NoteEditorPrivate & noteEditor,
                                                        const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, text, parent),
-    m_htmlWithoutHyperlink(htmlWithoutHyperlink)
+    m_hyperlinkId(removedHyperlinkId)
 {}
 
 RemoveHyperlinkUndoCommand::~RemoveHyperlinkUndoCommand()
@@ -25,8 +25,7 @@ void RemoveHyperlinkUndoCommand::redoImpl()
 {
     QNDEBUG("RemoveHyperlinkUndoCommand::redoImpl");
 
-    m_noteEditorPrivate.switchEditorPage(/* should convert from note = */ false);
-    m_noteEditorPrivate.setNoteHtml(m_htmlWithoutHyperlink);
+    m_noteEditorPrivate.doRemoveHyperlink(/* should track delegate = */ false, m_hyperlinkId);
 }
 
 void RemoveHyperlinkUndoCommand::undoImpl()

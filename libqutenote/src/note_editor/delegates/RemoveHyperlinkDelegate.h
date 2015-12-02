@@ -10,7 +10,6 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPage)
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 /**
  * @brief The RemoveHyperlinkDelegate class encapsulates a chain of callbacks
@@ -22,13 +21,16 @@ class RemoveHyperlinkDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor,
-                                     NoteEditorPage * pOriginalPage,
-                                     FileIOThreadWorker * pFileIOThreadWorker);
+    explicit RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor, NoteEditorPage * pOriginalPage);
+
+    // This delegate is not only used before the undo command is created but also by undo command itself, for redo operation;
+    // In such a case the id of hyperlink to remove should be taken not from the current selection but it should be a known number
+    void setHyperlinkId(const quint64 hyperlinkIdToRemove);
+
     void start();
 
 Q_SIGNALS:
-    void finished();
+    void finished(quint64 removedHyperlinkId);
     void notifyError(QString error);
 
 // private signals
@@ -36,41 +38,39 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
+    void onHyperlinkIdFound(const QVariant & data);
 
-    void onOriginalPageModified();
-    void onOriginalPageModificationUndone();
+    void onNewPageInitialLoadFinished(bool ok);
+    void onNewPageJavaScriptLoaded();
 
-    void onModifiedPageHtmlReceived(const QString & html);
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-    void onModifiedPageLoaded();
+    void onNewPageModified();
 
 private:
+    void findIdOfHyperlinkUnderCursor();
     void removeHyperlink();
 
 private:
-    NoteEditorPrivate &     m_noteEditor;
-    NoteEditorPage *        m_pOriginalPage;
-    FileIOThreadWorker *    m_pFileIOThreadWorker;
-
-    class HtmlCallbackFunctor
+    class JsResultCallbackFunctor
     {
     public:
-        typedef void (RemoveHyperlinkDelegate::*Method)(const QString &);
+        typedef void (RemoveHyperlinkDelegate::*Method)(const QVariant &);
 
-        HtmlCallbackFunctor(RemoveHyperlinkDelegate & member, Method method) :
+        JsResultCallbackFunctor(RemoveHyperlinkDelegate & member, Method method) :
             m_member(member),
             m_method(method)
         {}
 
-        void operator()(const QString & html) { (m_member.*m_method)(html); }
+        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
 
     private:
         RemoveHyperlinkDelegate &    m_member;
         Method                       m_method;
     };
 
-    QString                 m_modifiedHtml;
-    QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
+private:
+    NoteEditorPrivate &     m_noteEditor;
+    NoteEditorPage *        m_pOriginalPage;
+    quint64                 m_hyperlinkId;
 };
 
 } // namespace qute_note

@@ -4,6 +4,7 @@
 #include "EditUrlDialog.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
 #include "delegates/AddHyperlinkToSelectedTextDelegate.h"
+#include "delegates/RemoveHyperlinkDelegate.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
@@ -12,6 +13,7 @@
 #include "undo_stack/EncryptUndoCommand.h"
 #include "undo_stack/DecryptUndoCommand.h"
 #include "undo_stack/AddHyperlinkUndoCommand.h"
+#include "undo_stack/RemoveHyperlinkUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -98,7 +100,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_findSelectedHyperlinkElementJs(),
     m_setHyperlinkToSelectionJs(),
     m_getHyperlinkFromSelectionJs(),
-    m_removeHyperlinkFromSelectionJs(),
     m_removeHyperlinkJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
@@ -311,7 +312,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
-    page->executeJavaScript(m_removeHyperlinkFromSelectionJs);
     page->executeJavaScript(m_removeHyperlinkJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
@@ -1024,6 +1024,23 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished()
 void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QString error)
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError");
+    emit notifyError(error);
+    sender()->deleteLater();
+}
+
+void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId)
+{
+    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished: removed hyperlink id = " << removedHyperlinkId);
+
+    RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(removedHyperlinkId, *this);
+    m_pPreliminaryUndoCommandQueue->push(pCommand);
+
+    sender()->deleteLater();
+}
+
+void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateError: " << error);
     emit notifyError(error);
     sender()->deleteLater();
 }
@@ -2452,7 +2469,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
     SETUP_SCRIPT("javascript/scripts/getHyperlinkFromSelection.js", m_getHyperlinkFromSelectionJs);
-    SETUP_SCRIPT("javascript/scripts/removeHyperlinkFromSelection.js", m_removeHyperlinkFromSelectionJs);
     SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
@@ -3722,11 +3738,7 @@ void NoteEditorPrivate::copyHyperlink()
 void NoteEditorPrivate::removeHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::removeHyperlink");
-
-    skipPushingUndoCommandOnNextContentChange();
-
-    GET_PAGE()
-    page->executeJavaScript("removeHyperlinkFromSelection();");
+    doRemoveHyperlink(/* should track delegate = */ true, 0);   // NOTE: "0" means "don't know, pick from current selection" here
 }
 
 void NoteEditorPrivate::doEditHyperlinkDialog()
@@ -3743,6 +3755,28 @@ void NoteEditorPrivate::doEditHyperlinkDialog()
     GET_PAGE()
     page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
 #endif
+}
+
+void NoteEditorPrivate::doRemoveHyperlink(const bool shouldTrackDelegate, const quint64 hyperlinkIdToRemove)
+{
+    QNDEBUG("NoteEditorPrivate::doRemoveHyperlink: should track delegate = " << (shouldTrackDelegate ? "true" : "false")
+            << ", hyperlink id to remove = " << hyperlinkIdToRemove);
+
+    GET_PAGE()
+    RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this, page);
+
+    if (shouldTrackDelegate) {
+        QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished,quint64),
+                         this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished,quint64));
+        QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QString),
+                         this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QString));
+    }
+
+    if (hyperlinkIdToRemove != 0) {
+        delegate->setHyperlinkId(hyperlinkIdToRemove);
+    }
+
+    delegate->start();
 }
 
 void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLength,
