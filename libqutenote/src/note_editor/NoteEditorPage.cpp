@@ -12,7 +12,8 @@ NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent, const quint32 index) 
     WebPage(&parent),
     m_parent(&parent),
     m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(parent, this)),
-    m_index(index)
+    m_index(index),
+    m_javaScriptAutoExecution(true)
 {
     QUTE_NOTE_CHECK_PTR(m_parent);
     QObject::connect(this, QNSIGNAL(NoteEditorPage,noteLoadCancelled),
@@ -24,11 +25,6 @@ NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent, const quint32 index) 
 NoteEditorPage::~NoteEditorPage()
 {
     QNDEBUG("NoteEditorPage::~NoteEditorPage");
-
-    while(QWidget * pWidget = findChild<QWidget*>()) {
-        pWidget->hide();
-        delete pWidget;
-    }
 }
 
 bool NoteEditorPage::javaScriptQueueEmpty() const
@@ -62,6 +58,21 @@ void NoteEditorPage::setActive()
 #endif
 }
 
+void NoteEditorPage::stopJavaScriptAutoExecution()
+{
+    QNDEBUG("NoteEditorPage::stopJavaScriptAutoExecution");
+    m_javaScriptAutoExecution = false;
+}
+
+void NoteEditorPage::startJavaScriptAutoExecution()
+{
+    QNDEBUG("NoteEditorPage::startJavaScriptAutoExecution");
+    m_javaScriptAutoExecution = true;
+    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+        m_pJavaScriptInOrderExecutor->start();
+    }
+}
+
 bool NoteEditorPage::shouldInterruptJavaScript()
 {
     QNDEBUG("NoteEditorPage::shouldInterruptJavaScript");
@@ -91,7 +102,7 @@ void NoteEditorPage::executeJavaScript(const QString & script, const bool clearP
 
     m_pJavaScriptInOrderExecutor->append(script);
 
-    if (!m_pJavaScriptInOrderExecutor->inProgress()) {
+    if (m_javaScriptAutoExecution && !m_pJavaScriptInOrderExecutor->inProgress()) {
         m_pJavaScriptInOrderExecutor->start();
     }
 }

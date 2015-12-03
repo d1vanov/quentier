@@ -14,5 +14,5 @@ function removeHyperlink(enHyperlinkIndex) {
     }
 
     var element = elements[0];
-    $(elements).contents().unwrap();
+    $(element).contents().unwrap();
 }

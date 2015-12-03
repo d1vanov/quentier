@@ -103,20 +103,20 @@ void RemoveHyperlinkDelegate::removeHyperlink()
     GET_PAGE()
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
-                     this, QNSLOT(RemoveHyperlinkDelegate,onNewPageInitialLoadFinished,bool));
+                     this, QNSLOT(RemoveHyperlinkDelegate,onNewPageLoadFinished,bool));
 
     m_noteEditor.updateFromNote();
 }
 
-void RemoveHyperlinkDelegate::onNewPageInitialLoadFinished(bool ok)
+void RemoveHyperlinkDelegate::onNewPageLoadFinished(bool ok)
 {
-    QNDEBUG("RemoveHyperlinkDelegate::onNewPageInitialLoadFinished");
-    Q_UNUSED(ok);
+    QNDEBUG("RemoveHyperlinkDelegate::onNewPageLoadFinished: ok = " << (ok ? "true" : "false"));
+    Q_UNUSED(ok)
 
     GET_PAGE()
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
-                        this, QNSLOT(RemoveHyperlinkDelegate,onNewPageInitialLoadFinished,bool));
+                        this, QNSLOT(RemoveHyperlinkDelegate,onNewPageLoadFinished,bool));
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(RemoveHyperlinkDelegate,onNewPageJavaScriptLoaded));

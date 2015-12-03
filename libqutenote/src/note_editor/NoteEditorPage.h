@@ -33,6 +33,20 @@ public:
     void setInactive();
     void setActive();
 
+    /**
+     * @brief stopJavaScriptAutoExecution method can be used to prevent the actual execution of JavaScript code immediately
+     * on calling executeJavaScript; instead the code would be put on the queue for subsequent execution and the signal
+     * javaScriptLoaded would only be emitted when the whole queue is executed
+     */
+    void stopJavaScriptAutoExecution();
+
+    /**
+     * @brief startJavaScriptAutoExecution is the counterpart of stopJavaScriptAutoExecution: when called on stopped
+     * JavaScript queue it starts the execution of the code in the queue until it is empty; if the auto execution
+     * was not stopped or the queue of JavaScript code is empty, calling this method has no effect
+     */
+    void startJavaScriptAutoExecution();
+
 Q_SIGNALS:
     void javaScriptLoaded();
     void noteLoadCancelled();
@@ -61,6 +75,7 @@ private:
     NoteEditorPrivate *         m_parent;
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
     quint32                     m_index;
+    bool                        m_javaScriptAutoExecution;
 };
 
 } // namespace qute_note

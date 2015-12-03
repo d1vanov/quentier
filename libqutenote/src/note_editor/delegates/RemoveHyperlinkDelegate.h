@@ -40,7 +40,7 @@ private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
     void onHyperlinkIdFound(const QVariant & data);
 
-    void onNewPageInitialLoadFinished(bool ok);
+    void onNewPageLoadFinished(bool ok);
     void onNewPageJavaScriptLoaded();
 
     void onNewPageModified();

@@ -258,16 +258,16 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 {
     QNDEBUG("NoteEditorPrivate::onNoteLoadFinished: ok = " << (ok ? "true" : "false"));
 
-    m_pendingNotePageLoad = false;
-
     if (!ok) {
-        QNWARNING("Note page was not loaded successfully");
+        QNDEBUG("Note page was not loaded successfully");
         return;
     }
 
+    m_pendingNotePageLoad = false;
     m_pendingJavaScriptExecution = true;
 
     GET_PAGE()
+    page->stopJavaScriptAutoExecution();
 
     page->executeJavaScript(m_jQueryJs);
 
@@ -337,6 +337,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_pageMutationObserverJs);
 
     QNTRACE("Sent commands to execute all the page's necessary scripts");
+    page->startJavaScriptAutoExecution();
 }
 
 void NoteEditorPrivate::onContentChanged()
@@ -2527,13 +2528,21 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, false);
 
     updateNoteEditorPagePath(page->index());
-    QUrl url = QUrl::fromLocalFile(m_noteEditorPagePath);
+
+    QUrl url;
+    QFileInfo pageFileInfo(m_noteEditorPagePath);
+    if (pageFileInfo.exists())
+    {
+        url = QUrl::fromLocalFile(m_noteEditorPagePath);
 
 #ifdef USE_QT_WEB_ENGINE
-    page->setUrl(url);
+        page->setUrl(url);
 #else
-    page->mainFrame()->setUrl(url);
+        page->mainFrame()->setUrl(url);
+#endif
+    }
 
+#ifndef USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
@@ -2663,7 +2672,8 @@ void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
 {
     QNDEBUG("NoteEditorPrivate::determineStatesForCurrentTextCursorPosition");
 
-    QString javascript = "determineStatesForCurrentTextCursorPosition();";
+    QString javascript = "if (typeof window[\"determineStatesForCurrentTextCursorPosition\"] !== 'undefined')"
+                         "{ determineStatesForCurrentTextCursorPosition(); }";
 
     GET_PAGE()
     page->executeJavaScript(javascript);
