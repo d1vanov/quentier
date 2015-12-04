@@ -98,9 +98,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
     m_findSelectedHyperlinkElementJs(),
+    m_findSelectedHyperlinkIdJs(),
     m_setHyperlinkToSelectionJs(),
     m_getHyperlinkFromSelectionJs(),
     m_removeHyperlinkJs(),
+    m_replaceHyperlinkContentJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
@@ -310,10 +312,12 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
+    page->executeJavaScript(m_findSelectedHyperlinkIdJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
     page->executeJavaScript(m_removeHyperlinkJs);
+    page->executeJavaScript(m_replaceHyperlinkContentJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
@@ -1279,6 +1283,18 @@ void NoteEditorPrivate::undoLastHyperlinkAddition()
     page->executeJavaScript(javascript);
 }
 
+void NoteEditorPrivate::replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text)
+{
+    QNDEBUG("NoteEditorPrivate::replaceHyperlinkContent: hyperlink id = " << hyperlinkId
+            << ", link = " << link << ", text = " << text);
+
+    skipPushingUndoCommandOnNextContentChange();
+
+    QString javascript = "replaceHyperlinkContent(" + QString::number(hyperlinkId) + ", '" + link + "', '" + text + "');";
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+}
+
 void NoteEditorPrivate::changeFontSize(const bool increase)
 {
     QNDEBUG("NoteEditorPrivate::changeFontSize: increase = " << (increase ? "true" : "false"));
@@ -1401,8 +1417,8 @@ void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QS
 
     QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(this, startupText, startupUrl));
     pEditUrlDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64),
-                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl,quint64));
+    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64,bool),
+                     this, QNSLOT(NoteEditorPrivate,onUrlEditingFinished,QString,QUrl,quint64,bool));
     QNTRACE("Will exec edit URL dialog now");
     int res = pEditUrlDialog->exec();
     if (res == QDialog::Rejected) {
@@ -2481,9 +2497,11 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
+    SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkId.js", m_findSelectedHyperlinkIdJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
     SETUP_SCRIPT("javascript/scripts/getHyperlinkFromSelection.js", m_getHyperlinkFromSelectionJs);
     SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
+    SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
@@ -3714,14 +3732,16 @@ void NoteEditorPrivate::editHyperlinkDialog()
     // NOTE: when adding the new hyperlink, the selected html can be empty, it's ok
     m_lastSelectedHtmlForHyperlink = m_lastSelectedHtml;
 
+    QString javascript = "findSelectedHyperlinkId();";
     GET_PAGE()
 
-    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker);
-    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
-                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
-    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QString));
-    delegate->start();
+#ifndef USE_QT_WEB_ENGINE
+    QVariant hyperlinkId = page->mainFrame()->evaluateJavaScript(javascript);
+    QVector<QPair<QString,QString> > extraData;
+    onFoundSelectedHyperlinkId(hyperlinkId, extraData);
+#else
+    page->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundSelectedHyperlinkId));
+#endif
 }
 
 void NoteEditorPrivate::copyHyperlink()
@@ -3851,6 +3871,42 @@ void NoteEditorPrivate::onNoteLoadCancelled()
     // TODO: add some overlay widget for NoteEditor to properly indicate visually that the note load has been cancelled
 }
 
+void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,
+                                                   const QVector<QPair<QString, QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onFoundSelectedHyperlinkId: " << hyperlinkData);
+    Q_UNUSED(extraData);
+
+    QString hyperlinkDataStr = hyperlinkData.toString();
+    if (hyperlinkDataStr.isEmpty())
+    {
+        QNTRACE("No hyperlink id under cursor was found, assuming we're adding the new hyperlink to the selected text");
+
+        GET_PAGE()
+
+        AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker);
+        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
+                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
+        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
+                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QString));
+        delegate->start();
+
+        return;
+    }
+
+    bool conversionResult = false;
+    quint64 hyperlinkId = hyperlinkDataStr.toULongLong(&conversionResult);
+    if (!conversionResult) {
+        m_errorCachedMemory = QT_TR_NOOP("Can't add or edit hyperlink under cursor: can't convert hyperlink id number to unsigned int");
+        QNWARNING(m_errorCachedMemory << "; hyperlink data: " << hyperlinkDataStr);
+        emit notifyError(m_errorCachedMemory);
+        return;
+    }
+
+    QNTRACE("Will edit the hyperlink with id " << hyperlinkId);
+    // TODO: implement and create/call the delegate for this
+}
+
 void NoteEditorPrivate::onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
                                                const QVector<QPair<QString, QString> > & extraData)
 {
@@ -3874,7 +3930,7 @@ void NoteEditorPrivate::onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
     bool conversionResult = false;
     quint64 idNumber = hyperlinkDataList[2].toULongLong(&conversionResult);
     if (!conversionResult) {
-        m_errorCachedMemory = QT_TR_NOOP("Can't edit hyperlink: can't cinvert hyperlink id number to unsigned int");
+        m_errorCachedMemory = QT_TR_NOOP("Can't edit hyperlink: can't convert hyperlink id number to unsigned int");
         QNWARNING(m_errorCachedMemory << "; hyperlink data: " << hyperlinkDataList.join(","));
         emit notifyError(m_errorCachedMemory);
         return;
@@ -3911,10 +3967,11 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
     }
 }
 
-void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber)
+void NoteEditorPrivate::onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber, bool startupUrlWasEmpty)
 {
     QNDEBUG("NoteEditorPrivate::onUrlEditingFinished: text = " << text << "; url = "
-            << url << ", hyperlink id number = " << hyperlinkIdNumber);
+            << url << ", hyperlink id number = " << hyperlinkIdNumber << ", startup url was empty = "
+            << (startupUrlWasEmpty ? "true" : "false"));
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QString urlString = url.toString(QUrl::FullyEncoded);

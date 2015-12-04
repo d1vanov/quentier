@@ -8,7 +8,8 @@ EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupText,
                              const QString & startupUrl, const quint64 idNumber) :
     QDialog(parent),
     m_pUI(new Ui::EditUrlDialog),
-    m_idNumber(idNumber)
+    m_idNumber(idNumber),
+    m_startupUrlWasEmpty(startupUrl.isEmpty())
 {
     m_pUI->setupUi(this);
     m_pUI->urlErrorLabel->setVisible(false);
@@ -48,7 +49,7 @@ void EditUrlDialog::accept()
         return;
     }
 
-    emit accepted(m_pUI->textLineEdit->text(), url, m_idNumber);
+    emit accepted(m_pUI->textLineEdit->text(), url, m_idNumber, m_startupUrlWasEmpty);
     QDialog::accept();
 }
 

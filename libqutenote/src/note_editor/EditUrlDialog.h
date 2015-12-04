@@ -22,7 +22,7 @@ public:
     virtual ~EditUrlDialog();
 
 Q_SIGNALS:
-    void accepted(QString text, QUrl url, quint64 idNumber);
+    void accepted(QString text, QUrl url, quint64 idNumber, bool startupUrlWasEmpty);
 
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
@@ -36,6 +36,7 @@ private:
 private:
     Ui::EditUrlDialog * m_pUI;
     const quint64       m_idNumber;
+    const bool          m_startupUrlWasEmpty;
 };
 
 } // namespace qute_note

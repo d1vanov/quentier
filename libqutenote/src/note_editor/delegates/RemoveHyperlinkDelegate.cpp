@@ -65,7 +65,7 @@ void RemoveHyperlinkDelegate::findIdOfHyperlinkUnderCursor()
 {
     QNDEBUG("RemoveHyperlinkDelegate::findIdOfHyperlinkUnderCursor");
 
-    QString javascript = "(function() { var element = findSelectedHyperlinkElement(); if (element) { return element.getAttribute(\"en-hyperlink-id\"); } })();";
+    QString javascript = "findSelectedHyperlinkId();";
     GET_PAGE()
 
 #ifndef USE_QT_WEB_ENGINE

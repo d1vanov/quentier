@@ -120,6 +120,8 @@ public:
     void setNotePageHtmlAfterAddingHyperlink(const QString & html);
     void undoLastHyperlinkAddition();
 
+    void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
+
 Q_SIGNALS:
     void noteEditorHtmlUpdated(QString html);
 
@@ -228,11 +230,13 @@ Q_SIGNALS:
     void editHyperlinkDialogCancelled();
 
 private Q_SLOTS:
+    void onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,
+                                    const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
-    void onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber);
+    void onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber, bool startupUrlWasEmpty);
 
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString passphrase, QString cipher, size_t keyLength,
@@ -488,9 +492,11 @@ private:
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
     QString     m_findSelectedHyperlinkElementJs;
+    QString     m_findSelectedHyperlinkIdJs;
     QString     m_setHyperlinkToSelectionJs;
     QString     m_getHyperlinkFromSelectionJs;
     QString     m_removeHyperlinkJs;
+    QString     m_replaceHyperlinkContentJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;
