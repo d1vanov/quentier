@@ -112,6 +112,7 @@ public:
     void popEditorPage();
 
     void skipPushingUndoCommandOnNextContentChange();
+    void skipNextContentChange();
 
     void setNotePageHtmlAfterEncryption(const QString & html);
     void undoLastEncryption();
@@ -547,6 +548,7 @@ private:
     bool        m_pendingJavaScriptExecution;
 
     bool        m_skipPushingUndoCommandOnNextContentChange;
+    bool        m_skipNextContentChange;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;

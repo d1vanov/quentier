@@ -134,7 +134,7 @@ void RemoveHyperlinkDelegate::onNewPageJavaScriptLoaded()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(RemoveHyperlinkDelegate,onNewPageModified));
 
-    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
+    m_noteEditor.skipNextContentChange();
 
     QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ");";
     page->executeJavaScript(javascript);

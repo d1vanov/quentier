@@ -148,6 +148,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pendingIndexHtmlWritingToFile(false),
     m_pendingJavaScriptExecution(false),
     m_skipPushingUndoCommandOnNextContentChange(false),
+    m_skipNextContentChange(false),
     m_pNote(Q_NULLPTR),
     m_pNotebook(Q_NULLPTR),
     m_modified(false),
@@ -240,9 +241,9 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     QNTRACE("Resource local file storage folder: " << m_resourceLocalFileStorageFolder);
 
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId);
-    m_pendingIndexHtmlWritingToFile = true;
     QNTRACE("Emitted the request to write the index html file, request id: " << m_writeNoteHtmlToFileRequestId);
 }
 
@@ -346,6 +347,12 @@ void NoteEditorPrivate::onContentChanged()
 
     if (m_pendingNotePageLoad || m_pendingIndexHtmlWritingToFile || m_pendingJavaScriptExecution) {
         QNTRACE("Skipping the content change as the note page has not fully loaded yet");
+        return;
+    }
+
+    if (m_skipNextContentChange) {
+        m_skipNextContentChange = false;
+        QNTRACE("Skipping this content change entirely");
         return;
     }
 
@@ -1193,6 +1200,12 @@ void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange()
     m_skipPushingUndoCommandOnNextContentChange = true;
 }
 
+void NoteEditorPrivate::skipNextContentChange()
+{
+    QNDEBUG("NoteEditorPrivate::skipNextContentChange");
+    m_skipNextContentChange = true;
+}
+
 void NoteEditorPrivate::setNotePageHtmlAfterEncryption(const QString & html)
 {
     QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterEncryption");
@@ -1425,9 +1438,9 @@ void NoteEditorPrivate::clearEditorContent()
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId);
-    m_pendingIndexHtmlWritingToFile = true;
 }
 
 void NoteEditorPrivate::noteToEditorContent()
@@ -1521,9 +1534,9 @@ void NoteEditorPrivate::noteToEditorContent()
     }
 
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, m_htmlCachedMemory.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId);
-    m_pendingIndexHtmlWritingToFile = true;
 }
 
 void NoteEditorPrivate::updateColResizableTableBindings()
@@ -2529,19 +2542,6 @@ void NoteEditorPrivate::setupNoteEditorPage()
 
     updateNoteEditorPagePath(page->index());
 
-    QUrl url;
-    QFileInfo pageFileInfo(m_noteEditorPagePath);
-    if (pageFileInfo.exists())
-    {
-        url = QUrl::fromLocalFile(m_noteEditorPagePath);
-
-#ifdef USE_QT_WEB_ENGINE
-        page->setUrl(url);
-#else
-        page->mainFrame()->setUrl(url);
-#endif
-    }
-
 #ifndef USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
@@ -2557,15 +2557,6 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
-    m_errorCachedMemory.resize(0);
-#endif
-
-    setupNoteEditorPageConnections(page);
-    setPage(page);
-
-#ifdef USE_QT_WEB_ENGINE
-    QNTRACE("Set note editor page with url: " << page->url());
-#else
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
                                                   m_encryptionManager, m_decryptedTextManager, page);
     if (Q_LIKELY(m_pNote)) {
@@ -2573,9 +2564,12 @@ void NoteEditorPrivate::setupNoteEditorPage()
     }
 
     page->setPluginFactory(m_pluginFactory);
-
-    QNTRACE("Set note editor page with url: " << page->mainFrame()->url());
 #endif
+
+    setupNoteEditorPageConnections(page);
+    setPage(page);
+
+    QNTRACE("Done setting up new note editor page");
 }
 
 void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
@@ -2933,6 +2927,11 @@ void NoteEditorPrivate::setNoteHtml(const QString & html)
     QNDEBUG("NoteEditorPrivate::setNoteHtml");
     m_pendingConversionToNote = true;
     onPageHtmlReceived(html, QVector<QPair<QString,QString> >());
+
+    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    m_pendingIndexHtmlWritingToFile = true;
+    emit writeNoteHtmlToFile(m_noteEditorPagePath, html.toLocal8Bit(),
+                             m_writeNoteHtmlToFileRequestId);
 }
 
 void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
