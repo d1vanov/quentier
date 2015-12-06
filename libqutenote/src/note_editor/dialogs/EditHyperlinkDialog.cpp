@@ -1,13 +1,13 @@
-#include "EditUrlDialog.h"
-#include "ui_EditUrlDialog.h"
+#include "EditHyperlinkDialog.h"
+#include "ui_EditHyperlinkDialog.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {
 
-EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupText,
-                             const QString & startupUrl, const quint64 idNumber) :
+EditHyperlinkDialog::EditHyperlinkDialog(QWidget * parent, const QString & startupText,
+                                         const QString & startupUrl, const quint64 idNumber) :
     QDialog(parent),
-    m_pUI(new Ui::EditUrlDialog),
+    m_pUI(new Ui::EditHyperlinkDialog),
     m_idNumber(idNumber),
     m_startupUrlWasEmpty(startupUrl.isEmpty())
 {
@@ -15,9 +15,9 @@ EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupText,
     m_pUI->urlErrorLabel->setVisible(false);
 
     QObject::connect(m_pUI->urlLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
-                     this, QNSLOT(EditUrlDialog,onUrlEdited,QString));
+                     this, QNSLOT(EditHyperlinkDialog,onUrlEdited,QString));
     QObject::connect(m_pUI->urlLineEdit, QNSIGNAL(QLineEdit,editingFinished),
-                     this, QNSLOT(EditUrlDialog,onUrlEditingFinished));
+                     this, QNSLOT(EditHyperlinkDialog,onUrlEditingFinished));
 
     if (!startupText.isEmpty()) {
         m_pUI->textLineEdit->setText(startupText);
@@ -34,14 +34,14 @@ EditUrlDialog::EditUrlDialog(QWidget * parent, const QString & startupText,
     }
 }
 
-EditUrlDialog::~EditUrlDialog()
+EditHyperlinkDialog::~EditHyperlinkDialog()
 {
     delete m_pUI;
 }
 
-void EditUrlDialog::accept()
+void EditHyperlinkDialog::accept()
 {
-    QNDEBUG("EditUrlDialog::accept");
+    QNDEBUG("EditHyperlinkDialog::accept");
 
     QUrl url;
     bool res = validateAndGetUrl(url);
@@ -53,22 +53,22 @@ void EditUrlDialog::accept()
     QDialog::accept();
 }
 
-void EditUrlDialog::onUrlEdited(QString url)
+void EditHyperlinkDialog::onUrlEdited(QString url)
 {
     if (!url.isEmpty()) {
         m_pUI->urlErrorLabel->setVisible(false);
     }
 }
 
-void EditUrlDialog::onUrlEditingFinished()
+void EditHyperlinkDialog::onUrlEditingFinished()
 {
     QUrl dummy;
     Q_UNUSED(validateAndGetUrl(dummy));
 }
 
-bool EditUrlDialog::validateAndGetUrl(QUrl & url)
+bool EditHyperlinkDialog::validateAndGetUrl(QUrl & url)
 {
-    QNDEBUG("EditUrlDialog::validateAndGetUrl");
+    QNDEBUG("EditHyperlinkDialog::validateAndGetUrl");
 
     url = QUrl();
 

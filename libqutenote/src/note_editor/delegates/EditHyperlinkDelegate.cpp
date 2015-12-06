@@ -1,7 +1,7 @@
 #include "EditHyperlinkDelegate.h"
 #include "../NoteEditor_p.h"
 #include "../NoteEditorPage.h"
-#include "../EditUrlDialog.h"
+#include "../dialogs/EditHyperlinkDialog.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QScopedPointer>
 #include <QStringList>
@@ -65,12 +65,12 @@ void EditHyperlinkDelegate::raiseEditHyperlinkDialog()
     QNDEBUG("EditHyperlinkDelegate::raiseEditHyperlinkDialog: original text = " << m_originalHyperlinkText
             << ", original url: " << m_originalHyperlinkUrl);
 
-    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(&m_noteEditor, m_originalHyperlinkText, m_originalHyperlinkUrl));
-    pEditUrlDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64,bool),
+    QScopedPointer<EditHyperlinkDialog> pEditHyperlinkDialog(new EditHyperlinkDialog(&m_noteEditor, m_originalHyperlinkText, m_originalHyperlinkUrl));
+    pEditHyperlinkDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pEditHyperlinkDialog.data(), QNSIGNAL(EditHyperlinkDialog,accepted,QString,QUrl,quint64,bool),
                      this, QNSLOT(EditHyperlinkDelegate,onHyperlinkDataEdited,QString,QUrl,quint64,bool));
     QNTRACE("Will exec edit hyperlink dialog now");
-    int res = pEditUrlDialog->exec();
+    int res = pEditHyperlinkDialog->exec();
     if (res == QDialog::Rejected) {
         QNTRACE("Cancelled editing the hyperlink");
         emit cancelled();

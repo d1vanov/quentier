@@ -1,7 +1,6 @@
 #include "NoteEditor_p.h"
 #include "EncryptionDialog.h"
 #include "DecryptionDialog.h"
-#include "EditUrlDialog.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
 #include "delegates/AddHyperlinkToSelectedTextDelegate.h"
 #include "delegates/EditHyperlinkDelegate.h"

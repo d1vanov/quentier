@@ -1,6 +1,6 @@
 #include "AddHyperlinkToSelectedTextDelegate.h"
 #include "../NoteEditor_p.h"
-#include "../EditUrlDialog.h"
+#include "../dialogs/EditHyperlinkDialog.h"
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QScopedPointer>
@@ -78,12 +78,12 @@ void AddHyperlinkToSelectedTextDelegate::raiseAddHyperlinkDialog(const QString &
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::raiseAddHyperlinkDialog: initial text = " << initialText);
 
-    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(&m_noteEditor, initialText));
-    pEditUrlDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64,bool),
+    QScopedPointer<EditHyperlinkDialog> pEditHyperlinkDialog(new EditHyperlinkDialog(&m_noteEditor, initialText));
+    pEditHyperlinkDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pEditHyperlinkDialog.data(), QNSIGNAL(EditHyperlinkDialog,accepted,QString,QUrl,quint64,bool),
                      this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onAddHyperlinkDialogFinished,QString,QUrl,quint64,bool));
     QNTRACE("Will exec add hyperlink dialog now");
-    int res = pEditUrlDialog->exec();
+    int res = pEditHyperlinkDialog->exec();
     if (res == QDialog::Rejected) {
         QNTRACE("Cancelled add hyperlink dialog");
         emit cancelled();
