@@ -69,7 +69,7 @@ void EditHyperlinkDelegate::raiseEditHyperlinkDialog()
     pEditUrlDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64,bool),
                      this, QNSLOT(EditHyperlinkDelegate,onHyperlinkDataEdited,QString,QUrl,quint64,bool));
-    QNTRACE("Will exec edit URL dialog now");
+    QNTRACE("Will exec edit hyperlink dialog now");
     int res = pEditUrlDialog->exec();
     if (res == QDialog::Rejected) {
         QNTRACE("Cancelled editing the hyperlink");

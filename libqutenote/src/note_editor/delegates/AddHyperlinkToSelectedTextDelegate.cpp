@@ -1,7 +1,9 @@
 #include "AddHyperlinkToSelectedTextDelegate.h"
 #include "../NoteEditor_p.h"
+#include "../EditUrlDialog.h"
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <QScopedPointer>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -11,14 +13,25 @@ namespace qute_note {
 
 AddHyperlinkToSelectedTextDelegate::AddHyperlinkToSelectedTextDelegate(NoteEditorPrivate & noteEditor,
                                                                        NoteEditorPage * pOriginalPage,
-                                                                       FileIOThreadWorker * pFileIOThreadWorker) :
+                                                                       FileIOThreadWorker * pFileIOThreadWorker,
+                                                                       const quint64 hyperlinkIdToAdd) :
     QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pOriginalPage(pOriginalPage),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
+    m_hyperlinkId(hyperlinkIdToAdd),
     m_modifiedHtml(),
     m_writeModifiedHtmlToPageSourceRequestId()
 {}
+
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't add hyperlink: can't get note editor page"); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
 
 void AddHyperlinkToSelectedTextDelegate::start()
 {
@@ -50,37 +63,56 @@ void AddHyperlinkToSelectedTextDelegate::addHyperlinkToSelectedText()
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::addHyperlinkToSelectedText");
 
-    QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onOriginalPageModified));
-
-    QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,editHyperlinkDialogCancelled),
-                     this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onAddHyperlinkDialogCancelled));
-
-    m_noteEditor.doEditHyperlinkDialog();
+    QString javascript = "getSelectionHtml(" + QString::number(m_hyperlinkId) + ");";
+    GET_PAGE()
+    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived));
 }
 
-void AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogCancelled()
+void AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived(const QVariant & data)
 {
-    QNDEBUG("AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogCancelled");
-
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onOriginalPageModified));
-
-    QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,editHyperlinkDialogCancelled),
-                        this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onAddHyperlinkDialogCancelled));
-
-    emit finished();
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived: " << data);
+    raiseAddHyperlinkDialog(data.toString());
 }
 
-void AddHyperlinkToSelectedTextDelegate::onOriginalPageModified()
+void AddHyperlinkToSelectedTextDelegate::raiseAddHyperlinkDialog(const QString & initialText)
+{
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::raiseAddHyperlinkDialog: initial text = " << initialText);
+
+    QScopedPointer<EditUrlDialog> pEditUrlDialog(new EditUrlDialog(&m_noteEditor, initialText));
+    pEditUrlDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pEditUrlDialog.data(), QNSIGNAL(EditUrlDialog,accepted,QString,QUrl,quint64,bool),
+                     this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onAddHyperlinkDialogFinished,QString,QUrl,quint64,bool));
+    QNTRACE("Will exec add hyperlink dialog now");
+    int res = pEditUrlDialog->exec();
+    if (res == QDialog::Rejected) {
+        QNTRACE("Cancelled add hyperlink dialog");
+        emit cancelled();
+    }
+}
+
+void AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogFinished(QString text, QUrl url, quint64 hyperlinkId, bool startupUrlWasEmpty)
+{
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogFinished: text = " << text << ", url = " << url);
+
+    Q_UNUSED(hyperlinkId);
+    Q_UNUSED(startupUrlWasEmpty);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    QString urlString = url.toString(QUrl::FullyEncoded);
+#else
+    QString urlString = url.toString(QUrl::None);
+#endif
+
+    QString javascript = "setHyperlinkToSelection('" + text + "', '" + urlString +
+                         "', " + QString::number(m_hyperlinkId) + ");";
+    m_pOriginalPage->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModified));
+}
+
+void AddHyperlinkToSelectedTextDelegate::onOriginalPageModified(const QVariant & data)
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::onOriginalPageModified");
 
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onOriginalPageModified));
-
-    QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,editHyperlinkDialogCancelled),
-                        this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onAddHyperlinkDialogCancelled));
+    Q_UNUSED(data);
 
 #ifdef USE_QT_WEB_ENGINE
     m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onModifiedPageHtmlReceived));
@@ -101,18 +133,20 @@ void AddHyperlinkToSelectedTextDelegate::onModifiedPageHtmlReceived(const QStrin
     m_modifiedHtml = html;
     m_noteEditor.setNotePageHtmlAfterAddingHyperlink(m_modifiedHtml);
 
-    QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onOriginalPageModificationUndone));
+    // Now need to undo the hyperlink addition we just did for the old page
 
-    m_noteEditor.undoLastHyperlinkAddition();
+    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
+
+    QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ");";
+    GET_PAGE()
+    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone));
 }
 
-void AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone()
+void AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone(const QVariant & data)
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone");
 
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onOriginalPageModificationUndone));
+    Q_UNUSED(data);
 
     m_noteEditor.switchEditorPage(/* should convert from note = */ false);
 
@@ -151,15 +185,7 @@ void AddHyperlinkToSelectedTextDelegate::onWriteFileRequestProcessed(bool succes
 
     QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
 
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
-    if (Q_UNLIKELY(!page)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the addition of hyperlink processing: "
-                                      "can't get the pointer to note editor page");
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
-
+    GET_PAGE()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onModifiedPageLoaded));
 
@@ -176,15 +202,7 @@ void AddHyperlinkToSelectedTextDelegate::onModifiedPageLoaded()
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::onModifiedPageLoaded");
 
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
-    if (Q_UNLIKELY(!page)) {
-        QString errorDescription = QT_TR_NOOP("Can't finalize the addition of hyperlink processing: "
-                                              "can't get the pointer to note editor page");
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
-
+    GET_PAGE()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onModifiedPageLoaded));
     emit finished();

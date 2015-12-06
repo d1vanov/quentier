@@ -118,11 +118,8 @@ public:
     void undoLastEncryption();
 
     void setNotePageHtmlAfterAddingHyperlink(const QString & html);
-    void undoLastHyperlinkAddition();
 
     void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
-    void raiseEditHyperlinkDialog(const QString & startupText = QString(), const QString & startupUrl = QString(),
-                                  const quint64 hyperlinkId = 0);
 
 Q_SIGNALS:
     void noteEditorHtmlUpdated(QString html);
@@ -197,7 +194,6 @@ public Q_SLOTS:
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
     virtual void removeHyperlink() Q_DECL_OVERRIDE;
 
-    void doEditHyperlinkDialog();
     void doRemoveHyperlink(const bool shouldTrackDelegate, const quint64 hyperlinkIdToRemove);
 
     virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
@@ -229,17 +225,11 @@ Q_SIGNALS:
                                         const QString resourceDisplayName, const QUuid requestId);
 #endif
 
-    void editHyperlinkDialogCancelled();
-
 private Q_SLOTS:
     void onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,
                                     const QVector<QPair<QString, QString> > & extraData);
-    void onFoundHyperlinkToEdit(const QVariant & hyperlinkData,
-                                const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
-
-    void onEditHyperlinkFinished(QString text, QUrl url, quint64 hyperlinkIdNumber, bool startupUrlWasEmpty);
 
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString passphrase, QString cipher, size_t keyLength,
@@ -299,6 +289,7 @@ private Q_SLOTS:
     void onEncryptSelectedTextDelegateError(QString error);
 
     void onAddHyperlinkToSelectedTextDelegateFinished();
+    void onAddHyperlinkToSelectedTextDelegateCancelled();
     void onAddHyperlinkToSelectedTextDelegateError(QString error);
 
     void onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl, QString newText, QString newUrl);

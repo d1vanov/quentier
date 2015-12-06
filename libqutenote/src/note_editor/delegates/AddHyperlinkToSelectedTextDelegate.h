@@ -24,11 +24,13 @@ class AddHyperlinkToSelectedTextDelegate: public QObject
 public:
     explicit AddHyperlinkToSelectedTextDelegate(NoteEditorPrivate & noteEditor,
                                                 NoteEditorPage * pOriginalPage,
-                                                FileIOThreadWorker * pFileIOThreadWorker);
+                                                FileIOThreadWorker * pFileIOThreadWorker,
+                                                const quint64 hyperlinkIdToAdd);
     void start();
 
 Q_SIGNALS:
     void finished();
+    void cancelled();
     void notifyError(QString error);
 
 // private signals
@@ -36,11 +38,12 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
+    void onInitialHyperlinkDataReceived(const QVariant & data);
 
-    void onAddHyperlinkDialogCancelled();
+    void onAddHyperlinkDialogFinished(QString text, QUrl url, quint64 hyperlinkId, bool startupUrlWasEmpty);
 
-    void onOriginalPageModified();
-    void onOriginalPageModificationUndone();
+    void onOriginalPageModified(const QVariant & data);
+    void onOriginalPageModificationUndone(const QVariant & data);
 
     void onModifiedPageHtmlReceived(const QString & html);
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
@@ -48,11 +51,25 @@ private Q_SLOTS:
 
 private:
     void addHyperlinkToSelectedText();
+    void raiseAddHyperlinkDialog(const QString & initialText);
 
 private:
-    NoteEditorPrivate &     m_noteEditor;
-    NoteEditorPage *        m_pOriginalPage;
-    FileIOThreadWorker *    m_pFileIOThreadWorker;
+    class JsResultCallbackFunctor
+    {
+    public:
+        typedef void (AddHyperlinkToSelectedTextDelegate::*Method)(const QVariant &);
+
+        JsResultCallbackFunctor(AddHyperlinkToSelectedTextDelegate & member, Method method) :
+            m_member(member),
+            m_method(method)
+        {}
+
+        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
+
+    private:
+        AddHyperlinkToSelectedTextDelegate &        m_member;
+        Method                                      m_method;
+    };
 
     class HtmlCallbackFunctor
     {
@@ -71,6 +88,11 @@ private:
         Method                                  m_method;
     };
 
+private:
+    NoteEditorPrivate &     m_noteEditor;
+    NoteEditorPage *        m_pOriginalPage;
+    FileIOThreadWorker *    m_pFileIOThreadWorker;
+    const quint64           m_hyperlinkId;
     QString                 m_modifiedHtml;
     QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
 };
