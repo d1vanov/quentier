@@ -23,6 +23,7 @@
         <file>getHyperlinkFromSelection.js</file>
         <file>findSelectedHyperlinkElement.js</file>
         <file>findSelectedHyperlinkId.js</file>
+        <file>getHyperlinkData.js</file>
         <file>removeHyperlink.js</file>
         <file>replaceHyperlinkContent.js</file>
         <file>decryptEncryptedTextPermanently.js</file>

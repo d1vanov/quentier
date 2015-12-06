@@ -8,7 +8,7 @@ function removeHyperlink(enHyperlinkIndex) {
 
     var elements = document.querySelectorAll("[en-hyperlink-id='" + enHyperlinkIndex + "']");
     var numElements = elements.length;
-    if (numElements != 1) {
+    if (numElements !== 1) {
         console.error("Unexpected number of found hyperlink tags: " + numElements);
         return;
     }

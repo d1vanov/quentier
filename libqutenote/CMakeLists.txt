@@ -166,6 +166,7 @@ set(PRIVATE_HEADERS
     src/note_editor/ResourceInfo.h
     src/note_editor/delegates/EncryptSelectedTextDelegate.h
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h
+    src/note_editor/delegates/EditHyperlinkDelegate.h
     src/note_editor/delegates/RemoveHyperlinkDelegate.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
@@ -246,6 +247,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceInfo.cpp
     src/note_editor/delegates/EncryptSelectedTextDelegate.cpp
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.cpp
+    src/note_editor/delegates/EditHyperlinkDelegate.cpp
     src/note_editor/delegates/RemoveHyperlinkDelegate.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp

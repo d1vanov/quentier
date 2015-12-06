@@ -121,6 +121,8 @@ public:
     void undoLastHyperlinkAddition();
 
     void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
+    void raiseEditHyperlinkDialog(const QString & startupText = QString(), const QString & startupUrl = QString(),
+                                  const quint64 hyperlinkId = 0);
 
 Q_SIGNALS:
     void noteEditorHtmlUpdated(QString html);
@@ -236,7 +238,8 @@ private Q_SLOTS:
                                 const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
-    void onUrlEditingFinished(QString text, QUrl url, quint64 hyperlinkIdNumber, bool startupUrlWasEmpty);
+
+    void onEditHyperlinkFinished(QString text, QUrl url, quint64 hyperlinkIdNumber, bool startupUrlWasEmpty);
 
     void onSelectedTextEncryption(QString selectedText, QString encryptedText,
                                   QString passphrase, QString cipher, size_t keyLength,
@@ -298,6 +301,10 @@ private Q_SLOTS:
     void onAddHyperlinkToSelectedTextDelegateFinished();
     void onAddHyperlinkToSelectedTextDelegateError(QString error);
 
+    void onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl, QString newText, QString newUrl);
+    void onEditHyperlinkDelegateCancelled();
+    void onEditHyperlinkDelegateError(QString error);
+
     void onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId);
     void onRemoveHyperlinkDelegateError(QString error);
 
@@ -318,9 +325,6 @@ private:
 
     void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
                                                          const QString & hint, const bool rememberForSession);
-
-    void raiseEditUrlDialog(const QString & startupText = QString(), const QString & startupUrl = QString(),
-                            const quint64 idNumber = 0);
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -495,6 +499,7 @@ private:
     QString     m_findSelectedHyperlinkIdJs;
     QString     m_setHyperlinkToSelectionJs;
     QString     m_getHyperlinkFromSelectionJs;
+    QString     m_getHyperlinkDataJs;
     QString     m_removeHyperlinkJs;
     QString     m_replaceHyperlinkContentJs;
     QString     m_provideSrcForResourceImgTagsJs;

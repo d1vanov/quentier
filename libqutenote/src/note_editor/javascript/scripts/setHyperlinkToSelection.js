@@ -7,7 +7,7 @@ function setHyperlinkToSelection(text, link, hyperlinkIdNumber) {
         console.log("Found link node within the selection");
         element.href = link;
         if (text) {
-            element.innerHtml = text;
+            element.textContent = text;
         }
         return;
     }
