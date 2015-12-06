@@ -8,5 +8,5 @@ function flipEnToDoCheckboxState(idNumber) {
     }
 
     var element = elements[0];
-    onEnToDoTagClick.call(element);
+    enToDoTagFlipState(element);
 }

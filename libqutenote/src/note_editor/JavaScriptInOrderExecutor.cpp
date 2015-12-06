@@ -43,7 +43,7 @@ void JavaScriptInOrderExecutor::start()
 
 void JavaScriptInOrderExecutor::next(const QVariant & data)
 {
-    QNTRACE("JavaScriptInOrderExecutor::next: data = " << data);
+    QNTRACE("JavaScriptInOrderExecutor::next");
 
     if (!m_currentPendingCallback.empty()) {
         m_currentPendingCallback(data);

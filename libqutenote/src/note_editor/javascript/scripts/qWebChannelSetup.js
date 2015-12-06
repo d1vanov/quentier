@@ -26,6 +26,7 @@
             window.textCursorPositionHandler = channel.objects.textCursorPositionHandler;
             window.contextMenuEventHandler = channel.objects.contextMenuEventHandler;
             window.hyperlinkClickHandler = channel.objects.hyperlinkClickHandler;
+            window.toDoCheckboxClickHandler = channel.objects.toDoCheckboxClickHandler;
 
             console.log("Created window variables for objects exposed to JavaScript");
         });

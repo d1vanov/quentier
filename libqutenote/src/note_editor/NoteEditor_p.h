@@ -46,6 +46,7 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
+QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
@@ -250,6 +251,10 @@ private Q_SLOTS:
 #else
     void onHyperlinkClicked(QUrl url);
 #endif
+
+    void onToDoCheckboxClicked(quint64 enToDoCheckboxId);
+    void onToDoCheckboxClickHandlerError(QString error);
+
     void onJavaScriptLoaded();
 
     void onOpenResourceRequest(const QString & resourceHash);
@@ -528,7 +533,9 @@ private:
     quint16     m_webSocketServerPort;
 #endif
 
+    ToDoCheckboxOnClickHandler * m_pToDoCheckboxClickHandler;
     PageMutationHandler * m_pPageMutationHandler;
+
     QUndoStack * m_pUndoStack;
     PreliminaryUndoCommandQueue * m_pPreliminaryUndoCommandQueue;
 

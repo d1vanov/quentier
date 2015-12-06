@@ -172,6 +172,7 @@ set(PRIVATE_HEADERS
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
     src/note_editor/javascript_glue/PageMutationHandler.h
+    src/note_editor/javascript_glue/ToDoCheckboxOnClickHandler.h
     src/note_editor/undo_stack/INoteEditorUndoCommand.h
     src/note_editor/undo_stack/AddResourceUndoCommand.h
     src/note_editor/undo_stack/AddResourceUndoCommandNotReadyException.h
@@ -253,6 +254,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp
     src/note_editor/javascript_glue/PageMutationHandler.cpp
+    src/note_editor/javascript_glue/ToDoCheckboxOnClickHandler.cpp
     src/note_editor/undo_stack/INoteEditorUndoCommand.cpp
     src/note_editor/undo_stack/AddResourceUndoCommand.cpp
     src/note_editor/undo_stack/AddResourceUndoCommandNotReadyException.cpp

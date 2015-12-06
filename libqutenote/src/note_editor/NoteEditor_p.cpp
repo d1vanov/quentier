@@ -9,12 +9,14 @@
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
 #include "javascript_glue/PageMutationHandler.h"
+#include "javascript_glue/ToDoCheckboxOnClickHandler.h"
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
 #include "undo_stack/EncryptUndoCommand.h"
 #include "undo_stack/DecryptUndoCommand.h"
 #include "undo_stack/AddHyperlinkUndoCommand.h"
 #include "undo_stack/EditHyperlinkUndoCommand.h"
 #include "undo_stack/RemoveHyperlinkUndoCommand.h"
+#include "undo_stack/ToDoCheckboxUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -136,6 +138,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pHyperlinkClickJavaScriptHandler(new HyperlinkClickJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
+    m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
     m_pPreliminaryUndoCommandQueue(Q_NULLPTR),
@@ -289,6 +292,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     frame->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
+                                       QScriptEngine::QtOwnership);
+    frame->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                        QScriptEngine::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
@@ -595,6 +600,20 @@ void NoteEditorPrivate::onHyperlinkClicked(QUrl url)
 }
 
 #endif
+
+void NoteEditorPrivate::onToDoCheckboxClicked(quint64 enToDoCheckboxId)
+{
+    QNDEBUG("NoteEditorPrivate::onToDoCheckboxClicked: " << enToDoCheckboxId);
+
+    ToDoCheckboxUndoCommand * pCommand = new ToDoCheckboxUndoCommand(enToDoCheckboxId, *this);
+    m_pPreliminaryUndoCommandQueue->push(pCommand);
+}
+
+void NoteEditorPrivate::onToDoCheckboxClickHandlerError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onToDoCheckboxClickHandlerError: " << error);
+    emit notifyError(error);
+}
 
 void NoteEditorPrivate::onJavaScriptLoaded()
 {
@@ -2211,6 +2230,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler);
     m_pWebChannel->registerObject("genericResourceImageHandler", m_pGenericResoureImageJavaScriptHandler);
     m_pWebChannel->registerObject("hyperlinkClickHandler", m_pHyperlinkClickJavaScriptHandler);
+    m_pWebChannel->registerObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -2497,8 +2517,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
-    SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
-    SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
@@ -2510,6 +2528,11 @@ void NoteEditorPrivate::setupScripts()
 #else
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
     SETUP_SCRIPT("javascript/scripts/qWebChannelSetup.js", m_qWebChannelSetupJs);
+#endif
+
+    SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
+    SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
+#ifdef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
     SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
@@ -2527,6 +2550,10 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
 {
     QNDEBUG("NoteEditorPrivate::setupGeneralSignalSlotConnections");
 
+    QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,toDoCheckboxClicked,quint64),
+                     this, QNSLOT(NoteEditorPrivate,onToDoCheckboxClicked,quint64));
+    QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onToDoCheckboxClickHandlerError,QString));
     QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
                      this, QNSIGNAL(NoteEditorPrivate,contentChanged));
     QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
@@ -2567,6 +2594,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                                    QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
@@ -3183,7 +3212,6 @@ void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
     GET_PAGE()
     QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
     page->executeJavaScript(javascript);
-    setFocus();
 }
 
 void NoteEditorPrivate::cut()
