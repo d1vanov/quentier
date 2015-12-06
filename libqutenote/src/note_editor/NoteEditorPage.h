@@ -9,6 +9,8 @@
 #include <QWebEnginePage>
 #endif
 
+#include <boost/function.hpp>
+
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
@@ -23,6 +25,9 @@ class NoteEditorPage:
 #endif
 {
     Q_OBJECT
+public:
+    typedef boost::function<void (const QVariant & data)> Callback;
+
 public:
     explicit NoteEditorPage(NoteEditorPrivate & parent, const quint32 index);
     virtual ~NoteEditorPage();
@@ -54,7 +59,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     bool shouldInterruptJavaScript();
 
-    void executeJavaScript(const QString & script, const bool clearPreviousQueue = false);
+    void executeJavaScript(const QString & script, Callback callback = 0, const bool clearPreviousQueue = false);
 
 private Q_SLOTS:
     void onJavaScriptQueueEmpty();

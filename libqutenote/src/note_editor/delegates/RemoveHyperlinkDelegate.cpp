@@ -67,13 +67,7 @@ void RemoveHyperlinkDelegate::findIdOfHyperlinkUnderCursor()
 
     QString javascript = "findSelectedHyperlinkId();";
     GET_PAGE()
-
-#ifndef USE_QT_WEB_ENGINE
-    QVariant data = page->mainFrame()->evaluateJavaScript(javascript);
-    onHyperlinkIdFound(data);
-#else
-    page->runJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveHyperlinkDelegate::onHyperlinkIdFound));
-#endif
+    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveHyperlinkDelegate::onHyperlinkIdFound));
 }
 
 void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)

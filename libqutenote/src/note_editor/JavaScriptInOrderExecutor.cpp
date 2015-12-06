@@ -11,33 +11,44 @@ JavaScriptInOrderExecutor::JavaScriptInOrderExecutor(WebView & view, QObject * p
     QObject(parent),
     m_view(view),
     m_javaScriptsQueue(),
+    m_currentPendingCallback(0),
     m_inProgress(false)
 {}
 
-void JavaScriptInOrderExecutor::append(const QString &script)
+void JavaScriptInOrderExecutor::append(const QString &script, JavaScriptInOrderExecutor::Callback callback)
 {
-    m_javaScriptsQueue.enqueue(script);
+    m_javaScriptsQueue.enqueue(QPair<QString, Callback>(script, callback));
     QNTRACE("JavaScriptInOrderExecutor: appended new script, there are "
             << m_javaScriptsQueue.size() << " to execute now");
 }
 
 void JavaScriptInOrderExecutor::start()
 {
-    QString script = m_javaScriptsQueue.dequeue();
+    QPair<QString, Callback> scriptCallbackPair = m_javaScriptsQueue.dequeue();
 
     m_inProgress = true;
+
+    const QString & script = scriptCallbackPair.first;
+    const Callback & callback = scriptCallbackPair.second;
+
+    m_currentPendingCallback = callback;
 
 #ifdef USE_QT_WEB_ENGINE
     m_view.page()->runJavaScript(script, JavaScriptCallback(*this));
 #else
-    m_view.page()->mainFrame()->evaluateJavaScript(script);
-    next();
+    QVariant data = m_view.page()->mainFrame()->evaluateJavaScript(script);
+    next(data);
 #endif
 }
 
-void JavaScriptInOrderExecutor::next()
+void JavaScriptInOrderExecutor::next(const QVariant & data)
 {
-    QNTRACE("JavaScriptInOrderExecutor::next");
+    QNTRACE("JavaScriptInOrderExecutor::next: data = " << data);
+
+    if (!m_currentPendingCallback.empty()) {
+        m_currentPendingCallback(data);
+        m_currentPendingCallback = 0;
+    }
 
     if (m_javaScriptsQueue.empty()) {
         QNTRACE("JavaScriptInOrderExecutor: done");
@@ -52,8 +63,7 @@ void JavaScriptInOrderExecutor::next()
 
 void JavaScriptInOrderExecutor::JavaScriptCallback::operator()(const QVariant & result)
 {
-    Q_UNUSED(result);
-    m_executor.next();
+    m_executor.next(result);
 }
 
 } // namespace qute_note

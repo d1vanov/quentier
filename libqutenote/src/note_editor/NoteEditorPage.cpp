@@ -94,13 +94,13 @@ bool NoteEditorPage::shouldInterruptJavaScript()
     }
 }
 
-void NoteEditorPage::executeJavaScript(const QString & script, const bool clearPreviousQueue)
+void NoteEditorPage::executeJavaScript(const QString & script, Callback callback, const bool clearPreviousQueue)
 {
     if (Q_UNLIKELY(clearPreviousQueue)) {
         m_pJavaScriptInOrderExecutor->clear();
     }
 
-    m_pJavaScriptInOrderExecutor->append(script);
+    m_pJavaScriptInOrderExecutor->append(script, callback);
 
     if (m_javaScriptAutoExecution && !m_pJavaScriptInOrderExecutor->inProgress()) {
         m_pJavaScriptInOrderExecutor->start();

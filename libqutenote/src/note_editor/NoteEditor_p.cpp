@@ -1400,13 +1400,8 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
 
     m_pendingJavaScriptExecution = true;
 
-#ifndef USE_QT_WEB_ENGINE
-    page->executeJavaScript(javascript);
-    onSelectedTextEncryptionDone(QVariant(), QVector<QPair<QString,QString> >());
-#else
     QVector<QPair<QString,QString> > extraData;
-    page->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
-#endif
+    page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
 }
 
 void NoteEditorPrivate::raiseEditUrlDialog(const QString & startupText, const QString & startupUrl,
@@ -3735,13 +3730,8 @@ void NoteEditorPrivate::editHyperlinkDialog()
     QString javascript = "findSelectedHyperlinkId();";
     GET_PAGE()
 
-#ifndef USE_QT_WEB_ENGINE
-    QVariant hyperlinkId = page->mainFrame()->evaluateJavaScript(javascript);
     QVector<QPair<QString,QString> > extraData;
-    onFoundSelectedHyperlinkId(hyperlinkId, extraData);
-#else
-    page->runJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundSelectedHyperlinkId));
-#endif
+    page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundSelectedHyperlinkId));
 }
 
 void NoteEditorPrivate::copyHyperlink()
@@ -3749,19 +3739,8 @@ void NoteEditorPrivate::copyHyperlink()
     QNDEBUG("NoteEditorPrivate::copyHyperlink");
 
     QVector<QPair<QString,QString> > extraData;
-
-#ifndef USE_QT_WEB_ENGINE
-    if (!page()->hasSelection()) {
-        QNDEBUG("Note editor page has no selected text, hence no hyperlink to copy is available");
-        return;
-    }
-
-    QVariant hyperlink = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
-    onFoundHyperlinkToCopy(hyperlink, extraData);
-#else
     GET_PAGE()
-    page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToCopy, extraData));
-#endif
+    page->executeJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToCopy, extraData));
 }
 
 void NoteEditorPrivate::removeHyperlink()
@@ -3776,14 +3755,8 @@ void NoteEditorPrivate::doEditHyperlinkDialog()
 
     QVector<QPair<QString,QString> > extraData;
     skipPushingUndoCommandOnNextContentChange();
-
-#ifndef USE_QT_WEB_ENGINE
-    QVariant hyperlinkData = page()->mainFrame()->evaluateJavaScript("getHyperlinkFromSelection();");
-    onFoundHyperlinkToEdit(hyperlinkData, extraData);
-#else
     GET_PAGE()
-    page->runJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
-#endif
+    page->executeJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToEdit, extraData));
 }
 
 void NoteEditorPrivate::doRemoveHyperlink(const bool shouldTrackDelegate, const quint64 hyperlinkIdToRemove)
@@ -3951,7 +3924,7 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
         return;
     }
 
-    if (hyperlinkDataList.size() != 2) {
+    if (hyperlinkDataList.size() != 3) {
         QString error = QT_TR_NOOP("Can't copy hyperlink: can't get text and hyperlink from JavaScript");
         QNWARNING(error << "; hyperlink data: " << hyperlinkDataList.join(","));
         emit notifyError(error);
