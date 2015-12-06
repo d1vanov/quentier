@@ -159,10 +159,10 @@ set(PRIVATE_HEADERS
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
     src/note_editor/JavaScriptInOrderExecutor.h
-    src/note_editor/DecryptionDialog.h
     src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceInfo.h
     src/note_editor/dialogs/EncryptionDialog.h
+    src/note_editor/dialogs/DecryptionDialog.h
     src/note_editor/dialogs/EditHyperlinkDialog.h
     src/note_editor/delegates/EncryptSelectedTextDelegate.h
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h
@@ -239,11 +239,11 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/INoteEditorBackend.cpp
     src/note_editor/NoteEditor_p.cpp
     src/note_editor/JavaScriptInOrderExecutor.cpp
-    src/note_editor/DecryptionDialog.cpp
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceInfo.cpp
     src/note_editor/dialogs/EncryptionDialog.cpp
+    src/note_editor/dialogs/DecryptionDialog.cpp
     src/note_editor/dialogs/EditHyperlinkDialog.cpp
     src/note_editor/delegates/EncryptSelectedTextDelegate.cpp
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.cpp
@@ -383,7 +383,7 @@ endif()
 
 set(FORMS
     src/note_editor/AttachmentStoragePathConfigDialog.ui
-    src/note_editor/DecryptionDialog.ui
+    src/note_editor/dialogs/DecryptionDialog.ui
     src/note_editor/dialogs/EncryptionDialog.ui
     src/note_editor/dialogs/EditHyperlinkDialog.ui)
 
