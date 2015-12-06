@@ -8,7 +8,7 @@ function getHyperlinkFromSelection() {
         return [text, "", "0"];
     }
 
-    var idNumber = element.en-hyperlink-id;
+    var idNumber = element.getAttribute('en-hyperlink-id');
     if (!idNumber) {
         idNumber = 0;
     }
