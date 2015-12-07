@@ -1951,7 +1951,7 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
 {
     QNDEBUG("NoteEditorPrivate::openResource: " << resourceAbsoluteFilePath);
-    QDesktopServices::openUrl(QUrl("file://" + resourceAbsoluteFilePath));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(resourceAbsoluteFilePath));
 }
 
 #ifdef USE_QT_WEB_ENGINE
