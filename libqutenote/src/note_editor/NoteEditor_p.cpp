@@ -3376,7 +3376,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
     setFocus();
 }
 
-void NoteEditorPrivate::setSpellcheck(bool enabled)
+void NoteEditorPrivate::setSpellcheck(const bool enabled)
 {
     QNDEBUG("stub: NoteEditorPrivate::setSpellcheck: enabled = "
             << (enabled ? "true" : "false"));
