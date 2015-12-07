@@ -568,14 +568,14 @@ void Note::setThumbnail(const QImage & thumbnail)
     d->m_thumbnail = thumbnail;
 }
 
-QString Note::plainText(QString * errorMessage) const
+QString Note::plainText(QString * pErrorMessage) const
 {
-    return d->plainText(errorMessage);
+    return d->plainText(pErrorMessage);
 }
 
-QStringList Note::listOfWords(QString * errorMessage) const
+QStringList Note::listOfWords(QString * pErrorMessage) const
 {
-    return d->listOfWords(errorMessage);
+    return d->listOfWords(pErrorMessage);
 }
 
 bool Note::containsCheckedTodo() const

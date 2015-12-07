@@ -6,6 +6,7 @@
 #include <QFont>
 #include <QColor>
 #include <QVBoxLayout>
+#include <QDragMoveEvent>
 
 namespace qute_note {
 
@@ -17,6 +18,7 @@ NoteEditor::NoteEditor(QWidget * parent, Qt::WindowFlags flags) :
     pLayout->addWidget(m_backend->widget());
     pLayout->setMargin(0);
     setLayout(pLayout);
+    setAcceptDrops(true);
 }
 
 NoteEditor::~NoteEditor()
@@ -277,6 +279,20 @@ void NoteEditor::setFocus()
     QWidget * pWidget = m_backend->widget();
     if (Q_LIKELY(pWidget)) {
         pWidget->setFocus();
+    }
+}
+
+void NoteEditor::dragMoveEvent(QDragMoveEvent * pEvent)
+{
+    if (Q_LIKELY(pEvent)) {
+        pEvent->acceptProposedAction();
+    }
+}
+
+void NoteEditor::dropEvent(QDropEvent * pEvent)
+{
+    if (Q_LIKELY(pEvent)) {
+        pEvent->acceptProposedAction();
     }
 }
 

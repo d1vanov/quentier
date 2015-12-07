@@ -1,5 +1,6 @@
 #include <qute_note/enml/ENMLConverter.h>
 #include "ENMLConverter_p.h"
+#include <qute_note/types/IResource.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
 namespace qute_note {
@@ -76,6 +77,11 @@ QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QS
 {
     return ENMLConverterPrivate::decryptedTextHtml(decryptedText, encryptedText,
                                                    hint, cipher, keyLength, enDecryptedIndex);
+}
+
+QString ENMLConverter::resourceHtml(const IResource & resource, QString & errorDescription)
+{
+    return ENMLConverterPrivate::resourceHtml(resource, errorDescription);
 }
 
 void ENMLConverter::escapeString(QString & string)

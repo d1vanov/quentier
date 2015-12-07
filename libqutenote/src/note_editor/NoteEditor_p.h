@@ -78,6 +78,8 @@ Q_SIGNALS:
     void convertedToNote(Note note);
     void cantConvertToNote(QString error);
 
+    void noteEditorHtmlUpdated(QString html);
+
     // Signals to notify anyone interested of the formatting at the current cursor position
     void textBoldState(bool state);
     void textItalicState(bool state);
@@ -122,10 +124,6 @@ public:
 
     void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
 
-Q_SIGNALS:
-    void noteEditorHtmlUpdated(QString html);
-
-public:
     bool isModified() const;
 
     QString noteEditorPagePath() const { return m_noteEditorPagePath; }
@@ -133,13 +131,8 @@ public:
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
 
-    // Returns the local guid of the new resource
-    QString attachResourceToNote(const QByteArray & data, const QByteArray &dataHash,
-                                 const QMimeType & mimeType, const QString & filename);
-
-    template <typename T>
-    QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
-                             const int columns, const bool relative);
+    const ResourceWrapper attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+                                               const QMimeType & mimeType, const QString & filename);
 
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
@@ -305,9 +298,6 @@ private Q_SLOTS:
     void onRemoveHyperlinkDelegateError(QString error);
 
 private:
-    virtual void timerEvent(QTimerEvent * event) Q_DECL_OVERRIDE;
-
-private:
     // Helper methods for undo stack
     void pushNoteContentEditUndoCommand();
     void pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
@@ -316,6 +306,10 @@ private:
                                 const bool decryptPermanently);
 
 private:
+    template <typename T>
+    QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
+                             const int columns, const bool relative);
+
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
 
@@ -382,6 +376,13 @@ private:
                             const QString & resourceHash) const;
 
     void updateNoteEditorPagePath(const quint32 index);
+
+private:
+    // Overrides for some Qt's virtual methods
+    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
+
+    virtual void dragMoveEvent(QDragMoveEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     template <class T>

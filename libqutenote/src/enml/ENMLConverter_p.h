@@ -12,6 +12,7 @@ QT_FORWARD_DECLARE_CLASS(QXmlStreamAttributes)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 QT_FORWARD_DECLARE_CLASS(HTMLCleaner)
 
@@ -54,6 +55,8 @@ public:
                                      const QString & hint, const QString & cipher,
                                      const size_t keyLength, const quint64 enDecryptedIndex);
 
+    static QString resourceHtml(const IResource & resource, QString & errorDescription);
+
     static void escapeString(QString & string);
 
 private:
@@ -73,8 +76,8 @@ private:
                              QXmlStreamWriter & writer, DecryptedTextManager & decryptedTextManager, bool &convertedToEnCryptNode) const;
 
     // convert ENML <en-media> tag to HTML <object> tag
-    bool resourceInfoToHtml(const QXmlStreamReader & reader, QXmlStreamWriter & writer,
-                            QString & errorDescription) const;
+    static bool resourceInfoToHtml(const QXmlStreamAttributes & attributes, QXmlStreamWriter & writer,
+                                   QString & errorDescription);
 
     void toDoTagsToHtml(const QXmlStreamReader & reader, const quint64 enToDoIndex,
                         QXmlStreamWriter & writer) const;

@@ -117,6 +117,10 @@ public Q_SLOTS:
 
     void setFocus();
 
+protected:
+    virtual void dragMoveEvent(QDragMoveEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void dropEvent(QDropEvent * pEvent) Q_DECL_OVERRIDE;
+
 private:
     INoteEditorBackend * m_backend;
 };

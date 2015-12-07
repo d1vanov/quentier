@@ -356,7 +356,7 @@ bool NoteData::checkParameters(QString & errorDescription) const
     return true;
 }
 
-QString NoteData::plainText(QString * errorMessage) const
+QString NoteData::plainText(QString * pErrorMessage) const
 {
     QMutexLocker mutexLocker(&m_mutex);
 
@@ -365,8 +365,8 @@ QString NoteData::plainText(QString * errorMessage) const
     }
 
     if (!m_qecNote.content.isSet()) {
-        if (errorMessage) {
-            *errorMessage = "Note content is not set";
+        if (pErrorMessage) {
+            *pErrorMessage = "Note content is not set";
         }
         return QString();
     }
@@ -376,8 +376,8 @@ QString NoteData::plainText(QString * errorMessage) const
                                                      m_lazyPlainText, error);
     if (!res) {
         QNWARNING(error);
-        if (errorMessage) {
-            *errorMessage = error;
+        if (pErrorMessage) {
+            *pErrorMessage = error;
         }
         return QString();
     }
@@ -387,7 +387,7 @@ QString NoteData::plainText(QString * errorMessage) const
     return m_lazyPlainText;
 }
 
-QStringList NoteData::listOfWords(QString * errorMessage) const
+QStringList NoteData::listOfWords(QString * pErrorMessage) const
 {
     QMutexLocker mutexLocker(&m_mutex);
 
@@ -410,8 +410,8 @@ QStringList NoteData::listOfWords(QString * errorMessage) const
                                                        error, &m_lazyPlainText);
     if (!res) {
         QNWARNING(error);
-        if (errorMessage) {
-            *errorMessage = error;
+        if (pErrorMessage) {
+            *pErrorMessage = error;
         }
         return QStringList();
     }

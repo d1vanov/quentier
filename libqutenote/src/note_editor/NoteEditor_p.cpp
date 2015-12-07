@@ -75,6 +75,7 @@ typedef QWebEngineSettings WebSettings;
 #include <QFontDialog>
 #include <QFontDatabase>
 #include <QUndoStack>
+#include <QCryptographicHash>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(this->page()); \
@@ -507,20 +508,35 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
 
     Q_UNUSED(m_droppedFilePathsAndMimeTypesByReadRequestIds.erase(it));
 
-    if (!success) {
+    if (Q_UNLIKELY(!success)) {
         QNDEBUG("Could not read the content of the dropped file for request id " << requestId
                 << ": " << errorDescription);
         return;
     }
 
-    if (!m_pNote) {
+    if (Q_UNLIKELY(!m_pNote)) {
         QNDEBUG("Current note is empty");
         return;
     }
 
     QNDEBUG("Successfully read the content of the dropped file for request id " << requestId);
-    QByteArray dataHash;
-    QString newResourceLocalGuid = attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
+
+    QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
+    ResourceWrapper newResource = attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
+    QString newResourceLocalGuid = newResource.localGuid();
+    if (Q_UNLIKELY(newResourceLocalGuid.isEmpty())) {
+        return;
+    }
+
+    QString resourceHtml = ENMLConverter::resourceHtml(newResource, errorDescription);
+    if (Q_UNLIKELY(resourceHtml.isEmpty())) {
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        m_pNote->removeResource(newResource);
+        return;
+    }
+
+    execJavascriptCommand("insertHtml", resourceHtml);
 
     QUuid saveResourceToStorageRequestId = QUuid::createUuid();
 
@@ -1109,15 +1125,16 @@ void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QString error)
     sender()->deleteLater();
 }
 
-void NoteEditorPrivate::timerEvent(QTimerEvent * event)
+void NoteEditorPrivate::timerEvent(QTimerEvent * pEvent)
 {
-    QNDEBUG("NoteEditorPrivate::timerEvent: " << (event ? QString::number(event->timerId()) : "<null>"));
+    QNDEBUG("NoteEditorPrivate::timerEvent: " << (pEvent ? QString::number(pEvent->timerId()) : "<null>"));
 
-    if (!event) {
+    if (Q_UNLIKELY(!pEvent)) {
+        QNINFO("Detected null pointer to timer event");
         return;
     }
 
-    if (event->timerId() == m_pageToNoteContentPostponeTimerId)
+    if (pEvent->timerId() == m_pageToNoteContentPostponeTimerId)
     {
         if (m_contentChangedSinceWatchingStart)
         {
@@ -1141,6 +1158,22 @@ void NoteEditorPrivate::timerEvent(QTimerEvent * event)
         m_watchingForContentChange = false;
         m_contentChangedSinceWatchingStart = false;
     }
+}
+
+void NoteEditorPrivate::dragMoveEvent(QDragMoveEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        QNINFO("Detected null pointer to drag move event");
+        return;
+    }
+
+    // TODO: think of some filtering which might make sense here
+    pEvent->acceptProposedAction();
+}
+
+void NoteEditorPrivate::dropEvent(QDropEvent * pEvent)
+{
+    onDropEvent(pEvent);
 }
 
 void NoteEditorPrivate::pushNoteContentEditUndoCommand()
@@ -3069,14 +3102,14 @@ void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
 {
     QNDEBUG("NoteEditorPrivate::onDropEvent");
 
-    if (!pEvent) {
-        QNINFO("Null drop event was detected");
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING("Null pointer to drop event was detected");
         return;
     }
 
     const QMimeData * pMimeData = pEvent->mimeData();
-    if (!pMimeData) {
-        QNINFO("Null mime data from drop event was detected");
+    if (Q_UNLIKELY(!pMimeData)) {
+        QNWARNING("Null pointer to mime data from drop event was detected");
         return;
     }
 
@@ -3091,20 +3124,28 @@ void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
             dropFile(url);
         }
     }
+
+    pEvent->acceptProposedAction();
 }
 
-QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
-                                                const QMimeType & mimeType, const QString & filename)
+const ResourceWrapper NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+                                                              const QMimeType & mimeType, const QString & filename)
 {
     QNDEBUG("NoteEditorPrivate::attachResourceToNote: hash = " << dataHash
             << ", mime type = " << mimeType.name());
 
-    if (!m_pNote) {
+    ResourceWrapper resource;
+    QString resourceLocalGuid = resource.localGuid();
+    resource.setLocalGuid(QString());   // Force the resource to have empty local guid for now
+
+    if (Q_UNLIKELY(!m_pNote)) {
         QNINFO("Can't attach resource to note editor: no actual note was selected");
-        return QString();
+        return resource;
     }
 
-    ResourceWrapper resource;
+    // Now can return the local guid back to the resource
+    resource.setLocalGuid(resourceLocalGuid);
+
     resource.setDataBody(data);
 
     if (!dataHash.isEmpty()) {
@@ -3122,7 +3163,7 @@ QString NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const Q
     }
 
     m_pNote->addResource(resource);
-    return resource.localGuid();
+    return resource;
 }
 
 template <typename T>

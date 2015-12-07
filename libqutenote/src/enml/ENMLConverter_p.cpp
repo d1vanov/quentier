@@ -1,6 +1,7 @@
 #include "ENMLConverter_p.h"
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/HTMLCleaner.h>
+#include <qute_note/types/IResource.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <libxml/xmlreader.h>
 #include <QString>
@@ -415,7 +416,7 @@ bool ENMLConverterPrivate::noteContentToHtml(const QString & noteContent, QStrin
             }
             else if (lastElementName == "en-media")
             {
-                bool res = resourceInfoToHtml(reader, writer, errorDescription);
+                bool res = resourceInfoToHtml(lastElementAttributes, writer, errorDescription);
                 if (!res) {
                     return false;
                 }
@@ -709,6 +710,39 @@ QString ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, c
     return result;
 }
 
+QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString & errorDescription)
+{
+    QNDEBUG("ENMLConverterPrivate::resourceHtml");
+
+    if (Q_UNLIKELY(!resource.hasDataHash())) {
+        errorDescription = QT_TR_NOOP("Can't compose the html representation of the resource: no data hash is set");
+        QNWARNING(errorDescription << ", resource: " << resource);
+        return QString();
+    }
+
+    if (Q_UNLIKELY(!resource.hasMime())) {
+        errorDescription = QT_TR_NOOP("Can't compose the html representation of the resource: no mime type is set");
+        QNWARNING(errorDescription << ", resource: " << resource);
+        return QString();
+    }
+
+    QXmlStreamAttributes attributes;
+    attributes.append("hash", resource.dataHash());
+    attributes.append("type", resource.mime());
+
+    QString html;
+    QXmlStreamWriter writer(&html);
+
+    bool res = resourceInfoToHtml(attributes, writer, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = QT_TR_NOOP("Can't compose the html representation of the resource: ") + errorDescription;
+        QNWARNING(errorDescription << ", resource: " << resource);
+        return QString();
+    }
+
+    return html;
+}
+
 void ENMLConverterPrivate::escapeString(QString & string)
 {
     QChar singleQuoteChar('\'');
@@ -890,13 +924,10 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
     return true;
 }
 
-bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
-                                              QXmlStreamWriter & writer,
-                                              QString & errorDescription) const
+bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamAttributes & attributes,
+                                              QXmlStreamWriter & writer, QString & errorDescription)
 {
     QNDEBUG("ENMLConverterPrivate::resourceInfoToHtml");
-
-    QXmlStreamAttributes attributes = reader.attributes();
 
     if (!attributes.hasAttribute("hash")) {
         errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing hash attribute");
@@ -904,7 +935,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamReader & reader,
     }
 
     if (!attributes.hasAttribute("type")) {
-        errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing hash attribute");
+        errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing type attribute");
         return false;
     }
 

@@ -108,8 +108,8 @@ public:
     QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);
 
-    QString plainText(QString * errorMessage = nullptr) const;
-    QStringList listOfWords(QString * errorMessage = nullptr) const;
+    QString plainText(QString * pErrorMessage = Q_NULLPTR) const;
+    QStringList listOfWords(QString * pErrorMessage = Q_NULLPTR) const;
 
     bool containsCheckedTodo() const;
     bool containsUncheckedTodo() const;
