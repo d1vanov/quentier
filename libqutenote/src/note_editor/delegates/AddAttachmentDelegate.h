@@ -5,6 +5,8 @@
 #include <QObject>
 #include <QByteArray>
 #include <QUuid>
+#include <QMimeType>
+#include <QHash>
 
 namespace qute_note {
 
@@ -28,9 +30,16 @@ public:
 #endif
                                    );
 
+    void start();
+
 Q_SIGNALS:
     void finished();
     void notifyError(QString error);
+
+// private signals
+    void readFileData(QString filePath, QUuid requestId);
+    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
+                               QString fileStoragePath, QUuid requestId);
 
 private Q_SLOTS:
     void onResourceFileRead(bool success, QString errorDescription,
@@ -55,6 +64,9 @@ private:
 #endif
 
     const QString                   m_filePath;
+
+    typedef QHash<QUuid, QPair<QString, QMimeType> > FilePathsAndMimeTypesByReadRequestIds;
+    FilePathsAndMimeTypesByReadRequestIds   m_droppedFilePathsAndMimeTypesByReadRequestIds;
 };
 
 } // namespace qute_note
