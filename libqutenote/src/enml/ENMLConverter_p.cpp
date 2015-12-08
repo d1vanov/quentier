@@ -740,6 +740,7 @@ QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString &
         return QString();
     }
 
+    writer.writeEndElement();
     return html;
 }
 

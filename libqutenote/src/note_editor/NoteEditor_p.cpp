@@ -488,6 +488,10 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         Q_UNUSED(m_localGuidsOfResourcesWantedToBeOpened.erase(openIt));
         openResource(fileStoragePath);
     }
+
+#ifdef USE_QT_WEB_ENGINE
+    setupGenericResourceImages();
+#endif
 }
 
 void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
@@ -536,6 +540,9 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
         return;
     }
 
+    QNTRACE("Resource html: " << resourceHtml);
+
+    skipPushingUndoCommandOnNextContentChange();
     execJavascriptCommand("insertHtml", resourceHtml);
 
     QUuid saveResourceToStorageRequestId = QUuid::createUuid();
@@ -1913,7 +1920,7 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
                                  ? &resourcePreferredFilterString
                                  : Q_NULLPTR);
 
-    QString absoluteFilePath = QFileDialog::getSaveFileName(this, QObject::tr("Save as..."),
+    QString absoluteFilePath = QFileDialog::getSaveFileName(this, tr("Save as..."),
                                                             preferredFolderPath, filterString,
                                                             pSelectedFilter);
     if (absoluteFilePath.isEmpty()) {
@@ -3599,9 +3606,45 @@ void NoteEditorPrivate::addAttachmentDialog()
 {
     QNDEBUG("NoteEditorPrivate::addAttachmentDialog");
 
-    // TODO: implement
+    QString addAttachmentInitialFolderPath;
 
-    setFocus();
+    ApplicationSettings appSettings;
+    QVariant lastAttachmentAddLocation = appSettings.value("LastAttachmentAddLocation");
+    if (!lastAttachmentAddLocation.isNull() && lastAttachmentAddLocation.isValid())
+    {
+        QNTRACE("Found last attachment add location: " << lastAttachmentAddLocation);
+        QFileInfo lastAttachmentAddDirInfo(lastAttachmentAddLocation.toString());
+        if (!lastAttachmentAddDirInfo.exists()) {
+            QNTRACE("Cached last attachment add directory does not exist");
+        }
+        else if (!lastAttachmentAddDirInfo.isDir()) {
+            QNTRACE("Cached last attachment add directory path is not a directory really");
+        }
+        else if (!lastAttachmentAddDirInfo.isWritable()) {
+            QNTRACE("Cached last attachment add directory path is not writable");
+        }
+        else {
+            addAttachmentInitialFolderPath = lastAttachmentAddDirInfo.absolutePath();
+        }
+    }
+
+    QString absoluteFilePath = QFileDialog::getOpenFileName(this, tr("Add attachment..."),
+                                                            addAttachmentInitialFolderPath);
+    if (absoluteFilePath.isEmpty()) {
+        QNTRACE("User cancelled adding the attachment");
+        return;
+    }
+
+    QNTRACE("Absolute file path of chosen attachment: " << absoluteFilePath);
+
+    QFileInfo fileInfo(absoluteFilePath);
+    QString absoluteDirPath = fileInfo.absoluteDir().absolutePath();
+    if (!absoluteDirPath.isEmpty()) {
+        appSettings.setValue("LastAttachmentAddLocation", absoluteDirPath);
+        QNTRACE("Updated last attachment add location to " << absoluteDirPath);
+    }
+
+    dropFile(absoluteFilePath);
 }
 
 void NoteEditorPrivate::saveAttachmentDialog(const QString & resourceHash)
