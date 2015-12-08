@@ -7,6 +7,7 @@
 #include <QUuid>
 #include <QMimeType>
 #include <QHash>
+#include <QMimeType>
 
 namespace qute_note {
 
@@ -64,9 +65,11 @@ private:
 #endif
 
     const QString                   m_filePath;
+    QMimeType                       m_resourceFileMimeType;
+    QUuid                           m_readResourceFileRequestId;
 
-    typedef QHash<QUuid, QPair<QString, QMimeType> > FilePathsAndMimeTypesByReadRequestIds;
-    FilePathsAndMimeTypesByReadRequestIds   m_droppedFilePathsAndMimeTypesByReadRequestIds;
+    QString                         m_resourceLocalGuid;
+    QUuid                           m_saveResourceToStorageRequestId;
 };
 
 } // namespace qute_note

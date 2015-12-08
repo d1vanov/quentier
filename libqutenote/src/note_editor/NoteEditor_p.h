@@ -98,14 +98,14 @@ Q_SIGNALS:
     void insertTableDialogRequested();
 
 public:
-    // Public methods for undo stack
-
     // Force the conversion from ENML to HTML
     void updateFromNote();
 
     // Resets the note's HTML to the given one
     void setNoteHtml(const QString & html);
 
+    const ResourceWrapper attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+                                               const QMimeType & mimeType, const QString & filename);
     void addResourceToNote(const ResourceWrapper & resource);
     void removeResourceFromNote(const ResourceWrapper & resource);
     void replaceResourceInNote(const ResourceWrapper & resource);
@@ -126,13 +126,12 @@ public:
 
     bool isModified() const;
 
-    QString noteEditorPagePath() const { return m_noteEditorPagePath; }
+    const QString & noteEditorPagePath() const { return m_noteEditorPagePath; }
+    const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
+    const QString & resourceLocalFileStoragePath() const { return m_resourceLocalFileStorageFolder; }
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
-
-    const ResourceWrapper attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
-                                               const QMimeType & mimeType, const QString & filename);
 
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
