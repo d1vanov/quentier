@@ -68,8 +68,8 @@ public:
     QVariant execJavascriptCommandWithResult(const QString & command, const QString & args);
 #endif
 
-    void execJavascriptCommand(const QString & command);
-    void execJavascriptCommand(const QString & command, const QString & args);
+    void execJavascriptCommand(const QString & command, NoteEditorPage::Callback callback = 0);
+    void execJavascriptCommand(const QString & command, const QString & args, NoteEditorPage::Callback = 0);
 
 Q_SIGNALS:
     void contentChanged();

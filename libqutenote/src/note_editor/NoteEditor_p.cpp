@@ -2898,20 +2898,21 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 }
 #endif
 
-void NoteEditorPrivate::execJavascriptCommand(const QString & command)
+void NoteEditorPrivate::execJavascriptCommand(const QString & command, NoteEditorPage::Callback callback)
 {
     COMMAND_TO_JS(command);
 
     GET_PAGE()
-    page->executeJavaScript(javascript);
+    page->executeJavaScript(javascript, callback);
 }
 
-void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
+void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args,
+                                              NoteEditorPage::Callback callback)
 {
     COMMAND_WITH_ARGS_TO_JS(command, args);
 
     GET_PAGE()
-    page->executeJavaScript(javascript);
+    page->executeJavaScript(javascript, callback);
 }
 
 void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)

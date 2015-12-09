@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
 
 #include <qute_note/utility/Qt4Helper.h>
+#include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceWrapper.h>
 #include <QObject>
 #include <QByteArray>
@@ -56,6 +57,8 @@ Q_SIGNALS:
 #endif
 
 private Q_SLOTS:
+    void onOriginalPageConvertedToNote(Note note);
+
     void onResourceFileRead(bool success, QString errorDescription,
                             QByteArray data, QUuid requestId);
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
@@ -67,6 +70,48 @@ private Q_SLOTS:
                                      QString filePath, QString errorDescription,
                                      QUuid requestId);
 #endif
+
+    void onNewResourceHtmlInserted(const QVariant & data);
+    void onPageWithNewResourceHtmlReceived(const QString & html);
+
+private:
+    void doStart();
+    void insertNewResourceHtml();
+
+private:
+    class JsResultCallbackFunctor
+    {
+    public:
+        typedef void (AddAttachmentDelegate::*Method)(const QVariant &);
+
+        JsResultCallbackFunctor(AddAttachmentDelegate & member, Method method) :
+            m_member(member),
+            m_method(method)
+        {}
+
+        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
+
+    private:
+        AddAttachmentDelegate &     m_member;
+        Method                      m_method;
+    };
+
+    class HtmlCallbackFunctor
+    {
+    public:
+        typedef void (AddAttachmentDelegate::*Method)(const QString &);
+
+        HtmlCallbackFunctor(AddAttachmentDelegate & member, Method method) :
+            m_member(member),
+            m_method(method)
+        {}
+
+        void operator()(const QString & html) { (m_member.*m_method)(html); }
+
+    private:
+        AddAttachmentDelegate &    m_member;
+        Method                     m_method;
+    };
 
 private:
     NoteEditorPrivate &             m_noteEditor;

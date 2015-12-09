@@ -1,5 +1,6 @@
 #include "AddAttachmentDelegate.h"
 #include "../NoteEditor_p.h"
+#include "../NoteEditorPage.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
@@ -9,12 +10,23 @@
 #include "../GenericResourceImageWriter.h"
 #include <QImage>
 #include <QBuffer>
+#else
+#include <QWebFrame>
 #endif
 
 #include <QFileInfo>
 #include <QMimeDatabase>
 
 namespace qute_note {
+
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't add attachment: can't get note editor page"); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
 
 AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                              ResourceFileStorageManager * pResourceFileStorageManager,
@@ -37,12 +49,37 @@ AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEdito
     m_resourceFileStoragePath(),
     m_readResourceFileRequestId(),
     m_saveResourceToStorageRequestId()
-{
-}
+{}
 
 void AddAttachmentDelegate::start()
 {
     QNDEBUG("AddAttachmentDelegate::start");
+
+    if (m_noteEditor.isModified()) {
+        QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+                         this, QNSLOT(AddAttachmentDelegate,onOriginalPageConvertedToNote,Note));
+        m_noteEditor.convertToNote();
+    }
+    else {
+        doStart();
+    }
+}
+
+void AddAttachmentDelegate::onOriginalPageConvertedToNote(Note note)
+{
+    QNDEBUG("AddAttachmentDelegate::onOriginalPageConvertedToNote");
+
+    Q_UNUSED(note)
+
+    QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+                        this, QNSLOT(AddAttachmentDelegate,onOriginalPageConvertedToNote,Note));
+
+    doStart();
+}
+
+void AddAttachmentDelegate::doStart()
+{
+    QNDEBUG("AddAttachmentDelegate::doStart");
 
     QFileInfo fileInfo(m_filePath);
     if (!fileInfo.isFile()) {
@@ -102,19 +139,6 @@ void AddAttachmentDelegate::onResourceFileRead(bool success, QString errorDescri
     if (Q_UNLIKELY(resourceLocalGuid.isEmpty())) {
         return;
     }
-
-    QString resourceHtml = ENMLConverter::resourceHtml(m_resource, errorDescription);
-    if (Q_UNLIKELY(resourceHtml.isEmpty())) {
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        m_noteEditor.removeResourceFromNote(m_resource);
-        return;
-    }
-
-    QNTRACE("Resource html: " << resourceHtml);
-
-    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
-    m_noteEditor.execJavascriptCommand("insertHtml", resourceHtml);
 
     if (m_resourceFileMimeType.name().startsWith("image/")) {
         m_resourceFileStoragePath = m_noteEditor.imageResourcesStoragePath();
@@ -184,11 +208,12 @@ void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray
     }
 
 #ifndef USE_QT_WEB_ENGINE
-    emit finished(m_resource, m_resourceFileStoragePath);
+    // Can now move on to working with the note editor's page
+    insertNewResourceHtml();
 #else
     if (m_resourceFileMimeType.name().startsWith("image/")) {
-        QNTRACE("Done adding the image resource");
-        emit finished(m_resource, m_resourceFileStoragePath, QString());
+        QNTRACE("Done adding the image resource to the note, moving on to adding it to the page");
+        insertNewResourceHtml();
         return;
     }
 
@@ -241,11 +266,58 @@ void AddAttachmentDelegate::onGenericResourceImageSaved(bool success, QByteArray
         return;
     }
 
-    m_noteEditor.provideSrcForGenericResourceImages();
-    m_noteEditor.setupGenericResourceOnClickHandler();
-
-    emit finished(m_resource, m_resourceFileStoragePath, filePath);
+    insertNewResourceHtml();
 }
 #endif
+
+void AddAttachmentDelegate::insertNewResourceHtml()
+{
+    QNDEBUG("AddAttachmentDelegate::insertNewResourceHtml");
+
+    QString errorDescription;
+    QString resourceHtml = ENMLConverter::resourceHtml(m_resource, errorDescription);
+    if (Q_UNLIKELY(resourceHtml.isEmpty())) {
+        errorDescription = QT_TR_NOOP("Can't compose the html representation of the attachment: ") + errorDescription;
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        m_noteEditor.removeResourceFromNote(m_resource);
+        return;
+    }
+
+    QNTRACE("Resource html: " << resourceHtml);
+
+    // NOTE: insertHtml can be undone via the explicit call of NoteEditorPrivate::undoPageAction;
+    // we don't want the dedicated undo command to appear in the stack, instead
+    // we'd have the undo command related to the resource addition
+    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
+
+    m_noteEditor.execJavascriptCommand("insertHtml", resourceHtml,
+                                       JsResultCallbackFunctor(*this, &AddAttachmentDelegate::onNewResourceHtmlInserted));
+}
+
+void AddAttachmentDelegate::onNewResourceHtmlInserted(const QVariant & data)
+{
+    QNDEBUG("AddAttachmentDelegate::onNewResourceHtmlInserted");
+
+    Q_UNUSED(data)
+
+    GET_PAGE()
+
+#ifdef USE_QT_WEB_ENGINE
+    page->toHtml(HtmlCallbackFunctor(*this, &AddAttachmentDelegate::onPageWithNewResourceHtmlReceived));
+#else
+    QString html = page->mainFrame()->toHtml();
+    onPageWithNewResourceHtmlReceived(html);
+#endif
+}
+
+void AddAttachmentDelegate::onPageWithNewResourceHtmlReceived(const QString & html)
+{
+    QNDEBUG("AddAttachmentDelegate::onPageWithNewResourceHtmlReceived");
+
+    Q_UNUSED(html)
+    // TODO: continue from here, undo the last page action (new resource html insertion),
+    // switch note editor page, put the new HTML there and execute all the necessary JS
+}
 
 } // namespace qute_note
