@@ -2075,7 +2075,7 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
 
     QString resourceDisplayName = resource.displayName();
     if (Q_UNLIKELY(resourceDisplayName.isEmpty())) {
-        resourceDisplayName = QObject::tr("Attachment");
+        resourceDisplayName = tr("Attachment");
     }
 
     QFont font = m_font;

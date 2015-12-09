@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
 
 #include <qute_note/utility/Qt4Helper.h>
+#include <qute_note/types/ResourceWrapper.h>
 #include <QObject>
 #include <QByteArray>
 #include <QUuid>
@@ -34,13 +35,25 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished();
+
+#ifdef USE_QT_WEB_ENGINE
+    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath,
+                  QString resourceImageFilePath);
+#else
+    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath);
+#endif
+
     void notifyError(QString error);
 
 // private signals
     void readFileData(QString filePath, QUuid requestId);
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
                                QString fileStoragePath, QUuid requestId);
+
+#ifdef USE_QT_WEB_ENGINE
+    void saveGenericResourceImageToFile(QString localGuid, QByteArray data, QString fileSuffix,
+                                        QByteArray dataHash, QString fileStoragePath, QUuid requestId);
+#endif
 
 private Q_SLOTS:
     void onResourceFileRead(bool success, QString errorDescription,
@@ -50,9 +63,9 @@ private Q_SLOTS:
                                   QString errorDescription);
 
 #ifdef USE_QT_WEB_ENGINE
-    void onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
-                                     const QString filePath, const QString errorDescription,
-                                     const QUuid requestId);
+    void onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
+                                     QString filePath, QString errorDescription,
+                                     QUuid requestId);
 #endif
 
 private:
@@ -62,13 +75,15 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    QUuid                           m_saveResourceImageRequestId;
 #endif
 
     const QString                   m_filePath;
     QMimeType                       m_resourceFileMimeType;
-    QUuid                           m_readResourceFileRequestId;
+    ResourceWrapper                 m_resource;
+    QString                         m_resourceFileStoragePath;
 
-    QString                         m_resourceLocalGuid;
+    QUuid                           m_readResourceFileRequestId;
     QUuid                           m_saveResourceToStorageRequestId;
 };
 

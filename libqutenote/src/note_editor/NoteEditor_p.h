@@ -111,6 +111,12 @@ public:
     void replaceResourceInNote(const ResourceWrapper & resource);
     void setNoteResources(const QList<ResourceWrapper> & resources);
 
+
+    QImage buildGenericResourceImage(const IResource & resource);
+    void saveGenericResourceImage(const IResource & resource, const QImage & image);
+    void provideSrcForGenericResourceImages();
+    void setupGenericResourceOnClickHandler();
+
     void switchEditorPage(const bool shouldConvertFromNote = true);
     void popEditorPage();
 
@@ -334,10 +340,6 @@ private:
 
     // Returns true if the resource image gets built and is being saved to a file asynchronously
     bool findOrBuildGenericResourceImage(const IResource & resource);
-    QImage buildGenericResourceImage(const IResource & resource);
-    void saveGenericResourceImage(const IResource & resource, const QImage & image);
-    void provideSrcForGenericResourceImages();
-    void setupGenericResourceOnClickHandler();
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
