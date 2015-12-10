@@ -27,9 +27,9 @@ private:
 #endif
     WebView;
 
+public:
     typedef boost::function<void (const QVariant&)> Callback;
 
-public:
     explicit JavaScriptInOrderExecutor(WebView & view, QObject * parent = Q_NULLPTR);
 
     void append(const QString & script, Callback callback = 0);

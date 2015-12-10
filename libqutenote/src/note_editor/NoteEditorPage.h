@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
 
+#include "JavaScriptInOrderExecutor.h"
 #include <qute_note/utility/Qt4Helper.h>
 
 #ifndef USE_QT_WEB_ENGINE
@@ -9,13 +10,10 @@
 #include <QWebEnginePage>
 #endif
 
-#include <boost/function.hpp>
-
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-QT_FORWARD_DECLARE_CLASS(JavaScriptInOrderExecutor)
 
 class NoteEditorPage:
 #ifndef USE_QT_WEB_ENGINE
@@ -26,7 +24,7 @@ class NoteEditorPage:
 {
     Q_OBJECT
 public:
-    typedef boost::function<void (const QVariant & data)> Callback;
+    typedef JavaScriptInOrderExecutor::Callback Callback;
 
 public:
     explicit NoteEditorPage(NoteEditorPrivate & parent, const quint32 index);
