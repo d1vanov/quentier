@@ -50,6 +50,7 @@ Q_SIGNALS:
     void readFileData(QString filePath, QUuid requestId);
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
                                QString fileStoragePath, QUuid requestId);
+    void writeFile(QString filePath, QByteArray data, QUuid requestId);
 
 #ifdef USE_QT_WEB_ENGINE
     void saveGenericResourceImageToFile(QString localGuid, QByteArray data, QString fileSuffix,
@@ -73,6 +74,9 @@ private Q_SLOTS:
 
     void onNewResourceHtmlInserted(const QVariant & data);
     void onPageWithNewResourceHtmlReceived(const QString & html);
+
+    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void onModifiedPageLoaded();
 
 private:
     void doStart();
@@ -127,9 +131,13 @@ private:
     QMimeType                       m_resourceFileMimeType;
     ResourceWrapper                 m_resource;
     QString                         m_resourceFileStoragePath;
+    QString                         m_genericResourceImageFilePath;
 
     QUuid                           m_readResourceFileRequestId;
     QUuid                           m_saveResourceToStorageRequestId;
+
+    QString                         m_modifiedHtml;
+    QUuid                           m_writeModifiedHtmlToPageSourceRequestId;
 };
 
 } // namespace qute_note

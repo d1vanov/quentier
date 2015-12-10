@@ -47,8 +47,11 @@ AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEdito
     m_resourceFileMimeType(),
     m_resource(),
     m_resourceFileStoragePath(),
+    m_genericResourceImageFilePath(),
     m_readResourceFileRequestId(),
-    m_saveResourceToStorageRequestId()
+    m_saveResourceToStorageRequestId(),
+    m_modifiedHtml(),
+    m_writeModifiedHtmlToPageSourceRequestId()
 {}
 
 void AddAttachmentDelegate::start()
@@ -197,8 +200,8 @@ void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray
     if (Q_UNLIKELY(errorCode != 0)) {
         errorDescription = QT_TR_NOOP("Can't write the resource to local file: ") + errorDescription;
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
         m_noteEditor.removeResourceFromNote(m_resource);
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -256,13 +259,14 @@ void AddAttachmentDelegate::onGenericResourceImageSaved(bool success, QByteArray
     QNDEBUG("AddAttachmentDelegate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
             << ", file path = " << filePath);
 
+    m_genericResourceImageFilePath = filePath;
     Q_UNUSED(resourceImageDataHash);
 
     if (Q_UNLIKELY(!success)) {
         errorDescription = QT_TR_NOOP("Can't write resource representing image to file: ") + errorDescription;
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
         m_noteEditor.removeResourceFromNote(m_resource);
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -279,8 +283,8 @@ void AddAttachmentDelegate::insertNewResourceHtml()
     if (Q_UNLIKELY(resourceHtml.isEmpty())) {
         errorDescription = QT_TR_NOOP("Can't compose the html representation of the attachment: ") + errorDescription;
         QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
         m_noteEditor.removeResourceFromNote(m_resource);
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -315,9 +319,81 @@ void AddAttachmentDelegate::onPageWithNewResourceHtmlReceived(const QString & ht
 {
     QNDEBUG("AddAttachmentDelegate::onPageWithNewResourceHtmlReceived");
 
-    Q_UNUSED(html)
-    // TODO: continue from here, undo the last page action (new resource html insertion),
-    // switch note editor page, put the new HTML there and execute all the necessary JS
+    // Now the tricky part begins: we need to undo the change
+    // for the original page and then create the new page
+    // and set this modified HTML there
+
+    m_modifiedHtml = html;
+
+    // Now we need to undo the attachment addition we just did for the old page
+
+    m_noteEditor.skipNextContentChange();
+    m_noteEditor.undoPageAction();
+
+    // Now can switch the page to the new one and set the modified HTML there
+    m_noteEditor.switchEditorPage(/* should convert from note = */ false);
+
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                     this, QNSLOT(AddAttachmentDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(AddAttachmentDelegate,writeFile,QString,QByteArray,QUuid),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+
+    m_writeModifiedHtmlToPageSourceRequestId = QUuid::createUuid();
+    emit writeFile(m_noteEditor.noteEditorPagePath(), m_modifiedHtml.toLocal8Bit(),
+                   m_writeModifiedHtmlToPageSourceRequestId);
+}
+
+void AddAttachmentDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
+{
+    if (requestId != m_writeModifiedHtmlToPageSourceRequestId) {
+        return;
+    }
+
+    QNDEBUG("AddAttachmentDelegate::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
+            << ", error description = " << errorDescription << ", request id = " << requestId);
+
+    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                        this, QNSLOT(AddAttachmentDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
+    QObject::disconnect(this, QNSIGNAL(AddAttachmentDelegate,writeFile,QString,QByteArray,QUuid),
+                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+
+    if (Q_UNLIKELY(!success)) {
+        errorDescription = QT_TR_NOOP("Can't finalize the addition of attachment processing, "
+                                      "can't write the modified HTML to the note editor: ") + errorDescription;
+        QNWARNING(errorDescription);
+        m_noteEditor.removeResourceFromNote(m_resource);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
+
+    GET_PAGE()
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
+                     this, QNSLOT(AddAttachmentDelegate,onModifiedPageLoaded));
+
+#ifdef USE_QT_WEB_ENGINE
+    page->setUrl(url);
+    page->load(url);
+#else
+    page->mainFrame()->setUrl(url);
+    page->mainFrame()->load(url);
+#endif
+}
+
+void AddAttachmentDelegate::onModifiedPageLoaded()
+{
+    QNDEBUG("AddAttachmentDelegate::onModifiedPageLoaded");
+
+    GET_PAGE()
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
+                        this, QNSLOT(AddAttachmentDelegate,onModifiedPageLoaded));
+
+#ifdef USE_QT_WEB_ENGINE
+    emit finished(m_resource, m_resourceFileStoragePath, m_genericResourceImageFilePath);
+#else
+    emit finished(m_resource, m_resourceFileStoragePath);
+#endif
 }
 
 } // namespace qute_note
