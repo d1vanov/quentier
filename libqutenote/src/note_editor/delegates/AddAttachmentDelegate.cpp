@@ -1,21 +1,19 @@
 #include "AddAttachmentDelegate.h"
 #include "../NoteEditor_p.h"
 #include "../NoteEditorPage.h"
+#include "../GenericResourceImageWriter.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/types/ResourceWrapper.h>
-
-#ifdef USE_QT_WEB_ENGINE
-#include "../GenericResourceImageWriter.h"
 #include <QImage>
 #include <QBuffer>
-#else
-#include <QWebFrame>
-#endif
-
 #include <QFileInfo>
 #include <QMimeDatabase>
+
+#ifndef USE_QT_WEB_ENGINE
+#include <QWebFrame>
+#endif
 
 namespace qute_note {
 
@@ -30,19 +28,14 @@ namespace qute_note {
 
 AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                              ResourceFileStorageManager * pResourceFileStorageManager,
-                                             FileIOThreadWorker * pFileIOThreadWorker
-#ifdef USE_QT_WEB_ENGINE
-                                             , GenericResourceImageWriter * pGenericResourceImageWriter
-#endif
-                                            ) :
+                                             FileIOThreadWorker * pFileIOThreadWorker,
+                                             GenericResourceImageWriter * pGenericResourceImageWriter) :
     IUndoableActionDelegate(&noteEditor),
     m_noteEditor(noteEditor),
     m_pResourceFileStorageManager(pResourceFileStorageManager),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
-#ifdef USE_QT_WEB_ENGINE
     m_pGenericResourceImageWriter(pGenericResourceImageWriter),
     m_saveResourceImageRequestId(),
-#endif
     m_filePath(filePath),
     m_resourceFileMimeType(),
     m_resource(),
@@ -210,10 +203,6 @@ void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray
         m_noteEditor.replaceResourceInNote(m_resource);
     }
 
-#ifndef USE_QT_WEB_ENGINE
-    // Can now move on to working with the note editor's page
-    insertNewResourceHtml();
-#else
     if (m_resourceFileMimeType.name().startsWith("image/")) {
         QNTRACE("Done adding the image resource to the note, moving on to adding it to the page");
         insertNewResourceHtml();
@@ -239,10 +228,8 @@ void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray
             << m_resource.localGuid() << ", request id " << m_saveResourceImageRequestId);
     emit saveGenericResourceImageToFile(m_resource.localGuid(), resourceImageData, "PNG", dataHash,
                                         m_resourceFileStoragePath, m_saveResourceImageRequestId);
-#endif
 }
 
-#ifdef USE_QT_WEB_ENGINE
 void AddAttachmentDelegate::onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
                                                         QString filePath, QString errorDescription,
                                                         QUuid requestId)
@@ -272,7 +259,6 @@ void AddAttachmentDelegate::onGenericResourceImageSaved(bool success, QByteArray
 
     insertNewResourceHtml();
 }
-#endif
 
 void AddAttachmentDelegate::insertNewResourceHtml()
 {
@@ -389,13 +375,7 @@ void AddAttachmentDelegate::onModifiedPageLoaded()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddAttachmentDelegate,onModifiedPageLoaded));
 
-#ifdef USE_QT_WEB_ENGINE
     emit finished(m_resource, m_resourceFileStoragePath, m_genericResourceImageFilePath);
-#else
-    emit finished(m_resource, m_resourceFileStoragePath);
-#endif
-
-    emit undoableActionReady();
 }
 
 } // namespace qute_note

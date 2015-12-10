@@ -47,11 +47,11 @@ QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
-QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(HyperlinkClickJavaScriptHandler)
 #endif
@@ -110,7 +110,6 @@ public:
     void removeResourceFromNote(const ResourceWrapper & resource);
     void replaceResourceInNote(const ResourceWrapper & resource);
     void setNoteResources(const QList<ResourceWrapper> & resources);
-
 
     QImage buildGenericResourceImage(const IResource & resource);
     void saveGenericResourceImage(const IResource & resource, const QImage & image);
@@ -218,11 +217,9 @@ Q_SIGNALS:
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
-#ifdef USE_QT_WEB_ENGINE
     void saveGenericResourceImageToFile(const QString resourceLocalGuid, const QByteArray resourceImageData,
                                         const QString resourceFileSuffix, const QByteArray resourceActualHash,
                                         const QString resourceDisplayName, const QUuid requestId);
-#endif
 
 private Q_SLOTS:
     void onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,
@@ -288,6 +285,11 @@ private Q_SLOTS:
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
     // Slots for delegates
+    void onUndoableActionDelegateReady();
+
+    void onAddAttachmentDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath, QString genericResourceImageFilePath);
+    void onAddAttachmentDelegateError(QString error);
+
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);
 
@@ -529,12 +531,12 @@ private:
     QWebChannel * m_pWebChannel;
     EnCryptElementOnClickHandler * m_pEnCryptElementClickHandler;
     GenericResourceOpenAndSaveButtonsOnClickHandler * m_pGenericResourceOpenAndSaveButtonsOnClickHandler;
-    GenericResourceImageWriter * m_pGenericResourceImageWriter;
     HyperlinkClickJavaScriptHandler * m_pHyperlinkClickJavaScriptHandler;
 
     quint16     m_webSocketServerPort;
 #endif
 
+    GenericResourceImageWriter * m_pGenericResourceImageWriter;
     ToDoCheckboxOnClickHandler * m_pToDoCheckboxClickHandler;
     PageMutationHandler * m_pPageMutationHandler;
 
@@ -633,12 +635,13 @@ private:
     QHash<QString, QStringList>     m_fileSuffixesForMimeType;
     QHash<QString, QString>         m_fileFilterStringForMimeType;
 
-#ifdef USE_QT_WEB_ENGINE
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
+
+#ifdef USE_QT_WEB_ENGINE
     GenericResourceImageJavaScriptHandler *  m_pGenericResoureImageJavaScriptHandler;
+#endif
 
     QSet<QUuid>                     m_saveGenericResourceImageToFileRequestIds;
-#endif
 
     CurrentContextMenuExtraData     m_currentContextMenuExtraData;
     QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;

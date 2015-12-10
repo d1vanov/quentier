@@ -23,6 +23,7 @@ class IUndoableActionDelegate: public QObject
     Q_OBJECT
 public:
     explicit IUndoableActionDelegate(QObject * parent = Q_NULLPTR) : QObject(parent) {}
+    virtual ~IUndoableActionDelegate() { emit undoableActionReady(); }
 
 Q_SIGNALS:
     /**

@@ -1,6 +1,8 @@
 #include "NoteEditor_p.h"
+#include "GenericResourceImageWriter.h"
 #include "dialogs/EncryptionDialog.h"
 #include "dialogs/DecryptionDialog.h"
+#include "delegates/AddAttachmentDelegate.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
 #include "delegates/AddHyperlinkToSelectedTextDelegate.h"
 #include "delegates/EditHyperlinkDelegate.h"
@@ -29,14 +31,11 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/HyperlinkClickJavaScriptHandler.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
-#include "GenericResourceImageWriter.h"
 #include <qute_note/utility/ApplicationSettings.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <QPainter>
 #include <QIcon>
 #include <QFontMetrics>
-#include <QPixmap>
-#include <QBuffer>
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebChannel>
 #include <QWebEngineSettings>
@@ -76,6 +75,8 @@ typedef QWebEngineSettings WebSettings;
 #include <QFontDatabase>
 #include <QUndoStack>
 #include <QCryptographicHash>
+#include <QPixmap>
+#include <QBuffer>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(this->page()); \
@@ -135,10 +136,10 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pWebChannel(new QWebChannel(this)),
     m_pEnCryptElementClickHandler(new EnCryptElementOnClickHandler(this)),
     m_pGenericResourceOpenAndSaveButtonsOnClickHandler(new GenericResourceOpenAndSaveButtonsOnClickHandler(this)),
-    m_pGenericResourceImageWriter(Q_NULLPTR),
     m_pHyperlinkClickJavaScriptHandler(new HyperlinkClickJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
+    m_pGenericResourceImageWriter(Q_NULLPTR),
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
@@ -205,11 +206,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_manualSaveResourceToFileRequestIds(),
     m_fileSuffixesForMimeType(),
     m_fileFilterStringForMimeType(),
-#ifdef USE_QT_WEB_ENGINE
     m_genericResourceImageFilePathsByResourceHash(),
+#ifdef USE_QT_WEB_ENGINE
     m_pGenericResoureImageJavaScriptHandler(new GenericResourceImageJavaScriptHandler(m_genericResourceImageFilePathsByResourceHash, this)),
-    m_saveGenericResourceImageToFileRequestIds(),
 #endif
+    m_saveGenericResourceImageToFileRequestIds(),
     m_currentContextMenuExtraData(),
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
@@ -1059,36 +1060,101 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
     }
 }
 
+void NoteEditorPrivate::onUndoableActionDelegateReady()
+{
+    QNDEBUG("NoteEditorPrivate::onUndoableActionDelegateReady");
+    // TODO: implement
+}
+
+void NoteEditorPrivate::onAddAttachmentDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath,
+                                                        QString genericResourceImageFilePath)
+{
+    QNDEBUG("NoteEditorPrivate::onAddAttachmentDelegateFinished: resource file storage path = " << resourceFileStoragePath
+            << ", generic resource image file path = " << genericResourceImageFilePath);
+
+    QNTRACE(addedResource);
+
+    if (Q_UNLIKELY(!addedResource.hasDataHash())) {
+        QString error = QT_TR_NOOP("The added resource doesn't contain the data hash");
+        QNWARNING(error);
+        removeResourceFromNote(addedResource);
+        emit notifyError(error);
+        return;
+    }
+
+    if (!genericResourceImageFilePath.isEmpty()) {
+        m_genericResourceImageFilePathsByResourceHash[addedResource.dataHash()] = resourceFileStoragePath;
+    }
+
+    // TODO: deal with add attachment undo command
+
+    AddAttachmentDelegate * delegate = qobject_cast<AddAttachmentDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onAddAttachmentDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onAddAttachmentDelegateError: " << error);
+    emit notifyError(error);
+
+    AddAttachmentDelegate * delegate = qobject_cast<AddAttachmentDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
 void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished()
 {
     QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateFinished");
-    sender()->deleteLater();
+
+    EncryptSelectedTextDelegate * delegate = qobject_cast<EncryptSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
 {
     QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateError: " << error);
     emit notifyError(error);
-    sender()->deleteLater();
+
+    EncryptSelectedTextDelegate * delegate = qobject_cast<EncryptSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished()
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished");
-    sender()->deleteLater();
+
+    AddHyperlinkToSelectedTextDelegate * delegate = qobject_cast<AddHyperlinkToSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateCancelled()
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateCancelled");
-    sender()->deleteLater();
+
+    AddHyperlinkToSelectedTextDelegate * delegate = qobject_cast<AddHyperlinkToSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QString error)
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError");
     emit notifyError(error);
-    sender()->deleteLater();
+
+    AddHyperlinkToSelectedTextDelegate * delegate = qobject_cast<AddHyperlinkToSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl,
@@ -1099,20 +1165,31 @@ void NoteEditorPrivate::onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QSt
     EditHyperlinkUndoCommand * pCommand = new EditHyperlinkUndoCommand(hyperlinkId, previousUrl, previousText, newUrl, newText, *this);
     m_pPreliminaryUndoCommandQueue->push(pCommand);
 
-    sender()->deleteLater();
+    EditHyperlinkDelegate * delegate = qobject_cast<EditHyperlinkDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onEditHyperlinkDelegateCancelled()
 {
     QNDEBUG("NoteEditorPrivate::onEditHyperlinkDelegateCancelled");
-    sender()->deleteLater();
+
+    EditHyperlinkDelegate * delegate = qobject_cast<EditHyperlinkDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onEditHyperlinkDelegateError(QString error)
 {
     QNDEBUG("NoteEditorPrivate::onEditHyperlinkDelegateError: " << error);
     emit notifyError(error);
-    sender()->deleteLater();
+
+    EditHyperlinkDelegate * delegate = qobject_cast<EditHyperlinkDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId)
@@ -1122,14 +1199,21 @@ void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperli
     RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(removedHyperlinkId, *this);
     m_pPreliminaryUndoCommandQueue->push(pCommand);
 
-    sender()->deleteLater();
+    RemoveHyperlinkDelegate * delegate = qobject_cast<RemoveHyperlinkDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QString error)
 {
     QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateError: " << error);
     emit notifyError(error);
-    sender()->deleteLater();
+
+    RemoveHyperlinkDelegate * delegate = qobject_cast<RemoveHyperlinkDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
 }
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * pEvent)
@@ -1174,7 +1258,17 @@ void NoteEditorPrivate::dragMoveEvent(QDragMoveEvent * pEvent)
         return;
     }
 
-    // TODO: think of some filtering which might make sense here
+    const QMimeData * pMimeData = pEvent->mimeData();
+    if (Q_UNLIKELY(!pMimeData)) {
+        QNWARNING("Null pointer to mime data from drag move event was detected");
+        return;
+    }
+
+    QList<QUrl> urls = pMimeData->urls();
+    if (urls.isEmpty()) {
+        return;
+    }
+
     pEvent->acceptProposedAction();
 }
 
@@ -1961,114 +2055,6 @@ void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
     QDesktopServices::openUrl(QUrl::fromLocalFile(resourceAbsoluteFilePath));
 }
 
-#ifdef USE_QT_WEB_ENGINE
-void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
-{
-    QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
-
-    if (!m_pNote) {
-        QNTRACE("No note is set for the editor");
-        return;
-    }
-
-    if (!m_pNote->containsEncryption()) {
-        QNTRACE("Current note doesn't contain any encryption, nothing to do");
-        return;
-    }
-
-    QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
-    QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
-
-    GET_PAGE()
-    page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::setupGenericResourceImages()
-{
-    QNDEBUG("NoteEditorPrivate::setupGenericResourceImages");
-
-    if (!m_pNote) {
-        QNDEBUG("No note to build generic resource images for");
-        return;
-    }
-
-    if (!m_pNote->hasResources()) {
-        QNDEBUG("Note has no resources, nothing to do");
-        return;
-    }
-
-    QString mimeTypeName;
-    size_t resourceImagesCounter = 0;
-    bool shouldWaitForResourceImagesToSave = false;
-
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    const int numResources = resourceAdapters.size();
-    for(int i = 0; i < numResources; ++i)
-    {
-        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
-
-        if (resourceAdapter.hasMime())
-        {
-            mimeTypeName = resourceAdapter.mime();
-            if (mimeTypeName.startsWith("image/")) {
-                QNTRACE("Skipping image resource " << resourceAdapter);
-                continue;
-            }
-        }
-
-        shouldWaitForResourceImagesToSave |= findOrBuildGenericResourceImage(resourceAdapter);
-        ++resourceImagesCounter;
-    }
-
-    if (resourceImagesCounter == 0) {
-        QNDEBUG("No generic resources requiring building custom images were found");
-        return;
-    }
-
-    if (shouldWaitForResourceImagesToSave) {
-        QNTRACE("Some generic resource images are being saved to files, waiting");
-        return;
-    }
-
-    QNTRACE("All generic resource images are ready");
-    provideSrcForGenericResourceImages();
-    setupGenericResourceOnClickHandler();
-}
-
-bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resource)
-{
-    QNDEBUG("NoteEditorPrivate::findOrBuildGenericResourceImage: " << resource);
-
-    if (!resource.hasDataHash() && !resource.hasAlternateDataHash()) {
-        QString errorDescription = QT_TR_NOOP("Found resource without either data hash or alternate data hash");
-        QNWARNING(errorDescription << ": " << resource);
-        emit notifyError(errorDescription);
-        return true;
-    }
-
-    const QString localGuid = resource.localGuid();
-
-    const QByteArray & resourceHash = (resource.hasDataHash()
-                                       ? resource.dataHash()
-                                       : resource.alternateDataHash());
-
-    auto it = m_genericResourceImageFilePathsByResourceHash.find(resourceHash);
-    if (it != m_genericResourceImageFilePathsByResourceHash.end()) {
-        QNTRACE("Found generic resource image file path for resource with hash " << resourceHash << " and local guid "
-                << localGuid << ": " << it.value());
-        return false;
-    }
-
-    QImage img = buildGenericResourceImage(resource);
-    if (img.isNull()) {
-        QNDEBUG("Can't build generic resource image");
-        return true;
-    }
-
-    saveGenericResourceImage(resource, img);
-    return true;
-}
-
 QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
 {
     QNDEBUG("NoteEditorPrivate::buildGenericResourceImage");
@@ -2200,6 +2186,114 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
     emit saveGenericResourceImageToFile(resource.localGuid(), imageData, "png",
                                         (resource.hasDataHash() ? resource.dataHash() : resource.alternateDataHash()),
                                         resource.displayName(), requestId);
+}
+
+#ifdef USE_QT_WEB_ENGINE
+void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
+{
+    QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
+
+    if (!m_pNote) {
+        QNTRACE("No note is set for the editor");
+        return;
+    }
+
+    if (!m_pNote->containsEncryption()) {
+        QNTRACE("Current note doesn't contain any encryption, nothing to do");
+        return;
+    }
+
+    QString iconPath = "qrc:/encrypted_area_icons/en-crypt/en-crypt.png";
+    QString javascript = "provideSrcAndOnClickScriptForEnCryptImgTags(\"" + iconPath + "\")";
+
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::setupGenericResourceImages()
+{
+    QNDEBUG("NoteEditorPrivate::setupGenericResourceImages");
+
+    if (!m_pNote) {
+        QNDEBUG("No note to build generic resource images for");
+        return;
+    }
+
+    if (!m_pNote->hasResources()) {
+        QNDEBUG("Note has no resources, nothing to do");
+        return;
+    }
+
+    QString mimeTypeName;
+    size_t resourceImagesCounter = 0;
+    bool shouldWaitForResourceImagesToSave = false;
+
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    const int numResources = resourceAdapters.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+
+        if (resourceAdapter.hasMime())
+        {
+            mimeTypeName = resourceAdapter.mime();
+            if (mimeTypeName.startsWith("image/")) {
+                QNTRACE("Skipping image resource " << resourceAdapter);
+                continue;
+            }
+        }
+
+        shouldWaitForResourceImagesToSave |= findOrBuildGenericResourceImage(resourceAdapter);
+        ++resourceImagesCounter;
+    }
+
+    if (resourceImagesCounter == 0) {
+        QNDEBUG("No generic resources requiring building custom images were found");
+        return;
+    }
+
+    if (shouldWaitForResourceImagesToSave) {
+        QNTRACE("Some generic resource images are being saved to files, waiting");
+        return;
+    }
+
+    QNTRACE("All generic resource images are ready");
+    provideSrcForGenericResourceImages();
+    setupGenericResourceOnClickHandler();
+}
+
+bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resource)
+{
+    QNDEBUG("NoteEditorPrivate::findOrBuildGenericResourceImage: " << resource);
+
+    if (!resource.hasDataHash() && !resource.hasAlternateDataHash()) {
+        QString errorDescription = QT_TR_NOOP("Found resource without either data hash or alternate data hash");
+        QNWARNING(errorDescription << ": " << resource);
+        emit notifyError(errorDescription);
+        return true;
+    }
+
+    const QString localGuid = resource.localGuid();
+
+    const QByteArray & resourceHash = (resource.hasDataHash()
+                                       ? resource.dataHash()
+                                       : resource.alternateDataHash());
+
+    auto it = m_genericResourceImageFilePathsByResourceHash.find(resourceHash);
+    if (it != m_genericResourceImageFilePathsByResourceHash.end()) {
+        QNTRACE("Found generic resource image file path for resource with hash " << resourceHash << " and local guid "
+                << localGuid << ": " << it.value());
+        return false;
+    }
+
+    QImage img = buildGenericResourceImage(resource);
+    if (img.isNull()) {
+        QNDEBUG("Can't build generic resource image");
+        return true;
+    }
+
+    saveGenericResourceImage(resource, img);
+    return true;
 }
 
 void NoteEditorPrivate::provideSrcForGenericResourceImages()
@@ -2515,16 +2609,18 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
-#ifdef USE_QT_WEB_ENGINE
     m_pGenericResourceImageWriter = new GenericResourceImageWriter;
     m_pGenericResourceImageWriter->setStorageFolderPath(m_noteEditorPageFolderPath + "/GenericResourceImages");
     m_pGenericResourceImageWriter->moveToThread(m_pIOThread);
 
-    QObject::connect(this, &NoteEditorPrivate::saveGenericResourceImageToFile,
-                     m_pGenericResourceImageWriter, &GenericResourceImageWriter::onGenericResourceImageWriteRequest);
-    QObject::connect(m_pGenericResourceImageWriter, &GenericResourceImageWriter::genericResourceImageWriteReply,
-                     this, &NoteEditorPrivate::onGenericResourceImageSaved);
-#endif
+    QObject::connect(this,
+                     QNSIGNAL(NoteEditorPrivate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
+                     m_pGenericResourceImageWriter,
+                     QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::connect(m_pGenericResourceImageWriter,
+                     QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                     this,
+                     QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 }
 
 void NoteEditorPrivate::setupScripts()
@@ -2970,12 +3066,12 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     // Clear the caches from previous note
     m_genericResourceLocalGuidBySaveToStorageRequestIds.clear();
     m_resourceFileStoragePathsByResourceLocalGuid.clear();
-#ifdef USE_QT_WEB_ENGINE
-    m_localGuidsOfResourcesWantedToBeSaved.clear();
     if (m_genericResourceImageFilePathsByResourceHash.size() > 30) {
         m_genericResourceImageFilePathsByResourceHash.clear();
     }
     m_saveGenericResourceImageToFileRequestIds.clear();
+#ifdef USE_QT_WEB_ENGINE
+    m_localGuidsOfResourcesWantedToBeSaved.clear();
 #else
     m_pluginFactory->setNote(*m_pNote);
 #endif
@@ -3126,11 +3222,12 @@ void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
     Iter urlsEnd = urls.end();
     for(Iter it = urls.begin(); it != urlsEnd; ++it)
     {
-        QString url = it->toString();
-        if (url.toLower().startsWith("file://")) {
-            url.remove(0,6);
-            dropFile(url);
+        if (Q_UNLIKELY(!it->isLocalFile())) {
+            continue;
         }
+
+        QString filePath = it->toLocalFile();
+        dropFile(filePath);
     }
 
     pEvent->acceptProposedAction();
@@ -4018,34 +4115,21 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
     }
 }
 
-void NoteEditorPrivate::dropFile(QString & filepath)
+void NoteEditorPrivate::dropFile(QString & filePath)
 {
-    QNDEBUG("NoteEditorPrivate::dropFile: " << filepath);
+    QNDEBUG("NoteEditorPrivate::dropFile: " << filePath);
 
-    QFileInfo fileInfo(filepath);
-    if (!fileInfo.isFile()) {
-        QNINFO("Detected attempt to drop something else rather than file: " << filepath);
-        return;
-    }
+    AddAttachmentDelegate * delegate = new AddAttachmentDelegate(filePath, *this, m_pResourceFileStorageManager,
+                                                                 m_pFileIOThreadWorker, m_pGenericResourceImageWriter);
 
-    if (!fileInfo.isReadable()) {
-        QNINFO("Detected attempt to drop file which is not readable: " << filepath);
-        return;
-    }
+    QObject::connect(delegate, QNSIGNAL(AddAttachmentDelegate,finished,ResourceWrapper,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddAttachmentDelegateFinished,ResourceWrapper,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(AddAttachmentDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddAttachmentDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(AddAttachmentDelegate,undoableActionReady),
+                     this, QNSLOT(NoteEditorPrivate,onUndoableActionDelegateReady));
 
-    QMimeDatabase mimeDatabase;
-    QMimeType mimeType = mimeDatabase.mimeTypeForFile(fileInfo);
-
-    if (!mimeType.isValid()) {
-        QNINFO("Detected invalid mime type for file " << filepath);
-        return;
-    }
-
-    QUuid readDroppedFileRequestId = QUuid::createUuid();
-    auto & pair = m_droppedFilePathsAndMimeTypesByReadRequestIds[readDroppedFileRequestId];
-    pair.first = fileInfo.filePath();
-    pair.second = mimeType;
-    emit readDroppedFileData(filepath, readDroppedFileRequestId);
+    delegate->start();
 }
 
 } // namespace qute_note

@@ -173,6 +173,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
+    src/note_editor/GenericResourceImageWriter.h
     src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
@@ -241,7 +242,6 @@ if(NOT USE_QT_WEB_ENGINE)
        src/note_editor/GenericResourceDisplayWidget.h)
 else()
   list(APPEND PRIVATE_HEADERS
-       src/note_editor/GenericResourceImageWriter.h
        src/note_editor/javascript_glue/EnCryptElementOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h
        src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.h
@@ -253,6 +253,7 @@ endif()
 set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
+    src/note_editor/GenericResourceImageWriter.cpp
     src/note_editor/DecryptedTextManager.cpp
     src/note_editor/DecryptedTextManager_p.cpp
     src/note_editor/NoteEditorPage.cpp
@@ -371,7 +372,6 @@ if(NOT USE_QT_WEB_ENGINE)
     src/note_editor/NoteEditorPluginFactory.cpp)
 else()
   list(APPEND ${PROJECT_NAME}_SOURCES
-    src/note_editor/GenericResourceImageWriter.cpp
     src/note_editor/javascript_glue/EnCryptElementOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.cpp
     src/note_editor/javascript_glue/GenericResourceImageJavaScriptHandler.cpp

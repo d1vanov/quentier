@@ -17,10 +17,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-
-#ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
-#endif
 
 class AddAttachmentDelegate: public IUndoableActionDelegate
 {
@@ -28,23 +25,14 @@ class AddAttachmentDelegate: public IUndoableActionDelegate
 public:
     explicit AddAttachmentDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                    ResourceFileStorageManager * pResourceFileStorageManager,
-                                   FileIOThreadWorker * pFileIOThreadWorker
-#ifdef USE_QT_WEB_ENGINE
-                                   , GenericResourceImageWriter * pGenericResourceImageWriter
-#endif
-                                   );
+                                   FileIOThreadWorker * pFileIOThreadWorker,
+                                   GenericResourceImageWriter * pGenericResourceImageWriter);
 
     void start();
 
 Q_SIGNALS:
 
-#ifdef USE_QT_WEB_ENGINE
-    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath,
-                  QString resourceImageFilePath);
-#else
-    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath);
-#endif
-
+    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath, QString resourceImageFilePath);
     void notifyError(QString error);
 
 // private signals
@@ -53,10 +41,8 @@ Q_SIGNALS:
                                QString fileStoragePath, QUuid requestId);
     void writeFile(QString filePath, QByteArray data, QUuid requestId);
 
-#ifdef USE_QT_WEB_ENGINE
     void saveGenericResourceImageToFile(QString localGuid, QByteArray data, QString fileSuffix,
                                         QByteArray dataHash, QString fileStoragePath, QUuid requestId);
-#endif
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
@@ -67,11 +53,9 @@ private Q_SLOTS:
                                   QString fileStoragePath, int errorCode,
                                   QString errorDescription);
 
-#ifdef USE_QT_WEB_ENGINE
     void onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
                                      QString filePath, QString errorDescription,
                                      QUuid requestId);
-#endif
 
     void onNewResourceHtmlInserted(const QVariant & data);
     void onPageWithNewResourceHtmlReceived(const QString & html);
@@ -123,10 +107,8 @@ private:
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
-#ifdef USE_QT_WEB_ENGINE
     GenericResourceImageWriter *    m_pGenericResourceImageWriter;
     QUuid                           m_saveResourceImageRequestId;
-#endif
 
     const QString                   m_filePath;
     QMimeType                       m_resourceFileMimeType;
