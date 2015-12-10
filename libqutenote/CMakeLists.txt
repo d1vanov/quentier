@@ -183,6 +183,7 @@ set(PRIVATE_HEADERS
     src/note_editor/dialogs/EncryptionDialog.h
     src/note_editor/dialogs/DecryptionDialog.h
     src/note_editor/dialogs/EditHyperlinkDialog.h
+    src/note_editor/delegates/IUndoableActionDelegate.h
     src/note_editor/delegates/AddAttachmentDelegate.h
     src/note_editor/delegates/EncryptSelectedTextDelegate.h
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h

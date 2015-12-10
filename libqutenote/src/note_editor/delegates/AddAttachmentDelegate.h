@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
 
+#include "IUndoableActionDelegate.h"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceWrapper.h>
@@ -21,7 +22,7 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 #endif
 
-class AddAttachmentDelegate: public QObject
+class AddAttachmentDelegate: public IUndoableActionDelegate
 {
     Q_OBJECT
 public:

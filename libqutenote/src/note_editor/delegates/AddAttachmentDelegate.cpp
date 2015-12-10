@@ -35,7 +35,7 @@ AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEdito
                                              , GenericResourceImageWriter * pGenericResourceImageWriter
 #endif
                                             ) :
-    QObject(&noteEditor),
+    IUndoableActionDelegate(&noteEditor),
     m_noteEditor(noteEditor),
     m_pResourceFileStorageManager(pResourceFileStorageManager),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
@@ -394,6 +394,8 @@ void AddAttachmentDelegate::onModifiedPageLoaded()
 #else
     emit finished(m_resource, m_resourceFileStoragePath);
 #endif
+
+    emit undoableActionReady();
 }
 
 } // namespace qute_note
