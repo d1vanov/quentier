@@ -1,4 +1,4 @@
-#include "AddAttachmentDelegate.h"
+#include "AddResourceDelegate.h"
 #include "../NoteEditor_p.h"
 #include "../NoteEditorPage.h"
 #include "../GenericResourceImageWriter.h"
@@ -26,10 +26,10 @@ namespace qute_note {
         return; \
     }
 
-AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
-                                             ResourceFileStorageManager * pResourceFileStorageManager,
-                                             FileIOThreadWorker * pFileIOThreadWorker,
-                                             GenericResourceImageWriter * pGenericResourceImageWriter) :
+AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
+                                         ResourceFileStorageManager * pResourceFileStorageManager,
+                                         FileIOThreadWorker * pFileIOThreadWorker,
+                                         GenericResourceImageWriter * pGenericResourceImageWriter) :
     IUndoableActionDelegate(&noteEditor),
     m_noteEditor(noteEditor),
     m_pResourceFileStorageManager(pResourceFileStorageManager),
@@ -47,13 +47,13 @@ AddAttachmentDelegate::AddAttachmentDelegate(const QString & filePath, NoteEdito
     m_writeModifiedHtmlToPageSourceRequestId()
 {}
 
-void AddAttachmentDelegate::start()
+void AddResourceDelegate::start()
 {
-    QNDEBUG("AddAttachmentDelegate::start");
+    QNDEBUG("AddResourceDelegate::start");
 
     if (m_noteEditor.isModified()) {
         QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
-                         this, QNSLOT(AddAttachmentDelegate,onOriginalPageConvertedToNote,Note));
+                         this, QNSLOT(AddResourceDelegate,onOriginalPageConvertedToNote,Note));
         m_noteEditor.convertToNote();
     }
     else {
@@ -61,21 +61,21 @@ void AddAttachmentDelegate::start()
     }
 }
 
-void AddAttachmentDelegate::onOriginalPageConvertedToNote(Note note)
+void AddResourceDelegate::onOriginalPageConvertedToNote(Note note)
 {
-    QNDEBUG("AddAttachmentDelegate::onOriginalPageConvertedToNote");
+    QNDEBUG("AddResourceDelegate::onOriginalPageConvertedToNote");
 
     Q_UNUSED(note)
 
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
-                        this, QNSLOT(AddAttachmentDelegate,onOriginalPageConvertedToNote,Note));
+                        this, QNSLOT(AddResourceDelegate,onOriginalPageConvertedToNote,Note));
 
     doStart();
 }
 
-void AddAttachmentDelegate::doStart()
+void AddResourceDelegate::doStart()
 {
-    QNDEBUG("AddAttachmentDelegate::doStart");
+    QNDEBUG("AddResourceDelegate::doStart");
 
     QFileInfo fileInfo(m_filePath);
     if (!fileInfo.isFile()) {
@@ -98,28 +98,27 @@ void AddAttachmentDelegate::doStart()
 
     m_readResourceFileRequestId = QUuid::createUuid();
 
-    QObject::connect(this, QNSIGNAL(AddAttachmentDelegate,readFileData,QString,QUuid),
+    QObject::connect(this, QNSIGNAL(AddResourceDelegate,readFileData,QString,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                     this, QNSLOT(AddAttachmentDelegate,onResourceFileRead,bool,QString,QByteArray,QUuid));
+                     this, QNSLOT(AddResourceDelegate,onResourceFileRead,bool,QString,QByteArray,QUuid));
 
     emit readFileData(m_filePath, m_readResourceFileRequestId);
 }
 
-void AddAttachmentDelegate::onResourceFileRead(bool success, QString errorDescription,
-                                               QByteArray data, QUuid requestId)
+void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId)
 {
     if (requestId != m_readResourceFileRequestId) {
         return;
     }
 
-    QNDEBUG("AddAttachmentDelegate::onResourceFileRead: success = " << (success ? "true" : "false")
+    QNDEBUG("AddResourceDelegate::onResourceFileRead: success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription);
 
-    QObject::disconnect(this, QNSIGNAL(AddAttachmentDelegate,readFileData,QString,QUuid),
+    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,readFileData,QString,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
     QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                        this, QNSLOT(AddAttachmentDelegate,onResourceFileRead,bool,QString,QByteArray,QUuid));
+                        this, QNSLOT(AddResourceDelegate,onResourceFileRead,bool,QString,QByteArray,QUuid));
 
     if (Q_UNLIKELY(!success)) {
         errorDescription = QT_TR_NOOP("Can't read the contents of the attached file: ") + errorDescription;
@@ -160,10 +159,10 @@ void AddAttachmentDelegate::onResourceFileRead(bool success, QString errorDescri
 
     m_saveResourceToStorageRequestId = QUuid::createUuid();
 
-    QObject::connect(this, QNSIGNAL(AddAttachmentDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
+    QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
-                     this, QNSLOT(AddAttachmentDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
+                     this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
     emit saveResourceToStorage(resourceLocalGuid, data, dataHash, m_resourceFileStoragePath,
                                m_saveResourceToStorageRequestId);
@@ -173,22 +172,22 @@ void AddAttachmentDelegate::onResourceFileRead(bool success, QString errorDescri
             << m_saveResourceToStorageRequestId << ", mime type name = " << m_resourceFileMimeType.name());
 }
 
-void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
-                                                     QString fileStoragePath, int errorCode,
-                                                     QString errorDescription)
+void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
+                                                   QString fileStoragePath, int errorCode,
+                                                   QString errorDescription)
 {
     if (requestId != m_saveResourceToStorageRequestId) {
         return;
     }
 
-    QNDEBUG("AddAttachmentDelegate::onResourceSavedToStorage: error code = " << errorCode
+    QNDEBUG("AddResourceDelegate::onResourceSavedToStorage: error code = " << errorCode
             << ", file storage path = " << fileStoragePath << ", error description = "
             << errorDescription);
 
-    QObject::disconnect(this, QNSIGNAL(AddAttachmentDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
+    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
                         m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
     QObject::disconnect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
-                        this, QNSLOT(AddAttachmentDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
+                        this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
     if (Q_UNLIKELY(errorCode != 0)) {
         errorDescription = QT_TR_NOOP("Can't write the resource to local file: ") + errorDescription;
@@ -219,10 +218,10 @@ void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray
 
     m_saveResourceImageRequestId = QUuid::createUuid();
 
-    QObject::connect(this, QNSIGNAL(AddAttachmentDelegate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
+    QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
     QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
-                     this, QNSLOT(AddAttachmentDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
+                     this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 
     QNDEBUG("Emitting request to write generic resource image for new resource with local guid "
             << m_resource.localGuid() << ", request id " << m_saveResourceImageRequestId);
@@ -230,20 +229,20 @@ void AddAttachmentDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray
                                         m_resourceFileStoragePath, m_saveResourceImageRequestId);
 }
 
-void AddAttachmentDelegate::onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
-                                                        QString filePath, QString errorDescription,
-                                                        QUuid requestId)
+void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
+                                                      QString filePath, QString errorDescription,
+                                                      QUuid requestId)
 {
     if (requestId != m_saveResourceImageRequestId) {
         return;
     }
 
-    QObject::disconnect(this, QNSIGNAL(AddAttachmentDelegate,saveGenericResourceImageToFile,QString,QByteArray,QByteArray,QString,QUuid),
+    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,saveGenericResourceImageToFile,QString,QByteArray,QByteArray,QString,QUuid),
                         m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QByteArray,QString,QUuid));
     QObject::disconnect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
-                        this, QNSLOT(AddAttachmentDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
+                        this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 
-    QNDEBUG("AddAttachmentDelegate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
+    QNDEBUG("AddResourceDelegate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
             << ", file path = " << filePath);
 
     m_genericResourceImageFilePath = filePath;
@@ -260,9 +259,9 @@ void AddAttachmentDelegate::onGenericResourceImageSaved(bool success, QByteArray
     insertNewResourceHtml();
 }
 
-void AddAttachmentDelegate::insertNewResourceHtml()
+void AddResourceDelegate::insertNewResourceHtml()
 {
-    QNDEBUG("AddAttachmentDelegate::insertNewResourceHtml");
+    QNDEBUG("AddResourceDelegate::insertNewResourceHtml");
 
     QString errorDescription;
     QString resourceHtml = ENMLConverter::resourceHtml(m_resource, errorDescription);
@@ -282,28 +281,28 @@ void AddAttachmentDelegate::insertNewResourceHtml()
     m_noteEditor.skipPushingUndoCommandOnNextContentChange();
 
     m_noteEditor.execJavascriptCommand("insertHtml", resourceHtml,
-                                       JsResultCallbackFunctor(*this, &AddAttachmentDelegate::onNewResourceHtmlInserted));
+                                       JsResultCallbackFunctor(*this, &AddResourceDelegate::onNewResourceHtmlInserted));
 }
 
-void AddAttachmentDelegate::onNewResourceHtmlInserted(const QVariant & data)
+void AddResourceDelegate::onNewResourceHtmlInserted(const QVariant & data)
 {
-    QNDEBUG("AddAttachmentDelegate::onNewResourceHtmlInserted");
+    QNDEBUG("AddResourceDelegate::onNewResourceHtmlInserted");
 
     Q_UNUSED(data)
 
     GET_PAGE()
 
 #ifdef USE_QT_WEB_ENGINE
-    page->toHtml(HtmlCallbackFunctor(*this, &AddAttachmentDelegate::onPageWithNewResourceHtmlReceived));
+    page->toHtml(HtmlCallbackFunctor(*this, &AddResourceDelegate::onPageWithNewResourceHtmlReceived));
 #else
     QString html = page->mainFrame()->toHtml();
     onPageWithNewResourceHtmlReceived(html);
 #endif
 }
 
-void AddAttachmentDelegate::onPageWithNewResourceHtmlReceived(const QString & html)
+void AddResourceDelegate::onPageWithNewResourceHtmlReceived(const QString & html)
 {
-    QNDEBUG("AddAttachmentDelegate::onPageWithNewResourceHtmlReceived");
+    QNDEBUG("AddResourceDelegate::onPageWithNewResourceHtmlReceived");
 
     // Now the tricky part begins: we need to undo the change
     // for the original page and then create the new page
@@ -320,8 +319,8 @@ void AddAttachmentDelegate::onPageWithNewResourceHtmlReceived(const QString & ht
     m_noteEditor.switchEditorPage(/* should convert from note = */ false);
 
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(AddAttachmentDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(AddAttachmentDelegate,writeFile,QString,QByteArray,QUuid),
+                     this, QNSLOT(AddResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(AddResourceDelegate,writeFile,QString,QByteArray,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
 
     m_writeModifiedHtmlToPageSourceRequestId = QUuid::createUuid();
@@ -329,18 +328,18 @@ void AddAttachmentDelegate::onPageWithNewResourceHtmlReceived(const QString & ht
                    m_writeModifiedHtmlToPageSourceRequestId);
 }
 
-void AddAttachmentDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
+void AddResourceDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
 {
     if (requestId != m_writeModifiedHtmlToPageSourceRequestId) {
         return;
     }
 
-    QNDEBUG("AddAttachmentDelegate::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
+    QNDEBUG("AddResourceDelegate::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription << ", request id = " << requestId);
 
     QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(AddAttachmentDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::disconnect(this, QNSIGNAL(AddAttachmentDelegate,writeFile,QString,QByteArray,QUuid),
+                        this, QNSLOT(AddResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
+    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,writeFile,QString,QByteArray,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
 
     if (Q_UNLIKELY(!success)) {
@@ -356,7 +355,7 @@ void AddAttachmentDelegate::onWriteFileRequestProcessed(bool success, QString er
 
     GET_PAGE()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(AddAttachmentDelegate,onModifiedPageLoaded));
+                     this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
 
 #ifdef USE_QT_WEB_ENGINE
     page->setUrl(url);
@@ -367,13 +366,13 @@ void AddAttachmentDelegate::onWriteFileRequestProcessed(bool success, QString er
 #endif
 }
 
-void AddAttachmentDelegate::onModifiedPageLoaded()
+void AddResourceDelegate::onModifiedPageLoaded()
 {
-    QNDEBUG("AddAttachmentDelegate::onModifiedPageLoaded");
+    QNDEBUG("AddResourceDelegate::onModifiedPageLoaded");
 
     GET_PAGE()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(AddAttachmentDelegate,onModifiedPageLoaded));
+                        this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
 
     emit finished(m_resource, m_resourceFileStoragePath, m_genericResourceImageFilePath);
 }

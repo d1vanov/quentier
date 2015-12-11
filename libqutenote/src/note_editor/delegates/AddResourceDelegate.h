@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_RESOURCE_DELEGATE_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_RESOURCE_DELEGATE_H
 
 #include "IUndoableActionDelegate.h"
 #include <qute_note/utility/Qt4Helper.h>
@@ -19,14 +19,14 @@ QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 
-class AddAttachmentDelegate: public IUndoableActionDelegate
+class AddResourceDelegate: public IUndoableActionDelegate
 {
     Q_OBJECT
 public:
-    explicit AddAttachmentDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
-                                   ResourceFileStorageManager * pResourceFileStorageManager,
-                                   FileIOThreadWorker * pFileIOThreadWorker,
-                                   GenericResourceImageWriter * pGenericResourceImageWriter);
+    explicit AddResourceDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
+                                 ResourceFileStorageManager * pResourceFileStorageManager,
+                                 FileIOThreadWorker * pFileIOThreadWorker,
+                                 GenericResourceImageWriter * pGenericResourceImageWriter);
 
     void start();
 
@@ -71,9 +71,9 @@ private:
     class JsResultCallbackFunctor
     {
     public:
-        typedef void (AddAttachmentDelegate::*Method)(const QVariant &);
+        typedef void (AddResourceDelegate::*Method)(const QVariant &);
 
-        JsResultCallbackFunctor(AddAttachmentDelegate & member, Method method) :
+        JsResultCallbackFunctor(AddResourceDelegate & member, Method method) :
             m_member(member),
             m_method(method)
         {}
@@ -81,16 +81,16 @@ private:
         void operator()(const QVariant & data) { (m_member.*m_method)(data); }
 
     private:
-        AddAttachmentDelegate &     m_member;
+        AddResourceDelegate &       m_member;
         Method                      m_method;
     };
 
     class HtmlCallbackFunctor
     {
     public:
-        typedef void (AddAttachmentDelegate::*Method)(const QString &);
+        typedef void (AddResourceDelegate::*Method)(const QString &);
 
-        HtmlCallbackFunctor(AddAttachmentDelegate & member, Method method) :
+        HtmlCallbackFunctor(AddResourceDelegate & member, Method method) :
             m_member(member),
             m_method(method)
         {}
@@ -98,8 +98,8 @@ private:
         void operator()(const QString & html) { (m_member.*m_method)(html); }
 
     private:
-        AddAttachmentDelegate &    m_member;
-        Method                     m_method;
+        AddResourceDelegate &       m_member;
+        Method                      m_method;
     };
 
 private:
@@ -125,4 +125,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_ATTACHMENT_DELEGATE_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_RESOURCE_DELEGATE_H

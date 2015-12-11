@@ -2,7 +2,7 @@
 #include "GenericResourceImageWriter.h"
 #include "dialogs/EncryptionDialog.h"
 #include "dialogs/DecryptionDialog.h"
-#include "delegates/AddAttachmentDelegate.h"
+#include "delegates/AddResourceDelegate.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
 #include "delegates/AddHyperlinkToSelectedTextDelegate.h"
 #include "delegates/EditHyperlinkDelegate.h"
@@ -1088,7 +1088,7 @@ void NoteEditorPrivate::onAddAttachmentDelegateFinished(ResourceWrapper addedRes
 
     // TODO: deal with add attachment undo command
 
-    AddAttachmentDelegate * delegate = qobject_cast<AddAttachmentDelegate*>(sender());
+    AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
@@ -1099,7 +1099,7 @@ void NoteEditorPrivate::onAddAttachmentDelegateError(QString error)
     QNDEBUG("NoteEditorPrivate::onAddAttachmentDelegateError: " << error);
     emit notifyError(error);
 
-    AddAttachmentDelegate * delegate = qobject_cast<AddAttachmentDelegate*>(sender());
+    AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
@@ -4119,14 +4119,14 @@ void NoteEditorPrivate::dropFile(QString & filePath)
 {
     QNDEBUG("NoteEditorPrivate::dropFile: " << filePath);
 
-    AddAttachmentDelegate * delegate = new AddAttachmentDelegate(filePath, *this, m_pResourceFileStorageManager,
-                                                                 m_pFileIOThreadWorker, m_pGenericResourceImageWriter);
+    AddResourceDelegate * delegate = new AddResourceDelegate(filePath, *this, m_pResourceFileStorageManager,
+                                                             m_pFileIOThreadWorker, m_pGenericResourceImageWriter);
 
-    QObject::connect(delegate, QNSIGNAL(AddAttachmentDelegate,finished,ResourceWrapper,QString,QString),
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddAttachmentDelegateFinished,ResourceWrapper,QString,QString));
-    QObject::connect(delegate, QNSIGNAL(AddAttachmentDelegate,notifyError,QString),
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddAttachmentDelegateError,QString));
-    QObject::connect(delegate, QNSIGNAL(AddAttachmentDelegate,undoableActionReady),
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,undoableActionReady),
                      this, QNSLOT(NoteEditorPrivate,onUndoableActionDelegateReady));
 
     delegate->start();
