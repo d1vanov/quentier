@@ -32,7 +32,8 @@ public:
 
 Q_SIGNALS:
 
-    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath, QString resourceImageFilePath);
+    void finished(ResourceWrapper addedResource, QString htmlWithAddedResource,
+                  QString resourceFileStoragePath, QString resourceImageFilePath);
     void notifyError(QString error);
 
 // private signals

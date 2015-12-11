@@ -197,7 +197,6 @@ set(PRIVATE_HEADERS
     src/note_editor/javascript_glue/ToDoCheckboxOnClickHandler.h
     src/note_editor/undo_stack/INoteEditorUndoCommand.h
     src/note_editor/undo_stack/AddResourceUndoCommand.h
-    src/note_editor/undo_stack/AddResourceUndoCommandNotReadyException.h
     src/note_editor/undo_stack/RemoveResourceUndoCommand.h
     src/note_editor/undo_stack/RemoveResourceUndoCommandNotReadyException.h
     src/note_editor/undo_stack/UpdateResourceUndoCommand.h
@@ -208,7 +207,6 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/AddHyperlinkUndoCommand.h
     src/note_editor/undo_stack/RemoveHyperlinkUndoCommand.h
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.h
-    src/note_editor/undo_stack/EditHyperlinkUndoCommandNotReadyException.h
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.h
     src/note_editor/undo_stack/PreliminaryUndoCommandQueue.h
     src/types/data/DataElementWithShortcutData.h
@@ -280,7 +278,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/javascript_glue/ToDoCheckboxOnClickHandler.cpp
     src/note_editor/undo_stack/INoteEditorUndoCommand.cpp
     src/note_editor/undo_stack/AddResourceUndoCommand.cpp
-    src/note_editor/undo_stack/AddResourceUndoCommandNotReadyException.cpp
     src/note_editor/undo_stack/RemoveResourceUndoCommand.cpp
     src/note_editor/undo_stack/RemoveResourceUndoCommandNotReadyException.cpp
     src/note_editor/undo_stack/UpdateResourceUndoCommand.cpp
@@ -290,7 +287,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/AddHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/RemoveHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.cpp
-    src/note_editor/undo_stack/EditHyperlinkUndoCommandNotReadyException.cpp
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.cpp
     src/note_editor/undo_stack/PreliminaryUndoCommandQueue.cpp
     src/types/ISharedNotebook.cpp

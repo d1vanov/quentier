@@ -1,5 +1,4 @@
 #include "EditHyperlinkUndoCommand.h"
-#include "EditHyperlinkUndoCommandNotReadyException.h"
 #include "../NoteEditor_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 

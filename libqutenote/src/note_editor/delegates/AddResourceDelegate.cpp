@@ -374,7 +374,7 @@ void AddResourceDelegate::onModifiedPageLoaded()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
 
-    emit finished(m_resource, m_resourceFileStoragePath, m_genericResourceImageFilePath);
+    emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_genericResourceImageFilePath);
 }
 
 } // namespace qute_note

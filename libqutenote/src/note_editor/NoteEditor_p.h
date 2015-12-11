@@ -287,8 +287,9 @@ private Q_SLOTS:
     // Slots for delegates
     void onUndoableActionDelegateReady();
 
-    void onAddAttachmentDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath, QString genericResourceImageFilePath);
-    void onAddAttachmentDelegateError(QString error);
+    void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
+                                       QString resourceFileStoragePath, QString genericResourceImageFilePath);
+    void onAddResourceDelegateError(QString error);
 
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);

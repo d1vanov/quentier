@@ -19,6 +19,7 @@
 #include "undo_stack/EditHyperlinkUndoCommand.h"
 #include "undo_stack/RemoveHyperlinkUndoCommand.h"
 #include "undo_stack/ToDoCheckboxUndoCommand.h"
+#include "undo_stack/AddResourceUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -1066,10 +1067,10 @@ void NoteEditorPrivate::onUndoableActionDelegateReady()
     // TODO: implement
 }
 
-void NoteEditorPrivate::onAddAttachmentDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath,
-                                                        QString genericResourceImageFilePath)
+void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
+                                                      QString resourceFileStoragePath, QString genericResourceImageFilePath)
 {
-    QNDEBUG("NoteEditorPrivate::onAddAttachmentDelegateFinished: resource file storage path = " << resourceFileStoragePath
+    QNDEBUG("NoteEditorPrivate::onAddResourceDelegateFinished: resource file storage path = " << resourceFileStoragePath
             << ", generic resource image file path = " << genericResourceImageFilePath);
 
     QNTRACE(addedResource);
@@ -1083,10 +1084,11 @@ void NoteEditorPrivate::onAddAttachmentDelegateFinished(ResourceWrapper addedRes
     }
 
     if (!genericResourceImageFilePath.isEmpty()) {
-        m_genericResourceImageFilePathsByResourceHash[addedResource.dataHash()] = resourceFileStoragePath;
+        m_genericResourceImageFilePathsByResourceHash[addedResource.dataHash()] = genericResourceImageFilePath;
     }
 
-    // TODO: deal with add attachment undo command
+    AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource, htmlWithAddedResource, *this);
+    m_pPreliminaryUndoCommandQueue->push(pCommand);
 
     AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1094,9 +1096,9 @@ void NoteEditorPrivate::onAddAttachmentDelegateFinished(ResourceWrapper addedRes
     }
 }
 
-void NoteEditorPrivate::onAddAttachmentDelegateError(QString error)
+void NoteEditorPrivate::onAddResourceDelegateError(QString error)
 {
-    QNDEBUG("NoteEditorPrivate::onAddAttachmentDelegateError: " << error);
+    QNDEBUG("NoteEditorPrivate::onAddResourceDelegateError: " << error);
     emit notifyError(error);
 
     AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
@@ -4122,10 +4124,10 @@ void NoteEditorPrivate::dropFile(QString & filePath)
     AddResourceDelegate * delegate = new AddResourceDelegate(filePath, *this, m_pResourceFileStorageManager,
                                                              m_pFileIOThreadWorker, m_pGenericResourceImageWriter);
 
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddAttachmentDelegateFinished,ResourceWrapper,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,QString));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddAttachmentDelegateError,QString));
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QString));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,undoableActionReady),
                      this, QNSLOT(NoteEditorPrivate,onUndoableActionDelegateReady));
 
