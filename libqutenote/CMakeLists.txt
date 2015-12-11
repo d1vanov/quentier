@@ -186,6 +186,7 @@ set(PRIVATE_HEADERS
     src/note_editor/dialogs/EditHyperlinkDialog.h
     src/note_editor/delegates/IUndoableActionDelegate.h
     src/note_editor/delegates/AddResourceDelegate.h
+    src/note_editor/delegates/RemoveResourceDelegate.h
     src/note_editor/delegates/EncryptSelectedTextDelegate.h
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h
     src/note_editor/delegates/EditHyperlinkDelegate.h
@@ -267,6 +268,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/dialogs/DecryptionDialog.cpp
     src/note_editor/dialogs/EditHyperlinkDialog.cpp
     src/note_editor/delegates/AddResourceDelegate.cpp
+    src/note_editor/delegates/RemoveResourceDelegate.cpp
     src/note_editor/delegates/EncryptSelectedTextDelegate.cpp
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.cpp
     src/note_editor/delegates/EditHyperlinkDelegate.cpp
