@@ -3,6 +3,7 @@
 #include "dialogs/EncryptionDialog.h"
 #include "dialogs/DecryptionDialog.h"
 #include "delegates/AddResourceDelegate.h"
+#include "delegates/RemoveResourceDelegate.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
 #include "delegates/AddHyperlinkToSelectedTextDelegate.h"
 #include "delegates/EditHyperlinkDelegate.h"
@@ -113,6 +114,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
+    m_removeResourceJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
@@ -332,6 +334,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
+    page->executeJavaScript(m_removeResourceJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
@@ -1102,6 +1105,31 @@ void NoteEditorPrivate::onAddResourceDelegateError(QString error)
     emit notifyError(error);
 
     AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource)
+{
+    QNDEBUG("onRemoveResourceDelegateFinished: removed resource = " << removedResource);
+
+    Q_UNUSED(htmlWithRemovedResource)
+
+    // TODO: push the remove resource undo command
+
+    RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onRemoveResourceDelegateError: " << error);
+    emit notifyError(error);
+
+    RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
@@ -2670,6 +2698,7 @@ void NoteEditorPrivate::setupScripts()
 
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
+    SETUP_SCRIPT("javascript/scripts/removeResource.js", m_removeResourceJs);
 #ifdef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
@@ -3859,6 +3888,62 @@ void NoteEditorPrivate::copyAttachmentUnderCursor()
     }
 
     copyAttachment(m_currentContextMenuExtraData.m_resourceHash);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::removeAttachment: hash = " << resourceHash);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't remove resource by hash: no note is set to the editor");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool foundResourceToRemove = false;
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceWrapper & resource = resources[i];
+        if (resource.hasDataHash() && (resource.dataHash() == resourceHash))
+        {
+            RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this, m_pFileIOThreadWorker);
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper,QString),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper,QString));
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QString),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QString));
+            delegate->start();
+
+            foundResourceToRemove = true;
+            break;
+        }
+    }
+
+    if (Q_UNLIKELY(!foundResourceToRemove)) {
+        QString error = QT_TR_NOOP("Can't remove resource by hash: no resource with such hash was found within the note");
+        QNWARNING(error);
+        emit notifyError(error);
+    }
+}
+
+void NoteEditorPrivate::removeAttachmentUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::removeAttachmentUnderCursor");
+
+    if ((m_currentContextMenuExtraData.m_contentType != "ImageResource") &&
+        (m_currentContextMenuExtraData.m_contentType != "NonImageResource"))
+    {
+        QString error = QT_TR_NOOP("Can't remove attachment under cursor: wrong current context menu extra data's content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    removeAttachment(m_currentContextMenuExtraData.m_resourceHash);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }

@@ -6,13 +6,8 @@ function removeHyperlink(enHyperlinkIndex) {
         return;
     }
 
-    var elements = document.querySelectorAll("[en-hyperlink-id='" + enHyperlinkIndex + "']");
-    var numElements = elements.length;
-    if (numElements !== 1) {
-        console.error("Unexpected number of found hyperlink tags: " + numElements);
-        return;
+    var element = document.querySelector("[en-hyperlink-id='" + enHyperlinkIndex + "']");
+    if (element) {
+        $(element).contents().unwrap();
     }
-
-    var element = elements[0];
-    $(element).contents().unwrap();
 }

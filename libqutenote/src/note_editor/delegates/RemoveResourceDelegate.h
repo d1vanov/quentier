@@ -21,7 +21,7 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished();
+    void finished(ResourceWrapper removedResource, QString htmlWithRemovedResource);
     void notifyError(QString error);
 
 // private signals:
@@ -29,6 +29,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
+    void onResourceReferenceRemovedFromNoteContent(const QVariant & data);
     void onPageHtmlWithoutResourceReceived(const QString & html);
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
@@ -36,8 +37,41 @@ private Q_SLOTS:
 
 private:
     void doStart();
-    void removeResourceFromPage();
 
+private:
+    class JsResultCallbackFunctor
+    {
+    public:
+        typedef void (RemoveResourceDelegate::*Method)(const QVariant &);
+
+        JsResultCallbackFunctor(RemoveResourceDelegate & member, Method method) :
+            m_member(member),
+            m_method(method)
+        {}
+
+        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
+
+    private:
+        RemoveResourceDelegate &    m_member;
+        Method                      m_method;
+    };
+
+    class HtmlCallbackFunctor
+    {
+    public:
+        typedef void (RemoveResourceDelegate::*Method)(const QString &);
+
+        HtmlCallbackFunctor(RemoveResourceDelegate & member, Method method) :
+            m_member(member),
+            m_method(method)
+        {}
+
+        void operator()(const QString & html) { (m_member.*m_method)(html); }
+
+    private:
+        RemoveResourceDelegate &        m_member;
+        Method                          m_method;
+    };
 private:
     NoteEditorPrivate &             m_noteEditor;
     FileIOThreadWorker *            m_pFileIOThreadWorker;

@@ -74,6 +74,8 @@ public:
     virtual void openAttachmentUnderCursor() = 0;
     virtual void copyAttachment(const QString & resourceHash) = 0;
     virtual void copyAttachmentUnderCursor() = 0;
+    virtual void removeAttachment(const QString & resourceHash) = 0;
+    virtual void removeAttachmentUnderCursor() = 0;
 
     virtual void encryptSelectedTextDialog() = 0;
     virtual void decryptEncryptedTextUnderCursor() = 0;

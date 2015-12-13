@@ -182,6 +182,8 @@ public Q_SLOTS:
     virtual void openAttachmentUnderCursor() Q_DECL_OVERRIDE;
     virtual void copyAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
     virtual void copyAttachmentUnderCursor() Q_DECL_OVERRIDE;
+    virtual void removeAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void removeAttachmentUnderCursor() Q_DECL_OVERRIDE;
 
     virtual void encryptSelectedTextDialog() Q_DECL_OVERRIDE;
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
@@ -290,6 +292,9 @@ private Q_SLOTS:
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
                                        QString resourceFileStoragePath, QString genericResourceImageFilePath);
     void onAddResourceDelegateError(QString error);
+
+    void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource);
+    void onRemoveResourceDelegateError(QString error);
 
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);
@@ -506,6 +511,7 @@ private:
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;
+    QString     m_removeResourceJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;
