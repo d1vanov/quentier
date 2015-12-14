@@ -10,7 +10,7 @@ AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource,
     m_resource(resource),
     m_html(htmlWithAddedResource)
 {
-    setText(QObject::tr("Add resource"));
+    setText(QObject::tr("Add attachment"));
 }
 
 AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithAddedResource,

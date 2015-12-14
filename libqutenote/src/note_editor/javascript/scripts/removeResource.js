@@ -9,3 +9,5 @@ function removeResource(resourceHash) {
 
     $(element).remove();
 }
+
+

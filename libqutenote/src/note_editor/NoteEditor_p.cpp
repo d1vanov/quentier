@@ -21,6 +21,7 @@
 #include "undo_stack/RemoveHyperlinkUndoCommand.h"
 #include "undo_stack/ToDoCheckboxUndoCommand.h"
 #include "undo_stack/AddResourceUndoCommand.h"
+#include "undo_stack/RemoveResourceUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -1116,7 +1117,8 @@ void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removed
 
     Q_UNUSED(htmlWithRemovedResource)
 
-    // TODO: push the remove resource undo command
+    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, htmlWithRemovedResource, *this);
+    m_pPreliminaryUndoCommandQueue->push(pCommand);
 
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {

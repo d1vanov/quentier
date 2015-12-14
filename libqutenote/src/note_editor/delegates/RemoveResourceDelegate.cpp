@@ -64,11 +64,41 @@ void RemoveResourceDelegate::doStart()
         return;
     }
 
+    m_noteEditor.switchEditorPage(/* should convert to note = */ false);
+
+    GET_PAGE()
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
+                     this, QNSLOT(RemoveResourceDelegate,onSwitchedPageLoaded,bool));
+
+    m_noteEditor.updateFromNote();
+}
+
+void RemoveResourceDelegate::onSwitchedPageLoaded(bool ok)
+{
+    QNDEBUG("RemoveResourceDelegate::onSwitchedPageLoaded: ok = " << (ok ? "true" : "false"));
+
+    Q_UNUSED(ok)
+
+    GET_PAGE()
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
+                        this, QNSLOT(RemoveResourceDelegate,onSwitchedPageLoaded,bool));
+
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
+                     this, QNSLOT(RemoveResourceDelegate,onSwitchedPageJavaScriptLoaded));
+}
+
+void RemoveResourceDelegate::onSwitchedPageJavaScriptLoaded()
+{
+    QNDEBUG("RemoveResourceDelegate::onSwitchedPageJavaScriptLoaded");
+
+    GET_PAGE()
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
+                        this, QNSLOT(RemoveResourceDelegate,onSwitchedPageJavaScriptLoaded));
+
     m_noteEditor.skipNextContentChange();
 
     QString javascript = "removeResource('" + m_resource.dataHash() + "');";
 
-    GET_PAGE()
     page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));
 }
 
@@ -91,19 +121,7 @@ void RemoveResourceDelegate::onPageHtmlWithoutResourceReceived(const QString & h
 {
     QNDEBUG("RemoveResourceDelegate::onPageHtmlWithoutResourceReceived");
 
-    // Now the tricky part begins: we need to undo the change
-    // for the original page and then create the new page
-    // and set this modified HTML there
-
     m_modifiedHtml = html;
-
-    // Now we need to undo the attachment removal we just did for the old page
-
-    m_noteEditor.skipNextContentChange();
-    m_noteEditor.undoPageAction();
-
-    // Now can switch the page to the new one and set the modified HTML there
-    m_noteEditor.switchEditorPage(/* should convert from note = */ false);
 
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(RemoveResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));

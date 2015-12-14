@@ -29,6 +29,9 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
+    void onSwitchedPageLoaded(bool ok);
+    void onSwitchedPageJavaScriptLoaded();
+
     void onResourceReferenceRemovedFromNoteContent(const QVariant & data);
     void onPageHtmlWithoutResourceReceived(const QString & html);
 

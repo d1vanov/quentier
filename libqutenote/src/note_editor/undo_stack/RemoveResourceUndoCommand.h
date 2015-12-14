@@ -10,27 +10,18 @@ namespace qute_note {
 class RemoveResourceUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
-    RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    RemoveResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithRemovedResource,
+                              NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
+    RemoveResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithRemovedResource,
+                              NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~RemoveResourceUndoCommand();
-
-    void setHtmlBefore(const QString & htmlBefore);
-    void setHtmlAfter(const QString & htmlAfter);
 
     virtual void undoImpl() Q_DECL_OVERRIDE;
     virtual void redoImpl() Q_DECL_OVERRIDE;
 
 private:
-    void init();
-
-private:
     ResourceWrapper     m_resource;
-
-    QString             m_htmlBefore;
-    QString             m_htmlAfter;
-
-    bool                m_htmlBeforeSet;
-    bool                m_htmlAfterSet;
+    QString             m_htmlWithRemovedResource;
 };
 
 } // namespace qute_note
