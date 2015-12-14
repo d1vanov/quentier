@@ -1,9 +1,9 @@
-function removeResource(hash) {
-    console.log("removeResource: " + hash);
+function removeResource(resourceHash) {
+    console.log("removeResource: " + resourceHash);
 
-    var element = document.querySelector("[hash='" + hash + "']");
+    var element = document.querySelector("[hash='" + resourceHash + "']");
     if (!element) {
-        console.warn("Can't find the resource to be removed from the note content: hash = " + hash);
+        console.warn("Can't find the resource to be removed from the note content: hash = " + resourceHash);
         return;
     }
 

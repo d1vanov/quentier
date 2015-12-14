@@ -26,6 +26,7 @@
         <file>getHyperlinkData.js</file>
         <file>removeHyperlink.js</file>
         <file>replaceHyperlinkContent.js</file>
+        <file>removeResource.js</file>
         <file>decryptEncryptedTextPermanently.js</file>
         <file>flipEnToDoCheckboxState.js</file>
         <file>setupTextCursorPositionTracking.js</file>

@@ -2543,6 +2543,9 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyAttachment, "Copy", m_pImageResourceContextMenu,
                              copyAttachmentUnderCursor);
 
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pImageResourceContextMenu,
+                             removeAttachmentUnderCursor);
+
     Q_UNUSED(m_pImageResourceContextMenu->addSeparator());
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::OpenAttachment, "Open", m_pImageResourceContextMenu,
@@ -2564,6 +2567,7 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu()
 
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut);
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pNonImageResourceContextMenu, removeAttachmentUnderCursor);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {

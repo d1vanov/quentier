@@ -57,14 +57,16 @@ void RemoveResourceDelegate::doStart()
 {
     QNDEBUG("RemoveResourceDelegate::doStart");
 
-    if (Q_UNLIKELY(m_resource.hasDataHash())) {
+    if (Q_UNLIKELY(!m_resource.hasDataHash())) {
         QString error = QT_TR_NOOP("Can't remove the resource: resource to be removed doesn't contain the data hash");
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
 
-    QString javascript = "removeResource(" + m_resource.dataHash() + ");";
+    m_noteEditor.skipNextContentChange();
+
+    QString javascript = "removeResource('" + m_resource.dataHash() + "');";
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));
