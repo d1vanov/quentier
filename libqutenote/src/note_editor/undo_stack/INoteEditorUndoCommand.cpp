@@ -5,14 +5,12 @@ namespace qute_note {
 
 INoteEditorUndoCommand::INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     QuteNoteUndoCommand(parent),
-    m_noteEditorPrivate(noteEditorPrivate),
-    m_ready(true)
+    m_noteEditorPrivate(noteEditorPrivate)
 {}
 
 INoteEditorUndoCommand::INoteEditorUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
     QuteNoteUndoCommand(text, parent),
-    m_noteEditorPrivate(noteEditorPrivate),
-    m_ready(true)
+    m_noteEditorPrivate(noteEditorPrivate)
 {}
 
 INoteEditorUndoCommand::~INoteEditorUndoCommand()

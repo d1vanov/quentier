@@ -76,7 +76,6 @@ typedef QWebEngineSettings WebSettings;
 #include <QDesktopWidget>
 #include <QFontDialog>
 #include <QFontDatabase>
-#include <QUndoStack>
 #include <QCryptographicHash>
 #include <QPixmap>
 #include <QBuffer>
@@ -147,7 +146,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
-    m_pPreliminaryUndoCommandQueue(Q_NULLPTR),
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
     m_lastContextMenuEventGlobalPos(),
     m_lastContextMenuEventPagePos(),
@@ -635,7 +633,7 @@ void NoteEditorPrivate::onToDoCheckboxClicked(quint64 enToDoCheckboxId)
     QNDEBUG("NoteEditorPrivate::onToDoCheckboxClicked: " << enToDoCheckboxId);
 
     ToDoCheckboxUndoCommand * pCommand = new ToDoCheckboxUndoCommand(enToDoCheckboxId, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::onToDoCheckboxClickHandlerError(QString error)
@@ -1092,7 +1090,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
     }
 
     AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource, htmlWithAddedResource, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
 
     AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1118,7 +1116,7 @@ void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removed
     Q_UNUSED(htmlWithRemovedResource)
 
     RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, htmlWithRemovedResource, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
 
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1195,7 +1193,7 @@ void NoteEditorPrivate::onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QSt
     QNDEBUG("NoteEditorPrivate::onEditHyperlinkDelegateFinished");
 
     EditHyperlinkUndoCommand * pCommand = new EditHyperlinkUndoCommand(hyperlinkId, previousUrl, previousText, newUrl, newText, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
 
     EditHyperlinkDelegate * delegate = qobject_cast<EditHyperlinkDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1229,7 +1227,7 @@ void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperli
     QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished: removed hyperlink id = " << removedHyperlinkId);
 
     RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(removedHyperlinkId, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
 
     RemoveHyperlinkDelegate * delegate = qobject_cast<RemoveHyperlinkDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1313,8 +1311,7 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
 {
     QNDEBUG("NoteEditorPrivate::pushNoteTextEditUndoCommand");
 
-    QUTE_NOTE_CHECK_PTR(m_pPreliminaryUndoCommandQueue,
-                        "Preliminaty undo command queue for note editor wasn't initialized");
+    QUTE_NOTE_CHECK_PTR(m_pUndoStack, "Undo stack for note editor wasn't initialized");
 
     if (Q_UNLIKELY(!m_pNote)) {
         QNINFO("Ignoring the content changed signal as the note pointer is null");
@@ -1326,7 +1323,7 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
         resources = m_pNote->resources();
     }
 
-    m_pPreliminaryUndoCommandQueue->push(new NoteEditorContentEditUndoCommand(*this, resources));
+    m_pUndoStack->push(new NoteEditorContentEditUndoCommand(*this, resources));
 }
 
 void NoteEditorPrivate::pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
@@ -1345,7 +1342,7 @@ void NoteEditorPrivate::pushDecryptUndoCommand(const QString & cipher, const siz
     info.m_encryptedText = encryptedText;
     info.m_passphrase = passphrase;
 
-    m_pPreliminaryUndoCommandQueue->push(new DecryptUndoCommand(info, m_decryptedTextManager, *this));
+    m_pUndoStack->push(new DecryptUndoCommand(info, m_decryptedTextManager, *this));
     QNTRACE("Pushed DecryptUndoCommand to the undo stack");
 }
 
@@ -1433,7 +1430,7 @@ void NoteEditorPrivate::setNotePageHtmlAfterEncryption(const QString & html)
     QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterEncryption");
 
     EncryptUndoCommand * pCommand = new EncryptUndoCommand(html, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
     QNTRACE("Pushed EncryptUndoCommand to the undo stack");
 }
 
@@ -1480,7 +1477,7 @@ void NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink(const QString & html
     QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink");
 
     AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(html, *this);
-    m_pPreliminaryUndoCommandQueue->push(pCommand);
+    m_pUndoStack->push(pCommand);
     QNTRACE("Pushed AddHyperlinkUndoCommand to the undo stack");
 }
 
@@ -3054,13 +3051,6 @@ void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
 
     QUTE_NOTE_CHECK_PTR(pUndoStack, "null undo stack passed to note editor");
     m_pUndoStack = pUndoStack;
-
-    if (Q_UNLIKELY(!m_pPreliminaryUndoCommandQueue)) {
-        m_pPreliminaryUndoCommandQueue = new PreliminaryUndoCommandQueue(pUndoStack, this);
-    }
-    else {
-        m_pPreliminaryUndoCommandQueue->setUndoStack(pUndoStack);
-    }
 }
 
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)

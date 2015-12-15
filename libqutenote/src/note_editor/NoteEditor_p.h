@@ -3,7 +3,6 @@
 
 #include "ResourceInfo.h"
 #include "NoteEditorPage.h"
-#include "undo_stack/PreliminaryUndoCommandQueue.h"
 #include <qute_note/note_editor/INoteEditorBackend.h>
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/note_editor/DecryptedTextManager.h>
@@ -15,6 +14,7 @@
 #include <QFont>
 #include <QColor>
 #include <QImage>
+#include <QUndoStack>
 
 #ifdef USE_QT_WEB_ENGINE
 #include <QWebEngineView>
@@ -548,7 +548,6 @@ private:
     PageMutationHandler * m_pPageMutationHandler;
 
     QUndoStack * m_pUndoStack;
-    PreliminaryUndoCommandQueue * m_pPreliminaryUndoCommandQueue;
 
     quint64     m_contextMenuSequenceNumber;
     QPoint      m_lastContextMenuEventGlobalPos;

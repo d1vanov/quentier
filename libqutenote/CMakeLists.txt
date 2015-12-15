@@ -208,7 +208,6 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/RemoveHyperlinkUndoCommand.h
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.h
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.h
-    src/note_editor/undo_stack/PreliminaryUndoCommandQueue.h
     src/types/data/DataElementWithShortcutData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -288,7 +287,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/RemoveHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.cpp
-    src/note_editor/undo_stack/PreliminaryUndoCommandQueue.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp
