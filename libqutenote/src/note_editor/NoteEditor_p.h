@@ -131,6 +131,8 @@ public:
 
     bool isModified() const;
 
+    void setPageOffsetsForNextLoad(const int pageXOffset, const int pageYOffset);
+
     const QString & noteEditorPagePath() const { return m_noteEditorPagePath; }
     const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
     const QString & resourceLocalFileStoragePath() const { return m_resourceLocalFileStorageFolder; }
@@ -288,7 +290,8 @@ private Q_SLOTS:
 
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                                       QString resourceFileStoragePath, QString genericResourceImageFilePath);
+                                       QString resourceFileStoragePath, QString genericResourceImageFilePath,
+                                       int pageXOffset, int pageYOffset);
     void onAddResourceDelegateError(QString error);
 
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource);
@@ -516,6 +519,8 @@ private:
     QString     m_changeFontSizeForSelectionJs;
     QString     m_decryptEncryptedTextPermanentlyJs;
     QString     m_pageMutationObserverJs;
+    QString     m_getCurrentScrollJs;
+    QString     m_setScrollJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
@@ -658,7 +663,10 @@ private:
     QString     m_lastEncryptedText;
 
     LimitedStack<NoteEditorPage*>    m_pagesStack;
-    quint32      m_lastNoteEditorPageFreeIndex;
+    quint32     m_lastNoteEditorPageFreeIndex;
+
+    int         m_pageXOffsetForNextLoad;
+    int         m_pageYOffsetForNextLoad;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

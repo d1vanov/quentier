@@ -121,6 +121,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_changeFontSizeForSelectionJs(),
     m_decryptEncryptedTextPermanentlyJs(),
     m_pageMutationObserverJs(),
+    m_getCurrentScrollJs(),
+    m_setScrollJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -222,6 +224,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_lastEncryptedText(),
     m_pagesStack(&NoteEditorPageDeleter),
     m_lastNoteEditorPageFreeIndex(0),
+    m_pageXOffsetForNextLoad(0),
+    m_pageYOffsetForNextLoad(0),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -338,6 +342,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
     page->executeJavaScript(m_decryptEncryptedTextPermanentlyJs);
+    page->executeJavaScript(m_getCurrentScrollJs);
+    page->executeJavaScript(m_setScrollJs);
 
     setPageEditable(true);
     updateColResizableTableBindings();
@@ -349,6 +355,13 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     setupTextCursorPositionTracking();
     setupGenericResourceImages();
 #endif
+
+    if (m_pageXOffsetForNextLoad || m_pageYOffsetForNextLoad) {
+        page->executeJavaScript("setScroll(" + QString::number(m_pageXOffsetForNextLoad) + ", " +
+                                QString::number(m_pageYOffsetForNextLoad) + ");");
+        m_pageXOffsetForNextLoad = 0;
+        m_pageYOffsetForNextLoad = 0;
+    }
 
     // NOTE: executing page mutation observer's script last
     // so that it doesn't catch the mutations originating from the above scripts
@@ -1064,10 +1077,12 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
 }
 
 void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                                                      QString resourceFileStoragePath, QString genericResourceImageFilePath)
+                                                      QString resourceFileStoragePath, QString genericResourceImageFilePath,
+                                                      int pageXOffset, int pageYOffset)
 {
     QNDEBUG("NoteEditorPrivate::onAddResourceDelegateFinished: resource file storage path = " << resourceFileStoragePath
-            << ", generic resource image file path = " << genericResourceImageFilePath);
+            << ", generic resource image file path = " << genericResourceImageFilePath << ", page X offset = " << pageXOffset
+            << ", page Y offset = " << pageYOffset);
 
     QNTRACE(addedResource);
 
@@ -1083,7 +1098,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
         m_genericResourceImageFilePathsByResourceHash[addedResource.dataHash()] = genericResourceImageFilePath;
     }
 
-    AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource, htmlWithAddedResource, *this);
+    AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource, htmlWithAddedResource, pageXOffset, pageYOffset, *this);
     m_pUndoStack->push(pCommand);
 
     AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
@@ -2685,6 +2700,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
     SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
     SETUP_SCRIPT("javascript/scripts/decryptEncryptedTextPermanently.js", m_decryptEncryptedTextPermanentlyJs);
+    SETUP_SCRIPT("javascript/scripts/getCurrentScroll.js", m_getCurrentScrollJs);
+    SETUP_SCRIPT("javascript/scripts/setScroll.js", m_setScrollJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -3221,6 +3238,14 @@ void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resource
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
+}
+
+void NoteEditorPrivate::setPageOffsetsForNextLoad(const int pageXOffset, const int pageYOffset)
+{
+    QNDEBUG("NoteEditorPrivate::setPageOffsetsForNextLoad: x = " << pageXOffset << ", y = " << pageYOffset);
+
+    m_pageXOffsetForNextLoad = pageXOffset;
+    m_pageYOffsetForNextLoad = pageYOffset;
 }
 
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
@@ -4199,8 +4224,8 @@ void NoteEditorPrivate::dropFile(QString & filePath)
     AddResourceDelegate * delegate = new AddResourceDelegate(filePath, *this, m_pResourceFileStorageManager,
                                                              m_pFileIOThreadWorker, m_pGenericResourceImageWriter);
 
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString,QString,int,int),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,QString,int,int));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QString));
 

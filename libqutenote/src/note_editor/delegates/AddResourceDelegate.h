@@ -32,7 +32,8 @@ public:
 Q_SIGNALS:
 
     void finished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                  QString resourceFileStoragePath, QString resourceImageFilePath);
+                  QString resourceFileStoragePath, QString resourceImageFilePath,
+                  int pageXOffset, int pageYOffset);
     void notifyError(QString error);
 
 // private signals
@@ -59,12 +60,15 @@ private Q_SLOTS:
 
     void onNewResourceHtmlInserted(const QVariant & data);
     void onPageWithNewResourceHtmlReceived(const QString & html);
+    void onPageScrollReceived(const QVariant & data);
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
     void onModifiedPageLoaded();
+    void onModifiedPageScrollFixed(const QVariant & data);
 
 private:
     void doStart();
+    void requestPageScroll();
     void insertNewResourceHtml();
 
 private:
@@ -118,6 +122,9 @@ private:
 
     QUuid                           m_readResourceFileRequestId;
     QUuid                           m_saveResourceToStorageRequestId;
+
+    int                             m_pageXOffset;
+    int                             m_pageYOffset;
 
     QString                         m_modifiedHtml;
     QUuid                           m_writeModifiedHtmlToPageSourceRequestId;

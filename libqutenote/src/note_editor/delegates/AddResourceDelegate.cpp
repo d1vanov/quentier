@@ -43,6 +43,8 @@ AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPri
     m_genericResourceImageFilePath(),
     m_readResourceFileRequestId(),
     m_saveResourceToStorageRequestId(),
+    m_pageXOffset(-1),
+    m_pageYOffset(-1),
     m_modifiedHtml(),
     m_writeModifiedHtmlToPageSourceRequestId()
 {}
@@ -204,7 +206,7 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
 
     if (m_resourceFileMimeType.name().startsWith("image/")) {
         QNTRACE("Done adding the image resource to the note, moving on to adding it to the page");
-        insertNewResourceHtml();
+        requestPageScroll();
         return;
     }
 
@@ -255,6 +257,54 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
         emit notifyError(errorDescription);
         return;
     }
+
+    requestPageScroll();
+}
+
+void AddResourceDelegate::requestPageScroll()
+{
+    QNDEBUG("AddResourceDelegate::requestPageScroll");
+
+    GET_PAGE()
+    page->executeJavaScript("getCurrentScroll();", JsResultCallbackFunctor(*this, &AddResourceDelegate::onPageScrollReceived));
+}
+
+void AddResourceDelegate::onPageScrollReceived(const QVariant & data)
+{
+    QNDEBUG("AddResourceDelegate::onPageScrollReceived: " << data);
+
+    QStringList dataStrList = data.toStringList();
+    const int numDataItems = dataStrList.size();
+
+    if (Q_UNLIKELY(numDataItems != 2)) {
+        QString error = QT_TR_NOOP("Can't add resource: can't find the current page's scroll: unexpected number of items "
+                                   "received from JavaScript side, expected 2, got ") + QString::number(numDataItems);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool conversionResult = 0;
+    int x = dataStrList[0].toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't add resource: can't find the current page's scroll: can't convert x scroll coordinate to number");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    conversionResult = false;
+    int y = dataStrList[1].toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't add resource: can't find the current page's scroll: can't convert y scroll coordinate to number");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pageXOffset = x;
+    m_pageYOffset = y;
+    QNTRACE("Page scroll: x = " << m_pageXOffset << ", y = " << m_pageYOffset);
 
     insertNewResourceHtml();
 }
@@ -374,7 +424,19 @@ void AddResourceDelegate::onModifiedPageLoaded()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
 
-    emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_genericResourceImageFilePath);
+    QString javascript = "setScroll(" + QString::number(m_pageXOffset) + ", " + QString::number(m_pageYOffset) + ");";
+    QNTRACE("JavaScript to set the scroll: " << javascript);
+
+    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddResourceDelegate::onModifiedPageScrollFixed));
+}
+
+void AddResourceDelegate::onModifiedPageScrollFixed(const QVariant & data)
+{
+    QNDEBUG("AddResourceDelegate::onModifiedPageScrollFixed");
+
+    Q_UNUSED(data)
+
+    emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_genericResourceImageFilePath, m_pageXOffset, m_pageYOffset);
 }
 
 } // namespace qute_note

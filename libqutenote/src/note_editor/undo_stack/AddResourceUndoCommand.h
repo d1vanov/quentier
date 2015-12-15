@@ -11,8 +11,10 @@ class AddResourceUndoCommand: public INoteEditorUndoCommand
 {
 public:
     AddResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithAddedResource,
+                           const int pageXOffset, const int pageYOffset,
                            NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
     AddResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithAddedResource,
+                           const int pageXOffset, const int pageYOffset,
                            NoteEditorPrivate & noteEditorPrivate, const QString & text,
                            QUndoCommand * parent = Q_NULLPTR);
     virtual ~AddResourceUndoCommand();
@@ -26,6 +28,8 @@ private:
 private:
     ResourceWrapper     m_resource;
     QString             m_html;
+    int                 m_pageXOffset;
+    int                 m_pageYOffset;
 };
 
 } // namespace qute_note

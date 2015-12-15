@@ -31,5 +31,7 @@
         <file>flipEnToDoCheckboxState.js</file>
         <file>setupTextCursorPositionTracking.js</file>
         <file>clickInterceptor.js</file>
+        <file>getCurrentScroll.js</file>
+        <file>setScroll.js</file>
     </qresource>
 </RCC>
