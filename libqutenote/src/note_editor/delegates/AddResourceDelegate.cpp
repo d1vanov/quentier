@@ -30,7 +30,7 @@ AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPri
                                          ResourceFileStorageManager * pResourceFileStorageManager,
                                          FileIOThreadWorker * pFileIOThreadWorker,
                                          GenericResourceImageWriter * pGenericResourceImageWriter) :
-    IUndoableActionDelegate(&noteEditor),
+    QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pResourceFileStorageManager(pResourceFileStorageManager),
     m_pFileIOThreadWorker(pFileIOThreadWorker),

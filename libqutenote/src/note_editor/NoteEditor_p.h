@@ -287,8 +287,6 @@ private Q_SLOTS:
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
     // Slots for delegates
-    void onUndoableActionDelegateReady();
-
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
                                        QString resourceFileStoragePath, QString genericResourceImageFilePath);
     void onAddResourceDelegateError(QString error);

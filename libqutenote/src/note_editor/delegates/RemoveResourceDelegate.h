@@ -1,17 +1,17 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__REMOVE_RESOURCE_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__REMOVE_RESOURCE_DELEGATE_H
 
-#include "IUndoableActionDelegate.h"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceWrapper.h>
+#include <QObject>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
-class RemoveResourceDelegate: public IUndoableActionDelegate
+class RemoveResourceDelegate: public QObject
 {
     Q_OBJECT
 public:

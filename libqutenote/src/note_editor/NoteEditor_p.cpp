@@ -1063,12 +1063,6 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
     }
 }
 
-void NoteEditorPrivate::onUndoableActionDelegateReady()
-{
-    QNDEBUG("NoteEditorPrivate::onUndoableActionDelegateReady");
-    // TODO: implement
-}
-
 void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
                                                       QString resourceFileStoragePath, QString genericResourceImageFilePath)
 {
@@ -4209,8 +4203,6 @@ void NoteEditorPrivate::dropFile(QString & filePath)
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,QString));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QString));
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,undoableActionReady),
-                     this, QNSLOT(NoteEditorPrivate,onUndoableActionDelegateReady));
 
     delegate->start();
 }

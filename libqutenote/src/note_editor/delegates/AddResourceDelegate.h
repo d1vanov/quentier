@@ -1,7 +1,6 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_RESOURCE_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_RESOURCE_DELEGATE_H
 
-#include "IUndoableActionDelegate.h"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceWrapper.h>
@@ -19,7 +18,7 @@ QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 
-class AddResourceDelegate: public IUndoableActionDelegate
+class AddResourceDelegate: public QObject
 {
     Q_OBJECT
 public:
