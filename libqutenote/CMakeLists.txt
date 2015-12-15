@@ -199,7 +199,6 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/INoteEditorUndoCommand.h
     src/note_editor/undo_stack/AddResourceUndoCommand.h
     src/note_editor/undo_stack/RemoveResourceUndoCommand.h
-    src/note_editor/undo_stack/RemoveResourceUndoCommandNotReadyException.h
     src/note_editor/undo_stack/UpdateResourceUndoCommand.h
     src/note_editor/undo_stack/NoteEditorContentEditUndoCommand.h
     src/note_editor/undo_stack/EncryptDecryptUndoCommandInfo.h
@@ -281,7 +280,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/INoteEditorUndoCommand.cpp
     src/note_editor/undo_stack/AddResourceUndoCommand.cpp
     src/note_editor/undo_stack/RemoveResourceUndoCommand.cpp
-    src/note_editor/undo_stack/RemoveResourceUndoCommandNotReadyException.cpp
     src/note_editor/undo_stack/UpdateResourceUndoCommand.cpp
     src/note_editor/undo_stack/NoteEditorContentEditUndoCommand.cpp
     src/note_editor/undo_stack/EncryptUndoCommand.cpp

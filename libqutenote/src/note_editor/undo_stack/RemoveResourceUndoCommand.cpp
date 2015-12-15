@@ -1,5 +1,4 @@
 #include "RemoveResourceUndoCommand.h"
-#include "RemoveResourceUndoCommandNotReadyException.h"
 #include "../NoteEditor_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 
