@@ -41,6 +41,7 @@ private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
     void onHyperlinkIdFound(const QVariant & data);
 
+    void onPageScrollReceived(const QVariant & data);
     void onNewPageLoadFinished(bool ok);
     void onNewPageJavaScriptLoaded();
 
@@ -48,6 +49,7 @@ private Q_SLOTS:
 
 private:
     void findIdOfHyperlinkUnderCursor();
+    void requestPageScroll();
     void removeHyperlink();
 
 private:
@@ -57,6 +59,9 @@ private:
     NoteEditorPrivate &     m_noteEditor;
     NoteEditorPage *        m_pOriginalPage;
     quint64                 m_hyperlinkId;
+
+    int                     m_pageXOffset;
+    int                     m_pageYOffset;
 };
 
 } // namespace qute_note

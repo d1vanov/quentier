@@ -1,4 +1,5 @@
 #include "RemoveHyperlinkDelegate.h"
+#include "ParsePageScrollData.h"
 #include "../NoteEditor_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 
@@ -20,7 +21,7 @@ void RemoveHyperlinkDelegate::start()
     QNDEBUG("RemoveHyperlinkDelegate::start");
 
     if (m_hyperlinkId != 0) {
-        removeHyperlink();
+        requestPageScroll();
         return;
     }
 
@@ -86,6 +87,31 @@ void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)
     }
 
     m_hyperlinkId = hyperlinkId;
+
+    requestPageScroll();
+}
+
+void RemoveHyperlinkDelegate::requestPageScroll()
+{
+    QNDEBUG("RemoveHyperlinkDelegate::requestPageScroll");
+
+    GET_PAGE()
+    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &RemoveHyperlinkDelegate::onPageScrollReceived));
+}
+
+void RemoveHyperlinkDelegate::onPageScrollReceived(const QVariant & data)
+{
+    QNDEBUG("RemoveHyperlinkDelegate::onPageScrollReceived: " << data);
+
+    QString errorDescription;
+    bool res = parsePageScrollData(data, m_pageXOffset, m_pageYOffset, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = QT_TR_NOOP("Can't remove hyperlink: ") + errorDescription;
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
     removeHyperlink();
 }
 
@@ -99,6 +125,7 @@ void RemoveHyperlinkDelegate::removeHyperlink()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
                      this, QNSLOT(RemoveHyperlinkDelegate,onNewPageLoadFinished,bool));
 
+    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
     m_noteEditor.updateFromNote();
 }
 
