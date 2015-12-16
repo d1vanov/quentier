@@ -24,7 +24,9 @@ RemoveResourceDelegate::RemoveResourceDelegate(const ResourceWrapper & resourceT
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_resource(resourceToRemove),
     m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId()
+    m_writeModifiedHtmlToPageSourceRequestId(),
+    m_pageXOffset(-1),
+    m_pageYOffset(-1)
 {}
 
 void RemoveResourceDelegate::start()
@@ -37,7 +39,7 @@ void RemoveResourceDelegate::start()
         m_noteEditor.convertToNote();
     }
     else {
-        doStart();
+        requestPageScroll();
     }
 }
 
@@ -50,6 +52,54 @@ void RemoveResourceDelegate::onOriginalPageConvertedToNote(Note note)
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(RemoveResourceDelegate,onOriginalPageConvertedToNote,Note));
 
+    requestPageScroll();
+}
+
+void RemoveResourceDelegate::requestPageScroll()
+{
+    QNDEBUG("RemoveResourceDelegate::requestPageScroll");
+
+    GET_PAGE()
+    page->executeJavaScript("getCurrentScroll();", JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onPageScrollReceived));
+}
+
+void RemoveResourceDelegate::onPageScrollReceived(const QVariant & data)
+{
+    QNDEBUG("RemoveResourceDelegate::onPageScrollReceived: " << data);
+
+    QStringList dataStrList = data.toStringList();
+    const int numDataItems = dataStrList.size();
+
+    if (Q_UNLIKELY(numDataItems != 2)) {
+        QString error = QT_TR_NOOP("Can't remove resource: can't find the current page's scroll: unexpected number of items "
+                                   "received from JavaScript side, expected 2, got ") + QString::number(numDataItems);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool conversionResult = 0;
+    int x = dataStrList[0].toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't remove resource: can't find the current page's scroll: can't convert x scroll coordinate to number");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    conversionResult = false;
+    int y = dataStrList[1].toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't remove resource: can't find the current page's scroll: can't convert y scroll coordinate to number");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pageXOffset = x;
+    m_pageYOffset = y;
+    QNTRACE("Page scroll: x = " << m_pageXOffset << ", y = " << m_pageYOffset);
+
     doStart();
 }
 
@@ -58,7 +108,7 @@ void RemoveResourceDelegate::doStart()
     QNDEBUG("RemoveResourceDelegate::doStart");
 
     if (Q_UNLIKELY(!m_resource.hasDataHash())) {
-        QString error = QT_TR_NOOP("Can't remove the resource: resource to be removed doesn't contain the data hash");
+        QString error = QT_TR_NOOP("Can't remove resource: the resource to be removed doesn't contain the data hash");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -180,7 +230,19 @@ void RemoveResourceDelegate::onModifiedPageLoaded()
 
     m_noteEditor.removeResourceFromNote(m_resource);
 
-    emit finished(m_resource, m_modifiedHtml);
+    QString javascript = "setScroll(" + QString::number(m_pageXOffset) + ", " + QString::number(m_pageYOffset) + ");";
+    QNTRACE("JavaScript to set the scroll: " << javascript);
+
+    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onModifiedPageScrollFixed));
+}
+
+void RemoveResourceDelegate::onModifiedPageScrollFixed(const QVariant & data)
+{
+    QNDEBUG("RemoveResourceDelegate::onModifiedPageScrollFixed");
+
+    Q_UNUSED(data)
+
+    emit finished(m_resource, m_modifiedHtml, m_pageXOffset, m_pageYOffset);
 }
 
 } // namespace qute_note

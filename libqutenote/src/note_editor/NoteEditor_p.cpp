@@ -1118,13 +1118,16 @@ void NoteEditorPrivate::onAddResourceDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource)
+void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
+                                                         int pageXOffset, int pageYOffset)
 {
-    QNDEBUG("onRemoveResourceDelegateFinished: removed resource = " << removedResource);
+    QNDEBUG("onRemoveResourceDelegateFinished: removed resource = " << removedResource
+            << "\npage X offset = " << pageXOffset << ", page Y offset = " << pageYOffset);
 
     Q_UNUSED(htmlWithRemovedResource)
 
-    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, htmlWithRemovedResource, *this);
+    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, htmlWithRemovedResource,
+                                                                         pageXOffset, pageYOffset, *this);
     m_pUndoStack->push(pCommand);
 
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
@@ -3927,8 +3930,8 @@ void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
         if (resource.hasDataHash() && (resource.dataHash() == resourceHash))
         {
             RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this, m_pFileIOThreadWorker);
-            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper,QString),
-                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper,QString));
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper,QString,int,int),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper,QString,int,int));
             QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QString),
                              this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QString));
             delegate->start();

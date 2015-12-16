@@ -21,7 +21,8 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished(ResourceWrapper removedResource, QString htmlWithRemovedResource);
+    void finished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
+                  int pageXOffset, int pageYOffset);
     void notifyError(QString error);
 
 // private signals:
@@ -29,6 +30,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
+    void onPageScrollReceived(const QVariant & data);
     void onSwitchedPageLoaded(bool ok);
     void onSwitchedPageJavaScriptLoaded();
 
@@ -37,9 +39,11 @@ private Q_SLOTS:
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
     void onModifiedPageLoaded();
+    void onModifiedPageScrollFixed(const QVariant & data);
 
 private:
     void doStart();
+    void requestPageScroll();
 
 private:
     class JsResultCallbackFunctor
@@ -82,6 +86,9 @@ private:
     ResourceWrapper                 m_resource;
     QString                         m_modifiedHtml;
     QUuid                           m_writeModifiedHtmlToPageSourceRequestId;
+
+    int                             m_pageXOffset;
+    int                             m_pageYOffset;
 };
 
 } // namespace qute_note

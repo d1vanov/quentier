@@ -294,7 +294,8 @@ private Q_SLOTS:
                                        int pageXOffset, int pageYOffset);
     void onAddResourceDelegateError(QString error);
 
-    void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource);
+    void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
+                                          int pageXOffset, int pageYOffset);
     void onRemoveResourceDelegateError(QString error);
 
     void onEncryptSelectedTextDelegateFinished();
