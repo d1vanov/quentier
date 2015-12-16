@@ -1,4 +1,5 @@
 #include "AddHyperlinkToSelectedTextDelegate.h"
+#include "ParsePageScrollData.h"
 #include "../NoteEditor_p.h"
 #include "../dialogs/EditHyperlinkDialog.h"
 #include <qute_note/utility/FileIOThreadWorker.h>
@@ -73,38 +74,14 @@ void AddHyperlinkToSelectedTextDelegate::onPageScrollReceived(const QVariant & d
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::onPageScrollReceived: " << data);
 
-    QStringList dataStrList = data.toStringList();
-    const int numDataItems = dataStrList.size();
-
-    if (Q_UNLIKELY(numDataItems != 2)) {
-        QString error = QT_TR_NOOP("Can't add hyperlink: can't find the current page's scroll: unexpected number of items "
-                                   "received from JavaScript side, expected 2, got ") + QString::number(numDataItems);
-        QNWARNING(error);
-        emit notifyError(error);
+    QString errorDescription;
+    bool res = parsePageScrollData(data, m_pageXOffset, m_pageYOffset, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = QT_TR_NOOP("Can't add hyperlink: ") + errorDescription;
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
         return;
     }
-
-    bool conversionResult = 0;
-    int x = dataStrList[0].toInt(&conversionResult);
-    if (Q_UNLIKELY(!conversionResult)) {
-        QString error = QT_TR_NOOP("Can't add hyperlink: can't find the current page's scroll: can't convert x scroll coordinate to number");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    conversionResult = false;
-    int y = dataStrList[1].toInt(&conversionResult);
-    if (Q_UNLIKELY(!conversionResult)) {
-        QString error = QT_TR_NOOP("Can't add hyperlink: can't find the current page's scroll: can't convert y scroll coordinate to number");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    m_pageXOffset = x;
-    m_pageYOffset = y;
-    QNTRACE("Page scroll: x = " << m_pageXOffset << ", y = " << m_pageYOffset);
 
     addHyperlinkToSelectedText();
 }
