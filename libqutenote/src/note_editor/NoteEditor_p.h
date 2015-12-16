@@ -125,8 +125,6 @@ public:
     void setNotePageHtmlAfterEncryption(const QString & html);
     void undoLastEncryption();
 
-    void setNotePageHtmlAfterAddingHyperlink(const QString & html);
-
     void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
 
     bool isModified() const;
@@ -301,7 +299,7 @@ private Q_SLOTS:
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateError(QString error);
 
-    void onAddHyperlinkToSelectedTextDelegateFinished();
+    void onAddHyperlinkToSelectedTextDelegateFinished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);
     void onAddHyperlinkToSelectedTextDelegateCancelled();
     void onAddHyperlinkToSelectedTextDelegateError(QString error);
 

@@ -8,10 +8,10 @@ namespace qute_note {
 class AddHyperlinkUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    AddHyperlinkUndoCommand(const QString & htmlWithHyperlink, NoteEditorPrivate & noteEditor,
-                            QUndoCommand * parent = Q_NULLPTR);
-    AddHyperlinkUndoCommand(const QString & htmlWithHyperlink, NoteEditorPrivate & noteEditor,
-                            const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    AddHyperlinkUndoCommand(const QString & htmlWithHyperlink, const int pageXOffset, const int pageYOffset,
+                            NoteEditorPrivate & noteEditor, QUndoCommand * parent = Q_NULLPTR);
+    AddHyperlinkUndoCommand(const QString & htmlWithHyperlink, const int pageXOffset, const int pageYOffset,
+                            NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~AddHyperlinkUndoCommand();
 
     virtual void redoImpl() Q_DECL_OVERRIDE;
@@ -19,6 +19,8 @@ public:
 
 private:
     QString     m_htmlWithHyperlink;
+    int         m_pageXOffset;
+    int         m_pageYOffset;
 };
 
 } // namespace qute_note

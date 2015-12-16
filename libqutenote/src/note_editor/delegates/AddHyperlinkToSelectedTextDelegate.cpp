@@ -21,7 +21,9 @@ AddHyperlinkToSelectedTextDelegate::AddHyperlinkToSelectedTextDelegate(NoteEdito
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_hyperlinkId(hyperlinkIdToAdd),
     m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId()
+    m_writeModifiedHtmlToPageSourceRequestId(),
+    m_pageXOffset(-1),
+    m_pageYOffset(-1)
 {}
 
 #define GET_PAGE() \
@@ -43,7 +45,7 @@ void AddHyperlinkToSelectedTextDelegate::start()
         m_noteEditor.convertToNote();
     }
     else {
-        addHyperlinkToSelectedText();
+        requestPageScroll();
     }
 }
 
@@ -55,6 +57,54 @@ void AddHyperlinkToSelectedTextDelegate::onOriginalPageConvertedToNote(Note note
 
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
+
+    requestPageScroll();
+}
+
+void AddHyperlinkToSelectedTextDelegate::requestPageScroll()
+{
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::requestPageScroll");
+
+    GET_PAGE()
+    page->executeJavaScript("getCurrentScroll();", JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onPageScrollReceived));
+}
+
+void AddHyperlinkToSelectedTextDelegate::onPageScrollReceived(const QVariant & data)
+{
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::onPageScrollReceived: " << data);
+
+    QStringList dataStrList = data.toStringList();
+    const int numDataItems = dataStrList.size();
+
+    if (Q_UNLIKELY(numDataItems != 2)) {
+        QString error = QT_TR_NOOP("Can't add hyperlink: can't find the current page's scroll: unexpected number of items "
+                                   "received from JavaScript side, expected 2, got ") + QString::number(numDataItems);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool conversionResult = 0;
+    int x = dataStrList[0].toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't add hyperlink: can't find the current page's scroll: can't convert x scroll coordinate to number");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    conversionResult = false;
+    int y = dataStrList[1].toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't add hyperlink: can't find the current page's scroll: can't convert y scroll coordinate to number");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_pageXOffset = x;
+    m_pageYOffset = y;
+    QNTRACE("Page scroll: x = " << m_pageXOffset << ", y = " << m_pageYOffset);
 
     addHyperlinkToSelectedText();
 }
@@ -131,7 +181,6 @@ void AddHyperlinkToSelectedTextDelegate::onModifiedPageHtmlReceived(const QStrin
     // and set this modified HTML there
 
     m_modifiedHtml = html;
-    m_noteEditor.setNotePageHtmlAfterAddingHyperlink(m_modifiedHtml);
 
     // Now need to undo the hyperlink addition we just did for the old page
 
@@ -189,6 +238,8 @@ void AddHyperlinkToSelectedTextDelegate::onWriteFileRequestProcessed(bool succes
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onModifiedPageLoaded));
 
+    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
+
 #ifdef USE_QT_WEB_ENGINE
     page->setUrl(url);
     page->load(url);
@@ -205,7 +256,8 @@ void AddHyperlinkToSelectedTextDelegate::onModifiedPageLoaded()
     GET_PAGE()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddHyperlinkToSelectedTextDelegate,onModifiedPageLoaded));
-    emit finished();
+
+    emit finished(m_modifiedHtml, m_pageXOffset, m_pageYOffset);
 }
 
 } // namespace qute_note

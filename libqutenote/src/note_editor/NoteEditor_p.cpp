@@ -1168,9 +1168,12 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished()
+void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset)
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished");
+
+    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(htmlWithAddedHyperlink, pageXOffset, pageYOffset, *this);
+    m_pUndoStack->push(pCommand);
 
     AddHyperlinkToSelectedTextDelegate * delegate = qobject_cast<AddHyperlinkToSelectedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1482,15 +1485,6 @@ void NoteEditorPrivate::undoLastEncryption()
                          decryptedText + "', " + QString::number(m_lastFreeEnCryptIdNumber - 1) + ");";
     GET_PAGE()
     page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink(const QString & html)
-{
-    QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterAddingHyperlink");
-
-    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(html, *this);
-    m_pUndoStack->push(pCommand);
-    QNTRACE("Pushed AddHyperlinkUndoCommand to the undo stack");
 }
 
 void NoteEditorPrivate::replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text)
@@ -4162,8 +4156,8 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
 
         quint64 hyperlinkId = m_lastFreeHyperlinkIdNumber++;
         AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker, hyperlinkId);
-        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
-                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
+        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished,QString,int,int),
+                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished,QString,int,int));
         QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
                          this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateCancelled));
         QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),

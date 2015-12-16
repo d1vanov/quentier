@@ -29,7 +29,7 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished();
+    void finished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);
     void cancelled();
     void notifyError(QString error);
 
@@ -43,6 +43,7 @@ private Q_SLOTS:
     void onAddHyperlinkDialogFinished(QString text, QUrl url, quint64 hyperlinkId, bool startupUrlWasEmpty);
 
     void onOriginalPageModified(const QVariant & data);
+    void onPageScrollReceived(const QVariant & data);
     void onOriginalPageModificationUndone(const QVariant & data);
 
     void onModifiedPageHtmlReceived(const QString & html);
@@ -50,6 +51,7 @@ private Q_SLOTS:
     void onModifiedPageLoaded();
 
 private:
+    void requestPageScroll();
     void addHyperlinkToSelectedText();
     void raiseAddHyperlinkDialog(const QString & initialText);
 
@@ -92,9 +94,13 @@ private:
     NoteEditorPrivate &     m_noteEditor;
     NoteEditorPage *        m_pOriginalPage;
     FileIOThreadWorker *    m_pFileIOThreadWorker;
+
     const quint64           m_hyperlinkId;
     QString                 m_modifiedHtml;
     QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
+
+    int                     m_pageXOffset;
+    int                     m_pageYOffset;
 };
 
 } // namespace qute_note
