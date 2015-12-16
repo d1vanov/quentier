@@ -39,7 +39,6 @@ private Q_SLOTS:
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
     void onModifiedPageLoaded();
-    void onModifiedPageScrollFixed(const QVariant & data);
 
 private:
     void doStart();

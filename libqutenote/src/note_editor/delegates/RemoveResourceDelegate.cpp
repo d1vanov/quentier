@@ -211,6 +211,8 @@ void RemoveResourceDelegate::onWriteFileRequestProcessed(bool success, QString e
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(RemoveResourceDelegate,onModifiedPageLoaded));
 
+    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
+
 #ifdef USE_QT_WEB_ENGINE
     page->setUrl(url);
     page->load(url);
@@ -229,18 +231,6 @@ void RemoveResourceDelegate::onModifiedPageLoaded()
                         this, QNSLOT(RemoveResourceDelegate,onModifiedPageLoaded));
 
     m_noteEditor.removeResourceFromNote(m_resource);
-
-    QString javascript = "setScroll(" + QString::number(m_pageXOffset) + ", " + QString::number(m_pageYOffset) + ");";
-    QNTRACE("JavaScript to set the scroll: " << javascript);
-
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onModifiedPageScrollFixed));
-}
-
-void RemoveResourceDelegate::onModifiedPageScrollFixed(const QVariant & data)
-{
-    QNDEBUG("RemoveResourceDelegate::onModifiedPageScrollFixed");
-
-    Q_UNUSED(data)
 
     emit finished(m_resource, m_modifiedHtml, m_pageXOffset, m_pageYOffset);
 }
