@@ -61,7 +61,7 @@ void RemoveResourceDelegate::requestPageScroll()
     QNDEBUG("RemoveResourceDelegate::requestPageScroll");
 
     GET_PAGE()
-    page->executeJavaScript("getCurrentScroll();", JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onPageScrollReceived));
+    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &RemoveResourceDelegate::onPageScrollReceived));
 }
 
 void RemoveResourceDelegate::onPageScrollReceived(const QVariant & data)
@@ -126,7 +126,7 @@ void RemoveResourceDelegate::onSwitchedPageJavaScriptLoaded()
 
     QString javascript = "removeResource('" + m_resource.dataHash() + "');";
 
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));
+    page->executeJavaScript(javascript, JsCallback(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));
 }
 
 void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVariant & data)

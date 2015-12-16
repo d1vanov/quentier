@@ -184,6 +184,7 @@ set(PRIVATE_HEADERS
     src/note_editor/dialogs/EncryptionDialog.h
     src/note_editor/dialogs/DecryptionDialog.h
     src/note_editor/dialogs/EditHyperlinkDialog.h
+    src/note_editor/delegates/JsResultCallbackFunctor.hpp
     src/note_editor/delegates/ParsePageScrollData.h
     src/note_editor/delegates/AddResourceDelegate.h
     src/note_editor/delegates/RemoveResourceDelegate.h

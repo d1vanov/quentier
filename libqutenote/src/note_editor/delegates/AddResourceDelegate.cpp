@@ -267,7 +267,7 @@ void AddResourceDelegate::requestPageScroll()
     QNDEBUG("AddResourceDelegate::requestPageScroll");
 
     GET_PAGE()
-    page->executeJavaScript("getCurrentScroll();", JsResultCallbackFunctor(*this, &AddResourceDelegate::onPageScrollReceived));
+    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &AddResourceDelegate::onPageScrollReceived));
 }
 
 void AddResourceDelegate::onPageScrollReceived(const QVariant & data)
@@ -308,7 +308,7 @@ void AddResourceDelegate::insertNewResourceHtml()
     m_noteEditor.skipPushingUndoCommandOnNextContentChange();
 
     m_noteEditor.execJavascriptCommand("insertHtml", resourceHtml,
-                                       JsResultCallbackFunctor(*this, &AddResourceDelegate::onNewResourceHtmlInserted));
+                                       JsCallback(*this, &AddResourceDelegate::onNewResourceHtmlInserted));
 }
 
 void AddResourceDelegate::onNewResourceHtmlInserted(const QVariant & data)

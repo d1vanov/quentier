@@ -34,7 +34,7 @@ void EditHyperlinkDelegate::start()
     QString javascript = "getHyperlinkData(" + QString::number(m_hyperlinkId) + ");";
 
     GET_PAGE()
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &EditHyperlinkDelegate::onHyperlinkDataReceived));
+    page->executeJavaScript(javascript, JsCallback(*this, &EditHyperlinkDelegate::onHyperlinkDataReceived));
 }
 
 void EditHyperlinkDelegate::onHyperlinkDataReceived(const QVariant & data)
@@ -97,7 +97,7 @@ void EditHyperlinkDelegate::onHyperlinkDataEdited(QString text, QUrl url, quint6
                          "', " + QString::number(m_hyperlinkId) + ");";
 
     GET_PAGE()
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &EditHyperlinkDelegate::onHyperlinkModified));
+    page->executeJavaScript(javascript, JsCallback(*this, &EditHyperlinkDelegate::onHyperlinkModified));
 }
 
 void EditHyperlinkDelegate::onHyperlinkModified(const QVariant & data)

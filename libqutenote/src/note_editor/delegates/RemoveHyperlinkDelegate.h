@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATE__REMOVE_HYPERLINK_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATE__REMOVE_HYPERLINK_DELEGATE_H
 
+#include "JsResultCallbackFunctor.hpp"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <QObject>
@@ -50,22 +51,7 @@ private:
     void removeHyperlink();
 
 private:
-    class JsResultCallbackFunctor
-    {
-    public:
-        typedef void (RemoveHyperlinkDelegate::*Method)(const QVariant &);
-
-        JsResultCallbackFunctor(RemoveHyperlinkDelegate & member, Method method) :
-            m_member(member),
-            m_method(method)
-        {}
-
-        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
-
-    private:
-        RemoveHyperlinkDelegate &    m_member;
-        Method                       m_method;
-    };
+    typedef JsResultCallbackFunctor<RemoveHyperlinkDelegate> JsCallback;
 
 private:
     NoteEditorPrivate &     m_noteEditor;

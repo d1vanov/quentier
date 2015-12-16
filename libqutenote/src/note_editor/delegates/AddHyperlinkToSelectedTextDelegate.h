@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_HYPERLINK_TO_SELECTED_TEXT_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ADD_HYPERLINK_TO_SELECTED_TEXT_DELEGATE_H
 
+#include "JsResultCallbackFunctor.hpp"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <QObject>
@@ -56,22 +57,7 @@ private:
     void raiseAddHyperlinkDialog(const QString & initialText);
 
 private:
-    class JsResultCallbackFunctor
-    {
-    public:
-        typedef void (AddHyperlinkToSelectedTextDelegate::*Method)(const QVariant &);
-
-        JsResultCallbackFunctor(AddHyperlinkToSelectedTextDelegate & member, Method method) :
-            m_member(member),
-            m_method(method)
-        {}
-
-        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
-
-    private:
-        AddHyperlinkToSelectedTextDelegate &        m_member;
-        Method                                      m_method;
-    };
+    typedef JsResultCallbackFunctor<AddHyperlinkToSelectedTextDelegate> JsCallback;
 
     class HtmlCallbackFunctor
     {

@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__REMOVE_RESOURCE_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__REMOVE_RESOURCE_DELEGATE_H
 
+#include "JsResultCallbackFunctor.hpp"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceWrapper.h>
@@ -45,22 +46,7 @@ private:
     void requestPageScroll();
 
 private:
-    class JsResultCallbackFunctor
-    {
-    public:
-        typedef void (RemoveResourceDelegate::*Method)(const QVariant &);
-
-        JsResultCallbackFunctor(RemoveResourceDelegate & member, Method method) :
-            m_member(member),
-            m_method(method)
-        {}
-
-        void operator()(const QVariant & data) { (m_member.*m_method)(data); }
-
-    private:
-        RemoveResourceDelegate &    m_member;
-        Method                      m_method;
-    };
+    typedef JsResultCallbackFunctor<RemoveResourceDelegate> JsCallback;
 
     class HtmlCallbackFunctor
     {

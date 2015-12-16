@@ -67,7 +67,7 @@ void AddHyperlinkToSelectedTextDelegate::requestPageScroll()
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::requestPageScroll");
 
     GET_PAGE()
-    page->executeJavaScript("getCurrentScroll();", JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onPageScrollReceived));
+    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &AddHyperlinkToSelectedTextDelegate::onPageScrollReceived));
 }
 
 void AddHyperlinkToSelectedTextDelegate::onPageScrollReceived(const QVariant & data)
@@ -92,7 +92,7 @@ void AddHyperlinkToSelectedTextDelegate::addHyperlinkToSelectedText()
 
     QString javascript = "getSelectionHtml(" + QString::number(m_hyperlinkId) + ");";
     GET_PAGE()
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived));
+    page->executeJavaScript(javascript, JsCallback(*this, &AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived));
 }
 
 void AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived(const QVariant & data)
@@ -132,7 +132,7 @@ void AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogFinished(QString te
 
     QString javascript = "setHyperlinkToSelection('" + text + "', '" + urlString +
                          "', " + QString::number(m_hyperlinkId) + ");";
-    m_pOriginalPage->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModified));
+    m_pOriginalPage->executeJavaScript(javascript, JsCallback(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModified));
 }
 
 void AddHyperlinkToSelectedTextDelegate::onOriginalPageModified(const QVariant & data)
@@ -165,7 +165,7 @@ void AddHyperlinkToSelectedTextDelegate::onModifiedPageHtmlReceived(const QStrin
 
     QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ");";
     GET_PAGE()
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone));
+    page->executeJavaScript(javascript, JsCallback(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone));
 }
 
 void AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone(const QVariant & data)
