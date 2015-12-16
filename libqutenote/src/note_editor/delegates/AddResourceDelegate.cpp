@@ -407,6 +407,8 @@ void AddResourceDelegate::onWriteFileRequestProcessed(bool success, QString erro
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
 
+    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
+
 #ifdef USE_QT_WEB_ENGINE
     page->setUrl(url);
     page->load(url);
@@ -423,18 +425,6 @@ void AddResourceDelegate::onModifiedPageLoaded()
     GET_PAGE()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
-
-    QString javascript = "setScroll(" + QString::number(m_pageXOffset) + ", " + QString::number(m_pageYOffset) + ");";
-    QNTRACE("JavaScript to set the scroll: " << javascript);
-
-    page->executeJavaScript(javascript, JsResultCallbackFunctor(*this, &AddResourceDelegate::onModifiedPageScrollFixed));
-}
-
-void AddResourceDelegate::onModifiedPageScrollFixed(const QVariant & data)
-{
-    QNDEBUG("AddResourceDelegate::onModifiedPageScrollFixed");
-
-    Q_UNUSED(data)
 
     emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_genericResourceImageFilePath, m_pageXOffset, m_pageYOffset);
 }
