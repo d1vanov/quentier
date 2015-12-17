@@ -8,10 +8,10 @@ namespace qute_note {
 class EncryptUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    EncryptUndoCommand(const QString & htmlWithEncryption, NoteEditorPrivate & noteEditorPrivate,
-                       QUndoCommand * parent = Q_NULLPTR);
-    EncryptUndoCommand(const QString & htmlWithEncryption, NoteEditorPrivate & noteEditorPrivate,
-                       const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    EncryptUndoCommand(const QString & htmlWithEncryption, const int pageXOffset, const int pageYOffset,
+                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
+    EncryptUndoCommand(const QString & htmlWithEncryption, const int pageXOffset, const int pageYOffset,
+                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~EncryptUndoCommand();
 
     virtual void redoImpl() Q_DECL_OVERRIDE;
@@ -19,6 +19,8 @@ public:
 
 private:
     QString     m_htmlWithEncryption;
+    int         m_pageXOffset;
+    int         m_pageYOffset;
 };
 
 } // namespace qute_note

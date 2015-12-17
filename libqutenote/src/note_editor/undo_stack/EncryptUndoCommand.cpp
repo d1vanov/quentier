@@ -4,18 +4,22 @@
 
 namespace qute_note {
 
-EncryptUndoCommand::EncryptUndoCommand(const QString & htmlWithEncryption, NoteEditorPrivate & noteEditorPrivate,
-                                       QUndoCommand * parent) :
+EncryptUndoCommand::EncryptUndoCommand(const QString & htmlWithEncryption, const int pageXOffset, const int pageYOffset,
+                                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
-    m_htmlWithEncryption(htmlWithEncryption)
+    m_htmlWithEncryption(htmlWithEncryption),
+    m_pageXOffset(pageXOffset),
+    m_pageYOffset(pageYOffset)
 {
     setText(QObject::tr("Encrypt selected text"));
 }
 
-EncryptUndoCommand:: EncryptUndoCommand(const QString & htmlWithEncryption, NoteEditorPrivate & noteEditorPrivate,
-                                        const QString & text, QUndoCommand * parent) :
+EncryptUndoCommand:: EncryptUndoCommand(const QString & htmlWithEncryption, const int pageXOffset, const int pageYOffset,
+                                        NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
-    m_htmlWithEncryption(htmlWithEncryption)
+    m_htmlWithEncryption(htmlWithEncryption),
+    m_pageXOffset(pageXOffset),
+    m_pageYOffset(pageYOffset)
 {}
 
 EncryptUndoCommand::~EncryptUndoCommand()
@@ -26,6 +30,7 @@ void EncryptUndoCommand::redoImpl()
     QNDEBUG("EncryptUndoCommand::redoImpl");
 
     m_noteEditorPrivate.switchEditorPage(/* should convert from note = */ false);
+    m_noteEditorPrivate.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
     m_noteEditorPrivate.setNoteHtml(m_htmlWithEncryption);
 }
 

@@ -122,7 +122,6 @@ public:
     void skipPushingUndoCommandOnNextContentChange();
     void skipNextContentChange();
 
-    void setNotePageHtmlAfterEncryption(const QString & html);
     void undoLastEncryption();
 
     void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
@@ -296,7 +295,8 @@ private Q_SLOTS:
                                           int pageXOffset, int pageYOffset);
     void onRemoveResourceDelegateError(QString error);
 
-    void onEncryptSelectedTextDelegateFinished();
+    void onEncryptSelectedTextDelegateFinished(QString htmlWithEncryption, int pageXOffset, int pageYOffset);
+    void onEncryptSelectedTextDelegateCancelled();
     void onEncryptSelectedTextDelegateError(QString error);
 
     void onAddHyperlinkToSelectedTextDelegateFinished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);

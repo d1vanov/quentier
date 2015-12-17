@@ -1147,9 +1147,22 @@ void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished()
+void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished(QString htmlWithEncryption, int pageXOffset, int pageYOffset)
 {
-    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateFinished");
+    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateFinished: page X offset = " << pageXOffset << ", page Y offset = " << pageYOffset);
+
+    EncryptUndoCommand * pCommand = new EncryptUndoCommand(htmlWithEncryption, pageXOffset, pageYOffset, *this);
+    m_pUndoStack->push(pCommand);
+
+    EncryptSelectedTextDelegate * delegate = qobject_cast<EncryptSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onEncryptSelectedTextDelegateCancelled()
+{
+    QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateCancelled");
 
     EncryptSelectedTextDelegate * delegate = qobject_cast<EncryptSelectedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1440,15 +1453,6 @@ void NoteEditorPrivate::skipNextContentChange()
     m_skipNextContentChange = true;
 }
 
-void NoteEditorPrivate::setNotePageHtmlAfterEncryption(const QString & html)
-{
-    QNDEBUG("NoteEditorPrivate::setNotePageHtmlAfterEncryption");
-
-    EncryptUndoCommand * pCommand = new EncryptUndoCommand(html, *this);
-    m_pUndoStack->push(pCommand);
-    QNTRACE("Pushed EncryptUndoCommand to the undo stack");
-}
-
 void NoteEditorPrivate::undoLastEncryption()
 {
     QNDEBUG("NoteEditorPrivate::undoLastEncryption");
@@ -1467,9 +1471,7 @@ void NoteEditorPrivate::undoLastEncryption()
 
     QString decryptedText;
     bool rememberForSession;
-    bool found = m_decryptedTextManager.findDecryptedTextByEncryptedText(m_lastEncryptedText,
-                                                                         decryptedText,
-                                                                         rememberForSession);
+    bool found = m_decryptedTextManager.findDecryptedTextByEncryptedText(m_lastEncryptedText, decryptedText, rememberForSession);
     if (!found) {
         QString error = QT_TR_NOOP("Can't undo last encryption: can't find corresponding decrypted text");
         QNWARNING(error);
@@ -3977,10 +3979,12 @@ void NoteEditorPrivate::encryptSelectedTextDialog()
     GET_PAGE()
 
     EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(*this, page, m_pFileIOThreadWorker);
-    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished,QString,int,int),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished,QString,int,int));
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateCancelled));
     delegate->start();
 }
 

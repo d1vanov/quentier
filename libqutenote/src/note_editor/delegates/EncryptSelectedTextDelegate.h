@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ENCRYPT_SELECTED_TEXT_DELEGATE_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__ENCRYPT_SELECTED_TEXT_DELEGATE_H
 
+#include "JsResultCallbackFunctor.hpp"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
 #include <QObject>
@@ -29,7 +30,8 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished();
+    void finished(QString htmlWithEncryption, int pageXOffset, int pageYOffset);
+    void cancelled();
     void notifyError(QString error);
 
 // private signals
@@ -37,6 +39,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
+    void onPageScrollReceived(const QVariant & data);
 
     void onOriginalPageModified();
     void onOriginalPageModificationUndone();
@@ -46,7 +49,11 @@ private Q_SLOTS:
     void onModifiedPageLoaded();
 
 private:
+    void requestPageScroll();
     void encryptSelectedText();
+
+private:
+    typedef JsResultCallbackFunctor<EncryptSelectedTextDelegate> JsCallback;
 
 private:
     NoteEditorPrivate &     m_noteEditor;
@@ -72,6 +79,9 @@ private:
 
     QString                 m_modifiedHtml;
     QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
+
+    int                     m_pageXOffset;
+    int                     m_pageYOffset;
 };
 
 } // namespace qute_note

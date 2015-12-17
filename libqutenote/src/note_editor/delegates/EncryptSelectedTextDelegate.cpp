@@ -1,4 +1,5 @@
 #include "EncryptSelectedTextDelegate.h"
+#include "ParsePageScrollData.h"
 #include "../NoteEditor_p.h"
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
@@ -9,6 +10,15 @@
 
 namespace qute_note {
 
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't add attachment: can't get note editor page"); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
+
 EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate & noteEditor,
                                                          NoteEditorPage * pOriginalPage,
                                                          FileIOThreadWorker * pFileIOThreadWorker) :
@@ -17,7 +27,9 @@ EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate & not
     m_pOriginalPage(pOriginalPage),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId()
+    m_writeModifiedHtmlToPageSourceRequestId(),
+    m_pageXOffset(-1),
+    m_pageYOffset(-1)
 {}
 
 void EncryptSelectedTextDelegate::start()
@@ -30,7 +42,7 @@ void EncryptSelectedTextDelegate::start()
         m_noteEditor.convertToNote();
     }
     else {
-        encryptSelectedText();
+        requestPageScroll();
     }
 }
 
@@ -43,6 +55,30 @@ void EncryptSelectedTextDelegate::onOriginalPageConvertedToNote(Note note)
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
 
+    requestPageScroll();
+}
+
+void EncryptSelectedTextDelegate::requestPageScroll()
+{
+    QNDEBUG("EncryptSelectedTextDelegate::requestPageScroll");
+
+    GET_PAGE()
+    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &EncryptSelectedTextDelegate::onPageScrollReceived));
+}
+
+void EncryptSelectedTextDelegate::onPageScrollReceived(const QVariant & data)
+{
+    QNDEBUG("EncryptSelectedTextDelegate::onPageScrollReceived: " << data);
+
+    QString errorDescription;
+    bool res = parsePageScrollData(data, m_pageXOffset, m_pageYOffset, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = QT_TR_NOOP("Can't encrypt selected text: ") + errorDescription;
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
     encryptSelectedText();
 }
 
@@ -53,12 +89,12 @@ void EncryptSelectedTextDelegate::encryptSelectedText()
     QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModified));
 
-    bool cancelled = false;
-    m_noteEditor.doEncryptSelectedTextDialog(&cancelled);
-    if (cancelled) {
+    bool encryptionCancelled = false;
+    m_noteEditor.doEncryptSelectedTextDialog(&encryptionCancelled);
+    if (encryptionCancelled) {
         QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                             this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModified));
-        emit finished();
+        emit cancelled();
     }
 }
 
@@ -86,7 +122,6 @@ void EncryptSelectedTextDelegate::onModifiedPageHtmlReceived(const QString & htm
     // and set this modified HTML there
 
     m_modifiedHtml = html;
-    m_noteEditor.setNotePageHtmlAfterEncryption(m_modifiedHtml);
 
     QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModificationUndone));
@@ -150,6 +185,8 @@ void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QStr
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));
 
+    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
+
 #ifdef USE_QT_WEB_ENGINE
     page->setUrl(url);
     page->load(url);
@@ -174,7 +211,8 @@ void EncryptSelectedTextDelegate::onModifiedPageLoaded()
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));
-    emit finished();
+
+    emit finished(m_modifiedHtml, m_pageXOffset, m_pageYOffset);
 }
 
 } // namespace qute_note
