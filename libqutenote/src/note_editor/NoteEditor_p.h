@@ -256,8 +256,7 @@ private Q_SLOTS:
     void onOpenResourceRequest(const QString & resourceHash);
     void onSaveResourceRequest(const QString & resourceHash);
 
-    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length,
-                                 QString hint, bool * pCancelled = Q_NULLPTR);
+    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
 
     void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
     void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
@@ -298,6 +297,12 @@ private Q_SLOTS:
     void onEncryptSelectedTextDelegateFinished(QString htmlWithEncryption, int pageXOffset, int pageYOffset);
     void onEncryptSelectedTextDelegateCancelled();
     void onEncryptSelectedTextDelegateError(QString error);
+
+    void onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
+                                                QString encryptedText, QString cipher, size_t length, QString hint,
+                                                QString decryptedText, QString passphrase);
+    void onDecryptEncryptedTextDelegateCancelled();
+    void onDecryptEncryptedTextDelegateError(QString error);
 
     void onAddHyperlinkToSelectedTextDelegateFinished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);
     void onAddHyperlinkToSelectedTextDelegateCancelled();

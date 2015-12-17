@@ -173,14 +173,7 @@ void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QStr
 
     QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
 
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
-    if (Q_UNLIKELY(!page)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the encrypted text processing: "
-                                      "can't get the pointer to note editor page");
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
+    GET_PAGE()
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));
@@ -200,14 +193,7 @@ void EncryptSelectedTextDelegate::onModifiedPageLoaded()
 {
     QNDEBUG("EncryptSelectedTextDelegate::onModifiedPageLoaded");
 
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page());
-    if (Q_UNLIKELY(!page)) {
-        QString errorDescription = QT_TR_NOOP("Can't finalize the encrypted text processing: "
-                                              "can't get the pointer to note editor page");
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
+    GET_PAGE()
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));

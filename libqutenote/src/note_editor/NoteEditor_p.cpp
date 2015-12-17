@@ -5,6 +5,7 @@
 #include "delegates/AddResourceDelegate.h"
 #include "delegates/RemoveResourceDelegate.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
+#include "delegates/DecryptEncryptedTextDelegate.h"
 #include "delegates/AddHyperlinkToSelectedTextDelegate.h"
 #include "delegates/EditHyperlinkDelegate.h"
 #include "delegates/RemoveHyperlinkDelegate.h"
@@ -754,39 +755,22 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
 }
 
 void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher,
-                                                QString length, QString hint, bool *pCancelled)
+                                                QString length, QString hint)
 {
     QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
 
-    if (cipher.isEmpty()) {
-        cipher = "AES";
-    }
+    DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(encryptedText, cipher, length, hint, *this,
+                                                                               m_pFileIOThreadWorker, m_encryptionManager,
+                                                                               m_decryptedTextManager);
 
-    if (length.isEmpty()) {
-        length = "128";
-    }
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,int,int,QString,QString,size_t,QString,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,int,int,QString,QString,size_t,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QString));
 
-    bool conversionResult = false;
-    size_t keyLength = static_cast<size_t>(length.toInt(&conversionResult));
-    if (!conversionResult) {
-        QNFATAL("NoteEditorPrivate::onEnCryptElementClicked: can't convert encryption key from string to number: " << length);
-        return;
-    }
-
-    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(encryptedText,
-                                                                            cipher, hint, keyLength,
-                                                                            m_encryptionManager,
-                                                                            m_decryptedTextManager, this));
-    pDecryptionDialog->setWindowModality(Qt::WindowModal);
-    QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,size_t,QString,QString,QString,bool,bool,bool),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
-    QNTRACE("Will exec decryption dialog now");
-    int res = pDecryptionDialog->exec();
-    if (pCancelled) {
-        *pCancelled = (res == QDialog::Rejected);
-    }
-
-    QNTRACE("Executed decryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
+    delegate->start();
 }
 
 void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
@@ -1176,6 +1160,51 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
     emit notifyError(error);
 
     EncryptSelectedTextDelegate * delegate = qobject_cast<EncryptSelectedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
+                                                               QString encryptedText, QString cipher, size_t length, QString hint,
+                                                               QString decryptedText, QString passphrase)
+{
+    QNDEBUG("NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished");
+
+    // TODO: move this whole stuff to the undo command
+    Q_UNUSED(htmlWithDecryptedText)
+    Q_UNUSED(pageXOffset)
+    Q_UNUSED(pageYOffset)
+    Q_UNUSED(encryptedText)
+    Q_UNUSED(cipher)
+    Q_UNUSED(length)
+    Q_UNUSED(hint)
+    Q_UNUSED(decryptedText)
+    Q_UNUSED(passphrase)
+
+    DecryptEncryptedTextDelegate * delegate = qobject_cast<DecryptEncryptedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onDecryptEncryptedTextDelegateCancelled()
+{
+    QNDEBUG("NoteEditorPrivate::onDecryptEncryptedTextDelegateCancelled");
+
+    DecryptEncryptedTextDelegate * delegate = qobject_cast<DecryptEncryptedTextDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onDecryptEncryptedTextDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onDecryptEncryptedTextDelegateError: " << error);
+
+    emit notifyError(error);
+
+    DecryptEncryptedTextDelegate * delegate = qobject_cast<DecryptEncryptedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }

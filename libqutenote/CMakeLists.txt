@@ -185,10 +185,12 @@ set(PRIVATE_HEADERS
     src/note_editor/dialogs/DecryptionDialog.h
     src/note_editor/dialogs/EditHyperlinkDialog.h
     src/note_editor/delegates/JsResultCallbackFunctor.hpp
+    src/note_editor/delegates/HtmlCallbackFunctor.hpp
     src/note_editor/delegates/ParsePageScrollData.h
     src/note_editor/delegates/AddResourceDelegate.h
     src/note_editor/delegates/RemoveResourceDelegate.h
     src/note_editor/delegates/EncryptSelectedTextDelegate.h
+    src/note_editor/delegates/DecryptEncryptedTextDelegate.h
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h
     src/note_editor/delegates/EditHyperlinkDelegate.h
     src/note_editor/delegates/RemoveHyperlinkDelegate.h
@@ -270,6 +272,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/delegates/AddResourceDelegate.cpp
     src/note_editor/delegates/RemoveResourceDelegate.cpp
     src/note_editor/delegates/EncryptSelectedTextDelegate.cpp
+    src/note_editor/delegates/DecryptEncryptedTextDelegate.cpp
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.cpp
     src/note_editor/delegates/EditHyperlinkDelegate.cpp
     src/note_editor/delegates/RemoveHyperlinkDelegate.cpp
