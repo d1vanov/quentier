@@ -749,6 +749,7 @@ void ENMLConverterPrivate::escapeString(QString & string)
     QNTRACE("String before escaping: " << string);
     string.replace("\'", "\\x27", Qt::CaseInsensitive);
     string.replace('"', "\\x22", Qt::CaseInsensitive);
+    string = string.simplified();
     QNTRACE("String after escaping: " << string);
 }
 
