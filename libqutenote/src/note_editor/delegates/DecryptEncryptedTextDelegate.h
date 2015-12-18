@@ -37,7 +37,8 @@ public:
 
 Q_SIGNALS:
     void finished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset, QString encryptedText,
-                  QString cipher, size_t length, QString hint, QString decryptedText, QString passphrase);
+                  QString cipher, size_t length, QString hint, QString decryptedText, QString passphrase,
+                  bool rememberForSession, bool decryptPermanently);
     void cancelled();
     void notifyError(QString error);
 
@@ -80,6 +81,7 @@ private:
     QString     m_hint;
     QString     m_decryptedText;
     QString     m_passphrase;
+    bool        m_rememberForSession;
     bool        m_decryptPermanently;
 
     NoteEditorPrivate &                 m_noteEditor;

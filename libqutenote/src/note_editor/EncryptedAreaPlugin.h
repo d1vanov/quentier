@@ -25,11 +25,6 @@ public:
     QString name() const;
     QString description() const;
 
-Q_SIGNALS:
-    void decrypted(QString cipher, size_t keyLength, QString encryptedText, QString passphrase,
-                   QString decryptedText, bool rememberForSession, bool decryptPermanently,
-                   bool createDecryptUndoAction = true);
-
 private Q_SLOTS:
     void decrypt();
 

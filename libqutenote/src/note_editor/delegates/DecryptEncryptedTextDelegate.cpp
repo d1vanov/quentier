@@ -36,6 +36,7 @@ DecryptEncryptedTextDelegate::DecryptEncryptedTextDelegate(QString encryptedText
     m_hint(hint),
     m_decryptedText(),
     m_passphrase(),
+    m_rememberForSession(false),
     m_decryptPermanently(false),
     m_noteEditor(noteEditor),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
@@ -101,10 +102,8 @@ void DecryptEncryptedTextDelegate::raiseDecryptionDialog()
         m_cipher = "AES";
     }
 
-    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(m_encryptedText,
-                                                                            m_cipher, m_hint, m_length,
-                                                                            m_encryptionManager,
-                                                                            m_decryptedTextManager, &m_noteEditor));
+    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(m_encryptedText, m_cipher, m_hint, m_length,
+                                                                            m_encryptionManager, m_decryptedTextManager, &m_noteEditor));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,size_t,QString,QString,QString,bool,bool,bool),
                      this, QNSLOT(DecryptEncryptedTextDelegate,onEncryptedTextDecrypted,QString,size_t,QString,QString,QString,bool,bool,bool));
@@ -116,9 +115,8 @@ void DecryptEncryptedTextDelegate::raiseDecryptionDialog()
     }
 }
 
-void DecryptEncryptedTextDelegate::onEncryptedTextDecrypted(QString cipher, size_t keyLength,
-                                                            QString encryptedText, QString passphrase,
-                                                            QString decryptedText, bool rememberForSession,
+void DecryptEncryptedTextDelegate::onEncryptedTextDecrypted(QString cipher, size_t keyLength, QString encryptedText,
+                                                            QString passphrase, QString decryptedText, bool rememberForSession,
                                                             bool decryptPermanently, bool createDecryptUndoCommand)
 {
     QNDEBUG("DecryptEncryptedTextDelegate::onEncryptedTextDecrypted: encrypted text = " << encryptedText
@@ -127,6 +125,7 @@ void DecryptEncryptedTextDelegate::onEncryptedTextDecrypted(QString cipher, size
 
     m_decryptedText = decryptedText;
     m_passphrase = passphrase;
+    m_rememberForSession = rememberForSession;
     m_decryptPermanently = decryptPermanently;
 
     Q_UNUSED(cipher)
@@ -198,8 +197,8 @@ void DecryptEncryptedTextDelegate::continueDecryptionProcessing()
     {
         ENMLConverter::escapeString(m_decryptedText);
 
-        QString javascript = "decryptEncryptedTextPermanently('" + m_encryptedText +
-                             "', '" + m_decryptedText + "', 0);";
+        QString javascript = "decryptEncryptedTextPermanently(\"" + m_encryptedText +
+                             "\", \"" + m_decryptedText + "\", 0);";
         QNTRACE("script: " << javascript);
 
         m_noteEditor.skipNextContentChange();
@@ -316,7 +315,7 @@ void DecryptEncryptedTextDelegate::onModifiedPageJavaScriptLoaded()
                         this, QNSLOT(DecryptEncryptedTextDelegate,onModifiedPageJavaScriptLoaded));
 
     emit finished(m_modifiedHtml, m_pageXOffset, m_pageYOffset, m_encryptedText, m_cipher,
-                  m_length, m_hint, m_decryptedText, m_passphrase);
+                  m_length, m_hint, m_decryptedText, m_passphrase, m_rememberForSession, m_decryptPermanently);
 }
 
 } // namespace qute_note

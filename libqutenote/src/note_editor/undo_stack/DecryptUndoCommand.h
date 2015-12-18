@@ -12,8 +12,10 @@ class DecryptUndoCommand: public INoteEditorUndoCommand
 {
 public:
     DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
+                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
                        NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
     DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
+                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
                        NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~DecryptUndoCommand();
 
@@ -21,11 +23,12 @@ public:
     virtual void undoImpl() Q_DECL_OVERRIDE;
 
 private:
-    void init();
-
-private:
     EncryptDecryptUndoCommandInfo   m_info;
     DecryptedTextManager &          m_decryptedTextManager;
+    QString                         m_htmlWithDecryptedText;
+
+    int                             m_pageXOffset;
+    int                             m_pageYOffset;
 };
 
 } // namespace qute_note

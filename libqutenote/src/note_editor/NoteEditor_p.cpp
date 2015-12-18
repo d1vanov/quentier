@@ -1148,20 +1148,24 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
 
 void NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
                                                                QString encryptedText, QString cipher, size_t length, QString hint,
-                                                               QString decryptedText, QString passphrase)
+                                                               QString decryptedText, QString passphrase, bool rememberForSession,
+                                                               bool decryptPermanently)
 {
     QNDEBUG("NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished");
 
-    // TODO: move this whole stuff to the undo command
-    Q_UNUSED(htmlWithDecryptedText)
-    Q_UNUSED(pageXOffset)
-    Q_UNUSED(pageYOffset)
-    Q_UNUSED(encryptedText)
-    Q_UNUSED(cipher)
-    Q_UNUSED(length)
-    Q_UNUSED(hint)
-    Q_UNUSED(decryptedText)
-    Q_UNUSED(passphrase)
+    EncryptDecryptUndoCommandInfo info;
+    info.m_encryptedText = encryptedText;
+    info.m_decryptedText = decryptedText;
+    info.m_passphrase = passphrase;
+    info.m_cipher = cipher;
+    info.m_hint = hint;
+    info.m_keyLength = length;
+    info.m_rememberForSession = rememberForSession;
+    info.m_decryptPermanently = decryptPermanently;
+
+    DecryptUndoCommand * pCommand = new DecryptUndoCommand(info, m_decryptedTextManager, htmlWithDecryptedText,
+                                                           pageXOffset, pageYOffset, *this);
+    m_pUndoStack->push(pCommand);
 
     DecryptEncryptedTextDelegate * delegate = qobject_cast<DecryptEncryptedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -1362,26 +1366,6 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
     }
 
     m_pUndoStack->push(new NoteEditorContentEditUndoCommand(*this, resources));
-}
-
-void NoteEditorPrivate::pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
-                                               const QString & encryptedText, const QString & decryptedText,
-                                               const QString & passphrase, const bool rememberForSession,
-                                               const bool decryptPermanently)
-{
-    QNDEBUG("NoteEditorPrivate::pushDecryptUndoCommand");
-
-    EncryptDecryptUndoCommandInfo info;
-    info.m_cipher = cipher;
-    info.m_keyLength = keyLength;
-    info.m_rememberForSession = rememberForSession;
-    info.m_decryptedText = decryptedText;
-    info.m_decryptPermanently = decryptPermanently;
-    info.m_encryptedText = encryptedText;
-    info.m_passphrase = passphrase;
-
-    m_pUndoStack->push(new DecryptUndoCommand(info, m_decryptedTextManager, *this));
-    QNTRACE("Pushed DecryptUndoCommand to the undo stack");
 }
 
 void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
@@ -4050,8 +4034,8 @@ void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString ciph
                                                                                m_pFileIOThreadWorker, m_encryptionManager,
                                                                                m_decryptedTextManager);
 
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,int,int,QString,QString,size_t,QString,QString,QString),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,int,int,QString,QString,size_t,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,int,int,QString,QString,size_t,QString,QString,QString,bool,bool),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,int,int,QString,QString,size_t,QString,QString,QString,bool,bool));
     QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
     QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QString),
@@ -4108,46 +4092,6 @@ void NoteEditorPrivate::doRemoveHyperlink(const bool shouldTrackDelegate, const 
     }
 
     delegate->start();
-}
-
-void NoteEditorPrivate::onEncryptedAreaDecryption(QString cipher, size_t keyLength,
-                                                  QString encryptedText, QString passphrase,
-                                                  QString decryptedText, bool rememberForSession,
-                                                  bool decryptPermanently, bool createDecryptUndoCommand)
-{
-    QNDEBUG("NoteEditorPrivate::onEncryptedAreaDecryption: encrypted text = " << encryptedText
-            << "; remember for session = " << (rememberForSession ? "true" : "false")
-            << "; decrypt permanently = " << (decryptPermanently ? "true" : "false")
-            << "; create decrypt undo command = " << (createDecryptUndoCommand ? "true" : "false"));
-
-    if (createDecryptUndoCommand) {
-        switchEditorPage();
-        pushDecryptUndoCommand(cipher, keyLength, encryptedText, decryptedText, passphrase,
-                               rememberForSession, decryptPermanently);
-    }
-
-    if (decryptPermanently)
-    {
-        ENMLConverter::escapeString(decryptedText);
-
-        GET_PAGE();
-        QString javascript = "decryptEncryptedTextPermanently('" + encryptedText +
-                             "', '" + decryptedText + "', 0);";
-        QNTRACE("script: " << javascript);
-        page->executeJavaScript(javascript);
-
-        if (decryptPermanently) {
-            // The default scheme with contentChanged signal seems to be working but its auto-postponing by timer
-            // may prevent the note's ENML from updating in time, so enforce the conversion from ENML to note content
-            m_errorCachedMemory.resize(0);
-            Q_UNUSED(htmlToNoteContent(m_errorCachedMemory));
-        }
-
-        return;
-    }
-
-    // TODO: optimize this, it can be done way more efficiently
-    noteToEditorContent();
 }
 
 void NoteEditorPrivate::onSelectedTextEncryption(QString selectedText, QString encryptedText,

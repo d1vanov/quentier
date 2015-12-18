@@ -5,27 +5,29 @@
 
 namespace qute_note {
 
-DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
-                                       DecryptedTextManager & decryptedTextManager,
-                                       NoteEditorPrivate & noteEditorPrivate,
-                                       QUndoCommand * parent) :
+DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
+                                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
+                                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_info(info),
-    m_decryptedTextManager(decryptedTextManager)
+    m_decryptedTextManager(decryptedTextManager),
+    m_htmlWithDecryptedText(htmlWithDecryptedText),
+    m_pageXOffset(pageXOffset),
+    m_pageYOffset(pageYOffset)
 {
-    init();
+    QUndoCommand::setText(QObject::tr("Decrypt text"));
 }
 
-DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info,
-                                       DecryptedTextManager & decryptedTextManager,
-                                       NoteEditorPrivate & noteEditorPrivate,
-                                       const QString & text, QUndoCommand * parent) :
+DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
+                                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
+                                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_info(info),
-    m_decryptedTextManager(decryptedTextManager)
-{
-    init();
-}
+    m_decryptedTextManager(decryptedTextManager),
+    m_htmlWithDecryptedText(htmlWithDecryptedText),
+    m_pageXOffset(pageXOffset),
+    m_pageYOffset(pageYOffset)
+{}
 
 DecryptUndoCommand::~DecryptUndoCommand()
 {}
@@ -40,7 +42,15 @@ void DecryptUndoCommand::redoImpl()
                                         m_info.m_cipher, m_info.m_keyLength);
     }
 
-    m_noteEditorPrivate.switchEditorPage();
+    m_noteEditorPrivate.switchEditorPage(/* should convert from note = */ false);
+    m_noteEditorPrivate.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
+
+    if (m_info.m_decryptPermanently) {
+        m_noteEditorPrivate.setNoteHtml(m_htmlWithDecryptedText);
+    }
+    else {
+        m_noteEditorPrivate.updateFromNote();
+    }
 }
 
 void DecryptUndoCommand::undoImpl()
@@ -52,11 +62,6 @@ void DecryptUndoCommand::undoImpl()
     }
 
     m_noteEditorPrivate.popEditorPage();
-}
-
-void DecryptUndoCommand::init()
-{
-    QUndoCommand::setText(QObject::tr("Decrypt text"));
 }
 
 } // namespace qute_note

@@ -18,9 +18,6 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor, QWidget
 
     m_pUI->setupUi(this);
 
-    QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
-                     &m_noteEditor, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
-
     QAction * showEncryptedTextAction = new QAction(this);
     showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
     QObject::connect(showEncryptedTextAction, QNSIGNAL(QAction,triggered), this, QNSLOT(EncryptedAreaPlugin,decrypt));

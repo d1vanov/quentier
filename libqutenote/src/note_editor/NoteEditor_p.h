@@ -206,11 +206,6 @@ public Q_SLOTS:
 
     void flipEnToDoCheckboxState(const quint64 enToDoIdNumber);
 
-    void onEncryptedAreaDecryption(QString cipher, size_t keyLength, QString encryptedText,
-                                   QString passphrase, QString decryptedText,
-                                   bool rememberForSession, bool decryptPermanently,
-                                   bool createDecryptUndoCommand = true);
-
 // private signals:
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
@@ -299,7 +294,8 @@ private Q_SLOTS:
 
     void onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
                                                 QString encryptedText, QString cipher, size_t length, QString hint,
-                                                QString decryptedText, QString passphrase);
+                                                QString decryptedText, QString passphrase, bool rememberForSession,
+                                                bool decryptPermanently);
     void onDecryptEncryptedTextDelegateCancelled();
     void onDecryptEncryptedTextDelegateError(QString error);
 
@@ -317,10 +313,6 @@ private Q_SLOTS:
 private:
     // Helper methods for undo stack
     void pushNoteContentEditUndoCommand();
-    void pushDecryptUndoCommand(const QString & cipher, const size_t keyLength,
-                                const QString & encryptedText, const QString & decryptedText,
-                                const QString & passphrase, const bool rememberForSession,
-                                const bool decryptPermanently);
 
 private:
     template <typename T>

@@ -746,23 +746,10 @@ QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString &
 
 void ENMLConverterPrivate::escapeString(QString & string)
 {
-    QChar singleQuoteChar('\'');
-    QChar doubleQuoteChar('"');
-    QChar escapeChar('\\');
-
-    for(int i = 0; i < string.size(); ++i)
-    {
-        QChar currentChar = string[i];
-        if ((currentChar == singleQuoteChar) || (currentChar == doubleQuoteChar))
-        {
-            if (i == 0) {
-                string.insert(i, escapeChar);
-            }
-            else if (string[i-1] != escapeChar) {
-                string.insert(i, escapeChar);
-            }
-        }
-    }
+    QNTRACE("String before escaping: " << string);
+    string.replace("\'", "\\x27", Qt::CaseInsensitive);
+    string.replace('"', "\\x22", Qt::CaseInsensitive);
+    QNTRACE("String after escaping: " << string);
 }
 
 bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
