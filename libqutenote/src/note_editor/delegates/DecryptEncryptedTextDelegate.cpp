@@ -302,7 +302,7 @@ void DecryptEncryptedTextDelegate::onModifiedPageLoaded(bool ok)
 
     GET_PAGE()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(DecryptEncryptedTextDelegate,onModifiedPageLoaded,bool));
-    QObject::connect(page, QNSLOT(NoteEditorPage,javaScriptLoaded), this, QNSLOT(DecryptEncryptedTextDelegate,onModifiedPageJavaScriptLoaded));
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(DecryptEncryptedTextDelegate,onModifiedPageJavaScriptLoaded));
 }
 
 void DecryptEncryptedTextDelegate::onModifiedPageJavaScriptLoaded()
