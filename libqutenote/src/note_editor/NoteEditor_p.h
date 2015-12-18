@@ -188,6 +188,7 @@ public Q_SLOTS:
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
 
     virtual void decryptEncryptedTextUnderCursor() Q_DECL_OVERRIDE;
+    virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint) Q_DECL_OVERRIDE;
 
     virtual void editHyperlinkDialog() Q_DECL_OVERRIDE;
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
@@ -255,8 +256,6 @@ private Q_SLOTS:
 
     void onOpenResourceRequest(const QString & resourceHash);
     void onSaveResourceRequest(const QString & resourceHash);
-
-    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
 
     void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
     void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,

@@ -1,33 +1,22 @@
 #include "EncryptedAreaPlugin.h"
 #include "ui_EncryptedAreaPlugin.h"
-#include "dialogs/DecryptionDialog.h"
 #include "NoteEditorPluginFactory.h"
 #include "NoteEditor_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-#include <qute_note/utility/QuteNoteCheckPtr.h>
-#include <QIcon>
-#include <QMouseEvent>
 
 namespace qute_note {
 
-EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor,
-                                         QSharedPointer<EncryptionManager> encryptionManager,
-                                         DecryptedTextManager & decryptedTextManager,
-                                         QWidget * parent) :
+EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor, QWidget * parent) :
     QWidget(parent),
     m_pUI(new Ui::EncryptedAreaPlugin),
     m_noteEditor(noteEditor),
-    m_encryptionManager(encryptionManager),
-    m_decryptedTextManager(decryptedTextManager),
     m_hint(),
     m_cipher(),
-    m_keyLength(0)
+    m_keyLength()
 {
     QNDEBUG("EncryptedAreaPlugin: constructor");
 
     m_pUI->setupUi(this);
-
-    QUTE_NOTE_CHECK_PTR(m_encryptionManager.data())
 
     QObject::connect(this, QNSIGNAL(EncryptedAreaPlugin,decrypted,QString,size_t,QString,QString,QString,bool,bool,bool),
                      &m_noteEditor, QNSLOT(NoteEditorPrivate,onEncryptedAreaDecryption,QString,size_t,QString,QString,QString,bool,bool,bool));
@@ -74,26 +63,11 @@ bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const Q
         return false;
     }
 
-    if (keyLengthIndex >= 0)
-    {
-        QString keyLengthString = parameterValues[keyLengthIndex];
-        bool conversionResult = false;
-        int keyLength = keyLengthString.toInt(&conversionResult);
-
-        if (!conversionResult) {
-            errorDescription = QT_TR_NOOP("can't extract integer value from length attribute: ") + keyLengthString;
-            return false;
-        }
-        else if (keyLength < 0) {
-            errorDescription = QT_TR_NOOP("key length is negative: ") + keyLengthString;
-            return false;
-        }
-
-        m_keyLength = static_cast<size_t>(keyLength);
+    if (keyLengthIndex >= 0) {
+        m_keyLength = parameterValues[keyLengthIndex];
     }
-    else
-    {
-        m_keyLength = 128;
+    else {
+        m_keyLength = "128";
         QNDEBUG("Using the default value of key length = " << m_keyLength << " instead of missing HTML attribute");
     }
 
@@ -134,23 +108,7 @@ QString EncryptedAreaPlugin::description() const
 
 void EncryptedAreaPlugin::decrypt()
 {
-    raiseNoteDecryptionDialog();
-}
-
-void EncryptedAreaPlugin::raiseNoteDecryptionDialog()
-{
-    QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(m_encryptedText, m_cipher, m_hint,
-                                                                            m_keyLength, m_encryptionManager,
-                                                                            m_decryptedTextManager, this));
-    pDecryptionDialog->setWindowModality(Qt::WindowModal);
-
-    int res = pDecryptionDialog->exec();
-    if (res == QDialog::Accepted) {
-        QNTRACE("Successfully decrypted text: " << pDecryptionDialog->decryptedText());
-        emit decrypted(m_cipher, m_keyLength, m_encryptedText, pDecryptionDialog->passphrase(),
-                       pDecryptionDialog->decryptedText(), pDecryptionDialog->rememberPassphrase(),
-                       pDecryptionDialog->decryptPermanently());
-    }
+    m_noteEditor.decryptEncryptedText(m_encryptedText, m_cipher, m_keyLength, m_hint);
 }
 
 } // namespace qute_note

@@ -36,8 +36,6 @@ public:
     explicit NoteEditorPluginFactory(NoteEditorPrivate & editor,
                                      const ResourceFileStorageManager & resourceFileStorageManager,
                                      const FileIOThreadWorker & fileIOThreadWorker,
-                                     const QSharedPointer<EncryptionManager> & encryptionManager,
-                                     DecryptedTextManager & decryptedTextManager,
                                      QObject * parent = Q_NULLPTR);
     virtual ~NoteEditorPluginFactory();
 
@@ -153,9 +151,6 @@ private:
 
     const ResourceFileStorageManager *                  m_pResourceFileStorageManager;
     const FileIOThreadWorker *                          m_pFileIOThreadWorker;
-
-    QSharedPointer<EncryptionManager>                   m_pEncryptionManager;
-    DecryptedTextManager &                              m_decryptedTextManager;
 
     mutable QHash<QString, QIcon>                       m_resourceIconCache;
     mutable QHash<QString, QStringList>                 m_fileSuffixesCache;

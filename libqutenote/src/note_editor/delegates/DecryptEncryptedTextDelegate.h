@@ -64,8 +64,9 @@ private Q_SLOTS:
     void onModifiedPageJavaScriptLoaded();
 
 private:
+    void raiseDecryptionDialog();
     void requestPageScroll();
-    void decryptEncryptedText();
+    void continueDecryptionProcessing();
     void requestPageHtml();
 
 private:
@@ -79,6 +80,7 @@ private:
     QString     m_hint;
     QString     m_decryptedText;
     QString     m_passphrase;
+    bool        m_decryptPermanently;
 
     NoteEditorPrivate &                 m_noteEditor;
     FileIOThreadWorker *                m_pFileIOThreadWorker;

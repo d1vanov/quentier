@@ -19,8 +19,6 @@ namespace qute_note {
 NoteEditorPluginFactory::NoteEditorPluginFactory(NoteEditorPrivate & noteEditor,
                                                  const ResourceFileStorageManager & resourceFileStorageManager,
                                                  const FileIOThreadWorker & fileIOThreadWorker,
-                                                 const QSharedPointer<EncryptionManager> & encryptionManager,
-                                                 DecryptedTextManager & decryptedTextManager,
                                                  QObject * parent) :
     QWebPluginFactory(parent),
     m_noteEditor(noteEditor),
@@ -31,8 +29,6 @@ NoteEditorPluginFactory::NoteEditorPluginFactory(NoteEditorPrivate & noteEditor,
     m_mimeDatabase(),
     m_pResourceFileStorageManager(&resourceFileStorageManager),
     m_pFileIOThreadWorker(&fileIOThreadWorker),
-    m_pEncryptionManager(encryptionManager),
-    m_decryptedTextManager(decryptedTextManager),
     m_resourceIconCache(),
     m_fileSuffixesCache(),
     m_filterStringsCache(),
@@ -436,7 +432,7 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
 QObject * NoteEditorPluginFactory::createEncryptedAreaPlugin(const QStringList & argumentNames, const QStringList & argumentValues) const
 {
     QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
-    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_noteEditor, m_pEncryptionManager, m_decryptedTextManager, pParentWidget);
+    EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_noteEditor, pParentWidget);
 
     QString errorDescription;
     bool res = pEncryptedAreaPlugin->initialize(argumentNames, argumentValues, *this, errorDescription);

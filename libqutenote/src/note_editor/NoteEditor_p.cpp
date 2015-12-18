@@ -754,25 +754,6 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
     manualSaveResourceToFile(resource);
 }
 
-void NoteEditorPrivate::onEnCryptElementClicked(QString encryptedText, QString cipher,
-                                                QString length, QString hint)
-{
-    QNDEBUG("NoteEditorPrivate::onEnCryptElementClicked");
-
-    DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(encryptedText, cipher, length, hint, *this,
-                                                                               m_pFileIOThreadWorker, m_encryptionManager,
-                                                                               m_decryptedTextManager);
-
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,int,int,QString,QString,size_t,QString,QString,QString),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,int,int,QString,QString,size_t,QString,QString,QString));
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QString));
-
-    delegate->start();
-}
-
 void NoteEditorPrivate::contextMenuEvent(QContextMenuEvent * pEvent)
 {
     QNTRACE("NoteEditorPrivate::contextMenuEvent");
@@ -2400,7 +2381,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     QNDEBUG("NoteEditorPrivate::setupJavaScriptObjects");
 
     QObject::connect(m_pEnCryptElementClickHandler, &EnCryptElementOnClickHandler::decrypt,
-                     this, &NoteEditorPrivate::onEnCryptElementClicked);
+                     this, &NoteEditorPrivate::decryptEncryptedText);
 
     QObject::connect(m_pGenericResourceOpenAndSaveButtonsOnClickHandler,
                      &GenericResourceOpenAndSaveButtonsOnClickHandler::saveResourceRequest,
@@ -2807,8 +2788,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                                    QScriptEngine::QtOwnership);
 
-    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker,
-                                                  m_encryptionManager, m_decryptedTextManager, page);
+    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
     if (Q_LIKELY(m_pNote)) {
         m_pluginFactory->setNote(*m_pNote);
     }
@@ -4055,10 +4035,29 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
         return;
     }
 
-    onEnCryptElementClicked(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
-                            m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
+    decryptEncryptedText(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
+                         m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString cipher,
+                                             QString length, QString hint)
+{
+    QNDEBUG("NoteEditorPrivate::decryptEncryptedText");
+
+    DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(encryptedText, cipher, length, hint, *this,
+                                                                               m_pFileIOThreadWorker, m_encryptionManager,
+                                                                               m_decryptedTextManager);
+
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,int,int,QString,QString,size_t,QString,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,int,int,QString,QString,size_t,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QString));
+
+    delegate->start();
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

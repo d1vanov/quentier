@@ -79,6 +79,7 @@ public:
 
     virtual void encryptSelectedTextDialog() = 0;
     virtual void decryptEncryptedTextUnderCursor() = 0;
+    virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint) = 0;
 
     virtual void editHyperlinkDialog() = 0;
     virtual void copyHyperlink() = 0;
