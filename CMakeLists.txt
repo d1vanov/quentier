@@ -12,6 +12,7 @@ project(QuteNote)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libqutenote/cmake/modules)
 
 include(QuteNoteCompilerSettings)
+include(QuteNoteLinkerSettings)
 include(QuteNoteSetupQt)
 include(QuteNoteFindLibXml2)
 include(QuteNoteFindOpenSSL)
