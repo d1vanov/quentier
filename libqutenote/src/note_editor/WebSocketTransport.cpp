@@ -15,7 +15,7 @@ WebSocketTransport::WebSocketTransport(QWebSocket * socket) :
 WebSocketTransport::~WebSocketTransport()
 {}
 
-void WebSocketTransport::sendMessage(const QJsonObject &message)
+void WebSocketTransport::sendMessage(const QJsonObject & message)
 {
     QJsonDocument doc(message);
     m_socket->sendTextMessage(QString::fromUtf8(doc.toJson(QJsonDocument::Compact)));
@@ -24,18 +24,15 @@ void WebSocketTransport::sendMessage(const QJsonObject &message)
 void WebSocketTransport::textMessageReceived(const QString & messageData)
 {
     QByteArray messageRawData = messageData.toUtf8();
-    QList<QJsonDocument> parsedDocs = parseMessage(messageRawData);
-    const int numParsedDocs = parsedDocs.size();
-    for(int i = 0; i < numParsedDocs; ++i) {
-        emit messageReceived(parsedDocs[i].object(), this);
+    QJsonObject object;
+    if (parseMessage(messageRawData, object)) {
+        emit messageReceived(object, this);
     }
 }
 
-QList<QJsonDocument> WebSocketTransport::parseMessage(QByteArray messageData)
+bool WebSocketTransport::parseMessage(QByteArray messageData, QJsonObject & object)
 {
     QNTRACE("WebSocketTransport::parseMessage: " << messageData);
-
-    QList<QJsonDocument> result;
 
     QJsonParseError error;
     QJsonDocument document = QJsonDocument::fromJson(messageData, &error);
@@ -43,18 +40,17 @@ QList<QJsonDocument> WebSocketTransport::parseMessage(QByteArray messageData)
     {
         if (!document.isObject()) {
             QNWARNING("Failed to parse JSON message that is not an object: " << messageData);
-        }
-        else {
-            result << document;
+            return false;
         }
 
-        return result;
+        object = document.object();
+        return true;
     }
 
     if (error.error != QJsonParseError::GarbageAtEnd) {
         QNWARNING("Failed to parse text message as JSON object: " << messageData
                   << "; error is: " << error.errorString());
-        return result;
+        return false;
     }
 
     QNTRACE("Detected \"garbage at the end\" JSON parsing error, trying to workaround; "
@@ -65,12 +61,11 @@ QList<QJsonDocument> WebSocketTransport::parseMessage(QByteArray messageData)
     // been parsed and processed. So here we just get rid of everything but the last message.
     // FIXME: need to have a better understanding of how this thing is supposed to work
     int lastOpeningCurvyBraceIndex = messageData.lastIndexOf('{');
-    if (lastOpeningCurvyBraceIndex > 0) {
-        messageData.remove(0, lastOpeningCurvyBraceIndex);
-        return parseMessage(messageData);
-    }
-    else {
+    if (lastOpeningCurvyBraceIndex <= 0) {
         QNWARNING("Failed to workaround \"Garbage at the end\" error, message data: " << messageData);
-        return result;
+        return false;
     }
+
+    messageData.remove(0, lastOpeningCurvyBraceIndex);
+    return parseMessage(messageData, object);
 }

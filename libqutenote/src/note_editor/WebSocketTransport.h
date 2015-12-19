@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__WEB_SOCKET_TRANSPORT_H
 
 #include <QtWebChannel/QWebChannelAbstractTransport>
+#include <QScopedPointer>
 
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
@@ -18,7 +19,7 @@ private Q_SLOTS:
     void textMessageReceived(const QString & message);
 
 private:
-    QList<QJsonDocument> parseMessage(QByteArray messageData);
+    bool parseMessage(QByteArray messageData, QJsonObject & object);
 
 private:
     QWebSocket * m_socket;
