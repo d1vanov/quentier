@@ -18,6 +18,9 @@ private Q_SLOTS:
     void textMessageReceived(const QString & message);
 
 private:
+    QList<QJsonDocument> parseMessage(QByteArray messageData);
+
+private:
     QWebSocket * m_socket;
 };
 
