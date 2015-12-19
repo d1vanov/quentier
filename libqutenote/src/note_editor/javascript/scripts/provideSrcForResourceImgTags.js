@@ -20,12 +20,6 @@ function provideSrcForResourceImgTags() {
             continue;
         }
 
-        var srcAttr = element.getAttribute("src");
-        if (srcAttr && srcAttr !== "") {
-            console.log("Skipping tag with src attribute: " + srcAttr);
-            continue;
-        }
-
         var hash = element.getAttribute("hash");
         if (!hash) {
             console.log("Skipping img resource without hash attribute");

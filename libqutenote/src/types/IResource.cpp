@@ -1,6 +1,7 @@
 #include "data/NoteStoreDataElementData.h"
 #include <qute_note/types/IResource.h>
 #include <qute_note/utility/Utility.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 #include <QFileInfo>
 #include <QMimeDatabase>
 #include <QMimeType>
@@ -392,9 +393,35 @@ const QByteArray & IResource::dataBody() const
 
 void IResource::setDataBody(const QByteArray & body)
 {
+    QNTRACE("IResource::setDataBody: body to set is " << (body.isEmpty() ? "empty" : "not empty"));
+
     qevercloud::Resource & enResource = GetEnResource();
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), data, body, size, bodyHash);
-    enResource.data->body = body;
+
+    if (!enResource.data.isSet())
+    {
+        if (body.isEmpty()) {
+            QNTRACE("Body to set is empty and resource's data is not set as well");
+            return;
+        }
+
+        enResource.data = qevercloud::Data();
+    }
+
+    if (body.isEmpty())
+    {
+        enResource.data->body.clear();
+        QNTRACE("Cleared data body");
+
+        if (!enResource.data->bodyHash.isSet() && !enResource.data->size.isSet()) {
+            enResource.data.clear();
+            QNTRACE("Cleared the entire data field");
+        }
+    }
+    else
+    {
+        enResource.data->body = body;
+        QNTRACE("Set resource data body");
+    }
 }
 
 bool IResource::hasMime() const

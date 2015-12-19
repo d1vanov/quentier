@@ -183,6 +183,11 @@ public Q_SLOTS:
     virtual void copyAttachmentUnderCursor() Q_DECL_OVERRIDE;
     virtual void removeAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
     virtual void removeAttachmentUnderCursor() Q_DECL_OVERRIDE;
+    virtual void rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
+    virtual void rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
+
+    void rotateImageAttachmentUnderCursorClockwise();
+    void rotateImageAttachmentUnderCursorCounterclockwise();
 
     virtual void encryptSelectedTextDialog() Q_DECL_OVERRIDE;
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);

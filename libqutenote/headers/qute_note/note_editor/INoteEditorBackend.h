@@ -77,6 +77,20 @@ public:
     virtual void removeAttachment(const QString & resourceHash) = 0;
     virtual void removeAttachmentUnderCursor() = 0;
 
+    struct Rotation
+    {
+        enum type
+        {
+            Clockwise = 0,
+            Counterclockwise
+        };
+
+        friend std::ostream & operator<<(const type rotation, std::ostream & strm);
+    };
+
+    virtual void rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection) = 0;
+    virtual void rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection) = 0;
+
     virtual void encryptSelectedTextDialog() = 0;
     virtual void decryptEncryptedTextUnderCursor() = 0;
     virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint) = 0;

@@ -15,6 +15,7 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
 
     var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
     resource.setAttribute("src", escapedPath);
+    resource.style.webkitTransform = 'scale(1)';    // NOTE: trick to force the web engine to reload the image even if its src hasn't changed
 
     var resourceName = resource.getElementsByClassName("resource-name");
     if (resourceName && resourceName[0]) {

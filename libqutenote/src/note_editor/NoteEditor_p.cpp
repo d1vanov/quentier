@@ -80,6 +80,8 @@ typedef QWebEngineSettings WebSettings;
 #include <QCryptographicHash>
 #include <QPixmap>
 #include <QBuffer>
+#include <QImage>
+#include <QTransform>
 
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(this->page()); \
@@ -2549,6 +2551,13 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
 
     Q_UNUSED(m_pImageResourceContextMenu->addSeparator());
 
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::ImageRotateClockwise, "Rotate clockwise", m_pImageResourceContextMenu,
+                             rotateImageAttachmentUnderCursorClockwise);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::ImageRotateCounterClockwise, "Rotate countercloskwise", m_pImageResourceContextMenu,
+                             rotateImageAttachmentUnderCursorCounterclockwise);
+
+    Q_UNUSED(m_pImageResourceContextMenu->addSeparator());
+
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::OpenAttachment, "Open", m_pImageResourceContextMenu,
                              openAttachmentUnderCursor);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SaveAttachment, "Save as...", m_pImageResourceContextMenu,
@@ -3170,6 +3179,10 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
     }
 
     m_pNote->removeResource(resource);
+
+    if (resource.hasDataHash()) {
+        m_resourceInfo.removeResourceInfo(resource.dataHash());
+    }
 }
 
 void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
@@ -3211,6 +3224,7 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
     }
 
     resources[resourceIndex] = resource;
+    m_pNote->setResources(resources);
 }
 
 void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resources)
@@ -3918,6 +3932,8 @@ void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
         const ResourceWrapper & resource = resources[i];
         if (resource.hasDataHash() && (resource.dataHash() == resourceHash))
         {
+            m_resourceInfo.removeResourceInfo(resource.dataHash());
+
             RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this, m_pFileIOThreadWorker);
             QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper,QString,int,int),
                              this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper,QString,int,int));
@@ -3953,6 +3969,116 @@ void NoteEditorPrivate::removeAttachmentUnderCursor()
     removeAttachment(m_currentContextMenuExtraData.m_resourceHash);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection)
+{
+    QNDEBUG("NoteEditorPrivate::rotateImageAttachment: resource hash = " << resourceHash << ", rotation: " << rotationDirection);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: no note is set to the editor");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    int targetResourceIndex = -1;
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceWrapper & resource = resources[i];
+        if (!resource.hasDataHash() || (resource.dataHash() != resourceHash)) {
+            continue;
+        }
+
+        if (Q_UNLIKELY(!resource.hasMime())) {
+            QString error = QT_TR_NOOP("Can't rotate image attachment by hash: resources mime type is not set");
+            QNWARNING(error << ", resource: " << resource);
+            emit notifyError(error);
+            return;
+        }
+
+        if (Q_UNLIKELY(!resource.mime().startsWith("image/"))) {
+            QString error = QT_TR_NOOP("Can't rotate image attachment by hash: resource's mime type indicates it is not an image");
+            QNWARNING(error << ", resource: " << resource);
+            emit notifyError(error);
+            return;
+        }
+
+        targetResourceIndex = i;
+        break;
+    }
+
+    if (Q_UNLIKELY(targetResourceIndex < 0)) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: can't find the resource in the note");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    ResourceWrapper & resource = resources[targetResourceIndex];
+    if (Q_UNLIKELY(!resource.hasDataBody())) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: the resource doesn't have the data body set");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QImage resourceImage;
+    bool loaded = resourceImage.loadFromData(resource.dataBody());
+    if (Q_UNLIKELY(!loaded)) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: can't load image from resource data");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    qreal angle = ((rotationDirection == Rotation::Clockwise) ? 90.0 : -90.0);
+    QTransform transform;
+    transform.rotate(angle);
+    resourceImage = resourceImage.transformed(transform);
+
+    QByteArray rotatedResourceData;
+    QBuffer rotatedResourceDataBuffer(&rotatedResourceData);
+    rotatedResourceDataBuffer.open(QIODevice::WriteOnly);
+    resourceImage.save(&rotatedResourceDataBuffer, "PNG");
+
+    resource.setDataBody(rotatedResourceData);
+    m_pNote->setResources(resources);
+
+    m_resourceInfo.removeResourceInfo(resourceHash);
+    saveNoteResourcesToLocalFiles();
+
+    // TODO: create the corresponding undo command and push it to undo stack
+}
+
+void NoteEditorPrivate::rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection)
+{
+    QNDEBUG("INoteEditorBackend::rotateImageAttachmentUnderCursor: rotation: " << rotationDirection);
+
+    if (m_currentContextMenuExtraData.m_contentType != "ImageResource") {
+        QString error = QT_TR_NOOP("Can't rotate image attachment under cursor: wrong current context menu extra data's content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    rotateImageAttachment(m_currentContextMenuExtraData.m_resourceHash, rotationDirection);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::rotateImageAttachmentUnderCursorClockwise()
+{
+    QNDEBUG("NoteEditorPrivate::rotateImageAttachmentUnderCursorClockwise");
+    rotateImageAttachmentUnderCursor(Rotation::Clockwise);
+}
+
+void NoteEditorPrivate::rotateImageAttachmentUnderCursorCounterclockwise()
+{
+    QNDEBUG("NoteEditorPrivate::rotateImageAttachmentUnderCursorCounterclockwise");
+    rotateImageAttachmentUnderCursor(Rotation::Counterclockwise);
 }
 
 void NoteEditorPrivate::encryptSelectedTextDialog()
