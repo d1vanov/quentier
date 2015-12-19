@@ -2692,7 +2692,7 @@ void RemoteToLocalSynchronizationManager::getLinkedNotebookSyncState(const Linke
 
 bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
 {
-    qevercloud::SyncChunk * pSyncChunk = nullptr;
+    qevercloud::SyncChunk * pSyncChunk = Q_NULLPTR;
 
     QNDEBUG("Downloading linked notebook sync chunks:");
 
@@ -3311,7 +3311,7 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         else if (postponeAPICallSeconds == 0)
         {
             // NOTE: workarounding the stupidity of MSVC 2013
-            emitUpdateRequest<Note>(noteToUpdate, static_cast<const Note*>(nullptr));
+            emitUpdateRequest<Note>(noteToUpdate, static_cast<const Note*>(Q_NULLPTR));
         }
 
         return;
@@ -3392,7 +3392,7 @@ qint32 RemoteToLocalSynchronizationManager::tryToGetFullNoteData(Note & note, QS
 
 void RemoteToLocalSynchronizationManager::downloadSyncChunksAndLaunchSync(qint32 afterUsn)
 {
-    qevercloud::SyncChunk * pSyncChunk = nullptr;
+    qevercloud::SyncChunk * pSyncChunk = Q_NULLPTR;
 
     QNDEBUG("Downloading sync chunks:");
 
@@ -3487,7 +3487,7 @@ const Notebook * RemoteToLocalSynchronizationManager::getNotebookPerNote(const N
     QPair<QString,QString> key(noteGuid, noteLocalGuid);
     QHash<QPair<QString,QString>,Notebook>::const_iterator cit = m_notebooksPerNoteGuids.find(key);
     if (cit == m_notebooksPerNoteGuids.end()) {
-        return nullptr;
+        return Q_NULLPTR;
     }
     else {
         return &(cit.value());
@@ -4402,7 +4402,7 @@ void RemoteToLocalSynchronizationManager::checkUpdateSequenceNumbersAndProcessCo
             unsetLocalGuid(elementToUpdate);
 
             // NOTE: workarounding the stupidity of MSVC 2013
-            emitUpdateRequest<ElementType>(elementToUpdate, static_cast<const ElementType*>(nullptr));
+            emitUpdateRequest<ElementType>(elementToUpdate, static_cast<const ElementType*>(Q_NULLPTR));
         }
         else
         {

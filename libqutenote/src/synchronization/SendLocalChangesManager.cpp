@@ -1,4 +1,5 @@
 #include "SendLocalChangesManager.h"
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Utility.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
@@ -1278,7 +1279,7 @@ void SendLocalChangesManager::sendTags()
                 return;
             }
 
-            int * pLastUpdateCount = nullptr;
+            int * pLastUpdateCount = Q_NULLPTR;
             if (!tag.hasLinkedNotebookGuid())
             {
                 pLastUpdateCount = &m_lastUpdateCount;
@@ -1529,7 +1530,7 @@ void SendLocalChangesManager::sendNotebooks()
                 return;
             }
 
-            int * pLastUpdateCount = nullptr;
+            int * pLastUpdateCount = Q_NULLPTR;
             if (!notebook.hasLinkedNotebookGuid())
             {
                 pLastUpdateCount = &m_lastUpdateCount;
@@ -1713,7 +1714,7 @@ void SendLocalChangesManager::sendNotes()
                 return;
             }
 
-            int * pLastUpdateCount = nullptr;
+            int * pLastUpdateCount = Q_NULLPTR;
             if (!notebook.hasLinkedNotebookGuid())
             {
                 pLastUpdateCount = &m_lastUpdateCount;

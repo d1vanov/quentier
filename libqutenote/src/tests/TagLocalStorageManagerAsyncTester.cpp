@@ -9,8 +9,8 @@ namespace test {
 TagLocalStorageManagerAsyncTester::TagLocalStorageManagerAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
-    m_pLocalStorageManagerThreadWorker(nullptr),
-    m_pLocalStorageManagerThread(nullptr),
+    m_pLocalStorageManagerThreadWorker(Q_NULLPTR),
+    m_pLocalStorageManagerThread(Q_NULLPTR),
     m_initialTag(),
     m_foundTag(),
     m_modifiedTag(),
@@ -37,9 +37,9 @@ void TagLocalStorageManagerAsyncTester::onInitTestCase()
     qint32 userId = 2;
     bool startFromScratch = true;
 
-    if (m_pLocalStorageManagerThreadWorker != nullptr) {
+    if (m_pLocalStorageManagerThreadWorker != Q_NULLPTR) {
         delete m_pLocalStorageManagerThreadWorker;
-        m_pLocalStorageManagerThreadWorker = nullptr;
+        m_pLocalStorageManagerThreadWorker = Q_NULLPTR;
     }
 
     m_state = STATE_UNINITIALIZED;

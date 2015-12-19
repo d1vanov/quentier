@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 #define __LIB_QUTE_NOTE__LOCAL_STORAGE__LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/local_storage/LocalStorageCacheManager.h>
 #include <qute_note/types/UserWrapper.h>
@@ -22,7 +23,7 @@ public:
     explicit LocalStorageManagerThreadWorker(const QString & username,
                                              const qint32 userId,
                                              const bool startFromScratch,
-                                             QObject * parent = nullptr);
+                                             QObject * parent = Q_NULLPTR);
     virtual ~LocalStorageManagerThreadWorker();
 
     void setUseCache(const bool useCache);

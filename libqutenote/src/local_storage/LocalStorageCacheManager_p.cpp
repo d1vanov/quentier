@@ -164,7 +164,7 @@ const Type * LocalStorageCacheManagerPrivate::find##Type##tag(const QString & gu
     const auto & index = cache_name.get<Type##Holder::tag>(); \
     auto it = index.find(guid); \
     if (it == index.end()) { \
-        return nullptr; \
+        return Q_NULLPTR; \
     } \
     \
     return &(it->m_##name); \

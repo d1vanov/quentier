@@ -41,7 +41,7 @@ static const QSet<QString> allowedEnMediaAttributes = QSet<QString>()
 #undef WRAP
 
 ENMLConverterPrivate::ENMLConverterPrivate() :
-    m_pHtmlCleaner(nullptr),
+    m_pHtmlCleaner(Q_NULLPTR),
     m_cachedConvertedXml()
 {}
 

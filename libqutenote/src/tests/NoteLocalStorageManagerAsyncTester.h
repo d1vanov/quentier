@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/Note.h>
@@ -16,7 +17,7 @@ class NoteLocalStorageManagerAsyncTester : public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteLocalStorageManagerAsyncTester(QObject * parent = nullptr);
+    explicit NoteLocalStorageManagerAsyncTester(QObject * parent = Q_NULLPTR);
     ~NoteLocalStorageManagerAsyncTester();
 
 public Q_SLOTS:

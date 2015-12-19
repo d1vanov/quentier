@@ -10,7 +10,7 @@ class WebSocketClientWrapper: public QObject
 {
     Q_OBJECT
 public:
-    explicit WebSocketClientWrapper(QWebSocketServer * server, QObject * parent = nullptr);
+    explicit WebSocketClientWrapper(QWebSocketServer * server, QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
     void clientConnected(WebSocketTransport * client);

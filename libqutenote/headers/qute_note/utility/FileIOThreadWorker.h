@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H
 #define __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
 #include <QObject>
 #include <QString>
@@ -19,7 +20,7 @@ class QUTE_NOTE_EXPORT FileIOThreadWorker: public QObject
 {
     Q_OBJECT
 public:
-    explicit FileIOThreadWorker(QObject * parent = nullptr);
+    explicit FileIOThreadWorker(QObject * parent = Q_NULLPTR);
 
     /**
      * @brief setIdleTimePeriod - set time period defining the idle state of FileIOThreadWorker:

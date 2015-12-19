@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__TESTS__SAVED_SEARCH_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __LIB_QUTE_NOTE__TESTS__SAVED_SEARCH_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/types/SavedSearch.h>
 
@@ -14,7 +15,7 @@ class SavedSearchLocalStorageManagerAsyncTester: public QObject
 {
     Q_OBJECT
 public:
-    explicit SavedSearchLocalStorageManagerAsyncTester(QObject * parent = nullptr);
+    explicit SavedSearchLocalStorageManagerAsyncTester(QObject * parent = Q_NULLPTR);
     ~SavedSearchLocalStorageManagerAsyncTester();
 
 public Q_SLOTS:

@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__TESTS__USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __LIB_QUTE_NOTE__TESTS__USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/UserWrapper.h>
 #include <QUuid>
 
@@ -14,7 +15,7 @@ class UserLocalStorageManagerAsyncTester : public QObject
 {
     Q_OBJECT
 public:
-    explicit UserLocalStorageManagerAsyncTester(QObject * parent = nullptr);
+    explicit UserLocalStorageManagerAsyncTester(QObject * parent = Q_NULLPTR);
     ~UserLocalStorageManagerAsyncTester();
 
 public Q_SLOTS:

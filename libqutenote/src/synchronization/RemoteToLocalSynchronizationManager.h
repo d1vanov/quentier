@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__SYNCHRONIZATION__REMOTE_TO_LOCAL_SYNCHRONIZATION_MANAGER_H
 
 #include "NoteStore.h"
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/types/UserWrapper.h>
 #include <qute_note/types/Notebook.h>
@@ -22,7 +23,7 @@ class RemoteToLocalSynchronizationManager: public QObject
 public:
     explicit RemoteToLocalSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                                  QSharedPointer<qevercloud::NoteStore> pNoteStore,
-                                                 QObject * parent = nullptr);
+                                                 QObject * parent = Q_NULLPTR);
 
     bool active() const;
 
@@ -272,7 +273,7 @@ private:
 
     template <class ElementType>
     void emitUpdateRequest(const ElementType & elementToUpdate,
-                           const ElementType * elementToAddLater = nullptr);
+                           const ElementType * elementToAddLater = Q_NULLPTR);
 
     template <class ElementType, class ElementsToAddByUuid>
     void onUpdateDataElementCompleted(const ElementType & element, const QUuid & requestId,

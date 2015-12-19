@@ -66,7 +66,7 @@ QStyle * applicationStyle()
 
 #ifdef Q_OS_WIN
     // FIXME: figure out why QWindowsStyle doesn't compile
-    return nullptr;
+    return Q_NULLPTR;
 #endif
 
 #ifdef Q_OS_MAC
@@ -82,7 +82,7 @@ QStyle * applicationStyle()
         return new QPlastiqueStyle;
     }
 #elif QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    return nullptr;
+    return Q_NULLPTR;
 #endif
 
     const QString & firstStyle = styleNames.first();

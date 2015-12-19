@@ -11,9 +11,9 @@ LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString &
     m_username(username),
     m_userId(userId),
     m_startFromScratch(startFromScratch),
-    m_pLocalStorageManager(nullptr),
+    m_pLocalStorageManager(Q_NULLPTR),
     m_useCache(true),
-    m_pLocalStorageCacheManager(nullptr)
+    m_pLocalStorageCacheManager(Q_NULLPTR)
 {}
 
 LocalStorageManagerThreadWorker::~LocalStorageManagerThreadWorker()
@@ -40,7 +40,7 @@ void LocalStorageManagerThreadWorker::setUseCache(const bool useCache)
 const LocalStorageCacheManager * LocalStorageManagerThreadWorker::localStorageCacheManager() const
 {
     if (!m_useCache) {
-        return nullptr;
+        return Q_NULLPTR;
     }
     else {
         return m_pLocalStorageCacheManager;

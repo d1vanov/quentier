@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__SYNCHRONIZATION__SEND_LOCAL_CHANGES_MANAGER_H
 
 #include "NoteStore.h"
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/types/Tag.h>
 #include <qute_note/types/SavedSearch.h>
@@ -19,7 +20,7 @@ class SendLocalChangesManager: public QObject
 public:
     explicit SendLocalChangesManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                      QSharedPointer<qevercloud::NoteStore> pNoteStore,
-                                     QObject * parent = nullptr);
+                                     QObject * parent = Q_NULLPTR);
 
     bool active() const;
 

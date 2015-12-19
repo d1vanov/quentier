@@ -16,7 +16,7 @@ ResourceFileStorageManagerPrivate::ResourceFileStorageManagerPrivate(ResourceFil
     q_ptr(&manager)
 {
     createConnections();
-    m_resourceFileStorageLocation = resourceFileStorageLocation(nullptr);
+    m_resourceFileStorageLocation = resourceFileStorageLocation(Q_NULLPTR);
 }
 
 QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget * context)

@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__RESOURCE_FILES_STORAGE_MANAGER_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__RESOURCE_FILES_STORAGE_MANAGER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
 #include <QObject>
 #include <QUuid>
@@ -21,7 +22,7 @@ class QUTE_NOTE_EXPORT ResourceFileStorageManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit ResourceFileStorageManager(QObject * parent = nullptr);
+    explicit ResourceFileStorageManager(QObject * parent = Q_NULLPTR);
 
     /**
      * @brief resourceFileStorageLocation - the method tries to return the most appropriate

@@ -11,7 +11,7 @@ class CoreTester: public QObject
 {
     Q_OBJECT
 public:
-    explicit CoreTester(QObject * parent = nullptr);
+    explicit CoreTester(QObject * parent = Q_NULLPTR);
     virtual ~CoreTester();
 
 private slots:

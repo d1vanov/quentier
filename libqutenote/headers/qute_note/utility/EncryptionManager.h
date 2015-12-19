@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__ENCRYPTION_MANAGER_H
 #define __LIB_QUTE_NOTE__UTILITY__ENCRYPTION_MANAGER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
 #include <QObject>
 #include <QString>
@@ -19,7 +20,7 @@ class QUTE_NOTE_EXPORT EncryptionManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit EncryptionManager(QObject * parent = nullptr);
+    explicit EncryptionManager(QObject * parent = Q_NULLPTR);
     virtual ~EncryptionManager();
 
     bool decrypt(const QString & encryptedText, const QString & passphrase,

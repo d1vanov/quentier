@@ -224,8 +224,8 @@ bool EncryptionManagerPrivate::encrypt(const QString & textToEncrypt, const QStr
 bool EncryptionManagerPrivate::generateSalt(const EncryptionManagerPrivate::SaltKind::type saltKind,
                                             const size_t saltSize, QString & errorDescription)
 {
-    unsigned char * salt = nullptr;
-    const char * saltText = nullptr;
+    unsigned char * salt = Q_NULLPTR;
+    const char * saltText = Q_NULLPTR;
 
     switch (saltKind)
     {

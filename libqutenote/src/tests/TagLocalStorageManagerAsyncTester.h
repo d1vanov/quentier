@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__TESTS__TAG_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define __LIB_QUTE_NOTE__TESTS__TAG_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
 #include <qute_note/types/Tag.h>
 
@@ -14,7 +15,7 @@ class TagLocalStorageManagerAsyncTester: public QObject
 {
     Q_OBJECT
 public:
-    explicit TagLocalStorageManagerAsyncTester(QObject * parent = nullptr);
+    explicit TagLocalStorageManagerAsyncTester(QObject * parent = Q_NULLPTR);
     ~TagLocalStorageManagerAsyncTester();
 
 public Q_SLOTS:

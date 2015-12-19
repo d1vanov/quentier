@@ -9,8 +9,8 @@ namespace test {
 SavedSearchLocalStorageManagerAsyncTester::SavedSearchLocalStorageManagerAsyncTester(QObject * parent) :
     QObject(parent),
     m_state(STATE_UNINITIALIZED),
-    m_pLocalStorageManagerThreadWorker(nullptr),
-    m_pLocalStorageManagerThread(nullptr),
+    m_pLocalStorageManagerThreadWorker(Q_NULLPTR),
+    m_pLocalStorageManagerThread(Q_NULLPTR),
     m_initialSavedSearch(),
     m_foundSavedSearch(),
     m_modifiedSavedSearch(),
@@ -39,12 +39,12 @@ void SavedSearchLocalStorageManagerAsyncTester::onInitTestCase()
 
     if (m_pLocalStorageManagerThread) {
         delete m_pLocalStorageManagerThread;
-        m_pLocalStorageManagerThread = nullptr;
+        m_pLocalStorageManagerThread = Q_NULLPTR;
     }
 
     if (m_pLocalStorageManagerThreadWorker) {
         delete m_pLocalStorageManagerThreadWorker;
-        m_pLocalStorageManagerThreadWorker = nullptr;
+        m_pLocalStorageManagerThreadWorker = Q_NULLPTR;
     }
 
     m_state = STATE_UNINITIALIZED;

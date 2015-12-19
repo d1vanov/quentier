@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_P_H
 #define __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_P_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -11,7 +12,7 @@ class FileIOThreadWorkerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    explicit FileIOThreadWorkerPrivate(QObject * parent = nullptr);
+    explicit FileIOThreadWorkerPrivate(QObject * parent = Q_NULLPTR);
 
     void setIdleTimePeriod(const qint32 seconds);
 

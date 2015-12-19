@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__TESTS__LOCAL_STORAGE_CACHE_ASYNC_TESTER_H
 #define __LIB_QUTE_NOTE__TESTS__LOCAL_STORAGE_CACHE_ASYNC_TESTER_H
 
+#include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Tag.h>
@@ -18,7 +19,7 @@ class LocalStorageCacheAsyncTester: public QObject
 {
     Q_OBJECT
 public:
-    explicit LocalStorageCacheAsyncTester(QObject * parent = nullptr);
+    explicit LocalStorageCacheAsyncTester(QObject * parent = Q_NULLPTR);
     virtual ~LocalStorageCacheAsyncTester();
 
 public Q_SLOTS:
