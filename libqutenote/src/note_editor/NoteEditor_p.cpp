@@ -114,6 +114,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getHyperlinkDataJs(),
     m_removeHyperlinkJs(),
     m_replaceHyperlinkContentJs(),
+    m_updateResourceHashJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
@@ -337,6 +338,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_getHyperlinkDataJs);
     page->executeJavaScript(m_removeHyperlinkJs);
     page->executeJavaScript(m_replaceHyperlinkContentJs);
+    page->executeJavaScript(m_updateResourceHashJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
@@ -432,30 +434,48 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     }
 
     const QString localGuid = it.value();
-    m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
+
+    QString oldResourceFilePath;
+    auto resourceFileStoragePathIt = m_resourceFileStoragePathsByResourceLocalGuid.find(localGuid);
+    if (resourceFileStoragePathIt != m_resourceFileStoragePathsByResourceLocalGuid.end()) {
+        oldResourceFilePath = resourceFileStoragePathIt.value();
+        resourceFileStoragePathIt.value() = fileStoragePath;
+    }
+    else {
+        m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
+    }
 
     QString resourceDisplayName;
     QString resourceDisplaySize;
 
+    QString oldResourceHash;
     if (m_pNote)
     {
-        QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-        const int numResources = resourceAdapters.size();
+        bool shouldUpdateNoteResources = false;
+        QList<ResourceWrapper> resources = m_pNote->resources();
+        const int numResources = resources.size();
         for(int i = 0; i < numResources; ++i)
         {
-            ResourceAdapter & resourceAdapter = resourceAdapters[i];
-            if (resourceAdapter.localGuid() != localGuid) {
+            ResourceWrapper & resource = resources[i];
+            if (resource.localGuid() != localGuid) {
                 continue;
             }
 
-            if (!resourceAdapter.hasDataHash()) {
-                resourceAdapter.setDataHash(dataHash);
+            shouldUpdateNoteResources = true;
+            if (resource.hasDataHash()) {
+                oldResourceHash =   QString::fromLocal8Bit(resource.dataHash());
             }
 
-            resourceDisplayName = resourceAdapter.displayName();
-            if (resourceAdapter.hasDataSize()) {
-                resourceDisplaySize = humanReadableSize(resourceAdapter.dataSize());
+            resource.setDataHash(dataHash);
+
+            resourceDisplayName = resource.displayName();
+            if (resource.hasDataSize()) {
+                resourceDisplaySize = humanReadableSize(resource.dataSize());
             }
+        }
+
+        if (shouldUpdateNoteResources) {
+            m_pNote->setResources(resources);
         }
     }
 
@@ -466,10 +486,23 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     Q_UNUSED(m_genericResourceLocalGuidBySaveToStorageRequestIds.erase(it));
 
+    if (!oldResourceHash.isEmpty()) {
+        GET_PAGE()
+        page->executeJavaScript("updateResourceHash('" + oldResourceHash + "', '" + dataHashStr + "');");
+    }
+
     if (m_genericResourceLocalGuidBySaveToStorageRequestIds.isEmpty() && !m_pendingNotePageLoad) {
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
         provideSrcForResourceImgTags();
+    }
+
+    if (!oldResourceFilePath.isEmpty())
+    {
+        QFile oldResourceFile(oldResourceFilePath);
+        if (Q_UNLIKELY(!oldResourceFile.remove())) {
+            QNINFO("Can't remove stale resource file " + oldResourceFilePath);
+        }
     }
 
     auto saveIt = m_localGuidsOfResourcesWantedToBeSaved.find(localGuid);
@@ -2696,6 +2729,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/getHyperlinkData.js", m_getHyperlinkDataJs);
     SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
+    SETUP_SCRIPT("javascript/scripts/updateResourceHash.js", m_updateResourceHashJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
@@ -4048,7 +4082,15 @@ void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, cons
     m_pNote->setResources(resources);
 
     m_resourceInfo.removeResourceInfo(resourceHash);
-    saveNoteResourcesToLocalFiles();
+
+    QString fileStoragePath = m_noteEditorImageResourcesStoragePath;
+    fileStoragePath += "/" + resource.localGuid();
+    fileStoragePath += "_" + QString::number(QDateTime::currentMSecsSinceEpoch());
+    fileStoragePath += ".png";
+
+    QUuid saveResourceRequestId = QUuid::createUuid();
+    m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resource.localGuid();
+    emit saveResourceToStorage(resource.localGuid(), resource.dataBody(), QByteArray(), fileStoragePath, saveResourceRequestId);
 
     // TODO: create the corresponding undo command and push it to undo stack
 }

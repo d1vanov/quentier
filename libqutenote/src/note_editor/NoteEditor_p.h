@@ -509,6 +509,7 @@ private:
     QString     m_getHyperlinkDataJs;
     QString     m_removeHyperlinkJs;
     QString     m_replaceHyperlinkContentJs;
+    QString     m_updateResourceHashJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;

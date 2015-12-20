@@ -198,7 +198,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
 
     file.close();
 
-    QNDEBUG("Successfully wrote resource data to file");
+    QNDEBUG("Successfully wrote resource data to file: resource local guid = " << localGuid << ", file path = " << fileStoragePath);
     emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, QString());
 }
 

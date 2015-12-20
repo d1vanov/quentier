@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QUuid>
+#include <QStringList>
 
 QT_FORWARD_DECLARE_CLASS(QWidget)
 
