@@ -116,6 +116,9 @@ public:
     void provideSrcForGenericResourceImages();
     void setupGenericResourceOnClickHandler();
 
+    bool doRotateImageAttachment(const QString & resourceHash, INoteEditorBackend::Rotation::type rotationDirection,
+                                 QByteArray & newResourceHash);
+
     void switchEditorPage(const bool shouldConvertFromNote = true);
     void popEditorPage();
 
@@ -337,6 +340,7 @@ private:
     bool htmlToNoteContent(QString & errorDescription);
 
     void saveNoteResourcesToLocalFiles();
+    void updateHashForResourceTag(const QString & oldResourceHash, const QString & newResourceHash);
     void provideSrcForResourceImgTags();
 
     void manualSaveResourceToFile(const IResource & resource);

@@ -23,6 +23,7 @@
 #include "undo_stack/ToDoCheckboxUndoCommand.h"
 #include "undo_stack/AddResourceUndoCommand.h"
 #include "undo_stack/RemoveResourceUndoCommand.h"
+#include "undo_stack/ImageResourceRotationUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -486,9 +487,8 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     Q_UNUSED(m_genericResourceLocalGuidBySaveToStorageRequestIds.erase(it));
 
-    if (!oldResourceHash.isEmpty()) {
-        GET_PAGE()
-        page->executeJavaScript("updateResourceHash('" + oldResourceHash + "', '" + dataHashStr + "');");
+    if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHashStr)) {
+        updateHashForResourceTag(oldResourceHash, dataHashStr);
     }
 
     if (m_genericResourceLocalGuidBySaveToStorageRequestIds.isEmpty() && !m_pendingNotePageLoad) {
@@ -1936,6 +1936,14 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             "and add the src attributes to img resources when the files are ready");
 }
 
+void NoteEditorPrivate::updateHashForResourceTag(const QString & oldResourceHash, const QString & newResourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::updateHashForResourceTag");
+
+    GET_PAGE()
+    page->executeJavaScript("updateResourceHash('" + oldResourceHash + "', '" + newResourceHash + "');");
+}
+
 void NoteEditorPrivate::provideSrcForResourceImgTags()
 {
     QNDEBUG("NoteEditorPrivate::provideSrcForResourceImgTags");
@@ -2445,6 +2453,103 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 }
 
 #endif
+
+bool NoteEditorPrivate::doRotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection, QByteArray & newResourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::doRotateImageAttachment: resource hash = " << resourceHash << ", rotation direction: " << rotationDirection);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: no note is set to the editor");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    int targetResourceIndex = -1;
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceWrapper & resource = resources[i];
+        if (!resource.hasDataHash() || (resource.dataHash() != resourceHash)) {
+            continue;
+        }
+
+        if (Q_UNLIKELY(!resource.hasMime())) {
+            QString error = QT_TR_NOOP("Can't rotate image attachment by hash: resources mime type is not set");
+            QNWARNING(error << ", resource: " << resource);
+            emit notifyError(error);
+            return false;
+        }
+
+        if (Q_UNLIKELY(!resource.mime().startsWith("image/"))) {
+            QString error = QT_TR_NOOP("Can't rotate image attachment by hash: resource's mime type indicates it is not an image");
+            QNWARNING(error << ", resource: " << resource);
+            emit notifyError(error);
+            return false;
+        }
+
+        targetResourceIndex = i;
+        break;
+    }
+
+    if (Q_UNLIKELY(targetResourceIndex < 0)) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: can't find the resource in the note");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    ResourceWrapper & resource = resources[targetResourceIndex];
+    if (Q_UNLIKELY(!resource.hasDataBody())) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: the resource doesn't have the data body set");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    QImage resourceImage;
+    bool loaded = resourceImage.loadFromData(resource.dataBody());
+    if (Q_UNLIKELY(!loaded)) {
+        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: can't load image from resource data");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    qreal angle = ((rotationDirection == Rotation::Clockwise) ? 90.0 : -90.0);
+    QTransform transform;
+    transform.rotate(angle);
+    resourceImage = resourceImage.transformed(transform);
+
+    QByteArray rotatedResourceData;
+    QBuffer rotatedResourceDataBuffer(&rotatedResourceData);
+    rotatedResourceDataBuffer.open(QIODevice::WriteOnly);
+    resourceImage.save(&rotatedResourceDataBuffer, "PNG");
+
+    newResourceHash = QCryptographicHash::hash(rotatedResourceData, QCryptographicHash::Md5).toHex();
+    QNTRACE("Previous resource hash was " << resourceHash << ", new resource hash = " << newResourceHash);
+
+    resource.setDataBody(rotatedResourceData);
+    resource.setDataHash(newResourceHash);
+
+    m_pNote->setResources(resources);
+
+    m_resourceInfo.removeResourceInfo(resourceHash);
+
+    updateHashForResourceTag(resourceHash, QString::fromLocal8Bit(newResourceHash));
+
+    QString fileStoragePath = m_noteEditorImageResourcesStoragePath;
+    fileStoragePath += "/" + resource.localGuid();
+    fileStoragePath += "_" + QString::number(QDateTime::currentMSecsSinceEpoch());
+    fileStoragePath += ".png";
+
+    QUuid saveResourceRequestId = QUuid::createUuid();
+    m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resource.localGuid();
+    emit saveResourceToStorage(resource.localGuid(), resource.dataBody(), newResourceHash, fileStoragePath, saveResourceRequestId);
+
+    return true;
+}
 
 void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml, bool insideDecryptedTextFragment)
 {
@@ -4009,90 +4114,16 @@ void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, cons
 {
     QNDEBUG("NoteEditorPrivate::rotateImageAttachment: resource hash = " << resourceHash << ", rotation: " << rotationDirection);
 
-    if (Q_UNLIKELY(!m_pNote)) {
-        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: no note is set to the editor");
-        QNWARNING(error);
-        emit notifyError(error);
+    QByteArray newResourceHash;
+    bool res = doRotateImageAttachment(resourceHash, rotationDirection, newResourceHash);
+    if (!res) {
         return;
     }
 
-    int targetResourceIndex = -1;
-    QList<ResourceWrapper> resources = m_pNote->resources();
-    const int numResources = resources.size();
-    for(int i = 0; i < numResources; ++i)
-    {
-        const ResourceWrapper & resource = resources[i];
-        if (!resource.hasDataHash() || (resource.dataHash() != resourceHash)) {
-            continue;
-        }
-
-        if (Q_UNLIKELY(!resource.hasMime())) {
-            QString error = QT_TR_NOOP("Can't rotate image attachment by hash: resources mime type is not set");
-            QNWARNING(error << ", resource: " << resource);
-            emit notifyError(error);
-            return;
-        }
-
-        if (Q_UNLIKELY(!resource.mime().startsWith("image/"))) {
-            QString error = QT_TR_NOOP("Can't rotate image attachment by hash: resource's mime type indicates it is not an image");
-            QNWARNING(error << ", resource: " << resource);
-            emit notifyError(error);
-            return;
-        }
-
-        targetResourceIndex = i;
-        break;
-    }
-
-    if (Q_UNLIKELY(targetResourceIndex < 0)) {
-        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: can't find the resource in the note");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    ResourceWrapper & resource = resources[targetResourceIndex];
-    if (Q_UNLIKELY(!resource.hasDataBody())) {
-        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: the resource doesn't have the data body set");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    QImage resourceImage;
-    bool loaded = resourceImage.loadFromData(resource.dataBody());
-    if (Q_UNLIKELY(!loaded)) {
-        QString error = QT_TR_NOOP("Can't rotate image attachment by hash: can't load image from resource data");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    qreal angle = ((rotationDirection == Rotation::Clockwise) ? 90.0 : -90.0);
-    QTransform transform;
-    transform.rotate(angle);
-    resourceImage = resourceImage.transformed(transform);
-
-    QByteArray rotatedResourceData;
-    QBuffer rotatedResourceDataBuffer(&rotatedResourceData);
-    rotatedResourceDataBuffer.open(QIODevice::WriteOnly);
-    resourceImage.save(&rotatedResourceDataBuffer, "PNG");
-
-    resource.setDataBody(rotatedResourceData);
-    m_pNote->setResources(resources);
-
-    m_resourceInfo.removeResourceInfo(resourceHash);
-
-    QString fileStoragePath = m_noteEditorImageResourcesStoragePath;
-    fileStoragePath += "/" + resource.localGuid();
-    fileStoragePath += "_" + QString::number(QDateTime::currentMSecsSinceEpoch());
-    fileStoragePath += ".png";
-
-    QUuid saveResourceRequestId = QUuid::createUuid();
-    m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = resource.localGuid();
-    emit saveResourceToStorage(resource.localGuid(), resource.dataBody(), QByteArray(), fileStoragePath, saveResourceRequestId);
-
-    // TODO: create the corresponding undo command and push it to undo stack
+    ImageResourceRotationUndoCommand * pCommand = new ImageResourceRotationUndoCommand(resourceHash,
+                                                                                       QString::fromLocal8Bit(newResourceHash),
+                                                                                       rotationDirection, *this);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection)
