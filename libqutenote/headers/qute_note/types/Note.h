@@ -99,7 +99,8 @@ public:
     void setResources(const QList<ResourceAdapter> & resources);
     void setResources(const QList<ResourceWrapper> & resources);
     void addResource(const IResource & resource);
-    void removeResource(const IResource & resource);
+    bool updateResource(const IResource & resource);
+    bool removeResource(const IResource & resource);
 
     bool hasNoteAttributes() const;
     const qevercloud::NoteAttributes & noteAttributes() const;

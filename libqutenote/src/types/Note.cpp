@@ -515,28 +515,58 @@ void Note::addResource(const IResource & resource)
     QNDEBUG("Added resource to note, local guid = " << resource.localGuid());
 }
 
-void Note::removeResource(const IResource & resource)
+bool Note::updateResource(const IResource & resource)
+{
+    if (!d->m_qecNote.resources.isSet()) {
+        QNDEBUG("Can't update resource in note: note has no attached resources");
+        return false;
+    }
+
+    int targetResourceIndex = -1;
+    const int numResources = d->m_resourcesAdditionalInfo.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        if (d->m_resourcesAdditionalInfo[i].localGuid == resource.localGuid()) {
+            targetResourceIndex = i;
+            break;
+        }
+    }
+
+    if (targetResourceIndex < 0) {
+        QNDEBUG("Can't update resource in note: can't find resource to update");
+        return false;
+    }
+
+    d->m_qecNote.resources.ref()[targetResourceIndex] = resource.GetEnResource();
+    d->m_resourcesAdditionalInfo[targetResourceIndex].isDirty = resource.isDirty();
+    return true;
+}
+
+bool Note::removeResource(const IResource & resource)
 {
     if (!d->m_qecNote.resources.isSet()) {
         QNDEBUG("Can't remove resource from note: note has no attached resources");
-        return;
+        return false;
     }
 
     QList<qevercloud::Resource> & resources = d->m_qecNote.resources.ref();
     int removed = resources.removeAll(resource.GetEnResource());
-    if (removed > 0) {
-        QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
-        NoteData::ResourceAdditionalInfo info;
-        info.localGuid = resource.localGuid();
-        if (resource.hasNoteLocalGuid()) {
-            info.noteLocalGuid = resource.noteLocalGuid();
-        }
-        info.isDirty = resource.isDirty();
-        d->m_resourcesAdditionalInfo.removeAll(info);
-    }
-    else {
+    if (removed <= 0) {
         QNDEBUG("Haven't removed resource " << resource << " because there was no such resource attached to the note");
+        return false;
     }
+
+    QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
+    NoteData::ResourceAdditionalInfo info;
+    info.localGuid = resource.localGuid();
+    if (resource.hasNoteLocalGuid()) {
+        info.noteLocalGuid = resource.noteLocalGuid();
+    }
+
+    info.isDirty = resource.isDirty();
+    d->m_resourcesAdditionalInfo.removeAll(info);
+
+    return true;
 }
 
 bool Note::hasNoteAttributes() const

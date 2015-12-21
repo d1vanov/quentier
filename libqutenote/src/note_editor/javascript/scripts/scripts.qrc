@@ -5,6 +5,7 @@
         <file>snapSelectionToWord.js</file>
         <file>replaceSelectionWithHtml.js</file>
         <file>updateResourceHash.js</file>
+        <file>updateImageResourceSrc.js</file>
         <file>provideSrcForResourceImgTags.js</file>
         <file>pageMutationObserver.js</file>
         <file>qWebChannelSetup.js</file>

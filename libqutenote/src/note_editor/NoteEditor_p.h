@@ -116,6 +116,10 @@ public:
     void provideSrcForGenericResourceImages();
     void setupGenericResourceOnClickHandler();
 
+    void updateResourceInfo(const QString & resourceLocalGuid, const QString & resourceHashBefore,
+                            const QString & resourceHash, const QString & resourceDisplayName, const QString & resourceDisplaySize,
+                            const QString & resourceFileStoragePath);
+
     bool doRotateImageAttachment(const QString & resourceHash, INoteEditorBackend::Rotation::type rotationDirection,
                                  QByteArray & newResourceHash);
 
@@ -130,6 +134,7 @@ public:
     void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
 
     bool isModified() const;
+    Note * GetNotePrt() { return m_pNote; }
 
     void setPageOffsetsForNextLoad(const int pageXOffset, const int pageYOffset);
 
@@ -514,6 +519,7 @@ private:
     QString     m_removeHyperlinkJs;
     QString     m_replaceHyperlinkContentJs;
     QString     m_updateResourceHashJs;
+    QString     m_updateImageResourceSrcJs;
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;

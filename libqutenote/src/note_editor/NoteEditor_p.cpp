@@ -116,6 +116,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_removeHyperlinkJs(),
     m_replaceHyperlinkContentJs(),
     m_updateResourceHashJs(),
+    m_updateImageResourceSrcJs(),
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
@@ -340,6 +341,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_removeHyperlinkJs);
     page->executeJavaScript(m_replaceHyperlinkContentJs);
     page->executeJavaScript(m_updateResourceHashJs);
+    page->executeJavaScript(m_updateImageResourceSrcJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
@@ -2454,6 +2456,19 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 
 #endif
 
+void NoteEditorPrivate::updateResourceInfo(const QString & resourceLocalGuid, const QString & resourceHashBefore,
+                                           const QString & resourceHash, const QString & resourceDisplayName,
+                                           const QString & resourceDisplaySize, const QString & resourceFileStoragePath)
+{
+    QNDEBUG("NoteEditorPrivate::updateResourceInfo: resource local guid = " << resourceLocalGuid << ", hash before = "
+            << resourceHashBefore << ", hash after = " << resourceHash << ", file storage path = " << resourceFileStoragePath);
+
+    m_resourceFileStoragePathsByResourceLocalGuid[resourceLocalGuid] = resourceFileStoragePath;
+
+    m_resourceInfo.removeResourceInfo(resourceHashBefore);
+    m_resourceInfo.cacheResourceInfo(resourceHash, resourceDisplayName, resourceDisplaySize, resourceFileStoragePath);
+}
+
 bool NoteEditorPrivate::doRotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection, QByteArray & newResourceHash)
 {
     QNDEBUG("NoteEditorPrivate::doRotateImageAttachment: resource hash = " << resourceHash << ", rotation direction: " << rotationDirection);
@@ -2835,6 +2850,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
     SETUP_SCRIPT("javascript/scripts/updateResourceHash.js", m_updateResourceHashJs);
+    SETUP_SCRIPT("javascript/scripts/updateImageResourceSrc.js", m_updateImageResourceSrcJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
@@ -4120,10 +4136,12 @@ void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, cons
         return;
     }
 
+    /*
     ImageResourceRotationUndoCommand * pCommand = new ImageResourceRotationUndoCommand(resourceHash,
                                                                                        QString::fromLocal8Bit(newResourceHash),
                                                                                        rotationDirection, *this);
     m_pUndoStack->push(pCommand);
+    */
 }
 
 void NoteEditorPrivate::rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection)
