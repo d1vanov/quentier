@@ -1,7 +1,7 @@
 function updateImageResourceSrc(hash, newSrc) {
     console.log("updateImageResourceSrc: hash = " + hash + ", new src = " + newSrc);
 
-    var resource = document.querySelector("[hash=\"" + oldHash + "\"]");
+    var resource = document.querySelector("[hash=\"" + hash + "\"]");
     if (!resource) {
         console.warn("can't find the image resource to update the src for");
         return;

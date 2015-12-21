@@ -116,12 +116,8 @@ public:
     void provideSrcForGenericResourceImages();
     void setupGenericResourceOnClickHandler();
 
-    void updateResourceInfo(const QString & resourceLocalGuid, const QString & resourceHashBefore,
-                            const QString & resourceHash, const QString & resourceDisplayName, const QString & resourceDisplaySize,
-                            const QString & resourceFileStoragePath);
-
-    bool doRotateImageAttachment(const QString & resourceHash, INoteEditorBackend::Rotation::type rotationDirection,
-                                 QByteArray & newResourceHash);
+    void updateResource(const QString & resourceLocalGuid, const QString & previousResourceHash,
+                        ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
 
     void switchEditorPage(const bool shouldConvertFromNote = true);
     void popEditorPage();
@@ -300,6 +296,10 @@ private Q_SLOTS:
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
                                           int pageXOffset, int pageYOffset);
     void onRemoveResourceDelegateError(QString error);
+
+    void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore, ResourceWrapper resourceAfter,
+                                                 INoteEditorBackend::Rotation::type rotationDirection);
+    void onImageResourceRotationDelegateError(QString error);
 
     void onEncryptSelectedTextDelegateFinished(QString htmlWithEncryption, int pageXOffset, int pageYOffset);
     void onEncryptSelectedTextDelegateCancelled();

@@ -2,6 +2,7 @@
 #include <qute_note/note_editor/NoteEditor.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QUndoStack>
+#include <iostream>
 
 namespace qute_note {
 
