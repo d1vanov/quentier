@@ -4,7 +4,6 @@
 #include "DataElementWithShortcutData.h"
 #include <QEverCloud.h>
 #include <QImage>
-#include <QMutex>
 
 namespace qute_note {
 
@@ -20,8 +19,9 @@ public:
     void clear();
     bool checkParameters(QString & errorDescription) const;
 
-    QString plainText(QString * errorMessage) const;
-    QStringList listOfWords(QString * errorMessage) const;
+    QString plainText(QString * pErrorMessage) const;
+    QStringList listOfWords(QString * pErrorMessage) const;
+    std::pair<QString, QStringList> plainTextAndListOfWords(QString * pErrorMessage) const;
 
     bool containsToDoImpl(const bool checked) const;
     bool containsEncryption() const;
@@ -41,23 +41,6 @@ public:
 
     QList<ResourceAdditionalInfo> m_resourcesAdditionalInfo;
     QImage   m_thumbnail;
-
-    mutable QString  m_lazyPlainText;
-    mutable bool     m_lazyPlainTextIsValid;
-
-    mutable QStringList  m_lazyListOfWords;
-    mutable bool         m_lazyListOfWordsIsValid;
-
-    // these flags are int in order to handle the "empty" state:
-    // "-1" - empty, undefined
-    // "0" - false
-    // "1" - true
-    mutable int  m_lazyContainsCheckedToDo;
-    mutable int  m_lazyContainsUncheckedToDo;
-    mutable int  m_lazyContainsEncryption;
-
-private:
-    mutable QMutex  m_mutex;
 
 private:
     NoteData & operator=(const NoteData & other) Q_DECL_DELETE;

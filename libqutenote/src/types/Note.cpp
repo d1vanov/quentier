@@ -608,6 +608,11 @@ QStringList Note::listOfWords(QString * pErrorMessage) const
     return d->listOfWords(pErrorMessage);
 }
 
+std::pair<QString, QStringList> Note::plainTextAndListOfWords(QString * pErrorMessage) const
+{
+    return d->plainTextAndListOfWords(pErrorMessage);
+}
+
 bool Note::containsCheckedTodo() const
 {
     return d->containsToDoImpl(/* checked = */ true);
@@ -675,21 +680,6 @@ QTextStream & Note::Print(QTextStream & strm) const
         strm << "content is not set";
     }
     INSERT_DELIMITER;
-
-    if (d->m_lazyContainsCheckedToDo > (-1)) {
-        strm << "m_lazyContainsCheckedToDo = " << QString::number(d->m_lazyContainsCheckedToDo);
-        INSERT_DELIMITER;
-    }
-
-    if (d->m_lazyContainsUncheckedToDo > (-1)) {
-        strm << "m_lazyContainsUncheckedToDo = " << QString::number(d->m_lazyContainsUncheckedToDo);
-        INSERT_DELIMITER;
-    }
-
-    if (d->m_lazyContainsEncryption > (-1)) {
-        strm << "m_lazyContainsEncryption = " << QString::number(d->m_lazyContainsEncryption);
-        INSERT_DELIMITER;
-    }
 
     if (d->m_qecNote.contentHash.isSet()) {
         strm << "contentHash: " << d->m_qecNote.contentHash;
@@ -791,18 +781,6 @@ QTextStream & Note::Print(QTextStream & strm) const
     INSERT_DELIMITER;
 
     strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
-    INSERT_DELIMITER;
-
-    strm << "lazyPlainText: " << d->m_lazyPlainText;
-    INSERT_DELIMITER;
-
-    strm << "lazyPlainText is " << (d->m_lazyPlainTextIsValid ? "valid" : "invalid");
-    INSERT_DELIMITER;
-
-    strm << "lazyListOfWords: " << d->m_lazyListOfWords.join(",");
-    INSERT_DELIMITER;
-
-    strm << "lazyListOfWords is " << (d->m_lazyListOfWordsIsValid ? "valid" : "invalid");
     INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER

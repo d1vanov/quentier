@@ -11,42 +11,21 @@ NoteData::NoteData() :
     DataElementWithShortcutData(),
     m_qecNote(),
     m_resourcesAdditionalInfo(),
-    m_thumbnail(),
-    m_lazyPlainText(),
-    m_lazyPlainTextIsValid(false),
-    m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false),
-    m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1),
-    m_lazyContainsEncryption(-1)
+    m_thumbnail()
 {}
 
 NoteData::NoteData(const NoteData & other) :
     DataElementWithShortcutData(other),
     m_qecNote(other.m_qecNote),
     m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
-    m_thumbnail(other.m_thumbnail),
-    m_lazyPlainText(other.m_lazyPlainText),
-    m_lazyPlainTextIsValid(other.m_lazyPlainTextIsValid),
-    m_lazyListOfWords(other.m_lazyListOfWords),
-    m_lazyListOfWordsIsValid(other.m_lazyListOfWordsIsValid),
-    m_lazyContainsCheckedToDo(other.m_lazyContainsCheckedToDo),
-    m_lazyContainsUncheckedToDo(other.m_lazyContainsUncheckedToDo),
-    m_lazyContainsEncryption(other.m_lazyContainsEncryption)
+    m_thumbnail(other.m_thumbnail)
 {}
 
 NoteData::NoteData(NoteData && other) :
     DataElementWithShortcutData(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
-    m_thumbnail(std::move(other.m_thumbnail)),
-    m_lazyPlainText(std::move(other.m_lazyPlainText)),
-    m_lazyPlainTextIsValid(std::move(other.m_lazyPlainTextIsValid)),
-    m_lazyListOfWords(std::move(other.m_lazyListOfWords)),
-    m_lazyListOfWordsIsValid(std::move(other.m_lazyListOfWordsIsValid)),
-    m_lazyContainsCheckedToDo(std::move(other.m_lazyContainsCheckedToDo)),
-    m_lazyContainsUncheckedToDo(std::move(other.m_lazyContainsUncheckedToDo)),
-    m_lazyContainsEncryption(std::move(other.m_lazyContainsEncryption))
+    m_thumbnail(std::move(other.m_thumbnail))
 {}
 
 NoteData::~NoteData()
@@ -56,14 +35,7 @@ NoteData::NoteData(const qevercloud::Note & other) :
     DataElementWithShortcutData(),
     m_qecNote(other),
     m_resourcesAdditionalInfo(),
-    m_thumbnail(),
-    m_lazyPlainText(),
-    m_lazyPlainTextIsValid(false),
-    m_lazyListOfWords(),
-    m_lazyListOfWordsIsValid(false),
-    m_lazyContainsCheckedToDo(-1),
-    m_lazyContainsUncheckedToDo(-1),
-    m_lazyContainsEncryption(-1)
+    m_thumbnail()
 {}
 
 bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditionalInfo & other) const
@@ -75,20 +47,7 @@ bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditi
 
 bool NoteData::containsToDoImpl(const bool checked) const
 {
-    QMutexLocker mutexLocker(&m_mutex);
-
-    int & refLazyContainsToDo = (checked ? m_lazyContainsCheckedToDo : m_lazyContainsUncheckedToDo);
-    if (refLazyContainsToDo > (-1)) {
-        if (refLazyContainsToDo == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
     if (!m_qecNote.content.isSet()) {
-        refLazyContainsToDo = 0;
         return false;
     }
 
@@ -102,38 +61,23 @@ bool NoteData::containsToDoImpl(const bool checked) const
         {
             const QXmlStreamAttributes attributes = reader.attributes();
             if (checked && attributes.hasAttribute("checked") && (attributes.value("checked") == "true")) {
-                refLazyContainsToDo = 1;
                 return true;
             }
 
             if ( !checked &&
                  (!attributes.hasAttribute("checked") || (attributes.value("checked") == "false")) )
             {
-                refLazyContainsToDo = 1;
                 return true;
             }
         }
     }
 
-    refLazyContainsToDo = 0;
     return false;
 }
 
 bool NoteData::containsEncryption() const
 {
-    QMutexLocker mutexLocker(&m_mutex);
-
-    if (m_lazyContainsEncryption > (-1)) {
-        if (m_lazyContainsEncryption == 0) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
-
     if (!m_qecNote.content.isSet()) {
-        m_lazyContainsEncryption = 0;
         return false;
     }
 
@@ -143,43 +87,26 @@ bool NoteData::containsEncryption() const
         Q_UNUSED(reader.readNext());
 
         if (reader.isStartElement() && (reader.name() == "en-crypt")) {
-            m_lazyContainsEncryption = 1;
             return true;
         }
     }
 
-    m_lazyContainsEncryption = 0;
     return false;
 }
 
 void NoteData::setContent(const QString & content)
 {
-    QMutexLocker mutexLocker(&m_mutex);
-
     if (!content.isEmpty()) {
         m_qecNote.content = content;
     }
     else {
         m_qecNote.content.clear();
     }
-
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
 }
 
 void NoteData::clear()
 {
-    QMutexLocker mutexLocker(&m_mutex);
-
     m_qecNote = qevercloud::Note();
-    m_lazyPlainTextIsValid = false;    // Mark any existing plain text as invalid but don't free memory
-    m_lazyListOfWordsIsValid = false;
-    m_lazyContainsCheckedToDo = -1;
-    m_lazyContainsUncheckedToDo = -1;
-    m_lazyContainsEncryption = -1;
 }
 
 bool NoteData::checkParameters(QString & errorDescription) const
@@ -358,12 +285,6 @@ bool NoteData::checkParameters(QString & errorDescription) const
 
 QString NoteData::plainText(QString * pErrorMessage) const
 {
-    QMutexLocker mutexLocker(&m_mutex);
-
-    if (m_lazyPlainTextIsValid) {
-        return m_lazyPlainText;
-    }
-
     if (!m_qecNote.content.isSet()) {
         if (pErrorMessage) {
             *pErrorMessage = "Note content is not set";
@@ -371,9 +292,10 @@ QString NoteData::plainText(QString * pErrorMessage) const
         return QString();
     }
 
+    QString plainText;
     QString error;
     bool res = ENMLConverter::noteContentToPlainText(m_qecNote.content.ref(),
-                                                     m_lazyPlainText, error);
+                                                     plainText, error);
     if (!res) {
         QNWARNING(error);
         if (pErrorMessage) {
@@ -382,32 +304,15 @@ QString NoteData::plainText(QString * pErrorMessage) const
         return QString();
     }
 
-    m_lazyPlainTextIsValid = true;
-
-    return m_lazyPlainText;
+    return plainText;
 }
 
 QStringList NoteData::listOfWords(QString * pErrorMessage) const
 {
-    QMutexLocker mutexLocker(&m_mutex);
-
-    if (m_lazyListOfWordsIsValid) {
-        return m_lazyListOfWords;
-    }
-
-    if (m_lazyPlainTextIsValid) {
-        m_lazyListOfWords = ENMLConverter::plainTextToListOfWords(m_lazyPlainText);
-        m_lazyListOfWordsIsValid = true;
-        return m_lazyListOfWords;
-    }
-
-    // If still not returned, there's no plain text available so will get the list of words
-    // from Note's content instead
-
+    QStringList result;
     QString error;
     bool res = ENMLConverter::noteContentToListOfWords(m_qecNote.content.ref(),
-                                                       m_lazyListOfWords,
-                                                       error, &m_lazyPlainText);
+                                                       result, error);
     if (!res) {
         QNWARNING(error);
         if (pErrorMessage) {
@@ -416,10 +321,26 @@ QStringList NoteData::listOfWords(QString * pErrorMessage) const
         return QStringList();
     }
 
-    m_lazyPlainTextIsValid = true;
-    m_lazyListOfWordsIsValid = true;
+    return result;
+}
 
-    return m_lazyListOfWords;
+std::pair<QString, QStringList> NoteData::plainTextAndListOfWords(QString * pErrorMessage) const
+{
+    std::pair<QString, QStringList> result;
+
+    QString error;
+    bool res = ENMLConverter::noteContentToListOfWords(m_qecNote.content.ref(),
+                                                       result.second,
+                                                       error, &result.first);
+    if (!res) {
+        QNWARNING(error);
+        if (pErrorMessage) {
+            *pErrorMessage = error;
+        }
+        return std::pair<QString, QStringList>();
+    }
+
+    return result;
 }
 
 } // namespace qute_note

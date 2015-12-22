@@ -4543,23 +4543,17 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
         if (note.hasContent())
         {
             QString error;
-            QString contentPlainText = note.plainText(&error);
+
+            std::pair<QString, QStringList> plainTextAndListOfWords = note.plainTextAndListOfWords(&error);
             if (!error.isEmpty()) {
-                errorDescription += QT_TR_NOOP("can't get note's plain text: ") + error;
+                errorDescription += QT_TR_NOOP("can't get note's plain text and list of words: ") + error;
                 QNWARNING(errorDescription);
                 return false;
             }
 
-            error.resize(0);
-            QStringList contentListOfWords = note.listOfWords(&error);
-            if (!error.isEmpty()) {
-                errorDescription += QT_TR_NOOP("can't get note's list of words: ") + error;
-                QNWARNING(errorDescription);
-                return false;
-            }
-            QString listOfWords = contentListOfWords.join(" ");
+            QString listOfWords = plainTextAndListOfWords.second.join(" ");
 
-            query.bindValue(":contentPlainText", (contentPlainText.isEmpty() ? nullValue : contentPlainText));
+            query.bindValue(":contentPlainText", (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
             query.bindValue(":contentListOfWords", (listOfWords.isEmpty() ? nullValue : listOfWords));
         }
         else {

@@ -111,6 +111,7 @@ public:
 
     QString plainText(QString * pErrorMessage = Q_NULLPTR) const;
     QStringList listOfWords(QString * pErrorMessage = Q_NULLPTR) const;
+    std::pair<QString, QStringList> plainTextAndListOfWords(QString * pErrorMessage = Q_NULLPTR) const;
 
     bool containsCheckedTodo() const;
     bool containsUncheckedTodo() const;
