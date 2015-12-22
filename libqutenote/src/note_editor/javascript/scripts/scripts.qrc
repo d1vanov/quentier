@@ -4,6 +4,7 @@
         <file>getSelectionHtml.js</file>
         <file>snapSelectionToWord.js</file>
         <file>replaceSelectionWithHtml.js</file>
+        <file>wrapSelectionIntoHyperlink.js</file>
         <file>updateResourceHash.js</file>
         <file>updateImageResourceSrc.js</file>
         <file>provideSrcForResourceImgTags.js</file>

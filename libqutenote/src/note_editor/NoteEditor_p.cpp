@@ -109,6 +109,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
+    m_wrapSelectionIntoHyperlinkJs(),
     m_findSelectedHyperlinkElementJs(),
     m_findSelectedHyperlinkIdJs(),
     m_setHyperlinkToSelectionJs(),
@@ -336,6 +337,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
     page->executeJavaScript(m_findSelectedHyperlinkIdJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
+    page->executeJavaScript(m_wrapSelectionIntoHyperlinkJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
     page->executeJavaScript(m_getHyperlinkDataJs);
@@ -2802,6 +2804,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
+    SETUP_SCRIPT("javascript/scripts/wrapSelectionIntoHyperlink.js", m_wrapSelectionIntoHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkId.js", m_findSelectedHyperlinkIdJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
@@ -3539,7 +3542,53 @@ void NoteEditorPrivate::copy()
 
 void NoteEditorPrivate::paste()
 {
-    HANDLE_ACTION(paste, Paste);
+    QNDEBUG("NoteEditorPrivate::paste");
+
+    GET_PAGE()
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    if (Q_UNLIKELY(!pClipboard)) {
+        QNWARNING("Can't access the application clipboard to analyze the pasted content");
+        page->triggerAction(WebPage::Paste);
+        setFocus();
+        return;
+    }
+
+    QString textToPaste = pClipboard->text();
+    QNTRACE("Text to paste: " << textToPaste);
+
+    if (!textToPaste.startsWith("http://") && !textToPaste.startsWith("https://") &&
+        !textToPaste.startsWith("mailto:") && !textToPaste.startsWith("ftp://"))
+    {
+        QNTRACE("The pasted text doesn't appear to be a url");
+        page->triggerAction(WebPage::Paste);
+        setFocus();
+        return;
+    }
+
+    QUrl url(textToPaste);
+    if (!url.isValid()) {
+        url.setScheme("evernote");
+    }
+
+    if (!url.isValid()) {
+        QNDEBUG("It appears we don't paste a url");
+        page->triggerAction(WebPage::Paste);
+        setFocus();
+        return;
+    }
+
+    QNDEBUG("Was able to create the url from pasted text, inserting a hyperlink");
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    textToPaste = url.toString(QUrl::FullyEncoded);
+#else
+    textToPaste = url.toString(QUrl::None);
+#endif
+
+    QNTRACE("Url converted to text = " << textToPaste);
+    page->executeJavaScript("wrapSelectionIntoHyperlink('" + textToPaste + "', '" +
+                            QString::number(m_lastFreeHyperlinkIdNumber++) + "')");
 }
 
 void NoteEditorPrivate::pasteUnformatted()

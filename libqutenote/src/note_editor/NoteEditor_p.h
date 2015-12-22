@@ -511,6 +511,7 @@ private:
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
+    QString     m_wrapSelectionIntoHyperlinkJs;
     QString     m_findSelectedHyperlinkElementJs;
     QString     m_findSelectedHyperlinkIdJs;
     QString     m_setHyperlinkToSelectionJs;
