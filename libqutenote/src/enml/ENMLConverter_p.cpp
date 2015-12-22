@@ -559,59 +559,46 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
 bool ENMLConverterPrivate::noteContentToPlainText(const QString & noteContent, QString & plainText,
                                                   QString & errorMessage)
 {
-    // FIXME: remake using QXmlStreamReader
+    QNDEBUG("ENMLConverterPrivate::noteContentToPlainText: " << noteContent);
 
     plainText.resize(0);
 
-    QDomDocument enXmlDomDoc;
-    int errorLine = -1, errorColumn = -1;
-    bool res = enXmlDomDoc.setContent(noteContent, &errorMessage, &errorLine, &errorColumn);
-    if (!res) {
-        // TRANSLATOR Explaining the error of XML parsing
-        errorMessage += QT_TR_NOOP(". Error happened at line ") + QString::number(errorLine) +
-                        QT_TR_NOOP(", at column ") + QString::number(errorColumn) +
-                        QT_TR_NOOP(", bad note content: ") + noteContent;
-        return false;
-    }
+    QXmlStreamReader reader(noteContent);
+    QString lastElementName;
 
-    QDomElement docElem = enXmlDomDoc.documentElement();
-    QString rootTag = docElem.tagName();
-    if (rootTag != QString("en-note")) {
-        // TRANSLATOR Explaining the error of XML parsing
-        errorMessage = QT_TR_NOOP("Bad note content: wrong root tag, should be \"en-note\", instead: ");
-        errorMessage += rootTag;
-        return false;
-    }
-
-    QDomNode nextNode = docElem.firstChild();
-    while(!nextNode.isNull())
+    while(!reader.atEnd())
     {
-        QDomElement element = nextNode.toElement();
-        if (!element.isNull())
-        {
-            QString tagName = element.tagName();
-            if (isAllowedXhtmlTag(tagName)) {
-                plainText += element.text();
-            }
-            else if (isForbiddenXhtmlTag(tagName)) {
-                errorMessage = QT_TR_NOOP("Found forbidden XHTML tag in ENML: ");
-                errorMessage += tagName;
-                return false;
-            }
-            else if (!isEvernoteSpecificXhtmlTag(tagName)) {
-                errorMessage = QT_TR_NOOP("Found XHTML tag not listed as either "
-                                          "forbidden or allowed one: ");
-                errorMessage += tagName;
-                return false;
-            }
-        }
-        else
-        {
-            errorMessage = QT_TR_NOOP("Found QDomNode not convertable to QDomElement");
-            return false;
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartDocument()) {
+            continue;
         }
 
-        nextNode = nextNode.nextSibling();
+        if (reader.isDTD()) {
+            continue;
+        }
+
+        if (reader.isEndDocument()) {
+            break;
+        }
+
+        if (reader.isStartElement()) {
+            continue;
+        }
+
+        if (reader.isEndElement()) {
+            continue;
+        }
+
+        if (reader.isCharacters()) {
+            plainText += reader.text();
+        }
+    }
+
+    if (Q_UNLIKELY(reader.hasError())) {
+        errorMessage = QT_TR_NOOP("Encountered error when trying to convert the note content to plain text: ");
+        errorMessage += reader.errorString();
+        return false;
     }
 
     return true;
