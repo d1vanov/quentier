@@ -109,7 +109,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
-    m_wrapSelectionIntoHyperlinkJs(),
     m_findSelectedHyperlinkElementJs(),
     m_findSelectedHyperlinkIdJs(),
     m_setHyperlinkToSelectionJs(),
@@ -337,7 +336,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
     page->executeJavaScript(m_findSelectedHyperlinkIdJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
-    page->executeJavaScript(m_wrapSelectionIntoHyperlinkJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
     page->executeJavaScript(m_getHyperlinkDataJs);
@@ -1333,12 +1331,15 @@ void NoteEditorPrivate::onEditHyperlinkDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId)
+void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId, bool performingUndo)
 {
-    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished: removed hyperlink id = " << removedHyperlinkId);
+    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished: removed hyperlink id = " << removedHyperlinkId
+            << ", performing undo = " << (performingUndo ? "true" : "false"));
 
-    RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(removedHyperlinkId, *this);
-    m_pUndoStack->push(pCommand);
+    if (!performingUndo) {
+        RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(removedHyperlinkId, *this);
+        m_pUndoStack->push(pCommand);
+    }
 
     RemoveHyperlinkDelegate * delegate = qobject_cast<RemoveHyperlinkDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -2804,7 +2805,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
-    SETUP_SCRIPT("javascript/scripts/wrapSelectionIntoHyperlink.js", m_wrapSelectionIntoHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkId.js", m_findSelectedHyperlinkIdJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
@@ -3586,9 +3586,16 @@ void NoteEditorPrivate::paste()
     textToPaste = url.toString(QUrl::None);
 #endif
 
-    QNTRACE("Url converted to text = " << textToPaste);
-    page->executeJavaScript("wrapSelectionIntoHyperlink('" + textToPaste + "', '" +
-                            QString::number(m_lastFreeHyperlinkIdNumber++) + "')");
+    quint64 hyperlinkId = m_lastFreeHyperlinkIdNumber++;
+
+    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker, hyperlinkId);
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished,QString,int,int),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished,QString,int,int));
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateCancelled));
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QString));
+    delegate->startWithPresetHyperlink(textToPaste);
 }
 
 void NoteEditorPrivate::pasteUnformatted()
@@ -4361,14 +4368,12 @@ void NoteEditorPrivate::doRemoveHyperlink(const bool shouldTrackDelegate, const 
             << ", hyperlink id to remove = " << hyperlinkIdToRemove);
 
     GET_PAGE()
-    RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this, page);
+    RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this, page, !shouldTrackDelegate);
 
-    if (shouldTrackDelegate) {
-        QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished,quint64),
-                         this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished,quint64));
-        QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QString),
-                         this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QString));
-    }
+    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished,quint64,bool),
+                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished,quint64,bool));
+    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QString));
 
     if (hyperlinkIdToRemove != 0) {
         delegate->setHyperlinkId(hyperlinkIdToRemove);

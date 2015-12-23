@@ -28,6 +28,7 @@ public:
                                                 FileIOThreadWorker * pFileIOThreadWorker,
                                                 const quint64 hyperlinkIdToAdd);
     void start();
+    void startWithPresetHyperlink(const QString & presetHyperlink);
 
 Q_SIGNALS:
     void finished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);
@@ -55,6 +56,7 @@ private:
     void requestPageScroll();
     void addHyperlinkToSelectedText();
     void raiseAddHyperlinkDialog(const QString & initialText);
+    void setHyperlinkToSelection(const QString & url, const QString & text);
 
 private:
     typedef JsResultCallbackFunctor<AddHyperlinkToSelectedTextDelegate> JsCallback;
@@ -80,6 +82,11 @@ private:
     NoteEditorPrivate &     m_noteEditor;
     NoteEditorPage *        m_pOriginalPage;
     FileIOThreadWorker *    m_pFileIOThreadWorker;
+
+    bool                    m_shouldGetHyperlinkFromDialog;
+    QString                 m_presetHyperlink;
+
+    bool                    m_initialTextWasEmpty;
 
     const quint64           m_hyperlinkId;
     QString                 m_modifiedHtml;

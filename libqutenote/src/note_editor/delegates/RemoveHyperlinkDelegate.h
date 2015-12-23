@@ -22,7 +22,8 @@ class RemoveHyperlinkDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor, NoteEditorPage * pOriginalPage);
+    explicit RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor, NoteEditorPage * pOriginalPage,
+                                     bool performingUndo = false);
 
     // This delegate is not only used before the undo command is created but also by undo command itself, for redo operation;
     // In such a case the id of hyperlink to remove should be taken not from the current selection but it should be a known number
@@ -31,7 +32,7 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished(quint64 removedHyperlinkId);
+    void finished(quint64 removedHyperlinkId, bool performingUndo);
     void notifyError(QString error);
 
 // private signals
@@ -62,6 +63,8 @@ private:
 
     int                     m_pageXOffset;
     int                     m_pageYOffset;
+
+    bool                    m_performingUndo;
 };
 
 } // namespace qute_note

@@ -1,5 +1,5 @@
-function removeHyperlink(enHyperlinkIndex) {
-    console.log("removeHyperlink: " + enHyperlinkIndex);
+function removeHyperlink(enHyperlinkIndex, completely) {
+    console.log("removeHyperlink: " + enHyperlinkIndex + ", completely = " + completely);
 
     if (!enHyperlinkIndex) {
         console.warn("Can't remove hyperlink: invalid index");
@@ -7,7 +7,13 @@ function removeHyperlink(enHyperlinkIndex) {
     }
 
     var element = document.querySelector("[en-hyperlink-id='" + enHyperlinkIndex + "']");
-    if (element) {
-        $(element).contents().unwrap();
+    if (element)
+    {
+        if (completely) {
+            $(element).remove();
+        }
+        else {
+            $(element).contents().unwrap();
+        }
     }
 }

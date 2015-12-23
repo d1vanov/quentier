@@ -9,11 +9,14 @@
 
 namespace qute_note {
 
-RemoveHyperlinkDelegate::RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor, NoteEditorPage * pOriginalPage) :
+RemoveHyperlinkDelegate::RemoveHyperlinkDelegate(NoteEditorPrivate & noteEditor, NoteEditorPage * pOriginalPage, bool performingUndo) :
     QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pOriginalPage(pOriginalPage),
-    m_hyperlinkId(0)
+    m_hyperlinkId(0),
+    m_pageXOffset(-1),
+    m_pageYOffset(-1),
+    m_performingUndo(performingUndo)
 {}
 
 void RemoveHyperlinkDelegate::start()
@@ -155,9 +158,9 @@ void RemoveHyperlinkDelegate::onNewPageJavaScriptLoaded()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                      this, QNSLOT(RemoveHyperlinkDelegate,onNewPageModified));
 
-    m_noteEditor.skipNextContentChange();
+    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
 
-    QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ");";
+    QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ", 0);";
     page->executeJavaScript(javascript);
 }
 
@@ -170,7 +173,7 @@ void RemoveHyperlinkDelegate::onNewPageModified()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(RemoveHyperlinkDelegate,onNewPageModified));
 
-    emit finished(m_hyperlinkId);
+    emit finished(m_hyperlinkId, m_performingUndo);
 }
 
 } // namespace qute_note

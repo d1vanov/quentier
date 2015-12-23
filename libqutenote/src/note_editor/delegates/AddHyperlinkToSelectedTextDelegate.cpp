@@ -20,6 +20,9 @@ AddHyperlinkToSelectedTextDelegate::AddHyperlinkToSelectedTextDelegate(NoteEdito
     m_noteEditor(noteEditor),
     m_pOriginalPage(pOriginalPage),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
+    m_shouldGetHyperlinkFromDialog(true),
+    m_presetHyperlink(),
+    m_initialTextWasEmpty(false),
     m_hyperlinkId(hyperlinkIdToAdd),
     m_modifiedHtml(),
     m_writeModifiedHtmlToPageSourceRequestId(),
@@ -48,6 +51,16 @@ void AddHyperlinkToSelectedTextDelegate::start()
     else {
         requestPageScroll();
     }
+}
+
+void AddHyperlinkToSelectedTextDelegate::startWithPresetHyperlink(const QString & presetHyperlink)
+{
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::startWithPresetHyperlink: preset hyperlink = " << presetHyperlink);
+
+    m_shouldGetHyperlinkFromDialog = false;
+    m_presetHyperlink = presetHyperlink;
+
+    start();
 }
 
 void AddHyperlinkToSelectedTextDelegate::onOriginalPageConvertedToNote(Note note)
@@ -98,7 +111,16 @@ void AddHyperlinkToSelectedTextDelegate::addHyperlinkToSelectedText()
 void AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived(const QVariant & data)
 {
     QNDEBUG("AddHyperlinkToSelectedTextDelegate::onInitialHyperlinkDataReceived: " << data);
-    raiseAddHyperlinkDialog(data.toString());
+
+    QString initialText = data.toString();
+    m_initialTextWasEmpty = initialText.isEmpty();
+
+    if (m_shouldGetHyperlinkFromDialog) {
+        raiseAddHyperlinkDialog(initialText);
+    }
+    else {
+        setHyperlinkToSelection(m_presetHyperlink, initialText);
+    }
 }
 
 void AddHyperlinkToSelectedTextDelegate::raiseAddHyperlinkDialog(const QString & initialText)
@@ -130,7 +152,14 @@ void AddHyperlinkToSelectedTextDelegate::onAddHyperlinkDialogFinished(QString te
     QString urlString = url.toString(QUrl::None);
 #endif
 
-    QString javascript = "setHyperlinkToSelection('" + text + "', '" + urlString +
+    setHyperlinkToSelection(urlString, text);
+}
+
+void AddHyperlinkToSelectedTextDelegate::setHyperlinkToSelection(const QString & url, const QString & text)
+{
+    QNDEBUG("AddHyperlinkToSelectedTextDelegate::setHyperlinkToSelection: url = " << url << ", text = " << text);
+
+    QString javascript = "setHyperlinkToSelection('" + text + "', '" + url +
                          "', " + QString::number(m_hyperlinkId) + ");";
     m_pOriginalPage->executeJavaScript(javascript, JsCallback(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModified));
 }
@@ -163,7 +192,7 @@ void AddHyperlinkToSelectedTextDelegate::onModifiedPageHtmlReceived(const QStrin
 
     m_noteEditor.skipPushingUndoCommandOnNextContentChange();
 
-    QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ");";
+    QString javascript = "removeHyperlink(" + QString::number(m_hyperlinkId) + ", " + (m_initialTextWasEmpty ? "1" : "0") + ");";
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &AddHyperlinkToSelectedTextDelegate::onOriginalPageModificationUndone));
 }

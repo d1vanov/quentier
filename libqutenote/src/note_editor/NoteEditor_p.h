@@ -320,7 +320,7 @@ private Q_SLOTS:
     void onEditHyperlinkDelegateCancelled();
     void onEditHyperlinkDelegateError(QString error);
 
-    void onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId);
+    void onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId, bool performingUndo);
     void onRemoveHyperlinkDelegateError(QString error);
 
 private:
@@ -511,7 +511,6 @@ private:
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
-    QString     m_wrapSelectionIntoHyperlinkJs;
     QString     m_findSelectedHyperlinkElementJs;
     QString     m_findSelectedHyperlinkIdJs;
     QString     m_setHyperlinkToSelectionJs;
