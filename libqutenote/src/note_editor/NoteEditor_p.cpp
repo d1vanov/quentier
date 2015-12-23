@@ -2773,14 +2773,15 @@ void NoteEditorPrivate::setupFileIO()
     m_pGenericResourceImageWriter->setStorageFolderPath(m_noteEditorPageFolderPath + "/GenericResourceImages");
     m_pGenericResourceImageWriter->moveToThread(m_pIOThread);
 
+#ifdef USE_QT_WEB_ENGINE
     QObject::connect(this,
                      QNSIGNAL(NoteEditorPrivate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageWriter,
                      QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
     QObject::connect(m_pGenericResourceImageWriter,
                      QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
-                     this,
-                     QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
+                     this, QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
+#endif
 }
 
 void NoteEditorPrivate::setupScripts()
