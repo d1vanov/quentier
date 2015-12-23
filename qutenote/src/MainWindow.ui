@@ -1198,7 +1198,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2660,7 +2660,8 @@ stop: 1 #0EB7FF);
   </action>
   <action name="ActionEditHyperlink">
    <property name="icon">
-    <iconset theme="insert-link"/>
+    <iconset theme="insert-link">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add/edit...</string>

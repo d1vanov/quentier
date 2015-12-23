@@ -99,6 +99,7 @@ private:
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
+    void setupNoteEditorButtonShortcut(const QString & actionName, const QKeySequence & shortcut);
 
     bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error);
 

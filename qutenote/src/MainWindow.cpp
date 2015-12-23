@@ -1009,6 +1009,8 @@ void MainWindow::setupUserShortcuts()
         } \
         else { \
             m_pUI->Action##action->setShortcut(shortcut); \
+            m_pUI->Action##action->setShortcutContext(Qt::WidgetWithChildrenShortcut); \
+            setupNoteEditorButtonShortcut(#action, shortcut); \
         } \
     }
 
@@ -1020,6 +1022,8 @@ void MainWindow::setupUserShortcuts()
         } \
         else { \
             m_pUI->Action##action->setShortcut(shortcut); \
+            m_pUI->Action##action->setShortcutContext(Qt::WidgetWithChildrenShortcut); \
+            setupNoteEditorButtonShortcut(#action, shortcut); \
         } \
     }
 
@@ -1027,6 +1031,61 @@ void MainWindow::setupUserShortcuts()
 
 #undef PROCESS_NON_STANDARD_ACTION_SHORTCUT
 #undef PROCESS_ACTION_SHORTCUT
+}
+
+void MainWindow::setupNoteEditorButtonShortcut(const QString & actionName, const QKeySequence & shortcut)
+{
+    if (actionName == "Undo") {
+        m_pUI->undoPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "Redo") {
+        m_pUI->redoPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "Cut") {
+        m_pUI->cutPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "Copy") {
+        m_pUI->copyPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "Paste") {
+        m_pUI->pastePushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "FontBold") {
+        m_pUI->fontBoldPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "FontItalic") {
+        m_pUI->fontItalicPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "FontUnderlined") {
+        m_pUI->fontUnderlinePushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "FontStrikethrough") {
+        m_pUI->fontStrikethroughPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "AlignLeft") {
+        m_pUI->formatJustifyLeftPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "AlignCenter") {
+        m_pUI->formatJustifyCenterPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "AlignRight") {
+        m_pUI->formatJustifyRightPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "InsertHorizontalLine") {
+        m_pUI->insertHorizontalLinePushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "IncreaseIndentation") {
+        m_pUI->formatIndentMorePushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "DecreaseIndentation") {
+        m_pUI->formatIndentLessPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "InsertBulletedList") {
+        m_pUI->formatListUnorderedPushButton->setShortcut(shortcut);
+    }
+    else if (actionName == "InsertNumberedList") {
+        m_pUI->formatListOrderedPushButton->setShortcut(shortcut);
+    }
 }
 
 bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error)
