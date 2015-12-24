@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <QDateTime>
 
 namespace qute_note {
 
@@ -31,7 +32,6 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
                                         errorDescription, requestId); \
     return
 
-
     if (Q_UNLIKELY(m_storageFolderPath.isEmpty())) {
         RETURN_WITH_ERROR("storage folder path is empty");
     }
@@ -48,11 +48,10 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         RETURN_WITH_ERROR("resource image file suffix is empty");
     }
 
-    QFileInfo resourceImageFileInfo(m_storageFolderPath + "/" + resourceLocalGuid + "." + resourceFileSuffix);
-    bool resourceImageFileExists = resourceImageFileInfo.exists();
-    if (resourceImageFileExists && Q_UNLIKELY(!resourceImageFileInfo.isWritable())) {
-        RETURN_WITH_ERROR("resource image file is not writable");
-    }
+    QString resourceFileNameMask = resourceLocalGuid + "*." + resourceFileSuffix;
+    QDir storageDir(m_storageFolderPath);
+    QStringList nameFilter = QStringList() << resourceFileNameMask;
+    QFileInfoList existingResourceImageFileInfos = storageDir.entryInfoList(nameFilter, QDir::Files | QDir::Readable);
 
     bool resourceHashChanged = true;
     QFileInfo resourceHashFileInfo(m_storageFolderPath + "/" + resourceLocalGuid + ".hash");
@@ -108,11 +107,11 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         }
     }
 
-    if (!resourceHashChanged && !resourceDisplayNameChanged)
+    if (!resourceHashChanged && !resourceDisplayNameChanged && !existingResourceImageFileInfos.isEmpty())
     {
         QNDEBUG("resource hash and display name haven't changed, won't rewrite the resource's image");
         emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
-                                            resourceImageFileInfo.absoluteFilePath(),
+                                            existingResourceImageFileInfos.front().absoluteFilePath(),
                                             QString(), requestId);
         return;
     }
@@ -128,7 +127,10 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         }
     }
 
-    QFile resourceImageFile(resourceImageFileInfo.absoluteFilePath());
+    QString resourceImageFilePath = m_storageFolderPath + "/" + resourceLocalGuid + "_" +
+                                    QString::number(QDateTime::currentMSecsSinceEpoch()) + "." + resourceFileSuffix;
+
+    QFile resourceImageFile(resourceImageFilePath);
     if (Q_UNLIKELY(!resourceImageFile.open(QIODevice::ReadWrite))) {
         RETURN_WITH_ERROR("can't open resource image file for writing");
     }
@@ -151,8 +153,22 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
 
     QNTRACE("Successfully wrote resource image file and helper files with hash and display name for request " << requestId);
     emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
-                                        resourceImageFileInfo.absoluteFilePath(),
-                                        QString(), requestId);
+                                        resourceImageFilePath, QString(), requestId);
+
+    if (!existingResourceImageFileInfos.isEmpty())
+    {
+        const int numStaleResourceImageFiles = existingResourceImageFileInfos.size();
+        for(int i = 0; i < numStaleResourceImageFiles; ++i)
+        {
+            QFileInfo & staleResourceImageFileInfo = existingResourceImageFileInfos[i];
+            QFile staleResourceImageFile(staleResourceImageFileInfo.absoluteFilePath());
+            bool res = staleResourceImageFile.remove();
+            if (Q_UNLIKELY(!res)) {
+                QNINFO("Can't remove stale generic resource image file: " << staleResourceImageFile.errorString()
+                       << " (error code = " << staleResourceImageFile.error() << ")");
+            }
+        }
+    }
 }
 
 } // namespace qute_note
