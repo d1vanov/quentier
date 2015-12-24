@@ -184,6 +184,7 @@ set(PRIVATE_HEADERS
     src/note_editor/dialogs/EncryptionDialog.h
     src/note_editor/dialogs/DecryptionDialog.h
     src/note_editor/dialogs/EditHyperlinkDialog.h
+    src/note_editor/dialogs/RenameResourceDialog.h
     src/note_editor/delegates/JsResultCallbackFunctor.hpp
     src/note_editor/delegates/HtmlCallbackFunctor.hpp
     src/note_editor/delegates/ParsePageScrollData.h
@@ -195,6 +196,7 @@ set(PRIVATE_HEADERS
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.h
     src/note_editor/delegates/EditHyperlinkDelegate.h
     src/note_editor/delegates/RemoveHyperlinkDelegate.h
+    src/note_editor/delegates/RenameResourceDelegate.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
@@ -270,6 +272,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/dialogs/EncryptionDialog.cpp
     src/note_editor/dialogs/DecryptionDialog.cpp
     src/note_editor/dialogs/EditHyperlinkDialog.cpp
+    src/note_editor/dialogs/RenameResourceDialog.cpp
     src/note_editor/delegates/ParsePageScrollData.cpp
     src/note_editor/delegates/ImageResourceRotationDelegate.cpp
     src/note_editor/delegates/AddResourceDelegate.cpp
@@ -279,6 +282,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/delegates/AddHyperlinkToSelectedTextDelegate.cpp
     src/note_editor/delegates/EditHyperlinkDelegate.cpp
     src/note_editor/delegates/RemoveHyperlinkDelegate.cpp
+    src/note_editor/delegates/RenameResourceDelegate.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp
@@ -412,7 +416,8 @@ set(FORMS
     src/note_editor/dialogs/AttachmentStoragePathConfigDialog.ui
     src/note_editor/dialogs/DecryptionDialog.ui
     src/note_editor/dialogs/EncryptionDialog.ui
-    src/note_editor/dialogs/EditHyperlinkDialog.ui)
+    src/note_editor/dialogs/EditHyperlinkDialog.ui
+    src/note_editor/dialogs/RenameResourceDialog.ui)
 
 if(NOT USE_QT_WEB_ENGINE)
   list(APPEND FORMS
