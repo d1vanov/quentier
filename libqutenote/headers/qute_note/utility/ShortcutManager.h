@@ -28,6 +28,7 @@ public:
         CopyAttachment,
         CutAttachment,
         RemoveAttachment,
+        RenameAttachment,
         AddAccount,
         ExitAccount,
         SwitchAccount,

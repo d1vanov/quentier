@@ -43,6 +43,8 @@ public:
     void setFreeAccount(const bool isFreeAccount);
 
     QString displayName() const;
+    void setDisplayName(const QString & displayName);
+
     QString preferredFileSuffix() const;
 
     int indexInNote() const;

@@ -76,6 +76,8 @@ public:
     virtual void copyAttachmentUnderCursor() = 0;
     virtual void removeAttachment(const QString & resourceHash) = 0;
     virtual void removeAttachmentUnderCursor() = 0;
+    virtual void renameAttachment(const QString & resourceHash) = 0;
+    virtual void renameAttachmentUnderCursor() = 0;
 
     struct Rotation
     {

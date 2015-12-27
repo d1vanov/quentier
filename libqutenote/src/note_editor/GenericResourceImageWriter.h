@@ -21,13 +21,13 @@ public:
     void setStorageFolderPath(const QString & storageFolderPath);
 
 Q_SIGNALS:
-    void genericResourceImageWriteReply(const bool success, const QByteArray resourceHash, const QString filePath,
-                                        const QString errorDescription, const QUuid requestId);
+    void genericResourceImageWriteReply(bool success, QByteArray resourceHash, QString filePath,
+                                        QString errorDescription, QUuid requestId);
 
 public Q_SLOTS:
-    void onGenericResourceImageWriteRequest(const QString resourceLocalGuid, const QByteArray resourceImageData,
-                                            const QString resourceFileSuffix, const QByteArray resourceActualHash,
-                                            const QString resourceDisplayName, const QUuid requestId);
+    void onGenericResourceImageWriteRequest(QString resourceLocalGuid, QByteArray resourceImageData,
+                                            QString resourceFileSuffix, QByteArray resourceActualHash,
+                                            QString resourceDisplayName, QUuid requestId);
 
 private:
     QString     m_storageFolderPath;

@@ -243,6 +243,16 @@ QString IResource::displayName() const
     return QString();
 }
 
+void IResource::setDisplayName(const QString & displayName)
+{
+    qevercloud::Resource & enResource = GetEnResource();
+    if (!enResource.attributes.isSet()) {
+        enResource.attributes = qevercloud::ResourceAttributes();
+    }
+
+    enResource.attributes->fileName = displayName;
+}
+
 QString IResource::preferredFileSuffix() const
 {
     const qevercloud::Resource & enResource = GetEnResource();

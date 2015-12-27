@@ -37,17 +37,18 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
         if (element.nodeType == 1) {
             console.log("Found element with nodeType == 1");
             var enTag = element.getAttribute("en-tag");
+            var type = element.getAttribute("type");
             console.log("enTag = " + enTag + ", node name = " + element.nodeName);
             if (enTag == "en-media") {
                 console.log("Found tag with en-tag = en-media");
-                if (element.nodeName == "IMG") {
+                if (type && (type.slice(0,5) == "image")) {
                     foundImageResource = true;
                     resourceHash = element.getAttribute("hash");
                     extraData.push(resourceHash);
                     console.log("Found image resource with hash " + resourceHash);
                     break;
                 }
-                else if ((element.nodeName == "DIV") || (element.nodeName == "OBJECT")) {
+                else if (type) {
                     foundNonImageResource = true;
                     resourceHash = element.getAttribute("hash");
                     extraData.push(resourceHash);

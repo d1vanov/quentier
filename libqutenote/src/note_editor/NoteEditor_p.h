@@ -187,6 +187,8 @@ public Q_SLOTS:
     virtual void copyAttachmentUnderCursor() Q_DECL_OVERRIDE;
     virtual void removeAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
     virtual void removeAttachmentUnderCursor() Q_DECL_OVERRIDE;
+    virtual void renameAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void renameAttachmentUnderCursor() Q_DECL_OVERRIDE;
     virtual void rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
     virtual void rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
 
@@ -223,9 +225,9 @@ Q_SIGNALS:
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
-    void saveGenericResourceImageToFile(const QString resourceLocalGuid, const QByteArray resourceImageData,
-                                        const QString resourceFileSuffix, const QByteArray resourceActualHash,
-                                        const QString resourceDisplayName, const QUuid requestId);
+    void saveGenericResourceImageToFile(QString resourceLocalGuid, QByteArray resourceImageData,
+                                        QString resourceFileSuffix, QByteArray resourceActualHash,
+                                        QString resourceDisplayName, QUuid requestId);
 
 private Q_SLOTS:
     void onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,
@@ -244,9 +246,9 @@ private Q_SLOTS:
     void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
 #ifdef USE_QT_WEB_ENGINE
-    void onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
-                                     const QString filePath, const QString errorDescription,
-                                     const QUuid requestId);
+    void onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
+                                     QString filePath, QString errorDescription,
+                                     QUuid requestId);
 
     void onHyperlinkClicked(QString url);
 #else
@@ -296,6 +298,10 @@ private Q_SLOTS:
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
                                           int pageXOffset, int pageYOffset);
     void onRemoveResourceDelegateError(QString error);
+
+    void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName, QString newResourceImageFilePath);
+    void onRenameResourceDelegateCancelled();
+    void onRenameResourceDelegateError(QString error);
 
     void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore, ResourceWrapper resourceAfter,
                                                  INoteEditorBackend::Rotation::type rotationDirection);
@@ -366,7 +372,7 @@ private:
 
     void setupGenericTextContextMenu(const QString &selectedHtml, bool insideDecryptedTextFragment);
     void setupImageResourceContextMenu(const QString & resourceHash);
-    void setupNonImageResourceContextMenu();
+    void setupNonImageResourceContextMenu(const QString & resourceHash);
     void setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
                                        const QString & encryptedText, const QString & hint);
 

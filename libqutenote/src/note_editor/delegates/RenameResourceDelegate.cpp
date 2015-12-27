@@ -4,6 +4,8 @@
 #include "../dialogs/RenameResourceDialog.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QScopedPointer>
+#include <QBuffer>
+#include <QImage>
 
 namespace qute_note {
 
@@ -22,7 +24,13 @@ RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource,
     m_pGenericResourceImageWriter(pGenericResourceImageWriter),
     m_resource(resource),
     m_oldResourceName(),
-    m_newResourceName()
+    m_newResourceName(),
+    m_shouldGetResourceNameFromDialog(true)
+#ifdef USE_QT_WEB_ENGINE
+    ,
+    m_genericResourceImageWriterRequestId(),
+    m_newGenericResourceImageFilePath()
+#endif
 {}
 
 void RenameResourceDelegate::start()
@@ -37,6 +45,18 @@ void RenameResourceDelegate::start()
     else {
         doStart();
     }
+}
+
+void RenameResourceDelegate::startWithPresetNames(const QString & oldResourceName, const QString & newResourceName)
+{
+    QNDEBUG("RenameResourceDelegate::startWithPresetNames: old resource name = " << oldResourceName
+            << ", new resource name = " << newResourceName);
+
+    m_oldResourceName = oldResourceName;
+    m_newResourceName = newResourceName;
+    m_shouldGetResourceNameFromDialog = false;
+
+    start();
 }
 
 void RenameResourceDelegate::onOriginalPageConvertedToNote(Note note)
@@ -61,6 +81,24 @@ void RenameResourceDelegate::doStart()
         emit notifyError(error);
         return;
     }
+
+    if (m_shouldGetResourceNameFromDialog)
+    {
+        raiseRenameResourceDialog();
+    }
+    else
+    {
+#ifdef USE_QT_WEB_ENGINE
+        buildAndSaveGenericResourceImage();
+#else
+        emit finished(m_oldResourceName, m_newResourceName, QString());
+#endif
+    }
+}
+
+void RenameResourceDelegate::raiseRenameResourceDialog()
+{
+    QNDEBUG("RenameResourceDelegate::raiseRenameResourceDialog");
 
     QString currentResourceDisplayName = m_resource.displayName();
 
@@ -93,9 +131,82 @@ void RenameResourceDelegate::onRenameResourceDialogFinished(QString newResourceN
     }
 
     m_newResourceName = newResourceName;
+    m_resource.setDisplayName(m_newResourceName);
+    m_noteEditor.replaceResourceInNote(m_resource);
 
-    // TODO: make generic resource image writer update the image for this resource and wait for this event before finishing
+#ifdef USE_QT_WEB_ENGINE
+    buildAndSaveGenericResourceImage();
+#else
+    emit finished(m_oldResourceName, m_newResourceName, QString());
+#endif
 }
+
+#ifdef USE_QT_WEB_ENGINE
+void RenameResourceDelegate::buildAndSaveGenericResourceImage()
+{
+    QNDEBUG("RenameResourceDelegate::buildAndSaveGenericResourceImage");
+
+    QImage resourceImage = m_noteEditor.buildGenericResourceImage(m_resource);
+
+    QByteArray imageData;
+    QBuffer buffer(&imageData);
+    Q_UNUSED(buffer.open(QIODevice::WriteOnly));
+    resourceImage.save(&buffer, "PNG");
+
+    m_genericResourceImageWriterRequestId = QUuid::createUuid();
+
+    QNDEBUG("Emitting request to write generic resource image for resource with local guid "
+            << m_resource.localGuid() << ", request id " << m_genericResourceImageWriterRequestId);
+
+    QObject::connect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
+                     m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                     this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
+
+    emit saveGenericResourceImageToFile(m_resource.localGuid(), imageData, "png", m_resource.dataHash(), m_resource.displayName(), m_genericResourceImageWriterRequestId);
+}
+
+void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
+                                                                  QString errorDescription, QUuid requestId)
+{
+    if (requestId != m_genericResourceImageWriterRequestId) {
+        return;
+    }
+
+    QNDEBUG("RenameResourceDelegate::onGenericResourceImageWriterFinished: success = " << (success ? "true" : "false")
+            << ", resource hash = " << resourceHash << ", file path = " << filePath << ", error description = "
+            << errorDescription << ", request id = " << requestId);
+
+    QObject::disconnect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
+                        m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::disconnect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                        this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
+
+    if (Q_UNLIKELY(!success)) {
+        errorDescription = QT_TR_NOOP("Can't rename generic resource: can't write generic resource image to file") + QString(": ") + errorDescription;
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    m_newGenericResourceImageFilePath = filePath;
+
+    QString javascript = "updateImageResourceSrc('" + QString::fromLocal8Bit(resourceHash) + "', '" + filePath + "');";
+
+    GET_PAGE()
+    page->executeJavaScript(javascript, JsCallback(*this, &RenameResourceDelegate::onGenericResourceImageUpdated));
+}
+
+void RenameResourceDelegate::onGenericResourceImageUpdated(const QVariant & data)
+{
+    QNDEBUG("RenameResourceDelegate::onGenericResourceImageUpdated");
+
+    Q_UNUSED(data)
+
+    emit finished(m_oldResourceName, m_newResourceName, m_newGenericResourceImageFilePath);
+}
+
+#endif
 
 } // namespace qute_note
 

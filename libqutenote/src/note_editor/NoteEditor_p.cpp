@@ -4,6 +4,7 @@
 #include "dialogs/DecryptionDialog.h"
 #include "delegates/AddResourceDelegate.h"
 #include "delegates/RemoveResourceDelegate.h"
+#include "delegates/RenameResourceDelegate.h"
 #include "delegates/ImageResourceRotationDelegate.h"
 #include "delegates/EncryptSelectedTextDelegate.h"
 #include "delegates/DecryptEncryptedTextDelegate.h"
@@ -637,9 +638,9 @@ void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription
 }
 
 #ifdef USE_QT_WEB_ENGINE
-void NoteEditorPrivate::onGenericResourceImageSaved(const bool success, const QByteArray resourceActualHash,
-                                                    const QString filePath, const QString errorDescription,
-                                                    const QUuid requestId)
+void NoteEditorPrivate::onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
+                                                    QString filePath, QString errorDescription,
+                                                    QUuid requestId)
 {
     QNDEBUG("NoteEditorPrivate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
             << ", resource actual hash = " << resourceActualHash
@@ -838,10 +839,10 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
     if (contentType == "GenericText") {
         setupGenericTextContextMenu(selectedHtml, insideDecryptedTextFragment);
     }
-    else if (contentType == "ImageResource")
+    else if ((contentType == "ImageResource") || (contentType == "NonImageResource"))
     {
         if (Q_UNLIKELY(extraData.empty())) {
-            QString error = QT_TR_NOOP("Can't display context menu for image resource: "
+            QString error = QT_TR_NOOP("Can't display context menu for resource: "
                                        "extra data from JavaScript is empty");
             QNWARNING(error);
             emit notifyError(error);
@@ -849,7 +850,7 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
         }
 
         if (Q_UNLIKELY(extraData.size() != 1)) {
-            QString error = QT_TR_NOOP("Can't display context menu for image resource: "
+            QString error = QT_TR_NOOP("Can't display context menu for resource: "
                                        "extra data from JavaScript has wrong size");
             QNWARNING(error);
             emit notifyError(error);
@@ -857,10 +858,13 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
         }
 
         const QString & resourceHash = extraData[0];
-        setupImageResourceContextMenu(resourceHash);
-    }
-    else if (contentType == "NonImageResource") {
-        setupNonImageResourceContextMenu();
+
+        if (contentType == "ImageResource") {
+            setupImageResourceContextMenu(resourceHash);
+        }
+        else {
+            setupNonImageResourceContextMenu(resourceHash);
+        }
     }
     else if (contentType == "EncryptedText")
     {
@@ -1147,6 +1151,41 @@ void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
     emit notifyError(error);
 
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName, QString newResourceImageFilePath)
+{
+    QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateFinished: old resource name = " << oldResourceName
+            << ", new resource name = " << newResourceName << ", new resource image file path = "
+            << newResourceImageFilePath);
+
+    // TODO: create undo command and push it to the undo stack
+
+    RenameResourceDelegate * delegate = qobject_cast<RenameResourceDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onRenameResourceDelegateCancelled()
+{
+    QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateCancelled");
+
+    RenameResourceDelegate * delegate = qobject_cast<RenameResourceDelegate*>(sender());
+    if (Q_LIKELY(delegate)) {
+        delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onRenameResourceDelegateError(QString error)
+{
+    QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateError: " << error);
+    emit notifyError(error);
+
+    RenameResourceDelegate * delegate = qobject_cast<RenameResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
@@ -2173,19 +2212,35 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
         resourceDisplayName = tr("Attachment");
     }
 
+    QNTRACE("Resource display name = " << resourceDisplayName);
+
     QFont font = m_font;
     font.setPointSize(10);
+
+    QString originalResourceDisplayName = resourceDisplayName;
 
     const int maxResourceDisplayNameWidth = 146;
     QFontMetrics fontMetrics(font);
     int width = fontMetrics.width(resourceDisplayName);
+    int singleCharWidth = fontMetrics.width("n");
+    int ellipsisWidth = fontMetrics.width("...");
+
+    bool smartReplaceWorked = true;
+    int previousWidth = width + 1;
+
     while(width > maxResourceDisplayNameWidth)
     {
-        int widthOverflow = width - maxResourceDisplayNameWidth - fontMetrics.width("...");
-        int singleCharWidth = fontMetrics.width("n");
-        int numCharsToSkip = widthOverflow / singleCharWidth;
+        if (width >= previousWidth) {
+            smartReplaceWorked = false;
+            break;
+        }
 
-        int dotIndex = resourceDisplayName.indexOf(".");
+        previousWidth = width;
+
+        int widthOverflow = width - maxResourceDisplayNameWidth;
+        int numCharsToSkip = (widthOverflow + ellipsisWidth) / singleCharWidth + 1;
+
+        int dotIndex = resourceDisplayName.lastIndexOf(".");
         if (dotIndex != 0 && (dotIndex > resourceDisplayName.size() / 2))
         {
             // Try to shorten the name while preserving the file extension. Need to skip some chars before the dot index
@@ -2202,7 +2257,24 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
         width = fontMetrics.width(resourceDisplayName);
     }
 
-    QNTRACE("(possibly) shortened resource display name: " << resourceDisplayName);
+    if (!smartReplaceWorked)
+    {
+        QNTRACE("Wasn't able to shorten the resource name nicely, will try to shorten it just somehow");
+        width = fontMetrics.width(originalResourceDisplayName);
+        int widthOverflow = width - maxResourceDisplayNameWidth;
+        int numCharsToSkip = (widthOverflow + ellipsisWidth) / singleCharWidth + 1;
+        resourceDisplayName = originalResourceDisplayName;
+
+        if (resourceDisplayName.size() > numCharsToSkip) {
+            resourceDisplayName.replace(resourceDisplayName.size() - numCharsToSkip, numCharsToSkip, "...");
+        }
+        else {
+            resourceDisplayName = "Attachment...";
+        }
+    }
+
+    QNTRACE("(possibly) shortened resource display name: " << resourceDisplayName
+            << ", width = " << fontMetrics.width(resourceDisplayName));
 
     QString resourceHumanReadableSize;
     if (resource.hasDataSize() || resource.hasAlternateDataSize()) {
@@ -2684,9 +2756,12 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
     m_pImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupNonImageResourceContextMenu()
+void NoteEditorPrivate::setupNonImageResourceContextMenu(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::setupNonImageResourceContextMenu");
+
+    m_currentContextMenuExtraData.m_contentType = "NonImageResource";
+    m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
     delete m_pNonImageResourceContextMenu;
     m_pNonImageResourceContextMenu = new QMenu(this);
@@ -2694,6 +2769,7 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu()
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut);
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pNonImageResourceContextMenu, removeAttachmentUnderCursor);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RenameAttachment, "Rename", m_pNonImageResourceContextMenu, renameAttachmentUnderCursor);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
@@ -4141,6 +4217,83 @@ void NoteEditorPrivate::removeAttachmentUnderCursor()
     removeAttachment(m_currentContextMenuExtraData.m_resourceHash);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::renameAttachmentUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::renameAttachmentUnderCursor");
+
+    if (m_currentContextMenuExtraData.m_contentType != "NonImageResource") {
+        QString error = QT_TR_NOOP("Can't rename attachment under cursor: wrong current context menu extra data's content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    renameAttachment(m_currentContextMenuExtraData.m_resourceHash);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
+{
+    QNDEBUG("NoteEditorPrivate::renameAttachment: resource hash = " << resourceHash);
+
+    QString errorPrefix = QT_TR_NOOP("Can't rename attachment:") + QString(" ");
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = errorPrefix + QT_TR_NOOP("no note is set to the editor");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    int targetResourceIndex = -1;
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceWrapper & resource = resources[i];
+        if (!resource.hasDataHash() || (resource.dataHash() != resourceHash)) {
+            continue;
+        }
+
+        targetResourceIndex = i;
+        break;
+    }
+
+    if (Q_UNLIKELY(targetResourceIndex < 0)) {
+        QString error = errorPrefix + QT_TR_NOOP("can't find the corresponding resource in the note");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    ResourceWrapper & resource = resources[targetResourceIndex];
+    if (Q_UNLIKELY(!resource.hasDataBody())) {
+        QString error = errorPrefix + QT_TR_NOOP("the resource doesn't have the data body set");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(!resource.hasDataHash())) {
+        QString error = errorPrefix + QT_TR_NOOP("the resource doesn't have the data hash set");
+        QNWARNING(error << ", resource: " << resource);
+        emit notifyError(error);
+        return;
+    }
+
+    RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageWriter);
+
+    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateCancelled));
+
+    delegate->start();
 }
 
 void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection)

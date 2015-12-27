@@ -25,18 +25,40 @@ public:
     explicit RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
                                     GenericResourceImageWriter * pGenericResourceImageWriter);
     void start();
+    void startWithPresetNames(const QString & oldResourceName, const QString & newResourceName);
 
 Q_SIGNALS:
     void finished(QString oldResourceName, QString newResourceName, QString newResourceImageFilePath);
     void cancelled();
     void notifyError(QString);
 
+// private signals
+#ifdef USE_QT_WEB_ENGINE
+    void saveGenericResourceImageToFile(QString resourceLocalGuid, QByteArray resourceImageData,
+                                        QString resourceFileSuffix, QByteArray resourceActualHash,
+                                        QString resourceDisplayName, QUuid requestId);
+#endif
+
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
     void onRenameResourceDialogFinished(QString newResourceName);
 
+#ifdef USE_QT_WEB_ENGINE
+    void onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
+                                              QString errorDescription, QUuid requestId);
+    void onGenericResourceImageUpdated(const QVariant & data);
+#endif
+
 private:
     void doStart();
+    void raiseRenameResourceDialog();
+
+#ifdef USE_QT_WEB_ENGINE
+    void buildAndSaveGenericResourceImage();
+#endif
+
+private:
+    typedef JsResultCallbackFunctor<RenameResourceDelegate> JsCallback;
 
 private:
     NoteEditorPrivate &             m_noteEditor;
@@ -45,6 +67,12 @@ private:
 
     QString                         m_oldResourceName;
     QString                         m_newResourceName;
+    bool                            m_shouldGetResourceNameFromDialog;
+
+#ifdef USE_QT_WEB_ENGINE
+    QUuid                           m_genericResourceImageWriterRequestId;
+    QString                         m_newGenericResourceImageFilePath;
+#endif
 };
 
 } // namespace qute_note
