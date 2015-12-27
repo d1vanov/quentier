@@ -48,6 +48,7 @@ QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
+QT_FORWARD_DECLARE_CLASS(RenameResourceDelegate)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
@@ -137,6 +138,8 @@ public:
     const QString & noteEditorPagePath() const { return m_noteEditorPagePath; }
     const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
     const QString & resourceLocalFileStoragePath() const { return m_resourceLocalFileStorageFolder; }
+
+    void setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate);
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
@@ -300,7 +303,8 @@ private Q_SLOTS:
     void onRemoveResourceDelegateError(QString error);
 
     void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
-                                          ResourceWrapper resource, QString newResourceImageFilePath);
+                                          ResourceWrapper resource, bool performingUndo,
+                                          QString newResourceImageFilePath);
     void onRenameResourceDelegateCancelled();
     void onRenameResourceDelegateError(QString error);
 

@@ -25,6 +25,7 @@
 #include "undo_stack/ToDoCheckboxUndoCommand.h"
 #include "undo_stack/AddResourceUndoCommand.h"
 #include "undo_stack/RemoveResourceUndoCommand.h"
+#include "undo_stack/RenameResourceUndoCommand.h"
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
@@ -1157,10 +1158,12 @@ void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
 }
 
 void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
-                                                         ResourceWrapper resource, QString newResourceImageFilePath)
+                                                         ResourceWrapper resource, bool performingUndo,
+                                                         QString newResourceImageFilePath)
 {
     QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateFinished: old resource name = " << oldResourceName
-            << ", new resource name = " << newResourceName << ", resource: " << resource
+            << ", new resource name = " << newResourceName << ", performing undo = "
+            << (performingUndo ? "true" : "false") << ", resource: " << resource
             << "\nnew resource image file path = " << newResourceImageFilePath);
 
 #ifndef USE_QT_WEB_ENGINE
@@ -1169,7 +1172,10 @@ void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName
     }
 #endif
 
-    // TODO: create undo command and push it to the undo stack
+    if (!performingUndo) {
+        RenameResourceUndoCommand * pCommand = new RenameResourceUndoCommand(resource, oldResourceName, *this, m_pGenericResourceImageWriter);
+        m_pUndoStack->push(pCommand);
+    }
 
     RenameResourceDelegate * delegate = qobject_cast<RenameResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
@@ -3456,6 +3462,16 @@ void NoteEditorPrivate::setPageOffsetsForNextLoad(const int pageXOffset, const i
     m_pageYOffsetForNextLoad = pageYOffset;
 }
 
+void NoteEditorPrivate::setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate)
+{
+    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool,QString));
+    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
+    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateCancelled));
+}
+
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
 {
     QNDEBUG("NoteEditorPrivate::onDropEvent");
@@ -4293,8 +4309,8 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
 
     RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageWriter);
 
-    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,QString));
+    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool,QString));
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,cancelled),

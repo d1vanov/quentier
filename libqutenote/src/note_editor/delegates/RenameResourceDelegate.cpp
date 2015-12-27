@@ -19,13 +19,15 @@ namespace qute_note {
     }
 
 RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
-                                               GenericResourceImageWriter * pGenericResourceImageWriter) :
+                                               GenericResourceImageWriter * pGenericResourceImageWriter,
+                                               const bool performingUndo) :
     m_noteEditor(noteEditor),
     m_pGenericResourceImageWriter(pGenericResourceImageWriter),
     m_resource(resource),
-    m_oldResourceName(),
+    m_oldResourceName(resource.displayName()),
     m_newResourceName(),
-    m_shouldGetResourceNameFromDialog(true)
+    m_shouldGetResourceNameFromDialog(true),
+    m_performingUndo(performingUndo)
 #ifdef USE_QT_WEB_ENGINE
     ,
     m_genericResourceImageWriterRequestId(),
@@ -88,10 +90,12 @@ void RenameResourceDelegate::doStart()
     }
     else
     {
+        m_resource.setDisplayName(m_newResourceName);
+
 #ifdef USE_QT_WEB_ENGINE
         buildAndSaveGenericResourceImage();
 #else
-        emit finished(m_oldResourceName, m_newResourceName, m_resource, QString());
+        emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo, QString());
 #endif
     }
 }
@@ -100,9 +104,7 @@ void RenameResourceDelegate::raiseRenameResourceDialog()
 {
     QNDEBUG("RenameResourceDelegate::raiseRenameResourceDialog");
 
-    QString currentResourceDisplayName = m_resource.displayName();
-
-    QScopedPointer<RenameResourceDialog> pRenameResourceDialog(new RenameResourceDialog(currentResourceDisplayName, &m_noteEditor));
+    QScopedPointer<RenameResourceDialog> pRenameResourceDialog(new RenameResourceDialog(m_oldResourceName, &m_noteEditor));
     pRenameResourceDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pRenameResourceDialog.data(), QNSIGNAL(RenameResourceDialog,accepted,QString),
                      this, QNSLOT(RenameResourceDelegate,onRenameResourceDialogFinished,QString));
@@ -137,7 +139,7 @@ void RenameResourceDelegate::onRenameResourceDialogFinished(QString newResourceN
 #ifdef USE_QT_WEB_ENGINE
     buildAndSaveGenericResourceImage();
 #else
-    emit finished(m_oldResourceName, m_newResourceName, m_resource, QString());
+    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo, QString());
 #endif
 }
 
@@ -203,7 +205,7 @@ void RenameResourceDelegate::onGenericResourceImageUpdated(const QVariant & data
 
     Q_UNUSED(data)
 
-    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_newGenericResourceImageFilePath);
+    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo, m_newGenericResourceImageFilePath);
 }
 
 #endif

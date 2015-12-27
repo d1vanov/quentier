@@ -23,13 +23,14 @@ class RenameResourceDelegate: public QObject
     Q_OBJECT
 public:
     explicit RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
-                                    GenericResourceImageWriter * pGenericResourceImageWriter);
+                                    GenericResourceImageWriter * pGenericResourceImageWriter,
+                                    const bool performingUndo = false);
     void start();
     void startWithPresetNames(const QString & oldResourceName, const QString & newResourceName);
 
 Q_SIGNALS:
     void finished(QString oldResourceName, QString newResourceName, ResourceWrapper resource,
-                  QString newResourceImageFilePath);
+                  bool performingUndo, QString newResourceImageFilePath);
     void cancelled();
     void notifyError(QString);
 
@@ -69,6 +70,8 @@ private:
     QString                         m_oldResourceName;
     QString                         m_newResourceName;
     bool                            m_shouldGetResourceNameFromDialog;
+
+    bool                            m_performingUndo;
 
 #ifdef USE_QT_WEB_ENGINE
     QUuid                           m_genericResourceImageWriterRequestId;
