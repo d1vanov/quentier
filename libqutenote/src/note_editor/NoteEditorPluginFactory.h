@@ -120,6 +120,8 @@ public:
     void setInactive();
     void setActive();
 
+    void updateResource(const IResource & resource);
+
 private:
     // QWebPluginFactory interface
     virtual QObject * create(const QString & mimeType, const QUrl & url,
@@ -135,6 +137,17 @@ private:
     QIcon getIconForMimeType(const QString & mimeTypeName) const;
     QStringList getFileSuffixesForMimeType(const QString & mimeType) const;
     QString getFilterStringForMimeType(const QString & mimeType) const;
+
+private:
+    class GenericResourceDisplayWidgetFinder
+    {
+    public:
+        GenericResourceDisplayWidgetFinder(const IResource & resource);
+        bool operator()(const QPointer<GenericResourceDisplayWidget> & ptr) const;
+
+    private:
+        QString m_resourceLocalGuid;
+    };
 
 private:
     NoteEditorPrivate &                                 m_noteEditor;

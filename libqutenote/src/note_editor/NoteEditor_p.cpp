@@ -1156,11 +1156,18 @@ void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName, QString newResourceImageFilePath)
+void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
+                                                         ResourceWrapper resource, QString newResourceImageFilePath)
 {
     QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateFinished: old resource name = " << oldResourceName
-            << ", new resource name = " << newResourceName << ", new resource image file path = "
-            << newResourceImageFilePath);
+            << ", new resource name = " << newResourceName << ", resource: " << resource
+            << "\nnew resource image file path = " << newResourceImageFilePath);
+
+#ifndef USE_QT_WEB_ENGINE
+    if (m_pluginFactory) {
+        m_pluginFactory->updateResource(resource);
+    }
+#endif
 
     // TODO: create undo command and push it to the undo stack
 
@@ -4286,8 +4293,8 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
 
     RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageWriter);
 
-    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,QString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,QString));
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,cancelled),

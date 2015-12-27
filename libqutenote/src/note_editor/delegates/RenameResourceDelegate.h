@@ -28,7 +28,8 @@ public:
     void startWithPresetNames(const QString & oldResourceName, const QString & newResourceName);
 
 Q_SIGNALS:
-    void finished(QString oldResourceName, QString newResourceName, QString newResourceImageFilePath);
+    void finished(QString oldResourceName, QString newResourceName, ResourceWrapper resource,
+                  QString newResourceImageFilePath);
     void cancelled();
     void notifyError(QString);
 

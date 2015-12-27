@@ -91,7 +91,7 @@ void RenameResourceDelegate::doStart()
 #ifdef USE_QT_WEB_ENGINE
         buildAndSaveGenericResourceImage();
 #else
-        emit finished(m_oldResourceName, m_newResourceName, QString());
+        emit finished(m_oldResourceName, m_newResourceName, m_resource, QString());
 #endif
     }
 }
@@ -137,7 +137,7 @@ void RenameResourceDelegate::onRenameResourceDialogFinished(QString newResourceN
 #ifdef USE_QT_WEB_ENGINE
     buildAndSaveGenericResourceImage();
 #else
-    emit finished(m_oldResourceName, m_newResourceName, QString());
+    emit finished(m_oldResourceName, m_newResourceName, m_resource, QString());
 #endif
 }
 
@@ -203,7 +203,7 @@ void RenameResourceDelegate::onGenericResourceImageUpdated(const QVariant & data
 
     Q_UNUSED(data)
 
-    emit finished(m_oldResourceName, m_newResourceName, m_newGenericResourceImageFilePath);
+    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_newGenericResourceImageFilePath);
 }
 
 #endif

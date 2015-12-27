@@ -31,6 +31,10 @@ public:
                     const ResourceFileStorageManager & resourceFileStorageManager,
                     const FileIOThreadWorker & fileIOThreadWorker);
 
+    QString resourceLocalGuid() const;
+
+    void updateResourceName(const QString & resourceName);
+
 Q_SIGNALS:
     void savedResourceToFile();
 

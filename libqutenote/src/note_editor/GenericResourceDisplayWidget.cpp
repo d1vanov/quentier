@@ -57,8 +57,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     setupFilterString(filterString);
 
-    m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" +
-                                             name + "</span></p></body></head></html>");
+    updateResourceName(name);
     m_pUI->resourceDisplayNameLabel->setTextFormat(Qt::RichText);
 
     m_pUI->resourceSizeLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" + size +
@@ -129,6 +128,21 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_ownFilePath, m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());
+}
+
+QString GenericResourceDisplayWidget::resourceLocalGuid() const
+{
+    if (m_pResource) {
+        return m_pResource->localGuid();
+    }
+
+    return QString();
+}
+
+void GenericResourceDisplayWidget::updateResourceName(const QString & resourceName)
+{
+    m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" +
+                                             resourceName + "</span></p></body></head></html>");
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()

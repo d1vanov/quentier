@@ -299,7 +299,8 @@ private Q_SLOTS:
                                           int pageXOffset, int pageYOffset);
     void onRemoveResourceDelegateError(QString error);
 
-    void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName, QString newResourceImageFilePath);
+    void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
+                                          ResourceWrapper resource, QString newResourceImageFilePath);
     void onRenameResourceDelegateCancelled();
     void onRenameResourceDelegateError(QString error);
 

@@ -258,6 +258,24 @@ void NoteEditorPluginFactory::setActive()
     }
 }
 
+void NoteEditorPluginFactory::updateResource(const IResource & resource)
+{
+    QNDEBUG("NoteEditorPluginFactory::updateResource: " << resource);
+
+    auto it = std::find_if(m_genericResourceDisplayWidgetPlugins.begin(),
+                           m_genericResourceDisplayWidgetPlugins.end(),
+                           GenericResourceDisplayWidgetFinder(resource));
+    if (it != m_genericResourceDisplayWidgetPlugins.end())
+    {
+        QPointer<GenericResourceDisplayWidget> pWidget = *it;
+        if (Q_UNLIKELY(pWidget.isNull())) {
+            return;
+        }
+
+        pWidget->updateResourceName(resource.displayName());
+    }
+}
+
 QObject * NoteEditorPluginFactory::create(const QString & pluginType, const QUrl & url,
                                           const QStringList & argumentNames,
                                           const QStringList & argumentValues) const
@@ -606,6 +624,19 @@ QString NoteEditorPluginFactory::getFilterStringForMimeType(const QString & mime
     }
 
     return mimeType.filterString();
+}
+
+NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::GenericResourceDisplayWidgetFinder(const IResource & resource) :
+    m_resourceLocalGuid(resource.localGuid())
+{}
+
+bool NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::operator()(const QPointer<GenericResourceDisplayWidget> & ptr) const
+{
+    if (ptr.isNull()) {
+        return false;
+    }
+
+    return (ptr->resourceLocalGuid() == m_resourceLocalGuid);
 }
 
 } // namespace qute_note
