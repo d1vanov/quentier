@@ -81,6 +81,8 @@ Q_SIGNALS:
 
     void noteEditorHtmlUpdated(QString html);
 
+    void currentNoteChanged(Note * pNote);
+
     // Signals to notify anyone interested of the formatting at the current cursor position
     void textBoldState(bool state);
     void textItalicState(bool state);
@@ -224,6 +226,8 @@ public Q_SLOTS:
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
                                QString fileStoragePath, QUuid requestId);
+    void readResourceFromStorage(QString localGuid, QUuid requestId);
+    void openResourceFile(QString absoluteFilePath);
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
@@ -246,6 +250,10 @@ private Q_SLOTS:
 
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
                                   int errorCode, QString errorDescription);
+    void onResourceFileChanged(QString resourceLocalGuid, QString fileStoragePath);
+    void onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
+                                       int errorCode, QString errorDescription);
+
     void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
 #ifdef USE_QT_WEB_ENGINE
@@ -672,10 +680,12 @@ private:
     GenericResourceImageJavaScriptHandler *  m_pGenericResoureImageJavaScriptHandler;
 #endif
 
-    QSet<QUuid>                     m_saveGenericResourceImageToFileRequestIds;
+    QSet<QUuid>                                 m_saveGenericResourceImageToFileRequestIds;
 
-    CurrentContextMenuExtraData     m_currentContextMenuExtraData;
-    QHash<QUuid, QPair<QString, QMimeType> >   m_droppedFilePathsAndMimeTypesByReadRequestIds;
+    CurrentContextMenuExtraData                 m_currentContextMenuExtraData;
+    QHash<QUuid, QPair<QString, QMimeType> >    m_droppedFilePathsAndMimeTypesByReadRequestIds;
+
+    QHash<QUuid, QPair<QString, QString> >      m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds;
 
     quint64     m_lastFreeEnToDoIdNumber;
     quint64     m_lastFreeHyperlinkIdNumber;

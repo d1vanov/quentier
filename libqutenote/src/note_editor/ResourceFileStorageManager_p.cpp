@@ -1,18 +1,22 @@
 #include "ResourceFileStorageManager_p.h"
 #include "dialogs/AttachmentStoragePathConfigDialog.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
+#include <qute_note/types/Note.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <qute_note/utility/ApplicationSettings.h>
 #include <QWidget>
 #include <QFileInfo>
 #include <QDir>
+#include <QDesktopServices>
 
 namespace qute_note {
 
 ResourceFileStorageManagerPrivate::ResourceFileStorageManagerPrivate(ResourceFileStorageManager & manager) :
     QObject(&manager),
     m_resourceFileStorageLocation(),
+    m_resourceLocalGuidByFilePath(),
+    m_fileSystemWatcher(),
     q_ptr(&manager)
 {
     createConnections();
@@ -172,31 +176,15 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
 
     file.close();
 
-    file.setFileName(m_resourceFileStorageLocation + "/" + localGuid + ".hash");
-
-    open = file.open(QIODevice::WriteOnly);
-    if (Q_UNLIKELY(!open)) {
-        QString errorDescription = QT_TR_NOOP("Can't open the file with resource's hash for writing");
-        errorDescription += ": " + file.errorString();
-        int errorCode = file.error();
+    int errorCode = 0;
+    QString errorDescription;
+    bool res = updateResourceHash(localGuid, dataHash, errorCode, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, errorCode, errorDescription);
         QNWARNING(errorDescription << ", error code = " << errorCode << ", local guid = "
                   << localGuid << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, errorCode, errorDescription);
         return;
     }
-
-    writeRes = file.write(dataHash);
-    if (Q_UNLIKELY(writeRes < 0)) {
-        QString errorDescription = QT_TR_NOOP("Can't write data hash to resource hash file");
-        errorDescription += ": " + file.errorString();
-        int errorCode = file.error();
-        QNWARNING(errorDescription << ", error code = " << errorCode << ", local guid = "
-                  << localGuid << ", request id = " << requestId);
-        emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, errorCode, errorDescription);
-        return;
-    }
-
-    file.close();
 
     QNDEBUG("Successfully wrote resource data to file: resource local guid = " << localGuid << ", file path = " << fileStoragePath);
     emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, QString());
@@ -249,10 +237,94 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString lo
     emit readResourceFromFileCompleted(requestId, data, dataHash, 0, QString());
 }
 
+void ResourceFileStorageManagerPrivate::onOpenResourceRequest(QString fileStoragePath)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::onOpenResourceRequest: file path = " << fileStoragePath);
+
+    auto it = m_resourceLocalGuidByFilePath.find(fileStoragePath);
+    if (Q_UNLIKELY(it == m_resourceLocalGuidByFilePath.end())) {
+        QNWARNING("Can't set up watching for resource file's changes: can't find resource local guid for file path: " + fileStoragePath);
+    }
+    else {
+        watchResourceFileForChanges(it.value(), fileStoragePath);
+    }
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(fileStoragePath));
+}
+
+void ResourceFileStorageManagerPrivate::onCurrentNoteChanged(Note * pNote)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::onCurrentNoteChanged");
+
+    Q_UNUSED(pNote)
+
+    for(auto it = m_resourceLocalGuidByFilePath.begin(), end = m_resourceLocalGuidByFilePath.end(); it != end; ++it) {
+        m_fileSystemWatcher.removePath(it.key());
+    }
+
+    m_resourceLocalGuidByFilePath.clear();
+}
+
+void ResourceFileStorageManagerPrivate::onFileChanged(const QString & path)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::onFileChanged: " << path);
+
+    auto it = m_resourceLocalGuidByFilePath.find(path);
+
+    QFileInfo resourceFileInfo(path);
+    if (!resourceFileInfo.exists())
+    {
+        if (it != m_resourceLocalGuidByFilePath.end()) {
+            Q_UNUSED(m_resourceLocalGuidByFilePath.erase(it));
+        }
+
+        m_fileSystemWatcher.removePath(path);
+        QNINFO("Stopped watching for file " << path << " as it was deleted");
+
+        return;
+    }
+
+    if (Q_UNLIKELY(it == m_resourceLocalGuidByFilePath.end())) {
+        QNWARNING("Can't process resource local file change properly: can't find resource local guid by file path: " << path
+                  << "; stopped watching for that file's changes");
+        m_fileSystemWatcher.removePath(path);
+        return;
+    }
+
+    QFile file(path);
+    bool open = file.QIODevice::open(QIODevice::ReadOnly);
+    if (Q_UNLIKELY(!open)) {
+        QNWARNING("Can't process resource local file change properly: can't open resource file for reading: error code = "
+                  << file.error() << ", error description: " << file.errorString());
+        m_fileSystemWatcher.removePath(path);
+        return;
+    }
+
+    QByteArray data = file.readAll();
+    QByteArray dataHash = calculateHash(data);
+
+    int errorCode = 0;
+    QString errorDescription;
+    bool res = updateResourceHash(it.value(), dataHash, errorCode, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        QNWARNING("Can't process resource local file change properly: can't update the hash for resource file: error code = "
+                  << errorCode << ", error description: " << errorDescription);
+        m_fileSystemWatcher.removePath(path);
+        return;
+    }
+
+    emit resourceFileChanged(it.value(), path);
+}
+
 void ResourceFileStorageManagerPrivate::createConnections()
 {
+    QObject::connect(&m_fileSystemWatcher, QNSIGNAL(QFileSystemWatcher,fileChanged,QString),
+                     this, QNSLOT(ResourceFileStorageManagerPrivate,onFileChanged,QString));
+
     Q_Q(ResourceFileStorageManager);
 
+    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,resourceFileChanged,QString,QString),
+                     q, QNSIGNAL(ResourceFileStorageManager,resourceFileChanged,QString,QString));
     QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString),
                      q, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString));
     QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
@@ -304,6 +376,50 @@ bool ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual(con
 
     QNDEBUG("Resource file exists and is actual");
     return true;
+}
+
+bool ResourceFileStorageManagerPrivate::updateResourceHash(const QString & resourceLocalGuid, const QByteArray & dataHash,
+                                                           int & errorCode, QString & errorDescription)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::updateResourceHash: resource local guid = " << resourceLocalGuid
+            << ", data hash = " << dataHash);
+
+    QFile file(m_resourceFileStorageLocation + "/" + resourceLocalGuid + ".hash");
+
+    bool open = file.open(QIODevice::WriteOnly);
+    if (Q_UNLIKELY(!open)) {
+        errorDescription = QT_TR_NOOP("Can't open the file with resource's hash for writing");
+        errorDescription += ": " + file.errorString();
+        errorCode = file.error();
+        return false;
+    }
+
+    qint64 writeRes = file.write(dataHash);
+    if (Q_UNLIKELY(writeRes < 0)) {
+        errorDescription = QT_TR_NOOP("Can't write data hash to resource hash file");
+        errorDescription += ": " + file.errorString();
+        errorCode = file.error();
+        return false;
+    }
+
+    file.close();
+    return true;
+}
+
+void ResourceFileStorageManagerPrivate::watchResourceFileForChanges(const QString & resourceLocalGuid, const QString & fileStoragePath)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::watchResourceFileForChanges: resource local guid = " << resourceLocalGuid
+            << ", file storage path = " << fileStoragePath);
+
+    auto it = m_resourceLocalGuidByFilePath.find(fileStoragePath);
+    if (it != m_resourceLocalGuidByFilePath.end()) {
+        QNTRACE("Already watching for this file's changes");
+        return;
+    }
+
+    m_resourceLocalGuidByFilePath[fileStoragePath] = resourceLocalGuid;
+    m_fileSystemWatcher.addPath(fileStoragePath);
+    QNINFO("Start watching for resource file " << fileStoragePath);
 }
 
 } // namespace qute_note

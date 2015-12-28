@@ -10,6 +10,7 @@ QT_FORWARD_DECLARE_CLASS(QWidget)
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManagerPrivate)
 
 /**
@@ -50,6 +51,8 @@ Q_SIGNALS:
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
+    void resourceFileChanged(QString localGuid, QString fileStoragePath);
+
 public Q_SLOTS:
     /**
      * @brief onWriteResourceToFileRequest - slot being called when the resource data needs to be written
@@ -72,6 +75,22 @@ public Q_SLOTS:
      * @param requestId - request identifier for reading the resource data and hash from file
      */
     void onReadResourceFromFileRequest(QString localGuid, QUuid requestId);
+
+    /**
+     * @brief onOpenResourceRequest - slot being called when the resource file is requested to be opened
+     * in any external program for viewing and/or editing; the resource file storage manager would watch
+     * for the changes of this resource until the current note in the note editor is changed or until the file
+     * is replaced with its own next version, for example
+     */
+    void onOpenResourceRequest(QString fileStoragePath);
+
+    /**
+     * @brief onCurrentNoteChanged - slot which should be called when the current note in the note editor is changed;
+     * when the note is changed, this object stops watching for the changes of resource files belonging
+     * to the previously edited note in the note editor; it is due to the performance cost and OS limitations
+     * for the number of files which can be monitored for changes simultaneously by one process
+     */
+    void onCurrentNoteChanged(Note * pNote);
 
 private:
     ResourceFileStorageManagerPrivate * const d_ptr;

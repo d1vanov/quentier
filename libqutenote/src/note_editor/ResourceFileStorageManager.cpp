@@ -1,5 +1,6 @@
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include "ResourceFileStorageManager_p.h"
+#include <qute_note/types/Note.h>
 
 namespace qute_note {
 
@@ -25,6 +26,18 @@ void ResourceFileStorageManager::onReadResourceFromFileRequest(QString localGuid
 {
     Q_D(ResourceFileStorageManager);
     d->onReadResourceFromFileRequest(localGuid, requestId);
+}
+
+void ResourceFileStorageManager::onOpenResourceRequest(QString fileStoragePath)
+{
+    Q_D(ResourceFileStorageManager);
+    d->onOpenResourceRequest(fileStoragePath);
+}
+
+void ResourceFileStorageManager::onCurrentNoteChanged(Note * pNote)
+{
+    Q_D(ResourceFileStorageManager);
+    d->onCurrentNoteChanged(pNote);
 }
 
 } // namespace qute_note

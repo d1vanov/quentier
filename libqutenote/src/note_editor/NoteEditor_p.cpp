@@ -77,7 +77,6 @@ typedef QWebEngineSettings WebSettings;
 #include <QMenu>
 #include <QKeySequence>
 #include <QContextMenuEvent>
-#include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QFontDialog>
 #include <QFontDatabase>
@@ -226,6 +225,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_saveGenericResourceImageToFileRequestIds(),
     m_currentContextMenuExtraData(),
     m_droppedFilePathsAndMimeTypesByReadRequestIds(),
+    m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
     m_lastFreeHyperlinkIdNumber(1),
     m_lastFreeEnCryptIdNumber(1),
@@ -487,7 +487,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         }
     }
 
-    QString dataHashStr = QString::fromLocal8Bit(dataHash.constData(), dataHash.size());
+    QString dataHashStr = QString::fromLocal8Bit(dataHash);
 
     m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
                                      resourceDisplaySize, fileStoragePath);
@@ -552,6 +552,117 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 #ifdef USE_QT_WEB_ENGINE
     setupGenericResourceImages();
 #endif
+}
+
+void NoteEditorPrivate::onResourceFileChanged(QString resourceLocalGuid, QString fileStoragePath)
+{
+    QNDEBUG("NoteEditorPrivate::onResourceFileChanged: resource local guid = " << resourceLocalGuid
+            << ", file storage path = " << fileStoragePath);
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNDEBUG("Can't process resource file change: no note is set to the editor");
+        return;
+    }
+
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    const int numResources = resourceAdapters.size();
+    int targetResourceIndex = -1;
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+        if (resourceAdapter.localGuid() == resourceLocalGuid) {
+            targetResourceIndex = i;
+            break;
+        }
+    }
+
+    if (Q_UNLIKELY(targetResourceIndex < 0)) {
+        QNDEBUG("Can't process resource file change: can't find the resource by local guid within note's resources");
+        return;
+    }
+
+    QUuid requestId = QUuid::createUuid();
+    m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds[requestId] = QPair<QString,QString>(resourceLocalGuid, fileStoragePath);
+    QNTRACE("Emitting request to read the resource file from storage: local guid = " << resourceLocalGuid
+            << ", request id = " << requestId);
+    emit readResourceFromStorage(resourceLocalGuid, requestId);
+}
+
+void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
+                                                      int errorCode, QString errorDescription)
+{
+    auto it = m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds.find(requestId);
+    if (it == m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorPrivate::onResourceFileReadFromStorage: request id = " << requestId << ", errorCode = "
+            << errorCode << ", error description: " << errorDescription);
+
+    auto pair = it.value();
+    QString resourceLocalGuid = pair.first;
+    QString fileStoragePath = pair.second;
+
+    Q_UNUSED(m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds.erase(it));
+
+    if (Q_UNLIKELY(errorCode != 0)) {
+        errorDescription = QT_TR_NOOP("Can't process the update of the resource file data: can't read the data from file") + QString(": ") + errorDescription;
+        QNWARNING(errorDescription << ", resource local guid = " << resourceLocalGuid << ", error code = " << errorCode);
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNDEBUG("Can't process the update of the resource file data: no note is set to the editor");
+        return;
+    }
+
+    QString oldResourceHash;
+    QString resourceDisplayName;
+    QString resourceDisplaySize;
+
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    bool foundResourceToUpdate = false;
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        ResourceWrapper & resource = resources[i];
+        if (resource.localGuid() != resourceLocalGuid) {
+            continue;
+        }
+
+        if (resource.hasDataHash()) {
+            oldResourceHash = QString::fromLocal8Bit(resource.dataHash());
+        }
+
+        resource.setDataBody(data);
+        resource.setDataHash(dataHash);
+        resource.setDataSize(data.size());
+
+        resourceDisplayName = resource.displayName();
+        resourceDisplaySize = humanReadableSize(resource.dataSize());
+
+        foundResourceToUpdate = true;
+        break;
+    }
+
+    if (Q_UNLIKELY(!foundResourceToUpdate)) {
+        QNDEBUG("Can't process the update of the resource file data: can't find the corresponding resource within the note's resources");
+        return;
+    }
+
+    QString dataHashStr = QString::fromLocal8Bit(dataHash);
+    if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHashStr))
+    {
+        m_resourceInfo.removeResourceInfo(oldResourceHash);
+
+        m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+                                         resourceDisplaySize, fileStoragePath);
+
+        updateHashForResourceTag(oldResourceHash, dataHashStr);
+    }
+
+    // TODO: if the resource is the image, need to actually relocate its file
+    // in order to force the editor to redraw it properly...
 }
 
 void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
@@ -2213,7 +2324,7 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
 {
     QNDEBUG("NoteEditorPrivate::openResource: " << resourceAbsoluteFilePath);
-    QDesktopServices::openUrl(QUrl::fromLocalFile(resourceAbsoluteFilePath));
+    emit openResourceFile(resourceAbsoluteFilePath);
 }
 
 QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
@@ -2853,6 +2964,14 @@ void NoteEditorPrivate::setupFileIO()
     m_pResourceFileStorageManager = new ResourceFileStorageManager;
     m_pResourceFileStorageManager->moveToThread(m_pIOThread);
 
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readResourceFromStorage,QString,QUuid),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onReadResourceFromFileRequest,QString,QUuid));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString),
+                     this, QNSLOT(NoteEditorPrivate,onResourceFileReadFromStorage,QUuid,QByteArray,QByteArray,int,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,openResourceFile,QString),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onOpenResourceRequest,QString));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,resourceFileChanged,QString,QString),
+                     this, QNSLOT(NoteEditorPrivate,onResourceFileChanged,QString,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
@@ -3322,6 +3441,9 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 #else
     m_pluginFactory->setNote(*m_pNote);
 #endif
+
+    m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds.clear();
+    emit currentNoteChanged(m_pNote);
 
     noteToEditorContent();
 
