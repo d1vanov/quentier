@@ -143,7 +143,6 @@ void ImageResourceRotationDelegate::rotateImageResource()
 
     m_resourceFileStoragePathAfter = m_noteEditor.imageResourcesStoragePath();
     m_resourceFileStoragePathAfter += "/" + m_rotatedResource.localGuid();
-    m_resourceFileStoragePathAfter += "_" + QString::number(QDateTime::currentMSecsSinceEpoch());
     m_resourceFileStoragePathAfter += ".png";
 
     m_saveResourceRequestId = QUuid::createUuid();
@@ -183,6 +182,30 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     }
 
     const QString localGuid = m_rotatedResource.localGuid();
+    m_noteEditor.cleanupStaleImageResourceFiles(localGuid);
+
+    QFile rotatedImageResourceFile(fileStoragePath);
+    QString linkFileName = fileStoragePath;
+    linkFileName.remove(linkFileName.size() - 4, 4);
+    linkFileName += "_";
+    linkFileName += QString::number(QDateTime::currentMSecsSinceEpoch());
+    linkFileName += ".png";
+
+    bool res = rotatedImageResourceFile.link(linkFileName);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = QT_TR_NOOP("Can't rotate image resource: can't create a link to the resource file to use within the note editor");
+        errorDescription += rotatedImageResourceFile.errorString();
+        errorDescription += ", ";
+        errorDescription += QT_TR_NOOP("error code = ");
+        errorDescription += QString::number(rotatedImageResourceFile.error());
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QNTRACE("Created a link to the original file (" << m_resourceFileStoragePathAfter << "): " << linkFileName);
+
+    m_resourceFileStoragePathAfter = linkFileName;
 
     auto resourceFileStoragePathIt = m_resourceFileStoragePathsByLocalGuid.find(localGuid);
     if (Q_UNLIKELY(resourceFileStoragePathIt == m_resourceFileStoragePathsByLocalGuid.end())) {
@@ -193,7 +216,7 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     }
 
     m_resourceFileStoragePathBefore = resourceFileStoragePathIt.value();
-    resourceFileStoragePathIt.value() = fileStoragePath;
+    resourceFileStoragePathIt.value() = linkFileName;
 
     QString resourceDisplayName = m_rotatedResource.displayName();
     QString resourceDisplaySize = humanReadableSize(m_rotatedResource.dataSize());
@@ -205,11 +228,14 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
 
     m_resourceInfo.removeResourceInfo(m_resourceHashBefore);
     m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
-                                     resourceDisplaySize, fileStoragePath);
+                                     resourceDisplaySize, linkFileName);
 
-    QFile oldResourceFile(m_resourceFileStoragePathBefore);
-    if (Q_UNLIKELY(!oldResourceFile.remove())) {
-        QNINFO("Can't remove stale resource file " + m_resourceFileStoragePathBefore);
+    if (m_resourceFileStoragePathBefore != fileStoragePath)
+    {
+        QFile oldResourceFile(m_resourceFileStoragePathBefore);
+        if (Q_UNLIKELY(!oldResourceFile.remove())) {
+            QNINFO("Can't remove stale resource file " + m_resourceFileStoragePathBefore);
+        }
     }
 
     QString javascript = "updateResourceHash('" + m_resourceHashBefore + "', '" + dataHashStr + "');";

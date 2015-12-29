@@ -212,6 +212,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pResourceInfoJavaScriptHandler(new ResourceInfoJavaScriptHandler(m_resourceInfo, this)),
     m_resourceLocalFileStorageFolder(),
     m_genericResourceLocalGuidBySaveToStorageRequestIds(),
+    m_imageResourceSaveToStorageRequestIds(),
     m_resourceFileStoragePathsByResourceLocalGuid(),
     m_localGuidsOfResourcesWantedToBeSaved(),
     m_localGuidsOfResourcesWantedToBeOpened(),
@@ -434,23 +435,49 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     if (errorCode != 0) {
         errorDescription.prepend(QT_TR_NOOP("Can't write resource to local file: "));
-        emit notifyError(errorDescription);
         QNWARNING(errorDescription + ", error code = " << errorCode);
+        emit notifyError(errorDescription);
         return;
     }
 
     const QString localGuid = it.value();
     QNDEBUG("Local guid of the resource updated in the local storage: " << localGuid);
 
-    QString oldResourceFilePath;
-    auto resourceFileStoragePathIt = m_resourceFileStoragePathsByResourceLocalGuid.find(localGuid);
-    if (resourceFileStoragePathIt != m_resourceFileStoragePathsByResourceLocalGuid.end()) {
-        oldResourceFilePath = resourceFileStoragePathIt.value();
-        resourceFileStoragePathIt.value() = fileStoragePath;
+    bool shouldCreateLinkToTheResourceFile = false;
+    auto imageResourceIt = m_imageResourceSaveToStorageRequestIds.find(requestId);
+    shouldCreateLinkToTheResourceFile = (imageResourceIt != m_imageResourceSaveToStorageRequestIds.end());
+    if (shouldCreateLinkToTheResourceFile)
+    {
+        QNDEBUG("The just saved resource is an image for which we need to create a link "
+                "in order to fool the web engine's cache to ensure it would reload the image "
+                "if its previous version has already been displayed on the page");
+
+        Q_UNUSED(m_imageResourceSaveToStorageRequestIds.erase(imageResourceIt));
+
+        QString linkFileName = fileStoragePath;
+        linkFileName.remove(linkFileName.size() - 4, 4);
+        linkFileName += "_";
+        linkFileName += QString::number(QDateTime::currentMSecsSinceEpoch());
+        linkFileName += ".png";
+        QNTRACE("Link file name = " << linkFileName);
+
+        cleanupStaleImageResourceFiles(localGuid);
+
+        QFile imageResourceFile(fileStoragePath);
+        bool res = imageResourceFile.link(linkFileName);
+        if (Q_UNLIKELY(!res)) {
+            errorDescription = QT_TR_NOOP("Can't process the update of image resource: can't create a symlink to the resource file");
+            errorDescription += ": ";
+            errorDescription += imageResourceFile.errorString();
+            QNWARNING(errorDescription + ", error code = " << errorCode);
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        fileStoragePath = linkFileName;
     }
-    else {
-        m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
-    }
+
+    m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
 
     QString resourceDisplayName;
     QString resourceDisplaySize;
@@ -502,14 +529,6 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         QNTRACE("All current note's resources were saved to local file storage and are actual. "
                 "Will set filepaths to these local files to src attributes of img resource tags");
         provideSrcForResourceImgTags();
-    }
-
-    if (!oldResourceFilePath.isEmpty())
-    {
-        QFile oldResourceFile(oldResourceFilePath);
-        if (Q_UNLIKELY(!oldResourceFile.remove())) {
-            QNINFO("Can't remove stale resource file " + oldResourceFilePath);
-        }
     }
 
     auto saveIt = m_localGuidsOfResourcesWantedToBeSaved.find(localGuid);
@@ -2722,6 +2741,7 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalGuid, const 
 
     QUuid saveResourceRequestId = QUuid::createUuid();
     m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = updatedResource.localGuid();
+    Q_UNUSED(m_imageResourceSaveToStorageRequestIds.insert(saveResourceRequestId))
     emit saveResourceToStorage(updatedResource.localGuid(), updatedResource.dataBody(), QByteArray(), resourceFileStoragePath, saveResourceRequestId);
 }
 
@@ -3431,6 +3451,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
     // Clear the caches from previous note
     m_genericResourceLocalGuidBySaveToStorageRequestIds.clear();
+    m_imageResourceSaveToStorageRequestIds.clear();
     m_resourceFileStoragePathsByResourceLocalGuid.clear();
     if (m_genericResourceImageFilePathsByResourceHash.size() > 30) {
         m_genericResourceImageFilePathsByResourceHash.clear();
@@ -3592,6 +3613,49 @@ void NoteEditorPrivate::setRenameResourceDelegateSubscriptions(RenameResourceDel
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateCancelled));
+}
+
+void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceLocalGuid)
+{
+    QNDEBUG("NoteEditorPrivate::cleanupStaleImageResourceFiles: resource local guid = " << resourceLocalGuid);
+
+    QString fileStoragePathPrefix = m_noteEditorImageResourcesStoragePath + "/" + resourceLocalGuid;
+    QString fileStoragePath = fileStoragePathPrefix + ".png";
+
+    QDir dir(m_noteEditorImageResourcesStoragePath);
+    QFileInfoList entryList = dir.entryInfoList();
+
+    const int numEntries = entryList.size();
+    QNTRACE("Found " << numEntries << " files in the image resources folder");
+
+    QString entryFilePath;
+    for(int i = 0; i < numEntries; ++i)
+    {
+        const QFileInfo & entry = entryList[i];
+        if (!entry.isFile() && !entry.isSymLink()) {
+            continue;
+        }
+
+        entryFilePath = entry.absoluteFilePath();
+        QNTRACE("See if we need to remove file " << entryFilePath);
+
+        if (!entryFilePath.startsWith(fileStoragePathPrefix)) {
+            continue;
+        }
+
+        if (entryFilePath.toUpper() == fileStoragePath.toUpper()) {
+            continue;
+        }
+
+        QFile entryFile(entryFilePath);
+        bool res = entryFile.remove();
+        if (res) {
+            QNTRACE("Successfully removed file " << entryFilePath);
+            continue;
+        }
+
+        QNWARNING("Can't remove stale file " << entryFilePath << ": " << entryFile.errorString());
+    }
 }
 
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)

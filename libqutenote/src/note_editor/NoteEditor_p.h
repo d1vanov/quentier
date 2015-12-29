@@ -143,6 +143,8 @@ public:
 
     void setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate);
 
+    void cleanupStaleImageResourceFiles(const QString & resourceLocalGuid);
+
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
 
@@ -664,6 +666,8 @@ private:
     QString                         m_resourceLocalFileStorageFolder;
 
     QHash<QUuid, QString>           m_genericResourceLocalGuidBySaveToStorageRequestIds;
+    QSet<QUuid>                     m_imageResourceSaveToStorageRequestIds;
+
     QHash<QString, QString>         m_resourceFileStoragePathsByResourceLocalGuid;
 
     QSet<QString>                   m_localGuidsOfResourcesWantedToBeSaved;
