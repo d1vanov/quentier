@@ -53,6 +53,8 @@ Q_SIGNALS:
 
     void resourceFileChanged(QString localGuid, QString fileStoragePath);
 
+    void diagnosticsCollected(QUuid requestId, QString diagnostics);
+
 public Q_SLOTS:
     /**
      * @brief onWriteResourceToFileRequest - slot being called when the resource data needs to be written
@@ -71,10 +73,11 @@ public Q_SLOTS:
     /**
      * @brief onReadResourceFromFileRequest - slot being called when the resource data and hash need to be read
      * from local file
+     * @param fileStoragePath - the path at which the resource is stored
      * @param localGuid - the local guid of the resource for which the data and hash should be read from file
      * @param requestId - request identifier for reading the resource data and hash from file
      */
-    void onReadResourceFromFileRequest(QString localGuid, QUuid requestId);
+    void onReadResourceFromFileRequest(QString fileStoragePath, QString localGuid, QUuid requestId);
 
     /**
      * @brief onOpenResourceRequest - slot being called when the resource file is requested to be opened
@@ -90,7 +93,13 @@ public Q_SLOTS:
      * to the previously edited note in the note editor; it is due to the performance cost and OS limitations
      * for the number of files which can be monitored for changes simultaneously by one process
      */
-    void onCurrentNoteChanged(Note * pNote);
+    void onCurrentNoteChanged(Note note);
+
+    /**
+     * @brief onRequestDiagnostics - slot which initiates the collection of diagnostics regarding the internal state of
+     * ResourceFileStorageManager; intended primarily for troubleshooting purposes
+     */
+    void onRequestDiagnostics(QUuid requestId);
 
 private:
     ResourceFileStorageManagerPrivate * const d_ptr;

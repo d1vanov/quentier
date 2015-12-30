@@ -454,22 +454,9 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
         Q_UNUSED(m_imageResourceSaveToStorageRequestIds.erase(imageResourceIt));
 
-        QString linkFileName = fileStoragePath;
-        linkFileName.remove(linkFileName.size() - 4, 4);
-        linkFileName += "_";
-        linkFileName += QString::number(QDateTime::currentMSecsSinceEpoch());
-        linkFileName += ".png";
-        QNTRACE("Link file name = " << linkFileName);
-
-        cleanupStaleImageResourceFiles(localGuid);
-
-        QFile imageResourceFile(fileStoragePath);
-        bool res = imageResourceFile.link(linkFileName);
-        if (Q_UNLIKELY(!res)) {
-            errorDescription = QT_TR_NOOP("Can't process the update of image resource: can't create a symlink to the resource file");
-            errorDescription += ": ";
-            errorDescription += imageResourceFile.errorString();
-            QNWARNING(errorDescription + ", error code = " << errorCode);
+        QString linkFileName = createLinkToImageResourceFile(fileStoragePath, localGuid, errorDescription);
+        if (linkFileName.isEmpty()) {
+            QNWARNING(errorDescription);
             emit notifyError(errorDescription);
             return;
         }
@@ -602,9 +589,9 @@ void NoteEditorPrivate::onResourceFileChanged(QString resourceLocalGuid, QString
 
     QUuid requestId = QUuid::createUuid();
     m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds[requestId] = QPair<QString,QString>(resourceLocalGuid, fileStoragePath);
-    QNTRACE("Emitting request to read the resource file from storage: local guid = " << resourceLocalGuid
-            << ", request id = " << requestId);
-    emit readResourceFromStorage(resourceLocalGuid, requestId);
+    QNTRACE("Emitting request to read the resource file from storage: file storage path = "
+            << fileStoragePath << ", local guid = " << resourceLocalGuid << ", request id = " << requestId);
+    emit readResourceFromStorage(fileStoragePath, resourceLocalGuid, requestId);
 }
 
 void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
@@ -615,8 +602,9 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         return;
     }
 
-    QNDEBUG("NoteEditorPrivate::onResourceFileReadFromStorage: request id = " << requestId << ", errorCode = "
-            << errorCode << ", error description: " << errorDescription);
+    QNDEBUG("NoteEditorPrivate::onResourceFileReadFromStorage: request id = " << requestId
+            << ", data hash = " << dataHash << ", errorCode = " << errorCode << ", error description: "
+            << errorDescription);
 
     auto pair = it.value();
     QString resourceLocalGuid = pair.first;
@@ -638,6 +626,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     QString oldResourceHash;
     QString resourceDisplayName;
     QString resourceDisplaySize;
+    QString resourceMimeTypeName;
 
     QList<ResourceWrapper> resources = m_pNote->resources();
     bool foundResourceToUpdate = false;
@@ -656,6 +645,10 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         resource.setDataBody(data);
         resource.setDataHash(dataHash);
         resource.setDataSize(data.size());
+
+        if (Q_LIKELY(resource.hasMime())) {
+            resourceMimeTypeName = resource.mime();
+        }
 
         resourceDisplayName = resource.displayName();
         resourceDisplaySize = humanReadableSize(resource.dataSize());
@@ -680,8 +673,28 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         updateHashForResourceTag(oldResourceHash, dataHashStr);
     }
 
-    // TODO: if the resource is the image, need to actually relocate its file
-    // in order to force the editor to redraw it properly...
+    if (resourceMimeTypeName.startsWith("image/"))
+    {
+        QString linkFileName = createLinkToImageResourceFile(fileStoragePath, resourceLocalGuid, errorDescription);
+        if (linkFileName.isEmpty()) {
+            QNWARNING(errorDescription);
+            emit notifyError(errorDescription);
+            return;
+        }
+
+        m_resourceFileStoragePathsByResourceLocalGuid[resourceLocalGuid] = linkFileName;
+
+        m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+                                         resourceDisplaySize, linkFileName);
+
+        if (!m_pendingNotePageLoad) {
+            provideSrcForResourceImgTags();
+        }
+    }
+    else
+    {
+        // TODO: ensure non-image resources would also be properly updated
+    }
 }
 
 void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
@@ -2343,7 +2356,23 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
 void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
 {
     QNDEBUG("NoteEditorPrivate::openResource: " << resourceAbsoluteFilePath);
-    emit openResourceFile(resourceAbsoluteFilePath);
+
+    QFile resourceFile(resourceAbsoluteFilePath);
+    if (Q_UNLIKELY(!resourceFile.exists())) {
+        QString errorDescription = QT_TR_NOOP("Can't open attachment: the attachment file does not exist");
+        QNWARNING(errorDescription << ", supposed file path: " << resourceAbsoluteFilePath);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QString symLinkTarget = resourceFile.symLinkTarget();
+    if (!symLinkTarget.isEmpty()) {
+        QNDEBUG("The resource file is actually a symlink, substituting the file path to open to the real file: " << symLinkTarget);
+        emit openResourceFile(symLinkTarget);
+    }
+    else {
+        emit openResourceFile(resourceAbsoluteFilePath);
+    }
 }
 
 QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
@@ -2984,8 +3013,10 @@ void NoteEditorPrivate::setupFileIO()
     m_pResourceFileStorageManager = new ResourceFileStorageManager;
     m_pResourceFileStorageManager->moveToThread(m_pIOThread);
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readResourceFromStorage,QString,QUuid),
-                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onReadResourceFromFileRequest,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onCurrentNoteChanged,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readResourceFromStorage,QString,QString,QUuid),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onReadResourceFromFileRequest,QString,QString,QUuid));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceFileReadFromStorage,QUuid,QByteArray,QByteArray,int,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,openResourceFile,QString),
@@ -3464,7 +3495,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 #endif
 
     m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds.clear();
-    emit currentNoteChanged(m_pNote);
+    emit currentNoteChanged(*m_pNote);
 
     noteToEditorContent();
 
@@ -3656,6 +3687,35 @@ void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceL
 
         QNWARNING("Can't remove stale file " << entryFilePath << ": " << entryFile.errorString());
     }
+}
+
+QString NoteEditorPrivate::createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localGuid, QString & errorDescription)
+{
+    QNDEBUG("NoteEditorPrivate::createLinkToImageResourceFile: file storage path = " << fileStoragePath
+            << ", local guid = " << localGuid);
+
+    QString linkFileName = fileStoragePath;
+    linkFileName.remove(linkFileName.size() - 4, 4);
+    linkFileName += "_";
+    linkFileName += QString::number(QDateTime::currentMSecsSinceEpoch());
+    linkFileName += ".png";
+    QNTRACE("Link file name = " << linkFileName);
+
+    cleanupStaleImageResourceFiles(localGuid);
+
+    QFile imageResourceFile(fileStoragePath);
+    bool res = imageResourceFile.link(linkFileName);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = QT_TR_NOOP("Can't process the update of image resource: can't create a symlink to the resource file");
+        errorDescription += ": ";
+        errorDescription += imageResourceFile.errorString();
+        errorDescription += ", ";
+        errorDescription += QT_TR_NOOP("error code = ");
+        errorDescription += QString::number(imageResourceFile.error());
+        return QString();
+    }
+
+    return linkFileName;
 }
 
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)

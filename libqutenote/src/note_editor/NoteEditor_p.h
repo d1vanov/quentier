@@ -81,7 +81,7 @@ Q_SIGNALS:
 
     void noteEditorHtmlUpdated(QString html);
 
-    void currentNoteChanged(Note * pNote);
+    void currentNoteChanged(Note note);
 
     // Signals to notify anyone interested of the formatting at the current cursor position
     void textBoldState(bool state);
@@ -144,6 +144,7 @@ public:
     void setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate);
 
     void cleanupStaleImageResourceFiles(const QString & resourceLocalGuid);
+    QString createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localGuid, QString & errorDescription);
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(QString & filepath);
@@ -228,7 +229,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
                                QString fileStoragePath, QUuid requestId);
-    void readResourceFromStorage(QString localGuid, QUuid requestId);
+    void readResourceFromStorage(QString fileStoragePath, QString localGuid, QUuid requestId);
     void openResourceFile(QString absoluteFilePath);
     void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);

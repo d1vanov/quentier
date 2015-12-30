@@ -22,10 +22,10 @@ void ResourceFileStorageManager::onWriteResourceToFileRequest(QString localGuid,
     d->onWriteResourceToFileRequest(localGuid, data, dataHash, fileStoragePath, requestId);
 }
 
-void ResourceFileStorageManager::onReadResourceFromFileRequest(QString localGuid, QUuid requestId)
+void ResourceFileStorageManager::onReadResourceFromFileRequest(QString fileStoragePath, QString localGuid, QUuid requestId)
 {
     Q_D(ResourceFileStorageManager);
-    d->onReadResourceFromFileRequest(localGuid, requestId);
+    d->onReadResourceFromFileRequest(fileStoragePath, localGuid, requestId);
 }
 
 void ResourceFileStorageManager::onOpenResourceRequest(QString fileStoragePath)
@@ -34,10 +34,16 @@ void ResourceFileStorageManager::onOpenResourceRequest(QString fileStoragePath)
     d->onOpenResourceRequest(fileStoragePath);
 }
 
-void ResourceFileStorageManager::onCurrentNoteChanged(Note * pNote)
+void ResourceFileStorageManager::onCurrentNoteChanged(Note note)
 {
     Q_D(ResourceFileStorageManager);
-    d->onCurrentNoteChanged(pNote);
+    d->onCurrentNoteChanged(note);
+}
+
+void ResourceFileStorageManager::onRequestDiagnostics(QUuid requestId)
+{
+    Q_D(ResourceFileStorageManager);
+    d->onRequestDiagnostics(requestId);
 }
 
 } // namespace qute_note

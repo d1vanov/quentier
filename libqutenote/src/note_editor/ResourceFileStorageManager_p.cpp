@@ -176,6 +176,8 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
 
     file.close();
 
+    m_resourceLocalGuidByFilePath[fileStoragePath] = localGuid;
+
     int errorCode = 0;
     QString errorDescription;
     bool res = updateResourceHash(localGuid, dataHash, errorCode, errorDescription);
@@ -190,7 +192,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString loc
     emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, QString());
 }
 
-void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString localGuid, QUuid requestId)
+void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fileStoragePath, QString localGuid, QUuid requestId)
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest: local guid = " << localGuid
             << ", request id = " << requestId);
@@ -204,7 +206,7 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString lo
         return;
     }
 
-    QFile resourceFile(m_resourceFileStorageLocation + "/" + localGuid);
+    QFile resourceFile(fileStoragePath);
     bool open = resourceFile.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!open)) {
         QString errorDescription = QT_TR_NOOP("Can't open resource file for reading: ");
@@ -231,7 +233,7 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString lo
     }
 
     QByteArray data = resourceFile.readAll();
-    QByteArray dataHash = resourceFile.readAll();
+    QByteArray dataHash = resourceHashFile.readAll();
 
     QNDEBUG("Successfully read resource data and hash from files");
     emit readResourceFromFileCompleted(requestId, data, dataHash, 0, QString());
@@ -252,17 +254,41 @@ void ResourceFileStorageManagerPrivate::onOpenResourceRequest(QString fileStorag
     QDesktopServices::openUrl(QUrl::fromLocalFile(fileStoragePath));
 }
 
-void ResourceFileStorageManagerPrivate::onCurrentNoteChanged(Note * pNote)
+void ResourceFileStorageManagerPrivate::onCurrentNoteChanged(Note note)
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::onCurrentNoteChanged");
 
-    Q_UNUSED(pNote)
+    Q_UNUSED(note)
 
     for(auto it = m_resourceLocalGuidByFilePath.begin(), end = m_resourceLocalGuidByFilePath.end(); it != end; ++it) {
         m_fileSystemWatcher.removePath(it.key());
+        QNTRACE("Stopped watching for file " << it.key());
     }
 
     m_resourceLocalGuidByFilePath.clear();
+}
+
+void ResourceFileStorageManagerPrivate::onRequestDiagnostics(QUuid requestId)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::onRequestDiagnostics: request id = " << requestId);
+
+    QString diagnostics = "ResourceFileStorageManager diagnostics: {\n";
+
+    diagnostics += "  Resource local guids by file paths: \n";
+    for(auto it = m_resourceLocalGuidByFilePath.begin(), end = m_resourceLocalGuidByFilePath.end(); it != end; ++it) {
+        diagnostics += "    [" + it.key() + "]: " + it.value() + "\n";
+    }
+
+    diagnostics += "  Watched files: \n";
+    QStringList watchedFiles = m_fileSystemWatcher.files();
+    const int numWatchedFiles = watchedFiles.size();
+    for(int i = 0; i < numWatchedFiles; ++i) {
+        diagnostics += "    " + watchedFiles[i] + "\n";
+    }
+
+    diagnostics += "}\n";
+
+    emit diagnosticsCollected(requestId, diagnostics);
 }
 
 void ResourceFileStorageManagerPrivate::onFileChanged(const QString & path)
@@ -329,6 +355,8 @@ void ResourceFileStorageManagerPrivate::createConnections()
                      q, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString));
     QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      q, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString));
+    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,diagnosticsCollected,QUuid,QString),
+                     q, QNSIGNAL(ResourceFileStorageManager,diagnosticsCollected,QUuid,QString));
 }
 
 QByteArray ResourceFileStorageManagerPrivate::calculateHash(const QByteArray & data) const
@@ -411,13 +439,6 @@ void ResourceFileStorageManagerPrivate::watchResourceFileForChanges(const QStrin
     QNDEBUG("ResourceFileStorageManagerPrivate::watchResourceFileForChanges: resource local guid = " << resourceLocalGuid
             << ", file storage path = " << fileStoragePath);
 
-    auto it = m_resourceLocalGuidByFilePath.find(fileStoragePath);
-    if (it != m_resourceLocalGuidByFilePath.end()) {
-        QNTRACE("Already watching for this file's changes");
-        return;
-    }
-
-    m_resourceLocalGuidByFilePath[fileStoragePath] = resourceLocalGuid;
     m_fileSystemWatcher.addPath(fileStoragePath);
     QNINFO("Start watching for resource file " << fileStoragePath);
 }

@@ -30,14 +30,18 @@ Q_SIGNALS:
 
     void resourceFileChanged(QString localGuid, QString fileStoragePath);
 
+    void diagnosticsCollected(QUuid requestId, QString diagnostics);
+
 public Q_SLOTS:
     void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash,
                                       QString fileStoragePath, QUuid requestId);
-    void onReadResourceFromFileRequest(QString localGuid, QUuid requestId);
+    void onReadResourceFromFileRequest(QString fileStoragePath, QString localGuid, QUuid requestId);
 
     void onOpenResourceRequest(QString fileStoragePath);
 
-    void onCurrentNoteChanged(Note * pNote);
+    void onCurrentNoteChanged(Note note);
+
+    void onRequestDiagnostics(QUuid requestId);
 
 private Q_SLOTS:
     void onFileChanged(const QString & path);
