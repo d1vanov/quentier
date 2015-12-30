@@ -339,6 +339,8 @@ void ResourceFileStorageManagerPrivate::onFileChanged(const QString & path)
         return;
     }
 
+    m_fileSystemWatcher.addPath(path);  // WORKAROUND: for some reason withon re-adding the same path the signal won't be emitted again
+
     emit resourceFileChanged(it.value(), path);
 }
 
