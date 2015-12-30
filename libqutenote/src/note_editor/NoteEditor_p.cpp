@@ -629,7 +629,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     QString resourceMimeTypeName;
 
     QList<ResourceWrapper> resources = m_pNote->resources();
-    bool foundResourceToUpdate = false;
+    int targetResourceIndex = -1;
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
@@ -653,12 +653,21 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         resourceDisplayName = resource.displayName();
         resourceDisplaySize = humanReadableSize(resource.dataSize());
 
-        foundResourceToUpdate = true;
+        targetResourceIndex = i;
         break;
     }
 
-    if (Q_UNLIKELY(!foundResourceToUpdate)) {
+    if (Q_UNLIKELY(targetResourceIndex < 0)) {
         QNDEBUG("Can't process the update of the resource file data: can't find the corresponding resource within the note's resources");
+        return;
+    }
+
+    const ResourceWrapper & resource = resources[targetResourceIndex];
+    bool updated = m_pNote->updateResource(resource);
+    if (Q_UNLIKELY(!updated)) {
+        QString errorDescription = QT_TR_NOOP("unexpectedly failed to update the resource within the note");
+        QNWARNING(errorDescription << ", resource: " << resource << "\nNote: " << *m_pNote);
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -694,7 +703,8 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     }
     else
     {
-        // TODO: ensure non-image resources would also be properly updated
+        QImage image = buildGenericResourceImage(resource);
+        saveGenericResourceImage(resource, image);
     }
 }
 
