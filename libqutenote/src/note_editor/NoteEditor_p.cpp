@@ -688,7 +688,8 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
                                          resourceDisplaySize, linkFileName);
 
         if (!m_pendingNotePageLoad) {
-            provideSrcForResourceImgTags();
+            GET_PAGE()
+            page->executeJavaScript("updateImageResourceSrc('" + dataHashStr + "', '" + linkFileName + "');");
         }
     }
     else
