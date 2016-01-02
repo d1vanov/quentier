@@ -151,6 +151,7 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/EncryptionManager.h
     headers/qute_note/utility/EventLoopWithExitStatus.h
     headers/qute_note/utility/FileIOThreadWorker.h
+    headers/qute_note/utility/FileSystemWatcher.h
     headers/qute_note/utility/LimitedStack.h
     headers/qute_note/utility/Linkage.h
     headers/qute_note/utility/ShortcutManager.h
@@ -237,6 +238,7 @@ set(PRIVATE_HEADERS
     src/synchronization/SynchronizationManager_p.h
     src/utility/EncryptionManager_p.h
     src/utility/FileIOThreadWorker_p.h
+    src/utility/FileSystemWatcher_p.h
     src/utility/ShortcutManager_p.h)
 
 if(NOT USE_QT_WEB_ENGINE)
@@ -365,6 +367,8 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/EventLoopWithExitStatus.cpp
     src/utility/FileIOThreadWorker.cpp
     src/utility/FileIOThreadWorker_p.cpp
+    src/utility/FileSystemWatcher.cpp
+    src/utility/FileSystemWatcher_p.cpp
     src/utility/IQuteNoteException.cpp
     src/utility/Printable.cpp
     src/utility/QuteNoteApplication.cpp
