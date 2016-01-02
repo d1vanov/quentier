@@ -40,6 +40,7 @@ private Q_SLOTS:
 private:
     void createConnections();
     void processFileRemoval(const QString & path);
+    void processDirectoryRemoval(const QString & path);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -52,7 +53,9 @@ private:
     QFileSystemWatcher  m_watcher;
     int                 m_removalTimeoutMSec;
 
-    QSet<QString>       m_watchedFiles;
+    typedef boost::bimap<QString, QString> WatchedFilePathWithDirPaths;
+    WatchedFilePathWithDirPaths     m_watchedFilesWithDirs;
+
     QSet<QString>       m_watchedDirectories;
     QSet<QString>       m_implicitlyWatchedDirectories;
 
