@@ -339,14 +339,22 @@ void ResourceFileStorageManagerPrivate::onFileChanged(const QString & path)
         return;
     }
 
-    m_fileSystemWatcher.addPath(path);  // WORKAROUND: for some reason withon re-adding the same path the signal won't be emitted again
-
     emit resourceFileChanged(it.value(), path);
+}
+
+void ResourceFileStorageManagerPrivate::onFileRemoved(const QString & path)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::onFileRemoved: " << path);
+
+    auto it = m_resourceLocalGuidByFilePath.find(path);
+    if (it != m_resourceLocalGuidByFilePath.end()) {
+        Q_UNUSED(m_resourceLocalGuidByFilePath.erase(it));
+    }
 }
 
 void ResourceFileStorageManagerPrivate::createConnections()
 {
-    QObject::connect(&m_fileSystemWatcher, QNSIGNAL(QFileSystemWatcher,fileChanged,QString),
+    QObject::connect(&m_fileSystemWatcher, QNSIGNAL(FileSystemWatcher,fileChanged,QString),
                      this, QNSLOT(ResourceFileStorageManagerPrivate,onFileChanged,QString));
 
     Q_Q(ResourceFileStorageManager);

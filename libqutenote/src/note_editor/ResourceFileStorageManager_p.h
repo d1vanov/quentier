@@ -1,10 +1,10 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__RESOURCE_FILES_STORAGE_MANAGER_P_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__RESOURCE_FILES_STORAGE_MANAGER_P_H
 
+#include <qute_note/utility/FileSystemWatcher.h>
 #include <QObject>
 #include <QUuid>
 #include <QStringList>
-#include <QFileSystemWatcher>
 #include <QHash>
 
 QT_FORWARD_DECLARE_CLASS(QWidget)
@@ -45,6 +45,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onFileChanged(const QString & path);
+    void onFileRemoved(const QString & path);
 
 private:
     void createConnections();
@@ -59,7 +60,7 @@ private:
     QString     m_resourceFileStorageLocation;
 
     QHash<QString, QString>             m_resourceLocalGuidByFilePath;
-    QFileSystemWatcher                  m_fileSystemWatcher;
+    FileSystemWatcher                   m_fileSystemWatcher;
 
     ResourceFileStorageManager * const q_ptr;
     Q_DECLARE_PUBLIC(ResourceFileStorageManager)
