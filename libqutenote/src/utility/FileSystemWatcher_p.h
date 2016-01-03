@@ -53,11 +53,8 @@ private:
     QFileSystemWatcher  m_watcher;
     int                 m_removalTimeoutMSec;
 
-    typedef boost::bimap<QString, QString> WatchedFilePathWithDirPaths;
-    WatchedFilePathWithDirPaths     m_watchedFilesWithDirs;
-
+    QSet<QString>       m_watchedFiles;
     QSet<QString>       m_watchedDirectories;
-    QSet<QString>       m_implicitlyWatchedDirectories;
 
     typedef boost::bimap<QString, int> PathWithTimerId;
     PathWithTimerId     m_justRemovedFilePathsWithPostRemovalTimerIds;
