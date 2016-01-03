@@ -659,8 +659,8 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         Note conflictedNote(note);
         setConflicted("Note", conflictedNote);
         QString conflictedNoteTitle = (conflictedNote.hasTitle()
-                                       ? QObject::tr("Note \"") + conflictedNote.title() + QObject::tr("\" containing conflicted resource")
-                                       : QObject::tr("Note containing conflicted resource"));
+                                       ? tr("Note \"") + conflictedNote.title() + tr("\" containing conflicted resource")
+                                       : tr("Note containing conflicted resource"));
         conflictedNoteTitle += " (" + QDateTime::currentDateTime().toString(Qt::ISODate) + ")";
         conflictedNote.setTitle(conflictedNoteTitle);
 

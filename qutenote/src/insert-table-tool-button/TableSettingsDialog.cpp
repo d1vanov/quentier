@@ -12,8 +12,8 @@ TableSettingsDialog::TableSettingsDialog(QWidget * parent) :
     ui->warningLine->setHidden(true);
 
     QComboBox * pTableWidthModeComboBox = ui->tableWidthModeComboBox;
-    pTableWidthModeComboBox->addItem(QObject::tr("pixels"));
-    pTableWidthModeComboBox->addItem(QObject::tr("% of page width"));
+    pTableWidthModeComboBox->addItem(tr("pixels"));
+    pTableWidthModeComboBox->addItem(tr("% of page width"));
     pTableWidthModeComboBox->setCurrentIndex(1);
 
     QObject::connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(onOkButtonPressed()));
@@ -84,13 +84,13 @@ bool TableSettingsDialog::verifySettings(QString & error) const
 {
     int numRows = ui->numRowsSpinBox->value();
     if ((numRows < 1) || (numRows > 30)) {
-        error = QObject::tr("Number of rows should be between 1 and 30");
+        error = tr("Number of rows should be between 1 and 30");
         return false;
     }
 
     int numColumns = ui->numColumnsSpinBox->value();
     if ((numColumns < 1) || (numColumns > 30)) {
-        error = QObject::tr("Number of columns should be between 1 and 30");
+        error = tr("Number of columns should be between 1 and 30");
         return false;
     }
 
@@ -101,14 +101,14 @@ bool TableSettingsDialog::verifySettings(QString & error) const
     if (tableRelativeWidth)
     {
         if ((intTableWidth < 1) || (intTableWidth > 100)) {
-            error = QObject::tr("Relative table width should be between 1 and 100");
+            error = tr("Relative table width should be between 1 and 100");
             return false;
         }
     }
     else
     {
         if ((intTableWidth < 1) || (intTableWidth > 999999999)) {
-            error = QObject::tr("Bad table width in pixels number");
+            error = tr("Bad table width in pixels number");
             return false;
         }
     }

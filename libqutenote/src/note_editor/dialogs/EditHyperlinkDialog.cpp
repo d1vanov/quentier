@@ -76,7 +76,7 @@ bool EditHyperlinkDialog::validateAndGetUrl(QUrl & url)
     QNTRACE("Entered URL string: " << enteredUrl);
 
     if (enteredUrl.isEmpty()) {
-        m_pUI->urlErrorLabel->setText(QObject::tr("No URL is entered"));
+        m_pUI->urlErrorLabel->setText(tr("No URL is entered"));
         m_pUI->urlErrorLabel->setVisible(true);
         return false;
     }
@@ -86,13 +86,13 @@ bool EditHyperlinkDialog::validateAndGetUrl(QUrl & url)
             << ", is valid = " << (url.isValid() ? "true" : "false"));
 
     if (url.isEmpty()) {
-        m_pUI->urlErrorLabel->setText(QObject::tr("Entered URL is empty"));
+        m_pUI->urlErrorLabel->setText(tr("Entered URL is empty"));
         m_pUI->urlErrorLabel->setVisible(true);
         return false;
     }
 
     if (!url.isValid()) {
-        m_pUI->urlErrorLabel->setText(QObject::tr("Entered URL is not valid"));
+        m_pUI->urlErrorLabel->setText(tr("Entered URL is not valid"));
         m_pUI->urlErrorLabel->setVisible(true);
         return false;
     }

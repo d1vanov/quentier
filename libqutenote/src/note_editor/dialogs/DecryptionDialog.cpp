@@ -80,8 +80,8 @@ void DecryptionDialog::setError(const QString & error)
 
 void DecryptionDialog::setHint(const QString & hint)
 {
-    m_pUI->hintLabel->setText(QObject::tr("Hint: ") +
-                              (hint.isEmpty() ? QObject::tr("No hint available") : hint));
+    m_pUI->hintLabel->setText(tr("Hint: ") +
+                              (hint.isEmpty() ? tr("No hint available") : hint));
 }
 
 void DecryptionDialog::setRememberPassphraseDefaultState(const bool checked)

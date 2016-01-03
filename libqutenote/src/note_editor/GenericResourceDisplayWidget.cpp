@@ -226,7 +226,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
         }
     }
 
-    QString fileName = QFileDialog::getSaveFileName(this, QObject::tr("Save as..."),
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save as..."),
                                                     preferredDirectory, m_filterString);
     if (fileName.isEmpty()) {
         QNINFO("User cancelled writing to file");
@@ -275,10 +275,10 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
         {
             QNWARNING("Could not save resource to storage: " << errorDescription
                       << "; request id = " << requestId);
-            warningMessageBox(this, QObject::tr("Error saving the resource to hidden file"),
-                              QObject::tr("Could not save the resource to hidden file "
-                                          "(in order to make it possible to open it with some application)"),
-                              QObject::tr("Error code = ") + QString::number(errorCode) + ": " + errorDescription);
+            warningMessageBox(this, tr("Error saving the resource to hidden file"),
+                              tr("Could not save the resource to hidden file "
+                                 "(in order to make it possible to open it with some application)"),
+                              tr("Error code = ") + QString::number(errorCode) + ": " + errorDescription);
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
             }
@@ -304,8 +304,8 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
         else {
             QNWARNING("Could not save resource to file: " << errorDescription
                       << "; request id = " << requestId);
-            warningMessageBox(this, QObject::tr("Error saving the resource to file"),
-                              QObject::tr("Could not save the resource to file"),
+            warningMessageBox(this, tr("Error saving the resource to file"),
+                              tr("Could not save the resource to file"),
                               errorDescription);
         }
     }

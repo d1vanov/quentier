@@ -2797,7 +2797,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
 
 #define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
     { \
-        QAction * action = new QAction(QObject::tr(name), menu); \
+        QAction * action = new QAction(tr(name), menu); \
         setupActionShortcut(key, QString(#__VA_ARGS__), *action); \
         QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,slot)); \
         menu->addAction(action); \
@@ -2846,7 +2846,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Font, "Font...", m_pGenericTextContextMenu, fontMenu);
 
-    QMenu * pParagraphSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Paragraph"));
+    QMenu * pParagraphSubMenu = m_pGenericTextContextMenu->addMenu(tr("Paragraph"));
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignLeft, "Align left", pParagraphSubMenu, alignLeft);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignCenter, "Center text", pParagraphSubMenu, alignCenter);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignRight, "Align right", pParagraphSubMenu, alignRight);
@@ -2870,7 +2870,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertBulletedList, "Bulleted list",
                              pParagraphSubMenu, insertBulletedList);
 
-    QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Style"));
+    QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(tr("Style"));
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Bold, "Bold", pStyleSubMenu, textBold);
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Italic, "Italic", pStyleSubMenu, textItalic);
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Underline, "Underline", pStyleSubMenu, textUnderline);
@@ -2891,7 +2891,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertToDoTag, "Insert ToDo tag",
                              m_pGenericTextContextMenu, insertToDoCheckbox);
 
-    QMenu * pHyperlinkMenu = m_pGenericTextContextMenu->addMenu(QObject::tr("Hyperlink"));
+    QMenu * pHyperlinkMenu = m_pGenericTextContextMenu->addMenu(tr("Hyperlink"));
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::EditHyperlink, "Add/edit...", pHyperlinkMenu, editHyperlinkDialog);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyHyperlink, "Copy", pHyperlinkMenu, copyHyperlink);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveHyperlink, "Remove", pHyperlinkMenu, removeHyperlink);

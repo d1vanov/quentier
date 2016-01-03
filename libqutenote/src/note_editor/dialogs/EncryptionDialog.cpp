@@ -87,7 +87,7 @@ void EncryptionDialog::accept()
 
     if (passphrase.isEmpty()) {
         QNINFO("Attempted to press OK in EncryptionDialog without having a password set");
-        QString error = QObject::tr("Please choose the encryption password");
+        QString error = tr("Please choose the encryption password");
         setError(error);
         return;
     }

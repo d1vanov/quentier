@@ -77,9 +77,9 @@ bool NoteEditorPage::shouldInterruptJavaScript()
 {
     QNDEBUG("NoteEditorPage::shouldInterruptJavaScript");
 
-    QString title = QObject::tr("Note editor hanged");
-    QString question = QObject::tr("Note editor seems hanged when loading or editing the note. "
-                                   "Would you like to cancel loading the note?");
+    QString title = tr("Note editor hanged");
+    QString question = tr("Note editor seems hanged when loading or editing the note. "
+                          "Would you like to cancel loading the note?");
     QMessageBox::StandardButton reply = QMessageBox::question(m_parent, title, question,
                                                               QMessageBox::Yes | QMessageBox::No,
                                                               QMessageBox::No);

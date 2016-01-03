@@ -19,7 +19,7 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor, QWidget
     m_pUI->setupUi(this);
 
     QAction * showEncryptedTextAction = new QAction(this);
-    showEncryptedTextAction->setText(QObject::tr("Show encrypted text") + "...");
+    showEncryptedTextAction->setText(tr("Show encrypted text") + "...");
     QObject::connect(showEncryptedTextAction, QNSIGNAL(QAction,triggered), this, QNSLOT(EncryptedAreaPlugin,decrypt));
     m_pUI->toolButton->addAction(showEncryptedTextAction);
 
@@ -99,8 +99,8 @@ QString EncryptedAreaPlugin::name() const
 
 QString EncryptedAreaPlugin::description() const
 {
-    return QObject::tr("Encrypted area plugin - note editor plugin used for the display and convenient work "
-                       "with encrypted text within notes");
+    return tr("Encrypted area plugin - note editor plugin used for the display and convenient work "
+              "with encrypted text within notes");
 }
 
 void EncryptedAreaPlugin::decrypt()
