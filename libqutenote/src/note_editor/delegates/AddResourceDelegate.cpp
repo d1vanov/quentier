@@ -228,7 +228,7 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
 
     QNDEBUG("Emitting request to write generic resource image for new resource with local guid "
             << m_resource.localGuid() << ", request id " << m_saveResourceImageRequestId);
-    emit saveGenericResourceImageToFile(m_resource.localGuid(), resourceImageData, "PNG", dataHash,
+    emit saveGenericResourceImageToFile(m_resource.localGuid(), resourceImageData, "png", dataHash,
                                         m_resourceFileStoragePath, m_saveResourceImageRequestId);
 }
 

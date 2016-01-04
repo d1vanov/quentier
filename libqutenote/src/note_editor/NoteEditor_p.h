@@ -147,7 +147,7 @@ public:
     QString createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localGuid, QString & errorDescription);
 
     void onDropEvent(QDropEvent * pEvent);
-    void dropFile(QString & filepath);
+    void dropFile(const QString & filepath);
 
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }

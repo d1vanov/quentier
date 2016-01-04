@@ -3914,16 +3914,31 @@ void NoteEditorPrivate::paste()
     QString textToPaste = pClipboard->text();
     QNTRACE("Text to paste: " << textToPaste);
 
-    if (!textToPaste.startsWith("http://") && !textToPaste.startsWith("https://") &&
-        !textToPaste.startsWith("mailto:") && !textToPaste.startsWith("ftp://"))
+    bool shouldBeHyperlink = textToPaste.startsWith("http://") || textToPaste.startsWith("https://") || textToPaste.startsWith("mailto:") || textToPaste.startsWith("ftp://");
+    bool shouldBeAttachment = textToPaste.startsWith("file://");
+
+    if (!shouldBeHyperlink && !shouldBeAttachment)
     {
-        QNTRACE("The pasted text doesn't appear to be a url");
+        QNTRACE("The pasted text doesn't appear to be a url of hyperlink or attachment");
         page->triggerAction(WebPage::Paste);
         setFocus();
         return;
     }
 
     QUrl url(textToPaste);
+    if (shouldBeAttachment)
+    {
+        if (!url.isValid()) {
+            QNTRACE("The pasted text seemed like file url but the url isn't valid after all, fallback to simple paste");
+            page->triggerAction(WebPage::Paste);
+            setFocus();
+            return;
+        }
+
+        dropFile(url.toLocalFile());
+        return;
+    }
+
     if (!url.isValid()) {
         url.setScheme("evernote");
     }
@@ -4912,7 +4927,7 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
     }
 }
 
-void NoteEditorPrivate::dropFile(QString & filePath)
+void NoteEditorPrivate::dropFile(const QString & filePath)
 {
     QNDEBUG("NoteEditorPrivate::dropFile: " << filePath);
 
