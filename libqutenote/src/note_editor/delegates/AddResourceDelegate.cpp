@@ -30,18 +30,19 @@ namespace qute_note {
 AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                          ResourceFileStorageManager * pResourceFileStorageManager,
                                          FileIOThreadWorker * pFileIOThreadWorker,
-                                         GenericResourceImageWriter * pGenericResourceImageWriter) :
+                                         GenericResourceImageWriter * pGenericResourceImageWriter,
+                                         QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash) :
     QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pResourceFileStorageManager(pResourceFileStorageManager),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
+    m_genericResourceImageFilePathsByResourceHash(genericResourceImageFilePathsByResourceHash),
     m_pGenericResourceImageWriter(pGenericResourceImageWriter),
     m_saveResourceImageRequestId(),
     m_filePath(filePath),
     m_resourceFileMimeType(),
     m_resource(),
     m_resourceFileStoragePath(),
-    m_genericResourceImageFilePath(),
     m_readResourceFileRequestId(),
     m_saveResourceToStorageRequestId(),
     m_pageXOffset(-1),
@@ -248,7 +249,9 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
     QNDEBUG("AddResourceDelegate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
             << ", file path = " << filePath);
 
-    m_genericResourceImageFilePath = filePath;
+    m_genericResourceImageFilePathsByResourceHash[m_resource.dataHash()] = filePath;
+    QNDEBUG("Cached generic resource image file path " << filePath << " for resource hash " << m_resource.dataHash());
+
     Q_UNUSED(resourceImageDataHash);
 
     if (Q_UNLIKELY(!success)) {
@@ -403,7 +406,7 @@ void AddResourceDelegate::onModifiedPageLoaded()
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
                         this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
 
-    emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_genericResourceImageFilePath, m_pageXOffset, m_pageYOffset);
+    emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_pageXOffset, m_pageYOffset);
 }
 
 } // namespace qute_note

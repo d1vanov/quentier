@@ -1241,12 +1241,10 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
 }
 
 void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                                                      QString resourceFileStoragePath, QString genericResourceImageFilePath,
-                                                      int pageXOffset, int pageYOffset)
+                                                      QString resourceFileStoragePath, int pageXOffset, int pageYOffset)
 {
     QNDEBUG("NoteEditorPrivate::onAddResourceDelegateFinished: resource file storage path = " << resourceFileStoragePath
-            << ", generic resource image file path = " << genericResourceImageFilePath << ", page X offset = " << pageXOffset
-            << ", page Y offset = " << pageYOffset);
+             << ", page X offset = " << pageXOffset << ", page Y offset = " << pageYOffset);
 
     QNTRACE(addedResource);
 
@@ -1256,10 +1254,6 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
         removeResourceFromNote(addedResource);
         emit notifyError(error);
         return;
-    }
-
-    if (!genericResourceImageFilePath.isEmpty()) {
-        m_genericResourceImageFilePathsByResourceHash[addedResource.dataHash()] = genericResourceImageFilePath;
     }
 
     AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource, htmlWithAddedResource, pageXOffset, pageYOffset, *this);
@@ -2643,6 +2637,7 @@ bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resour
                                        ? resource.dataHash()
                                        : resource.alternateDataHash());
 
+    QNTRACE("Looking for existing generic resource image file for resource with hash " << resourceHash);
     auto it = m_genericResourceImageFilePathsByResourceHash.find(resourceHash);
     if (it != m_genericResourceImageFilePathsByResourceHash.end()) {
         QNTRACE("Found generic resource image file path for resource with hash " << resourceHash << " and local guid "
@@ -3497,6 +3492,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     m_resourceFileStoragePathsByResourceLocalGuid.clear();
     if (m_genericResourceImageFilePathsByResourceHash.size() > 30) {
         m_genericResourceImageFilePathsByResourceHash.clear();
+        QNTRACE("Cleared the cache of generic resource image files by resource hash");
     }
     m_saveGenericResourceImageToFileRequestIds.clear();
 #ifdef USE_QT_WEB_ENGINE
@@ -4932,10 +4928,11 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
     QNDEBUG("NoteEditorPrivate::dropFile: " << filePath);
 
     AddResourceDelegate * delegate = new AddResourceDelegate(filePath, *this, m_pResourceFileStorageManager,
-                                                             m_pFileIOThreadWorker, m_pGenericResourceImageWriter);
+                                                             m_pFileIOThreadWorker, m_pGenericResourceImageWriter,
+                                                             m_genericResourceImageFilePathsByResourceHash);
 
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString,QString,int,int),
-                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,QString,int,int));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString,int,int),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,int,int));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QString));
 

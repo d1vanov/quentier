@@ -26,15 +26,14 @@ public:
     explicit AddResourceDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                  ResourceFileStorageManager * pResourceFileStorageManager,
                                  FileIOThreadWorker * pFileIOThreadWorker,
-                                 GenericResourceImageWriter * pGenericResourceImageWriter);
+                                 GenericResourceImageWriter * pGenericResourceImageWriter,
+                                 QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash);
 
     void start();
 
 Q_SIGNALS:
-
     void finished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                  QString resourceFileStoragePath, QString resourceImageFilePath,
-                  int pageXOffset, int pageYOffset);
+                  QString resourceFileStoragePath, int pageXOffset, int pageYOffset);
     void notifyError(QString error);
 
 // private signals
@@ -96,6 +95,7 @@ private:
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
+    QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
     GenericResourceImageWriter *    m_pGenericResourceImageWriter;
     QUuid                           m_saveResourceImageRequestId;
 
@@ -103,7 +103,6 @@ private:
     QMimeType                       m_resourceFileMimeType;
     ResourceWrapper                 m_resource;
     QString                         m_resourceFileStoragePath;
-    QString                         m_genericResourceImageFilePath;
 
     QUuid                           m_readResourceFileRequestId;
     QUuid                           m_saveResourceToStorageRequestId;

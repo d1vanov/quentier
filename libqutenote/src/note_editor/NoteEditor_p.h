@@ -305,8 +305,7 @@ private Q_SLOTS:
 
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                                       QString resourceFileStoragePath, QString genericResourceImageFilePath,
-                                       int pageXOffset, int pageYOffset);
+                                       QString resourceFileStoragePath, int pageXOffset, int pageYOffset);
     void onAddResourceDelegateError(QString error);
 
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
@@ -682,7 +681,7 @@ private:
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
 
 #ifdef USE_QT_WEB_ENGINE
-    GenericResourceImageJavaScriptHandler *  m_pGenericResoureImageJavaScriptHandler;
+    GenericResourceImageJavaScriptHandler *     m_pGenericResoureImageJavaScriptHandler;
 #endif
 
     QSet<QUuid>                                 m_saveGenericResourceImageToFileRequestIds;
