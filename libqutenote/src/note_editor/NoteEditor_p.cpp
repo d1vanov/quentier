@@ -131,6 +131,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pageMutationObserverJs(),
     m_getCurrentScrollJs(),
     m_setScrollJs(),
+    m_hideDecryptedTextJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -356,6 +357,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_decryptEncryptedTextPermanentlyJs);
     page->executeJavaScript(m_getCurrentScrollJs);
     page->executeJavaScript(m_setScrollJs);
+    page->executeJavaScript(m_hideDecryptedTextJs);
 
     setPageEditable(true);
     updateColResizableTableBindings();
@@ -2906,6 +2908,11 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
         ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Encrypt, "Encrypt selected fragment...",
                                  m_pGenericTextContextMenu, encryptSelectedTextDialog);
     }
+    else if (insideDecryptedTextFragment) {
+        Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Encrypt, "Encrypt back",
+                                 m_pGenericTextContextMenu, hideDecryptedTextUnderCursor);
+    }
 
     m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
@@ -3095,6 +3102,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/decryptEncryptedTextPermanently.js", m_decryptEncryptedTextPermanentlyJs);
     SETUP_SCRIPT("javascript/scripts/getCurrentScroll.js", m_getCurrentScrollJs);
     SETUP_SCRIPT("javascript/scripts/setScroll.js", m_setScrollJs);
+    SETUP_SCRIPT("javascript/scripts/hideDecryptedText.js", m_hideDecryptedTextJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -4843,12 +4851,26 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher,
 
     m_decryptedTextManager.removeEntry(encryptedText);
 
-    // TODO: call JS script to convert the decrypted text back to encrypted
-    Q_UNUSED(encryptedText)
-    Q_UNUSED(cipher)
-    Q_UNUSED(keyLength)
-    Q_UNUSED(hint)
-    Q_UNUSED(id)
+    bool conversionResult = false;
+    size_t keyLengthInt = static_cast<size_t>(keyLength.toInt(&conversionResult));
+    if (Q_UNLIKELY(!conversionResult)) {
+        QString error = QT_TR_NOOP("Can't hide the decrypted text: can't convert the key length attribute to integer number");
+        QNWARNING(error << ", key length = " << keyLength);
+        emit notifyError(error);
+        return;
+    }
+
+    quint64 enCryptIndex = m_lastFreeEnCryptIdNumber++;
+    QString html = ENMLConverter::encryptedTextHtml(encryptedText, hint, cipher, keyLengthInt, enCryptIndex);
+    ENMLConverter::escapeString(html);
+
+    QString javascript = "hideDecryptedText('" + id + "', '" + html + "');";
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+
+#ifdef USE_QT_WEB_ENGINE
+    provideSrcAndOnClickScriptForImgEnCryptTags();
+#endif
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

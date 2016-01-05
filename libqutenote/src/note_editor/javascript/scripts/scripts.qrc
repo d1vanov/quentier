@@ -35,5 +35,6 @@
         <file>clickInterceptor.js</file>
         <file>getCurrentScroll.js</file>
         <file>setScroll.js</file>
+        <file>hideDecryptedText.js</file>
     </qresource>
 </RCC>

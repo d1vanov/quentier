@@ -575,6 +575,7 @@ private:
     QString     m_pageMutationObserverJs;
     QString     m_getCurrentScrollJs;
     QString     m_setScrollJs;
+    QString     m_hideDecryptedTextJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
