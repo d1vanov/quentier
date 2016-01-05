@@ -12,7 +12,8 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor, QWidget
     m_noteEditor(noteEditor),
     m_hint(),
     m_cipher(),
-    m_keyLength()
+    m_keyLength(),
+    m_id()
 {
     QNDEBUG("EncryptedAreaPlugin: constructor");
 
@@ -86,9 +87,17 @@ bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const Q
         m_hint = parameterValues[hintIndex];
     }
 
+    int enCryptIndexIndex = parameterNames.indexOf("en-crypt-id");
+    if ((enCryptIndexIndex < 0) || (numParameterValues <= enCryptIndexIndex)) {
+        m_id.clear();
+    }
+    else {
+        m_id = parameterValues[enCryptIndexIndex];
+    }
+
     QNTRACE("Initialized encrypted area plugin: cipher = " << m_cipher
             << ", length = " << m_keyLength << ", hint = " << m_hint
-            << ", encrypted text = " << m_encryptedText);
+            << ", en-crypt-id = " << m_id << ", encrypted text = " << m_encryptedText);
     return true;
 }
 
@@ -105,7 +114,7 @@ QString EncryptedAreaPlugin::description() const
 
 void EncryptedAreaPlugin::decrypt()
 {
-    m_noteEditor.decryptEncryptedText(m_encryptedText, m_cipher, m_keyLength, m_hint);
+    m_noteEditor.decryptEncryptedText(m_encryptedText, m_cipher, m_keyLength, m_hint, m_id);
 }
 
 } // namespace qute_note

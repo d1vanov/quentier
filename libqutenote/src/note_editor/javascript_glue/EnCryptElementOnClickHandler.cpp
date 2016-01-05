@@ -7,9 +7,9 @@ EnCryptElementOnClickHandler::EnCryptElementOnClickHandler(QObject * parent) :
 {}
 
 void EnCryptElementOnClickHandler::onEnCryptElementClicked(QString encryptedText, QString cipher,
-                                                           QString length, QString hint)
+                                                           QString length, QString hint, QString enCryptIndex)
 {
-    emit decrypt(encryptedText, cipher, length, hint, Q_NULLPTR);
+    emit decrypt(encryptedText, cipher, length, hint, enCryptIndex, Q_NULLPTR);
 }
 
 } // namespace qute_note

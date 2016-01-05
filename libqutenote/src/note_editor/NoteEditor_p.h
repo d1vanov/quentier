@@ -207,7 +207,10 @@ public Q_SLOTS:
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
 
     virtual void decryptEncryptedTextUnderCursor() Q_DECL_OVERRIDE;
-    virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint) Q_DECL_OVERRIDE;
+    virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString enCryptIndex) Q_DECL_OVERRIDE;
+
+    virtual void hideDecryptedTextUnderCursor() Q_DECL_OVERRIDE;
+    virtual void hideDecryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString enDecryptedIndex) Q_DECL_OVERRIDE;
 
     virtual void editHyperlinkDialog() Q_DECL_OVERRIDE;
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
@@ -385,11 +388,12 @@ private:
     void setupTextCursorPositionTracking();
 #endif
 
-    void setupGenericTextContextMenu(const QString &selectedHtml, bool insideDecryptedTextFragment);
+    void setupGenericTextContextMenu(const QStringList & extraData, const QString & selectedHtml, bool insideDecryptedTextFragment);
     void setupImageResourceContextMenu(const QString & resourceHash);
     void setupNonImageResourceContextMenu(const QString & resourceHash);
     void setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
-                                       const QString & encryptedText, const QString & hint);
+                                       const QString & encryptedText, const QString & hint,
+                                       const QString & id);
 
     void setupActionShortcut(const int key, const QString & context, QAction & action);
 
@@ -416,6 +420,10 @@ private:
                             const QString & resourceHash) const;
 
     void updateNoteEditorPagePath(const quint32 index);
+
+    bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
+                                                QString & cipher, QString & keyLength, QString & hint,
+                                                QString & id, QString & errorDescription) const;
 
 private:
     // Overrides for some Qt's virtual methods
@@ -503,8 +511,20 @@ private:
 
     // Holds some data required for certain context menu actions, like the encrypted text data for its decryption,
     // the hash of the resource under cursor for which the action is toggled etc.
-    struct CurrentContextMenuExtraData
+    class CurrentContextMenuExtraData
     {
+    public:
+        CurrentContextMenuExtraData() :
+            m_contentType(),
+            m_encryptedText(),
+            m_keyLength(),
+            m_cipher(),
+            m_hint(),
+            m_insideDecryptedText(false),
+            m_id(),
+            m_resourceHash()
+        {}
+
         QString     m_contentType;
 
         // Encrypted text extra data
@@ -512,6 +532,8 @@ private:
         QString     m_keyLength;
         QString     m_cipher;
         QString     m_hint;
+        bool        m_insideDecryptedText;
+        QString     m_id;
 
         // Resource extra data
         QString     m_resourceHash;

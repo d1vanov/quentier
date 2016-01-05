@@ -19,10 +19,10 @@ public:
     explicit EnCryptElementOnClickHandler(QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void decrypt(QString encryptedText, QString cipher, QString length, QString hint, bool * pCancelled);
+    void decrypt(QString encryptedText, QString cipher, QString length, QString hint, QString enCryptIndex, bool * pCancelled);
 
 public Q_SLOTS:
-    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint);
+    void onEnCryptElementClicked(QString encryptedText, QString cipher, QString length, QString hint, QString enCryptIndex);
 };
 
 } // namespace qute_note

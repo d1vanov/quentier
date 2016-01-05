@@ -62,17 +62,32 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                 length = element.getAttribute("length");
                 encryptedText = element.getAttribute("encrypted_text");
                 hint = element.getAttribute("hint");
+                var enCryptId = element.getAttribute("en-crypt-id");
                 extraData.push(cipher);
                 extraData.push(length);
                 extraData.push(encryptedText);
                 extraData.push(hint);
+                extraData.push(enCryptId);
                 console.log("Found en-crypt tag: encryptedText = " + encryptedText +
-                            ", cipher = " + cipher + ", length = " + length << ", hint = " + hint);
+                            ", cipher = " + cipher + ", length = " + length << ", hint = " + hint +
+                            ", en-crypt-id = " + enCryptId);
                 break;
             }
             else if (enTag == "en-decrypted") {
                 insideDecryptedTextFragment = true;
-                console.log("Found decrypted text fragment");
+                cipher = element.getAttribute("cipher");
+                length = element.getAttribute("length");
+                encryptedText = element.getAttribute("encrypted_text");
+                hint = element.getAttribute("hint");
+                var enDecryptedId = element.getAttribute("en-decrypted-id");
+                extraData.push(cipher);
+                extraData.push(length);
+                extraData.push(encryptedText);
+                extraData.push(hint);
+                extraData.push(enDecryptedId);
+                console.log("Found decrypted text fragment: encryptedText = " + encryptedText +
+                            ", cipher = " + cipher + ", length = " + length << ", hint = " + hint +
+                            ", en-decrypted-id = " + enDecryptedId);
                 break;
             }
         }

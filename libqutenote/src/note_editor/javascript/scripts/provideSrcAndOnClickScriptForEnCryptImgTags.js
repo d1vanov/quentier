@@ -30,7 +30,8 @@ function provideSrcAndOnClickScriptForEnCryptImgTags(path) {
                              "this.getAttribute(\"encrypted_text\"), " +
                              "this.getAttribute(\"cipher\") || \"\", " +
                              "this.getAttribute(\"length\") || \"\", " +
-                             "this.getAttribute(\"hint\") || \"\"" +
+                             "this.getAttribute(\"hint\") || \"\", " +
+                             "this.getAttribute(\"en-crypt-id\") || \"\"" +
                              ")");
         console.log("Set en-crypt tag's src to " + path + "; also set onclick script");
     }

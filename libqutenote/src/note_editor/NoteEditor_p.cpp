@@ -991,8 +991,12 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
 
     ++m_contextMenuSequenceNumber;
 
-    if (contentType == "GenericText") {
-        setupGenericTextContextMenu(selectedHtml, insideDecryptedTextFragment);
+    m_currentContextMenuExtraData.m_contentType = contentType;
+    m_currentContextMenuExtraData.m_insideDecryptedText = insideDecryptedTextFragment;
+
+    if (contentType == "GenericText")
+    {
+        setupGenericTextContextMenu(extraData, selectedHtml, insideDecryptedTextFragment);
     }
     else if ((contentType == "ImageResource") || (contentType == "NonImageResource"))
     {
@@ -1023,28 +1027,16 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
     }
     else if (contentType == "EncryptedText")
     {
-        if (Q_UNLIKELY(extraData.empty())) {
-            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: "
-                                       "extra data from JavaScript is empty");
+        QString cipher, keyLength, encryptedText, hint, id, error;
+        bool res = parseEncryptedTextContextMenuExtraData(extraData, encryptedText, cipher, keyLength, hint, id, error);
+        if (Q_UNLIKELY(!res)) {
+            error = QT_TR_NOOP("Can't display context menu for encrypted text: ") + error;
             QNWARNING(error);
             emit notifyError(error);
             return;
         }
 
-        if (Q_UNLIKELY(extraData.size() != 4)) {
-            QString error = QT_TR_NOOP("Can't display context menu for encrypted text: "
-                                       "extra data from JavaScript has wrong size");
-            QNWARNING(error << ": " << extraData.join(", "));
-            emit notifyError(error);
-            return;
-        }
-
-        const QString & cipher = extraData[0];
-        const QString & keyLength = extraData[1];
-        const QString & encryptedText = extraData[2];
-        const QString & hint = extraData[3];
-
-        setupEncryptedTextContextMenu(cipher, keyLength, encryptedText, hint);
+        setupEncryptedTextContextMenu(cipher, keyLength, encryptedText, hint, id);
     }
     else {
         QNWARNING("Unknown content type on context menu event reply: " << contentType << ", sequence number " << sequenceNumber);
@@ -2780,12 +2772,30 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalGuid, const 
     emit saveResourceToStorage(updatedResource.localGuid(), updatedResource.dataBody(), QByteArray(), resourceFileStoragePath, saveResourceRequestId);
 }
 
-void NoteEditorPrivate::setupGenericTextContextMenu(const QString & selectedHtml, bool insideDecryptedTextFragment)
+void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraData, const QString & selectedHtml, bool insideDecryptedTextFragment)
 {
     QNDEBUG("NoteEditorPrivate::setupGenericTextContextMenu: selected html = " << selectedHtml
             << "; inside decrypted text fragment = " << (insideDecryptedTextFragment ? "true" : "false"));
 
     m_lastSelectedHtml = selectedHtml;
+
+    if (insideDecryptedTextFragment)
+    {
+        QString cipher, keyLength, encryptedText, hint, id, error;
+        bool res = parseEncryptedTextContextMenuExtraData(extraData, encryptedText, cipher, keyLength, hint, id, error);
+        if (Q_UNLIKELY(!res)) {
+            error = QT_TR_NOOP("Can't display context menu for encrypted text: ") + error;
+            QNWARNING(error);
+            emit notifyError(error);
+            return;
+        }
+
+        m_currentContextMenuExtraData.m_encryptedText = encryptedText;
+        m_currentContextMenuExtraData.m_keyLength = keyLength;
+        m_currentContextMenuExtraData.m_cipher = cipher;
+        m_currentContextMenuExtraData.m_hint = hint;
+        m_currentContextMenuExtraData.m_id = id;
+    }
 
     delete m_pGenericTextContextMenu;
     m_pGenericTextContextMenu = new QMenu(this);
@@ -2904,7 +2914,6 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
 {
     QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu: resource hash = " << resourceHash);
 
-    m_currentContextMenuExtraData.m_contentType = "ImageResource";
     m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
     delete m_pImageResourceContextMenu;
@@ -2939,7 +2948,6 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu(const QString & resourc
 {
     QNDEBUG("NoteEditorPrivate::setupNonImageResourceContextMenu");
 
-    m_currentContextMenuExtraData.m_contentType = "NonImageResource";
     m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
     delete m_pNonImageResourceContextMenu;
@@ -2956,22 +2964,21 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu(const QString & resourc
         ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pNonImageResourceContextMenu, paste);
     }
 
-    // TODO: continue filling the menu items
-
     m_pNonImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
 void NoteEditorPrivate::setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
-                                                      const QString & encryptedText, const QString & hint)
+                                                      const QString & encryptedText, const QString & hint,
+                                                      const QString & id)
 {
     QNDEBUG("NoteEditorPrivate::setupEncryptedTextContextMenu: cipher = " << cipher << ", key length = " << keyLength
-            << ", encrypted text = " << encryptedText << ", hint = " << hint);
+            << ", encrypted text = " << encryptedText << ", hint = " << hint << ", en-crypt-id = " << id);
 
-    m_currentContextMenuExtraData.m_contentType = "EncryptedText";
     m_currentContextMenuExtraData.m_encryptedText = encryptedText;
     m_currentContextMenuExtraData.m_keyLength = keyLength;
     m_currentContextMenuExtraData.m_cipher = cipher;
     m_currentContextMenuExtraData.m_hint = hint;
+    m_currentContextMenuExtraData.m_id = id;
 
     delete m_pEncryptedTextContextMenu;
     m_pEncryptedTextContextMenu = new QMenu(this);
@@ -3396,6 +3403,28 @@ int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resour
 void NoteEditorPrivate::updateNoteEditorPagePath(const quint32 index)
 {
     m_noteEditorPagePath = m_noteEditorPageFolderPath + "/index_" + QString::number(index) + ".html";
+}
+
+bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
+                                                               QString & cipher, QString & keyLength, QString & hint,
+                                                               QString & id, QString & errorDescription) const
+{
+    if (Q_UNLIKELY(extraData.empty())) {
+        errorDescription = QT_TR_NOOP("extra data from JavaScript is empty");
+        return false;
+    }
+
+    if (Q_UNLIKELY(extraData.size() != 5)) {
+        errorDescription = QT_TR_NOOP("extra data from JavaScript has wrong size");
+        return false;
+    }
+
+    cipher = extraData[0];
+    keyLength = extraData[1];
+    encryptedText = extraData[2];
+    hint = extraData[3];
+    id = extraData[4];
+    return true;
 }
 
 #define COMMAND_TO_JS(command) \
@@ -4747,7 +4776,7 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedTextUnderCursor");
 
-    if (m_currentContextMenuExtraData.m_contentType != "EncryptedText") {
+    if (Q_UNLIKELY(m_currentContextMenuExtraData.m_contentType != "EncryptedText")) {
         QString error = QT_TR_NOOP("Can't decrypt the encrypted text under cursor: wrong current context menu extra data's content type");
         QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
         emit notifyError(error);
@@ -4755,15 +4784,19 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
     }
 
     decryptEncryptedText(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
-                         m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint);
+                         m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint,
+                         m_currentContextMenuExtraData.m_id);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
 void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString cipher,
-                                             QString length, QString hint)
+                                             QString length, QString hint, QString enCryptIndex)
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedText");
+
+    // TODO: put enCryptIndex to a good use
+    Q_UNUSED(enCryptIndex)
 
     DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(encryptedText, cipher, length, hint, *this,
                                                                                m_pFileIOThreadWorker, m_encryptionManager,
@@ -4777,6 +4810,45 @@ void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString ciph
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QString));
 
     delegate->start();
+}
+
+void NoteEditorPrivate::hideDecryptedTextUnderCursor()
+{
+    QNDEBUG("NoteEditorPrivate::hideDecryptedTextUnderCursor");
+
+    if (Q_UNLIKELY(m_currentContextMenuExtraData.m_contentType != "GenericText")) {
+        QString error = QT_TR_NOOP("Can't hide the decrypted text under cursor: wrong current context menu extra data's content type");
+        QNWARNING(error << ": content type = " << m_currentContextMenuExtraData.m_contentType);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_currentContextMenuExtraData.m_insideDecryptedText)) {
+        QString error = QT_TR_NOOP("Can't hide the decrypted text under cursor: the cursor doesn't appear to be inside the decrypted text area");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    hideDecryptedText(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
+                      m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint,
+                      m_currentContextMenuExtraData.m_id);
+
+    m_currentContextMenuExtraData.m_contentType.resize(0);
+}
+
+void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString id)
+{
+    QNDEBUG("NoteEditorPrivate::hideDecryptedText");
+
+    m_decryptedTextManager.removeEntry(encryptedText);
+
+    // TODO: call JS script to convert the decrypted text back to encrypted
+    Q_UNUSED(encryptedText)
+    Q_UNUSED(cipher)
+    Q_UNUSED(keyLength)
+    Q_UNUSED(hint)
+    Q_UNUSED(id)
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

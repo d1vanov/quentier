@@ -35,6 +35,7 @@ private:
     QString                             m_cipher;
     QString                             m_encryptedText;
     QString                             m_keyLength;
+    QString                             m_id;
 };
 
 } // namespace qute_note
