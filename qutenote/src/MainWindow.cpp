@@ -5,8 +5,13 @@
 #include "tests/ManualTestingHelper.h"
 #include "BasicXMLSyntaxHighlighter.h"
 
+// workarouding Qt4 Designer's inability to work with namespaces
+
+#include "FindAndReplaceWidget.h"
+using qute_note::FindAndReplaceWidget;
+
 #include <qute_note/note_editor/NoteEditor.h>
-using qute_note::NoteEditor;    // workarouding Qt4 Designer's inability to work with namespaces
+using qute_note::NoteEditor;
 #include "ui_MainWindow.h"
 
 #include <qute_note/types/Note.h>
@@ -53,6 +58,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE("MainWindow constructor");
 
     m_pUI->setupUi(this);
+    m_pUI->findAndReplaceWidget->setHidden(true);
+
     m_pUI->noteEditorWidget->setUndoStack(m_pUndoStack);
 
     setupDefaultShortcuts();

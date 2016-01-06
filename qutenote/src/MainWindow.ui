@@ -997,6 +997,20 @@ color: rgb(255, 255, 255);</string>
                 <bool>true</bool>
                </property>
               </widget>
+              <widget class="FindAndReplaceWidget" name="findAndReplaceWidget" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>84</height>
+                </size>
+               </property>
+              </widget>
               <widget class="QPlainTextEdit" name="noteSourceView">
                <property name="frameShape">
                 <enum>QFrame::StyledPanel</enum>
@@ -1198,7 +1212,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>23</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -2701,6 +2715,12 @@ stop: 1 #0EB7FF);
    <class>ColorPickerToolButton</class>
    <extends>QToolButton</extends>
    <header>color-picker-tool-button/ColorPickerToolButton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FindAndReplaceWidget</class>
+   <extends>QWidget</extends>
+   <header>FindAndReplaceWidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

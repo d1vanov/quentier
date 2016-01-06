@@ -181,7 +181,6 @@ set(PRIVATE_HEADERS
     src/note_editor/JavaScriptInOrderExecutor.h
     src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceInfo.h
-    src/note_editor/FindAndReplaceWidget.h
     src/note_editor/dialogs/AttachmentStoragePathConfigDialog.h
     src/note_editor/dialogs/EncryptionDialog.h
     src/note_editor/dialogs/DecryptionDialog.h
@@ -273,7 +272,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceInfo.cpp
-    src/note_editor/FindAndReplaceWidget.cpp
     src/note_editor/dialogs/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/dialogs/EncryptionDialog.cpp
     src/note_editor/dialogs/DecryptionDialog.cpp
@@ -427,8 +425,7 @@ set(FORMS
     src/note_editor/dialogs/DecryptionDialog.ui
     src/note_editor/dialogs/EncryptionDialog.ui
     src/note_editor/dialogs/EditHyperlinkDialog.ui
-    src/note_editor/dialogs/RenameResourceDialog.ui
-    src/note_editor/FindAndReplaceWidget.ui)
+    src/note_editor/dialogs/RenameResourceDialog.ui)
 
 if(NOT USE_QT_WEB_ENGINE)
   list(APPEND FORMS

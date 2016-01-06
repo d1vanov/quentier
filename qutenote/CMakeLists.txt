@@ -55,6 +55,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libqutenote/headers)
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/BasicXMLSyntaxHighlighter.h
+    src/FindAndReplaceWidget.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/insert-table-tool-button/InsertTableToolButton.h
@@ -68,6 +69,7 @@ set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
+    src/FindAndReplaceWidget.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
@@ -80,6 +82,7 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/MainWindow.ui
+    src/FindAndReplaceWidget.ui
     src/insert-table-tool-button/TableSettingsDialog.ui)
 
 if(USE_QT5)
