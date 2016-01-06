@@ -27,6 +27,7 @@
             window.contextMenuEventHandler = channel.objects.contextMenuEventHandler;
             window.hyperlinkClickHandler = channel.objects.hyperlinkClickHandler;
             window.toDoCheckboxClickHandler = channel.objects.toDoCheckboxClickHandler;
+            window.tableResizeHandler = channel.objects.tableResizeHandler;
 
             console.log("Created window variables for objects exposed to JavaScript");
         });

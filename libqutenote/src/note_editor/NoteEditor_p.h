@@ -45,6 +45,7 @@ QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(TextCursorPositionJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
+QT_FORWARD_DECLARE_CLASS(TableResizeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
@@ -243,6 +244,8 @@ Q_SIGNALS:
                                         QString resourceDisplayName, QUuid requestId);
 
 private Q_SLOTS:
+    void onTableResized();
+
     void onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,
                                     const QVector<QPair<QString, QString> > & extraData);
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
@@ -550,7 +553,7 @@ private:
     QString     m_jQueryJs;
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
-    QString     m_onFixedWidthTableResizeJs;
+    QString     m_onTableResizeJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
@@ -601,6 +604,7 @@ private:
     quint16     m_webSocketServerPort;
 #endif
 
+    TableResizeJavaScriptHandler * m_pTableResizeJavaScriptHandler;
     GenericResourceImageWriter * m_pGenericResourceImageWriter;
     ToDoCheckboxOnClickHandler * m_pToDoCheckboxClickHandler;
     PageMutationHandler * m_pPageMutationHandler;

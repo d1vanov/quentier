@@ -16,6 +16,7 @@
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
 #include "javascript_glue/PageMutationHandler.h"
 #include "javascript_glue/ToDoCheckboxOnClickHandler.h"
+#include "javascript_glue/TableResizeJavaScriptHandler.h"
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
 #include "undo_stack/EncryptUndoCommand.h"
 #include "undo_stack/DecryptUndoCommand.h"
@@ -106,7 +107,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_jQueryJs(),
     m_resizableTableColumnsJs(),
     m_debounceJs(),
-    m_onFixedWidthTableResizeJs(),
+    m_onTableResizeJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
@@ -153,6 +154,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pHyperlinkClickJavaScriptHandler(new HyperlinkClickJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
+    m_pTableResizeJavaScriptHandler(new TableResizeJavaScriptHandler(this)),
     m_pGenericResourceImageWriter(Q_NULLPTR),
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
@@ -314,6 +316,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                        QScriptEngine::QtOwnership);
+    frame->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
+                                       QScriptEngine::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
@@ -334,7 +338,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_debounceJs);
-    page->executeJavaScript(m_onFixedWidthTableResizeJs);
+    page->executeJavaScript(m_onTableResizeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
@@ -2011,7 +2015,9 @@ void NoteEditorPrivate::updateColResizableTableBindings()
                         "gripInnerHtml:\"<div class=\\'grip\\'></div>\", "
                         "draggingClass:\"dragging\", "
                         "postbackSafe:true, "
-                        "onResize:onFixedWidthTableResized"
+                        "partialRefresh:true, "
+                        "flush:true, "
+                        "onResize:onTableResize"
                         "});";
     }
 
@@ -2718,6 +2724,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("genericResourceImageHandler", m_pGenericResoureImageJavaScriptHandler);
     m_pWebChannel->registerObject("hyperlinkClickHandler", m_pHyperlinkClickJavaScriptHandler);
     m_pWebChannel->registerObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler);
+    m_pWebChannel->registerObject("tableResizeHandler", m_pTableResizeJavaScriptHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -3081,7 +3088,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
-    SETUP_SCRIPT("javascript/scripts/onFixedWidthTableResize.js", m_onFixedWidthTableResizeJs);
+    SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
@@ -3132,6 +3139,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
 {
     QNDEBUG("NoteEditorPrivate::setupGeneralSignalSlotConnections");
 
+    QObject::connect(m_pTableResizeJavaScriptHandler, QNSIGNAL(TableResizeJavaScriptHandler,tableResized),
+                     this, QNSLOT(NoteEditorPrivate,onTableResized));
     QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,toDoCheckboxClicked,quint64),
                      this, QNSLOT(NoteEditorPrivate,onToDoCheckboxClicked,quint64));
     QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,notifyError,QString),
@@ -3178,6 +3187,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
+                                                   QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
@@ -4942,6 +4953,12 @@ void NoteEditorPrivate::onNoteLoadCancelled()
     stop();
     QNINFO("Note load has been cancelled");
     // TODO: add some overlay widget for NoteEditor to properly indicate visually that the note load has been cancelled
+}
+
+void NoteEditorPrivate::onTableResized()
+{
+    QNDEBUG("NoteEditorPrivate::onTableResized");
+    convertToNote();
 }
 
 void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkData,

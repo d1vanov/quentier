@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/javascript/scripts">
-        <file>onFixedWidthTableResize.js</file>
+        <file>onTableResize.js</file>
         <file>getSelectionHtml.js</file>
         <file>snapSelectionToWord.js</file>
         <file>replaceSelectionWithHtml.js</file>
