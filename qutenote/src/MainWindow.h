@@ -33,10 +33,6 @@ public:
     explicit MainWindow(QWidget * pParentWidget = Q_NULLPTR);
     virtual ~MainWindow();
 
-private:
-    void connectActionsToEditorSlots();
-    void connectEditorSignalsToSlots();
-
 public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
 
@@ -73,6 +69,18 @@ private Q_SLOTS:
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
 
+    void onFindInsideNoteAction();
+    void onFindPreviousInsideNoteAction();
+    void onReplaceInsideNoteAction();
+
+    void onFindAndReplaceWidgetClosed();
+    void onTextToFindInsideNoteEdited(const QString & textToFind);
+    void onFindNextInsideNote(const QString & textToFind, const bool matchCase);
+    void onFindPreviousInsideNote(const QString & textToFind, const bool matchCase);
+    void onFindInsideNoteCaseSensitivityChanged(const bool matchCase);
+    void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+    void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+
     void onNoteEditorHtmlUpdate(QString html);
     void onNoteEditorError(QString error);
 
@@ -102,6 +110,11 @@ private:
     void setupNoteEditorButtonShortcut(const QString & actionName, const QKeySequence & shortcut);
 
     bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error);
+
+    void connectActionsToSlots();
+    void connectActionsToEditorSlots();
+    void connectEditorSignalsToSlots();
+    void addMenuActionsToMainWindow();
 
 private:
     Ui::MainWindow * m_pUI;

@@ -11,6 +11,8 @@ class FindAndReplaceWidget;
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(ShortcutManager)
+
 class FindAndReplaceWidget: public QWidget
 {
     Q_OBJECT
@@ -19,16 +21,25 @@ public:
                                   const bool withReplace = false);
     virtual ~FindAndReplaceWidget();
 
+    QString textToFind() const;
+    QString replacementText() const;
+    bool matchCase() const;
+
 Q_SIGNALS:
     void closed();
+    void textToFindEdited(const QString & textToFind);
     void findNext(const QString & textToFind, const bool matchCase);
     void findPrevious(const QString & textToFind, const bool matchCase);
     void searchCaseSensitivityChanged(const bool matchCase);
-    void replace(const QString & replacementText);
-    void replaceAll(const QString & replacementText);
+    void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+    void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
 public Q_SLOTS:
     void setReplaceEnabled(const bool enabled);
+    void setupShortcuts(const ShortcutManager & shortcutManager);
+
+    void setFocus();
+    void show();
 
 private Q_SLOTS:
     void onCloseButtonPressed();

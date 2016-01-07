@@ -64,6 +64,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupDefaultShortcuts();
     setupUserShortcuts();
+    m_pUI->findAndReplaceWidget->setupShortcuts(m_shortcutManager);
+
+    addMenuActionsToMainWindow();
 
     m_pUI->noteSourceView->setHidden(true);
 
@@ -81,6 +84,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     checkThemeIconsAndSetFallbacks();
 
+    connectActionsToSlots();
     connectActionsToEditorSlots();
     connectEditorSignalsToSlots();
 
@@ -170,6 +174,28 @@ void MainWindow::connectActionsToEditorSlots()
                      this, QNSLOT(MainWindow,onNoteTextInsertTable,int,int,double,bool));
 }
 
+void MainWindow::connectActionsToSlots()
+{
+    QObject::connect(m_pUI->ActionFindInsideNote, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onFindInsideNoteAction));
+    QObject::connect(m_pUI->ActionFindNext, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onFindInsideNoteAction));
+    QObject::connect(m_pUI->ActionFindPrevious, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onFindPreviousInsideNoteAction));
+    QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
+
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,closed), this, QNSLOT(MainWindow,onFindAndReplaceWidgetClosed));
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,textToFindEdited,const QString&),
+                     this, QNSLOT(MainWindow,onTextToFindInsideNoteEdited,const QString&));
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,findNext,const QString&,const bool),
+                     this, QNSLOT(MainWindow,onFindNextInsideNote,const QString&,const bool));
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,findPrevious,const QString&,const bool),
+                     this, QNSLOT(MainWindow,onFindPreviousInsideNote,const QString&,const bool));
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,searchCaseSensitivityChanged,const bool),
+                     this, QNSLOT(MainWindow,onFindInsideNoteCaseSensitivityChanged,const bool));
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,replace,const QString&,const QString&,const bool),
+                     this, QNSLOT(MainWindow,onReplaceInsideNote,const QString&,const QString&,const bool));
+    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,replaceAll,const QString&,const QString&,const bool),
+                     this, QNSLOT(MainWindow,onReplaceAllInsideNote,const QString&,const QString&,const bool));
+}
+
 void MainWindow::connectEditorSignalsToSlots()
 {
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textBoldState,bool), this, QNSLOT(MainWindow,onNoteEditorBoldStateChanged,bool));
@@ -185,6 +211,29 @@ void MainWindow::connectEditorSignalsToSlots()
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString), this, QNSLOT(MainWindow,onNoteEditorFontFamilyChanged,QString));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontSizeChanged,int), this, QNSLOT(MainWindow,onNoteEditorFontSizeChanged,int));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,insertTableDialogRequested), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
+}
+
+void MainWindow::addMenuActionsToMainWindow()
+{
+    QNDEBUG("MainWindow::addMenuActionsToMainWindow");
+
+    // NOTE: adding the actions from the menu bar's menus is required for getting the shortcuts
+    // of these actions to work properly; action shortcuts only fire when the menu is shown
+    // which is not really the purpose behind those shortcuts
+
+    QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
+    const int numMenus = menus.size();
+    for(int i = 0; i < numMenus; ++i)
+    {
+        QMenu * menu = menus[i];
+
+        QList<QAction*> actions = menu->actions();
+        const int numActions = actions.size();
+        for(int j = 0; j < numActions; ++j) {
+            QAction * action = actions[j];
+            addAction(action);
+        }
+    }
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
@@ -490,6 +539,117 @@ void MainWindow::onSetTestNoteWithResources()
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
 }
+
+void MainWindow::onFindInsideNoteAction()
+{
+    QNDEBUG("MainWindow::onFindInsideNoteAction");
+
+    if (m_pUI->findAndReplaceWidget->isHidden()) {
+        m_pUI->findAndReplaceWidget->setHidden(false);
+        m_pUI->findAndReplaceWidget->show();
+    }
+
+    onFindNextInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
+}
+
+void MainWindow::onFindPreviousInsideNoteAction()
+{
+    QNDEBUG("MainWindow::onFindPreviousInsideNoteAction");
+
+    if (m_pUI->findAndReplaceWidget->isHidden()) {
+        m_pUI->findAndReplaceWidget->setHidden(false);
+        m_pUI->findAndReplaceWidget->show();
+        return;
+    }
+
+    onFindPreviousInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
+}
+
+void MainWindow::onReplaceInsideNoteAction()
+{
+    QNDEBUG("MainWindow::onReplaceInsideNoteAction");
+
+    if (m_pUI->findAndReplaceWidget->isHidden()) {
+        m_pUI->findAndReplaceWidget->setHidden(false);
+        m_pUI->findAndReplaceWidget->show();
+        return;
+    }
+
+    onReplaceInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->replacementText(), m_pUI->findAndReplaceWidget->matchCase());
+}
+
+void MainWindow::onFindAndReplaceWidgetClosed()
+{
+    QNDEBUG("MainWindow::onFindAndReplaceWidgetClosed");
+    // TODO: implement
+}
+
+void MainWindow::onTextToFindInsideNoteEdited(const QString & textToFind)
+{
+    QNDEBUG("MainWindow::onTextToFindInsideNoteEdited: " << textToFind);
+    // TODO: implement
+}
+
+#define CHECK_FIND_AND_REPLACE_WIDGET_STATE() \
+    if (Q_UNLIKELY(m_pUI->findAndReplaceWidget->isHidden())) { \
+        QNTRACE("Find and replace widget is not shown, nothing to do"); \
+        return; \
+    }
+
+void MainWindow::onFindNextInsideNote(const QString & textToFind, const bool matchCase)
+{
+    QNDEBUG("MainWindow::onFindNextInsideNote: text to find = " << textToFind << ", match case = " << (matchCase ? "true" : "false"));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+
+    // TODO: implement: forward this to note editor
+    Q_UNUSED(textToFind);
+    Q_UNUSED(matchCase);
+}
+
+void MainWindow::onFindPreviousInsideNote(const QString & textToFind, const bool matchCase)
+{
+    QNDEBUG("MainWindow::onFindPreviousInsideNote: text to find = " << textToFind << ", match case = " << (matchCase ? "true" : "false"));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+
+    // TODO: implement: forward this to note editor
+    Q_UNUSED(textToFind);
+    Q_UNUSED(matchCase);
+}
+
+void MainWindow::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
+{
+    QNDEBUG("MainWindow::onFindInsideNoteCaseSensitivityChanged: match case = " << (matchCase ? "true" : "false"));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+
+    // TODO: implement
+}
+
+void MainWindow::onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
+{
+    QNDEBUG("MainWindow::onReplaceInsideNote: text to replace = " << textToReplace << ", replacement text = " << replacementText
+            << ", match case = " << (matchCase ? "true" : "false"));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+    m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
+
+    // TODO: implement
+}
+
+void MainWindow::onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
+{
+    QNDEBUG("MainWindow::onReplaceAllInsideNote: text to replace = " << textToReplace << ", replacement text = " << replacementText
+            << ", match case = " << (matchCase ? "true" : "false"));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+    m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
+
+    // TODO: implement
+}
+
+#undef CHECK_FIND_AND_REPLACE_WIDGET_STATE
 
 void MainWindow::onNoteEditorHtmlUpdate(QString html)
 {
