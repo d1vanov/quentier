@@ -129,6 +129,36 @@ void NoteEditor::alignRight()
     m_backend->alignRight();
 }
 
+QString NoteEditor::selectedText() const
+{
+    return m_backend->selectedText();
+}
+
+bool NoteEditor::hasSelection() const
+{
+    return m_backend->hasSelection();
+}
+
+void NoteEditor::findNext(const QString & text, const bool matchCase) const
+{
+    m_backend->findNext(text, matchCase);
+}
+
+void NoteEditor::findPrevious(const QString & text, const bool matchCase) const
+{
+    m_backend->findPrevious(text, matchCase);
+}
+
+void NoteEditor::replace(const QString & textToReplace, const QString & replacementText, const bool matchCase)
+{
+    m_backend->replace(textToReplace, replacementText, matchCase);
+}
+
+void NoteEditor::replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase)
+{
+    m_backend->replaceAll(textToReplace, replacementText, matchCase);
+}
+
 void NoteEditor::insertToDoCheckbox()
 {
     m_backend->insertToDoCheckbox();

@@ -544,9 +544,19 @@ void MainWindow::onFindInsideNoteAction()
 {
     QNDEBUG("MainWindow::onFindInsideNoteAction");
 
-    if (m_pUI->findAndReplaceWidget->isHidden()) {
+    if (m_pUI->findAndReplaceWidget->isHidden())
+    {
+        QString textToFind = m_pNoteEditor->selectedText();
+        if (textToFind.isEmpty()) {
+            textToFind = m_pUI->findAndReplaceWidget->textToFind();
+        }
+        else {
+            m_pUI->findAndReplaceWidget->setTextToFind(textToFind);
+        }
+
         m_pUI->findAndReplaceWidget->setHidden(false);
         m_pUI->findAndReplaceWidget->show();
+        return;
     }
 
     onFindNextInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
@@ -556,7 +566,16 @@ void MainWindow::onFindPreviousInsideNoteAction()
 {
     QNDEBUG("MainWindow::onFindPreviousInsideNoteAction");
 
-    if (m_pUI->findAndReplaceWidget->isHidden()) {
+    if (m_pUI->findAndReplaceWidget->isHidden())
+    {
+        QString textToFind = m_pNoteEditor->selectedText();
+        if (textToFind.isEmpty()) {
+            textToFind = m_pUI->findAndReplaceWidget->textToFind();
+        }
+        else {
+            m_pUI->findAndReplaceWidget->setTextToFind(textToFind);
+        }
+
         m_pUI->findAndReplaceWidget->setHidden(false);
         m_pUI->findAndReplaceWidget->show();
         return;
@@ -569,7 +588,16 @@ void MainWindow::onReplaceInsideNoteAction()
 {
     QNDEBUG("MainWindow::onReplaceInsideNoteAction");
 
-    if (m_pUI->findAndReplaceWidget->isHidden()) {
+    if (m_pUI->findAndReplaceWidget->isHidden())
+    {
+        QString textToFind = m_pNoteEditor->selectedText();
+        if (textToFind.isEmpty()) {
+            textToFind = m_pUI->findAndReplaceWidget->textToFind();
+        }
+        else {
+            m_pUI->findAndReplaceWidget->setTextToFind(textToFind);
+        }
+
         m_pUI->findAndReplaceWidget->setHidden(false);
         m_pUI->findAndReplaceWidget->show();
         return;
@@ -581,13 +609,15 @@ void MainWindow::onReplaceInsideNoteAction()
 void MainWindow::onFindAndReplaceWidgetClosed()
 {
     QNDEBUG("MainWindow::onFindAndReplaceWidgetClosed");
-    // TODO: implement
+    onFindNextInsideNote(QString(), false);
 }
 
 void MainWindow::onTextToFindInsideNoteEdited(const QString & textToFind)
 {
     QNDEBUG("MainWindow::onTextToFindInsideNoteEdited: " << textToFind);
-    // TODO: implement
+
+    bool matchCase = m_pUI->findAndReplaceWidget->matchCase();
+    onFindNextInsideNote(textToFind, matchCase);
 }
 
 #define CHECK_FIND_AND_REPLACE_WIDGET_STATE() \
@@ -601,10 +631,7 @@ void MainWindow::onFindNextInsideNote(const QString & textToFind, const bool mat
     QNDEBUG("MainWindow::onFindNextInsideNote: text to find = " << textToFind << ", match case = " << (matchCase ? "true" : "false"));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-
-    // TODO: implement: forward this to note editor
-    Q_UNUSED(textToFind);
-    Q_UNUSED(matchCase);
+    m_pNoteEditor->findNext(textToFind, matchCase);
 }
 
 void MainWindow::onFindPreviousInsideNote(const QString & textToFind, const bool matchCase)
@@ -612,10 +639,7 @@ void MainWindow::onFindPreviousInsideNote(const QString & textToFind, const bool
     QNDEBUG("MainWindow::onFindPreviousInsideNote: text to find = " << textToFind << ", match case = " << (matchCase ? "true" : "false"));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-
-    // TODO: implement: forward this to note editor
-    Q_UNUSED(textToFind);
-    Q_UNUSED(matchCase);
+    m_pNoteEditor->findPrevious(textToFind, matchCase);
 }
 
 void MainWindow::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
@@ -624,7 +648,8 @@ void MainWindow::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
 
-    // TODO: implement
+    QString textToFind = m_pUI->findAndReplaceWidget->textToFind();
+    m_pNoteEditor->findNext(textToFind, matchCase);
 }
 
 void MainWindow::onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
@@ -635,7 +660,7 @@ void MainWindow::onReplaceInsideNote(const QString & textToReplace, const QStrin
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
 
-    // TODO: implement
+    m_pNoteEditor->replace(textToReplace, replacementText, matchCase);
 }
 
 void MainWindow::onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
@@ -646,7 +671,7 @@ void MainWindow::onReplaceAllInsideNote(const QString & textToReplace, const QSt
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
 
-    // TODO: implement
+    m_pNoteEditor->replaceAll(textToReplace, replacementText, matchCase);
 }
 
 #undef CHECK_FIND_AND_REPLACE_WIDGET_STATE

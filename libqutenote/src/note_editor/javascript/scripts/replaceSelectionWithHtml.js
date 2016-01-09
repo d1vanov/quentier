@@ -2,8 +2,15 @@ function replaceSelectionWithHtml(html) {
     console.log("replaceSelectionWithHtml: " + html);
     var range, html;
     if (window.getSelection && window.getSelection().getRangeAt) {
-        range = window.getSelection().getRangeAt(0);
-        range.deleteContents();
+        var selection = window.getSelection();
+        if (selection.rangeCount) {
+            range = window.getSelection().getRangeAt(0);
+            range.deleteContents();
+        }
+        else {
+            range = new Range();
+            selection.addRange(range);
+        }
         var div = document.createElement("div");
         div.innerHTML = html;
         var frag = document.createDocumentFragment(), child;

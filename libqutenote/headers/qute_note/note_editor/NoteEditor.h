@@ -76,6 +76,14 @@ public Q_SLOTS:
     void alignCenter();
     void alignRight();
 
+    QString selectedText() const;
+    bool hasSelection() const;
+
+    void findNext(const QString & text, const bool matchCase) const;
+    void findPrevious(const QString & text, const bool matchCase) const;
+    void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+    void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+
     void insertToDoCheckbox();
 
     void setSpellcheck(const bool enabled);

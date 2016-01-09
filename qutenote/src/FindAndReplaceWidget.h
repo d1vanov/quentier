@@ -22,8 +22,13 @@ public:
     virtual ~FindAndReplaceWidget();
 
     QString textToFind() const;
+    void setTextToFind(const QString & text);
+
     QString replacementText() const;
+    void setReplacementText(const QString & text);
+
     bool matchCase() const;
+    void setMatchCase(const bool flag);
 
 Q_SIGNALS:
     void closed();

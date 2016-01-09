@@ -24,14 +24,29 @@ QString FindAndReplaceWidget::textToFind() const
     return m_pUI->findLineEdit->text();
 }
 
+void FindAndReplaceWidget::setTextToFind(const QString & text)
+{
+    m_pUI->findLineEdit->setText(text);
+}
+
 QString FindAndReplaceWidget::replacementText() const
 {
     return m_pUI->replaceLineEdit->text();
 }
 
+void FindAndReplaceWidget::setReplacementText(const QString & text)
+{
+    m_pUI->replaceLineEdit->setText(text);
+}
+
 bool FindAndReplaceWidget::matchCase() const
 {
     return m_pUI->matchCaseCheckBox->isChecked();
+}
+
+void FindAndReplaceWidget::setMatchCase(const bool flag)
+{
+    m_pUI->matchCaseCheckBox->setChecked(flag);
 }
 
 void FindAndReplaceWidget::setReplaceEnabled(const bool enabled)

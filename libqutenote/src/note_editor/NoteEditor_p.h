@@ -15,6 +15,7 @@
 #include <QColor>
 #include <QImage>
 #include <QUndoStack>
+#include <QPointer>
 
 #ifdef USE_QT_WEB_ENGINE
 #include <QWebEngineView>
@@ -171,6 +172,12 @@ public Q_SLOTS:
     virtual void alignLeft() Q_DECL_OVERRIDE;
     virtual void alignCenter() Q_DECL_OVERRIDE;
     virtual void alignRight() Q_DECL_OVERRIDE;
+    virtual QString selectedText() const Q_DECL_OVERRIDE;
+    virtual bool hasSelection() const Q_DECL_OVERRIDE;
+    virtual void findNext(const QString & text, const bool matchCase) const Q_DECL_OVERRIDE;
+    virtual void findPrevious(const QString & text, const bool matchCase) const Q_DECL_OVERRIDE;
+    virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
+    virtual void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
     virtual void insertToDoCheckbox() Q_DECL_OVERRIDE;
     virtual void setSpellcheck(const bool enabled) Q_DECL_OVERRIDE;
     virtual void setFont(const QFont & font) Q_DECL_OVERRIDE;
@@ -541,6 +548,40 @@ private:
         // Resource extra data
         QString     m_resourceHash;
     };
+
+#ifdef USE_QT_WEB_ENGINE
+
+    class FindTextCallback
+    {
+    public:
+        FindTextCallback(const QString & textToFind, const bool matchCase, NoteEditorPage * pPage, const bool forward = true);
+        void operator()(const QVariant & data);
+        void operator()(bool found);
+
+    private:
+        QString m_textToFind;
+        bool    m_matchCase;
+        QPointer<NoteEditorPage> m_pPage;
+        bool    m_forward;
+    };
+
+    class ReplaceTextCallback
+    {
+    public:
+        ReplaceTextCallback(const QString & textToReplace, const QString & replacementText,
+                            const bool matchCase, const bool repeat, NoteEditorPage * pPage);
+        void operator()(bool found);
+        void operator()(const QVariant & data);
+
+    private:
+        QString m_textToReplace;
+        QString m_replacementText;
+        bool    m_matchCase;
+        bool    m_repeat;
+        QPointer<NoteEditorPage> m_pPage;
+    };
+
+#endif
 
 private:
     QString     m_noteEditorPageFolderPath;

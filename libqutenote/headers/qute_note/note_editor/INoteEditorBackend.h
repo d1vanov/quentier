@@ -43,6 +43,14 @@ public:
     virtual void alignCenter() = 0;
     virtual void alignRight() = 0;
 
+    virtual QString selectedText() const = 0;
+    virtual bool hasSelection() const = 0;
+
+    virtual void findNext(const QString & text, const bool matchCase) const = 0;
+    virtual void findPrevious(const QString & text, const bool matchCase) const = 0;
+    virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) = 0;
+    virtual void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase) = 0;
+
     virtual void insertToDoCheckbox() = 0;
 
     virtual void setSpellcheck(const bool enabled) = 0;
