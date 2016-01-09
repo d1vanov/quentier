@@ -554,7 +554,8 @@ private:
     class FindTextCallback
     {
     public:
-        FindTextCallback(const QString & textToFind, const bool matchCase, NoteEditorPage * pPage, const bool forward = true);
+        FindTextCallback(const QString & textToFind, const bool matchCase, NoteEditorPage * pPage, const bool forward = true,
+                         const bool forwardSelectionTwice = false);
         void operator()(const QVariant & data);
         void operator()(bool found);
 
@@ -563,6 +564,22 @@ private:
         bool    m_matchCase;
         QPointer<NoteEditorPage> m_pPage;
         bool    m_forward;
+        bool    m_forwardSelectionTwice;
+    };
+
+    class PostFindSelectionUpdateCallback
+    {
+    public:
+        PostFindSelectionUpdateCallback(const QString & textToFind, const bool matchCase, const bool searchForward,
+                                        const bool forwardSelectionTwice, NoteEditorPage * pPage);
+        void operator()(bool found);
+
+    private:
+        QString m_textToFind;
+        bool    m_matchCase;
+        bool    m_forward;
+        bool    m_forwardSelectionTwice;
+        QPointer<NoteEditorPage> m_pPage;
     };
 
     class ReplaceTextCallback
@@ -572,6 +589,21 @@ private:
                             const bool matchCase, const bool repeat, NoteEditorPage * pPage);
         void operator()(bool found);
         void operator()(const QVariant & data);
+
+    private:
+        QString m_textToReplace;
+        QString m_replacementText;
+        bool    m_matchCase;
+        bool    m_repeat;
+        QPointer<NoteEditorPage> m_pPage;
+    };
+
+    class PostFindForReplaceSelectionUpdateCallback
+    {
+    public:
+        PostFindForReplaceSelectionUpdateCallback(const QString & textToReplace, const QString & replacementText,
+                                                  const bool matchCase, const bool repeatFlag, NoteEditorPage * pPage);
+        void operator()(bool found);
 
     private:
         QString m_textToReplace;

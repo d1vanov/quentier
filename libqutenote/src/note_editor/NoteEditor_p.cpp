@@ -4129,7 +4129,14 @@ void NoteEditorPrivate::findNext(const QString & text, const bool matchCase) con
     GET_PAGE()
 
 #ifdef USE_QT_WEB_ENGINE
-    page->findText(QString(), flags, FindTextCallback(text, matchCase, page));
+    bool forwardSelectionTwice = false;
+    QString selectedText = page->selectedText();
+    if (selectedText.compare(text, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive)) == 0) {
+        forwardSelectionTwice = true;
+    }
+
+    bool forwardFlag = true;
+    page->findText(QString(), flags, FindTextCallback(text, matchCase, page, forwardFlag, forwardSelectionTwice));
 #else
     flags |= QWebPage::FindWrapsAroundDocument;
     Q_UNUSED(page->findText(text, flags));
@@ -4148,8 +4155,10 @@ void NoteEditorPrivate::findPrevious(const QString & text, const bool matchCase)
 
     GET_PAGE()
 #ifdef USE_QT_WEB_ENGINE
+    bool forwardSelectionTwice = false;
+    // TODO: put some logics to find out the required state
     bool forwardFlag = false;
-    page->findText(QString(), flags, FindTextCallback(text, matchCase, page, forwardFlag));
+    page->findText(QString(), flags, FindTextCallback(text, matchCase, page, forwardFlag, forwardSelectionTwice));
 #else
     flags |= QWebPage::FindWrapsAroundDocument;
     Q_UNUSED(page->findText(text, flags));
@@ -4178,25 +4187,19 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
         }
 
         bool repeatFlag = false;
-        page->findText(textToReplace, flags, ReplaceTextCallback(textToReplace, replacementText, matchCase, repeatFlag, page));
+        page->findText(textToReplace, flags, PostFindForReplaceSelectionUpdateCallback(textToReplace, replacementText,
+                                                                                       matchCase, repeatFlag, page));
     }
     else
     {
-        QNTRACE("The currently selected text matches the text which we need to replace, will paste this text right into the page");
+        QNTRACE("The currently selected text matches the text which we need to replace, will replace the current selection "
+                "and find the next occurrence after that");
 
-        QClipboard * pClipboard = QApplication::clipboard();
-        if (Q_UNLIKELY(!pClipboard)) {
-            QString error = QT_TR_NOOP("Can't replace text in note: can't get the pointer to the system clipboard");
-            QNWARNING(error);
-            emit notifyError(error);
-            return;
-        }
+        QString escapedReplacementText = replacementText;
+        ENMLConverter::escapeString(escapedReplacementText);
 
-        pClipboard->setText(replacementText);
-        page->triggerAction(WebPage::PasteAndMatchStyle);
-
-        QNTRACE("Pasted, searching for the next occurrence now");
-        findNext(textToReplace, matchCase);
+        page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
+                                FindTextCallback(textToReplace, matchCase, page));
     }
 #else
     if (shouldSearchForTextFirst) {
@@ -4207,7 +4210,10 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
         return;
     }
 
-    page->executeJavaScript("replaceSelectionWithHtml('" + replacementText + "');");
+    QString escapedReplacementText = replacementText;
+    ENMLConverter::escapeString(escapedReplacementText);
+
+    page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');");
     findNext(textToReplace, matchCase);
 #endif
 }
@@ -5186,11 +5192,12 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 #ifdef USE_QT_WEB_ENGINE
 
 NoteEditorPrivate::FindTextCallback::FindTextCallback(const QString & textToFind, const bool matchCase, NoteEditorPage * pPage,
-                                                      const bool forward) :
+                                                      const bool forward, const bool forwardSelectionTwice) :
     m_textToFind(textToFind),
     m_matchCase(matchCase),
     m_pPage(pPage),
-    m_forward(forward)
+    m_forward(forward),
+    m_forwardSelectionTwice(forwardSelectionTwice)
 {}
 
 void NoteEditorPrivate::FindTextCallback::operator()(const QVariant & data)
@@ -5217,7 +5224,7 @@ void NoteEditorPrivate::FindTextCallback::operator()(const QVariant & data)
 
 void NoteEditorPrivate::FindTextCallback::operator()(bool found)
 {
-    QNDEBUG("NoteEditorPrivate::FindTextCallback::operator(): found = " << (found ? "true" : "false"));
+    QNDEBUG("NoteEditorPrivate::FindTextCallback::operator()");
 
     Q_UNUSED(found);
 
@@ -5230,7 +5237,7 @@ void NoteEditorPrivate::FindTextCallback::operator()(bool found)
         flags |= WebPage::FindBackward;
     }
 
-    m_pPage->findText(m_textToFind, flags);
+    m_pPage->findText(m_textToFind, flags, PostFindSelectionUpdateCallback(m_textToFind, m_matchCase, m_forward, m_forwardSelectionTwice, m_pPage));
 }
 
 NoteEditorPrivate::ReplaceTextCallback::ReplaceTextCallback(const QString & textToReplace, const QString & replacementText,
@@ -5254,31 +5261,16 @@ void NoteEditorPrivate::ReplaceTextCallback::operator()(bool found)
         return;
     }
 
-    QClipboard * pClipboard = QApplication::clipboard();
-    if (Q_UNLIKELY(!pClipboard)) {
-        QString error = QT_TR_NOOP("Can't replace text in note: can't get the pointer to the system clipboard");
-        QNWARNING(error);
-        // TODO: need to notify the user about this error
-        return;
-    }
-
-    pClipboard->setText(m_replacementText);
-    m_pPage->triggerAction(WebPage::PasteAndMatchStyle);
-
-    QNTRACE("Pasted the replacement text " << m_replacementText);
-
-    WebPage::FindFlags flags;
-    if (m_matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
+    QString escapedReplacementText = m_replacementText;
+    ENMLConverter::escapeString(escapedReplacementText);
 
     if (!m_repeat) {
-        QNTRACE("Will just find the next occurrence");
-        m_pPage->findText(m_textToReplace, flags);
+        m_pPage->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
+                                   FindTextCallback(m_textToReplace, m_matchCase, m_pPage));
     }
     else {
-        QNTRACE("Will find the next occurrence and do the replace there as well (if any)");
-        m_pPage->findText(m_textToReplace, flags, ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage));
+        m_pPage->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
+                                   ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage));
     }
 }
 
@@ -5297,7 +5289,71 @@ void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
         flags |= WebPage::FindCaseSensitively;
     }
 
-    m_pPage->findText(m_textToReplace, flags, ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage));
+    m_pPage->findText(m_textToReplace, flags, PostFindForReplaceSelectionUpdateCallback(m_textToReplace, m_replacementText,
+                                                                                        m_matchCase, m_repeat, m_pPage));
+}
+
+NoteEditorPrivate::PostFindSelectionUpdateCallback::PostFindSelectionUpdateCallback(const QString & textToFind, const bool matchCase,
+                                                                                    const bool searchForward, const bool forwardSelectionTwice,
+                                                                                    NoteEditorPage * pPage) :
+    m_textToFind(textToFind),
+    m_matchCase(matchCase),
+    m_forward(searchForward),
+    m_forwardSelectionTwice(forwardSelectionTwice),
+    m_pPage(pPage)
+{}
+
+void NoteEditorPrivate::PostFindSelectionUpdateCallback::operator()(bool found)
+{
+    QNDEBUG("NoteEditorPrivate::PostFindSelectionUpdateCallback::operator(): found = " << (found ? "true" : "false"));
+
+    if (!found) {
+        return;
+    }
+
+    if (m_pPage.isNull()) {
+        return;
+    }
+
+    // NOTE: sadly, in QWebEnginePage the text search doesn't affect the selection while it is required for the proper work of text replacing;
+    // So we'll try to change the selection ourselves;
+    // The order of the used parameters to window.find is: text to find, match case (bool), search backwards (bool), wrap the search around (bool)
+    QString javascript = "window.find('" + m_textToFind + "', " + (m_matchCase ? "true" : "false") + ", " +
+                         (m_forward ? "false" : "true") + ", true);";
+
+    m_pPage->executeJavaScript(javascript);
+    if (m_forwardSelectionTwice) {
+        m_pPage->executeJavaScript(javascript);
+    }
+}
+
+NoteEditorPrivate::PostFindForReplaceSelectionUpdateCallback::PostFindForReplaceSelectionUpdateCallback(const QString & textToReplace, const QString & replacementText,
+                                                                                                        const bool matchCase, const bool repeatFlag, NoteEditorPage * pPage) :
+    m_textToReplace(textToReplace),
+    m_replacementText(replacementText),
+    m_matchCase(matchCase),
+    m_repeat(repeatFlag),
+    m_pPage(pPage)
+{}
+
+void NoteEditorPrivate::PostFindForReplaceSelectionUpdateCallback::operator()(bool found)
+{
+    QNDEBUG("NoteEditorPrivate::PostFindForReplaceSelectionUpdateCallback::operator(): found = " << (found ? "true" : "false"));
+
+    if (!found) {
+        return;
+    }
+
+    if (m_pPage.isNull()) {
+        return;
+    }
+
+    // NOTE: sadly, in QWebEnginePage the text search doesn't affect the selection while it is required for the proper work of text replacing;
+    // So we'll try to change the selection ourselves;
+    // The order of the used parameters to window.find is: text to find, match case (bool), search backwards (bool), wrap the search around (bool)
+    QString javascript = "window.find('" + m_textToReplace + "', " + (m_matchCase ? "true" : "false") + ", false, true);";
+
+    m_pPage->executeJavaScript(javascript, ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage));
 }
 
 #endif
