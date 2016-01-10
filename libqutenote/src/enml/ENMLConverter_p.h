@@ -5,6 +5,7 @@
 #include <qute_note/utility/Qt4Helper.h>
 #include <QtGlobal>
 #include <QStringList>
+#include <QFlag>
 
 QT_FORWARD_DECLARE_CLASS(QXmlStreamReader)
 QT_FORWARD_DECLARE_CLASS(QXmlStreamWriter)
@@ -86,9 +87,24 @@ private:
                                   const QString & hint, const QString & cipher, const size_t keyLength, const quint64 enDecryptedIndex,
                                   QXmlStreamWriter & writer);
 
-    bool shouldSkipElement(const QString &elementName,
-                           const QXmlStreamAttributes & attributes,
-                           const QVector<SkipHtmlElementRule> & skipRules) const;
+    class ShouldSkipElementResult: public Printable
+    {
+    public:
+        enum type
+        {
+            SkipWithContents = 0x0,
+            SkipButPreserveContents = 0x1,
+            ShouldNotSkip = 0x2
+        };
+
+        Q_DECLARE_FLAGS(Types, type)
+
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    };
+
+    ShouldSkipElementResult::type shouldSkipElement(const QString & elementName,
+                                                    const QXmlStreamAttributes & attributes,
+                                                    const QVector<SkipHtmlElementRule> & skipRules) const;
 
 private:
     Q_DISABLE_COPY(ENMLConverterPrivate)

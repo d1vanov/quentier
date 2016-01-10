@@ -3,6 +3,7 @@
 
 #include <QEverCloud.h>
 #include <QString>
+#include <QFlags>
 #include <cstdint>
 
 #define SEC_TO_MSEC(sec) (sec * 100)

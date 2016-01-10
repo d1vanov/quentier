@@ -89,6 +89,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
     QXmlStreamAttributes enMediaAttributes;
 
     size_t  skippedElementNestingCounter = 0;
+    size_t  skippedElementWithPreservedContentsNestingCounter = 0;
 
     while(!reader.atEnd())
     {
@@ -109,7 +110,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
         if (reader.isStartElement())
         {
             if (skippedElementNestingCounter) {
-                QNTRACE("Skipping everyting inside element skipped by the rules");
+                QNTRACE("Skipping everyting inside element skipped together with its contents by the rules");
                 ++skippedElementNestingCounter;
                 continue;
             }
@@ -151,10 +152,19 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
 
             lastElementAttributes = reader.attributes();
 
-            bool shouldSkip = shouldSkipElement(lastElementName, lastElementAttributes, skipRules);
-            if (shouldSkip) {
-                QNTRACE("Skipping element " << lastElementName << " per skip rules");
-                ++skippedElementNestingCounter;
+            ShouldSkipElementResult::type shouldSkip = shouldSkipElement(lastElementName, lastElementAttributes, skipRules);
+            if (shouldSkip != ShouldSkipElementResult::ShouldNotSkip)
+            {
+                QNTRACE("Skipping element " << lastElementName << " per skip rules; the contents would be "
+                        << (shouldSkip == ShouldSkipElementResult::SkipWithContents ? "skipped" : "preserved"));
+
+                if (shouldSkip == ShouldSkipElementResult::SkipWithContents) {
+                    ++skippedElementNestingCounter;
+                }
+                else if (shouldSkip == ShouldSkipElementResult::SkipButPreserveContents) {
+                    ++skippedElementWithPreservedContentsNestingCounter;
+                }
+
                 continue;
             }
 
@@ -315,6 +325,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
         {
             if (skippedElementNestingCounter) {
                 --skippedElementNestingCounter;
+                continue;
+            }
+
+            if (skippedElementWithPreservedContentsNestingCounter) {
+                --skippedElementWithPreservedContentsNestingCounter;
                 continue;
             }
 
@@ -1167,15 +1182,29 @@ void ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, cons
     }
 }
 
-bool ENMLConverterPrivate::shouldSkipElement(const QString & elementName,
-                                             const QXmlStreamAttributes & attributes,
-                                             const QVector<SkipHtmlElementRule> & skipRules) const
+ENMLConverterPrivate::ShouldSkipElementResult::type ENMLConverterPrivate::shouldSkipElement(const QString & elementName,
+                                                                                            const QXmlStreamAttributes & attributes,
+                                                                                            const QVector<SkipHtmlElementRule> & skipRules) const
 {
     QNDEBUG("ENMLConverterPrivate::shouldSkipElement: element name = " << elementName
             << ", attributes = " << attributes);
 
     if (skipRules.isEmpty()) {
-        return false;
+        return ShouldSkipElementResult::ShouldNotSkip;
+    }
+
+    ShouldSkipElementResult::Types flags;
+    flags |= ShouldSkipElementResult::ShouldNotSkip;
+
+#define CHECK_IF_SHOULD_SKIP() \
+    if (shouldSkip) \
+    { \
+        if (rule.m_includeElementContents) { \
+            flags |= ShouldSkipElementResult::SkipButPreserveContents; \
+        } \
+        else { \
+            return ShouldSkipElementResult::SkipWithContents; \
+        } \
     }
 
     const int numAttributes = attributes.size();
@@ -1207,14 +1236,15 @@ bool ENMLConverterPrivate::shouldSkipElement(const QString & elementName,
             case SkipHtmlElementRule::EndsWith:
                 shouldSkip = elementName.endsWith(rule.m_elementNameToSkip, rule.m_elementNameCaseSensitivity);
                 break;
+            case SkipHtmlElementRule::Contains:
+                shouldSkip = elementName.contains(rule.m_elementNameToSkip, rule.m_elementNameCaseSensitivity);
+                break;
             default:
                 QNWARNING("Detected unhandled SkipHtmlElementRule::ComparisonRule");
                 break;
             }
 
-            if (shouldSkip) {
-                return true;
-            }
+            CHECK_IF_SHOULD_SKIP()
         }
 
         if (!rule.m_attributeNameToSkip.isEmpty())
@@ -1243,14 +1273,15 @@ bool ENMLConverterPrivate::shouldSkipElement(const QString & elementName,
                 case SkipHtmlElementRule::EndsWith:
                     shouldSkip = attribute.name().endsWith(rule.m_attributeNameToSkip, rule.m_attributeNameCaseSensitivity);
                     break;
+                case SkipHtmlElementRule::Contains:
+                    shouldSkip = attribute.name().contains(rule.m_attributeNameToSkip, rule.m_attributeNameCaseSensitivity);
+                    break;
                 default:
                     QNWARNING("Detected unhandled SkipHtmlElementRule::ComparisonRule");
                     break;
                 }
 
-                if (shouldSkip) {
-                    return true;
-                }
+                CHECK_IF_SHOULD_SKIP()
             }
         }
 
@@ -1280,19 +1311,24 @@ bool ENMLConverterPrivate::shouldSkipElement(const QString & elementName,
                 case SkipHtmlElementRule::EndsWith:
                     shouldSkip = attribute.value().endsWith(rule.m_attributeValueToSkip, rule.m_attributeValueCaseSensitivity);
                     break;
+                case SkipHtmlElementRule::Contains:
+                    shouldSkip = attribute.value().contains(rule.m_attributeValueToSkip, rule.m_attributeValueCaseSensitivity);
+                    break;
                 default:
                     QNWARNING("Detected unhandled SkipHtmlElementRule::ComparisonRule");
                     break;
                 }
 
-                if (shouldSkip) {
-                    return true;
-                }
+                CHECK_IF_SHOULD_SKIP()
             }
         }
     }
 
-    return false;
+    if (flags & ShouldSkipElementResult::SkipButPreserveContents) {
+        return ShouldSkipElementResult::SkipButPreserveContents;
+    }
+
+    return ShouldSkipElementResult::ShouldNotSkip;
 }
 
 } // namespace qute_note

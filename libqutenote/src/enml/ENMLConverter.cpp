@@ -103,6 +103,9 @@ QTextStream & ENMLConverter::SkipHtmlElementRule::Print(QTextStream & strm) cons
         case EndsWith: \
             strm << "Ends with"; \
             break; \
+        case Contains: \
+            strm << "Contains"; \
+            break; \
         default: \
             strm << "unknown"; \
             break; \

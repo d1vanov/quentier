@@ -28,12 +28,10 @@ public:
      * @brief The SkipHtmlElementRule class describes the set of rules
      * for HTML -> ENML conversion about the HTML elements that should not
      * be actually converted to ENML due to their nature of being "helper"
-     * elements for the display or functioning of something within the web page.
+     * elements for the display or functioning of something within the note editor's page.
      * The HTML -> ENML conversion would ignore tags and attributes forbidden by ENML
-     * even without these rules.
-     *
-     * The elements nested into those skipped would also be skipped whether or not
-     * the child elements fulfill the specified rules
+     * even without these rules conditionally preserving or skipping the contents and nested elements
+     * of skipped elements
      */
     class SkipHtmlElementRule: public Printable
     {
@@ -41,7 +39,8 @@ public:
         enum ComparisonRule {
             Equals = 0,
             StartsWith,
-            EndsWith
+            EndsWith,
+            Contains
         };
 
         SkipHtmlElementRule() :
@@ -53,7 +52,8 @@ public:
             m_attributeNameCaseSensitivity(Qt::CaseSensitive),
             m_attributeValueToSkip(),
             m_attributeValueComparisonRule(Equals),
-            m_attributeValueCaseSensitivity(Qt::CaseSensitive)
+            m_attributeValueCaseSensitivity(Qt::CaseSensitive),
+            m_includeElementContents(false)
         {}
 
         virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
@@ -69,6 +69,8 @@ public:
         QString             m_attributeValueToSkip;
         ComparisonRule      m_attributeValueComparisonRule;
         Qt::CaseSensitivity m_attributeValueCaseSensitivity;
+
+        bool                m_includeElementContents;
     };
 
     bool htmlToNoteContent(const QString & html, QString & noteContent,
