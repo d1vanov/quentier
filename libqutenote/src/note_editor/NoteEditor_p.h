@@ -358,10 +358,8 @@ private Q_SLOTS:
     void onRemoveHyperlinkDelegateError(QString error);
 
 private:
-    // Helper methods for undo stack
     void pushNoteContentEditUndoCommand();
 
-private:
     template <typename T>
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
                              const int columns, const bool relative);
@@ -371,6 +369,11 @@ private:
 
     void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
                                                          const QString & hint, const bool rememberForSession);
+
+#ifdef USE_QT_WEB_ENGINE
+    void findText(const QString & textToFind, const bool matchCase, const bool searchBackward = false,
+                  NoteEditorPage::Callback = 0) const;
+#endif
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -554,40 +557,26 @@ private:
     class FindTextCallback
     {
     public:
-        FindTextCallback(const QString & textToFind, const bool matchCase, NoteEditorPage * pPage, const bool forward = true,
-                         const bool forwardSelectionTwice = false);
+        FindTextCallback(const QString & textToFind, const bool matchCase, const bool searchBackward,
+                         NoteEditorPrivate * pNoteEditor, NoteEditorPage::Callback = 0);
         void operator()(const QVariant & data);
-        void operator()(bool found);
 
     private:
         QString m_textToFind;
         bool    m_matchCase;
-        QPointer<NoteEditorPage> m_pPage;
-        bool    m_forward;
-        bool    m_forwardSelectionTwice;
+        bool    m_searchBackward;;
+        QPointer<NoteEditorPrivate> m_pNoteEditor;
+        NoteEditorPage::Callback m_callback;
     };
 
-    class PostFindSelectionUpdateCallback
-    {
-    public:
-        PostFindSelectionUpdateCallback(const QString & textToFind, const bool matchCase, const bool searchForward,
-                                        const bool forwardSelectionTwice, NoteEditorPage * pPage);
-        void operator()(bool found);
-
-    private:
-        QString m_textToFind;
-        bool    m_matchCase;
-        bool    m_forward;
-        bool    m_forwardSelectionTwice;
-        QPointer<NoteEditorPage> m_pPage;
-    };
+    friend class FindTextCallback;
 
     class ReplaceTextCallback
     {
     public:
         ReplaceTextCallback(const QString & textToReplace, const QString & replacementText,
-                            const bool matchCase, const bool repeat, NoteEditorPage * pPage);
-        void operator()(bool found);
+                            const bool matchCase, const bool repeat, NoteEditorPage * pPage,
+                            NoteEditorPrivate * pNoteEditor);
         void operator()(const QVariant & data);
 
     private:
@@ -596,21 +585,7 @@ private:
         bool    m_matchCase;
         bool    m_repeat;
         QPointer<NoteEditorPage> m_pPage;
-    };
-
-    class PostFindForReplaceSelectionUpdateCallback
-    {
-    public:
-        PostFindForReplaceSelectionUpdateCallback(const QString & textToReplace, const QString & replacementText,
-                                                  const bool matchCase, const bool repeatFlag, NoteEditorPage * pPage);
-        void operator()(bool found);
-
-    private:
-        QString m_textToReplace;
-        QString m_replacementText;
-        bool    m_matchCase;
-        bool    m_repeat;
-        QPointer<NoteEditorPage> m_pPage;
+        QPointer<NoteEditorPrivate> m_pNoteEditor;
     };
 
 #endif

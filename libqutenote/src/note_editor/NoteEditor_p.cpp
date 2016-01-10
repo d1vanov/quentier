@@ -1872,6 +1872,27 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
 }
 
+#ifdef USE_QT_WEB_ENGINE
+
+void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCase, const bool searchBackward,
+                                 NoteEditorPage::Callback callback) const
+{
+    QNDEBUG("NoteEditorPrivate::findText: " << textToFind << "; match case = " << (matchCase ? "true" : "false")
+            << ", search backward = " << (searchBackward ? "true" : "false"));
+
+    QString escapedTextToFind = textToFind;
+    ENMLConverter::escapeString(escapedTextToFind);
+
+    // The order of used parameters to window.find: text to find, match case (bool), search backwards (bool), wrap the search around (bool)
+    QString javascript = "window.find('" + escapedTextToFind + "', " + (matchCase ? "true" : "false") + ", " +
+                         (searchBackward ? "true" : "false") + ", true);";
+
+    GET_PAGE()
+    page->executeJavaScript(javascript, callback);
+}
+
+#endif
+
 void NoteEditorPrivate::clearEditorContent()
 {
     QNDEBUG("NoteEditorPrivate::clearEditorContent");
@@ -4121,24 +4142,17 @@ void NoteEditorPrivate::findNext(const QString & text, const bool matchCase) con
 {
     QNDEBUG("NoteEditorPrivate::findNext: " << text << "; match case = " << (matchCase ? "true" : "false"));
 
+#ifdef USE_QT_WEB_ENGINE
+    findText(text, matchCase);
+#else
     WebPage::FindFlags flags;
+    flags |= QWebPage::FindWrapsAroundDocument;
+
     if (matchCase) {
         flags |= WebPage::FindCaseSensitively;
     }
 
     GET_PAGE()
-
-#ifdef USE_QT_WEB_ENGINE
-    bool forwardSelectionTwice = false;
-    QString selectedText = page->selectedText();
-    if (selectedText.compare(text, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive)) == 0) {
-        forwardSelectionTwice = true;
-    }
-
-    bool forwardFlag = true;
-    page->findText(QString(), flags, FindTextCallback(text, matchCase, page, forwardFlag, forwardSelectionTwice));
-#else
-    flags |= QWebPage::FindWrapsAroundDocument;
     Q_UNUSED(page->findText(text, flags));
 #endif
 }
@@ -4147,20 +4161,18 @@ void NoteEditorPrivate::findPrevious(const QString & text, const bool matchCase)
 {
     QNDEBUG("NoteEditorPrivate::findPrevious: " << text << "; match case = " << (matchCase ? "true" : "false"));
 
+#ifdef USE_QT_WEB_ENGINE
+    findText(text, matchCase, /* search backward = */ true);
+#else
     WebPage::FindFlags flags;
     flags |= WebPage::FindBackward;
+    flags |= QWebPage::FindWrapsAroundDocument;
+
     if (matchCase) {
         flags |= WebPage::FindCaseSensitively;
     }
 
     GET_PAGE()
-#ifdef USE_QT_WEB_ENGINE
-    bool forwardSelectionTwice = false;
-    // TODO: put some logics to find out the required state
-    bool forwardFlag = false;
-    page->findText(QString(), flags, FindTextCallback(text, matchCase, page, forwardFlag, forwardSelectionTwice));
-#else
-    flags |= QWebPage::FindWrapsAroundDocument;
     Q_UNUSED(page->findText(text, flags));
 #endif
 }
@@ -4172,7 +4184,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
 
     GET_PAGE()
     QString selectedText = page->selectedText();
-    QNTRACE("Selected text = " << selectedText);
+    QNTRACE("Currently selected text = " << selectedText);
 
     bool shouldSearchForTextFirst = (selectedText.isEmpty() ||
                                      (selectedText.compare(textToReplace, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive)) != 0));
@@ -4181,14 +4193,9 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
     {
         QNTRACE("The current selected text is either missing or doesn't match the text to replace, searching for one first");
 
-        WebPage::FindFlags flags;
-        if (matchCase) {
-            flags |= WebPage::FindCaseSensitively;
-        }
-
         bool repeatFlag = false;
-        page->findText(textToReplace, flags, PostFindForReplaceSelectionUpdateCallback(textToReplace, replacementText,
-                                                                                       matchCase, repeatFlag, page));
+        findText(textToReplace, matchCase, /* search backward = */ false,
+                 ReplaceTextCallback(textToReplace, replacementText, matchCase, repeatFlag, page, this));
     }
     else
     {
@@ -4199,7 +4206,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
         ENMLConverter::escapeString(escapedReplacementText);
 
         page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
-                                FindTextCallback(textToReplace, matchCase, page));
+                                FindTextCallback(textToReplace, matchCase, /* search backwards = */ false, this));
     }
 #else
     if (shouldSearchForTextFirst) {
@@ -4223,17 +4230,18 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
     QNDEBUG("NoteEditorPrivate::replaceAll: text to replace = " << textToReplace << "; replacement text = "
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
-    WebPage::FindFlags flags;
-    if (matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
-
     GET_PAGE()
 #ifdef USE_QT_WEB_ENGINE
     bool repeatFlag = true;
-    page->findText(textToReplace, flags, ReplaceTextCallback(textToReplace, replacementText, matchCase, repeatFlag, page));
+    findText(textToReplace, matchCase, /* search backward = */ false,
+             ReplaceTextCallback(textToReplace, replacementText, matchCase, repeatFlag, page, this));
 #else
+    WebPage::FindFlags flags;
     flags |= QWebPage::FindWrapsAroundDocument;
+
+    if (matchCase) {
+        flags |= WebPage::FindCaseSensitively;
+    }
 
     while(true)
     {
@@ -5191,13 +5199,14 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 
 #ifdef USE_QT_WEB_ENGINE
 
-NoteEditorPrivate::FindTextCallback::FindTextCallback(const QString & textToFind, const bool matchCase, NoteEditorPage * pPage,
-                                                      const bool forward, const bool forwardSelectionTwice) :
+NoteEditorPrivate::FindTextCallback::FindTextCallback(const QString & textToFind, const bool matchCase,
+                                                      const bool searchBackward, NoteEditorPrivate * pNoteEditor,
+                                                      NoteEditorPage::Callback callback) :
     m_textToFind(textToFind),
     m_matchCase(matchCase),
-    m_pPage(pPage),
-    m_forward(forward),
-    m_forwardSelectionTwice(forwardSelectionTwice)
+    m_searchBackward(searchBackward),
+    m_pNoteEditor(pNoteEditor),
+    m_callback(callback)
 {}
 
 void NoteEditorPrivate::FindTextCallback::operator()(const QVariant & data)
@@ -5206,53 +5215,30 @@ void NoteEditorPrivate::FindTextCallback::operator()(const QVariant & data)
 
     Q_UNUSED(data);
 
-    if (m_pPage.isNull()) {
+    if (m_pNoteEditor.isNull()) {
         return;
     }
 
-    WebPage::FindFlags flags;
-    if (m_matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
-
-    if (!m_forward) {
-        flags |= WebPage::FindBackward;
-    }
-
-    m_pPage->findText(m_textToFind, flags);
-}
-
-void NoteEditorPrivate::FindTextCallback::operator()(bool found)
-{
-    QNDEBUG("NoteEditorPrivate::FindTextCallback::operator()");
-
-    Q_UNUSED(found);
-
-    WebPage::FindFlags flags;
-    if (m_matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
-
-    if (!m_forward) {
-        flags |= WebPage::FindBackward;
-    }
-
-    m_pPage->findText(m_textToFind, flags, PostFindSelectionUpdateCallback(m_textToFind, m_matchCase, m_forward, m_forwardSelectionTwice, m_pPage));
+    m_pNoteEditor->findText(m_textToFind, m_matchCase, m_searchBackward, m_callback);
 }
 
 NoteEditorPrivate::ReplaceTextCallback::ReplaceTextCallback(const QString & textToReplace, const QString & replacementText,
-                                                            const bool matchCase, const bool repeat, NoteEditorPage * pPage) :
+                                                            const bool matchCase, const bool repeat, NoteEditorPage * pPage,
+                                                            NoteEditorPrivate * pNoteEditor) :
     m_textToReplace(textToReplace),
     m_replacementText(replacementText),
     m_matchCase(matchCase),
     m_repeat(repeat),
-    m_pPage(pPage)
+    m_pPage(pPage),
+    m_pNoteEditor(pNoteEditor)
 {}
 
-void NoteEditorPrivate::ReplaceTextCallback::operator()(bool found)
+void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
 {
-    QNDEBUG("NoteEditorPrivate::ReplaceTextCallback::operator(): found = " << (found ? "true" : "false"));
+    QNDEBUG("NoteEditorPrivate::ReplaceTextCallback::operator(): " << data);
 
+    bool found = data.toBool();
+    QNTRACE("found = " << (found ? "true" : "false"));
     if (!found) {
         return;
     }
@@ -5264,96 +5250,15 @@ void NoteEditorPrivate::ReplaceTextCallback::operator()(bool found)
     QString escapedReplacementText = m_replacementText;
     ENMLConverter::escapeString(escapedReplacementText);
 
-    if (!m_repeat) {
-        m_pPage->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
-                                   FindTextCallback(m_textToReplace, m_matchCase, m_pPage));
-    }
-    else {
-        m_pPage->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
-                                   ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage));
-    }
-}
+    QString javascript = "replaceSelectionWithHtml('" + escapedReplacementText + "');";
 
-void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
-{
-    QNDEBUG("NoteEditorPrivate::ReplaceTextCallback::operator() (JS callback)");
-
-    Q_UNUSED(data);
-
-    if (m_pPage.isNull()) {
-        return;
+    NoteEditorPage::Callback findCallback = 0;
+    if (m_repeat) {
+        findCallback = ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage, m_pNoteEditor);
     }
 
-    WebPage::FindFlags flags;
-    if (m_matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
-
-    m_pPage->findText(m_textToReplace, flags, PostFindForReplaceSelectionUpdateCallback(m_textToReplace, m_replacementText,
-                                                                                        m_matchCase, m_repeat, m_pPage));
-}
-
-NoteEditorPrivate::PostFindSelectionUpdateCallback::PostFindSelectionUpdateCallback(const QString & textToFind, const bool matchCase,
-                                                                                    const bool searchForward, const bool forwardSelectionTwice,
-                                                                                    NoteEditorPage * pPage) :
-    m_textToFind(textToFind),
-    m_matchCase(matchCase),
-    m_forward(searchForward),
-    m_forwardSelectionTwice(forwardSelectionTwice),
-    m_pPage(pPage)
-{}
-
-void NoteEditorPrivate::PostFindSelectionUpdateCallback::operator()(bool found)
-{
-    QNDEBUG("NoteEditorPrivate::PostFindSelectionUpdateCallback::operator(): found = " << (found ? "true" : "false"));
-
-    if (!found) {
-        return;
-    }
-
-    if (m_pPage.isNull()) {
-        return;
-    }
-
-    // NOTE: sadly, in QWebEnginePage the text search doesn't affect the selection while it is required for the proper work of text replacing;
-    // So we'll try to change the selection ourselves;
-    // The order of the used parameters to window.find is: text to find, match case (bool), search backwards (bool), wrap the search around (bool)
-    QString javascript = "window.find('" + m_textToFind + "', " + (m_matchCase ? "true" : "false") + ", " +
-                         (m_forward ? "false" : "true") + ", true);";
-
-    m_pPage->executeJavaScript(javascript);
-    if (m_forwardSelectionTwice) {
-        m_pPage->executeJavaScript(javascript);
-    }
-}
-
-NoteEditorPrivate::PostFindForReplaceSelectionUpdateCallback::PostFindForReplaceSelectionUpdateCallback(const QString & textToReplace, const QString & replacementText,
-                                                                                                        const bool matchCase, const bool repeatFlag, NoteEditorPage * pPage) :
-    m_textToReplace(textToReplace),
-    m_replacementText(replacementText),
-    m_matchCase(matchCase),
-    m_repeat(repeatFlag),
-    m_pPage(pPage)
-{}
-
-void NoteEditorPrivate::PostFindForReplaceSelectionUpdateCallback::operator()(bool found)
-{
-    QNDEBUG("NoteEditorPrivate::PostFindForReplaceSelectionUpdateCallback::operator(): found = " << (found ? "true" : "false"));
-
-    if (!found) {
-        return;
-    }
-
-    if (m_pPage.isNull()) {
-        return;
-    }
-
-    // NOTE: sadly, in QWebEnginePage the text search doesn't affect the selection while it is required for the proper work of text replacing;
-    // So we'll try to change the selection ourselves;
-    // The order of the used parameters to window.find is: text to find, match case (bool), search backwards (bool), wrap the search around (bool)
-    QString javascript = "window.find('" + m_textToReplace + "', " + (m_matchCase ? "true" : "false") + ", false, true);";
-
-    m_pPage->executeJavaScript(javascript, ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage));
+    m_pPage->executeJavaScript(javascript, FindTextCallback(m_textToReplace, m_matchCase, /* search backward = */ false,
+                                                            m_pNoteEditor, findCallback));
 }
 
 #endif
