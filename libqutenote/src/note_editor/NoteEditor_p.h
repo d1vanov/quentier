@@ -627,6 +627,7 @@ private:
     QString     m_getCurrentScrollJs;
     QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;
+    QString     m_hilitorJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

@@ -412,6 +412,7 @@ set(RESOURCES
     src/note_editor/javascript/colResizable/colResizable.qrc
     src/note_editor/javascript/debounce/debounce.qrc
     src/note_editor/javascript/scripts/scripts.qrc
+    src/note_editor/javascript/hilitor/hilitor.qrc
     src/enml/enml.qrc)
 
 if(USE_QT5)

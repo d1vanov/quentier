@@ -133,6 +133,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getCurrentScrollJs(),
     m_setScrollJs(),
     m_hideDecryptedTextJs(),
+    m_hilitorJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -362,6 +363,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_getCurrentScrollJs);
     page->executeJavaScript(m_setScrollJs);
     page->executeJavaScript(m_hideDecryptedTextJs);
+    page->executeJavaScript(m_hilitorJs);
 
     setPageEditable(true);
     updateColResizableTableBindings();
@@ -3109,6 +3111,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
+    SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
@@ -5275,6 +5278,7 @@ void __initNoteEditorResources()
     Q_INIT_RESOURCE(colResizable);
     Q_INIT_RESOURCE(debounce);
     Q_INIT_RESOURCE(scripts);
+    Q_INIT_RESOURCE(hilitor);
 
     QNDEBUG("Initialized NoteEditor's resources");
 }
