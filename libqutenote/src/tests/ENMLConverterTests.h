@@ -16,6 +16,7 @@ bool convertComplexNote3ToHtmlAndBack(QString & error);
 bool convertComplexNote4ToHtmlAndBack(QString & error);
 bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error);
 bool convertHtmlWithTableHelperTagsToEnml(QString & error);
+bool convertHtmlWithTableAndHilitorHelperTagsToEnml(QString & error);
 
 } // namespace test
 } // namespace qute_note

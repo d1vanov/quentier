@@ -657,6 +657,61 @@ bool convertHtmlWithTableHelperTagsToEnml(QString & error)
     return true;
 }
 
+bool convertHtmlWithTableAndHilitorHelperTagsToEnml(QString & error)
+{
+    QFile file(":/tests/complexNote3.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note #3 for reading";
+        return false;
+    }
+
+    QString noteContent = file.readAll();
+    file.close();
+
+    file.setFileName(":/tests/complexNoteHtmlWithTableAndHilitorHelperTags.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note html with helper tags for reading";
+        return false;
+    }
+
+    QString html = file.readAll();
+    file.close();
+
+    ENMLConverter converter;
+    DecryptedTextManager decryptedTextManager;
+
+    ENMLConverter::SkipHtmlElementRule tableSkipRule;
+    tableSkipRule.m_attributeValueToSkip = "JCLRgrip";
+    tableSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::StartsWith;
+    tableSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+
+    ENMLConverter::SkipHtmlElementRule hilitorSkipRule;
+    hilitorSkipRule.m_includeElementContents = true;
+    hilitorSkipRule.m_attributeValueToSkip = "hilitorHelper";
+    hilitorSkipRule.m_attributeValueCaseSensitivity = Qt::CaseInsensitive;
+    hilitorSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
+
+    QVector<ENMLConverter::SkipHtmlElementRule> skipRules;
+    skipRules << tableSkipRule;
+    skipRules << hilitorSkipRule;
+
+    QString processedNoteContent;
+    bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, error, skipRules);
+    if (!res) {
+        error.prepend("Unable to convert HTML to note content: ");
+        QNWARNING(error);
+        return false;
+    }
+
+    res = compareEnml(noteContent, processedNoteContent, error);
+    if (!res) {
+        QNWARNING("\n\nHTML: " << html);
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace test
 } // namespace qute_note
 

@@ -35,6 +35,7 @@ private slots:
     void enmlConverterComplexTest3();
     void enmlConverterComplexTest4();
     void enmlConverterHtmlWithTableHelperTags();
+    void enmlConverterHtmlWithTableAndHilitorHelperTags();
 
     void noteSearchQueryTest();
     void localStorageManagerNoteSearchQueryTest();
