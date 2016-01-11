@@ -375,6 +375,8 @@ private:
                   NoteEditorPage::Callback = 0) const;
 #endif
 
+    void setSearchHighlight(const QString & textToFind, const bool matchCase) const;
+
     void clearEditorContent();
     void noteToEditorContent();
     void updateColResizableTableBindings();
@@ -587,6 +589,8 @@ private:
         QPointer<NoteEditorPage> m_pPage;
         QPointer<NoteEditorPrivate> m_pNoteEditor;
     };
+
+    friend class ReplaceTextCallback;
 
 #endif
 
