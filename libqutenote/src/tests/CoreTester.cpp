@@ -346,6 +346,17 @@ void CoreTester::enmlConverterComplexTest4()
     CATCH_EXCEPTION();
 }
 
+void CoreTester::enmlConverterHtmlWithTableHelperTags()
+{
+    try
+    {
+        QString error;
+        bool res = convertHtmlWithTableHelperTagsToEnml(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+}
+
 void CoreTester::noteSearchQueryTest()
 {
     try

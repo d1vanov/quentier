@@ -4,5 +4,6 @@
         <file>complexNote2.txt</file>
         <file>complexNote3.txt</file>
         <file>complexNote4.txt</file>
+        <file>complexNoteHtmlWithHelperTags.txt</file>
     </qresource>
 </RCC>

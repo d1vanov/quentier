@@ -10,6 +10,7 @@
 <div><br/></div>
 <div><en-todo checked="true"/>We hold these truths to be self-evident, that all men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty and the pursuit of Happiness.--That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed, --That whenever any Form of Government becomes destructive of these ends,</div>
 <table style="-evernote-table:true;border-collapse:collapse;width:100%;table-layout:fixed;margin-left:0px;">
+<tbody>
 <tr>
 <td style="border-style:solid;border-width:1px;border-color:rgb(219,219,219);padding:10px;margin:0px;width:33.33%;">
 <div>Africa</div>
@@ -54,6 +55,7 @@
 <div>slnrlb11</div>
 </td>
 </tr>
+</tbody>
 </table>
 <div>it is the Right of the <en-todo checked="true"/>People to alter or to abolish it, and to institute new Government, laying its foundation on such principles and organizing its powers in such form, as to them shall seem most likely to effect their Safety and Happiness. Prudence, indeed, will dictate that Governments long established should not be changed for light and transient causes; and accordingly all experience hath shewn, that mankind are more disposed to suffer, while evils are sufferable, than to right themselves by abolishing the forms to which they are accustomed. <en-todo/>But when a long train of abuses and usurpations, pursuing invariably the same <en-crypt cipher="AES" length="128" hint="to_which">RU5DMMAhPpeYAtx0zj320b3wog7t0cz/vQ7mOowSiCQmFYfWgdJCo3UmbaNsZtmbeTvyRCbcuzciWTwiiV9cSpFrQFQz2YKZDpVL7Z/Ih5l2jHcWqLFy639gUo5qhedJN6daCvNsNQTvm5l0kMw5zwxRnX+FmY6qHrMrvFPC843iwhnRCXxjCmKc6B2A19fXG6RwaqpnuyBiHc8czIcECT03h/c=</en-crypt> evinces a design to reduce them under absolute <en-todo/>Despotism, it is their right, it is their duty, to throw off such Government, and to provide new Guards for their future security.--Such has been the patient sufferance of these Colonies; and such is now the necessity which constrains them to alter their former Systems of Government. The history of the present King of Great Britain is a history of repeated injuries and usurpations, all having in direct object the establishment of an absolute <en-todo checked="true"/>Tyranny over these States. To prove this, let Facts be submitted to a candid world.</div>
 <div style="margin-left:40px;"><br/></div>

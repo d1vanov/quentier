@@ -381,6 +381,39 @@ bool compareEnml(const QString & original, const QString & processed, QString & 
                     return false;
                 }
             }
+            else if (originalName == "td")
+            {
+                const int numOriginalAttributes = originalAttributes.size();
+                const int numProcessedAttributes = processedAttributes.size();
+
+                if (numOriginalAttributes != numProcessedAttributes) {
+                    error = "The number of attributes in tag " + originalName.toString() + " doesn't match in the original and the processed ENMLs";
+                    PRINT_WARNING(error);
+                    return false;
+                }
+
+                for(int i = 0; i < numOriginalAttributes; ++i)
+                {
+                    const QXmlStreamAttribute & originalAttribute = originalAttributes[i];
+                    if (originalAttribute.name() == "style") {
+                        QNTRACE("Won't compare the style attribute for td tag as it's known to be slightly modified by the web engine "
+                                "so it's just not easy to compare it");
+                        continue;
+                    }
+
+                    if (!processedAttributes.contains(originalAttribute)) {
+                        error = "The corresponding attributes within the original and the processed ENMLs do not match";
+                        QNWARNING(error << ": the original attribute was not found within the processed attributes; "
+                                  << "original ENML: " << originalSimplified << "\nProcessed ENML: " << processedSimplified
+                                  << ", index within attributes = " << i << "\nOriginal attribute: name = "
+                                  << originalAttribute.name() << ", namespace uri = " << originalAttribute.namespaceUri()
+                                  << ", qualified name = " << originalAttribute.qualifiedName() << ", is default = "
+                                  << (originalAttribute.isDefault() ? "true" : "false") << ", value = " << originalAttribute.value()
+                                  << ", prefix = " << originalAttribute.prefix());
+                        return false;
+                    }
+                }
+            }
             else
             {
                 const int numOriginalAttributes = originalAttributes.size();
@@ -568,6 +601,54 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
     }
 
     res = compareEnml(processedENML, expectedReturnENML, error);
+    if (!res) {
+        QNWARNING("\n\nHTML: " << html);
+        return false;
+    }
+
+    return true;
+}
+
+bool convertHtmlWithTableHelperTagsToEnml(QString & error)
+{
+    QFile file(":/tests/complexNote3.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note #3 for reading";
+        return false;
+    }
+
+    QString noteContent = file.readAll();
+    file.close();
+
+    file.setFileName(":/tests/complexNoteHtmlWithHelperTags.txt");
+    if (!file.open(QIODevice::ReadOnly)) {
+        error = "Can't open the resource with complex note html with helper tags for reading";
+        return false;
+    }
+
+    QString html = file.readAll();
+    file.close();
+
+    ENMLConverter converter;
+    DecryptedTextManager decryptedTextManager;
+
+    ENMLConverter::SkipHtmlElementRule skipRule;
+    skipRule.m_attributeValueToSkip = "JCLRgrip";
+    skipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::StartsWith;
+    skipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+
+    QVector<ENMLConverter::SkipHtmlElementRule> skipRules;
+    skipRules << skipRule;
+
+    QString processedNoteContent;
+    bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, error, skipRules);
+    if (!res) {
+        error.prepend("Unable to convert HTML to note content: ");
+        QNWARNING(error);
+        return false;
+    }
+
+    res = compareEnml(noteContent, processedNoteContent, error);
     if (!res) {
         QNWARNING("\n\nHTML: " << html);
         return false;
