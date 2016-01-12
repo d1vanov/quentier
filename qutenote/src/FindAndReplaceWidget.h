@@ -30,6 +30,9 @@ public:
     bool matchCase() const;
     void setMatchCase(const bool flag);
 
+    bool replaceEnabled() const;
+    void setReplaceEnabled(const bool enabled);
+
 Q_SIGNALS:
     void closed();
     void textToFindEdited(const QString & textToFind);
@@ -40,7 +43,6 @@ Q_SIGNALS:
     void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
 public Q_SLOTS:
-    void setReplaceEnabled(const bool enabled);
     void setupShortcuts(const ShortcutManager & shortcutManager);
 
     void setFocus();

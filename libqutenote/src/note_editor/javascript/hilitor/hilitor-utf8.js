@@ -1,18 +1,20 @@
 // Original JavaScript code by Chirp Internet: www.chirp.com.au
 // Please acknowledge use of this code by including this header.
 
+// A bit reworked for slightly different purposes by Dmitry Ivanov
+
 function Hilitor2(id, tag)
 {
 
   var targetNode = document.getElementById(id) || document.body;
   var hiliteTag = tag || "EM";
   var skipTags = new RegExp("^(?:" + hiliteTag + "|SCRIPT|FORM)$");
-  var colors = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
+  var color = "#ff6";
   var wordColor = [];
-  var colorIdx = 0;
   var matchRegex = "";
   var openLeft = false;
   var openRight = false;
+  var caseSensitive = false;
 
   this.setMatchType = function(type)
   {
@@ -63,7 +65,11 @@ function Hilitor2(id, tag)
     var re = "(" + input + ")";
     if(!this.openLeft) re = "(?:^|[\\b\\s])" + re;
     if(!this.openRight) re = re + "(?:[\\b\\s]|$)";
-    matchRegex = new RegExp(re, "i");
+    var flags = "";
+    if (!this.caseSensitive) {
+        flags += "i";
+    }
+    matchRegex = new RegExp(re, flags);
   };
 
   this.getRegex = function()
@@ -87,7 +93,7 @@ function Hilitor2(id, tag)
     if(node.nodeType == 3) { // NODE_TEXT
       if((nv = node.nodeValue) && (regs = matchRegex.exec(nv))) {
         if(!wordColor[regs[1].toLowerCase()]) {
-          wordColor[regs[1].toLowerCase()] = colors[colorIdx++ % colors.length];
+          wordColor[regs[1].toLowerCase()] = color;
         }
 
         var match = document.createElement(hiliteTag);

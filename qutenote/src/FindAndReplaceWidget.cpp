@@ -49,6 +49,11 @@ void FindAndReplaceWidget::setMatchCase(const bool flag)
     m_pUI->matchCaseCheckBox->setChecked(flag);
 }
 
+bool FindAndReplaceWidget::replaceEnabled() const
+{
+    return !m_pUI->replaceLineEdit->isHidden();
+}
+
 void FindAndReplaceWidget::setReplaceEnabled(const bool enabled)
 {
     m_pUI->replaceLineEdit->setHidden(!enabled);
@@ -103,7 +108,7 @@ void FindAndReplaceWidget::onPreviousButtonPressed()
         return;
     }
 
-    emit findPrevious(textToFind, m_pUI->matchCaseCheckBox);
+    emit findPrevious(textToFind, m_pUI->matchCaseCheckBox->isChecked());
 }
 
 void FindAndReplaceWidget::onMatchCaseCheckboxToggled(int state)
@@ -140,7 +145,7 @@ void FindAndReplaceWidget::createConnections()
                      this, QNSLOT(FindAndReplaceWidget,onPreviousButtonPressed));
     QObject::connect(m_pUI->matchCaseCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
                      this, QNSLOT(FindAndReplaceWidget,onMatchCaseCheckboxToggled,int));
-    QObject::connect(m_pUI->replaceLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+    QObject::connect(m_pUI->replaceLineEdit, QNSIGNAL(QLineEdit,returnPressed),
                      this, QNSLOT(FindAndReplaceWidget,onReplaceTextEntered));
     QObject::connect(m_pUI->replaceButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onReplaceButtonPressed));

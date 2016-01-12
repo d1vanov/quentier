@@ -205,6 +205,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_lastSelectedHtml(),
     m_lastSelectedHtmlForEncryption(),
     m_lastSelectedHtmlForHyperlink(),
+    m_lastSearchHighlightedText(),
+    m_lastSearchHighlightedTextCaseSensitivity(false),
     m_enmlCachedMemory(),
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
@@ -1874,7 +1876,6 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSelectedTextEncryptionDone, extraData));
 }
 
-#ifdef USE_QT_WEB_ENGINE
 
 void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCase, const bool searchBackward,
                                  NoteEditorPage::Callback callback) const
@@ -1882,8 +1883,9 @@ void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCas
     QNDEBUG("NoteEditorPrivate::findText: " << textToFind << "; match case = " << (matchCase ? "true" : "false")
             << ", search backward = " << (searchBackward ? "true" : "false"));
 
-    setSearchHighlight(textToFind, matchCase);
+    GET_PAGE()
 
+#ifdef USE_QT_WEB_ENGINE
     QString escapedTextToFind = textToFind;
     ENMLConverter::escapeString(escapedTextToFind);
 
@@ -1891,29 +1893,55 @@ void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCas
     QString javascript = "window.find('" + escapedTextToFind + "', " + (matchCase ? "true" : "false") + ", " +
                          (searchBackward ? "true" : "false") + ", true);";
 
-    GET_PAGE()
     page->executeJavaScript(javascript, callback);
-}
+#else
+    WebPage::FindFlags flags;
+    flags |= QWebPage::FindWrapsAroundDocument;
 
+    if (matchCase) {
+        flags |= WebPage::FindCaseSensitively;
+    }
+
+    if (searchBackward) {
+        flags |= WebPage::FindBackward;
+    }
+
+    bool res = page->findText(textToFind, flags);
+    if (callback != 0) {
+        callback(QVariant(res));
+    }
 #endif
 
-void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const bool matchCase) const
+    setSearchHighlight(textToFind, matchCase);
+}
+
+void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force) const
 {
-    QNDEBUG("NoteEditorPrivate::setSearchHighlight: " << textToFind << "; match case = " << (matchCase ? "true" : "false"));
+    QNDEBUG("NoteEditorPrivate::setSearchHighlight: " << textToFind << "; match case = " << (matchCase ? "true" : "false")
+            << "; force = " << (force ? "true" : "false"));
+
+    if ( !force && (textToFind.compare(m_lastSearchHighlightedText, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive)) == 0) &&
+         (m_lastSearchHighlightedTextCaseSensitivity == matchCase) )
+    {
+        QNTRACE("The text to find matches the one highlighted the last time as well as its case sensitivity");
+        return;
+    }
+
+    m_lastSearchHighlightedText = textToFind;
+    m_lastSearchHighlightedTextCaseSensitivity = matchCase;
 
     GET_PAGE()
 
-    QString javascript = "if (!window.hasOwnProperty('searchHilitor')) { window.searchHilitor = new Hilitor2(); } ";
+    QString javascript = "if (!window.hasOwnProperty('searchHilitor')) { window.searchHilitor = new Hilitor2(); "
+                         "window.searchHilitor.openLeft = true; window.searchHilitor.openRight= true; } "
+                         "searchHilitor.remove();";
 
     if (!textToFind.isEmpty()) {
         QString escapedTextToFind = textToFind;
         ENMLConverter::escapeString(escapedTextToFind);
-        javascript += "searchHilitor.apply('" + escapedTextToFind + "');";
+        javascript += QString("searchHilitor.caseSensitive = ") + (matchCase ? "true" : "false") + "; "
+                      "searchHilitor.apply('" + escapedTextToFind + "');";
         QNTRACE("Will apply the search highlight for text " << escapedTextToFind);
-    }
-    else {
-        QNTRACE("Will remove the search highlight");
-        javascript += "searchHilitor.remove();";
     }
 
     QNTRACE("JavaScript to execute: " << javascript);
@@ -1944,6 +1972,9 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastFreeEnDecryptedIdNumber = 1;
 
     m_lastEncryptedText.resize(0);
+
+    m_lastSearchHighlightedText.resize(0);
+    m_lastSearchHighlightedTextCaseSensitivity = false;
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
@@ -3591,6 +3622,10 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         QNTRACE("Cleared the cache of generic resource image files by resource hash");
     }
     m_saveGenericResourceImageToFileRequestIds.clear();
+
+    m_lastSearchHighlightedText.resize(0);
+    m_lastSearchHighlightedTextCaseSensitivity = false;
+
 #ifdef USE_QT_WEB_ENGINE
     m_localGuidsOfResourcesWantedToBeSaved.clear();
 #else
@@ -4169,39 +4204,14 @@ void NoteEditorPrivate::findNext(const QString & text, const bool matchCase) con
 {
     QNDEBUG("NoteEditorPrivate::findNext: " << text << "; match case = " << (matchCase ? "true" : "false"));
 
-#ifdef USE_QT_WEB_ENGINE
     findText(text, matchCase);
-#else
-    WebPage::FindFlags flags;
-    flags |= QWebPage::FindWrapsAroundDocument;
-
-    if (matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
-
-    GET_PAGE()
-    Q_UNUSED(page->findText(text, flags));
-#endif
 }
 
 void NoteEditorPrivate::findPrevious(const QString & text, const bool matchCase) const
 {
     QNDEBUG("NoteEditorPrivate::findPrevious: " << text << "; match case = " << (matchCase ? "true" : "false"));
 
-#ifdef USE_QT_WEB_ENGINE
     findText(text, matchCase, /* search backward = */ true);
-#else
-    WebPage::FindFlags flags;
-    flags |= WebPage::FindBackward;
-    flags |= QWebPage::FindWrapsAroundDocument;
-
-    if (matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
-
-    GET_PAGE()
-    Q_UNUSED(page->findText(text, flags));
-#endif
 }
 
 void NoteEditorPrivate::replace(const QString & textToReplace, const QString & replacementText, const bool matchCase)
@@ -4232,9 +4242,9 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
         QString escapedReplacementText = replacementText;
         ENMLConverter::escapeString(escapedReplacementText);
 
-        page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
+        page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "', true);",
                                 FindTextCallback(textToReplace, matchCase, /* search backwards = */ false, this));
-        setSearchHighlight(textToReplace, matchCase);
+        setSearchHighlight(textToReplace, matchCase, /* force = */ true);
     }
 #else
     if (shouldSearchForTextFirst) {
@@ -4248,9 +4258,9 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
     QString escapedReplacementText = replacementText;
     ENMLConverter::escapeString(escapedReplacementText);
 
-    page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');");
+    page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "', true);");
     findNext(textToReplace, matchCase);
-    setSearchHighlight(textToReplace, matchCase);
+    setSearchHighlight(textToReplace, matchCase, /* force = */ true);
 #endif
 }
 
@@ -4278,8 +4288,10 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
             break;
         }
 
-        page->executeJavaScript("replaceSelectionWithHtml('" + replacementText + "');");
+        page->executeJavaScript("replaceSelectionWithHtml('" + replacementText + "', true);");
     }
+
+    setSearchHighlight(textToReplace, matchCase, /* force = */ true);
 #endif
 }
 
@@ -5284,7 +5296,7 @@ void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
     QString escapedReplacementText = m_replacementText;
     ENMLConverter::escapeString(escapedReplacementText);
 
-    QString javascript = "replaceSelectionWithHtml('" + escapedReplacementText + "');";
+    QString javascript = "replaceSelectionWithHtml('" + escapedReplacementText + "', true);";
 
     NoteEditorPage::Callback findCallback = 0;
     if (m_repeat) {
@@ -5293,7 +5305,9 @@ void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
 
     m_pPage->executeJavaScript(javascript, FindTextCallback(m_textToReplace, m_matchCase, /* search backward = */ false,
                                                             m_pNoteEditor, findCallback));
-    m_pNoteEditor->setSearchHighlight(m_textToReplace, m_matchCase);
+    if (!m_repeat) {
+        m_pNoteEditor->setSearchHighlight(m_textToReplace, m_matchCase, /* force = */ true);
+    }
 }
 
 #endif

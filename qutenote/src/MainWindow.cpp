@@ -588,8 +588,10 @@ void MainWindow::onReplaceInsideNoteAction()
 {
     QNDEBUG("MainWindow::onReplaceInsideNoteAction");
 
-    if (m_pUI->findAndReplaceWidget->isHidden())
+    if (m_pUI->findAndReplaceWidget->isHidden() || !m_pUI->findAndReplaceWidget->replaceEnabled())
     {
+        QNTRACE("At least the replacement part of find and replace widget is hidden, will only show it and do nothing else");
+
         QString textToFind = m_pNoteEditor->selectedText();
         if (textToFind.isEmpty()) {
             textToFind = m_pUI->findAndReplaceWidget->textToFind();
@@ -599,6 +601,7 @@ void MainWindow::onReplaceInsideNoteAction()
         }
 
         m_pUI->findAndReplaceWidget->setHidden(false);
+        m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
         m_pUI->findAndReplaceWidget->show();
         return;
     }

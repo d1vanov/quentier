@@ -370,12 +370,10 @@ private:
     void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
                                                          const QString & hint, const bool rememberForSession);
 
-#ifdef USE_QT_WEB_ENGINE
     void findText(const QString & textToFind, const bool matchCase, const bool searchBackward = false,
                   NoteEditorPage::Callback = 0) const;
-#endif
 
-    void setSearchHighlight(const QString & textToFind, const bool matchCase) const;
+    void setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force = false) const;
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -729,6 +727,9 @@ private:
     QString     m_lastSelectedHtml;
     QString     m_lastSelectedHtmlForEncryption;
     QString     m_lastSelectedHtmlForHyperlink;
+
+    mutable QString   m_lastSearchHighlightedText;
+    mutable bool      m_lastSearchHighlightedTextCaseSensitivity;
 
     QString     m_enmlCachedMemory;   // Cached memory for HTML to ENML conversions
     QString     m_htmlCachedMemory;   // Cached memory for ENML from Note -> HTML conversions
