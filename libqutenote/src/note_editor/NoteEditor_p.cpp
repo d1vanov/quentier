@@ -147,6 +147,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_genericResourceOnClickHandlerJs(),
     m_setupGenericResourceOnClickHandlerJs(),
     m_clickInterceptorJs(),
+    m_findAndReplaceJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -302,6 +303,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->stopJavaScriptAutoExecution();
 
     page->executeJavaScript(m_jQueryJs);
+    page->executeJavaScript(m_getSelectionHtmlJs);
+    page->executeJavaScript(m_replaceSelectionWithHtmlJs);
 
 #ifndef USE_QT_WEB_ENGINE
     QWebFrame * frame = page->mainFrame();
@@ -337,16 +340,15 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForGenericResourceImagesJs);
     page->executeJavaScript(m_clickInterceptorJs);
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
+    page->executeJavaScript(m_findAndReplaceJs);
 #endif
 
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_onTableResizeJs);
-    page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
     page->executeJavaScript(m_findSelectedHyperlinkIdJs);
-    page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_setHyperlinkToSelectionJs);
     page->executeJavaScript(m_getHyperlinkFromSelectionJs);
     page->executeJavaScript(m_getHyperlinkDataJs);
@@ -3211,6 +3213,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/clickInterceptor.js", m_clickInterceptorJs);
     SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
     SETUP_SCRIPT("javascript/scripts/setupTextCursorPositionTracking.js", m_setupTextCursorPositionTrackingJs);
+    SETUP_SCRIPT("javascript/scripts/findAndReplace.js", m_findAndReplaceJs);
 #endif
 
 #undef SETUP_SCRIPT
@@ -4229,33 +4232,25 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
     GET_PAGE()
+
+#ifdef USE_QT_WEB_ENGINE
+    QString escapedTextToReplace = textToReplace;
+    ENMLConverter::escapeString(escapedTextToReplace);
+
+    QString escapedReplacementText = replacementText;
+    ENMLConverter::escapeString(escapedReplacementText);
+
+    QString javascript = QString("findAndReplace('%1', '%2', %3);").arg(escapedTextToReplace, escapedReplacementText, (matchCase ? "true" : "false"));
+    page->executeJavaScript(javascript);
+
+    setSearchHighlight(textToReplace, matchCase, /* force = */ true);
+    findText(textToReplace, matchCase);
+#else
     QString selectedText = page->selectedText();
     QNTRACE("Currently selected text = " << selectedText);
 
     bool shouldSearchForTextFirst = (selectedText.isEmpty() ||
                                      (selectedText.compare(textToReplace, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive)) != 0));
-#ifdef USE_QT_WEB_ENGINE
-    if (shouldSearchForTextFirst)
-    {
-        QNTRACE("The current selected text is either missing or doesn't match the text to replace, searching for one first");
-
-        bool repeatFlag = false;
-        findText(textToReplace, matchCase, /* search backward = */ false,
-                 ReplaceTextCallback(textToReplace, replacementText, matchCase, repeatFlag, page, this));
-    }
-    else
-    {
-        QNTRACE("The currently selected text matches the text which we need to replace, will replace the current selection "
-                "and find the next occurrence after that");
-
-        QString escapedReplacementText = replacementText;
-        ENMLConverter::escapeString(escapedReplacementText);
-
-        page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
-                                FindTextCallback(textToReplace, matchCase, /* search backwards = */ false, this));
-        setSearchHighlight(textToReplace, matchCase, /* force = */ true);
-    }
-#else
     if (shouldSearchForTextFirst) {
         findNext(textToReplace, matchCase);
     }

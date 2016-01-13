@@ -564,7 +564,7 @@ private:
     private:
         QString m_textToFind;
         bool    m_matchCase;
-        bool    m_searchBackward;;
+        bool    m_searchBackward;
         QPointer<NoteEditorPrivate> m_pNoteEditor;
         NoteEditorPage::Callback m_callback;
     };
@@ -644,6 +644,7 @@ private:
     QString     m_genericResourceOnClickHandlerJs;
     QString     m_setupGenericResourceOnClickHandlerJs;
     QString     m_clickInterceptorJs;
+    QString     m_findAndReplaceJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;

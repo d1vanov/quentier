@@ -10,7 +10,7 @@ function getSelectionHtml() {
             html = container.innerHTML;
         }
     } else if (typeof document.selection != "undefined") {
-        if (document.selection.type == "Text") {
+        if (document.selection.type === "Text") {
             html = document.selection.createRange().htmlText;
         }
     }
