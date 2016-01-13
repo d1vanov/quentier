@@ -2,8 +2,11 @@ function findAndReplace(textToReplace, replacementText, matchCase) {
     console.log("findAndReplace: text to replace = " + textToReplace +
                 "; replacement text = " + replacementText + "; match case = " + matchCase);
 
-    // TODO: replace it with getter for currently selected plain text
     var currentlySelectedText = getSelectionHtml();
+
+    var tmp = document.createElement("div");
+    tmp.innerHTML = currentlySelectedText;
+    currentlySelectedText = tmp.textContent || "";
 
     console.log("Currently selected text = " + currentlySelectedText);
 
