@@ -1861,6 +1861,7 @@ void NoteEditorPrivate::replaceSelectedTextWithEncryptedOrDecryptedText(const QS
     QString encryptedTextHtmlObject = (rememberForSession
                                        ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, "AES", 128, m_lastFreeEnDecryptedIdNumber++)
                                        : ENMLConverter::encryptedTextHtml(encryptedText, hint, "AES", 128, m_lastFreeEnCryptIdNumber++));
+    ENMLConverter::escapeString(encryptedTextHtmlObject);
     QString javascript = QString("replaceSelectionWithHtml('%1');").arg(encryptedTextHtmlObject);
 
     QNTRACE("script: " << javascript);
@@ -3366,12 +3367,20 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
 {
     QNDEBUG("NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion");
 
-    ENMLConverter::SkipHtmlElementRule skipRule;
-    skipRule.m_attributeValueToSkip = "JCLRgrip";
-    skipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::StartsWith;
-    skipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+    m_skipRulesForHtmlToEnmlConversion.reserve(2);
 
-    m_skipRulesForHtmlToEnmlConversion << skipRule;
+    ENMLConverter::SkipHtmlElementRule tableSkipRule;
+    tableSkipRule.m_attributeValueToSkip = "JCLRgrip";
+    tableSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::StartsWith;
+    tableSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+    m_skipRulesForHtmlToEnmlConversion << tableSkipRule;
+
+    ENMLConverter::SkipHtmlElementRule hilitorSkipRule;
+    hilitorSkipRule.m_includeElementContents = true;
+    hilitorSkipRule.m_attributeValueToSkip = "hilitorHelper";
+    hilitorSkipRule.m_attributeValueCaseSensitivity = Qt::CaseInsensitive;
+    hilitorSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
+    m_skipRulesForHtmlToEnmlConversion << tableSkipRule;
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
@@ -4242,7 +4251,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
         QString escapedReplacementText = replacementText;
         ENMLConverter::escapeString(escapedReplacementText);
 
-        page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "', true);",
+        page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');",
                                 FindTextCallback(textToReplace, matchCase, /* search backwards = */ false, this));
         setSearchHighlight(textToReplace, matchCase, /* force = */ true);
     }
@@ -4258,7 +4267,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
     QString escapedReplacementText = replacementText;
     ENMLConverter::escapeString(escapedReplacementText);
 
-    page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "', true);");
+    page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');");
     findNext(textToReplace, matchCase);
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
 #endif
@@ -4288,7 +4297,7 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
             break;
         }
 
-        page->executeJavaScript("replaceSelectionWithHtml('" + replacementText + "', true);");
+        page->executeJavaScript("replaceSelectionWithHtml('" + replacementText + "');");
     }
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
@@ -5296,7 +5305,7 @@ void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
     QString escapedReplacementText = m_replacementText;
     ENMLConverter::escapeString(escapedReplacementText);
 
-    QString javascript = "replaceSelectionWithHtml('" + escapedReplacementText + "', true);";
+    QString javascript = "replaceSelectionWithHtml('" + escapedReplacementText + "');";
 
     NoteEditorPage::Callback findCallback = 0;
     if (m_repeat) {
