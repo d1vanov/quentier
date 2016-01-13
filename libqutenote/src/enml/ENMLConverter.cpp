@@ -84,9 +84,9 @@ QString ENMLConverter::resourceHtml(const IResource & resource, QString & errorD
     return ENMLConverterPrivate::resourceHtml(resource, errorDescription);
 }
 
-void ENMLConverter::escapeString(QString & string)
+void ENMLConverter::escapeString(QString & string, const bool simplify)
 {
-    ENMLConverterPrivate::escapeString(string);
+    ENMLConverterPrivate::escapeString(string, simplify);
 }
 
 QTextStream & ENMLConverter::SkipHtmlElementRule::Print(QTextStream & strm) const

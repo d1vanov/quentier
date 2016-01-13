@@ -1941,8 +1941,9 @@ void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const boo
 
     if (!textToFind.isEmpty()) {
         QString escapedTextToFind = textToFind;
-        ENMLConverter::escapeString(escapedTextToFind);
+        ENMLConverter::escapeString(escapedTextToFind, /* simplify = */ false);
         javascript += QString("searchHilitor.caseSensitive = ") + (matchCase ? "true" : "false") + "; "
+                      "searchHilitor.openLeft = true; searchHilitor.openRight = true; "
                       "searchHilitor.apply('" + escapedTextToFind + "');";
         QNTRACE("Will apply the search highlight for text " << escapedTextToFind);
     }

@@ -686,7 +686,7 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
         encryptedTextHtmlObject += "hint=\"";
 
         QString hintWithEscapedDoubleQuotes = hint;
-        escapeString(hintWithEscapedDoubleQuotes);
+        escapeString(hintWithEscapedDoubleQuotes, /* simplify = */ true);
 
         encryptedTextHtmlObject += hintWithEscapedDoubleQuotes;
         encryptedTextHtmlObject += "\" ";
@@ -746,12 +746,14 @@ QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString &
     return html;
 }
 
-void ENMLConverterPrivate::escapeString(QString & string)
+void ENMLConverterPrivate::escapeString(QString & string, const bool simplify)
 {
     QNTRACE("String before escaping: " << string);
     string.replace("\'", "\\x27", Qt::CaseInsensitive);
     string.replace('"', "\\x22", Qt::CaseInsensitive);
-    string = string.simplified();
+    if (simplify) {
+        string = string.simplified();
+    }
     QNTRACE("String after escaping: " << string);
 }
 

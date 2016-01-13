@@ -111,7 +111,7 @@ public:
 
     static QString resourceHtml(const IResource & resource, QString & errorDescription);
 
-    static void escapeString(QString & string);
+    static void escapeString(QString & string, const bool simplify = true);
 
 private:
     Q_DISABLE_COPY(ENMLConverter)

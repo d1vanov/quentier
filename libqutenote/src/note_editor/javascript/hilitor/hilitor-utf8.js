@@ -14,6 +14,7 @@ function Hilitor2(id, tag)
   var matchRegex = "";
   var openLeft = false;
   var openRight = false;
+  var fullWord = false;
   var caseSensitive = false;
 
   this.setMatchType = function(type)
@@ -60,7 +61,10 @@ function Hilitor2(id, tag)
   this.setRegex = function(input)
   {
     input = input.replace(/\\([^u]|$)/g, "$1");
-    input = input.replace(/[^\w\\\s']+/g, "").replace(/\s+/g, "|");
+    input = input.replace(/[^\w\\\s']+/g, "");
+    if (fullWord) {
+        input = input.replace(/\s+/g, "|");
+    }
     input = addAccents(input);
     var re = "(" + input + ")";
     if(!this.openLeft) re = "(?:^|[\\b\\s])" + re;
@@ -69,6 +73,7 @@ function Hilitor2(id, tag)
     if (!this.caseSensitive) {
         flags += "i";
     }
+    console.log("search highlight regex = " + re + "; flags = " + flags);
     matchRegex = new RegExp(re, flags);
   };
 
@@ -130,7 +135,7 @@ function Hilitor2(id, tag)
   this.apply = function(input)
   {
     this.remove();
-    if(input === undefined || !(input = input.replace(/(^\s+|\s+$)/g, ""))) return;
+    if(input === undefined) return;
     input = convertCharStr2jEsc(input);
     this.setRegex(input);
     this.hiliteWords(targetNode);

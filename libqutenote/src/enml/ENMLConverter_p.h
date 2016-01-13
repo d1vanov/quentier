@@ -58,7 +58,7 @@ public:
 
     static QString resourceHtml(const IResource & resource, QString & errorDescription);
 
-    static void escapeString(QString & string);
+    static void escapeString(QString & string, const bool simplify);
 
 private:
     static bool isForbiddenXhtmlTag(const QString & tagName);
