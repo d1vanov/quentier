@@ -1,6 +1,5 @@
 #include "FindAndReplaceWidget.h"
 #include "ui_FindAndReplaceWidget.h"
-#include <qute_note/utility/ShortcutManager.h>
 
 namespace qute_note {
 
@@ -10,6 +9,14 @@ FindAndReplaceWidget::FindAndReplaceWidget(QWidget * parent,
     m_pUI(new Ui::FindAndReplaceWidget)
 {
     m_pUI->setupUi(this);
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+    m_pUI->findLineEdit->setClearButtonEnabled(true);
+#endif
+
+    m_pUI->findLineEdit->setDragEnabled(true);
+    m_pUI->replaceLineEdit->setDragEnabled(true);
+
     setReplaceEnabled(withReplace);
     createConnections();
 }
@@ -56,17 +63,30 @@ bool FindAndReplaceWidget::replaceEnabled() const
 
 void FindAndReplaceWidget::setReplaceEnabled(const bool enabled)
 {
-    m_pUI->replaceLineEdit->setHidden(!enabled);
-    m_pUI->replaceButton->setHidden(!enabled);
-    m_pUI->replaceAllButton->setHidden(!enabled);
-}
+    if (enabled)
+    {
+        m_pUI->replaceLineEdit->setDisabled(false);
+        m_pUI->replaceButton->setDisabled(false);
+        m_pUI->replaceAllButton->setDisabled(false);
+        m_pUI->replaceLabel->setDisabled(false);
 
-void FindAndReplaceWidget::setupShortcuts(const ShortcutManager & shortcutManager)
-{
-    m_pUI->closeButton->setShortcut(Qt::Key_Escape);
-    m_pUI->findNextButton->setShortcut(shortcutManager.shortcut(QKeySequence::FindNext));
-    m_pUI->findPreviousButton->setShortcut(shortcutManager.shortcut(QKeySequence::FindPrevious));
-    m_pUI->replaceButton->setShortcut(shortcutManager.shortcut(QKeySequence::Replace));
+        m_pUI->replaceLineEdit->show();
+        m_pUI->replaceButton->show();
+        m_pUI->replaceAllButton->show();
+        m_pUI->replaceLabel->show();
+    }
+    else
+    {
+        m_pUI->replaceLineEdit->hide();
+        m_pUI->replaceButton->hide();
+        m_pUI->replaceAllButton->hide();
+        m_pUI->replaceLabel->hide();
+
+        m_pUI->replaceLineEdit->setDisabled(true);
+        m_pUI->replaceButton->setDisabled(true);
+        m_pUI->replaceAllButton->setDisabled(true);
+        m_pUI->replaceLabel->setDisabled(true);
+    }
 }
 
 void FindAndReplaceWidget::setFocus()
@@ -83,7 +103,8 @@ void FindAndReplaceWidget::show()
 void FindAndReplaceWidget::onCloseButtonPressed()
 {
     emit closed();
-    setHidden(true);
+    setReplaceEnabled(false);
+    hide();
 }
 
 void FindAndReplaceWidget::onFindTextEntered()
@@ -131,13 +152,25 @@ void FindAndReplaceWidget::onReplaceAllButtonPressed()
     emit replaceAll(m_pUI->findLineEdit->text(), m_pUI->replaceLineEdit->text(), m_pUI->matchCaseCheckBox->isChecked());
 }
 
+QSize FindAndReplaceWidget::sizeHint() const
+{
+    bool minimal = false;
+    return sizeHintImpl(minimal);
+}
+
+QSize FindAndReplaceWidget::minimumSizeHint() const
+{
+    bool minimal = true;
+    return sizeHintImpl(minimal);
+}
+
 void FindAndReplaceWidget::createConnections()
 {
     QObject::connect(m_pUI->closeButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onCloseButtonPressed));
     QObject::connect(m_pUI->findLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString&),
                      this, QNSIGNAL(FindAndReplaceWidget,textToFindEdited,const QString&));
-    QObject::connect(m_pUI->findLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+    QObject::connect(m_pUI->findLineEdit, QNSIGNAL(QLineEdit,returnPressed),
                      this, QNSLOT(FindAndReplaceWidget,onFindTextEntered));
     QObject::connect(m_pUI->findNextButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onNextButtonPressed));
@@ -151,6 +184,24 @@ void FindAndReplaceWidget::createConnections()
                      this, QNSLOT(FindAndReplaceWidget,onReplaceButtonPressed));
     QObject::connect(m_pUI->replaceAllButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(FindAndReplaceWidget,onReplaceAllButtonPressed));
+}
+
+QSize FindAndReplaceWidget::sizeHintImpl(const bool minimal) const
+{
+    QSize sizeHint = (minimal ? QWidget::minimumSizeHint() : QWidget::sizeHint());
+
+    if (!m_pUI->replaceLineEdit->isEnabled())
+    {
+        QSize findSizeHint = (minimal
+                              ? m_pUI->findLineEdit->minimumSizeHint()
+                              : m_pUI->findLineEdit->sizeHint());
+        QLayout * pLayout = m_pUI->gridLayout->layout();
+        QMargins margins = pLayout->contentsMargins();
+
+        sizeHint.setHeight(findSizeHint.height() + margins.top() + margins.bottom());
+    }
+
+    return sizeHint;
 }
 
 } // namespace qute_note

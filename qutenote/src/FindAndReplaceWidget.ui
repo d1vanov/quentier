@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>485</width>
+    <width>589</width>
     <height>79</height>
    </rect>
   </property>
   <property name="sizePolicy">
-   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+   <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
@@ -20,7 +20,129 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <property name="horizontalSpacing">
+    <number>6</number>
+   </property>
+   <item row="0" column="2">
+    <widget class="QLineEdit" name="findLineEdit">
+     <property name="minimumSize">
+      <size>
+       <width>135</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="5">
+    <widget class="QPushButton" name="replaceAllButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>87</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Replace all</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLineEdit" name="replaceLineEdit">
+     <property name="minimumSize">
+      <size>
+       <width>135</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="autoFillBackground">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="4">
+    <widget class="QPushButton" name="replaceButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>87</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Replace</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <widget class="QPushButton" name="findPreviousButton">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>87</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Previous</string>
+     </property>
+     <property name="icon">
+      <iconset theme="go-up">
+       <normaloff>.</normaloff>.</iconset>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>16</width>
+       <height>16</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="6">
+    <widget class="QCheckBox" name="matchCaseCheckBox">
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>27</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Match case</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="7">
+    <spacer name="topRightHorizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>0</width>
+       <height>27</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="8">
     <widget class="QPushButton" name="closeButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -44,25 +166,75 @@
        <height>16</height>
       </size>
      </property>
+     <property name="shortcut">
+      <string>Esc</string>
+     </property>
      <property name="flat">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="findLineEdit">
+   <item row="0" column="0">
+    <widget class="QLabel" name="findLabel">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="minimumSize">
       <size>
-       <width>135</width>
-       <height>0</height>
+       <width>40</width>
+       <height>26</height>
       </size>
      </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
+     <property name="text">
+      <string>Find:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="margin">
+      <number>5</number>
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
+   <item row="1" column="0">
+    <widget class="QLabel" name="replaceLabel">
+     <property name="minimumSize">
+      <size>
+       <width>90</width>
+       <height>26</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Replace with:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+     <property name="margin">
+      <number>5</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="6" colspan="3">
+    <spacer name="bottomRightHorizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Minimum</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>97</width>
+       <height>27</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="4">
     <widget class="QPushButton" name="findNextButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -73,7 +245,7 @@
      <property name="minimumSize">
       <size>
        <width>87</width>
-       <height>0</height>
+       <height>27</height>
       </size>
      </property>
      <property name="text">
@@ -89,141 +261,7 @@
        <height>16</height>
       </size>
      </property>
-     <property name="shortcut">
-      <string>Ctrl+S</string>
-     </property>
     </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QPushButton" name="findPreviousButton">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>87</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Previous</string>
-     </property>
-     <property name="icon">
-      <iconset theme="go-up">
-       <normaloff>.</normaloff>.</iconset>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>16</width>
-       <height>16</height>
-      </size>
-     </property>
-     <property name="shortcut">
-      <string>Shift+F3</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
-    <widget class="QCheckBox" name="matchCaseCheckBox">
-     <property name="minimumSize">
-      <size>
-       <width>100</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Match case</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <spacer name="leftHorizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>33</width>
-       <height>17</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="replaceLineEdit">
-     <property name="minimumSize">
-      <size>
-       <width>135</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="autoFillBackground">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QPushButton" name="replaceButton">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>87</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Replace</string>
-     </property>
-     <property name="shortcut">
-      <string>Ctrl+Shift+R</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="3">
-    <widget class="QPushButton" name="replaceAllButton">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>87</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Replace all</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="4">
-    <spacer name="rightHorizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Minimum</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>97</width>
-       <height>17</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>
@@ -231,7 +269,6 @@
   <tabstop>findLineEdit</tabstop>
   <tabstop>matchCaseCheckBox</tabstop>
   <tabstop>replaceLineEdit</tabstop>
-  <tabstop>closeButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

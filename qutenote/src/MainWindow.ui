@@ -1004,12 +1004,6 @@ color: rgb(255, 255, 255);</string>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>84</height>
-                </size>
-               </property>
               </widget>
               <widget class="QPlainTextEdit" name="noteSourceView">
                <property name="frameShape">
@@ -1212,7 +1206,7 @@ background-color: rgb(205, 221, 229);
      <x>0</x>
      <y>0</y>
      <width>1516</width>
-     <height>25</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

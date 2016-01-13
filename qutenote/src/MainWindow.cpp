@@ -64,7 +64,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupDefaultShortcuts();
     setupUserShortcuts();
-    m_pUI->findAndReplaceWidget->setupShortcuts(m_shortcutManager);
 
     addMenuActionsToMainWindow();
 
