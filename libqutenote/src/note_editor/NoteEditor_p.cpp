@@ -105,6 +105,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_noteEditorImageResourcesStoragePath(),
     m_font(),
     m_jQueryJs(),
+    m_rangyCoreJs(),
+    m_rangyTextRangeJs(),
     m_resizableTableColumnsJs(),
     m_debounceJs(),
     m_onTableResizeJs(),
@@ -303,6 +305,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->stopJavaScriptAutoExecution();
 
     page->executeJavaScript(m_jQueryJs);
+    page->executeJavaScript(m_rangyCoreJs);
+    page->executeJavaScript(m_rangyTextRangeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
 
@@ -1709,13 +1713,13 @@ void NoteEditorPrivate::popEditorPage()
     convertToNote();
 }
 
-void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange()
+void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange() const
 {
     QNDEBUG("NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange");
     m_skipPushingUndoCommandOnNextContentChange = true;
 }
 
-void NoteEditorPrivate::skipNextContentChange()
+void NoteEditorPrivate::skipNextContentChange() const
 {
     QNDEBUG("NoteEditorPrivate::skipNextContentChange");
     m_skipNextContentChange = true;
@@ -1915,6 +1919,7 @@ void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCas
     }
 #endif
 
+    skipNextContentChange();
     setSearchHighlight(textToFind, matchCase);
 }
 
@@ -3168,6 +3173,8 @@ void NoteEditorPrivate::setupScripts()
     file.close()
 
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
+    SETUP_SCRIPT("javascript/rangy/rangy-core.js", m_rangyCoreJs);
+    SETUP_SCRIPT("javascript/rangy/rangy-textrange.js", m_rangyTextRangeJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
@@ -5330,6 +5337,7 @@ void __initNoteEditorResources()
     Q_INIT_RESOURCE(debounce);
     Q_INIT_RESOURCE(scripts);
     Q_INIT_RESOURCE(hilitor);
+    Q_INIT_RESOURCE(rangy);
 
     QNDEBUG("Initialized NoteEditor's resources");
 }

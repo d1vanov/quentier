@@ -127,8 +127,8 @@ public:
     void switchEditorPage(const bool shouldConvertFromNote = true);
     void popEditorPage();
 
-    void skipPushingUndoCommandOnNextContentChange();
-    void skipNextContentChange();
+    void skipPushingUndoCommandOnNextContentChange() const;
+    void skipNextContentChange() const;
 
     void undoLastEncryption();
 
@@ -601,6 +601,8 @@ private:
 
     // JavaScript scripts
     QString     m_jQueryJs;
+    QString     m_rangyCoreJs;
+    QString     m_rangyTextRangeJs;
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
     QString     m_onTableResizeJs;
@@ -680,8 +682,8 @@ private:
     bool        m_pendingIndexHtmlWritingToFile;
     bool        m_pendingJavaScriptExecution;
 
-    bool        m_skipPushingUndoCommandOnNextContentChange;
-    bool        m_skipNextContentChange;
+    mutable bool        m_skipPushingUndoCommandOnNextContentChange;
+    mutable bool        m_skipNextContentChange;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;

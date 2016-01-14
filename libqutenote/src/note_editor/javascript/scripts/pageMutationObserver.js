@@ -75,6 +75,22 @@ var observer = new MutationObserver(function(mutations, observer) {
                             console.log("Skipping the addition of en-crypt node");
                             continue;
                         }
+
+                        var classAttribute = addedNode.attributes.getNamedItem("class");
+                        if (classAttribute && classAttribute.value === "hilitorHelper") {
+                            console.log("Skipping the addition of hilitor helper node");
+                            continue;
+                        }
+                    }
+                }
+            }
+            else if (mutation.removedNodes && (mutation.removedNodes.length === 1)) {
+                removedNode = mutation.removedNodes[0];
+                if (removedNode && removedNode.attributes) {
+                    var classAttribute = addedNode.attributes.getNamedItem("class");
+                    if (classAttribute && classAttribute.value === "hilitorHelper") {
+                        console.log("Skipping the removal of hilitor helper node");
+                        continue;
                     }
                 }
             }
