@@ -87,7 +87,7 @@ var observer = new MutationObserver(function(mutations, observer) {
             else if (mutation.removedNodes && (mutation.removedNodes.length === 1)) {
                 removedNode = mutation.removedNodes[0];
                 if (removedNode && removedNode.attributes) {
-                    var classAttribute = addedNode.attributes.getNamedItem("class");
+                    var classAttribute = removedNode.attributes.getNamedItem("class");
                     if (classAttribute && classAttribute.value === "hilitorHelper") {
                         console.log("Skipping the removal of hilitor helper node");
                         continue;

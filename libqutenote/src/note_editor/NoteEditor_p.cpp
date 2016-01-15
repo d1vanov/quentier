@@ -28,6 +28,7 @@
 #include "undo_stack/RemoveResourceUndoCommand.h"
 #include "undo_stack/RenameResourceUndoCommand.h"
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
+#include "undo_stack/ReplaceUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -136,6 +137,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setScrollJs(),
     m_hideDecryptedTextJs(),
     m_hilitorJs(),
+    m_findAndReplaceJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -149,7 +151,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_genericResourceOnClickHandlerJs(),
     m_setupGenericResourceOnClickHandlerJs(),
     m_clickInterceptorJs(),
-    m_findAndReplaceJs(),
     m_pWebSocketServer(new QWebSocketServer("QWebChannel server", QWebSocketServer::NonSecureMode, this)),
     m_pWebSocketClientWrapper(new WebSocketClientWrapper(m_pWebSocketServer, this)),
     m_pWebChannel(new QWebChannel(this)),
@@ -309,6 +310,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_rangyTextRangeJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
+    page->executeJavaScript(m_findAndReplaceJs);
 
 #ifndef USE_QT_WEB_ENGINE
     QWebFrame * frame = page->mainFrame();
@@ -344,7 +346,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForGenericResourceImagesJs);
     page->executeJavaScript(m_clickInterceptorJs);
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
-    page->executeJavaScript(m_findAndReplaceJs);
 #endif
 
     page->executeJavaScript(m_resizableTableColumnsJs);
@@ -3183,6 +3184,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
+    SETUP_SCRIPT("javascript/scripts/findAndReplace.js", m_findAndReplaceJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
     SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkId.js", m_findSelectedHyperlinkIdJs);
     SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
@@ -3221,7 +3223,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/clickInterceptor.js", m_clickInterceptorJs);
     SETUP_SCRIPT("javascript/scripts/notifyTextCursorPositionChanged.js", m_notifyTextCursorPositionChangedJs);
     SETUP_SCRIPT("javascript/scripts/setupTextCursorPositionTracking.js", m_setupTextCursorPositionTrackingJs);
-    SETUP_SCRIPT("javascript/scripts/findAndReplace.js", m_findAndReplaceJs);
 #endif
 
 #undef SETUP_SCRIPT
@@ -4239,41 +4240,34 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
     QNDEBUG("NoteEditorPrivate::replace: text to replace = " << textToReplace << "; replacement text = "
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
+    doReplace(textToReplace, replacementText, matchCase);
+
+    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, replacementText, matchCase, *this);
+    m_pUndoStack->push(pCommand);
+    QNTRACE("Pushed ReplaceUndoCommand to the undo stack");
+
+    findNext(textToReplace, matchCase);
+}
+
+void NoteEditorPrivate::doReplace(const QString & textToReplace, const QString & replacementText, const bool matchCase)
+{
+    QNDEBUG("NoteEditorPrivate::doReplace: text to replace = " << textToReplace << "; replacement text = "
+            << replacementText << "; match case = " << (matchCase ? "true" : "false"));
+
     GET_PAGE()
 
-#ifdef USE_QT_WEB_ENGINE
     QString escapedTextToReplace = textToReplace;
     ENMLConverter::escapeString(escapedTextToReplace);
 
     QString escapedReplacementText = replacementText;
     ENMLConverter::escapeString(escapedReplacementText);
 
-    QString javascript = QString("findAndReplace('%1', '%2', %3);").arg(escapedTextToReplace, escapedReplacementText, (matchCase ? "true" : "false"));
+    skipPushingUndoCommandOnNextContentChange();
+
+    QString javascript = QString("Replacer.replace('%1', '%2', %3);").arg(escapedTextToReplace, escapedReplacementText, (matchCase ? "true" : "false"));
     page->executeJavaScript(javascript);
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
-    findText(textToReplace, matchCase);
-#else
-    QString selectedText = page->selectedText();
-    QNTRACE("Currently selected text = " << selectedText);
-
-    bool shouldSearchForTextFirst = (selectedText.isEmpty() ||
-                                     (selectedText.compare(textToReplace, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive)) != 0));
-    if (shouldSearchForTextFirst) {
-        findNext(textToReplace, matchCase);
-    }
-
-    if (!page->hasSelection()) {
-        return;
-    }
-
-    QString escapedReplacementText = replacementText;
-    ENMLConverter::escapeString(escapedReplacementText);
-
-    page->executeJavaScript("replaceSelectionWithHtml('" + escapedReplacementText + "');");
-    findNext(textToReplace, matchCase);
-    setSearchHighlight(textToReplace, matchCase, /* force = */ true);
-#endif
 }
 
 void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase)

@@ -172,12 +172,18 @@ public Q_SLOTS:
     virtual void alignLeft() Q_DECL_OVERRIDE;
     virtual void alignCenter() Q_DECL_OVERRIDE;
     virtual void alignRight() Q_DECL_OVERRIDE;
+
     virtual QString selectedText() const Q_DECL_OVERRIDE;
     virtual bool hasSelection() const Q_DECL_OVERRIDE;
+
     virtual void findNext(const QString & text, const bool matchCase) const Q_DECL_OVERRIDE;
     virtual void findPrevious(const QString & text, const bool matchCase) const Q_DECL_OVERRIDE;
+
     virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
+    void doReplace(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+
     virtual void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
+
     virtual void insertToDoCheckbox() Q_DECL_OVERRIDE;
     virtual void setSpellcheck(const bool enabled) Q_DECL_OVERRIDE;
     virtual void setFont(const QFont & font) Q_DECL_OVERRIDE;
@@ -632,6 +638,7 @@ private:
     QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;
     QString     m_hilitorJs;
+    QString     m_findAndReplaceJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
@@ -646,7 +653,6 @@ private:
     QString     m_genericResourceOnClickHandlerJs;
     QString     m_setupGenericResourceOnClickHandlerJs;
     QString     m_clickInterceptorJs;
-    QString     m_findAndReplaceJs;
 
     QWebSocketServer * m_pWebSocketServer;
     WebSocketClientWrapper * m_pWebSocketClientWrapper;
