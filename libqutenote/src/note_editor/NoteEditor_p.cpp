@@ -4242,7 +4242,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
 
     doReplace(textToReplace, replacementText, matchCase);
 
-    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, replacementText, matchCase, *this);
+    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(*this);
     m_pUndoStack->push(pCommand);
     QNTRACE("Pushed ReplaceUndoCommand to the undo stack");
 

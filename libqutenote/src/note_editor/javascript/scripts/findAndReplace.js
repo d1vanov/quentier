@@ -61,38 +61,52 @@ function findAndReplace() {
     }
 
     this.undo = function() {
-        console.log("findAndReplace::undo");
+        return this.undoRedoImpl(undoReplaceAnchorNodes, undoReplaceSelectionCharacterRanges, undoReplaceParams,
+                                 redoReplaceAnchorNodes, redoReplaceSelectionCharacterRanges, redoReplaceParams, true);
+    }
 
-        if (!undoReplaceAnchorNodes) {
-            console.warn("Can't undo the replacement: no undoReplaceAnchorNodes helper array");
+    this.redo = function() {
+        return this.undoRedoImpl(redoReplaceAnchorNodes, redoReplaceSelectionCharacterRanges, redoReplaceParams,
+                                 undoReplaceAnchorNodes, undoReplaceSelectionCharacterRanges, undoReplaceParams, false);
+    }
+
+    this.undoRedoImpl = function(sourceAnchorNodes, sourceSelectionCharacterRanges, sourceParams,
+                                 destAnchorNodes, destSelectionCharacterRanges, destParams,
+                                 performingUndo) {
+        console.log("findAndReplace.undoRedoImpl: performingUndo = " + (performingUndo ? "true" : "false"));
+
+        var actionString = (performingUndo ? "undo" : "redo");
+
+        if (!sourceAnchorNodes) {
+            console.warn("Can't " + actionString + " the replacement: no anchor nodes helper array");
             return false;
         }
 
-        if (!undoReplaceSelectionCharacterRanges) {
-            console.warn("Can't undo the replacement: no undoReplaceSelectionCharacterRanges helper array");
+        if (!sourceSelectionCharacterRanges) {
+            console.warn("Can't " + actionString + " the replacement: no selection character ranges helper array");
             return false;
         }
 
-        if (!undoReplaceParams) {
-            console.warn("Can't undo the replacement: no undoReplaceParams helper array");
+        if (!sourceParams) {
+            console.warn("Can't " + actionString + " the replacement: no params helper array");
             return false;
         }
 
-        var anchorNode = undoReplaceAnchorNodes.pop();
-        var selectionCharacterRange = undoReplaceSelectionCharacterRanges.pop();
-        var params = undoReplaceParams.pop();
+        var anchorNode = sourceAnchorNodes.pop();
+        var selectionCharacterRange = sourceSelectionCharacterRanges.pop();
+        var params = sourceParams.pop();
 
         if ((anchorNode === undefined) || (selectionCharacterRange === undefined) || (params === undefined) ||
             (params.originalText === undefined) || (params.replacement === undefined) ||
             (params.matchCaseOption === undefined)) {
-            console.warn("Can't undo the replacement: some required data is undefined");
+            console.warn("Can't " + actionString + " the replacement: some required data is undefined");
             return false;
         }
 
         // 1) Restore the selection
         var rangySelection = rangy.getSelection();
         if (rangySelection === undefined) {
-            console.warn("Can't undo the replacement: rangy selection is undefined");
+            console.warn("Can't " + actionString + " the replacement: rangy selection is undefined");
             return false;
         }
 
@@ -101,12 +115,18 @@ function findAndReplace() {
         // 2) Adjust the end position of the selection to match the replacement text's length
         var selection = window.getSelection();
         if (!selection.rangeCount) {
-            console.warn("Can't undo the replacement: no selection after restoring the character ranges");
+            console.warn("Can't " + actionString + " the replacement: no selection after restoring the character ranges");
             return false;
         }
 
         var range = selection.getRangeAt(0).cloneRange();
-        var rangeRefinedEndOffset = range.endOffset + params.replacement.length - params.originalText.length;
+        var rangeRefinedEndOffset;
+        if (performingUndo) {
+            rangeRefinedEndOffset = range.endOffset + params.replacement.length - params.originalText.length;
+        }
+        else {
+            rangeRefinedEndOffset = range.endOffset + params.originalText.length - params.replacement.length;
+        }
         console.log("Previous range's end offset: " + range.endOffset + ", original text length: " + params.originalText.length +
                     ", replacement text length: " + params.replacement.length + "; new range end offset: " + rangeRefinedEndOffset);
 
@@ -114,20 +134,20 @@ function findAndReplace() {
         selection.removeAllRanges();
         selection.addRange(range);
 
-        // 3) Replace the text back to the original one in the adjusted selection
-        replaceSelectionWithHtml(params.originalText);
-
         rangySelection = rangy.getSelection();
         if (rangySelection === undefined) {
-            console.warn("Can't preserve some information for redo after undo the replacement: rangy selection is undefined");
+            console.warn("Can't preserve some information after " + actionString + "ing the replacement: rangy selection is undefined");
             return false;
         }
 
-        redoReplaceAnchorNodes.push(selection.anchorNode);
-        redoReplaceSelectionCharacterRanges.push(rangy.saveCharacterRanges(selection.anchorNode));
-        redoReplaceParams.push(params);
+        var savedCharacterRanges = rangySelection.saveCharacterRanges(selection.anchorNode);
 
-        return true;
+        // 3) Replace the text in the adjusted selection
+        replaceSelectionWithHtml((performingUndo ? params.originalText : params.replacement));
+
+        destAnchorNodes.push(selection.anchorNode);
+        destSelectionCharacterRanges.push(savedCharacterRanges);
+        destParams.push(params);
     }
 }
 

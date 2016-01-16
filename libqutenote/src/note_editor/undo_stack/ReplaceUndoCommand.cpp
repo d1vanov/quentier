@@ -4,22 +4,23 @@
 
 namespace qute_note {
 
-ReplaceUndoCommand::ReplaceUndoCommand(const QString & originalText, const QString & replacementText, const bool matchCase,
-                                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
-    INoteEditorUndoCommand(noteEditorPrivate, parent),
-    m_originalText(originalText),
-    m_replacementText(replacementText),
-    m_matchCase(matchCase)
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't undo/redo text replacement: can't get note editor page"); \
+        QNWARNING(error); \
+        return; \
+    }
+
+
+ReplaceUndoCommand::ReplaceUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
+    INoteEditorUndoCommand(noteEditorPrivate, parent)
 {
     setText(QObject::tr("Replace text"));
 }
 
-ReplaceUndoCommand::ReplaceUndoCommand(const QString & originalText, const QString & replacementText, const bool matchCase,
-                                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
-    INoteEditorUndoCommand(noteEditorPrivate, text, parent),
-    m_originalText(originalText),
-    m_replacementText(replacementText),
-    m_matchCase(matchCase)
+ReplaceUndoCommand::ReplaceUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
+    INoteEditorUndoCommand(noteEditorPrivate, text, parent)
 {}
 
 ReplaceUndoCommand::~ReplaceUndoCommand()
@@ -28,19 +29,20 @@ ReplaceUndoCommand::~ReplaceUndoCommand()
 void ReplaceUndoCommand::redoImpl()
 {
     QNDEBUG("ReplaceUndoCommand::redoImpl");
-    m_noteEditorPrivate.doReplace(m_originalText, m_replacementText, m_matchCase);
+
+    GET_PAGE()
+
+    m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
+
+    QString javascript = "Replacer.redo();";
+    page->executeJavaScript(javascript);
 }
 
 void ReplaceUndoCommand::undoImpl()
 {
     QNDEBUG("ReplaceUndoCommand::undoImpl");
 
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page());
-    if (Q_UNLIKELY(!page)) {
-        QString error = QT_TR_NOOP("Can't undo text replacement: can't get note editor page");
-        QNWARNING(error);
-        return;
-    }
+    GET_PAGE()
 
     m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
 

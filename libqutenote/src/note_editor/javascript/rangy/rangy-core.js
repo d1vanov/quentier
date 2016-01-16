@@ -639,7 +639,9 @@
         }
 
         function getDocument(node) {
-            if (node.nodeType == 9) {
+            if (!node) {
+                throw module.createError("getDocument: null node");
+            } else if (node.nodeType == 9) {
                 return node;
             } else if (typeof node.ownerDocument != UNDEF) {
                 return node.ownerDocument;
@@ -3811,7 +3813,7 @@
             win = null;
         });
     });
-    
+
 
     /*----------------------------------------------------------------------------------------------------------------*/
 
