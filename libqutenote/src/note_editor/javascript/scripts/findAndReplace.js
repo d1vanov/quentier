@@ -1,21 +1,19 @@
 function findAndReplace() {
-    var undoReplaceAnchorNodes = [];
-    var undoReplaceSelectionCharacterRanges = [];
-    var undoReplaceParams = [];
+    var undoNodes = [];
+    var undoNodeInnerHtmls = [];
 
-    var redoReplaceAnchorNodes = [];
-    var redoReplaceSelectionCharacterRanges = [];
-    var redoReplaceParams = [];
+    var redoNodes = [];
+    var redoNodeInnerHtmls = [];
 
     this.replace = function(textToReplace, replacementText, matchCase) {
         console.log("replace: text to replace = " + textToReplace +
                     "; replacement text = " + replacementText + "; match case = " + matchCase);
 
-        var currentlySelectedText = getSelectionHtml();
+        var currentlySelectedHtml = getSelectionHtml();
 
         var tmp = document.createElement("div");
-        tmp.innerHTML = currentlySelectedText;
-        currentlySelectedText = tmp.textContent || "";
+        tmp.innerHTML = currentlySelectedHtml;
+        var currentlySelectedText = tmp.textContent || "";
 
         console.log("Currently selected text = " + currentlySelectedText);
 
@@ -29,7 +27,8 @@ function findAndReplace() {
 
         console.log("replace: current selection matches = " + currentSelectionMatches);
 
-        if (!currentSelectionMatches) {
+        if (!currentSelectionMatches) 
+        {
             var found = window.find(textToReplace, matchCase, false, true);
             if (!found) {
                 console.log("replace: can't find the text to replace");
@@ -37,15 +36,35 @@ function findAndReplace() {
             }
         }
 
-        var rangySelection = rangy.getSelection();
-        if (rangySelection === undefined) {
-            console.warn("replace: can't get rangy selection");
+        var selection = window.getSelection();
+        if (selection.isCollapsed) {
+            console.log("replace: the selection is collapsed");
             return false;
         }
 
-        var selection = window.getSelection();
         var anchorNode = selection.anchorNode;
-        var selectionRanges = rangySelection.saveCharacterRanges(anchorNode);
+        if (!anchorNode) {
+            console.log("replace: no anchor node in the selection");
+            return false;
+        }
+
+        while(anchorNode && ((anchorNode.nodeType === 3) || (anchorNode.className == "hilitorHelper"))) {
+            anchorNode = anchorNode.parentNode;
+        }
+
+        if (!anchorNode) {
+            console.log("replace: no anchor node after walking up to parents from the original text node");
+        }
+
+        console.log("anchorNode.nodeName = " + anchorNode.nodeName);
+        console.log("anchorNode.nodeType = " + anchorNode.nodeType);
+        console.log("anchorNode.innerHTML = " + anchorNode.innerHTML);
+        console.log("anchorNode.outerHTML = " + anchorNode.outerHTML);
+
+        undoNodes.push(anchorNode);
+        undoNodeInnerHtmls.push(anchorNode.innerHTML);
+
+        console.log("replace: pushed html to undo stack: " + anchorNode.innerHTML);
 
         var res = replaceSelectionWithHtml(replacementText);
         if (!res) {
@@ -53,101 +72,56 @@ function findAndReplace() {
             return false;
         }
 
-        undoReplaceAnchorNodes.push(anchorNode);
-        undoReplaceSelectionCharacterRanges.push(selectionRanges);
-        undoReplaceParams.push({ originalText: textToReplace, replacement: replacementText, matchCaseOption: matchCase });
-
         return true;
     }
 
     this.undo = function() {
-        return this.undoRedoImpl(undoReplaceAnchorNodes, undoReplaceSelectionCharacterRanges, undoReplaceParams,
-                                 redoReplaceAnchorNodes, redoReplaceSelectionCharacterRanges, redoReplaceParams, true);
+        return this.undoRedoImpl(undoNodes, undoNodeInnerHtmls,
+                                 redoNodes, redoNodeInnerHtmls, true);
     }
 
     this.redo = function() {
-        return this.undoRedoImpl(redoReplaceAnchorNodes, redoReplaceSelectionCharacterRanges, redoReplaceParams,
-                                 undoReplaceAnchorNodes, undoReplaceSelectionCharacterRanges, undoReplaceParams, false);
+        return this.undoRedoImpl(redoNodes, redoNodeInnerHtmls,
+                                 undoNodes, undoNodeInnerHtmls, false);
     }
 
-    this.undoRedoImpl = function(sourceAnchorNodes, sourceSelectionCharacterRanges, sourceParams,
-                                 destAnchorNodes, destSelectionCharacterRanges, destParams,
-                                 performingUndo) {
+    this.undoRedoImpl = function(sourceNodes, sourceNodeInnerHtmls,
+                                 destNodes, destNodeInnerHtmls, performingUndo) {
         console.log("findAndReplace.undoRedoImpl: performingUndo = " + (performingUndo ? "true" : "false"));
 
         var actionString = (performingUndo ? "undo" : "redo");
 
-        if (!sourceAnchorNodes) {
-            console.warn("Can't " + actionString + " the replacement: no anchor nodes helper array");
+        if (!sourceNodes) {
+            console.warn("Can't " + actionString + " the replacement: no source nodes helper array");
             return false;
         }
 
-        if (!sourceSelectionCharacterRanges) {
-            console.warn("Can't " + actionString + " the replacement: no selection character ranges helper array");
+        if (!sourceNodeInnerHtmls) {
+            console.warn("Can't " + actionString + " the replacement: no source node inner html helper array");
             return false;
         }
 
-        if (!sourceParams) {
-            console.warn("Can't " + actionString + " the replacement: no params helper array");
+        var anchorNode = sourceNodes.pop();
+        if (!anchorNode) {
+            console.warn("Can't " + actionString + " the replacement: no anchor node");
             return false;
         }
 
-        var anchorNode = sourceAnchorNodes.pop();
-        var selectionCharacterRange = sourceSelectionCharacterRanges.pop();
-        var params = sourceParams.pop();
-
-        if ((anchorNode === undefined) || (selectionCharacterRange === undefined) || (params === undefined) ||
-            (params.originalText === undefined) || (params.replacement === undefined) ||
-            (params.matchCaseOption === undefined)) {
-            console.warn("Can't " + actionString + " the replacement: some required data is undefined");
+        var anchorNodeInnerHtml = sourceNodeInnerHtmls.pop();
+        if (!anchorNodeInnerHtml) {
+            console.warn("Can't " + actionString + " the replacement: no anchor node's inner html");
             return false;
         }
 
-        // 1) Restore the selection
-        var rangySelection = rangy.getSelection();
-        if (rangySelection === undefined) {
-            console.warn("Can't " + actionString + " the replacement: rangy selection is undefined");
-            return false;
-        }
+        destNodes.push(anchorNode);
+        destNodeInnerHtmls.push(anchorNode.outerHTML);
 
-        rangySelection.restoreCharacterRanges(anchorNode, selectionCharacterRange);
+        console.log("anchorNode.innerHTML = " + anchorNode.innerHTML);
+        console.log("anchorNode.outerHTML = " + anchorNode.outerHTML);
 
-        // 2) Adjust the end position of the selection to match the replacement text's length
-        var selection = window.getSelection();
-        if (!selection.rangeCount) {
-            console.warn("Can't " + actionString + " the replacement: no selection after restoring the character ranges");
-            return false;
-        }
+        console.log("Html before: " + anchorNode.outerHTML + "; html to paste: " + anchorNodeInnerHtml);
 
-        var range = selection.getRangeAt(0).cloneRange();
-        var rangeRefinedEndOffset;
-        if (performingUndo) {
-            rangeRefinedEndOffset = range.endOffset + params.replacement.length - params.originalText.length;
-        }
-        else {
-            rangeRefinedEndOffset = range.endOffset + params.originalText.length - params.replacement.length;
-        }
-        console.log("Previous range's end offset: " + range.endOffset + ", original text length: " + params.originalText.length +
-                    ", replacement text length: " + params.replacement.length + "; new range end offset: " + rangeRefinedEndOffset);
-
-        range.setEnd(selection.focusNode, rangeRefinedEndOffset);
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        rangySelection = rangy.getSelection();
-        if (rangySelection === undefined) {
-            console.warn("Can't preserve some information after " + actionString + "ing the replacement: rangy selection is undefined");
-            return false;
-        }
-
-        var savedCharacterRanges = rangySelection.saveCharacterRanges(selection.anchorNode);
-
-        // 3) Replace the text in the adjusted selection
-        replaceSelectionWithHtml((performingUndo ? params.originalText : params.replacement));
-
-        destAnchorNodes.push(selection.anchorNode);
-        destSelectionCharacterRanges.push(savedCharacterRanges);
-        destParams.push(params);
+        anchorNode.innerHTML = anchorNodeInnerHtml;
     }
 }
 

@@ -607,8 +607,6 @@ private:
 
     // JavaScript scripts
     QString     m_jQueryJs;
-    QString     m_rangyCoreJs;
-    QString     m_rangyTextRangeJs;
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
     QString     m_onTableResizeJs;
