@@ -1920,6 +1920,11 @@ void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCas
     setSearchHighlight(textToFind, matchCase);
 }
 
+bool NoteEditorPrivate::searchHighlightEnabled() const
+{
+    return !m_lastSearchHighlightedText.isEmpty();
+}
+
 void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force) const
 {
     QNDEBUG("NoteEditorPrivate::setSearchHighlight: " << textToFind << "; match case = " << (matchCase ? "true" : "false")
@@ -4236,7 +4241,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
 
     doReplace(textToReplace, replacementText, matchCase);
 
-    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(*this);
+    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, matchCase, *this);
     m_pUndoStack->push(pCommand);
     QNTRACE("Pushed ReplaceUndoCommand to the undo stack");
 

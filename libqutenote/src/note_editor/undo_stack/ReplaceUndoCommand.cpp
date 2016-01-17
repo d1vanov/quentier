@@ -13,14 +13,20 @@ namespace qute_note {
     }
 
 
-ReplaceUndoCommand::ReplaceUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
-    INoteEditorUndoCommand(noteEditorPrivate, parent)
+ReplaceUndoCommand::ReplaceUndoCommand(const QString & textToReplace, const bool matchCase,
+                                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
+    INoteEditorUndoCommand(noteEditorPrivate, parent),
+    m_textToReplace(textToReplace),
+    m_matchCase(matchCase)
 {
     setText(QObject::tr("Replace text"));
 }
 
-ReplaceUndoCommand::ReplaceUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
-    INoteEditorUndoCommand(noteEditorPrivate, text, parent)
+ReplaceUndoCommand::ReplaceUndoCommand(const QString & textToReplace, const bool matchCase,
+                                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
+    INoteEditorUndoCommand(noteEditorPrivate, text, parent),
+    m_textToReplace(textToReplace),
+    m_matchCase(matchCase)
 {}
 
 ReplaceUndoCommand::~ReplaceUndoCommand()
@@ -48,6 +54,10 @@ void ReplaceUndoCommand::undoImpl()
 
     QString javascript = "Replacer.undo();";
     page->executeJavaScript(javascript);
+
+    if (m_noteEditorPrivate.searchHighlightEnabled()) {
+        m_noteEditorPrivate.setSearchHighlight(m_textToReplace, m_matchCase, /* force = */ true);
+    }
 }
 
 } // namespace qute_note

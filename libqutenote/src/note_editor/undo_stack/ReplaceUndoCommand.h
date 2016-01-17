@@ -8,12 +8,18 @@ namespace qute_note {
 class ReplaceUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    ReplaceUndoCommand(NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
-    ReplaceUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    ReplaceUndoCommand(const QString & textToReplace, const bool matchCase,
+                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
+    ReplaceUndoCommand(const QString & textToReplace, const bool matchCase,
+                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~ReplaceUndoCommand();
 
     virtual void redoImpl() Q_DECL_OVERRIDE;
     virtual void undoImpl() Q_DECL_OVERRIDE;
+
+private:
+    QString     m_textToReplace;
+    bool        m_matchCase;
 };
 
 } // namespace qute_note

@@ -179,6 +179,9 @@ public Q_SLOTS:
     virtual void findNext(const QString & text, const bool matchCase) const Q_DECL_OVERRIDE;
     virtual void findPrevious(const QString & text, const bool matchCase) const Q_DECL_OVERRIDE;
 
+    bool searchHighlightEnabled() const;
+    void setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force = false) const;
+
     virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
     void doReplace(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
@@ -378,8 +381,6 @@ private:
 
     void findText(const QString & textToFind, const bool matchCase, const bool searchBackward = false,
                   NoteEditorPage::Callback = 0) const;
-
-    void setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force = false) const;
 
     void clearEditorContent();
     void noteToEditorContent();

@@ -56,15 +56,12 @@ function findAndReplace() {
             console.log("replace: no anchor node after walking up to parents from the original text node");
         }
 
-        console.log("anchorNode.nodeName = " + anchorNode.nodeName);
-        console.log("anchorNode.nodeType = " + anchorNode.nodeType);
-        console.log("anchorNode.innerHTML = " + anchorNode.innerHTML);
-        console.log("anchorNode.outerHTML = " + anchorNode.outerHTML);
+        var undoHtml = this.clearHighlightTags(anchorNode.innerHTML);
 
         undoNodes.push(anchorNode);
-        undoNodeInnerHtmls.push(anchorNode.innerHTML);
+        undoNodeInnerHtmls.push(undoHtml);
 
-        console.log("replace: pushed html to undo stack: " + anchorNode.innerHTML);
+        console.log("replace: pushed html to undo stack: " + undoHtml);
 
         var res = replaceSelectionWithHtml(replacementText);
         if (!res) {
@@ -113,15 +110,45 @@ function findAndReplace() {
             return false;
         }
 
+        var currentHtml = this.clearHighlightTags(anchorNode.innerHTML);
+
         destNodes.push(anchorNode);
-        destNodeInnerHtmls.push(anchorNode.outerHTML);
+        destNodeInnerHtmls.push(currentHtml);
 
-        console.log("anchorNode.innerHTML = " + anchorNode.innerHTML);
-        console.log("anchorNode.outerHTML = " + anchorNode.outerHTML);
-
-        console.log("Html before: " + anchorNode.outerHTML + "; html to paste: " + anchorNodeInnerHtml);
+        console.log("Html before: " + anchorNode.innerHTML + "; html to paste: " + anchorNodeInnerHtml + "; html before without highlighting tags: " + currentHtml);
 
         anchorNode.innerHTML = anchorNodeInnerHtml;
+    }
+
+    // TODO: should replace this with some more proper way
+    this.clearHighlightTags = function(html) {
+        var highlightOpenTagStart = 0;
+        while(true) {
+            highlightOpenTagStart = html.indexOf("<em", highlightOpenTagStart);
+            if (highlightOpenTagStart < 0) {
+                break;
+            }
+
+            var highlightOpenTagEnd = html.indexOf(">", highlightOpenTagStart);
+            if (highlightOpenTagEnd < 0) {
+                break;
+            }
+
+            var highlightCloseTagStart = html.indexOf("</em>", highlightOpenTagEnd);
+            if (highlightCloseTagStart < 0) {
+                break;
+            }
+
+            var classAttributeValueStart = html.indexOf("hilitorHelper");
+            if ((classAttributeValueStart <= highlightOpenTagStart) && (classAttributeValueStart >= highlightOpenTagEnd)) {
+                continue;
+            }
+
+            var highlightedText = html.substring(highlightOpenTagEnd + 1, highlightCloseTagStart);
+            html = html.substring(0, highlightOpenTagStart) + highlightedText + html.substring(highlightCloseTagStart + 5, html.length);
+        }
+
+        return html;
     }
 }
 
