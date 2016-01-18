@@ -5,6 +5,9 @@ function findAndReplace() {
     var redoNodes = [];
     var redoNodeInnerHtmls = [];
 
+    var undoReplaceAllCounters = [];
+    var redoReplaceAllCounters = [];
+
     this.replace = function(textToReplace, replacementText, matchCase) {
         console.log("replace: text to replace = " + textToReplace +
                     "; replacement text = " + replacementText + "; match case = " + matchCase);
@@ -27,7 +30,7 @@ function findAndReplace() {
 
         console.log("replace: current selection matches = " + currentSelectionMatches);
 
-        if (!currentSelectionMatches) 
+        if (!currentSelectionMatches)
         {
             var found = window.find(textToReplace, matchCase, false, true);
             if (!found) {
@@ -75,6 +78,7 @@ function findAndReplace() {
     this.undo = function() {
         return this.undoRedoImpl(undoNodes, undoNodeInnerHtmls,
                                  redoNodes, redoNodeInnerHtmls, true);
+
     }
 
     this.redo = function() {
@@ -149,6 +153,46 @@ function findAndReplace() {
         }
 
         return html;
+    }
+
+    this.replaceAll = function(textToReplace, replacementText, matchCase) {
+        console.log("replaceAll: text to replace = " + textToReplace +
+                    "; replacement text = " + replacementText + "; match case = " + matchCase);
+
+        window.observer.disabled = true;
+
+        var counter = 0;
+        while(this.replace(textToReplace, replacementText, matchCase)) {
+            ++counter;
+        }
+
+        undoReplaceAllCounters.push(counter);
+    }
+
+    this.undoReplaceAll = function() {
+        console.log("undoReplaceAll");
+
+        window.observer.disabled = true;
+
+        var counter = undoReplaceAllCounters.pop();
+        for(var i = 0; i < counter; ++i) {
+            this.undo();
+        }
+
+        redoReplaceAllCounters.push(counter);
+    }
+
+    this.redoReplaceAll = function() {
+        console.log("redoReplaceAll");
+
+        window.observer.disabled = true;
+
+        var counter = redoReplaceAllCounters.pop();
+        for(var i = 0; i < counter; ++i) {
+            this.redo();
+        }
+
+        undoReplaceAllCounters.push(counter);
     }
 }
 

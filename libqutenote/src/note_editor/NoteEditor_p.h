@@ -183,9 +183,10 @@ public Q_SLOTS:
     void setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force = false) const;
 
     virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
-    void doReplace(const QString & textToReplace, const QString & replacementText, const bool matchCase);
-
     virtual void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
+
+    void onReplaceJavaScriptDone(const QVariant & data, const QVector<QPair<QString, QString> > & extraData);
+    void onReplaceJavaScriptDoneSingleParam(const QVariant & data);
 
     virtual void insertToDoCheckbox() Q_DECL_OVERRIDE;
     virtual void setSpellcheck(const bool enabled) Q_DECL_OVERRIDE;
@@ -381,6 +382,7 @@ private:
 
     void findText(const QString & textToFind, const bool matchCase, const bool searchBackward = false,
                   NoteEditorPage::Callback = 0) const;
+    void onJavaScriptQueueEmptyAfterReplace();
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -479,6 +481,17 @@ private:
     friend class NoteEditorCallbackFunctor<QString>;
     friend class NoteEditorCallbackFunctor<QVariant>;
 
+    class ReplaceCallback
+    {
+    public:
+        ReplaceCallback(NoteEditorPrivate * pNoteEditor) : m_pNoteEditor(pNoteEditor) {}
+
+        void operator()(const QVariant & data) { if (m_pNoteEditor.isNull()) { return; } m_pNoteEditor->onReplaceJavaScriptDoneSingleParam(data); }
+
+    private:
+        QPointer<NoteEditorPrivate>     m_pNoteEditor;
+    };
+
     struct Alignment
     {
         enum type {
@@ -558,46 +571,6 @@ private:
         // Resource extra data
         QString     m_resourceHash;
     };
-
-#ifdef USE_QT_WEB_ENGINE
-
-    class FindTextCallback
-    {
-    public:
-        FindTextCallback(const QString & textToFind, const bool matchCase, const bool searchBackward,
-                         NoteEditorPrivate * pNoteEditor, NoteEditorPage::Callback = 0);
-        void operator()(const QVariant & data);
-
-    private:
-        QString m_textToFind;
-        bool    m_matchCase;
-        bool    m_searchBackward;
-        QPointer<NoteEditorPrivate> m_pNoteEditor;
-        NoteEditorPage::Callback m_callback;
-    };
-
-    friend class FindTextCallback;
-
-    class ReplaceTextCallback
-    {
-    public:
-        ReplaceTextCallback(const QString & textToReplace, const QString & replacementText,
-                            const bool matchCase, const bool repeat, NoteEditorPage * pPage,
-                            NoteEditorPrivate * pNoteEditor);
-        void operator()(const QVariant & data);
-
-    private:
-        QString m_textToReplace;
-        QString m_replacementText;
-        bool    m_matchCase;
-        bool    m_repeat;
-        QPointer<NoteEditorPage> m_pPage;
-        QPointer<NoteEditorPrivate> m_pNoteEditor;
-    };
-
-    friend class ReplaceTextCallback;
-
-#endif
 
 private:
     QString     m_noteEditorPageFolderPath;

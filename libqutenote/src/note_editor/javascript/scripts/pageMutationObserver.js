@@ -6,6 +6,12 @@ var observer = new MutationObserver(function(mutations, observer) {
         return;
     }
 
+    console.log("observer.disabled = " + observer.disabled);
+    if (observer.disabled) {
+        console.log("The page mutation observer is disabled");
+        return;
+    }
+
     var numMutations = mutations.length;
     if (!numMutations) {
         return;
@@ -107,6 +113,8 @@ var observer = new MutationObserver(function(mutations, observer) {
         pageMutationObserver.onPageMutation();
     }
 });
+
+observer.disabled = false;
 
 observer.observe(document, {
   subtree: true,

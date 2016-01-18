@@ -29,6 +29,7 @@
 #include "undo_stack/RenameResourceUndoCommand.h"
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
 #include "undo_stack/ReplaceUndoCommand.h"
+#include "undo_stack/ReplaceAllUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -1918,6 +1919,16 @@ void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCas
 
     skipNextContentChange();
     setSearchHighlight(textToFind, matchCase);
+}
+
+void NoteEditorPrivate::onJavaScriptQueueEmptyAfterReplace()
+{
+    QNDEBUG("NoteEditorPrivate::onJavaScriptQueueEmptyAfterReplace");
+
+    GET_PAGE()
+    page->executeJavaScript("window.observer.disabled = false");
+
+    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptQueueEmptyAfterReplace));
 }
 
 bool NoteEditorPrivate::searchHighlightEnabled() const
@@ -4239,20 +4250,6 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
     QNDEBUG("NoteEditorPrivate::replace: text to replace = " << textToReplace << "; replacement text = "
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
-    doReplace(textToReplace, replacementText, matchCase);
-
-    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, matchCase, *this);
-    m_pUndoStack->push(pCommand);
-    QNTRACE("Pushed ReplaceUndoCommand to the undo stack");
-
-    findNext(textToReplace, matchCase);
-}
-
-void NoteEditorPrivate::doReplace(const QString & textToReplace, const QString & replacementText, const bool matchCase)
-{
-    QNDEBUG("NoteEditorPrivate::doReplace: text to replace = " << textToReplace << "; replacement text = "
-            << replacementText << "; match case = " << (matchCase ? "true" : "false"));
-
     GET_PAGE()
 
     QString escapedTextToReplace = textToReplace;
@@ -4267,6 +4264,11 @@ void NoteEditorPrivate::doReplace(const QString & textToReplace, const QString &
     page->executeJavaScript(javascript);
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
+
+    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, matchCase, *this);
+    m_pUndoStack->push(pCommand);
+
+    findNext(textToReplace, matchCase);
 }
 
 void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase)
@@ -4275,29 +4277,36 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
     GET_PAGE()
-#ifdef USE_QT_WEB_ENGINE
-    bool repeatFlag = true;
-    findText(textToReplace, matchCase, /* search backward = */ false,
-             ReplaceTextCallback(textToReplace, replacementText, matchCase, repeatFlag, page, this));
-#else
-    WebPage::FindFlags flags;
-    flags |= QWebPage::FindWrapsAroundDocument;
 
-    if (matchCase) {
-        flags |= WebPage::FindCaseSensitively;
-    }
+    QString escapedTextToReplace = textToReplace;
+    ENMLConverter::escapeString(escapedTextToReplace);
 
-    while(true)
-    {
-        if (!page->findText(textToReplace, flags)) {
-            break;
-        }
+    QString escapedReplacementText = replacementText;
+    ENMLConverter::escapeString(escapedReplacementText);
 
-        page->executeJavaScript("replaceSelectionWithHtml('" + replacementText + "');");
-    }
+    QString javascript = QString("Replacer.replaceAll('%1', '%2', %3);").arg(escapedTextToReplace, escapedReplacementText, (matchCase ? "true" : "false"));
+    page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onReplaceJavaScriptDone));
+
+    ReplaceAllUndoCommand * pCommand = new ReplaceAllUndoCommand(textToReplace, matchCase, *this, ReplaceCallback(this));
+    m_pUndoStack->push(pCommand);
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
-#endif
+}
+
+void NoteEditorPrivate::onReplaceJavaScriptDone(const QVariant & data, const QVector<QPair<QString, QString> > & extraData)
+{
+    Q_UNUSED(extraData);
+    onReplaceJavaScriptDoneSingleParam(data);
+}
+
+void NoteEditorPrivate::onReplaceJavaScriptDoneSingleParam(const QVariant & data)
+{
+    QNDEBUG("NoteEditorPrivate::onReplaceJavaScriptDoneSingleParam");
+
+    Q_UNUSED(data);
+
+    GET_PAGE()
+    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptQueueEmptyAfterReplace));
 }
 
 void NoteEditorPrivate::insertToDoCheckbox()
@@ -5242,80 +5251,6 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 
     delegate->start();
 }
-
-#ifdef USE_QT_WEB_ENGINE
-
-NoteEditorPrivate::FindTextCallback::FindTextCallback(const QString & textToFind, const bool matchCase,
-                                                      const bool searchBackward, NoteEditorPrivate * pNoteEditor,
-                                                      NoteEditorPage::Callback callback) :
-    m_textToFind(textToFind),
-    m_matchCase(matchCase),
-    m_searchBackward(searchBackward),
-    m_pNoteEditor(pNoteEditor),
-    m_callback(callback)
-{}
-
-void NoteEditorPrivate::FindTextCallback::operator()(const QVariant & data)
-{
-    QNDEBUG("NoteEditorPrivate::FindTextCallback::operator() (JS callback)");
-
-    Q_UNUSED(data);
-
-    if (m_pNoteEditor.isNull()) {
-        return;
-    }
-
-    m_pNoteEditor->findText(m_textToFind, m_matchCase, m_searchBackward, m_callback);
-}
-
-NoteEditorPrivate::ReplaceTextCallback::ReplaceTextCallback(const QString & textToReplace, const QString & replacementText,
-                                                            const bool matchCase, const bool repeat, NoteEditorPage * pPage,
-                                                            NoteEditorPrivate * pNoteEditor) :
-    m_textToReplace(textToReplace),
-    m_replacementText(replacementText),
-    m_matchCase(matchCase),
-    m_repeat(repeat),
-    m_pPage(pPage),
-    m_pNoteEditor(pNoteEditor)
-{}
-
-void NoteEditorPrivate::ReplaceTextCallback::operator()(const QVariant & data)
-{
-    QNDEBUG("NoteEditorPrivate::ReplaceTextCallback::operator(): " << data);
-
-    if (m_pPage.isNull()) {
-        return;
-    }
-
-    if (m_pNoteEditor.isNull()) {
-        return;
-    }
-
-    bool found = data.toBool();
-    QNTRACE("found = " << (found ? "true" : "false"));
-    if (!found) {
-        m_pNoteEditor->setSearchHighlight(QString(), m_matchCase);
-        return;
-    }
-
-    QString escapedReplacementText = m_replacementText;
-    ENMLConverter::escapeString(escapedReplacementText);
-
-    QString javascript = "replaceSelectionWithHtml('" + escapedReplacementText + "');";
-
-    NoteEditorPage::Callback findCallback = 0;
-    if (m_repeat) {
-        findCallback = ReplaceTextCallback(m_textToReplace, m_replacementText, m_matchCase, m_repeat, m_pPage, m_pNoteEditor);
-    }
-
-    m_pPage->executeJavaScript(javascript, FindTextCallback(m_textToReplace, m_matchCase, /* search backward = */ false,
-                                                            m_pNoteEditor, findCallback));
-    if (!m_repeat) {
-        m_pNoteEditor->setSearchHighlight(m_textToReplace, m_matchCase, /* force = */ true);
-    }
-}
-
-#endif
 
 } // namespace qute_note
 
