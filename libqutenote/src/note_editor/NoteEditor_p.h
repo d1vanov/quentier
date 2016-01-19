@@ -185,8 +185,7 @@ public Q_SLOTS:
     virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
     virtual void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
 
-    void onReplaceJavaScriptDone(const QVariant & data, const QVector<QPair<QString, QString> > & extraData);
-    void onReplaceJavaScriptDoneSingleParam(const QVariant & data);
+    void onReplaceJavaScriptDone(const QVariant & data);
 
     virtual void insertToDoCheckbox() Q_DECL_OVERRIDE;
     virtual void setSpellcheck(const bool enabled) Q_DECL_OVERRIDE;
@@ -486,7 +485,7 @@ private:
     public:
         ReplaceCallback(NoteEditorPrivate * pNoteEditor) : m_pNoteEditor(pNoteEditor) {}
 
-        void operator()(const QVariant & data) { if (m_pNoteEditor.isNull()) { return; } m_pNoteEditor->onReplaceJavaScriptDoneSingleParam(data); }
+        void operator()(const QVariant & data) { if (Q_UNLIKELY(m_pNoteEditor.isNull())) { return; } m_pNoteEditor->onReplaceJavaScriptDone(data); }
 
     private:
         QPointer<NoteEditorPrivate>     m_pNoteEditor;

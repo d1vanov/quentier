@@ -14,19 +14,21 @@ namespace qute_note {
 
 
 ReplaceUndoCommand::ReplaceUndoCommand(const QString & textToReplace, const bool matchCase,
-                                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
+                                       NoteEditorPrivate & noteEditorPrivate, Callback callback, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_textToReplace(textToReplace),
-    m_matchCase(matchCase)
+    m_matchCase(matchCase),
+    m_callback(callback)
 {
     setText(QObject::tr("Replace text"));
 }
 
-ReplaceUndoCommand::ReplaceUndoCommand(const QString & textToReplace, const bool matchCase,
-                                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
+ReplaceUndoCommand::ReplaceUndoCommand(const QString & textToReplace, const bool matchCase, NoteEditorPrivate & noteEditorPrivate,
+                                       const QString & text, Callback callback, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_textToReplace(textToReplace),
-    m_matchCase(matchCase)
+    m_matchCase(matchCase),
+    m_callback(callback)
 {}
 
 ReplaceUndoCommand::~ReplaceUndoCommand()
@@ -41,7 +43,11 @@ void ReplaceUndoCommand::redoImpl()
     m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
 
     QString javascript = "Replacer.redo();";
-    page->executeJavaScript(javascript);
+    page->executeJavaScript(javascript, m_callback);
+
+    if (m_noteEditorPrivate.searchHighlightEnabled()) {
+        m_noteEditorPrivate.setSearchHighlight(m_textToReplace, m_matchCase, /* force = */ true);
+    }
 }
 
 void ReplaceUndoCommand::undoImpl()
@@ -53,7 +59,7 @@ void ReplaceUndoCommand::undoImpl()
     m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
 
     QString javascript = "Replacer.undo();";
-    page->executeJavaScript(javascript);
+    page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {
         m_noteEditorPrivate.setSearchHighlight(m_textToReplace, m_matchCase, /* force = */ true);

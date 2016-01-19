@@ -8,13 +8,12 @@ namespace qute_note {
 
 class ReplaceAllUndoCommand: public INoteEditorUndoCommand
 {
-public:
     typedef NoteEditorPage::Callback Callback;
-
-    ReplaceAllUndoCommand(const QString & textToReplace, const bool matchCase,
-                          NoteEditorPrivate & noteEditorPrivate, Callback callback, QUndoCommand * parent = Q_NULLPTR);
-    ReplaceAllUndoCommand(const QString & textToReplace, const bool matchCase,
-                          NoteEditorPrivate & noteEditorPrivate, const QString & text, Callback callback, QUndoCommand * parent = Q_NULLPTR);
+public:
+    ReplaceAllUndoCommand(const QString & textToReplace, const bool matchCase, NoteEditorPrivate & noteEditorPrivate,
+                          Callback callback, QUndoCommand * parent = Q_NULLPTR);
+    ReplaceAllUndoCommand(const QString & textToReplace, const bool matchCase, NoteEditorPrivate & noteEditorPrivate,
+                          const QString & text, Callback callback, QUndoCommand * parent = Q_NULLPTR);
     virtual ~ReplaceAllUndoCommand();
 
     virtual void redoImpl() Q_DECL_OVERRIDE;

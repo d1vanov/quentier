@@ -4265,7 +4265,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
 
-    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, matchCase, *this);
+    ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, matchCase, *this, ReplaceCallback(this));
     m_pUndoStack->push(pCommand);
 
     findNext(textToReplace, matchCase);
@@ -4285,7 +4285,7 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
     ENMLConverter::escapeString(escapedReplacementText);
 
     QString javascript = QString("Replacer.replaceAll('%1', '%2', %3);").arg(escapedTextToReplace, escapedReplacementText, (matchCase ? "true" : "false"));
-    page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onReplaceJavaScriptDone));
+    page->executeJavaScript(javascript, ReplaceCallback(this));
 
     ReplaceAllUndoCommand * pCommand = new ReplaceAllUndoCommand(textToReplace, matchCase, *this, ReplaceCallback(this));
     m_pUndoStack->push(pCommand);
@@ -4293,20 +4293,16 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
 }
 
-void NoteEditorPrivate::onReplaceJavaScriptDone(const QVariant & data, const QVector<QPair<QString, QString> > & extraData)
+void NoteEditorPrivate::onReplaceJavaScriptDone(const QVariant & data)
 {
-    Q_UNUSED(extraData);
-    onReplaceJavaScriptDoneSingleParam(data);
-}
-
-void NoteEditorPrivate::onReplaceJavaScriptDoneSingleParam(const QVariant & data)
-{
-    QNDEBUG("NoteEditorPrivate::onReplaceJavaScriptDoneSingleParam");
+    QNDEBUG("NoteEditorPrivate::onReplaceJavaScriptDone");
 
     Q_UNUSED(data);
 
     GET_PAGE()
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptQueueEmptyAfterReplace));
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::insertToDoCheckbox()

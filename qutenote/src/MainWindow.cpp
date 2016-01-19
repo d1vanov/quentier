@@ -555,7 +555,6 @@ void MainWindow::onFindInsideNoteAction()
 
         m_pUI->findAndReplaceWidget->setHidden(false);
         m_pUI->findAndReplaceWidget->show();
-        return;
     }
 
     onFindNextInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
@@ -577,7 +576,6 @@ void MainWindow::onFindPreviousInsideNoteAction()
 
         m_pUI->findAndReplaceWidget->setHidden(false);
         m_pUI->findAndReplaceWidget->show();
-        return;
     }
 
     onFindPreviousInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
