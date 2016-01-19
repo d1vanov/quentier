@@ -561,6 +561,12 @@ const QStringList & NoteSearchQuery::negatedContentSearchTerms() const
     return d->m_negatedContentSearchTerms;
 }
 
+bool NoteSearchQuery::hasAnyContentSearchTerms() const
+{
+    Q_D(const NoteSearchQuery);
+    return (!d->m_contentSearchTerms.isEmpty()) || (!d->m_negatedContentSearchTerms.isEmpty());
+}
+
 bool NoteSearchQuery::isMatcheable() const
 {
     Q_D(const NoteSearchQuery);

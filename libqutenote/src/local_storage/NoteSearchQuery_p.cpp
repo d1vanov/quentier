@@ -369,17 +369,26 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     words.removeAll(negatedEncryption);
     words.removeAll(encryption);
 
-    // By now all tagged search terms must have been removed from the list of words
-    // so we can extract the actual untagged content search terms here
+    // By now most of tagged search terms must have been removed from the list of words
+    // so we can extract the actual untagged content search terms;
+    // In the Evernote search grammar the searches are case insensitive so forcing all words
+    // to the lower case
 
     foreach(const QString & searchTerm, words)
     {
+        if (searchTerm.startsWith("notebook:")) {
+            continue;
+        }
+
+        if (searchTerm.startsWith("any:")) {
+            continue;
+        }
+
         if (searchTerm.startsWith("-")) {
-            QString localSearchTerm = searchTerm;
-            m_negatedContentSearchTerms << localSearchTerm.remove("-");
+            m_negatedContentSearchTerms << searchTerm.toLower();
         }
         else {
-            m_contentSearchTerms << searchTerm;
+            m_contentSearchTerms << searchTerm.toLower();
         }
     }
 

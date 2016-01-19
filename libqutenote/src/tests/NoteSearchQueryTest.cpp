@@ -241,17 +241,17 @@ bool NoteSearchQueryTest(QString & error)
     timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
 
     QStringList contentSearchTerms;
-    contentSearchTerms << "think" << "do" << "act !";
+    contentSearchTerms << "THINK !" << "do! " << " act!";
 
     QStringList negatedContentSearchTerms;
-    negatedContentSearchTerms << "bird" << "is" << "a word";
+    negatedContentSearchTerms << "BIRD" << "is" << "a" << "word";
 
     NoteSearchQuery noteSearchQuery;
 
     // Iterating over all combinations of 8 boolean factors with a special meaning
     for(int mask = 0; mask != (1<<8); ++mask)
     {
-        // NOTE: workarounding VC 2010 bug
+        // NOTE: workarounding VC++ 2010 bug
 #if defined(_MSC_VER) && _MSC_VER <= 1600
         std::bitset<static_cast<unsigned long long>(8)> bits(static_cast<unsigned long long>(mask));
 #else
@@ -800,6 +800,67 @@ bool NoteSearchQueryTest(QString & error)
         CHECK_DATETIME_LIST(negatedReminderDoneTimes, negatedReminderDoneTimes);
 
 #undef CHECK_DATETIME_LIST
+    }
+
+    // Check that search terms and negated search terms are processed correctly
+    QString contentSearchTermsStr = contentSearchTerms.join(" ");
+    QString negatedContentSearchTermsStr;
+    for(int i = 0, numNegatedContentSearchTerms = negatedContentSearchTerms.size(); i < numNegatedContentSearchTerms; ++i) {
+        negatedContentSearchTermsStr += "-" + negatedContentSearchTerms[i] + " ";
+    }
+
+    bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + " " + negatedContentSearchTermsStr, error);
+    if (!res) {
+        error = "Internal error: can't set simple search query string without any search modifiers: " + error;
+        return false;
+    }
+
+    const QStringList & contentSearchTermsFromQuery = noteSearchQuery.contentSearchTerms();
+    const int numContentSearchTermsFromQuery = contentSearchTermsFromQuery.size();
+    if (numContentSearchTermsFromQuery != contentSearchTerms.size()) {
+        error = "Internal error: the number of content search terms doesn't match the original one after parsing the note search query";
+        return false;
+    }
+
+    QRegExp wordsRegex("\\w+");
+
+    for(int i = 0; i < numContentSearchTermsFromQuery; ++i) {
+        contentSearchTerms[i] = wordsRegex.cap(wordsRegex.indexIn(contentSearchTerms[i].toLower()));
+    }
+
+    for(int i = 0; i < numContentSearchTermsFromQuery; ++i)
+    {
+        const QString & contentSearchTermFromQuery = contentSearchTermsFromQuery[i];
+        int index = contentSearchTerms.indexOf(contentSearchTermFromQuery);
+        if (index < 0) {
+            error = "Internal error: can't find one of original content search terms after parsing the note search query";
+            QNWARNING(error << "; original content search terms: " << contentSearchTermsStr << "; parsed content search terms: "
+                      << contentSearchTermsFromQuery.join(" "));
+            return false;
+        }
+    }
+
+    const QStringList & negatedContentSearchTermsFromQuery = noteSearchQuery.negatedContentSearchTerms();
+    const int numNegatedContentSearchTermsFromQuery = negatedContentSearchTermsFromQuery.size();
+    if (numNegatedContentSearchTermsFromQuery != negatedContentSearchTerms.size()) {
+        error = "Internal error: the number of negated content search terms doesn't match the original one after parsing the note search query";
+        return false;
+    }
+
+    for(int i = 0; i < numNegatedContentSearchTermsFromQuery; ++i) {
+        negatedContentSearchTerms[i] = wordsRegex.cap(wordsRegex.indexIn(negatedContentSearchTerms[i].toLower()));
+    }
+
+    for(int i = 0; i < numNegatedContentSearchTermsFromQuery; ++i)
+    {
+        const QString & negatedContentSearchTermFromQuery = negatedContentSearchTermsFromQuery[i];
+        int index = negatedContentSearchTerms.indexOf(negatedContentSearchTermFromQuery);
+        if (index < 0) {
+            error = "Internal error: can't find one of original negated content search terms after parsing the note search query";
+            QNWARNING(error << "; original negated content search terms: " << negatedContentSearchTermsStr << "; parsed negated content search terms: "
+                      << negatedContentSearchTermsFromQuery.join(" "));
+            return false;
+        }
     }
 
     return true;
