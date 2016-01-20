@@ -3,6 +3,7 @@
 #include <qute_note/exception/DatabaseSqlErrorException.h>
 #include "Transaction.h"
 #include <qute_note/local_storage/NoteSearchQuery.h>
+#include <qute_note/utility/StringUtils.h>
 #include <qute_note/utility/Utility.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
@@ -4552,6 +4553,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
             }
 
             QString listOfWords = plainTextAndListOfWords.second.join(" ");
+            removePunctuation(listOfWords, /* keep asterisk = */ false);
 
             query.bindValue(":contentPlainText", (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
             query.bindValue(":contentListOfWords", (listOfWords.isEmpty() ? nullValue : listOfWords));
@@ -6937,11 +6939,41 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     QString sqlPrefix = "SELECT DISTINCT localGuid ";
     sql.resize(0);
 
-    // TODO: should compose a special SQL query if the note search query doesn't contain any specific search modifiers
+    // 1) ============ Determining whether "any:" modifier takes effect ==============
 
     bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
+    QString uniteOperator = (queryHasAnyModifier ? "OR" : "AND");
 
-    // ========== 1) Processing notebook modifier (if present) ==============
+    // 2) ============ Build the specialized SQL query if the note search query doesn't contain advanced search modifiers ===========
+
+    if (!noteSearchQuery.hasAdvancedSearchModifiers())
+    {
+        if (!noteSearchQuery.hasAnyContentSearchTerms()) {
+            errorDescription += QT_TR_NOOP("note search query has no advanced search modifiers and no content search terms");
+            QNWARNING(errorDescription << ", query string: " << noteSearchQuery.queryString());
+            return false;
+        }
+
+        QString contentSearchTermsSqlPart;
+
+        QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
+        // TODO: reserve enough space
+
+        ContentSearchTermsSqlQueryBuildHelper noteContentHelper;
+        noteContentHelper.m_noteLocalGuidColumn = "localGuid";
+        noteContentHelper.m_tableName = "NoteFTS";
+        noteContentHelper.m_matchedColumnName = "contentListOfWords";
+
+        matchedTablesAndColumns.push_back(noteContentHelper);
+
+        // TODO: add other relevant matched tables and columns
+
+        noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, uniteOperator, contentSearchTermsSqlPart);
+        sql = sqlPrefix + "WHERE " + contentSearchTermsSqlPart;
+        return true;
+    }
+
+    // ========== 3) Processing notebook modifier (if present) ==============
 
     QString notebookName = noteSearchQuery.notebookModifier();
     QString notebookLocalGuid;
@@ -6986,11 +7018,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql += "') AND ";
     }
 
-    // 2) ============ Determining whether "any:" modifier takes effect ==============
-
-    QString uniteOperator = (queryHasAnyModifier ? "OR" : "AND");
-
-    // 3) ============ Processing tag names and negated tag names, if any =============
+    // 4) ============ Processing tag names and negated tag names, if any =============
 
     if (noteSearchQuery.hasAnyTag())
     {
@@ -7119,7 +7147,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
-    // 4) ============== Processing resource mime types ===============
+    // 5) ============== Processing resource mime types ===============
 
     if (noteSearchQuery.hasAnyResourceMimeType())
     {
@@ -7246,7 +7274,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
-    // 5) ============== Processing resource recognition indices ===============
+    // 6) ============== Processing resource recognition indices ===============
 
     if (noteSearchQuery.hasAnyRecognitionType())
     {
@@ -7375,7 +7403,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
-    // 6) ============== Processing other better generalizable filters =============
+    // 7) ============== Processing other better generalizable filters =============
 
 #define CHECK_AND_PROCESS_ANY_ITEM(hasAnyItem, hasNegatedAnyItem, column) \
     if (noteSearchQuery.hasAnyItem()) { \
@@ -7512,7 +7540,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 #undef CHECK_AND_PROCESS_ANY_ITEM
 #undef CHECK_AND_PROCESS_NUMERIC_ITEM
 
-    // 7) ============== Processing ToDo items ================
+    // 8) ============== Processing ToDo items ================
 
     if (noteSearchQuery.hasAnyToDo())
     {
@@ -7552,7 +7580,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
-    // 8) ============== Processing encryption item =================
+    // 9) ============== Processing encryption item =================
 
     if (noteSearchQuery.hasNegatedEncryption()) {
         sql += "((NoteFTS.contentContainsEncryption IS 0) OR (NoteFTS.contentContainsEncryption IS NULL)) ";
@@ -7565,19 +7593,75 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql += " ";
     }
 
-    // 9) ============== Processing short terms =================
+    // 10) ============== Processing content search terms =================
+
+    QString contentSearchTermsSqlPart;
+    QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
+    matchedTablesAndColumns.resize(1);
+    ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns.back();
+    helper.m_noteLocalGuidColumn = "localGuid";
+    helper.m_tableName = "NoteFTS";
+    helper.m_matchedColumnName = "contentListOfWords";
+    noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, uniteOperator, contentSearchTermsSqlPart);
+    if (!contentSearchTermsSqlPart.isEmpty()) {
+        sql += contentSearchTermsSqlPart;
+    }
+
+    // 11) ============== Removing trailing unite operator from the SQL string =============
+
+    QString spareEnd = uniteOperator + QString(" ");
+    if (sql.endsWith(spareEnd)) {
+        sql.chop(spareEnd.size());
+    }
+
+    // 12) ============= See whether we should bother anything regarding tags or resources ============
+
+    QString sqlPostfix = "FROM NoteFTS ";
+    if (sql.contains("NoteTags")) {
+        sqlPrefix += ", NoteTags.localTag ";
+        sqlPostfix += "LEFT OUTER JOIN NoteTags ON NoteFTS.localGuid = NoteTags.localNote ";
+    }
+
+    if (sql.contains("NoteResources")) {
+        sqlPrefix += ", NoteResources.localResource ";
+        sqlPostfix += "LEFT OUTER JOIN NoteResources ON NoteFTS.localGuid = NoteResources.localNote ";
+    }
+
+    // 13) ============== Finalize the query composed of parts ===============
+
+    sqlPrefix += sqlPostfix;
+    sqlPrefix += "WHERE ";
+    sql.prepend(sqlPrefix);
+
+    return true;
+}
+
+void LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart(const NoteSearchQuery & noteSearchQuery,
+                                                                                 const QVector<ContentSearchTermsSqlQueryBuildHelper> & matchedTablesAndColumns,
+                                                                                 const QString & uniteOperator, QString & sqlPart) const
+{
+    QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart");
+
+    sqlPart.resize(0);
 
     if (noteSearchQuery.hasAnyContentSearchTerms())
     {
-        QString sqlPart = "(";
+        const int numMatchedTablesAndColumns = matchedTablesAndColumns.size();
+
+        sqlPart = "(";
 
         const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
         if (!contentSearchTerms.isEmpty())
         {
             sqlPart += "(";
             const int numContentSearchTerms = contentSearchTerms.size();
-            for(int i = 0; i < numContentSearchTerms; ++i) {
-                sqlPart += QString("(localGuid IN (SELECT localGuid FROM NoteFTS WHERE NoteFTS.contentPlainText MATCH '%1')) OR ").arg(contentSearchTerms[i]);
+            for(int i = 0; i < numContentSearchTerms; ++i)
+            {
+                for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
+                    const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
+                    sqlPart += QString("(localGuid IN (SELECT %1 FROM %2 WHERE %2.%3 MATCH '%4')) OR ")
+                        .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
+                }
             }
             sqlPart.chop(4);    // Remove trailing " OR "
             sqlPart += ")";
@@ -7592,8 +7676,13 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
             sqlPart += "(";
             const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
-            for(int i = 0; i < numNegatedContentSearchTerms; ++i) {
-                sqlPart += QString("(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE NoteFTS.contentPlainText MATCH '%1')) AND ").arg(negatedContentSearchTerms[i]);
+            for(int i = 0; i < numNegatedContentSearchTerms; ++i)
+            {
+                for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
+                    const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
+                    sqlPart += QString("(localGuid NOT IN (SELECT %1 FROM %2 WHERE %2.%3 MATCH '%4')) AND ")
+                        .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
+                }
             }
             sqlPart.chop(5);    // Remove trailing " AND "
             sqlPart += ")";
@@ -7603,38 +7692,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             sqlPart += ") ";
             sqlPart += uniteOperator;
             sqlPart += " ";
-
-            sql += sqlPart;
         }
     }
-
-    // 10) ============== Removing trailing unite operator from the SQL string =============
-
-    QString spareEnd = uniteOperator + QString(" ");
-    if (sql.endsWith(spareEnd)) {
-        sql.chop(spareEnd.size());
-    }
-
-    // 11) ============= See whether we should bother anything regarding tags or resources ============
-
-    QString sqlPostfix = "FROM NoteFTS ";
-    if (sql.contains("NoteTags")) {
-        sqlPrefix += ", NoteTags.localTag ";
-        sqlPostfix += "LEFT OUTER JOIN NoteTags ON NoteFTS.localGuid = NoteTags.localNote ";
-    }
-
-    if (sql.contains("NoteResources")) {
-        sqlPrefix += ", NoteResources.localResource ";
-        sqlPostfix += "LEFT OUTER JOIN NoteResources ON NoteFTS.localGuid = NoteResources.localNote ";
-    }
-
-    // 12) ============== Finalize the query composed of parts ===============
-
-    sqlPrefix += sqlPostfix;
-    sqlPrefix += "WHERE ";
-    sql.prepend(sqlPrefix);
-
-    return true;
 }
 
 bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tagNames,

@@ -261,6 +261,18 @@ private:
     bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
                               QString & errorDescription) const;
 
+    struct ContentSearchTermsSqlQueryBuildHelper
+    {
+        QString     m_noteLocalGuidColumn;
+        QString     m_tableName;
+        QString     m_matchedColumnName;
+    };
+
+    void noteSearchQueryContentSearchTermsToSqlQueryPart(const NoteSearchQuery & noteSearchQuery,
+                                                         const QVector<ContentSearchTermsSqlQueryBuildHelper> & matchedTablesAndColumns,
+                                                         const QString & uniteOperator, QString & sqlPart) const;
+
+
     bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
                                  QString & errorDescription) const;
     bool resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,
