@@ -1,4 +1,5 @@
 #include "NoteSearchQuery_p.h"
+#include <qute_note/utility/StringUtils.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QDateTime>
 
@@ -374,7 +375,9 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     // In the Evernote search grammar the searches are case insensitive so forcing all words
     // to the lower case
 
-    foreach(const QString & searchTerm, words)
+    QRegExp asteriskFilter("[*]");
+
+    foreach(QString searchTerm, words)
     {
         if (searchTerm.startsWith("notebook:")) {
             continue;
@@ -384,11 +387,40 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
             continue;
         }
 
-        if (searchTerm.startsWith("-")) {
-            m_negatedContentSearchTerms << searchTerm.toLower();
+        bool negated = searchTerm.startsWith("-");
+        if (negated) {
+            searchTerm.remove(0, 1);
+        }
+
+        removePunctuation(searchTerm);
+        if (searchTerm.isEmpty()) {
+            continue;
+        }
+
+        // Don't accept search terms consisting only of asterisks
+        QString searchTermWithoutAsterisks = searchTerm;
+        searchTermWithoutAsterisks.remove(asteriskFilter);
+        if (searchTermWithoutAsterisks.isEmpty()) {
+            continue;
+        }
+
+        // Only accept asterisk if there's a single one in the end of the search term
+        int indexOfAsterisk = searchTerm.indexOf("*");
+        int lastIndexOfAsterisk = searchTerm.lastIndexOf("*");
+        if (indexOfAsterisk != lastIndexOfAsterisk) {
+            continue;
+        }
+
+        if ((indexOfAsterisk >= 0) && (indexOfAsterisk != (searchTerm.size() - 1))) {
+            continue;
+        }
+
+        // Normalize the search term to use the lower case
+        if (negated) {
+            m_negatedContentSearchTerms << searchTerm.simplified().toLower();
         }
         else {
-            m_contentSearchTerms << searchTerm.toLower();
+            m_contentSearchTerms << searchTerm.simplified().toLower();
         }
     }
 

@@ -1,5 +1,6 @@
 #include "NoteSearchQueryTest.h"
 #include <qute_note/local_storage/NoteSearchQuery.h>
+#include <qute_note/utility/StringUtils.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QStringList>
 #include <QDateTime>
@@ -241,10 +242,10 @@ bool NoteSearchQueryTest(QString & error)
     timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
 
     QStringList contentSearchTerms;
-    contentSearchTerms << "THINK !" << "do! " << " act!";
+    contentSearchTerms << "THINK[] !" << "[do! " << " act]!" << "*";
 
     QStringList negatedContentSearchTerms;
-    negatedContentSearchTerms << "BIRD" << "is" << "a" << "word";
+    negatedContentSearchTerms << "BIRD[" << "*is" << "a" << "word*" << "***";
 
     NoteSearchQuery noteSearchQuery;
 
@@ -817,48 +818,108 @@ bool NoteSearchQueryTest(QString & error)
 
     const QStringList & contentSearchTermsFromQuery = noteSearchQuery.contentSearchTerms();
     const int numContentSearchTermsFromQuery = contentSearchTermsFromQuery.size();
-    if (numContentSearchTermsFromQuery != contentSearchTerms.size()) {
-        error = "Internal error: the number of content search terms doesn't match the original one after parsing the note search query";
-        return false;
+
+    QRegExp asteriskFilter("[*]");
+
+    QStringList filteredContentSearchTerms;
+    filteredContentSearchTerms.reserve(numContentSearchTermsFromQuery);
+    for(int i = 0, numOriginalContentSearchTerms = contentSearchTerms.size(); i < numOriginalContentSearchTerms; ++i)
+    {
+        QString filteredSearchTerm = contentSearchTerms[i];
+        removePunctuation(filteredSearchTerm);
+        if (filteredSearchTerm.isEmpty()) {
+            continue;
+        }
+
+        // Don't accept search terms consisting only of asterisks
+        QString filteredSearchTermWithoutAsterisks = filteredSearchTerm;
+        filteredSearchTermWithoutAsterisks.remove(asteriskFilter);
+        if (filteredSearchTermWithoutAsterisks.isEmpty()) {
+            continue;
+        }
+
+        // Only accept asterisk if there's a single one in the end of the search term
+        int indexOfAsterisk = filteredSearchTerm.indexOf("*");
+        int lastIndexOfAsterisk = filteredSearchTerm.lastIndexOf("*");
+        if (indexOfAsterisk != lastIndexOfAsterisk) {
+            continue;
+        }
+
+        if ((indexOfAsterisk >= 0) && (indexOfAsterisk != (filteredSearchTerm.size() - 1))) {
+            continue;
+        }
+
+        filteredContentSearchTerms << filteredSearchTerm.simplified().toLower();
     }
 
-    QRegExp wordsRegex("\\w+");
-
-    for(int i = 0; i < numContentSearchTermsFromQuery; ++i) {
-        contentSearchTerms[i] = wordsRegex.cap(wordsRegex.indexIn(contentSearchTerms[i].toLower()));
+    if (numContentSearchTermsFromQuery != filteredContentSearchTerms.size()) {
+        error = "Internal error: the number of content search terms doesn't match the expected one after parsing the note search query";
+        QNWARNING(error << "; original content search terms: " << contentSearchTerms.join(" ") << "; filtered content search terms: "
+                  << filteredContentSearchTerms.join(" ") << "; processed search query terms: " << contentSearchTermsFromQuery.join(" "));
+        return false;
     }
 
     for(int i = 0; i < numContentSearchTermsFromQuery; ++i)
     {
         const QString & contentSearchTermFromQuery = contentSearchTermsFromQuery[i];
-        int index = contentSearchTerms.indexOf(contentSearchTermFromQuery);
+        int index = filteredContentSearchTerms.indexOf(contentSearchTermFromQuery);
         if (index < 0) {
             error = "Internal error: can't find one of original content search terms after parsing the note search query";
-            QNWARNING(error << "; original content search terms: " << contentSearchTermsStr << "; parsed content search terms: "
-                      << contentSearchTermsFromQuery.join(" "));
+            QNWARNING(error << "; filtered original content search terms: " << filteredContentSearchTerms.join(" ")
+                      << "; parsed content search terms: " << contentSearchTermsFromQuery.join(" "));
             return false;
         }
     }
 
     const QStringList & negatedContentSearchTermsFromQuery = noteSearchQuery.negatedContentSearchTerms();
     const int numNegatedContentSearchTermsFromQuery = negatedContentSearchTermsFromQuery.size();
-    if (numNegatedContentSearchTermsFromQuery != negatedContentSearchTerms.size()) {
-        error = "Internal error: the number of negated content search terms doesn't match the original one after parsing the note search query";
-        return false;
+
+    QStringList filteredNegatedContentSearchTerms;
+    filteredNegatedContentSearchTerms.reserve(numNegatedContentSearchTermsFromQuery);
+    for(int i = 0, numOriginalNegatedContentSearchTerms = negatedContentSearchTerms.size(); i < numOriginalNegatedContentSearchTerms; ++i)
+    {
+        QString filteredNegatedSearchTerm = negatedContentSearchTerms[i];
+        removePunctuation(filteredNegatedSearchTerm);
+        if (filteredNegatedSearchTerm.isEmpty()) {
+            continue;
+        }
+
+        // Don't accept search terms consisting only of asterisks
+        QString filteredNegatedSearchTermWithoutAsterisks = filteredNegatedSearchTerm;
+        filteredNegatedSearchTermWithoutAsterisks.remove(asteriskFilter);
+        if (filteredNegatedSearchTermWithoutAsterisks.isEmpty()) {
+            continue;
+        }
+
+        // Only accept asterisk if there's a single one in the end of the search term
+        int indexOfAsterisk = filteredNegatedSearchTerm.indexOf("*");
+        int lastIndexOfAsterisk = filteredNegatedSearchTerm.lastIndexOf("*");
+        if (indexOfAsterisk != lastIndexOfAsterisk) {
+            continue;
+        }
+
+        if ((indexOfAsterisk >= 0) && (indexOfAsterisk != (filteredNegatedSearchTerm.size() - 1))) {
+            continue;
+        }
+
+        filteredNegatedContentSearchTerms << filteredNegatedSearchTerm.simplified().toLower();
     }
 
-    for(int i = 0; i < numNegatedContentSearchTermsFromQuery; ++i) {
-        negatedContentSearchTerms[i] = wordsRegex.cap(wordsRegex.indexIn(negatedContentSearchTerms[i].toLower()));
+    if (numNegatedContentSearchTermsFromQuery != filteredNegatedContentSearchTerms.size()) {
+        error = "Internal error: the number of negated content search terms doesn't match the expected one after parsing the note search query";
+        QNWARNING(error << "; original negated content search terms: " << negatedContentSearchTerms.join(" ") << "; filtered negated content search terms: "
+                  << filteredNegatedContentSearchTerms.join(" ") << "; processed negated search query terms: " << negatedContentSearchTermsFromQuery.join(" "));
+        return false;
     }
 
     for(int i = 0; i < numNegatedContentSearchTermsFromQuery; ++i)
     {
         const QString & negatedContentSearchTermFromQuery = negatedContentSearchTermsFromQuery[i];
-        int index = negatedContentSearchTerms.indexOf(negatedContentSearchTermFromQuery);
+        int index = filteredNegatedContentSearchTerms.indexOf(negatedContentSearchTermFromQuery);
         if (index < 0) {
             error = "Internal error: can't find one of original negated content search terms after parsing the note search query";
-            QNWARNING(error << "; original negated content search terms: " << negatedContentSearchTermsStr << "; parsed negated content search terms: "
-                      << negatedContentSearchTermsFromQuery.join(" "));
+            QNWARNING(error << "; filtered original negated content search terms: " << filteredNegatedContentSearchTerms.join(" ")
+                      << "; parsed negated content search terms: " << negatedContentSearchTermsFromQuery.join(" "));
             return false;
         }
     }

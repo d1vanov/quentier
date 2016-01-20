@@ -155,6 +155,7 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/LimitedStack.h
     headers/qute_note/utility/Linkage.h
     headers/qute_note/utility/ShortcutManager.h
+    headers/qute_note/utility/StringUtils.h
     headers/qute_note/utility/SysInfo.h
     headers/qute_note/utility/Printable.h
     headers/qute_note/utility/QuteNoteApplication.h
@@ -381,6 +382,7 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/QuteNoteUndoCommand.cpp
     src/utility/ShortcutManager.cpp
     src/utility/ShortcutManager_p.cpp
+    src/utility/StringUtils.cpp
     src/utility/Utility.cpp)
 
 if(NOT USE_QT_WEB_ENGINE)
