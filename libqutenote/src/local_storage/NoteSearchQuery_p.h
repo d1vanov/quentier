@@ -110,6 +110,8 @@ public:
 
     bool isMatcheable() const;
 
+    bool hasAdvancedSearchModifiers() const;
+
 private:
     QStringList splitSearchQueryString(const QString & searchQueryString) const;
     void parseStringValue(const QString & key, QStringList & words,

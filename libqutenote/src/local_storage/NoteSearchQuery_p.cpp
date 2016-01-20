@@ -641,6 +641,32 @@ bool NoteSearchQueryPrivate::isMatcheable() const
     return true;
 }
 
+bool NoteSearchQueryPrivate::hasAdvancedSearchModifiers() const
+{
+    return (!m_notebookModifier.isEmpty() || m_hasAnyModifier || !m_tagNames.isEmpty() || !m_negatedTagNames.isEmpty() ||
+            m_hasAnyTag || m_hasNegatedAnyTag || !m_titleNames.isEmpty() || !m_negatedTitleNames.isEmpty() ||
+            m_hasAnyTitleName || m_hasNegatedAnyTitleName || !m_creationTimestamps.isEmpty() || !m_negatedCreationTimestamps.isEmpty() ||
+            m_hasAnyCreationTimestamp || m_hasNegatedAnyCreationTimestamp || !m_modificationTimestamps.isEmpty() ||
+            !m_negatedModificationTimestamps.isEmpty() || m_hasAnyModificationTimestamp || m_hasNegatedAnyModificationTimestamp ||
+            !m_resourceMimeTypes.isEmpty() || !m_negatedResourceMimeTypes.isEmpty() || m_hasAnyResourceMimeType || m_hasNegatedAnyResourceMimeType ||
+            !m_subjectDateTimestamps.isEmpty() || !m_negatedSubjectDateTimestamps.isEmpty() || m_hasAnySubjectDateTimestamp ||
+            m_hasNegatedAnySubjectDateTimestamp || !m_latitudes.isEmpty() || !m_negatedLatitudes.isEmpty() ||
+            m_hasAnyLatitude || m_hasNegatedAnyLatitude || !m_longitudes.isEmpty() || !m_negatedLongitudes.isEmpty() ||
+            m_hasAnyLongitude || m_hasNegatedAnyLongitude || !m_altitudes.isEmpty() || !m_negatedAltitudes.isEmpty() ||
+            m_hasAnyAltitude || m_hasNegatedAnyAltitude || !m_authors.isEmpty() || !m_negatedAuthors.isEmpty() ||
+            m_hasAnyAuthor || m_hasNegatedAnyAuthor || !m_sources.isEmpty() || !m_negatedSources.isEmpty() ||
+            m_hasAnySource || m_hasNegatedAnySource || !m_sourceApplications.isEmpty() || !m_negatedSourceApplications.isEmpty() ||
+            m_hasAnySourceApplication || m_hasNegatedAnySourceApplication || !m_contentClasses.isEmpty() || !m_negatedContentClasses.isEmpty() ||
+            m_hasAnyContentClass || m_hasNegatedAnyContentClass || !m_placeNames.isEmpty() || !m_negatedPlaceNames.isEmpty() ||
+            m_hasAnyPlaceName || m_hasNegatedAnyPlaceName || !m_applicationData.isEmpty() || !m_negatedApplicationData.isEmpty() ||
+            m_hasAnyApplicationData || m_hasNegatedAnyApplicationData || !m_recognitionTypes.isEmpty() || !m_negatedRecognitionTypes.isEmpty() ||
+            m_hasAnyRecognitionType || m_hasNegatedAnyRecognitionType || !m_reminderOrders.isEmpty() || !m_negatedReminderOrders.isEmpty() ||
+            m_hasAnyReminderOrder || m_hasNegatedAnyReminderOrder || !m_reminderTimes.isEmpty() || !m_negatedReminderTimes.isEmpty() ||
+            m_hasAnyReminderTime || m_hasNegatedAnyReminderTime || !m_reminderDoneTimes.isEmpty() || !m_negatedReminderDoneTimes.isEmpty() ||
+            m_hasAnyReminderDoneTime || m_hasNegatedAnyReminderDoneTime || m_hasUnfinishedToDo || m_hasNegatedUnfinishedToDo ||
+            m_hasFinishedToDo || m_hasNegatedFinishedToDo || m_hasAnyToDo || m_hasNegatedAnyToDo || m_hasEncryption || m_hasNegatedEncryption);
+}
+
 QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searchQueryString) const
 {
     QStringList words;

@@ -32,6 +32,14 @@ public:
      */
     const QString notebookModifier() const;
 
+    /**
+     * @return true if the search string passed to setQueryString contained advanced search modifiers such as "notebook:", "any:" etc;
+     * in that case the "free" search terms (without any advanced search modifiers) would only be matched against the note's content;
+     * otherwise, if the search string contains only such "free" search terms, they'd be matched against note's content, title, tag names,
+     * resource recognition indices etc.
+     */
+    bool hasAdvancedSearchModifiers() const;
+
     bool hasAnyModifier() const;
 
     const QStringList & tagNames() const;
