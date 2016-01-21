@@ -2578,8 +2578,8 @@ bool RemoteToLocalSynchronizationManager::checkAndRequestAuthenticationTokensFor
         const qevercloud::Timestamp currentTime = QDateTime::currentMSecsSinceEpoch();
         if (currentTime - expirationTime < SIX_HOURS_IN_MSEC) {
             QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid()
-                    << " is too close to expiration: its expiration time is " << PrintableDateTimeFromTimestamp(expirationTime)
-                    << ", current time is " << PrintableDateTimeFromTimestamp(currentTime)
+                    << " is too close to expiration: its expiration time is " << printableDateTimeFromTimestamp(expirationTime)
+                    << ", current time is " << printableDateTimeFromTimestamp(currentTime)
                     << "; will request new authentication tokens for all linked notebooks");
 
             requestAuthenticationTokensForAllLinkedNotebooks();

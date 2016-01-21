@@ -73,7 +73,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::PremiumInfo & in
     QString indent = "  ";
 
     strm << indent << "premiumExpirationDate = " << (info.premiumExpirationDate.isSet()
-                                                     ? qute_note::PrintableDateTimeFromTimestamp(info.premiumExpirationDate.ref())
+                                                     ? qute_note::printableDateTimeFromTimestamp(info.premiumExpirationDate.ref())
                                                      : "<empty>") << "; \n";
     strm << indent << "sponsoredGroupName = " << (info.sponsoredGroupName.isSet()
                                                   ? info.sponsoredGroupName.ref()
@@ -109,7 +109,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & acc
                                            ? QString::number(accounting.uploadLimit.ref())
                                            : "<empty>") << "; \n";
     strm << indent << "uploadLimitEnd = " << (accounting.uploadLimitEnd.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(accounting.uploadLimitEnd.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(accounting.uploadLimitEnd.ref())
                                               : "<empty>") << "; \n";
     strm << indent << "uploadLimitNextMonth = " << (accounting.uploadLimitNextMonth.isSet()
                                                     ? QString::number(accounting.uploadLimitNextMonth.ref())
@@ -130,34 +130,34 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & acc
                                                       ? accounting.premiumCommerceService.ref()
                                                       : "<empty>") << "; \n";
     strm << indent << "premiumServiceStart = " << (accounting.premiumServiceStart.isSet()
-                                                   ? qute_note::PrintableDateTimeFromTimestamp(accounting.premiumServiceStart.ref())
+                                                   ? qute_note::printableDateTimeFromTimestamp(accounting.premiumServiceStart.ref())
                                                    : "<empty>") << "; \n";
     strm << indent << "premiumServiceSKU = " << (accounting.premiumServiceSKU.isSet()
                                                  ? accounting.premiumServiceSKU.ref()
                                                  : "<empty>") << "; \n";
     strm << indent << "lastSuccessfulCharge = " << (accounting.lastSuccessfulCharge.isSet()
-                                                    ? qute_note::PrintableDateTimeFromTimestamp(accounting.lastSuccessfulCharge.ref())
+                                                    ? qute_note::printableDateTimeFromTimestamp(accounting.lastSuccessfulCharge.ref())
                                                     : "<empty>") << "; \n";
     strm << indent << "lastFailedCharge = " << (accounting.lastFailedCharge.isSet()
-                                                ? qute_note::PrintableDateTimeFromTimestamp(accounting.lastFailedCharge.ref())
+                                                ? qute_note::printableDateTimeFromTimestamp(accounting.lastFailedCharge.ref())
                                                 : "<empty>") << "; \n";
     strm << indent << "lastFailedChargeReason = " << (accounting.lastFailedChargeReason.isSet()
                                                       ? accounting.lastFailedChargeReason.ref()
                                                       : "<empty>") << "; \n";
     strm << indent << "nextPaymentDue = " << (accounting.nextPaymentDue.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(accounting.nextPaymentDue.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(accounting.nextPaymentDue.ref())
                                               : "<empty>") << "; \n";
     strm << indent << "premiumLockUntil = " << (accounting.premiumLockUntil.isSet()
-                                                ? qute_note::PrintableDateTimeFromTimestamp(accounting.premiumLockUntil.ref())
+                                                ? qute_note::printableDateTimeFromTimestamp(accounting.premiumLockUntil.ref())
                                                 : "<empty>") << "; \n";
     strm << indent << "updated = " << (accounting.updated.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(accounting.updated.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(accounting.updated.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "premiumSubscriptionNumber = " << (accounting.premiumSubscriptionNumber.isSet()
                                                          ? accounting.premiumSubscriptionNumber.ref()
                                                          : "<empty>") << "; \n";
     strm << indent << "lastRequestedCharge = " << (accounting.lastRequestedCharge.isSet()
-                                                   ? qute_note::PrintableDateTimeFromTimestamp(accounting.lastRequestedCharge.ref())
+                                                   ? qute_note::printableDateTimeFromTimestamp(accounting.lastRequestedCharge.ref())
                                                    : "<empty>") << "; \n";
     strm << indent << "currency = " << (accounting.currency.isSet() ? accounting.currency.ref() : "<empty>") << "; \n";
     strm << indent << "unitPrice = " << (accounting.unitPrice.isSet() ? QString::number(accounting.unitPrice.ref()) : "<empty>") << "; \n";
@@ -176,7 +176,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & acc
                                             ? QString::number(accounting.unitDiscount.ref())
                                             : "<empty>") << "; \n";
     strm << indent << "nextChargeDate = " << (accounting.nextChargeDate.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(accounting.nextChargeDate.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(accounting.nextChargeDate.ref())
                                               : "<empty>") << "; \n";
 
     strm << "}; \n";
@@ -241,7 +241,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes &
     strm << indent << "comments = " << (attributes.comments.isSet() ? attributes.comments.ref() : "<empty>") << "; \n";
 
     strm << indent << "dateAgreedToTermsOfService = " << (attributes.dateAgreedToTermsOfService.isSet()
-                                                          ? qute_note::PrintableDateTimeFromTimestamp(attributes.dateAgreedToTermsOfService.ref())
+                                                          ? qute_note::printableDateTimeFromTimestamp(attributes.dateAgreedToTermsOfService.ref())
                                                           : "<empty>") << "; \n";
     strm << indent << "maxReferrals = " << (attributes.maxReferrals.isSet()
                                             ? QString::number(attributes.maxReferrals.ref())
@@ -253,7 +253,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes &
                                            ? attributes.refererCode.ref()
                                            : "<empty>") << "; \n";
     strm << indent << "sentEmailDate = " << (attributes.sentEmailDate.isSet()
-                                             ? qute_note::PrintableDateTimeFromTimestamp(attributes.sentEmailDate.ref())
+                                             ? qute_note::printableDateTimeFromTimestamp(attributes.sentEmailDate.ref())
                                              : "<empty>") << "; \n";
     strm << indent << "sentEmailCount = " << (attributes.sentEmailCount.isSet()
                                               ? QString::number(attributes.sentEmailCount.ref())
@@ -262,10 +262,10 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes &
                                                ? QString::number(attributes.dailyEmailLimit.ref())
                                                : "<empty>") << "; \n";
     strm << indent << "emailOptOutDate = " << (attributes.emailOptOutDate.isSet()
-                                               ? qute_note::PrintableDateTimeFromTimestamp(attributes.emailOptOutDate.ref())
+                                               ? qute_note::printableDateTimeFromTimestamp(attributes.emailOptOutDate.ref())
                                                : "<empty>") << "; \n";
     strm << indent << "partnerEmailOptInDate = " << (attributes.partnerEmailOptInDate.isSet()
-                                                     ? qute_note::PrintableDateTimeFromTimestamp(attributes.partnerEmailOptInDate.ref())
+                                                     ? qute_note::printableDateTimeFromTimestamp(attributes.partnerEmailOptInDate.ref())
                                                      : "<empty>") << "; \n";
     strm << indent << "preferredLanguage = " << (attributes.preferredLanguage.isSet()
                                                  ? attributes.preferredLanguage.ref()
@@ -325,7 +325,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
     QString indent = "  ";
 
     strm << indent << "subjectDate = " << (attributes.subjectDate.isSet()
-                                           ? qute_note::PrintableDateTimeFromTimestamp(attributes.subjectDate.ref())
+                                           ? qute_note::printableDateTimeFromTimestamp(attributes.subjectDate.ref())
                                            : "<empty>") << "; \n";
     strm << indent << "latitude = " << (attributes.latitude.isSet()
                                         ? QString::number(attributes.latitude.ref())
@@ -346,16 +346,16 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
                                                  ? attributes.sourceApplication.ref()
                                                  : "<empty>") << "; \n";
     strm << indent << "shareDate = " << (attributes.shareDate.isSet()
-                                         ? qute_note::PrintableDateTimeFromTimestamp(attributes.shareDate.ref())
+                                         ? qute_note::printableDateTimeFromTimestamp(attributes.shareDate.ref())
                                          : "<empty>") << "; \n";
     strm << indent << "reminderOrder = " << (attributes.reminderOrder.isSet()
                                              ? QString::number(attributes.reminderOrder.ref())
                                              : "<empty>") << "; \n";
     strm << indent << "reminderDoneTime = " << (attributes.reminderDoneTime.isSet()
-                                                ? qute_note::PrintableDateTimeFromTimestamp(attributes.reminderDoneTime.ref())
+                                                ? qute_note::printableDateTimeFromTimestamp(attributes.reminderDoneTime.ref())
                                                 : "<empty>") << "; \n";
     strm << indent << "reminderTime = " << (attributes.reminderTime.isSet()
-                                            ? qute_note::PrintableDateTimeFromTimestamp(attributes.reminderTime.ref())
+                                            ? qute_note::printableDateTimeFromTimestamp(attributes.reminderTime.ref())
                                             : "<empty>") << "; \n";
     strm << indent << "placeName = " << (attributes.placeName.isSet()
                                          ? attributes.placeName.ref() : "<empty>") << "; \n";
@@ -1118,10 +1118,10 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Notebook & notebo
                                                ? (notebook.defaultNotebook.ref() ? "true" : "false")
                                                : "<empty>") << "; \n";
     strm << indent << "serviceCreated = " << (notebook.serviceCreated.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(notebook.serviceCreated.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(notebook.serviceCreated.ref())
                                               : "<empty>") << "; \n";
     strm << indent << "serviceUpdated = " << (notebook.serviceUpdated.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(notebook.serviceUpdated.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(notebook.serviceUpdated.ref())
                                               : "<empty>") << "; \n";
 
     strm << indent << "publishing = ";
@@ -1219,10 +1219,10 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & 
     strm << indent << "notebookGuid = " << (sharedNotebook.notebookGuid.isSet() ? sharedNotebook.notebookGuid.ref() : "<empty>") << "; \n";
     strm << indent << "email = " << (sharedNotebook.email.isSet() ? sharedNotebook.email.ref() : "<empty>") << "; \n";
     strm << indent << "serviceCreated = " << (sharedNotebook.serviceCreated.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(sharedNotebook.serviceCreated.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(sharedNotebook.serviceCreated.ref())
                                               : "<empty>") << "; \n";
     strm << indent << "serviceUpdated = " << (sharedNotebook.serviceUpdated.isSet()
-                                              ? qute_note::PrintableDateTimeFromTimestamp(sharedNotebook.serviceUpdated.ref())
+                                              ? qute_note::printableDateTimeFromTimestamp(sharedNotebook.serviceUpdated.ref())
                                               : "<empty>") << "; \n";
 
     strm << indent << "privilege = ";
@@ -1298,13 +1298,13 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
     strm << "; \n";
 
     strm << indent << "created = " << (user.created.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(user.created.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(user.created.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "updated = " << (user.updated.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(user.updated.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(user.updated.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "deleted = " << (user.deleted.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(user.deleted.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(user.deleted.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "active = " << (user.active.isSet()
                                       ? (user.active.ref() ? "true" : "false")
@@ -1467,13 +1467,13 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Note & note)
     strm << indent << "content = " << (note.content.isSet() ? note.content.ref() : "<empty>") << "; \n";
     strm << indent << "contentHash = " << (note.contentHash.isSet() ? note.contentHash.ref() : "<empty>") << "; \n";
     strm << indent << "created = " << (note.created.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(note.created.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(note.created.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "updated = " << (note.updated.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(note.updated.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(note.updated.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "deleted = " << (note.deleted.isSet()
-                                       ? qute_note::PrintableDateTimeFromTimestamp(note.deleted.ref())
+                                       ? qute_note::printableDateTimeFromTimestamp(note.deleted.ref())
                                        : "<empty>") << "; \n";
     strm << indent << "active = " << (note.active.isSet()
                                       ? (note.active.ref() ? "true" : "false")
@@ -1611,7 +1611,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::EvernoteOAuthWebV
     strm << "qevercloud::EvernoteOAuthWebView::OAuthResult {\n";
 
     strm << "noteStoreUrl = " << result.noteStoreUrl << "; \n";
-    strm << "expires = " << qute_note::PrintableDateTimeFromTimestamp(result.expires) << "; \n";
+    strm << "expires = " << qute_note::printableDateTimeFromTimestamp(result.expires) << "; \n";
     strm << "shardId = " << result.shardId << "; \n";
     strm << "userId = " << QString::number(result.userId) << "; \n";
     strm << "webApiUrlPrefix = " << result.webApiUrlPrefix << "; \n";

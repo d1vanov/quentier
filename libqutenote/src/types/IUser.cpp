@@ -603,21 +603,21 @@ QTextStream & IUser::Print(QTextStream & strm) const
     }
 
     if (enUser.created.isSet()) {
-        strm << "created = " << PrintableDateTimeFromTimestamp(enUser.created) << "; \n";
+        strm << "created = " << printableDateTimeFromTimestamp(enUser.created) << "; \n";
     }
     else {
         strm << "created is not set" << "; \n";
     }
 
     if (enUser.updated.isSet()) {
-        strm << "updated = " << PrintableDateTimeFromTimestamp(enUser.updated) << "; \n";
+        strm << "updated = " << printableDateTimeFromTimestamp(enUser.updated) << "; \n";
     }
     else {
         strm << "updated is not set" << "; \n";
     }
 
     if (enUser.deleted.isSet()) {
-        strm << "deleted = " << PrintableDateTimeFromTimestamp(enUser.deleted) << "; \n";
+        strm << "deleted = " << printableDateTimeFromTimestamp(enUser.deleted) << "; \n";
     }
     else {
         strm << "deleted is not set" << "; \n";

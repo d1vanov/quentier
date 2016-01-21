@@ -928,7 +928,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 
     if (d->m_qecNotebook.serviceCreated.isSet()) {
         strm << "creationTimestamp: " << d->m_qecNotebook.serviceCreated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(d->m_qecNotebook.serviceCreated);
+             << printableDateTimeFromTimestamp(d->m_qecNotebook.serviceCreated);
     }
     else {
         strm << "creationTimestamp is not set";
@@ -937,7 +937,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 
     if (d->m_qecNotebook.serviceUpdated.isSet()) {
         strm << "modificationTimestamp: " << d->m_qecNotebook.serviceUpdated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(d->m_qecNotebook.serviceUpdated);
+             << printableDateTimeFromTimestamp(d->m_qecNotebook.serviceUpdated);
     }
     else {
         strm << "modificationTimestamp is not set";

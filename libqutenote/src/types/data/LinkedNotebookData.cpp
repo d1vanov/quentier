@@ -47,7 +47,7 @@ bool LinkedNotebookData::checkParameters(QString & errorDescription) const
         errorDescription = QT_TR_NOOP("Linked notebook's guid is not set");
         return false;
     }
-    else if (!CheckGuid(m_qecLinkedNotebook.guid.ref())) {
+    else if (!checkGuid(m_qecLinkedNotebook.guid.ref())) {
         errorDescription = QT_TR_NOOP("Linked notebook's guid is invalid");
         return false;
     }

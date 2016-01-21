@@ -4,14 +4,14 @@
 
 namespace qute_note {
 
-bool CheckUpdateSequenceNumber(const int32_t updateSequenceNumber)
+bool checkUpdateSequenceNumber(const int32_t updateSequenceNumber)
 {
     return !( (updateSequenceNumber < 0) ||
               (updateSequenceNumber == std::numeric_limits<int32_t>::min()) ||
               (updateSequenceNumber == std::numeric_limits<int32_t>::max()) );
 }
 
-const QString PrintableDateTimeFromTimestamp(const qint64 timestamp)
+const QString printableDateTimeFromTimestamp(const qint64 timestamp)
 {
     QString result = QString::number(timestamp);
     result += " (";

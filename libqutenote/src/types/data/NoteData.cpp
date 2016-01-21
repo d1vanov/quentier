@@ -111,12 +111,12 @@ void NoteData::clear()
 
 bool NoteData::checkParameters(QString & errorDescription) const
 {
-    if (m_qecNote.guid.isSet() && !CheckGuid(m_qecNote.guid.ref())) {
+    if (m_qecNote.guid.isSet() && !checkGuid(m_qecNote.guid.ref())) {
         errorDescription = QT_TR_NOOP("Note's guid is invalid");
         return false;
     }
 
-    if (m_qecNote.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecNote.updateSequenceNum)) {
+    if (m_qecNote.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecNote.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("Note's update sequence number is invalid");
         return false;
     }
@@ -155,7 +155,7 @@ bool NoteData::checkParameters(QString & errorDescription) const
         }
     }
 
-    if (m_qecNote.notebookGuid.isSet() && !CheckGuid(m_qecNote.notebookGuid.ref())) {
+    if (m_qecNote.notebookGuid.isSet() && !checkGuid(m_qecNote.notebookGuid.ref())) {
         errorDescription = QT_TR_NOOP("Note's notebook guid is invalid");
         return false;
     }

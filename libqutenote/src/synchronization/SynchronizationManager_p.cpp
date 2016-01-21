@@ -719,7 +719,7 @@ void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
     appSettings.setValue(keyGroup + WEB_API_URL_PREFIX_KEY, m_pOAuthResult->webApiUrlPrefix);
 
     QNDEBUG("Successfully wrote authentication result info to the application settings. "
-            "Token expiration timestamp = " << PrintableDateTimeFromTimestamp(m_pOAuthResult->expires)
+            "Token expiration timestamp = " << printableDateTimeFromTimestamp(m_pOAuthResult->expires)
             << ", user id = " << m_pOAuthResult->userId << ", web API url prefix = "
             << m_pOAuthResult->webApiUrlPrefix);
 

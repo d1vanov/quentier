@@ -699,7 +699,7 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     if (d->m_qecNote.created.isSet()) {
         strm << "creationTimestamp: " << d->m_qecNote.created << ", datetime: "
-             << PrintableDateTimeFromTimestamp(d->m_qecNote.created);
+             << printableDateTimeFromTimestamp(d->m_qecNote.created);
     }
     else {
         strm << "creationTimestamp is not set";
@@ -708,7 +708,7 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     if (d->m_qecNote.updated.isSet()) {
         strm << "modificationTimestamp: " << d->m_qecNote.updated << ", datetime: "
-             << PrintableDateTimeFromTimestamp(d->m_qecNote.updated);
+             << printableDateTimeFromTimestamp(d->m_qecNote.updated);
     }
     else {
         strm << "modificationTimestamp is not set";
@@ -717,7 +717,7 @@ QTextStream & Note::Print(QTextStream & strm) const
 
     if (d->m_qecNote.deleted.isSet()) {
         strm << "deletionTimestamp: " << d->m_qecNote.deleted << ", datetime: "
-             << PrintableDateTimeFromTimestamp(d->m_qecNote.deleted);
+             << printableDateTimeFromTimestamp(d->m_qecNote.deleted);
     }
     else {
         strm << "deletionTimestamp is not set";

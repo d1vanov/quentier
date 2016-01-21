@@ -352,7 +352,7 @@ QTextStream & ISharedNotebook::Print(QTextStream & strm) const
 
     if (sharedNotebook.serviceCreated.isSet()) {
         strm << "creationTimestamp: " << QString::number(sharedNotebook.serviceCreated)
-             << ", datetime: " << PrintableDateTimeFromTimestamp(sharedNotebook.serviceCreated);
+             << ", datetime: " << printableDateTimeFromTimestamp(sharedNotebook.serviceCreated);
     }
     else {
         strm << "creationTimestamp is not set";
@@ -361,7 +361,7 @@ QTextStream & ISharedNotebook::Print(QTextStream & strm) const
 
     if (sharedNotebook.serviceUpdated.isSet()) {
         strm << "modificationTimestamp: " << QString::number(sharedNotebook.serviceUpdated)
-             << ", datetime: " << PrintableDateTimeFromTimestamp(sharedNotebook.serviceUpdated);
+             << ", datetime: " << printableDateTimeFromTimestamp(sharedNotebook.serviceUpdated);
     }
     else {
         strm << "modificationTimestamp is not set";

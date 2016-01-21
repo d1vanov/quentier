@@ -39,7 +39,7 @@ void SavedSearchData::clear()
 
 bool SavedSearchData::checkParameters(QString &errorDescription) const
 {
-    if (m_qecSearch.guid.isSet() && !CheckGuid(m_qecSearch.guid.ref())) {
+    if (m_qecSearch.guid.isSet() && !checkGuid(m_qecSearch.guid.ref())) {
         errorDescription = QT_TR_NOOP("Saved search's guid is invalid: ") + m_qecSearch.guid;
         return false;
     }
@@ -66,7 +66,7 @@ bool SavedSearchData::checkParameters(QString &errorDescription) const
         }
     }
 
-    if (m_qecSearch.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {
+    if (m_qecSearch.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("Saved search's update sequence number is invalid: ");
         errorDescription.append(QString::number(m_qecSearch.updateSequenceNum));
         return false;

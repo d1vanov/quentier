@@ -606,7 +606,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & err
     {
         column = "guid";
         value = notebook.guid();
-        if (!CheckGuid(value)) {
+        if (!checkGuid(value)) {
             // TRANSLATOR explaining the reason of error
             errorDescription += QT_TR_NOOP("requested guid is invalid");
             QNWARNING(errorDescription);
@@ -861,7 +861,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
     QList<qevercloud::SharedNotebook> sharedNotebooks;
     QString errorPrefix = QT_TR_NOOP("Can't list shared notebooks per notebook guid: ");
 
-    if (!CheckGuid(notebookGuid)) {
+    if (!checkGuid(notebookGuid)) {
         errorDescription = errorPrefix + QT_TR_NOOP("notebook guid is invalid");
         QNWARNING(errorDescription);
         return sharedNotebooks;
@@ -925,7 +925,7 @@ bool LocalStorageManagerPrivate::expungeNotebook(const Notebook & notebook, QStr
         column = "guid";
         guid = notebook.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining the reason of error
             errorDescription += QT_TR_NOOP("notebook's guid is invalid");
             QNWARNING(errorDescription);
@@ -1054,7 +1054,7 @@ bool LocalStorageManagerPrivate::findLinkedNotebook(LinkedNotebook & linkedNoteb
 
     QString notebookGuid = linkedNotebook.guid();
     QNDEBUG("guid = " << notebookGuid);
-    if (!CheckGuid(notebookGuid)) {
+    if (!checkGuid(notebookGuid)) {
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("guid is invalid");
         QNWARNING(errorDescription);
@@ -1114,7 +1114,7 @@ bool LocalStorageManagerPrivate::expungeLinkedNotebook(const LinkedNotebook & li
 
     const QString linkedNotebookGuid = linkedNotebook.guid();
 
-    if (!CheckGuid(linkedNotebookGuid)) {
+    if (!checkGuid(linkedNotebookGuid)) {
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("linked notebook's guid is invalid");
         QNWARNING(errorDescription);
@@ -1338,7 +1338,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
         column = "guid";
         guid = note.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why note cannot be found
             errorDescription += QT_TR_NOOP("requested note guid is invalid");
             QNWARNING(errorDescription);
@@ -1501,7 +1501,7 @@ QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook &
         column = "notebookGuid";
         guid = notebook.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why notes per notebook cannot be listed
             errorDescription = errorPrefix + QT_TR_NOOP("notebook guid is invalid");
             QNWARNING(errorDescription);
@@ -1629,7 +1629,7 @@ bool LocalStorageManagerPrivate::deleteNote(const Note & note, QString & errorDe
         column = "guid";
         guid = note.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why note cannot be marked as deleted in local storage
             errorDescription += QT_TR_NOOP("requested note guid is invalid");
             QNWARNING(errorDescription);
@@ -1675,7 +1675,7 @@ bool LocalStorageManagerPrivate::expungeNote(const Note & note, QString & errorD
         column = "guid";
         guid = note.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why note cannot be expunged from local storage
             errorDescription += QT_TR_NOOP("requested note guid is invalid");
             QNWARNING(errorDescription);
@@ -2065,7 +2065,7 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
         column = "guid";
         value = tag.guid();
 
-        if (!CheckGuid(value)) {
+        if (!checkGuid(value)) {
             // TRANSLATION explaining why tag cannot be found in local storage
             errorDescription = errorPrefix + QT_TR_NOOP("requested tag guid is invalid");
             QNWARNING(errorDescription);
@@ -2134,7 +2134,7 @@ QList<Tag> LocalStorageManagerPrivate::listAllTagsPerNote(const Note & note, QSt
         column = "note";
         guid = note.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why all tags per note cannot be listed
             errorDescription = errorPrefix + QT_TR_NOOP("note's guid is invalid");
             QNWARNING(errorDescription);
@@ -2331,7 +2331,7 @@ bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QString & 
         column = "resourceGuid";
         guid = resource.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why resource cannot be found in local storage
             errorDescription += QT_TR_NOOP("requested resource guid is invalid");
             QNWARNING(errorDescription);
@@ -2386,7 +2386,7 @@ bool LocalStorageManagerPrivate::expungeEnResource(const IResource & resource, Q
         column = "resourceGuid";
         guid = resource.guid();
 
-        if (!CheckGuid(guid)) {
+        if (!checkGuid(guid)) {
             // TRANSLATOR explaining why resource could not be expunged from local storage
             errorDescription += QT_TR_NOOP("requested resource guid is invalid");
             QNWARNING(errorDescription);
@@ -2582,7 +2582,7 @@ bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QString &
         column = "guid";
         value = search.guid();
 
-        if (!CheckGuid(value)) {
+        if (!checkGuid(value)) {
             errorDescription += QT_TR_NOOP("requested saved search guid is invalid");
             return false;
         }
@@ -6801,7 +6801,7 @@ bool LocalStorageManagerPrivate::findAndSetTagGuidsPerNote(Note & note, QString 
             return false;
         }
 
-        if (!CheckGuid(tagGuid)) {
+        if (!checkGuid(tagGuid)) {
             errorDescription += QT_TR_NOOP("found invalid tag guid for requested note");
             return false;
         }

@@ -43,17 +43,17 @@ NotebookData::~NotebookData()
 
 bool NotebookData::checkParameters(QString & errorDescription) const
 {
-    if (m_qecNotebook.guid.isSet() && !CheckGuid(m_qecNotebook.guid.ref())) {
+    if (m_qecNotebook.guid.isSet() && !checkGuid(m_qecNotebook.guid.ref())) {
         errorDescription = QT_TR_NOOP("Notebook's guid is invalid: ") + m_qecNotebook.guid;
         return false;
     }
 
-    if (m_linkedNotebookGuid.isSet() && !CheckGuid(m_linkedNotebookGuid.ref())) {
+    if (m_linkedNotebookGuid.isSet() && !checkGuid(m_linkedNotebookGuid.ref())) {
         errorDescription = QT_TR_NOOP("Notebook's linked notebook guid is invalid: ") + m_linkedNotebookGuid;
         return false;
     }
 
-    if (m_qecNotebook.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
+    if (m_qecNotebook.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("Notebook's update sequence number is invalid: ") +
                            QString::number(m_qecNotebook.updateSequenceNum);
         return false;
@@ -79,7 +79,7 @@ bool NotebookData::checkParameters(QString & errorDescription) const
                 return false;
             }
 
-            if (sharedNotebook.notebookGuid.isSet() && !CheckGuid(sharedNotebook.notebookGuid.ref())) {
+            if (sharedNotebook.notebookGuid.isSet() && !checkGuid(sharedNotebook.notebookGuid.ref())) {
                 errorDescription = QT_TR_NOOP("Notebook has shared notebook with invalid guid");
                 return false;
             }

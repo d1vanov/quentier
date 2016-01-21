@@ -111,17 +111,17 @@ bool IResource::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (enResource.guid.isSet() && !CheckGuid(enResource.guid.ref())) {
+    if (enResource.guid.isSet() && !checkGuid(enResource.guid.ref())) {
         errorDescription = QT_TR_NOOP("Resource's guid is invalid");
         return false;
     }
 
-    if (enResource.updateSequenceNum.isSet() && !CheckUpdateSequenceNumber(enResource.updateSequenceNum)) {
+    if (enResource.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(enResource.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("Resource's update sequence number is invalid");
         return false;
     }
 
-    if (enResource.noteGuid.isSet() && !CheckGuid(enResource.noteGuid.ref())) {
+    if (enResource.noteGuid.isSet() && !checkGuid(enResource.noteGuid.ref())) {
         errorDescription = QT_TR_NOOP("Resource's note guid is invalid");
         return false;
     }
