@@ -32,7 +32,6 @@ public:
 
     virtual ~INoteStoreDataElement() {}
 
-protected:
     virtual QTextStream & Print(QTextStream & strm) const = 0;
 };
 

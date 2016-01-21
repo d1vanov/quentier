@@ -26,13 +26,13 @@ public:
     ResourceAdapter & operator=(const ResourceAdapter & other);
     virtual ~ResourceAdapter();
 
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
     friend class Note;
 
 private:
     virtual const qevercloud::Resource & GetEnResource() const Q_DECL_OVERRIDE;
     virtual qevercloud::Resource & GetEnResource() Q_DECL_OVERRIDE;
-
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     ResourceAdapter() Q_DECL_DELETE;
 

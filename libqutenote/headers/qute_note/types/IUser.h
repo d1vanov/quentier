@@ -88,6 +88,8 @@ public:
     const qevercloud::BusinessUserInfo & businessUserInfo() const;
     void setBusinessUserInfo(qevercloud::BusinessUserInfo && info);
 
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
     friend class Notebook;
 
 protected:
@@ -100,8 +102,6 @@ protected:
     virtual qevercloud::User & GetEnUser() = 0;
 
 private:
-    virtual QTextStream & Print(QTextStream & strm) const;
-
     bool m_isDirty;
     bool m_isLocal;
 };

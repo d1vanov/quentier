@@ -118,9 +118,9 @@ public:
     bool containsTodo() const;
     bool containsEncryption() const;
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+private:
     QSharedDataPointer<NoteData> d;
 };
 

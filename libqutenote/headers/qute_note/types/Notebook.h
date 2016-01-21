@@ -190,9 +190,9 @@ public:
     bool hasRestrictions() const;
     const qevercloud::NotebookRestrictions & restrictions() const;
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+private:
     QSharedDataPointer<NotebookData> d;
 };
 

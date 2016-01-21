@@ -80,9 +80,9 @@ public:
     qint32 businessId() const;
     void setBusinessId(const qint32 businessId);
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+private:
     // hide useless methods inherited from the base class from the public interface
     virtual const QString localGuid() const Q_DECL_OVERRIDE { return QString(); }
     virtual void setLocalGuid(const QString &) Q_DECL_OVERRIDE {}

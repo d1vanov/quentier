@@ -62,7 +62,6 @@ public:
     const QString & linkedNotebookGuid() const;
     void setLinkedNotebookGuid(const QString & linkedNotebookGuid);
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:

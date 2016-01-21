@@ -124,14 +124,14 @@ public:
     friend class Note;
     friend class ResourceWrapper;
 
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
 protected:
     IResource(const IResource & other);
     IResource & operator=(const IResource & other);
 
     virtual const qevercloud::Resource & GetEnResource() const = 0;
     virtual qevercloud::Resource & GetEnResource() = 0;
-
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     QSharedDataPointer<NoteStoreDataElementData>  d;

@@ -32,9 +32,9 @@ public:
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const Q_DECL_OVERRIDE;
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() Q_DECL_OVERRIDE;
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+private:
     SharedNotebookAdapter() Q_DECL_DELETE;
 
     qevercloud::SharedNotebook * m_pEnSharedNotebook;

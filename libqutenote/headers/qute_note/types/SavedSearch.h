@@ -75,7 +75,6 @@ public:
     bool includeBusinessLinkedNotebooks() const;
     void setIncludeBusinessLinkedNotebooks(const bool includeBusinessLinkedNotebooks);
 
-private:
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
