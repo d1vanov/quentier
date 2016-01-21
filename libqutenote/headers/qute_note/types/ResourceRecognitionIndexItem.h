@@ -53,6 +53,8 @@ public:
     QString content() const;
     void setContent(const QString & content);
 
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
 private:
     QSharedDataPointer<ResourceRecognitionIndexItemData> d;
 };

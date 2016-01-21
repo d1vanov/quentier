@@ -95,7 +95,7 @@ bool ResourceRecognitionIndexItem::removeStroke(const int stroke)
         return false;
     }
 
-    d->m_strokeList.removeAt(index);
+    d->m_strokeList.remove(index);
     return true;
 }
 
@@ -106,7 +106,7 @@ bool ResourceRecognitionIndexItem::removeStrokeAt(const int strokeIndex)
         return false;
     }
 
-    d->m_strokeList.removeAt(strokeIndex);
+    d->m_strokeList.remove(strokeIndex);
     return true;
 }
 
@@ -148,6 +148,12 @@ QString ResourceRecognitionIndexItem::content() const
 void ResourceRecognitionIndexItem::setContent(const QString & content)
 {
     d->m_content = content;
+}
+
+QTextStream & ResourceRecognitionIndexItem::Print(QTextStream & strm) const
+{
+    // TODO: implement
+    return strm;
 }
 
 } // namespace qute_note

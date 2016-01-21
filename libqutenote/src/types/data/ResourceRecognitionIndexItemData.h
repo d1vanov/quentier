@@ -6,7 +6,6 @@
 #include <QString>
 
 namespace qute_note {
-
 class ResourceRecognitionIndexItemData: public QSharedData
 {
 public:
