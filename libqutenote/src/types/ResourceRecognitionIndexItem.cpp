@@ -82,6 +82,11 @@ void ResourceRecognitionIndexItem::setStrokeList(const QVector<int> & strokeList
     d->m_strokeList = strokeList;
 }
 
+void ResourceRecognitionIndexItem::reserveStrokeListSpace(const int numItems)
+{
+    d->m_strokeList.reserve(numItems);
+}
+
 void ResourceRecognitionIndexItem::addStroke(const int stroke)
 {
     d->m_strokeList.push_back(stroke);
@@ -110,49 +115,287 @@ bool ResourceRecognitionIndexItem::removeStrokeAt(const int strokeIndex)
     return true;
 }
 
-QString ResourceRecognitionIndexItem::type() const
+QVector<ResourceRecognitionIndexItem::TextItem> ResourceRecognitionIndexItem::textItems() const
 {
-    return d->m_type;
+    return d->m_textItems;
 }
 
-void ResourceRecognitionIndexItem::setType(const QString & type)
+void ResourceRecognitionIndexItem::setTextItems(const QVector<TextItem> & textItems)
 {
-    d->m_type = type;
+    d->m_textItems = textItems;
 }
 
-QString ResourceRecognitionIndexItem::objectType() const
+void ResourceRecognitionIndexItem::reserveTextItemsSpace(const int numItems)
 {
-    return d->m_objectType;
+    d->m_textItems.reserve(numItems);
 }
 
-void ResourceRecognitionIndexItem::setObjectType(const QString & objectType)
+void ResourceRecognitionIndexItem::addTextItem(const TextItem & item)
 {
-    d->m_objectType = objectType;
+    d->m_textItems.push_back(item);
 }
 
-QString ResourceRecognitionIndexItem::shapeType() const
+bool ResourceRecognitionIndexItem::removeTextItem(const TextItem & item)
 {
-    return d->m_shapeType;
+    const QVector<TextItem> & textItems = d.constData()->m_textItems;
+    int index = textItems.indexOf(item);
+    if (index < 0) {
+        return false;
+    }
+
+    d->m_textItems.remove(index);
+    return true;
 }
 
-void ResourceRecognitionIndexItem::setShapeType(const QString & shapeType)
+bool ResourceRecognitionIndexItem::removeTextItemAt(const int textItemIndex)
 {
-    d->m_shapeType = shapeType;
+    const QVector<TextItem> & textItems = d.constData()->m_textItems;
+    if (textItems.size() <= textItemIndex) {
+        return false;
+    }
+
+    d->m_textItems.remove(textItemIndex);
+    return true;
 }
 
-QString ResourceRecognitionIndexItem::content() const
+QVector<ResourceRecognitionIndexItem::ObjectItem> ResourceRecognitionIndexItem::objectItems() const
 {
-    return d->m_content;
+    return d->m_objectItems;
 }
 
-void ResourceRecognitionIndexItem::setContent(const QString & content)
+void ResourceRecognitionIndexItem::setObjectItems(const QVector<ObjectItem> & objectItems)
 {
-    d->m_content = content;
+    d->m_objectItems = objectItems;
+}
+
+void ResourceRecognitionIndexItem::reserveObjectItemsSpace(const int numItems)
+{
+    d->m_objectItems.reserve(numItems);
+}
+
+void ResourceRecognitionIndexItem::addObjectItem(const ObjectItem & item)
+{
+    d->m_objectItems.push_back(item);
+}
+
+bool ResourceRecognitionIndexItem::removeObjectItem(const ObjectItem & item)
+{
+    const QVector<ObjectItem> & objectItems = d.constData()->m_objectItems;
+    int index = objectItems.indexOf(item);
+    if (index < 0) {
+        return false;
+    }
+
+    d->m_objectItems.remove(index);
+    return true;
+}
+
+bool ResourceRecognitionIndexItem::removeObjectItemAt(const int objectItemIndex)
+{
+    const QVector<ObjectItem> & objectItems = d.constData()->m_objectItems;
+    if (objectItems.size() <= objectItemIndex) {
+        return false;
+    }
+
+    d->m_objectItems.remove(objectItemIndex);
+    return true;
+}
+
+QVector<ResourceRecognitionIndexItem::ShapeItem> ResourceRecognitionIndexItem::shapeItems() const
+{
+    return d->m_shapeItems;
+}
+
+void ResourceRecognitionIndexItem::setShapeItems(const QVector<ShapeItem> & shapeItems)
+{
+    d->m_shapeItems = shapeItems;
+}
+
+void ResourceRecognitionIndexItem::reserveShapeItemsSpace(const int numItems)
+{
+    d->m_shapeItems.reserve(numItems);
+}
+
+void ResourceRecognitionIndexItem::addShapeItem(const ShapeItem & item)
+{
+    d->m_shapeItems.push_back(item);
+}
+
+bool ResourceRecognitionIndexItem::removeShapeItem(const ShapeItem & item)
+{
+    const QVector<ShapeItem> & shapeItems = d.constData()->m_shapeItems;
+    int index = shapeItems.indexOf(item);
+    if (index < 0) {
+        return false;
+    }
+
+    d->m_shapeItems.remove(index);
+    return true;
+}
+
+bool ResourceRecognitionIndexItem::removeShapeItemAt(const int shapeItemIndex)
+{
+    const QVector<ShapeItem> & shapeItems = d.constData()->m_shapeItems;
+    if (shapeItems.size() <= shapeItemIndex) {
+        return false;
+    }
+
+    d->m_shapeItems.remove(shapeItemIndex);
+    return true;
+}
+
+QVector<ResourceRecognitionIndexItem::BarcodeItem> ResourceRecognitionIndexItem::barcodeItems() const
+{
+    return d->m_barcodeItems;
+}
+
+void ResourceRecognitionIndexItem::setBarcodeItems(const QVector<BarcodeItem> & barcodeItems)
+{
+    d->m_barcodeItems = barcodeItems;
+}
+
+void ResourceRecognitionIndexItem::reserveBarcodeItemsSpace(const int numItems)
+{
+    d->m_barcodeItems.reserve(numItems);
+}
+
+void ResourceRecognitionIndexItem::addBarcodeItem(const BarcodeItem & item)
+{
+    d->m_barcodeItems.push_back(item);
+}
+
+bool ResourceRecognitionIndexItem::removeBarcodeItem(const BarcodeItem & item)
+{
+    const QVector<BarcodeItem> & barcodeItems = d.constData()->m_barcodeItems;
+    int index = barcodeItems.indexOf(item);
+    if (index < 0) {
+        return false;
+    }
+
+    d->m_barcodeItems.remove(index);
+    return true;
+}
+
+bool ResourceRecognitionIndexItem::removeBarcodeItemAt(const int barcodeItemIndex)
+{
+    const QVector<BarcodeItem> & barcodeItems = d.constData()->m_barcodeItems;
+    if (barcodeItems.size() <= barcodeItemIndex) {
+        return false;
+    }
+
+    d->m_barcodeItems.remove(barcodeItemIndex);
+    return true;
 }
 
 QTextStream & ResourceRecognitionIndexItem::Print(QTextStream & strm) const
 {
-    // TODO: implement
+    strm << "ResourceRecognitionIndexItem: {\n";
+
+    if (d->m_x >= 0) {
+        strm << "  x = " << d->m_x << ";\n";
+    }
+    else {
+        strm << "  x is not set;\n";
+    }
+
+    if (d->m_y >= 0) {
+        strm << "  y = " << d->m_y << ";\n";
+    }
+    else {
+        strm << "  y is not set;\n";
+    }
+
+    if (d->m_h >= 0) {
+        strm << "  h = " << d->m_h << ";\n";
+    }
+    else {
+        strm << "  h is not set;\n";
+    }
+
+    if (d->m_w >= 0) {
+        strm << "  w = " << d->m_w << ";\n";
+    }
+    else {
+        strm << "  w is not set;\n";
+    }
+
+    if (d->m_offset >= 0) {
+        strm << "  offset = " << d->m_offset << ";\n";
+    }
+    else {
+        strm << "  offset is not set;\n";
+    }
+
+    if (d->m_duration >= 0) {
+        strm << "  duration = " << d->m_duration << ";\n";
+    }
+    else {
+        strm << "  duration is not set;\n";
+    }
+
+    if (!d->m_strokeList.isEmpty())
+    {
+        strm << "  stroke list: ";
+        for(auto it = d->m_strokeList.begin(), end = d->m_strokeList.end(); it != end; ++it) {
+            strm << *it << " ";
+        }
+        strm << ";\n";
+    }
+    else
+    {
+        strm << "  stroke list is not set;\n";
+    }
+
+    if (!d->m_textItems.isEmpty())
+    {
+        strm << "  text items: \n";
+        for(auto it = d->m_textItems.begin(), end = d->m_textItems.end(); it != end; ++it) {
+            strm << "    text: " << it->m_text << "; weight = " << it->m_weight << ";\n";
+        }
+    }
+    else
+    {
+        strm << "  text items are not set;\n";
+    }
+
+    if (!d->m_objectItems.isEmpty())
+    {
+        strm << "  object items: \n";
+        for(auto it = d->m_objectItems.begin(), end = d->m_objectItems.end(); it != end; ++it) {
+            strm << "    object type: " << it->m_objectType << "; weight: " << it->m_weight << ";\n";
+        }
+    }
+    else
+    {
+        strm << "  object items are not set;\n";
+    }
+
+    if (!d->m_shapeItems.isEmpty())
+    {
+        strm << "  shape items: \n";
+        for(auto it = d->m_shapeItems.begin(), end = d->m_shapeItems.end(); it != end; ++it) {
+            strm << "    shape type: " << it->m_shapeType << "; weight: " << it->m_weight << ";\n";
+        }
+    }
+    else
+    {
+        strm << "  shape items are not set;\n";
+    }
+
+    if (!d->m_barcodeItems.isEmpty())
+    {
+        strm << "  barcode items: \n";
+        for(auto it = d->m_barcodeItems.begin(), end = d->m_barcodeItems.end(); it != end; ++it) {
+            strm << "    barcode: " << it->m_barcode << "; weight: " << it->m_weight << ";\n";
+        }
+    }
+    else
+    {
+        strm << "  barcode items are not set;\n";
+    }
+
+    strm << "};\n";
+
     return strm;
 }
 

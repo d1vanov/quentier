@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__TYPES__DATA__RESOURCE_RECOGNITION_INDEX_ITEM_DATA_H
 #define __LIB_QUTE_NOTE__TYPES__DATA__RESOURCE_RECOGNITION_INDEX_ITEM_DATA_H
 
+#include <qute_note/types/ResourceRecognitionIndexItem.h>
 #include <QSharedData>
 #include <QVector>
 #include <QString>
@@ -22,10 +23,18 @@ public:
     int m_duration;
 
     QVector<int>    m_strokeList;
-    QString         m_type;
-    QString         m_objectType;
-    QString         m_shapeType;
-    QString         m_content;
+
+    typedef ResourceRecognitionIndexItem::TextItem TextItem;
+    QVector<TextItem>   m_textItems;
+
+    typedef ResourceRecognitionIndexItem::ObjectItem ObjectItem;
+    QVector<ObjectItem> m_objectItems;
+
+    typedef ResourceRecognitionIndexItem::ShapeItem ShapeItem;
+    QVector<ShapeItem>  m_shapeItems;
+
+    typedef ResourceRecognitionIndexItem::BarcodeItem BarcodeItem;
+    QVector<BarcodeItem>    m_barcodeItems;
 };
 
 } // namespace qute_note

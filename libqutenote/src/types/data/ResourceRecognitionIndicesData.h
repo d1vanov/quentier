@@ -6,6 +6,8 @@
 #include <QByteArray>
 #include <QSharedData>
 
+QT_FORWARD_DECLARE_CLASS(QXmlStreamAttributes)
+
 namespace qute_note {
 
 class ResourceRecognitionIndicesData: public QSharedData
@@ -28,6 +30,13 @@ public:
     int         m_objectWidth;
 
     QVector<ResourceRecognitionIndexItem>   m_items;
+
+private:
+    void clear();
+    void parseRecoIndexAttributes(const QXmlStreamAttributes & attributes);
+    void parseCommonItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
+    void parseTextItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
+    void parseObjectItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
 };
 
 } // namespace qute_note

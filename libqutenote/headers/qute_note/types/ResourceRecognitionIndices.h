@@ -2,7 +2,6 @@
 #define __LIB_QUTE_NOTE__TYPES__RESOURCE_RECOGNITION_INDICES_H
 
 #include <qute_note/types/ResourceRecognitionIndexItem.h>
-#include <qute_note/utility/Linkage.h>
 #include <QByteArray>
 #include <QSharedDataPointer>
 #include <QVector>
@@ -11,7 +10,7 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(ResourceRecognitionIndicesData)
 
-class ResourceRecognitionIndices
+class QUTE_NOTE_EXPORT ResourceRecognitionIndices: public Printable
 {
 public:
     ResourceRecognitionIndices();
@@ -33,6 +32,8 @@ public:
     QVector<ResourceRecognitionIndexItem> items() const;
 
     void setData(const QByteArray & rawRecognitionIndicesData);
+
+    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     QSharedDataPointer<ResourceRecognitionIndicesData> d;
