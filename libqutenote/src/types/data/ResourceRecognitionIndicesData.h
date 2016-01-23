@@ -33,6 +33,8 @@ public:
 
 private:
     void clear();
+    void restoreFrom(const ResourceRecognitionIndicesData & data);
+
     void parseRecoIndexAttributes(const QXmlStreamAttributes & attributes);
     void parseCommonItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
     void parseTextItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;

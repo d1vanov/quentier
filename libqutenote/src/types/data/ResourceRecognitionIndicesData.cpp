@@ -110,11 +110,12 @@ void ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIn
                 continue;
             }
 
+            ResourceRecognitionIndexItem & item = m_items.last();
+
             if (lastElementName == "t") {
-                // TODO: parse text item's attributes into the last item
+                parseTextItemAttributes(lastElementAttributes, item);
             }
             else if (lastElementName == "object") {
-                ResourceRecognitionIndexItem & item = m_items.last();
                 parseObjectItemAttributes(lastElementAttributes, item);
             }
             else if (lastElementName == "shape") {
@@ -145,7 +146,7 @@ void ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIn
     if (reader.hasError()) {
         QNWARNING("Failed to parse resource recognition indices data: " << reader.errorString()
                  << " (error code " << reader.error() << ", original raw data: " << rawRecognitionIndicesData);
-        // TODO: restore the object from the backup
+        restoreFrom(backup);
         return;
     }
 
@@ -202,7 +203,11 @@ void ResourceRecognitionIndicesData::parseRecoIndexAttributes(const QXmlStreamAt
         else if (name == "objHeight")
         {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int objectHeight = value.toInt(&conversionResult);
+#else
+            int objectHeight = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 m_objectHeight = objectHeight;
             }
@@ -210,7 +215,11 @@ void ResourceRecognitionIndicesData::parseRecoIndexAttributes(const QXmlStreamAt
         else if (name == "objWidth")
         {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int objectWidth = value.toInt(&conversionResult);
+#else
+            int objectWidth = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 m_objectWidth = objectWidth;
             }
@@ -232,42 +241,66 @@ void ResourceRecognitionIndicesData::parseCommonItemAttributes(const QXmlStreamA
 
         if (name == "x") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int x = value.toInt(&conversionResult);
+#else
+            int x = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 item.setX(x);
             }
         }
         else if (name == "y") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int y = value.toInt(&conversionResult);
+#else
+            int y = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 item.setY(y);
             }
         }
         else if (name == "h") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int h = value.toInt(&conversionResult);
+#else
+            int h = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 item.setH(h);
             }
         }
         else if (name == "w") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int w = value.toInt(&conversionResult);
+#else
+            int w = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 item.setW(w);
             }
         }
         else if (name == "offset") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int offset = value.toInt(&conversionResult);
+#else
+            int offset = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 item.setOffset(offset);
             }
         }
         else if (name == "duration") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int duration = value.toInt(&conversionResult);
+#else
+            int duration = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 item.setDuration(duration);
             }
@@ -286,6 +319,42 @@ void ResourceRecognitionIndicesData::parseCommonItemAttributes(const QXmlStreamA
             }
         }
     }
+}
+
+void ResourceRecognitionIndicesData::parseTextItemAttributes(const QXmlStreamAttributes & attributes,
+                                                             ResourceRecognitionIndexItem & item) const
+{
+    QNTRACE("ResourceRecognitionIndicesData::parseTextItemAttributes: " << attributes);
+
+    int weight = -1;
+
+    for(auto it = attributes.begin(), end = attributes.end(); it != end; ++it)
+    {
+        const QXmlStreamAttribute & attribute = *it;
+
+        const QStringRef & name = attribute.name();
+        const QStringRef & value = attribute.value();
+
+        if (name == "w") {
+            bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
+            int parsedWeight = value.toInt(&conversionResult);
+#else
+            int parsedWeight = value.toString().toInt(&conversionResult);
+#endif
+            if (conversionResult) {
+                weight = parsedWeight;
+            }
+        }
+    }
+
+    if (weight < 0) {
+        return;
+    }
+
+    ResourceRecognitionIndexItem::TextItem textItem;
+    textItem.m_weight = weight;
+    item.addTextItem(textItem);
 }
 
 void ResourceRecognitionIndicesData::parseObjectItemAttributes(const QXmlStreamAttributes & attributes,
@@ -308,7 +377,11 @@ void ResourceRecognitionIndicesData::parseObjectItemAttributes(const QXmlStreamA
         }
         else if (name == "w") {
             bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 1, 0)
             int parsedWeight = value.toInt(&conversionResult);
+#else
+            int parsedWeight = value.toString().toInt(&conversionResult);
+#endif
             if (conversionResult) {
                 weight = parsedWeight;
             }
@@ -324,6 +397,23 @@ void ResourceRecognitionIndicesData::parseObjectItemAttributes(const QXmlStreamA
     objectItem.m_weight = weight;
     item.addObjectItem(objectItem);
     QNTRACE("Added object item: type = " << objectType << ", weight = " << weight);
+}
+
+void ResourceRecognitionIndicesData::restoreFrom(const ResourceRecognitionIndicesData & data)
+{
+    QNTRACE("ResourceRecognitionIndicesData::restoreFrom");
+
+    m_isNull = data.m_isNull;
+
+    m_objectId = data.m_objectId;
+    m_objectType = data.m_objectType;
+    m_recoType = data.m_recoType;
+    m_engineVersion = data.m_engineVersion;
+    m_docType = data.m_docType;
+    m_lang = data.m_lang;
+    m_objectHeight = data.m_objectHeight;
+    m_objectWidth = data.m_objectWidth;
+    m_items = data.m_items;
 }
 
 } // namespace qute_note

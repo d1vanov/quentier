@@ -36,6 +36,9 @@ public:
     void setDuration(const int duration);
 
     QVector<int> strokeList() const;
+    int numStrokes() const;
+    bool strokeAt(const int strokeIndex, int & stroke) const;
+    bool setStrokeAt(const int strokeIndex, const int stroke);
     void setStrokeList(const QVector<int> & strokeList);
     void reserveStrokeListSpace(const int numItems);
     void addStroke(const int stroke);
@@ -53,6 +56,9 @@ public:
     };
 
     QVector<TextItem> textItems() const;
+    int numTextItems() const;
+    bool textItemAt(const int textItemIndex, TextItem & textItem) const;
+    bool setTextItemAt(const int textItemIndex, const TextItem & textItem);
     void setTextItems(const QVector<TextItem> & textItems);
     void reserveTextItemsSpace(const int numItems);
     void addTextItem(const TextItem & item);
@@ -70,6 +76,9 @@ public:
     };
 
     QVector<ObjectItem> objectItems() const;
+    int numObjectItems() const;
+    bool objectItemAt(const int objectItemIndex, ObjectItem & objectItem) const;
+    bool setObjectItemAt(const int objectItemIndex, const ObjectItem & objectItem);
     void setObjectItems(const QVector<ObjectItem> & objectItems);
     void reserveObjectItemsSpace(const int numItems);
     void addObjectItem(const ObjectItem & item);
@@ -87,6 +96,9 @@ public:
     };
 
     QVector<ShapeItem> shapeItems() const;
+    int numShapeItems() const;
+    bool shapeItemAt(const int shapeItemIndex, ShapeItem & shapeItem) const;
+    bool setShapeItemAt(const int shapeItemIndex, const ShapeItem & shapeItem);
     void setShapeItems(const QVector<ShapeItem> & shapeItems);
     void reserveShapeItemsSpace(const int numItems);
     void addShapeItem(const ShapeItem & item);
@@ -104,6 +116,9 @@ public:
     };
 
     QVector<BarcodeItem> barcodeItems() const;
+    int numBarcodeItems() const;
+    bool barcodeItemAt(const int barcodeItemIndex, BarcodeItem & barcodeItem) const;
+    bool setBarcodeItemAt(const int barcodeItemIndex, const BarcodeItem & barcodeItem);
     void setBarcodeItems(const QVector<BarcodeItem> & barcodeItems);
     void reserveBarcodeItemsSpace(const int numItems);
     void addBarcodeItem(const BarcodeItem & item);
