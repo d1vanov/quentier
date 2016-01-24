@@ -105,6 +105,7 @@ set(TYPES_HEADERS
     headers/qute_note/types/ResourceWrapper.h
     headers/qute_note/types/ResourceAdapter.h
     headers/qute_note/types/ResourceRecognitionIndexItem.h
+    headers/qute_note/types/ResourceRecognitionIndices.h
     headers/qute_note/types/SavedSearch.h
     headers/qute_note/types/SharedNotebookAdapter.h
     headers/qute_note/types/SharedNotebookWrapper.h
@@ -234,6 +235,7 @@ set(PRIVATE_HEADERS
     src/types/data/SavedSearchData.h
     src/types/data/UserWrapperData.h
     src/types/data/ResourceRecognitionIndexItemData.h
+    src/types/data/ResourceRecognitionIndicesData.h
     src/enml/ENMLConverter_p.h
     src/local_storage/LocalStorageCacheManager_p.h
     src/local_storage/LocalStorageManager_p.h
@@ -322,6 +324,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/ResourceWrapper.cpp
     src/types/ResourceAdapter.cpp
     src/types/ResourceRecognitionIndexItem.cpp
+    src/types/ResourceRecognitionIndices.cpp
     src/types/SavedSearch.cpp
     src/types/SharedNotebookAdapter.cpp
     src/types/SharedNotebookWrapper.cpp
@@ -337,6 +340,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/data/NotebookData.cpp
     src/types/data/ResourceWrapperData.cpp
     src/types/data/ResourceRecognitionIndexItemData.cpp
+    src/types/data/ResourceRecognitionIndicesData.cpp
     src/types/data/SharedNotebookWrapperData.cpp
     src/types/data/TagData.cpp
     src/types/data/SavedSearchData.cpp

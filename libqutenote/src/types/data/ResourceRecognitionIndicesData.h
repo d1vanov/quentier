@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__TYPES__DATA__RESOURCE_RECOGNITION_INDICES_DATA_H
 
 #include <qute_note/types/ResourceRecognitionIndexItem.h>
+#include "ResourceRecognitionIndexItemData.h"
 #include <QString>
 #include <QByteArray>
 #include <QSharedData>
@@ -37,8 +38,10 @@ private:
 
     void parseRecoIndexAttributes(const QXmlStreamAttributes & attributes);
     void parseCommonItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
-    void parseTextItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
+    void parseTextItemAttributesAndData(const QXmlStreamAttributes & attributes, const QStringRef & data, ResourceRecognitionIndexItem & item) const;
     void parseObjectItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
+    void parseShapeItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
+    void parseBarcodeItemAttributesAndData(const QXmlStreamAttributes & attributes, const QStringRef & data, ResourceRecognitionIndexItem & item) const;
 };
 
 } // namespace qute_note
