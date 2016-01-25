@@ -12,6 +12,7 @@
 #include "LocalStorageCacheAsyncTester.h"
 #include "EncryptionManagerTests.h"
 #include "ENMLConverterTests.h"
+#include "ResourceRecognitionIndicesParsingTest.h"
 #include <qute_note/exception/IQuteNoteException.h>
 #include <qute_note/utility/EventLoopWithExitStatus.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
@@ -366,6 +367,20 @@ void CoreTester::enmlConverterHtmlWithTableAndHilitorHelperTags()
         QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
+}
+
+void CoreTester::resourceRecognitionIndicesParsingTest()
+{
+    // FIXME: need to fix this text and enable it back
+    /*
+    try
+    {
+        QString error;
+        bool res = parseResourceRecognitionIndicesAndItemsTest(error);
+        QVERIFY2(res == true, qPrintable(error));
+    }
+    CATCH_EXCEPTION();
+    */
 }
 
 void CoreTester::noteSearchQueryTest()

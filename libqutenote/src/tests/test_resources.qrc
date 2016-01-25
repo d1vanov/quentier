@@ -6,5 +6,6 @@
         <file>complexNote4.txt</file>
         <file>complexNoteHtmlWithHelperTags.txt</file>
         <file>complexNoteHtmlWithTableAndHilitorHelperTags.txt</file>
+        <file>recoIndex-all-in-one-example.xml</file>
     </qresource>
 </RCC>

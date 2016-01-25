@@ -7,11 +7,18 @@ ResourceRecognitionIndices::ResourceRecognitionIndices() :
     d(new ResourceRecognitionIndicesData)
 {}
 
+ResourceRecognitionIndices::ResourceRecognitionIndices(const ResourceRecognitionIndices & other) :
+    d(other.d)
+{}
+
 ResourceRecognitionIndices::ResourceRecognitionIndices(const QByteArray & rawRecognitionIndicesData) :
     d(new ResourceRecognitionIndicesData)
 {
     d->setData(rawRecognitionIndicesData);
 }
+
+ResourceRecognitionIndices::~ResourceRecognitionIndices()
+{}
 
 bool ResourceRecognitionIndices::isNull() const
 {
@@ -63,14 +70,19 @@ int ResourceRecognitionIndices::objectWidth() const
     return d->m_objectWidth;
 }
 
-QVector<ResourceRecognitionIndexItem> ResourceRecognitionIndices::items() const
+int ResourceRecognitionIndices::numItems() const
 {
-    return d->m_items;
+    return d->m_items.size();
 }
 
-void ResourceRecognitionIndices::setData(const QByteArray & rawRecognitionIndicesData)
+const ResourceRecognitionIndexItem * ResourceRecognitionIndices::items() const
 {
-    d->setData(rawRecognitionIndicesData);
+    return &d->m_items[0];
+}
+
+bool ResourceRecognitionIndices::setData(const QByteArray & rawRecognitionIndicesData)
+{
+    return d->setData(rawRecognitionIndicesData);
 }
 
 QTextStream & ResourceRecognitionIndices::Print(QTextStream & strm) const

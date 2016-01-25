@@ -17,7 +17,7 @@ public:
     ResourceRecognitionIndicesData();
 
     bool isValid() const;
-    void setData(const QByteArray & rawRecognitionIndicesData);
+    bool setData(const QByteArray & rawRecognitionIndicesData);
 
     bool        m_isNull;
 

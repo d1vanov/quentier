@@ -62,7 +62,7 @@ bool ResourceRecognitionIndicesData::isValid() const
     return true;
 }
 
-void ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIndicesData)
+bool ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIndicesData)
 {
     QNTRACE("ResourceRecognitionIndicesData::setData: " << rawRecognitionIndicesData);
 
@@ -148,11 +148,12 @@ void ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIn
         QNWARNING("Failed to parse resource recognition indices data: " << reader.errorString()
                  << " (error code " << reader.error() << ", original raw data: " << rawRecognitionIndicesData);
         restoreFrom(backup);
-        return;
+        return false;
     }
 
     m_isNull = false;
     QNTRACE("Successfully parsed ResourceRecognitionIndicesData");
+    return true;
 }
 
 void ResourceRecognitionIndicesData::clear()

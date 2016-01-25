@@ -498,6 +498,7 @@ set(TEST_HEADERS
     src/tests/UserLocalStorageManagerAsyncTester.h
     src/tests/LocalStorageManagerTests.h
     src/tests/LocalStorageManagerNoteSearchQueryTest.h
+    src/tests/ResourceRecognitionIndicesParsingTest.h
     src/tests/CoreTester.h)
 
 set(TEST_SOURCES
@@ -514,6 +515,7 @@ set(TEST_SOURCES
     src/tests/UserLocalStorageManagerAsyncTester.cpp
     src/tests/LocalStorageManagerTests.cpp
     src/tests/LocalStorageManagerNoteSearchQueryTest.cpp
+    src/tests/ResourceRecognitionIndicesParsingTest.cpp
     src/tests/CoreTester.cpp
     src/tests/CoreTestMain.cpp)
 
