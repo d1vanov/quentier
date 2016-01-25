@@ -70,14 +70,9 @@ int ResourceRecognitionIndices::objectWidth() const
     return d->m_objectWidth;
 }
 
-int ResourceRecognitionIndices::numItems() const
+QVector<ResourceRecognitionIndexItem> ResourceRecognitionIndices::items() const
 {
-    return d->m_items.size();
-}
-
-const ResourceRecognitionIndexItem * ResourceRecognitionIndices::items() const
-{
-    return &d->m_items[0];
+    return d->m_items;
 }
 
 bool ResourceRecognitionIndices::setData(const QByteArray & rawRecognitionIndicesData)

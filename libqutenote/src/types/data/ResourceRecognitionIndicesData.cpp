@@ -126,6 +126,11 @@ bool ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIn
 
         if (reader.isCharacters())
         {
+            QString chars = reader.text().toString().simplified();
+            if (chars.isEmpty()) {
+                continue;
+            }
+
             if (m_items.isEmpty()) {
                 continue;
             }
@@ -133,10 +138,10 @@ bool ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIn
             ResourceRecognitionIndexItem & item = m_items.last();
 
             if (lastElementName == "t") {
-                parseTextItemAttributesAndData(lastElementAttributes, reader.text(), item);
+                parseTextItemAttributesAndData(lastElementAttributes, chars, item);
             }
             else if (lastElementName == "barcode") {
-                parseBarcodeItemAttributesAndData(lastElementAttributes, reader.text(), item);
+                parseBarcodeItemAttributesAndData(lastElementAttributes, chars, item);
             }
             else {
                 continue;
@@ -341,7 +346,7 @@ void ResourceRecognitionIndicesData::parseCommonItemAttributes(const QXmlStreamA
 }
 
 void ResourceRecognitionIndicesData::parseTextItemAttributesAndData(const QXmlStreamAttributes & attributes,
-                                                                    const QStringRef & data,
+                                                                    const QString & data,
                                                                     ResourceRecognitionIndexItem & item) const
 {
     QNTRACE("ResourceRecognitionIndicesData::parseTextItemAttributesAndData: data = " << data);
@@ -374,9 +379,9 @@ void ResourceRecognitionIndicesData::parseTextItemAttributesAndData(const QXmlSt
 
     ResourceRecognitionIndexItem::TextItem textItem;
     textItem.m_weight = weight;
-    textItem.m_text = data.toString();
+    textItem.m_text = data;
     item.addTextItem(textItem);
-    QNTRACE("Added text item: text = " << textItem.m_text << "; weight = " << weight);
+    QNTRACE("Added text item: text = " << data << "; weight = " << weight);
 }
 
 void ResourceRecognitionIndicesData::parseObjectItemAttributes(const QXmlStreamAttributes & attributes,
@@ -462,7 +467,7 @@ void ResourceRecognitionIndicesData::parseShapeItemAttributes(const QXmlStreamAt
     QNTRACE("Added shape item: type = " << shapeType << ", weight = " << weight);
 }
 
-void ResourceRecognitionIndicesData::parseBarcodeItemAttributesAndData(const QXmlStreamAttributes & attributes, const QStringRef & data,
+void ResourceRecognitionIndicesData::parseBarcodeItemAttributesAndData(const QXmlStreamAttributes & attributes, const QString & data,
                                                                        ResourceRecognitionIndexItem & item) const
 {
     QNTRACE("ResourceRecognitionIndicesData::parseBarcodeItemAttributesAndData" << data);
@@ -495,9 +500,9 @@ void ResourceRecognitionIndicesData::parseBarcodeItemAttributesAndData(const QXm
 
     ResourceRecognitionIndexItem::BarcodeItem barcodeItem;
     barcodeItem.m_weight = weight;
-    barcodeItem.m_barcode = data.toString();
+    barcodeItem.m_barcode = data;
     item.addBarcodeItem(barcodeItem);
-    QNTRACE("Added barcode item: barcode = " << barcodeItem.m_barcode << "; weight = " << weight);
+    QNTRACE("Added barcode item: barcode = " << data << "; weight = " << weight);
 }
 
 } // namespace qute_note

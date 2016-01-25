@@ -7,6 +7,13 @@ ResourceRecognitionIndexItem::ResourceRecognitionIndexItem() :
     d(new ResourceRecognitionIndexItemData)
 {}
 
+ResourceRecognitionIndexItem::ResourceRecognitionIndexItem(const ResourceRecognitionIndexItem & other) :
+    d(other.d)
+{}
+
+ResourceRecognitionIndexItem::~ResourceRecognitionIndexItem()
+{}
+
 bool ResourceRecognitionIndexItem::isValid() const
 {
     return d->isValid();

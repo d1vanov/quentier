@@ -371,8 +371,6 @@ void CoreTester::enmlConverterHtmlWithTableAndHilitorHelperTags()
 
 void CoreTester::resourceRecognitionIndicesParsingTest()
 {
-    // FIXME: need to fix this text and enable it back
-    /*
     try
     {
         QString error;
@@ -380,7 +378,6 @@ void CoreTester::resourceRecognitionIndicesParsingTest()
         QVERIFY2(res == true, qPrintable(error));
     }
     CATCH_EXCEPTION();
-    */
 }
 
 void CoreTester::noteSearchQueryTest()

@@ -38,10 +38,10 @@ private:
 
     void parseRecoIndexAttributes(const QXmlStreamAttributes & attributes);
     void parseCommonItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
-    void parseTextItemAttributesAndData(const QXmlStreamAttributes & attributes, const QStringRef & data, ResourceRecognitionIndexItem & item) const;
+    void parseTextItemAttributesAndData(const QXmlStreamAttributes & attributes, const QString & data, ResourceRecognitionIndexItem & item) const;
     void parseObjectItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
     void parseShapeItemAttributes(const QXmlStreamAttributes & attributes, ResourceRecognitionIndexItem & item) const;
-    void parseBarcodeItemAttributesAndData(const QXmlStreamAttributes & attributes, const QStringRef & data, ResourceRecognitionIndexItem & item) const;
+    void parseBarcodeItemAttributesAndData(const QXmlStreamAttributes & attributes, const QString & data, ResourceRecognitionIndexItem & item) const;
 };
 
 } // namespace qute_note

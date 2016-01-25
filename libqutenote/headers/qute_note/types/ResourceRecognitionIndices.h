@@ -4,6 +4,7 @@
 #include <qute_note/types/ResourceRecognitionIndexItem.h>
 #include <QByteArray>
 #include <QSharedDataPointer>
+#include <QVector>
 
 namespace qute_note {
 
@@ -15,7 +16,7 @@ public:
     ResourceRecognitionIndices();
     ResourceRecognitionIndices(const ResourceRecognitionIndices & other);
     ResourceRecognitionIndices(const QByteArray & rawRecognitionIndicesData);
-    ~ResourceRecognitionIndices();
+    virtual ~ResourceRecognitionIndices();
 
     bool isNull() const;
     bool isValid() const;
@@ -30,8 +31,7 @@ public:
     int objectHeight() const;
     int objectWidth() const;
 
-    int numItems() const;
-    const ResourceRecognitionIndexItem * items() const;
+    QVector<ResourceRecognitionIndexItem> items() const;
 
     bool setData(const QByteArray & rawRecognitionIndicesData);
 

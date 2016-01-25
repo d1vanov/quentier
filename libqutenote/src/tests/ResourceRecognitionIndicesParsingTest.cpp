@@ -36,11 +36,11 @@ bool parseResourceRecognitionIndicesAndItemsTest(QString & error)
         return false; \
     }
 
-    CHECK_INDICES_PROPERTY(docType, "handwritten", "doc type")
-    CHECK_INDICES_PROPERTY(objectType, "image", "object type")
-    CHECK_INDICES_PROPERTY(objectId, "a284273e482578224145f2560b67bf44", "object id")
-    CHECK_INDICES_PROPERTY(engineVersion, "3.0.17.12", "engine version")
-    CHECK_INDICES_PROPERTY(recoType, "service", "recognition type")
+    CHECK_INDICES_PROPERTY(docType, "picture", "doc type")
+    CHECK_INDICES_PROPERTY(objectType, "ink", "object type")
+    CHECK_INDICES_PROPERTY(objectId, "a284273e482578224145f2560b67bf45", "object id")
+    CHECK_INDICES_PROPERTY(engineVersion, "3.0.17.14", "engine version")
+    CHECK_INDICES_PROPERTY(recoType, "client", "recognition type")
     CHECK_INDICES_PROPERTY(lang, "en", "lang")
 
     if (recoIndices.objectHeight() != 2592) {
@@ -55,14 +55,13 @@ bool parseResourceRecognitionIndicesAndItemsTest(QString & error)
         return false;
     }
 
-    int numItems = recoIndices.numItems();
+    QVector<ResourceRecognitionIndexItem> items = recoIndices.items();
+    int numItems = items.size();
     if (numItems != 2) {
         error = "Incorrectly parsed reco indices items: expected 2 items, got " + QString::number(numItems);
         QNWARNING(error << "; reco indices: " << recoIndices);
         return false;
     }
-
-    const ResourceRecognitionIndexItem * items = recoIndices.items();
 
 #define CHECK_ITEM_PROPERTY(item, accessor, expected, property) \
     if (item.accessor() != expected) { \
@@ -197,8 +196,8 @@ bool parseResourceRecognitionIndicesAndItemsTest(QString & error)
     CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 8, m_weight, 17, QString::number)
     CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 9, m_text, "LONON")
     CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 9, m_weight, 15, QString::number)
-    CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 9, m_text, "LONGE")
-    CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 9, m_weight, 15, QString::number)
+    CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 10, m_text, "LONGE")
+    CHECK_SUB_ITEM_PROPERTY(TextItem, textItems1, 10, m_weight, 15, QString::number)
 
     CHECK_SUB_ITEM_PROPERTY(ObjectItem, objectItems1, 0, m_objectType, "face")
     CHECK_SUB_ITEM_PROPERTY(ObjectItem, objectItems1, 0, m_weight, 31, QString::number)

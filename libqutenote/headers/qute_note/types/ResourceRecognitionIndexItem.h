@@ -14,6 +14,8 @@ class QUTE_NOTE_EXPORT ResourceRecognitionIndexItem: public Printable
 {
 public:
     ResourceRecognitionIndexItem();
+    ResourceRecognitionIndexItem(const ResourceRecognitionIndexItem & other);
+    virtual ~ResourceRecognitionIndexItem();
 
     bool isValid() const;
 
