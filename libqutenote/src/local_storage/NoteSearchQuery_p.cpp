@@ -69,10 +69,6 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
     m_negatedApplicationData(),
     m_hasAnyApplicationData(false),
     m_hasNegatedAnyApplicationData(false),
-    m_recognitionTypes(),
-    m_negatedRecognitionTypes(),
-    m_hasAnyRecognitionType(false),
-    m_hasNegatedAnyRecognitionType(false),
     m_reminderOrders(),
     m_negatedReminderOrders(),
     m_hasAnyReminderOrder(false),
@@ -162,10 +158,6 @@ void NoteSearchQueryPrivate::clear()
     m_negatedApplicationData.clear();
     m_hasAnyApplicationData = false;
     m_hasNegatedAnyApplicationData = false;
-    m_recognitionTypes.clear();
-    m_negatedRecognitionTypes.clear();
-    m_hasAnyRecognitionType = false;
-    m_hasNegatedAnyRecognitionType = false;
     m_reminderOrders.clear();
     m_negatedReminderOrders.clear();
     m_hasAnyReminderOrder = false;
@@ -240,8 +232,6 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
                      m_hasAnyPlaceName, m_hasNegatedAnyPlaceName);
     parseStringValue("applicationData", words, m_applicationData, m_negatedApplicationData,
                      m_hasAnyApplicationData, m_hasNegatedAnyApplicationData);
-    parseStringValue("recoType", words, m_recognitionTypes, m_negatedRecognitionTypes,
-                     m_hasAnyRecognitionType, m_hasNegatedAnyRecognitionType);
 
     res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps,
                         m_hasAnyCreationTimestamp, m_hasNegatedAnyCreationTimestamp, error);
@@ -516,10 +506,6 @@ QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
     CHECK_AND_PRINT_LIST(applicationData, QString);
     CHECK_AND_PRINT_LIST(negatedApplicationData, QString);
 
-    CHECK_AND_PRINT_ANY_ITEM(RecognitionType);
-    CHECK_AND_PRINT_LIST(recognitionTypes, QString);
-    CHECK_AND_PRINT_LIST(negatedRecognitionTypes, QString);
-
     CHECK_AND_PRINT_ANY_ITEM(ReminderOrder);
     CHECK_AND_PRINT_LIST(reminderOrders, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedReminderOrders, qint64, QString::number);
@@ -614,10 +600,6 @@ bool NoteSearchQueryPrivate::isMatcheable() const
         return false;
     }
 
-    if (m_hasAnyRecognitionType && m_hasNegatedAnyRecognitionType) {
-        return false;
-    }
-
     if (m_hasAnyReminderOrder && m_hasNegatedAnyReminderOrder) {
         return false;
     }
@@ -659,8 +641,7 @@ bool NoteSearchQueryPrivate::hasAdvancedSearchModifiers() const
             m_hasAnySourceApplication || m_hasNegatedAnySourceApplication || !m_contentClasses.isEmpty() || !m_negatedContentClasses.isEmpty() ||
             m_hasAnyContentClass || m_hasNegatedAnyContentClass || !m_placeNames.isEmpty() || !m_negatedPlaceNames.isEmpty() ||
             m_hasAnyPlaceName || m_hasNegatedAnyPlaceName || !m_applicationData.isEmpty() || !m_negatedApplicationData.isEmpty() ||
-            m_hasAnyApplicationData || m_hasNegatedAnyApplicationData || !m_recognitionTypes.isEmpty() || !m_negatedRecognitionTypes.isEmpty() ||
-            m_hasAnyRecognitionType || m_hasNegatedAnyRecognitionType || !m_reminderOrders.isEmpty() || !m_negatedReminderOrders.isEmpty() ||
+            m_hasAnyApplicationData || m_hasNegatedAnyApplicationData || !m_reminderOrders.isEmpty() || !m_negatedReminderOrders.isEmpty() ||
             m_hasAnyReminderOrder || m_hasNegatedAnyReminderOrder || !m_reminderTimes.isEmpty() || !m_negatedReminderTimes.isEmpty() ||
             m_hasAnyReminderTime || m_hasNegatedAnyReminderTime || !m_reminderDoneTimes.isEmpty() || !m_negatedReminderDoneTimes.isEmpty() ||
             m_hasAnyReminderDoneTime || m_hasNegatedAnyReminderDoneTime || m_hasUnfinishedToDo || m_hasNegatedUnfinishedToDo ||

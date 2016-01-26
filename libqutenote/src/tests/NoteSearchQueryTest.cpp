@@ -213,12 +213,6 @@ bool NoteSearchQueryTest(QString & error)
     negatedApplicationData << "negated application data 1" << "negated_application_data_2"
                            << "negated application data 3" << "*";
 
-    QStringList recognitionTypes;
-    recognitionTypes << "printed" << "speech" << "handwritten" << "*";
-
-    QStringList negatedRecognitionTypes;
-    negatedRecognitionTypes << "picture" << "unknown" << "*";
-
     QVector<qint64> reminderOrders;
     reminderOrders << 1 << 2 << 3;
 
@@ -347,8 +341,6 @@ bool NoteSearchQueryTest(QString & error)
         ADD_LIST_TO_QUERY_STRING(-placeName, negatedPlaceNames, QString);
         ADD_LIST_TO_QUERY_STRING(applicationData, applicationData, QString);
         ADD_LIST_TO_QUERY_STRING(-applicationData, negatedApplicationData, QString);
-        ADD_LIST_TO_QUERY_STRING(recoType, recognitionTypes, QString);
-        ADD_LIST_TO_QUERY_STRING(-recoType, negatedRecognitionTypes, QString);
         ADD_LIST_TO_QUERY_STRING(reminderOrder, reminderOrders, qint64, QString::number);
         ADD_LIST_TO_QUERY_STRING(-reminderOrder, negatedReminderOrders, qint64, QString::number);
         ADD_LIST_TO_QUERY_STRING(reminderTime, reminderTimes, QString);
@@ -555,26 +547,6 @@ bool NoteSearchQueryTest(QString & error)
             return false;
         }
 
-        if (!noteSearchQuery.hasAnyRecognitionType()) {
-            error = "NoteSearchQuery doesn't have any recognition type while it should have one";
-            return false;
-        }
-
-        if (!noteSearchQuery.hasNegatedAnyRecognitionType()) {
-            error = "NoteSearchQuery doesn't have negated any recognition type while it should have one";
-            return false;
-        }
-
-        if (!noteSearchQuery.hasAnyReminderOrder()) {
-            error = "NoteSearchQuery doesn't have any reminder order while it should have one";
-            return false;
-        }
-
-        if (!noteSearchQuery.hasNegatedAnyReminderOrder()) {
-            error = "NoteSearchQuery doesn't have negated any reminder order while it should have one";
-            return false;
-        }
-
         if (!noteSearchQuery.hasAnyReminderTime()) {
             error = "NoteSearchQuery doesn't have any reminder time while it should have one";
             return false;
@@ -761,8 +733,6 @@ bool NoteSearchQueryTest(QString & error)
         CHECK_LIST(negatedPlaceNames, negatedPlaceNames);
         CHECK_LIST(applicationData, applicationData);
         CHECK_LIST(negatedApplicationData, negatedApplicationData);
-        CHECK_LIST(recognitionTypes, recognitionTypes);
-        CHECK_LIST(negatedRecognitionTypes, negatedRecognitionTypes);
         CHECK_LIST(reminderOrders, reminderOrders, QString::number);
         CHECK_LIST(negatedReminderOrders, negatedReminderOrders, QString::number);
 

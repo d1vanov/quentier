@@ -17,7 +17,6 @@ public:
 private slots:
     void initTestCase();
 
-    void resourceRecognitionIndicesTest();
     void noteContainsToDoTest();
     void noteContainsEncryptionTest();
 

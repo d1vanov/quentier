@@ -81,10 +81,6 @@ public:
     QStringList     m_negatedApplicationData;
     bool            m_hasAnyApplicationData;
     bool            m_hasNegatedAnyApplicationData;
-    QStringList     m_recognitionTypes;
-    QStringList     m_negatedRecognitionTypes;
-    bool            m_hasAnyRecognitionType;
-    bool            m_hasNegatedAnyRecognitionType;
     QVector<qint64> m_reminderOrders;
     QVector<qint64> m_negatedReminderOrders;
     bool            m_hasAnyReminderOrder;

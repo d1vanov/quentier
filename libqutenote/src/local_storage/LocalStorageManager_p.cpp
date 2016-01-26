@@ -3077,7 +3077,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
 
     res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localGuid, title, "
-                     "contentPlainText, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
+                     "contentPlainText, contentListOfWords, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
                      "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
                      "isActive, notebookLocalGuid, notebookGuid, subjectDate, latitude, longitude, "
                      "altitude, author, source, sourceApplication, reminderOrder, reminderDoneTime, "
@@ -5158,6 +5158,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
     }
 
+    // FIXME: re-purpose it to use for recognition text data
+    /*
     QStringList recognitionTypes = resource.recognitionTypes();
     if (!recognitionTypes.isEmpty())
     {
@@ -5177,6 +5179,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database");
         }
     }
+    */
 
     // Removing resource from ResourceAttributes table
     {
@@ -6946,6 +6949,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // 2) ============ Build the specialized SQL query if the note search query doesn't contain advanced search modifiers ===========
 
+    /*
     if (!noteSearchQuery.hasAdvancedSearchModifiers())
     {
         if (!noteSearchQuery.hasAnyContentSearchTerms()) {
@@ -6972,6 +6976,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql = sqlPrefix + "WHERE " + contentSearchTermsSqlPart;
         return true;
     }
+    */
 
     // ========== 3) Processing notebook modifier (if present) ==============
 
@@ -7274,136 +7279,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
-    // 6) ============== Processing resource recognition indices ===============
-
-    if (noteSearchQuery.hasAnyRecognitionType())
-    {
-        sql += "(NoteResources.localResource IN (SELECT resourceLocalGuid FROM ResourceRecoTypesFTS)) ";
-        sql += uniteOperator;
-        sql += " ";
-    }
-    else if (noteSearchQuery.hasNegatedAnyRecognitionType())
-    {
-        sql += "((NoteResources.localResource NOT IN (SELECT resourceLocalGuid FROM ResourceRecoTypesFTS)) OR ";
-        sql += "(NoteResources.localResource IS NULL)) ";
-        sql += uniteOperator;
-        sql += " ";
-    }
-    else
-    {
-        QStringList resourceLocalGuidsPerRecognitionType;
-        QStringList resourceNegatedLocalGuidsPerRecognitionType;
-
-        const QStringList & resourceRecognitionTypes = noteSearchQuery.recognitionTypes();
-        const int numResourceRecognitionTypes = resourceRecognitionTypes.size();
-        if (!resourceRecognitionTypes.isEmpty())
-        {
-            bool res = resourceRecognitionTypesToResourceLocalGuids(resourceRecognitionTypes,
-                                                                    resourceLocalGuidsPerRecognitionType,
-                                                                    errorDescription);
-            if (!res) {
-                return false;
-            }
-        }
-
-        if (!resourceLocalGuidsPerRecognitionType.isEmpty())
-        {
-            if (!queryHasAnyModifier)
-            {
-                // Need to find notes which each have all the found resource local guids
-
-                // One resource recognition type can correspond to multiple resources. However,
-                // one resource corresponds to exactly one note. When searching for notes
-                // which resources have particular recognition type, we need to ensure that each note's
-                // local guid in the sub-query result is present there exactly as many times
-                // as there are resource recognition types in the query
-
-                sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerRecognitionType) {
-                    sql += resourceLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
-
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
-                sql += QString::number(numResourceRecognitionTypes);
-                sql += "))) ";
-            }
-            else
-            {
-                // With "any:" modifier the search doesn't care about the exactness of resource recognition type-to-note map,
-                // it would instead pick just any note having at least one resource with requested recognition type
-
-                sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceLocalGuid, resourceLocalGuidsPerRecognitionType) {
-                    sql += resourceLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
-
-                sql += ")))) ";
-            }
-
-            sql += uniteOperator;
-            sql += " ";
-        }
-
-        const QStringList & negatedResourceRecognitionTypes = noteSearchQuery.negatedRecognitionTypes();
-        const int numNegatedResourceRecognitionTypes = negatedResourceRecognitionTypes.size();
-        if (!negatedResourceRecognitionTypes.isEmpty())
-        {
-            bool res = resourceRecognitionTypesToResourceLocalGuids(negatedResourceRecognitionTypes,
-                                                                    resourceNegatedLocalGuidsPerRecognitionType,
-                                                                    errorDescription);
-            if (!res) {
-                return false;
-            }
-        }
-
-        if (!resourceNegatedLocalGuidsPerRecognitionType.isEmpty())
-        {
-            if (!queryHasAnyModifier)
-            {
-                sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerRecognitionType) {
-                    sql += resourceNegatedLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
-
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
-                sql += QString::number(numNegatedResourceRecognitionTypes);
-
-                // Don't forget to account for the case of no resources existing in the note
-                // so it's not even present in NoteResources table
-
-                sql += ")) OR (NoteResources.localNote IS NULL)) ";
-            }
-            else
-            {
-                sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceNegatedLocalGuid, resourceNegatedLocalGuidsPerRecognitionType) {
-                    sql += resourceNegatedLocalGuid;
-                    sql += "', '";
-                }
-                sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
-
-                // Don't forget to account for the case of no resources existing in the note
-                // so it's not even present in NoteResources table
-
-                sql += "))) OR (NoteResources.localNote IS NULL)) ";
-            }
-
-            sql += uniteOperator;
-            sql += " ";
-        }
-    }
-
-    // 7) ============== Processing other better generalizable filters =============
+    // 6) ============== Processing other better generalizable filters =============
 
 #define CHECK_AND_PROCESS_ANY_ITEM(hasAnyItem, hasNegatedAnyItem, column) \
     if (noteSearchQuery.hasAnyItem()) { \
@@ -7540,7 +7416,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 #undef CHECK_AND_PROCESS_ANY_ITEM
 #undef CHECK_AND_PROCESS_NUMERIC_ITEM
 
-    // 8) ============== Processing ToDo items ================
+    // 7) ============== Processing ToDo items ================
 
     if (noteSearchQuery.hasAnyToDo())
     {
@@ -7580,7 +7456,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         }
     }
 
-    // 9) ============== Processing encryption item =================
+    // 8) ============== Processing encryption item =================
 
     if (noteSearchQuery.hasNegatedEncryption()) {
         sql += "((NoteFTS.contentContainsEncryption IS 0) OR (NoteFTS.contentContainsEncryption IS NULL)) ";
@@ -7593,7 +7469,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql += " ";
     }
 
-    // 10) ============== Processing content search terms =================
+    // 9) ============== Processing content search terms =================
 
     QString contentSearchTermsSqlPart;
     QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
@@ -7607,14 +7483,14 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql += contentSearchTermsSqlPart;
     }
 
-    // 11) ============== Removing trailing unite operator from the SQL string =============
+    // 10) ============== Removing trailing unite operator from the SQL string =============
 
     QString spareEnd = uniteOperator + QString(" ");
     if (sql.endsWith(spareEnd)) {
         sql.chop(spareEnd.size());
     }
 
-    // 12) ============= See whether we should bother anything regarding tags or resources ============
+    // 11) ============= See whether we should bother anything regarding tags or resources ============
 
     QString sqlPostfix = "FROM NoteFTS ";
     if (sql.contains("NoteTags")) {
@@ -7627,7 +7503,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sqlPostfix += "LEFT OUTER JOIN NoteResources ON NoteFTS.localGuid = NoteResources.localNote ";
     }
 
-    // 13) ============== Finalize the query composed of parts ===============
+    // 12) ============== Finalize the query composed of parts ===============
 
     sqlPrefix += sqlPostfix;
     sqlPrefix += "WHERE ";
@@ -7851,92 +7727,6 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalGuids(const QSt
     DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource mime types");
 
     while (query.next())
-    {
-        QSqlRecord rec = query.record();
-        int index = rec.indexOf("resourceLocalGuid");
-        if (index < 0) {
-            errorDescription += QT_TR_NOOP("Internal error: resource's local guid is not present in the result of SQL query");
-            return false;
-        }
-
-        QVariant value = rec.value(index);
-        resourceLocalGuids << value.toString();
-    }
-
-    return true;
-}
-
-bool LocalStorageManagerPrivate::resourceRecognitionTypesToResourceLocalGuids(const QStringList & resourceRecognitionTypes,
-                                                                              QStringList & resourceLocalGuids,
-                                                                              QString & errorDescription) const
-{
-    resourceLocalGuids.clear();
-
-    QSqlQuery query(m_sqlDatabase);
-
-    QString queryString;
-
-    bool singleRecognitionType = (resourceRecognitionTypes.size() == 1);
-    if (singleRecognitionType)
-    {
-        bool res = query.prepare("SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH :recognitionType");
-        DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition type: "
-                                     "can't prepare SQL query");
-
-        QString recognitionType = resourceRecognitionTypes.at(0);
-        recognitionType.prepend("\'");
-        recognitionType.append("\'");
-        query.bindValue(":recognitionType", recognitionType);
-    }
-    else
-    {
-        bool someRecognitionTypeHasWhitespace = false;
-        foreach(const QString & recognitionType, resourceRecognitionTypes)
-        {
-            if (recognitionType.contains(" ")) {
-                someRecognitionTypeHasWhitespace = true;
-                break;
-            }
-        }
-
-        if (someRecognitionTypeHasWhitespace)
-        {
-            // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
-            // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
-            // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            queryString = "SELECT resourceLocalGuid FROM ResourceRecognitionTypes WHERE ";
-
-            foreach(const QString & recognitionType, resourceRecognitionTypes) {
-                queryString += "(recognitionType = \'";
-                queryString += recognitionType;
-                queryString += "\') OR ";
-            }
-            queryString.chop(4);    // remove trailing OR and two whitespaces
-        }
-        else
-        {
-            // For unknown reason statements like "MATCH 'x OR y'" don't work for me while
-            // "SELECT ... MATCH 'x' UNION SELECT ... MATCH 'y'" does work.
-
-            foreach(const QString & recognitionType, resourceRecognitionTypes) {
-                queryString += "SELECT resourceLocalGuid FROM ResourceRecoTypesFTS WHERE recognitionType MATCH \'";
-                queryString += recognitionType;
-                queryString += "\' UNION ";
-            }
-            queryString.chop(7);    // remove trailing characters
-        }
-    }
-
-    bool res = false;
-    if (queryString.isEmpty()) {
-        res = query.exec();
-    }
-    else {
-        res = query.exec(queryString);
-    }
-    DATABASE_CHECK_AND_SET_ERROR("can't select resource local guids for resource recognition types");
-
-    while(query.next())
     {
         QSqlRecord rec = query.record();
         int index = rec.indexOf("resourceLocalGuid");

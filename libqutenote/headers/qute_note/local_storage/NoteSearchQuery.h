@@ -117,11 +117,6 @@ public:
     bool hasAnyApplicationData() const;
     bool hasNegatedAnyApplicationData() const;
 
-    const QStringList & recognitionTypes() const;
-    const QStringList & negatedRecognitionTypes() const;
-    bool hasAnyRecognitionType() const;
-    bool hasNegatedAnyRecognitionType() const;
-
     const QVector<qint64> & reminderOrders() const;
     const QVector<qint64> & negatedReminderOrders() const;
     bool hasAnyReminderOrder() const;

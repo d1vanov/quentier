@@ -411,30 +411,6 @@ bool NoteSearchQuery::hasNegatedAnyApplicationData() const
     return d->m_hasNegatedAnyApplicationData;
 }
 
-const QStringList & NoteSearchQuery::recognitionTypes() const
-{
-    Q_D(const NoteSearchQuery);
-    return d->m_recognitionTypes;
-}
-
-const QStringList & NoteSearchQuery::negatedRecognitionTypes() const
-{
-    Q_D(const NoteSearchQuery);
-    return d->m_negatedRecognitionTypes;
-}
-
-bool NoteSearchQuery::hasAnyRecognitionType() const
-{
-    Q_D(const NoteSearchQuery);
-    return d->m_hasAnyRecognitionType;
-}
-
-bool NoteSearchQuery::hasNegatedAnyRecognitionType() const
-{
-    Q_D(const NoteSearchQuery);
-    return d->m_hasNegatedAnyRecognitionType;
-}
-
 bool NoteSearchQuery::hasAnyReminderOrder() const
 {
     Q_D(const NoteSearchQuery);
