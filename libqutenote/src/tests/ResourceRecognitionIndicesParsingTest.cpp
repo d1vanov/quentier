@@ -136,6 +136,23 @@ bool parseResourceRecognitionIndicesAndItemsTest(QString & error)
     CHECK_ITEM_PROPERTY(item1, y, 635, "y")
     CHECK_ITEM_PROPERTY(item1, w, 770, "w")
     CHECK_ITEM_PROPERTY(item1, h, 254, "h")
+    CHECK_ITEM_PROPERTY(item1, offset, 12, "offset")
+    CHECK_ITEM_PROPERTY(item1, duration, 17, "duration")
+
+    QVector<int> strokeList = item1.strokeList();
+    if (strokeList.size() != 5) {
+        error = "Incorrectly parsed recognition item's stroke list: expected 5 items in the list, got " + QString::number(strokeList.size());
+        QNWARNING(error << "; reco indices: " << recoIndices);
+        return false;
+    }
+
+    bool strokeListOk = strokeList.contains(14) && strokeList.contains(28) && strokeList.contains(19) &&
+                        strokeList.contains(41) && strokeList.contains(54);
+    if (!strokeListOk) {
+        error = "Incorrectly parsed recognition item's stroke list: not all expected numbers are found within the list";
+        QNWARNING(error << "; reco indices: " << recoIndices);
+        return false;
+    }
 
     QVector<ResourceRecognitionIndexItem::ObjectItem> objectItems1 = item1.objectItems();
     if (objectItems1.size() != 4) {
