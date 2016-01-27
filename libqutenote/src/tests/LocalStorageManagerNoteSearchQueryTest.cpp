@@ -565,7 +565,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         }
     }
 
-    // 7) =========== Create and execute some note search queries, verify they are consistent
+    // 7) =========== Create and execute some note search queries with advanced search modifiers, verify they are consistent
 
     // 7.1) ToDo queries
 
@@ -1653,6 +1653,22 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     expectedContainedNotesIndices[3] = true;
     expectedContainedNotesIndices[4] = true;
     expectedContainedNotesIndices[5] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8) =========== Create and execute some note search queries without advanced search modifiers, verify they are consistent
+
+    // 8.1.1 Find a single note with a single term query
+    queryString = "canonical";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
