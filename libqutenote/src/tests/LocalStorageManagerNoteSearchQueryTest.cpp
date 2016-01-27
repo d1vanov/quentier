@@ -1663,12 +1663,87 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     // 8) =========== Create and execute some note search queries without advanced search modifiers, verify they are consistent
 
     // 8.1.1 Find a single note with a single term query
-    queryString = "canonical";
+    queryString = "cAnOniCal";
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
     }
     expectedContainedNotesIndices[1] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.1.2 Find all notes without a singe term query
+    queryString = "-canOnIcal";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[1] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.1.3 Find all notes corresponding to several note search terms
+    queryString = "cAnOnical cHeckSuM ConsiDerEd";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[5] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.1.4 Find all notes except those excluded from the search
+    queryString = "-cAnOnical -cHeckSuM -ConsiDerEd";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[1] = false;
+    expectedContainedNotesIndices[2] = false;
+    expectedContainedNotesIndices[5] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.2.1 Find all notes corresponding to a mixed query containing both included and excluded search terms
+    queryString = "-cAnOnical cHeckSuM -ConsiDerEd tranSActIOn";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[7] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.2.2 Find all notes corresponding to a mixed query containing both included and excluded search terms when some of them "overlap" in certain notes
+    queryString = "CaNoNiCaL -XhTmL CheCKSum -UniCOde cHaRACTerS aVAiLABLe -reSOUrCeS emBEDdeD";
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[6] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);

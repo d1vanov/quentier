@@ -7007,6 +7007,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         // Unfortunately, the SQL query for tag names requires a separate sub-query
         QString tagNamesSqlPrefix = "SELECT localNote AS localGuid FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE ";
         QString tagNamesSqlPart;
+        QString negatedTagNamesSqlPart;
         if (noteSearchQuery.hasAnyContentSearchTerms())
         {
             const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
@@ -7024,17 +7025,13 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             const QStringList & negatedContentSearchTerms = noteSearchQuery.negatedContentSearchTerms();
             if (!negatedContentSearchTerms.isEmpty())
             {
-                if (!contentSearchTerms.isEmpty()) {
-                    tagNamesSqlPart += " AND ";
-                }
-
-                tagNamesSqlPart += "(";
+                negatedTagNamesSqlPart += "(";
                 const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
                 for(int i = 0; i < numNegatedContentSearchTerms; ++i) {
-                    tagNamesSqlPart += QString("(localTag NOT IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) OR ").arg(contentSearchTerms[i]);
+                    negatedTagNamesSqlPart += QString("(localTag IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) AND ").arg(negatedContentSearchTerms[i]);
                 }
-                tagNamesSqlPart.chop(4);    // Remove trailing " OR "
-                tagNamesSqlPart += ")";
+                negatedTagNamesSqlPart.chop(5);    // Remove trailing " AND "
+                negatedTagNamesSqlPart += ")";
             }
         }
 
@@ -7045,12 +7042,20 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             sql += "(localGuid IN (" + tagNamesSqlPrefix + tagNamesSqlPart + ")) OR ";
         }
 
+        if (!negatedTagNamesSqlPart.isEmpty()) {
+            sql += "((localGuid NOT IN (" + tagNamesSqlPrefix + negatedTagNamesSqlPart + ")) AND ";
+        }
+
         sql += contentSearchTermsSqlPart;
 
         // Removing trailing unite operator from the SQL string =============
         QString spareEnd = uniteOperator + QString(" ");
         if (sql.endsWith(spareEnd)) {
             sql.chop(spareEnd.size());
+        }
+
+        if (!negatedTagNamesSqlPart.isEmpty()) {
+            sql += ")";
         }
 
         return true;
@@ -7635,7 +7640,7 @@ void LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart
                 for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
                     const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
                     sqlPart += QString("(localGuid NOT IN (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) AND ")
-                        .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
+                        .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, negatedContentSearchTerms[i]);
                 }
             }
             sqlPart.chop(5);    // Remove trailing " AND "
