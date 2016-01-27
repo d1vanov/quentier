@@ -8,6 +8,7 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <qute_note/utility/SysInfo.h>
+#include <qute_note/types/ResourceRecognitionIndices.h>
 #include <algorithm>
 
 namespace qute_note {
@@ -34,8 +35,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceNoteResourceQueryPrepared(false),
     m_deleteResourceFromResourceRecognitionTypesQuery(),
     m_deleteResourceFromResourceRecognitionTypesQueryPrepared(false),
-    m_insertOrReplaceIntoResourceRecognitionTypesQuery(),
-    m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared(false),
+    m_insertOrReplaceIntoResourceRecognitionDataQuery(),
+    m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared(false),
     m_deleteResourceFromResourceAttributesQuery(),
     m_deleteResourceFromResourceAttributesQueryPrepared(false),
     m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery(),
@@ -3124,28 +3125,29 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     res = query.exec("CREATE INDEX IF NOT EXISTS ResourceMimeIndex ON Resources(mime)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceMimeIndex index");
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS ResourceRecognitionTypes("
+    res = query.exec("CREATE TABLE IF NOT EXISTS ResourceRecognitionData("
                      "  resourceLocalGuid REFERENCES Resources(resourceLocalGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  recognitionType                 TEXT                DEFAULT NULL)");
-    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionTypes table");
+                     "  noteLocalGuid REFERENCES Notes(localGuid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  recognitionData                 TEXT                DEFAULT NULL)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionData table");
 
-    res = query.exec("CREATE INDEX IF NOT EXISTS ResourceRecognitionTypeIndex ON ResourceRecognitionTypes(recognitionType)");
-    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionTypeIndex index");
+    res = query.exec("CREATE INDEX IF NOT EXISTS ResourceRecognitionDataIndex ON ResourceRecognitionData(recognitionData)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionDataIndex index");
 
-    res = query.exec("CREATE VIRTUAL TABLE ResourceRecoTypesFTS USING FTS4(content=\"ResourceRecognitionTypes\", resourceLocalGuid, recognitionType)");
-    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceRecoTypesFTS table");
+    res = query.exec("CREATE VIRTUAL TABLE ResourceRecognitionDataFTS USING FTS4(content=\"ResourceRecognitionData\", resourceLocalGuid, noteLocalGuid, recognitionData)");
+    DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceRecognitionDataFTS table");
 
-    res = query.exec("CREATE TRIGGER ResourceRecoTypesFTS_BeforeDeleteTrigger BEFORE DELETE ON ResourceRecognitionTypes "
+    res = query.exec("CREATE TRIGGER ResourceRecognitionDataFTS_BeforeDeleteTrigger BEFORE DELETE ON ResourceRecognitionData "
                      "BEGIN "
-                     "DELETE FROM ResourceRecoTypesFTS WHERE recognitionType=old.recognitionType; "
+                     "DELETE FROM ResourceRecognitionDataFTS WHERE recognitionData=old.recognitionData; "
                      "END");
-    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecoTypesFTS_BeforeDeleteTrigger");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecognitionDataFTS_BeforeDeleteTrigger");
 
-    res = query.exec("CREATE TRIGGER ResourceRecoTypesFTS_AfterInsertTrigger AFTER INSERT ON ResourceRecognitionTypes "
+    res = query.exec("CREATE TRIGGER ResourceRecognitionDataFTS_AfterInsertTrigger AFTER INSERT ON ResourceRecognitionData "
                      "BEGIN "
-                     "INSERT INTO ResourceRecoTypesFTS(ResourceRecoTypesFTS) VALUES('rebuild'); "
+                     "INSERT INTO ResourceRecognitionDataFTS(ResourceRecognitionDataFTS) VALUES('rebuild'); "
                      "END");
-    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecoTypesFTS_AfterInsertTrigger");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger ResourceRecognitionDataFTS_AfterInsertTrigger");
 
     res = query.exec("CREATE VIRTUAL TABLE ResourceMimeFTS USING FTS4(content=\"Resources\", resourceLocalGuid, mime)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 ResourceMimeFTS table");
@@ -5096,6 +5098,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
                                  ? resource.localGuid()
                                  : overrideResourceLocalGuid);
 
+    QString noteLocalGuid = (overrideNoteLocalGuid.isEmpty()
+                             ? note.localGuid() : overrideNoteLocalGuid);
+
     // Updating common resource information in Resources table
     {
         bool res = checkAndPrepareInsertOrReplaceResourceQuery();
@@ -5133,9 +5138,6 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database, "
                                      "can't prepare SQL query");
 
-        QString noteLocalGuid = (overrideNoteLocalGuid.isEmpty()
-                                 ? note.localGuid() : overrideNoteLocalGuid);
-
         query.bindValue(":localNote", (noteLocalGuid.isEmpty() ? nullValue : noteLocalGuid));
         query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
         query.bindValue(":localResource", resourceLocalGuid);
@@ -5145,41 +5147,60 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
     }
 
-    // Removing resource's local guid from ResourceRecognitionTypes table
+    // Removing resource's local guid from ResourceRecognitionData table
     {
         bool res = checkAndPrepareDeleteResourceFromResourceRecognitionTypesQuery();
         QSqlQuery & query = m_deleteResourceFromResourceRecognitionTypesQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table: "
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionData table: "
                                      "can't prepare SQL query");
 
         query.bindValue(":resourceLocalGuid", resourceLocalGuid);
 
         res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionTypes table");
+        DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionData table");
     }
 
-    // FIXME: re-purpose it to use for recognition text data
-    /*
-    QStringList recognitionTypes = resource.recognitionTypes();
-    if (!recognitionTypes.isEmpty())
+    if (resource.hasRecognitionDataBody())
     {
-        // Updating resource's recognition types
-
-        bool res = checkAndPrepareInsertOrReplaceIntoResourceRecognitionTypesQuery();
-        QSqlQuery & query = m_insertOrReplaceIntoResourceRecognitionTypesQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database, "
-                                     "can't prepare SQL query");
-
-        foreach(const QString & recognitionType, recognitionTypes)
+        ResourceRecognitionIndices recoIndices;
+        bool res = recoIndices.setData(resource.recognitionDataBody());
+        if (res && recoIndices.isValid())
         {
-            query.bindValue(":resourceLocalGuid", resourceLocalGuid);
-            query.bindValue(":recognitionType", recognitionType);
+            QString recognitionData;
 
-            res = query.exec();
-            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionTypes\" table in SQL database");
+            QVector<ResourceRecognitionIndexItem> items = recoIndices.items();
+            const int numItems = items.size();
+            for(int i = 0; i < numItems; ++i)
+            {
+                const ResourceRecognitionIndexItem & item = items[i];
+
+                QVector<ResourceRecognitionIndexItem::TextItem> textItems = item.textItems();
+                const int numTextItems = textItems.size();
+                for(int j = 0; j < numTextItems; ++j)
+                {
+                    const ResourceRecognitionIndexItem::TextItem & textItem = textItems[j];
+                    recognitionData += textItem.m_text + " ";
+                }
+            }
+
+            recognitionData.chop(1);    // Remove trailing whitespace
+
+            if (!recognitionData.isEmpty())
+            {
+                bool res = checkAndPrepareInsertOrReplaceIntoResourceRecognitionDataQuery();
+                QSqlQuery & query = m_insertOrReplaceIntoResourceRecognitionDataQuery;
+                DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionData\" table in SQL database, "
+                                             "can't prepare SQL query");
+
+                query.bindValue(":resourceLocalGuid", resourceLocalGuid);
+                query.bindValue(":noteLocalGuid", (noteLocalGuid.isEmpty() ? nullValue : noteLocalGuid));
+                query.bindValue(":recognitionData", recognitionData);
+
+                res = query.exec();
+                DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionData\" table in SQL database");
+            }
         }
     }
-    */
 
     // Removing resource from ResourceAttributes table
     {
@@ -5366,10 +5387,10 @@ bool LocalStorageManagerPrivate::checkAndPrepareDeleteResourceFromResourceRecogn
 {
     if (!m_deleteResourceFromResourceRecognitionTypesQueryPrepared)
     {
-        QNDEBUG("Preparing SQL query to delete resource from ResourceRecognitionTypes table");
+        QNDEBUG("Preparing SQL query to delete resource from ResourceRecognitionData table");
 
         m_deleteResourceFromResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteResourceFromResourceRecognitionTypesQuery.prepare("DELETE FROM ResourceRecognitionTypes "
+        bool res = m_deleteResourceFromResourceRecognitionTypesQuery.prepare("DELETE FROM ResourceRecognitionData "
                                                                              "WHERE resourceLocalGuid = :resourceLocalGuid");
         if (res) {
             m_deleteResourceFromResourceRecognitionTypesQueryPrepared = true;
@@ -5383,19 +5404,19 @@ bool LocalStorageManagerPrivate::checkAndPrepareDeleteResourceFromResourceRecogn
     }
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceIntoResourceRecognitionTypesQuery()
+bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceIntoResourceRecognitionDataQuery()
 {
-    if (!m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared)
+    if (!m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared)
     {
-        QNDEBUG("Preparing SQL query to insert or replace resource into ResourceRecognitionTypes table");
+        QNDEBUG("Preparing SQL query to insert or replace resource into ResourceRecognitionData table");
 
-        m_insertOrReplaceIntoResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceIntoResourceRecognitionTypesQuery.prepare("INSERT OR REPLACE INTO ResourceRecognitionTypes"
-                                                                              "(resourceLocalGuid, recognitionType) "
-                                                                              "VALUES(:resourceLocalGuid, :recognitionType)");
+        m_insertOrReplaceIntoResourceRecognitionDataQuery = QSqlQuery(m_sqlDatabase);
+        bool res = m_insertOrReplaceIntoResourceRecognitionDataQuery.prepare("INSERT OR REPLACE INTO ResourceRecognitionData"
+                                                                             "(resourceLocalGuid, noteLocalGuid, recognitionData) "
+                                                                             "VALUES(:resourceLocalGuid, :noteLocalGuid, :recognitionData)");
 
         if (res) {
-            m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared = true;
+            m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared = true;
         }
 
         return res;
@@ -6949,7 +6970,6 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // 2) ============ Build the specialized SQL query if the note search query doesn't contain advanced search modifiers ===========
 
-    /*
     if (!noteSearchQuery.hasAdvancedSearchModifiers())
     {
         if (!noteSearchQuery.hasAnyContentSearchTerms()) {
@@ -6968,7 +6988,19 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         noteContentHelper.m_tableName = "NoteFTS";
         noteContentHelper.m_matchedColumnName = "contentListOfWords";
 
+        ContentSearchTermsSqlQueryBuildHelper noteTitleHelper;
+        noteTitleHelper.m_noteLocalGuidColumn = "localGuid";
+        noteTitleHelper.m_tableName = "NoteFTS";
+        noteTitleHelper.m_matchedColumnName = "title";
+
+        ContentSearchTermsSqlQueryBuildHelper resourceRecognitionDataHelper;
+        resourceRecognitionDataHelper.m_noteLocalGuidColumn = "noteLocalGuid";
+        resourceRecognitionDataHelper.m_tableName = "ResourceRecognitionDataFTS";
+        resourceRecognitionDataHelper.m_matchedColumnName = "recognitionData";
+
         matchedTablesAndColumns.push_back(noteContentHelper);
+        matchedTablesAndColumns.push_back(noteTitleHelper);
+        matchedTablesAndColumns.push_back(resourceRecognitionDataHelper);
 
         // TODO: add other relevant matched tables and columns
 
@@ -6976,7 +7008,6 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         sql = sqlPrefix + "WHERE " + contentSearchTermsSqlPart;
         return true;
     }
-    */
 
     // ========== 3) Processing notebook modifier (if present) ==============
 

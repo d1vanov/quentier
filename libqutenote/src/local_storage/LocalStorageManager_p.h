@@ -215,7 +215,7 @@ private:
     bool checkAndPrepareInsertOrReplaceResourceQuery();
     bool checkAndPrepareInsertOrReplaceNoteResourceQuery();
     bool checkAndPrepareDeleteResourceFromResourceRecognitionTypesQuery();
-    bool checkAndPrepareInsertOrReplaceIntoResourceRecognitionTypesQuery();
+    bool checkAndPrepareInsertOrReplaceIntoResourceRecognitionDataQuery();
     bool checkAndPrepareDeleteResourceFromResourceAttributesQuery();
     bool checkAndPrepareDeleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery();
     bool checkAndPrepareDeleteResourceFromResourceAttributesApplicationDataFullMapQuery();
@@ -343,8 +343,8 @@ private:
     QSqlQuery           m_deleteResourceFromResourceRecognitionTypesQuery;
     bool                m_deleteResourceFromResourceRecognitionTypesQueryPrepared;
 
-    QSqlQuery           m_insertOrReplaceIntoResourceRecognitionTypesQuery;
-    bool                m_insertOrReplaceIntoResourceRecognitionTypesQueryPrepared;
+    QSqlQuery           m_insertOrReplaceIntoResourceRecognitionDataQuery;
+    bool                m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared;
 
     QSqlQuery           m_deleteResourceFromResourceAttributesQuery;
     bool                m_deleteResourceFromResourceAttributesQueryPrepared;

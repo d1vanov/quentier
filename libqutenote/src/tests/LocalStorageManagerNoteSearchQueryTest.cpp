@@ -180,7 +180,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                                            "<t w=\"11\">et</t>"
                                            "<t w=\"10\">TQ</t>"
                                            "</item>"
-                                           "</recoIndex>]]>"));
+                                           "</recoIndex>"));
     res0.setRecognitionDataSize(res0.recognitionDataBody().size());
     res0.setRecognitionDataHash("Fake_hash______2");
 
@@ -192,23 +192,23 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res1.setRecognitionDataBody(QByteArray("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                           "<t w=\"87\">EVER ?</t>"
-                                           "<t w=\"83\">EVER NOTE</t>"
-                                           "<t w=\"82\">EVERNOTE</t>"
-                                           "<t w=\"71\">EVER NaTE</t>"
-                                           "<t w=\"67\">EVER nine</t>"
-                                           "<t w=\"67\">EVER none</t>"
-                                           "<t w=\"66\">EVER not</t>"
-                                           "<t w=\"62\">over NOTE</t>"
-                                           "<t w=\"62\">even NOTE</t>"
-                                           "<t w=\"61\">EVER nose</t>"
-                                           "<t w=\"50\">EV£RNoTE</t>"
+                                           "<t w=\"87\">OVER ?</t>"
+                                           "<t w=\"83\">AVER NOTE</t>"
+                                           "<t w=\"82\">PVERNOTE</t>"
+                                           "<t w=\"71\">QVER NaTE</t>"
+                                           "<t w=\"67\">LVER nine</t>"
+                                           "<t w=\"67\">KVER none</t>"
+                                           "<t w=\"66\">JVER not</t>"
+                                           "<t w=\"62\">jver NOTE</t>"
+                                           "<t w=\"62\">hven NOTE</t>"
+                                           "<t w=\"61\">eVER nose</t>"
+                                           "<t w=\"50\">pV£RNoTE</t>"
                                            "</item>"
-                                           "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                           "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
                                            "<t w=\"11\">et</t>"
                                            "<t w=\"10\">TQ</t>"
                                            "</item>"
-                                           "</recoIndex>]]>"));
+                                           "</recoIndex>"));
     res1.setRecognitionDataSize(res1.recognitionDataBody().size());
     res1.setRecognitionDataHash("Fake_hash______4");
 

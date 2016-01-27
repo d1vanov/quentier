@@ -411,7 +411,26 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
 
     modifiedResource.setWidth(resource.width() + 1);
     modifiedResource.setHeight(resource.height() + 1);
-    modifiedResource.setRecognitionDataBody(resource.recognitionDataBody() + "_modified");
+    modifiedResource.setRecognitionDataBody("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                            "<t w=\"87\">OVER ?</t>"
+                                            "<t w=\"83\">AVER NOTE</t>"
+                                            "<t w=\"82\">PVERNOTE</t>"
+                                            "<t w=\"71\">QVER NaTE</t>"
+                                            "<t w=\"67\">LVER nine</t>"
+                                            "<t w=\"67\">KVER none</t>"
+                                            "<t w=\"66\">JVER not</t>"
+                                            "<t w=\"62\">jver NOTE</t>"
+                                            "<t w=\"62\">hven NOTE</t>"
+                                            "<t w=\"61\">eVER nose</t>"
+                                            "<t w=\"50\">pV£RNoTE</t>"
+                                            "</item>"
+                                            "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
+                                            "<t w=\"11\">et</t>"
+                                            "<t w=\"10\">TQ</t>"
+                                            "</item>"
+                                            "</recoIndex>");
     modifiedResource.setRecognitionDataSize(modifiedResource.recognitionDataBody().size());
     modifiedResource.setRecognitionDataHash("Fake hash      4");
     modifiedResource.setAlternateDataBody(resource.alternateDataBody() + "_modified");
@@ -597,7 +616,26 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     newResource.setMime("text/plain");
     newResource.setWidth(2);
     newResource.setHeight(2);
-    newResource.setRecognitionDataBody("Fake new resource recognition data body");
+    newResource.setRecognitionDataBody("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                       "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                       "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                       "<t w=\"87\">OVER ?</t>"
+                                       "<t w=\"83\">AVER NOTE</t>"
+                                       "<t w=\"82\">PVERNOTE</t>"
+                                       "<t w=\"71\">QVER NaTE</t>"
+                                       "<t w=\"67\">LVER nine</t>"
+                                       "<t w=\"67\">KVER none</t>"
+                                       "<t w=\"66\">JVER not</t>"
+                                       "<t w=\"62\">jver NOTE</t>"
+                                       "<t w=\"62\">hven NOTE</t>"
+                                       "<t w=\"61\">eVER nose</t>"
+                                       "<t w=\"50\">pV£RNoTE</t>"
+                                       "</item>"
+                                       "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
+                                       "<t w=\"11\">et</t>"
+                                       "<t w=\"10\">TQ</t>"
+                                       "</item>"
+                                       "</recoIndex>");
     newResource.setRecognitionDataSize(newResource.recognitionDataBody().size());
     newResource.setRecognitionDataHash("Fake hash      4");
 

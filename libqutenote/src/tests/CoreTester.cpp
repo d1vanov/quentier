@@ -470,7 +470,26 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         resource.setDataSize(resource.dataBody().size());
         resource.setDataHash("Fake hash      1");
 
-        resource.setRecognitionDataBody("Fake resource recognition data body");
+        resource.setRecognitionDataBody("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                        "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                        "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                        "<t w=\"87\">EVER ?</t>"
+                                        "<t w=\"83\">EVER NOTE</t>"
+                                        "<t w=\"82\">EVERNOTE</t>"
+                                        "<t w=\"71\">EVER NaTE</t>"
+                                        "<t w=\"67\">EVER nine</t>"
+                                        "<t w=\"67\">EVER none</t>"
+                                        "<t w=\"66\">EVER not</t>"
+                                        "<t w=\"62\">over NOTE</t>"
+                                        "<t w=\"62\">even NOTE</t>"
+                                        "<t w=\"61\">EVER nose</t>"
+                                        "<t w=\"50\">EV£RNoTE</t>"
+                                        "</item>"
+                                        "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                        "<t w=\"11\">et</t>"
+                                        "<t w=\"10\">TQ</t>"
+                                        "</item>"
+                                        "</recoIndex>");
         resource.setRecognitionDataSize(resource.recognitionDataBody().size());
         resource.setRecognitionDataHash("Fake hash      2");
 
@@ -570,7 +589,26 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         resource.setMime("text/plain");
         resource.setWidth(1);
         resource.setHeight(1);
-        resource.setRecognitionDataBody("Fake resource recognition data body");
+        resource.setRecognitionDataBody("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                        "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                        "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                        "<t w=\"87\">EVER ?</t>"
+                                        "<t w=\"83\">EVER NOTE</t>"
+                                        "<t w=\"82\">EVERNOTE</t>"
+                                        "<t w=\"71\">EVER NaTE</t>"
+                                        "<t w=\"67\">EVER nine</t>"
+                                        "<t w=\"67\">EVER none</t>"
+                                        "<t w=\"66\">EVER not</t>"
+                                        "<t w=\"62\">over NOTE</t>"
+                                        "<t w=\"62\">even NOTE</t>"
+                                        "<t w=\"61\">EVER nose</t>"
+                                        "<t w=\"50\">EV£RNoTE</t>"
+                                        "</item>"
+                                        "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                        "<t w=\"11\">et</t>"
+                                        "<t w=\"10\">TQ</t>"
+                                        "</item>"
+                                        "</recoIndex>");
         resource.setRecognitionDataSize(resource.recognitionDataBody().size());
         resource.setRecognitionDataHash("Fake hash      2");
 
