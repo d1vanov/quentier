@@ -6981,31 +6981,78 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         QString contentSearchTermsSqlPart;
 
         QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
-        // TODO: reserve enough space
+        matchedTablesAndColumns.reserve(3);
 
         ContentSearchTermsSqlQueryBuildHelper noteContentHelper;
         noteContentHelper.m_noteLocalGuidColumn = "localGuid";
         noteContentHelper.m_tableName = "NoteFTS";
-        noteContentHelper.m_matchedColumnName = "contentListOfWords";
+        noteContentHelper.m_matchedColumnName = "NoteFTS.contentListOfWords";
 
         ContentSearchTermsSqlQueryBuildHelper noteTitleHelper;
         noteTitleHelper.m_noteLocalGuidColumn = "localGuid";
         noteTitleHelper.m_tableName = "NoteFTS";
-        noteTitleHelper.m_matchedColumnName = "title";
+        noteTitleHelper.m_matchedColumnName = "NoteFTS.title";
 
         ContentSearchTermsSqlQueryBuildHelper resourceRecognitionDataHelper;
-        resourceRecognitionDataHelper.m_noteLocalGuidColumn = "noteLocalGuid";
+        resourceRecognitionDataHelper.m_noteLocalGuidColumn = "noteLocalGuid AS localGuid";
         resourceRecognitionDataHelper.m_tableName = "ResourceRecognitionDataFTS";
-        resourceRecognitionDataHelper.m_matchedColumnName = "recognitionData";
+        resourceRecognitionDataHelper.m_matchedColumnName = "ResourceRecognitionDataFTS.recognitionData";
 
         matchedTablesAndColumns.push_back(noteContentHelper);
         matchedTablesAndColumns.push_back(noteTitleHelper);
         matchedTablesAndColumns.push_back(resourceRecognitionDataHelper);
 
-        // TODO: add other relevant matched tables and columns
-
         noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, uniteOperator, contentSearchTermsSqlPart);
-        sql = sqlPrefix + "WHERE " + contentSearchTermsSqlPart;
+
+        // Unfortunately, the SQL query for tag names requires a separate sub-query
+        QString tagNamesSqlPrefix = "SELECT localNote AS localGuid FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE ";
+        QString tagNamesSqlPart;
+        if (noteSearchQuery.hasAnyContentSearchTerms())
+        {
+            const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
+            if (!contentSearchTerms.isEmpty())
+            {
+                tagNamesSqlPart += "(";
+                const int numContentSearchTerms = contentSearchTerms.size();
+                for(int i = 0; i < numContentSearchTerms; ++i) {
+                    tagNamesSqlPart += QString("(localTag IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) OR ").arg(contentSearchTerms[i]);
+                }
+                tagNamesSqlPart.chop(4);    // Remove trailing " OR "
+                tagNamesSqlPart += ")";
+            }
+
+            const QStringList & negatedContentSearchTerms = noteSearchQuery.negatedContentSearchTerms();
+            if (!negatedContentSearchTerms.isEmpty())
+            {
+                if (!contentSearchTerms.isEmpty()) {
+                    tagNamesSqlPart += " AND ";
+                }
+
+                tagNamesSqlPart += "(";
+                const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
+                for(int i = 0; i < numNegatedContentSearchTerms; ++i) {
+                    tagNamesSqlPart += QString("(localTag NOT IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) OR ").arg(contentSearchTerms[i]);
+                }
+                tagNamesSqlPart.chop(4);    // Remove trailing " OR "
+                tagNamesSqlPart += ")";
+            }
+        }
+
+        sql = sqlPrefix + "FROM NoteFTS LEFT OUTER JOIN NoteTags ON NoteFTS.localGuid=NoteTags.localNote "
+                          "LEFT OUTER JOIN ResourceRecognitionData ON NoteFTS.localGuid=ResourceRecognitionData.noteLocalGuid "
+                          "WHERE ";
+        if (!tagNamesSqlPart.isEmpty()) {
+            sql += "(localGuid IN (" + tagNamesSqlPrefix + tagNamesSqlPart + ")) OR ";
+        }
+
+        sql += contentSearchTermsSqlPart;
+
+        // Removing trailing unite operator from the SQL string =============
+        QString spareEnd = uniteOperator + QString(" ");
+        if (sql.endsWith(spareEnd)) {
+            sql.chop(spareEnd.size());
+        }
+
         return true;
     }
 
@@ -7566,7 +7613,7 @@ void LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart
             {
                 for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
                     const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
-                    sqlPart += QString("(localGuid IN (SELECT %1 FROM %2 WHERE %2.%3 MATCH '%4')) OR ")
+                    sqlPart += QString("(localGuid IN (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) OR ")
                         .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
                 }
             }
@@ -7587,7 +7634,7 @@ void LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart
             {
                 for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
                     const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
-                    sqlPart += QString("(localGuid NOT IN (SELECT %1 FROM %2 WHERE %2.%3 MATCH '%4')) AND ")
+                    sqlPart += QString("(localGuid NOT IN (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) AND ")
                         .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
                 }
             }
