@@ -7699,18 +7699,18 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
                 queryString += tagName.toUpper();
                 queryString += "\') OR ";
             }
-            queryString.chop(4);    // remove trailing OR and two whitespaces
+            queryString.chop(4);    // remove trailing " OR "
         }
         else
         {
-            queryString = "SELECT localGuid FROM TagFTS WHERE nameUpper MATCH \'";
+            queryString = "SELECT localGuid FROM TagFTS WHERE ";
 
             foreach(const QString & tagName, tagNames) {
+                queryString += "(localGuid IN (SELECT localGuid FROM TagFTS WHERE nameUpper MATCH \'";
                 queryString += tagName.toUpper();
-                queryString += " ";
+                queryString += "\')) OR ";
             }
-            queryString.chop(1);    // remove trailing whitespace
-            queryString += "\'";
+            queryString.chop(4);    // remove trailing " OR "
         }
     }
 

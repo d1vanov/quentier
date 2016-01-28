@@ -123,14 +123,21 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     QVector<Tag> tags;
     tags.reserve(numTags);
 
-    for(int i = 0; i < numTags; ++i)
-    {
+    for(int i = 0; i < numTags; ++i) {
         tags << Tag();
         Tag & tag = tags.back();
-
-        tag.setName(QString("Test tag ") + QString::number(i));
         tag.setUpdateSequenceNumber(i);
     }
+
+    tags[0].setName("College");
+    tags[1].setName("Server");
+    tags[2].setName("Binary");
+    tags[3].setName("Download");
+    tags[4].setName("Browser");
+    tags[5].setName("Tracker");
+    tags[6].setName("Application");
+    tags[7].setName("Footlocker");
+    tags[8].setName("Money");
 
     tags[0].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813a");
     tags[1].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813b");
@@ -1744,6 +1751,25 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
     expectedContainedNotesIndices[2] = true;
     expectedContainedNotesIndices[6] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.3.1 Find all notes corresponding to a query which involves tag names as well as note content
+    queryString = "CaNonIcAl colLeGE UniCODe foOtLOCkeR";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[0] = true;
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[5] = true;
+    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[7] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
