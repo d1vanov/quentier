@@ -1777,6 +1777,20 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
+    // 8.3.1 Find all notes corresponding to a query which involves both "positive" and negated note content words and tag names
+    queryString = "CanoNiCAl -binARy cHECkSum ideNTifYIng coNSIDEreD -TrACKEr emBEDdeD -resourCES";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[7] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
     return true;
 }
 

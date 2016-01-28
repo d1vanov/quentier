@@ -7028,9 +7028,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 negatedTagNamesSqlPart += "(";
                 const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
                 for(int i = 0; i < numNegatedContentSearchTerms; ++i) {
-                    negatedTagNamesSqlPart += QString("(localTag IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) AND ").arg(negatedContentSearchTerms[i]);
+                    negatedTagNamesSqlPart += QString("(localTag IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) OR ").arg(negatedContentSearchTerms[i]);
                 }
-                negatedTagNamesSqlPart.chop(5);    // Remove trailing " AND "
+                negatedTagNamesSqlPart.chop(4);    // Remove trailing " OR "
                 negatedTagNamesSqlPart += ")";
             }
         }
@@ -7042,20 +7042,22 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             sql += "(localGuid IN (" + tagNamesSqlPrefix + tagNamesSqlPart + ")) OR ";
         }
 
-        if (!negatedTagNamesSqlPart.isEmpty()) {
-            sql += "((localGuid NOT IN (" + tagNamesSqlPrefix + negatedTagNamesSqlPart + ")) AND ";
-        }
-
         sql += contentSearchTermsSqlPart;
 
-        // Removing trailing unite operator from the SQL string =============
+        if (!negatedTagNamesSqlPart.isEmpty())
+        {
+            if (sql.endsWith(" OR ")) {
+                sql.chop(4);
+                sql += " AND ";
+            }
+
+            sql += "((localGuid NOT IN (" + tagNamesSqlPrefix + negatedTagNamesSqlPart + ")))";
+        }
+
+        // Removing possible trailing unite operator from the SQL string =============
         QString spareEnd = uniteOperator + QString(" ");
         if (sql.endsWith(spareEnd)) {
             sql.chop(spareEnd.size());
-        }
-
-        if (!negatedTagNamesSqlPart.isEmpty()) {
-            sql += ")";
         }
 
         return true;
