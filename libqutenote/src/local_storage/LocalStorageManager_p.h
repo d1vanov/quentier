@@ -261,8 +261,8 @@ private:
     bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
                               QString & errorDescription) const;
 
-    bool noteSearchQueryWithoutAdvancedSearchModifiersToSQL(const NoteSearchQuery & noteSearchQuery,
-                                                            QString & sql, QString & errorDescription) const;
+    bool noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
+                                                QString & sql, QString & errorDescription) const;
 
     struct ContentSearchTermsSqlQueryBuildHelper
     {

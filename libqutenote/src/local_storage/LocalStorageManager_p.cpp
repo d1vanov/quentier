@@ -6959,13 +6959,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
-    // 1) ============ Build the specialized SQL query if the note search query doesn't contain advanced search modifiers ===========
-
-    if (!noteSearchQuery.hasAdvancedSearchModifiers()) {
-        return noteSearchQueryWithoutAdvancedSearchModifiersToSQL(noteSearchQuery, sql, errorDescription);
-    }
-
-    // Setting up initial templates
+    // 1) ============ Setting up initial templates
     QString sqlPrefix = "SELECT DISTINCT localGuid ";
     sql.resize(0);
 
@@ -7467,38 +7461,18 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // 9) ============== Processing content search terms =================
 
-    QString positiveContentSearchTermsSqlPart;
-    QString negatedContentSearchTermsSqlPart;
-    QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
-    matchedTablesAndColumns.resize(1);
-    ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns.back();
-    helper.m_localGuidColumn = "localGuid";
-    helper.m_tableName = "NoteFTS";
-    helper.m_matchedColumnName = "contentListOfWords";
-    noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, positiveContentSearchTermsSqlPart,
-                                                    negatedContentSearchTermsSqlPart);
-
-    if (!positiveContentSearchTermsSqlPart.isEmpty() || !negatedContentSearchTermsSqlPart.isEmpty()) {
-        // Global opening brace for the content search terms part of the query
-        sql += "(";
-    }
-
-    if (!positiveContentSearchTermsSqlPart.isEmpty()) {
-        sql += "(" + positiveContentSearchTermsSqlPart + ")";
-    }
-
-    if (!negatedContentSearchTermsSqlPart.isEmpty())
+    if (noteSearchQuery.hasAnyContentSearchTerms())
     {
-        if (!positiveContentSearchTermsSqlPart.isEmpty()) {
-            sql += (noteSearchQuery.hasAnyModifier() ? " OR " : " AND ");
+        QString contentSearchTermsSqlQueryPart;
+        bool res = noteSearchQueryContentSearchTermsToSQL(noteSearchQuery, contentSearchTermsSqlQueryPart,
+                                                          errorDescription);
+        if (!res) {
+            return false;
         }
 
-        sql += "(" + negatedContentSearchTermsSqlPart + ")";
-    }
-
-    if (!positiveContentSearchTermsSqlPart.isEmpty() || !negatedContentSearchTermsSqlPart.isEmpty()) {
-        // Global closing brace for the content search terms part of the query
-        sql += ")";
+        sql += "(localGuid IN (" + contentSearchTermsSqlQueryPart + ")) ";
+        sql += uniteOperator;
+        sql += " ";
     }
 
     // 10) ============== Removing potentially left trailing unite operator from the SQL string =============
@@ -7530,10 +7504,10 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     return true;
 }
 
-bool LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersToSQL(const NoteSearchQuery & noteSearchQuery,
-                                                                                    QString & sql, QString & errorDescription) const
+bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
+                                                                        QString & sql, QString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersToSQL");
+    QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL");
 
     if (!noteSearchQuery.hasAnyContentSearchTerms()) {
         errorDescription += QT_TR_NOOP("note search query has no advanced search modifiers and no content search terms");
@@ -7608,7 +7582,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersTo
     if (!positiveTagNamesSqlPart.isEmpty())
     {
         if (!positiveContentSearchTermsSqlPart.isEmpty()) {
-            sql += " OR ";
+            sql += " OR ";  // NOTE: here there should be "OR" whether there is or there is no "any:" modifier
         }
 
         sql += "(localGuid IN (" + tagNamesSqlPrefix + positiveTagNamesSqlPart + ")) ";
@@ -7624,8 +7598,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersTo
     if (!negatedContentSearchTermsSqlPart.isEmpty() || !negatedTagNamesSqlPart.isEmpty())
     {
         if (!positiveContentSearchTermsSqlPart.isEmpty()) {
-            // If there were positive terms, need to add AND between them and the negative terms
-            sql += " AND ";
+            sql += " " + uniteOperator + " ";
         }
 
         // Global opening brace for the negative part of the SQL query
@@ -7639,7 +7612,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersTo
     if (!negatedTagNamesSqlPart.isEmpty())
     {
         if (!negatedContentSearchTermsSqlPart.isEmpty()) {
-            sql += " AND ";
+            sql += " " + uniteOperator + " ";
         }
 
         sql += "(localGuid NOT IN (" + tagNamesSqlPrefix + negatedTagNamesSqlPart + "))";

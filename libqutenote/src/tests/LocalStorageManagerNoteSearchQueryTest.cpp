@@ -1698,7 +1698,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
     // 8.1.3 Find all notes corresponding to several note search terms
-    queryString = "cAnOnical cHeckSuM ConsiDerEd";
+    queryString = "any: cAnOnical cHeckSuM ConsiDerEd";
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
@@ -1729,28 +1729,14 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 8.2.1 Find all notes corresponding to a mixed query containing both included and excluded search terms
-    queryString = "-cAnOnical cHeckSuM -ConsiDerEd tranSActIOn";
+    // 8.2.1 Find all notes corresponding to a mixed query containing both included and
+    // excluded search terms when some of them "overlap" in certain notes
+    queryString = "-iDEnTIfIEr xhTmL -cHeckSuM -ConsiDerEd";
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
     }
-    expectedContainedNotesIndices[2] = true;
-    expectedContainedNotesIndices[7] = true;
-
-    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
-                           localStorageManager, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    // 8.2.2 Find all notes corresponding to a mixed query containing both included and excluded search terms when some of them "overlap" in certain notes
-    queryString = "CaNoNiCaL -XhTmL CheCKSum -UniCOde cHaRACTerS aVAiLABLe -reSOUrCeS emBEDdeD";
-    for(int i = 0; i < numNotes; ++i) {
-        expectedContainedNotesIndices[i] = false;
-    }
-    expectedContainedNotesIndices[2] = true;
-    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[1] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -1759,7 +1745,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
     // 8.3.1 Find all notes corresponding to a query which involves tag names as well as note content
-    queryString = "CaNonIcAl colLeGE UniCODe foOtLOCkeR";
+    queryString = "any: CaNonIcAl colLeGE UniCODe foOtLOCkeR";
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
@@ -1778,12 +1764,12 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
 
     // 8.3.1 Find all notes corresponding to a query which involves both "positive" and negated note content words and tag names
-    queryString = "CanoNiCAl -binARy cHECkSum ideNTifYIng coNSIDEreD -TrACKEr emBEDdeD -resourCES";
+    queryString = "wiLl -colLeGe";
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = false;
     }
-    expectedContainedNotesIndices[7] = true;
+    expectedContainedNotesIndices[6] = true;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);

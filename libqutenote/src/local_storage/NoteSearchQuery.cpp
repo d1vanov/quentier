@@ -33,12 +33,6 @@ bool NoteSearchQuery::setQueryString(const QString & queryString, QString & erro
     return d->parseQueryString(queryString, error);
 }
 
-bool NoteSearchQuery::hasAdvancedSearchModifiers() const
-{
-    Q_D(const NoteSearchQuery);
-    return d->hasAdvancedSearchModifiers();
-}
-
 const QString NoteSearchQuery::notebookModifier() const
 {
     Q_D(const NoteSearchQuery);

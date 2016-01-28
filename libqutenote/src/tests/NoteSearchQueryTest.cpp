@@ -567,11 +567,6 @@ bool NoteSearchQueryTest(QString & error)
             return false;
         }
 
-        if (!noteSearchQuery.hasAdvancedSearchModifiers()) {
-            error = "NoteSearchQuery doesn't have advanced search modifiers while it should have some";
-            return false;
-        }
-
         if (bits[0])
         {
             const QString & noteSearchQueryNotebookModifier = noteSearchQuery.notebookModifier();
@@ -788,11 +783,6 @@ bool NoteSearchQueryTest(QString & error)
     bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + " " + negatedContentSearchTermsStr, error);
     if (!res) {
         error = "Internal error: can't set simple search query string without any search modifiers: " + error;
-        return false;
-    }
-
-    if (noteSearchQuery.hasAdvancedSearchModifiers()) {
-        error = "NoteSearchQuery has advanced search modifiers while it shouldn't have them";
         return false;
     }
 
