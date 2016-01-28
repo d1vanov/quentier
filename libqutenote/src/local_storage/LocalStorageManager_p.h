@@ -261,17 +261,20 @@ private:
     bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
                               QString & errorDescription) const;
 
+    bool noteSearchQueryWithoutAdvancedSearchModifiersToSQL(const NoteSearchQuery & noteSearchQuery,
+                                                            QString & sql, QString & errorDescription) const;
+
     struct ContentSearchTermsSqlQueryBuildHelper
     {
-        QString     m_noteLocalGuidColumn;
+        QString     m_localGuidColumn;
         QString     m_tableName;
         QString     m_matchedColumnName;
+        QString     m_externalLocalGuidColumn;
     };
 
     void noteSearchQueryContentSearchTermsToSqlQueryPart(const NoteSearchQuery & noteSearchQuery,
                                                          const QVector<ContentSearchTermsSqlQueryBuildHelper> & matchedTablesAndColumns,
-                                                         const QString & uniteOperator, QString & sqlPart) const;
-
+                                                         QString & positiveSqlPart, QString & negativeSqlPart, const bool skipNegation = false) const;
 
     bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
                                  QString & errorDescription) const;

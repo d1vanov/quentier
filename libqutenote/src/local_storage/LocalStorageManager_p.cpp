@@ -6959,111 +6959,22 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
+    // 1) ============ Build the specialized SQL query if the note search query doesn't contain advanced search modifiers ===========
+
+    if (!noteSearchQuery.hasAdvancedSearchModifiers()) {
+        return noteSearchQueryWithoutAdvancedSearchModifiersToSQL(noteSearchQuery, sql, errorDescription);
+    }
+
     // Setting up initial templates
     QString sqlPrefix = "SELECT DISTINCT localGuid ";
     sql.resize(0);
 
-    // 1) ============ Determining whether "any:" modifier takes effect ==============
+    // 2) ============ Determining whether "any:" modifier takes effect ==============
 
     bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
     QString uniteOperator = (queryHasAnyModifier ? "OR" : "AND");
 
-    // 2) ============ Build the specialized SQL query if the note search query doesn't contain advanced search modifiers ===========
-
-    if (!noteSearchQuery.hasAdvancedSearchModifiers())
-    {
-        if (!noteSearchQuery.hasAnyContentSearchTerms()) {
-            errorDescription += QT_TR_NOOP("note search query has no advanced search modifiers and no content search terms");
-            QNWARNING(errorDescription << ", query string: " << noteSearchQuery.queryString());
-            return false;
-        }
-
-        QString contentSearchTermsSqlPart;
-
-        QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
-        matchedTablesAndColumns.reserve(3);
-
-        ContentSearchTermsSqlQueryBuildHelper noteContentHelper;
-        noteContentHelper.m_noteLocalGuidColumn = "localGuid";
-        noteContentHelper.m_tableName = "NoteFTS";
-        noteContentHelper.m_matchedColumnName = "NoteFTS.contentListOfWords";
-
-        ContentSearchTermsSqlQueryBuildHelper noteTitleHelper;
-        noteTitleHelper.m_noteLocalGuidColumn = "localGuid";
-        noteTitleHelper.m_tableName = "NoteFTS";
-        noteTitleHelper.m_matchedColumnName = "NoteFTS.title";
-
-        ContentSearchTermsSqlQueryBuildHelper resourceRecognitionDataHelper;
-        resourceRecognitionDataHelper.m_noteLocalGuidColumn = "noteLocalGuid AS localGuid";
-        resourceRecognitionDataHelper.m_tableName = "ResourceRecognitionDataFTS";
-        resourceRecognitionDataHelper.m_matchedColumnName = "ResourceRecognitionDataFTS.recognitionData";
-
-        matchedTablesAndColumns.push_back(noteContentHelper);
-        matchedTablesAndColumns.push_back(noteTitleHelper);
-        matchedTablesAndColumns.push_back(resourceRecognitionDataHelper);
-
-        noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, uniteOperator, contentSearchTermsSqlPart);
-
-        // Unfortunately, the SQL query for tag names requires a separate sub-query
-        QString tagNamesSqlPrefix = "SELECT localNote AS localGuid FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE ";
-        QString tagNamesSqlPart;
-        QString negatedTagNamesSqlPart;
-        if (noteSearchQuery.hasAnyContentSearchTerms())
-        {
-            const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
-            if (!contentSearchTerms.isEmpty())
-            {
-                tagNamesSqlPart += "(";
-                const int numContentSearchTerms = contentSearchTerms.size();
-                for(int i = 0; i < numContentSearchTerms; ++i) {
-                    tagNamesSqlPart += QString("(localTag IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) OR ").arg(contentSearchTerms[i]);
-                }
-                tagNamesSqlPart.chop(4);    // Remove trailing " OR "
-                tagNamesSqlPart += ")";
-            }
-
-            const QStringList & negatedContentSearchTerms = noteSearchQuery.negatedContentSearchTerms();
-            if (!negatedContentSearchTerms.isEmpty())
-            {
-                negatedTagNamesSqlPart += "(";
-                const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
-                for(int i = 0; i < numNegatedContentSearchTerms; ++i) {
-                    negatedTagNamesSqlPart += QString("(localTag IN (SELECT localGuid FROM TagFTS WHERE TagFTS.nameUpper MATCH '%1')) OR ").arg(negatedContentSearchTerms[i]);
-                }
-                negatedTagNamesSqlPart.chop(4);    // Remove trailing " OR "
-                negatedTagNamesSqlPart += ")";
-            }
-        }
-
-        sql = sqlPrefix + "FROM NoteFTS LEFT OUTER JOIN NoteTags ON NoteFTS.localGuid=NoteTags.localNote "
-                          "LEFT OUTER JOIN ResourceRecognitionData ON NoteFTS.localGuid=ResourceRecognitionData.noteLocalGuid "
-                          "WHERE ";
-        if (!tagNamesSqlPart.isEmpty()) {
-            sql += "(localGuid IN (" + tagNamesSqlPrefix + tagNamesSqlPart + ")) OR ";
-        }
-
-        sql += contentSearchTermsSqlPart;
-
-        if (!negatedTagNamesSqlPart.isEmpty())
-        {
-            if (sql.endsWith(" OR ")) {
-                sql.chop(4);
-                sql += " AND ";
-            }
-
-            sql += "((localGuid NOT IN (" + tagNamesSqlPrefix + negatedTagNamesSqlPart + ")))";
-        }
-
-        // Removing possible trailing unite operator from the SQL string =============
-        QString spareEnd = uniteOperator + QString(" ");
-        if (sql.endsWith(spareEnd)) {
-            sql.chop(spareEnd.size());
-        }
-
-        return true;
-    }
-
-    // ========== 3) Processing notebook modifier (if present) ==============
+    // 3) ============ Processing notebook modifier (if present) ==============
 
     QString notebookName = noteSearchQuery.notebookModifier();
     QString notebookLocalGuid;
@@ -7556,19 +7467,41 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     // 9) ============== Processing content search terms =================
 
-    QString contentSearchTermsSqlPart;
+    QString positiveContentSearchTermsSqlPart;
+    QString negatedContentSearchTermsSqlPart;
     QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
     matchedTablesAndColumns.resize(1);
     ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns.back();
-    helper.m_noteLocalGuidColumn = "localGuid";
+    helper.m_localGuidColumn = "localGuid";
     helper.m_tableName = "NoteFTS";
     helper.m_matchedColumnName = "contentListOfWords";
-    noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, uniteOperator, contentSearchTermsSqlPart);
-    if (!contentSearchTermsSqlPart.isEmpty()) {
-        sql += contentSearchTermsSqlPart;
+    noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, positiveContentSearchTermsSqlPart,
+                                                    negatedContentSearchTermsSqlPart);
+
+    if (!positiveContentSearchTermsSqlPart.isEmpty() || !negatedContentSearchTermsSqlPart.isEmpty()) {
+        // Global opening brace for the content search terms part of the query
+        sql += "(";
     }
 
-    // 10) ============== Removing trailing unite operator from the SQL string =============
+    if (!positiveContentSearchTermsSqlPart.isEmpty()) {
+        sql += "(" + positiveContentSearchTermsSqlPart + ")";
+    }
+
+    if (!negatedContentSearchTermsSqlPart.isEmpty())
+    {
+        if (!positiveContentSearchTermsSqlPart.isEmpty()) {
+            sql += (noteSearchQuery.hasAnyModifier() ? " OR " : " AND ");
+        }
+
+        sql += "(" + negatedContentSearchTermsSqlPart + ")";
+    }
+
+    if (!positiveContentSearchTermsSqlPart.isEmpty() || !negatedContentSearchTermsSqlPart.isEmpty()) {
+        // Global closing brace for the content search terms part of the query
+        sql += ")";
+    }
+
+    // 10) ============== Removing potentially left trailing unite operator from the SQL string =============
 
     QString spareEnd = uniteOperator + QString(" ");
     if (sql.endsWith(spareEnd)) {
@@ -7597,62 +7530,188 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     return true;
 }
 
+bool LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersToSQL(const NoteSearchQuery & noteSearchQuery,
+                                                                                    QString & sql, QString & errorDescription) const
+{
+    QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryWithoutAdvancedSearchModifiersToSQL");
+
+    if (!noteSearchQuery.hasAnyContentSearchTerms()) {
+        errorDescription += QT_TR_NOOP("note search query has no advanced search modifiers and no content search terms");
+        QNWARNING(errorDescription << ", query string: " << noteSearchQuery.queryString());
+        return false;
+    }
+
+    sql.resize(0);
+
+    bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
+    QString uniteOperator = (queryHasAnyModifier ? "OR" : "AND");
+
+    QString positiveContentSearchTermsSqlPart;
+    QString negatedContentSearchTermsSqlPart;
+
+    QVector<ContentSearchTermsSqlQueryBuildHelper> matchedTablesAndColumns;
+    matchedTablesAndColumns.reserve(3);
+
+    ContentSearchTermsSqlQueryBuildHelper noteContentHelper;
+    noteContentHelper.m_localGuidColumn = "localGuid";
+    noteContentHelper.m_tableName = "NoteFTS";
+    noteContentHelper.m_matchedColumnName = "NoteFTS.contentListOfWords";
+
+    ContentSearchTermsSqlQueryBuildHelper noteTitleHelper;
+    noteTitleHelper.m_localGuidColumn = "localGuid";
+    noteTitleHelper.m_tableName = "NoteFTS";
+    noteTitleHelper.m_matchedColumnName = "NoteFTS.title";
+
+    ContentSearchTermsSqlQueryBuildHelper resourceRecognitionDataHelper;
+    resourceRecognitionDataHelper.m_externalLocalGuidColumn = "localGuid";
+    resourceRecognitionDataHelper.m_localGuidColumn = "noteLocalGuid";
+    resourceRecognitionDataHelper.m_tableName = "ResourceRecognitionDataFTS";
+    resourceRecognitionDataHelper.m_matchedColumnName = "ResourceRecognitionDataFTS.recognitionData";
+
+    matchedTablesAndColumns.push_back(noteContentHelper);
+    matchedTablesAndColumns.push_back(noteTitleHelper);
+    matchedTablesAndColumns.push_back(resourceRecognitionDataHelper);
+
+    noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, positiveContentSearchTermsSqlPart,
+                                                    negatedContentSearchTermsSqlPart);
+
+    // Separate sub-queries for tag names
+    QString positiveTagNamesSqlPart;
+    QString negatedTagNamesSqlPart;
+
+    ContentSearchTermsSqlQueryBuildHelper tagNamesHelper;
+    tagNamesHelper.m_localGuidColumn = "nameUpper";
+    tagNamesHelper.m_tableName = "TagFTS";
+    tagNamesHelper.m_matchedColumnName = "nameUpper";
+
+    matchedTablesAndColumns.resize(0);
+    matchedTablesAndColumns.push_back(tagNamesHelper);
+
+    noteSearchQueryContentSearchTermsToSqlQueryPart(noteSearchQuery, matchedTablesAndColumns, positiveTagNamesSqlPart,
+                                                    negatedTagNamesSqlPart, /* skip negation = */ true);
+
+    sql = "SELECT DISTINCT localGuid FROM NoteFTS LEFT OUTER JOIN NoteTags ON NoteFTS.localGuid=NoteTags.localNote "
+          "LEFT OUTER JOIN ResourceRecognitionData ON NoteFTS.localGuid=ResourceRecognitionData.noteLocalGuid WHERE ";
+
+    // ======= First append all positive terms of the query =======
+    if (!positiveContentSearchTermsSqlPart.isEmpty() || !positiveTagNamesSqlPart.isEmpty()) {
+        // Global opening brace for the positive part of the SQL query
+        sql += "(";
+    }
+
+    if (!positiveContentSearchTermsSqlPart.isEmpty()) {
+        sql += "(" + positiveContentSearchTermsSqlPart + ") ";
+    }
+
+    QString tagNamesSqlPrefix = "SELECT localNote AS localGuid FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE ";
+
+    if (!positiveTagNamesSqlPart.isEmpty())
+    {
+        if (!positiveContentSearchTermsSqlPart.isEmpty()) {
+            sql += " OR ";
+        }
+
+        sql += "(localGuid IN (" + tagNamesSqlPrefix + positiveTagNamesSqlPart + ")) ";
+    }
+
+    if (!positiveContentSearchTermsSqlPart.isEmpty() || !positiveTagNamesSqlPart.isEmpty()) {
+        // Global closing brace for the positive part of the SQL query
+        sql += ")";
+    }
+
+    // ========== Now append all negative parts of the query (if any) =========
+
+    if (!negatedContentSearchTermsSqlPart.isEmpty() || !negatedTagNamesSqlPart.isEmpty())
+    {
+        if (!positiveContentSearchTermsSqlPart.isEmpty()) {
+            // If there were positive terms, need to add AND between them and the negative terms
+            sql += " AND ";
+        }
+
+        // Global opening brace for the negative part of the SQL query
+        sql += "(";
+    }
+
+    if (!negatedContentSearchTermsSqlPart.isEmpty()) {
+        sql += "(" + negatedContentSearchTermsSqlPart + ")";
+    }
+
+    if (!negatedTagNamesSqlPart.isEmpty())
+    {
+        if (!negatedContentSearchTermsSqlPart.isEmpty()) {
+            sql += " AND ";
+        }
+
+        sql += "(localGuid NOT IN (" + tagNamesSqlPrefix + negatedTagNamesSqlPart + "))";
+    }
+
+    if (!negatedContentSearchTermsSqlPart.isEmpty() || !negatedTagNamesSqlPart.isEmpty()) {
+        // Global closing brace for the negative part of the SQL query
+        sql += ")";
+    }
+
+    return true;
+}
+
 void LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart(const NoteSearchQuery & noteSearchQuery,
                                                                                  const QVector<ContentSearchTermsSqlQueryBuildHelper> & matchedTablesAndColumns,
-                                                                                 const QString & uniteOperator, QString & sqlPart) const
+                                                                                 QString & positiveSqlPart, QString & negativeSqlPart,
+                                                                                 const bool skipNegation) const
 {
     QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart");
 
-    sqlPart.resize(0);
+    positiveSqlPart.resize(0);
+    negativeSqlPart.resize(0);
 
     if (noteSearchQuery.hasAnyContentSearchTerms())
     {
         const int numMatchedTablesAndColumns = matchedTablesAndColumns.size();
 
-        sqlPart = "(";
-
         const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
         if (!contentSearchTerms.isEmpty())
         {
-            sqlPart += "(";
+            positiveSqlPart = "(";
+
             const int numContentSearchTerms = contentSearchTerms.size();
             for(int i = 0; i < numContentSearchTerms; ++i)
             {
                 for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
                     const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
-                    sqlPart += QString("(localGuid IN (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) OR ")
-                        .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
+                    const QString & externalLocalGuidColumn = (helper.m_externalLocalGuidColumn.isEmpty() ? helper.m_localGuidColumn : helper.m_externalLocalGuidColumn);
+                    positiveSqlPart += QString("(%1 IN (SELECT %2 FROM %3 WHERE %4 MATCH '%5')) OR ")
+                                       .arg(externalLocalGuidColumn, helper.m_localGuidColumn, helper.m_tableName, helper.m_matchedColumnName, contentSearchTerms[i]);
                 }
             }
-            sqlPart.chop(4);    // Remove trailing " OR "
-            sqlPart += ")";
+            positiveSqlPart.chop(4);    // Remove trailing " OR "
+            positiveSqlPart += ")";
         }
 
         const QStringList & negatedContentSearchTerms = noteSearchQuery.negatedContentSearchTerms();
         if (!negatedContentSearchTerms.isEmpty())
         {
-            if (!contentSearchTerms.isEmpty()) {
-                sqlPart += " AND ";
-            }
+            QString negator = (skipNegation ? "IN" : "NOT IN");
+            QString unitor = (skipNegation ? "OR" : "AND");
 
-            sqlPart += "(";
+            negativeSqlPart = "(";
             const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
             for(int i = 0; i < numNegatedContentSearchTerms; ++i)
             {
                 for(int j = 0; j < numMatchedTablesAndColumns; ++j) {
                     const ContentSearchTermsSqlQueryBuildHelper & helper = matchedTablesAndColumns[j];
-                    sqlPart += QString("(localGuid NOT IN (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) AND ")
-                        .arg(helper.m_noteLocalGuidColumn, helper.m_tableName, helper.m_matchedColumnName, negatedContentSearchTerms[i]);
+                    const QString & externalLocalGuidColumn = (helper.m_externalLocalGuidColumn.isEmpty() ? helper.m_localGuidColumn : helper.m_externalLocalGuidColumn);
+                    negativeSqlPart += QString("(%1 ").arg(externalLocalGuidColumn) + negator + QString(" (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) ")
+                                      .arg(helper.m_localGuidColumn, helper.m_tableName, helper.m_matchedColumnName, negatedContentSearchTerms[i]) + unitor + " ";
                 }
             }
-            sqlPart.chop(5);    // Remove trailing " AND "
-            sqlPart += ")";
-        }
 
-        if (sqlPart.size() != 1) {
-            sqlPart += ") ";
-            sqlPart += uniteOperator;
-            sqlPart += " ";
+            if (skipNegation) {
+                negativeSqlPart.chop(4);    // Remove trailing " OR "
+            }
+            else {
+                negativeSqlPart.chop(5);    // Remove trailing " AND "
+            }
+
+            negativeSqlPart += ")";
         }
     }
 }
