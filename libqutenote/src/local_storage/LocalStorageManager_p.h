@@ -266,10 +266,19 @@ private:
 
     struct ContentSearchTermsSqlQueryBuildHelper
     {
+        ContentSearchTermsSqlQueryBuildHelper() : m_skipNegation(false) {}
+
         QString     m_localGuidColumn;
         QString     m_tableName;
         QString     m_matchedColumnName;
         QString     m_externalLocalGuidColumn;
+
+        QString     m_wrappingQueryBegin;
+        QString     m_wrappingQueryEnd;
+        QString     m_wrappingNegatedQueryBegin;
+        QString     m_wrappingNegatedQueryEnd;
+
+        bool        m_skipNegation;
     };
 
     void noteSearchQueryContentSearchTermsToSqlQueryPart(const NoteSearchQuery & noteSearchQuery,

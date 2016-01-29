@@ -1713,7 +1713,20 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 8.1.4 Find all notes except those excluded from the search
+    // 8.1.4 Attempt to find the intersection of all notes corresponding to several note search terms
+    queryString = "cAnOnical cHeckSuM ConsiDerEd";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.1.5 Find all notes except those excluded from the search
     queryString = "-cAnOnical -cHeckSuM -ConsiDerEd";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1729,7 +1742,20 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 8.2.1 Find all notes corresponding to a mixed query containing both included and
+    // 8.1.6 Find the union of all notes except those excluded from several searches
+    queryString = "any: -cAnOnical -cHeckSuM -ConsiDerEd";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.1.7 Find all notes corresponding to a mixed query containing both included and
     // excluded search terms when some of them "overlap" in certain notes
     queryString = "-iDEnTIfIEr xhTmL -cHeckSuM -ConsiDerEd";
 
@@ -1744,7 +1770,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 8.3.1 Find all notes corresponding to a query which involves tag names as well as note content
+    // 8.2.1 Find all notes corresponding to a query which involves tag names as well as note content
     queryString = "any: CaNonIcAl colLeGE UniCODe foOtLOCkeR";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1763,7 +1789,21 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // 8.3.1 Find all notes corresponding to a query which involves both "positive" and negated note content words and tag names
+    // 8.2.2 Find the intersection of all notes corresponding to queries involving tag names as well as note content
+    queryString = "CaNonIcAl sERveR";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.2.3 Find all notes corresponding to a query which involves both "positive" and negated note content words and tag names
     queryString = "wiLl -colLeGe";
 
     for(int i = 0; i < numNotes; ++i) {
@@ -1777,6 +1817,86 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
+    // 8.3.1 Find all notes corresponding to a query which involves note titles as well as note content
+    queryString = "any: CaNonIcAl eGGs";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[6] = true;
+    expectedContainedNotesIndices[7] = true;
+    expectedContainedNotesIndices[8] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.3.2 Find the intersection of all notes corresponding to a query which involves note titles as well as note content
+    queryString = "CaNonIcAl PotAto";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.3.3 Find all notes corresponding to a query which involves both "positive" and negated note content words and titles
+    queryString = "unIQue -EGgs";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[0] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // FIXME: fix these tests
+    /*
+    // 8.3.4 Find the union of notes corresponding to a query involving both "positive" and negated note content words and titles
+    queryString = "any: cONSiDERed -hAm";
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    // 8.4.1 Find all notes corresponding to a query involving note content words, titles and tag names
+    queryString = "any: cHECksUM SeRVEr hAM";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[2] = true;
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[4] = true;
+    expectedContainedNotesIndices[5] = true;
+
+    res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
+                           localStorageManager, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    */
     return true;
 }
 
