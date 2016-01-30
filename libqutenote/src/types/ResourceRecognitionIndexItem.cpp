@@ -13,6 +13,15 @@ ResourceRecognitionIndexItem::ResourceRecognitionIndexItem(const ResourceRecogni
     d(other.d)
 {}
 
+ResourceRecognitionIndexItem & ResourceRecognitionIndexItem::operator=(const ResourceRecognitionIndexItem & other)
+{
+    if (this != &other) {
+        d = other.d;
+    }
+
+    return *this;
+}
+
 ResourceRecognitionIndexItem::~ResourceRecognitionIndexItem()
 {}
 

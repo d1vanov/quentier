@@ -33,7 +33,7 @@ public:
      * even without these rules conditionally preserving or skipping the contents and nested elements
      * of skipped elements
      */
-    class SkipHtmlElementRule: public Printable
+    class QUTE_NOTE_EXPORT SkipHtmlElementRule: public Printable
     {
     public:
         enum ComparisonRule {
