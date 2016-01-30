@@ -7501,6 +7501,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     sqlPrefix += "WHERE ";
     sql.prepend(sqlPrefix);
 
+    QNTRACE("Prepared SQL query for note search: " << sql);
     return true;
 }
 
@@ -7552,7 +7553,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
     tagNamesHelper.m_wrappingQueryBegin = "(localGuid IN " + tagNamesWrappingQueryPart;
     tagNamesHelper.m_wrappingQueryEnd = "))";
     tagNamesHelper.m_wrappingNegatedQueryBegin = "(localGuid NOT IN " + tagNamesWrappingQueryPart;
-    tagNamesHelper.m_wrappingNegatedQueryEnd = ")))";
+    tagNamesHelper.m_wrappingNegatedQueryEnd = "))";
     tagNamesHelper.m_skipNegation = true;
 
     matchedTablesAndColumns.push_back(noteContentHelper);
@@ -7657,9 +7658,9 @@ void LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSqlQueryPart
                     QString("(%1 ").arg(externalLocalGuidColumn) + (helper.m_skipNegation ? "IN" : "NOT IN") +
                     QString(" (SELECT %1 FROM %2 WHERE %3 MATCH '%4')) ")
                     .arg(helper.m_localGuidColumn, helper.m_tableName, helper.m_matchedColumnName, negatedContentSearchTerms[i]) +
-                    helper.m_wrappingNegatedQueryEnd + uniteOperator + " ";
+                    helper.m_wrappingNegatedQueryEnd + " AND ";
             }
-            negativeSqlPart.chop(uniteOperator.size() + 2);
+            negativeSqlPart.chop(5);    // Remove trailing " AND ";
             negativeSqlPart += ")";
 
             negativeSqlPart += " " + uniteOperator + " ";

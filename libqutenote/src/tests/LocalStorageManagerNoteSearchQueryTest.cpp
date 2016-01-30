@@ -1862,15 +1862,13 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    // FIXME: fix these tests
-    /*
     // 8.3.4 Find the union of notes corresponding to a query involving both "positive" and negated note content words and titles
     queryString = "any: cONSiDERed -hAm";
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
     }
+    expectedContainedNotesIndices[3] = false;
     expectedContainedNotesIndices[4] = false;
-    expectedContainedNotesIndices[5] = false;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -1882,13 +1880,11 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     queryString = "any: cHECksUM SeRVEr hAM";
 
     for(int i = 0; i < numNotes; ++i) {
-        expectedContainedNotesIndices[i] = false;
+        expectedContainedNotesIndices[i] = true;
     }
-    expectedContainedNotesIndices[1] = true;
-    expectedContainedNotesIndices[2] = true;
-    expectedContainedNotesIndices[3] = true;
-    expectedContainedNotesIndices[4] = true;
-    expectedContainedNotesIndices[5] = true;
+    expectedContainedNotesIndices[6] = false;
+    expectedContainedNotesIndices[7] = false;
+    expectedContainedNotesIndices[8] = false;
 
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices,
                            localStorageManager, errorDescription);
@@ -1896,7 +1892,6 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         return false;
     }
 
-    */
     return true;
 }
 
