@@ -1645,6 +1645,60 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     RUN_CHECK()
 
+    // 8.5.1 Find notes corresponding to a phrase containing a whitespace
+    queryString = "\"The list\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[8] = true;
+
+    RUN_CHECK()
+
+    // 8.5.2 Find the union of notes corresponding to several phrases
+    queryString = "\"tHe lIsT\" \"tHE lASt\" any: \"tHE xhTMl\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+    expectedContainedNotesIndices[7] = true;
+    expectedContainedNotesIndices[8] = true;
+
+    RUN_CHECK()
+
+    // 8.5.3 Find the union of notes corresponding to a couple of phrases and other search terms as well
+    queryString = "any: \"The xhTMl\" eggS wikiPEDiA";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[0] = false;
+    expectedContainedNotesIndices[2] = false;
+
+    RUN_CHECK()
+
+    // 8.5.4 Find notes corresponding to some positive and some negated search terms containing phrases
+    queryString = "\"tHE noTE\" -\"of tHE\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[5] = true;
+    expectedContainedNotesIndices[6] = true;
+
+    RUN_CHECK()
+
+    // 8.5.5 Find notes corresponding to some phrase with the wildcard in the end
+    queryString = "\"the canonic*\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+
+    RUN_CHECK()
+
     return true;
 }
 

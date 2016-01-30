@@ -7524,6 +7524,17 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
     QString positiveSqlPart;
     QString negatedSqlPart;
 
+    QString matchStatement;
+    matchStatement.reserve(5);
+
+    QString frontSearchTermModifier;
+    frontSearchTermModifier.reserve(1);
+
+    QString backSearchTermModifier;
+    backSearchTermModifier.reserve(1);
+
+    QString currentSearchTerm;
+
     const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
     if (!contentSearchTerms.isEmpty())
     {
@@ -7533,11 +7544,40 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
         for(int i = 0; i < numContentSearchTerms; ++i)
         {
             positiveSqlPart += "(";
-            positiveSqlPart += QString("(localGuid IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords MATCH '%1')) OR "
-                                       "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE title MATCH '%1')) OR "
-                                       "(localGuid IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData MATCH '%1')) OR "
+
+            currentSearchTerm = contentSearchTerms[i];
+            if (currentSearchTerm.contains(' '))
+            {
+                // FTS "MATCH" statement doesn't work for phrased search, need to use the slow "LIKE" statement instead
+                matchStatement = "LIKE";
+                frontSearchTermModifier = "%";
+
+                bool hasAsterisk = false;
+                while(currentSearchTerm.endsWith('*')) {
+                    currentSearchTerm.chop(1);
+                    hasAsterisk = true;
+                }
+
+                if (hasAsterisk) {
+                    backSearchTermModifier = "%";
+                }
+                else {
+                    backSearchTermModifier = " %";
+                }
+            }
+            else
+            {
+                matchStatement = "MATCH";
+                frontSearchTermModifier = "";
+                backSearchTermModifier = "";
+            }
+
+            positiveSqlPart += QString("(localGuid IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) OR "
+                                       "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE title %1 '%2%3%4')) OR "
+                                       "(localGuid IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE "
-                                       "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper MATCH '%1'))))").arg(contentSearchTerms[i]);
+                                       "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper %1 '%2%3%4'))))")
+                               .arg(matchStatement, frontSearchTermModifier, currentSearchTerm, backSearchTermModifier);
             positiveSqlPart += ")";
 
             if (i != (numContentSearchTerms - 1)) {
@@ -7557,11 +7597,40 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
         for(int i = 0; i < numNegatedContentSearchTerms; ++i)
         {
             negatedSqlPart += "(";
-            negatedSqlPart += QString("(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords MATCH '%1')) AND "
-                                      "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE title MATCH '%1')) AND "
-                                      "(localGuid NOT IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData MATCH '%1')) AND "
+
+            currentSearchTerm = negatedContentSearchTerms[i];
+            if (currentSearchTerm.contains(' '))
+            {
+                // FTS "MATCH" statement doesn't work for phrased search, need to use the slow "LIKE" statement instead
+                matchStatement = "LIKE";
+                frontSearchTermModifier = "%";
+
+                bool hasAsterisk = false;
+                while(currentSearchTerm.endsWith('*')) {
+                    currentSearchTerm.chop(1);
+                    hasAsterisk = true;
+                }
+
+                if (hasAsterisk) {
+                    backSearchTermModifier = "%";
+                }
+                else {
+                    backSearchTermModifier = " %";
+                }
+            }
+            else
+            {
+                matchStatement = "MATCH";
+                frontSearchTermModifier = "";
+                backSearchTermModifier = "";
+            }
+
+            negatedSqlPart += QString("(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) AND "
+                                      "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE title %1 '%2%3%4')) AND "
+                                      "(localGuid NOT IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS on NoteTags.localTag=TagFTS.localGuid WHERE "
-                                      "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper MATCH '%1'))))").arg(negatedContentSearchTerms[i]);
+                                      "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper %1 '%2%3%4'))))")
+                              .arg(matchStatement, frontSearchTermModifier, currentSearchTerm, backSearchTermModifier);
             negatedSqlPart += ")";
 
             if (i != (numNegatedContentSearchTerms - 1)) {

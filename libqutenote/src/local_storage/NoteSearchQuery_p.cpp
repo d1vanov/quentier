@@ -676,7 +676,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
                         if (prevChr == '\\')
                         {
                             bool backslashEscaped = false;
-                            // Looks like this space is escaped. Just in case, let's check whether the backslash is esacped itself
+                            // Looks like this space is escaped. Just in case, let's check whether the backslash is escaped itself
                             if (i != 1) {
                                 QChar prevPrevChar = searchQueryString[i-2];
                                 if (prevPrevChar == '\\') {
@@ -724,8 +724,7 @@ QStringList NoteSearchQueryPrivate::splitSearchQueryString(const QString & searc
 
     // Now we can remove any quotes from the words from the splitted query string
     int numWords = words.size();
-    for(int i = 0; i < numWords; ++i)
-    {
+    for(int i = 0; i < numWords; ++i) {
         QString & word = words[i];
         removeBoundaryQuotesFromWord(word);
     }
