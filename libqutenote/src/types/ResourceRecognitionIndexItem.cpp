@@ -4,10 +4,12 @@
 namespace qute_note {
 
 ResourceRecognitionIndexItem::ResourceRecognitionIndexItem() :
+    Printable(),
     d(new ResourceRecognitionIndexItemData)
 {}
 
 ResourceRecognitionIndexItem::ResourceRecognitionIndexItem(const ResourceRecognitionIndexItem & other) :
+    Printable(),
     d(other.d)
 {}
 
