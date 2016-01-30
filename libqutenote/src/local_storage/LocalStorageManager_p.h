@@ -264,27 +264,6 @@ private:
     bool noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
                                                 QString & sql, QString & errorDescription) const;
 
-    struct ContentSearchTermsSqlQueryBuildHelper
-    {
-        ContentSearchTermsSqlQueryBuildHelper() : m_skipNegation(false) {}
-
-        QString     m_localGuidColumn;
-        QString     m_tableName;
-        QString     m_matchedColumnName;
-        QString     m_externalLocalGuidColumn;
-
-        QString     m_wrappingQueryBegin;
-        QString     m_wrappingQueryEnd;
-        QString     m_wrappingNegatedQueryBegin;
-        QString     m_wrappingNegatedQueryEnd;
-
-        bool        m_skipNegation;
-    };
-
-    void noteSearchQueryContentSearchTermsToSqlQueryPart(const NoteSearchQuery & noteSearchQuery,
-                                                         const QVector<ContentSearchTermsSqlQueryBuildHelper> & matchedTablesAndColumns,
-                                                         QString & positiveSqlPart, QString & negativeSqlPart, const bool skipNegation = false) const;
-
     bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
                                  QString & errorDescription) const;
     bool resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,
