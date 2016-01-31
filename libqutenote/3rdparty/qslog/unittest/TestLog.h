@@ -1,6 +1,12 @@
 #ifndef TESTLOG_H
 #define TESTLOG_H
 
+#ifdef QSLOG_IS_SHARED_LIBRARY
+#define QSLOG_BUILDING_UNIT_TESTS
+#undef QSLOG_SHARED_OBJECT
+#define QSLOG_SHARED_OBJECT Q_DECL_IMPORT
+#endif
+
 #include "QsLogDest.h"
 #include "QsLogDestFile.h"
 #include <QHash>

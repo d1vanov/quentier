@@ -1,23 +1,7 @@
 set(PROJECTNAME QsLogUnitTest)
 project(${PROJECTNAME})
 
-if(POLICY CMP0020)
-  cmake_policy(SET CMP0020 NEW)
-endif()
-if(POLICY CMP0042)
-  cmake_policy(SET CMP0042 NEW)
-endif()
-if(POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW)
-endif()
-
 include_directories(${QsLogUnitTest_SOURCE_DIR} ${QsLog_SOURCE_DIR})
-
-if(QS_LOG_IS_SHARED_LIBRARY)
-	# Ugh, ugly hack
-	add_definitions(-UQSLOG_IS_SHARED_LIBRARY)
-	add_definitions(-DQSLOG_IS_SHARED_LIBRARY_IMPORT)
-endif()
 
 include_directories(SYSTEM "${QT_INCLUDES} ${SYSTEM}")
 

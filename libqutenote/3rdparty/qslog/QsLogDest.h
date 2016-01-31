@@ -34,12 +34,14 @@
 class QString;
 class QObject;
 
+#ifndef QSLOG_BUILDING_UNIT_TESTS
 #ifdef QSLOG_IS_SHARED_LIBRARY
 #define QSLOG_SHARED_OBJECT Q_DECL_EXPORT
 #elif QSLOG_IS_SHARED_LIBRARY_IMPORT
 #define QSLOG_SHARED_OBJECT Q_DECL_IMPORT
 #else
 #define QSLOG_SHARED_OBJECT
+#endif
 #endif
 
 namespace QsLogging

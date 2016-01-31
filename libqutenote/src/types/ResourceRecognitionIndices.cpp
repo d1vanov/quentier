@@ -19,6 +19,15 @@ ResourceRecognitionIndices::ResourceRecognitionIndices(const QByteArray & rawRec
     d->setData(rawRecognitionIndicesData);
 }
 
+ResourceRecognitionIndices & ResourceRecognitionIndices::operator=(const ResourceRecognitionIndices & other)
+{
+    if (this != &other) {
+        d = other.d;
+    }
+
+    return *this;
+}
+
 ResourceRecognitionIndices::~ResourceRecognitionIndices()
 {}
 

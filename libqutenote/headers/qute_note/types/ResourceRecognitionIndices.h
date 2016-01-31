@@ -16,6 +16,7 @@ public:
     ResourceRecognitionIndices();
     ResourceRecognitionIndices(const ResourceRecognitionIndices & other);
     ResourceRecognitionIndices(const QByteArray & rawRecognitionIndicesData);
+    ResourceRecognitionIndices & operator=(const ResourceRecognitionIndices & other);
     virtual ~ResourceRecognitionIndices();
 
     bool isNull() const;
