@@ -230,7 +230,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
              << "<en-note><h1>The binary MD5 checksum of the UTF-8 encoded content body.</h1></en-note>"
              << "<en-note><h1>The number of Unicode characters in the content of the note.</h1><en-todo/></en-note>"
              << "<en-note><en-todo checked = \"true\"/><h1>The date and time when the note was created in one of the clients.</h1><en-todo checked = \"false\"/></en-note>"
-             << "<en-note><h1>If present, the note is considered \"deleted\", and this stores the date and time when the note was deleted</h1></en-note>"
+             << "<en-note><h1>If present [code characters], the note is considered \"deleted\", and this stores the date and time when the note was deleted</h1></en-note>"
              << "<en-note><h1>If the note is available for normal actions and viewing, this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>"
              << "<en-note><h1>A number identifying the last transaction to modify the state of this note</h1></en-note>"
              << "<en-note><h1>The list of resources that are embedded within this note.</h1><en-todo checked = \"true\"/><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
@@ -1696,6 +1696,37 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         expectedContainedNotesIndices[i] = false;
     }
     expectedContainedNotesIndices[1] = true;
+
+    RUN_CHECK()
+
+    // 8.5.6 Find notes corresponding to some phrase containing the wildcard in the middle of it
+    queryString = "\"the can*cal\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+
+    RUN_CHECK()
+
+    // 8.5.7 Find notes corresponding to some phrase containing the wildcard in the beginning of it
+    queryString = "\"*onical\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[1] = true;
+
+    RUN_CHECK()
+
+    // 8.5.8 Find notes corresponding to some phrase containing the wildcard in the beginning of it
+    queryString = "\"*code characters\"";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = false;
+    }
+    expectedContainedNotesIndices[3] = true;
+    expectedContainedNotesIndices[5] = true;
 
     RUN_CHECK()
 

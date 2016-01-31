@@ -7535,8 +7535,6 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
 
     QString currentSearchTerm;
 
-    QRegExp whitespaceRegex("\\p{Z}");
-
     const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
     if (!contentSearchTerms.isEmpty())
     {
@@ -7548,31 +7546,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             positiveSqlPart += "(";
 
             currentSearchTerm = contentSearchTerms[i];
-            if (whitespaceRegex.indexIn(currentSearchTerm) >= 0)
-            {
-                // FTS "MATCH" statement doesn't work for phrased search, need to use the slow "LIKE" statement instead
-                matchStatement = "LIKE";
-                frontSearchTermModifier = "%";
-
-                bool hasAsterisk = false;
-                while(currentSearchTerm.endsWith('*')) {
-                    currentSearchTerm.chop(1);
-                    hasAsterisk = true;
-                }
-
-                if (hasAsterisk) {
-                    backSearchTermModifier = "%";
-                }
-                else {
-                    backSearchTermModifier = " %";
-                }
-            }
-            else
-            {
-                matchStatement = "MATCH";
-                frontSearchTermModifier = "";
-                backSearchTermModifier = "";
-            }
+            contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
 
             positiveSqlPart += QString("(localGuid IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE title %1 '%2%3%4')) OR "
@@ -7601,31 +7575,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             negatedSqlPart += "(";
 
             currentSearchTerm = negatedContentSearchTerms[i];
-            if (whitespaceRegex.indexIn(currentSearchTerm) >= 0)
-            {
-                // FTS "MATCH" statement doesn't work for phrased search, need to use the slow "LIKE" statement instead
-                matchStatement = "LIKE";
-                frontSearchTermModifier = "%";
-
-                bool hasAsterisk = false;
-                while(currentSearchTerm.endsWith('*')) {
-                    currentSearchTerm.chop(1);
-                    hasAsterisk = true;
-                }
-
-                if (hasAsterisk) {
-                    backSearchTermModifier = "%";
-                }
-                else {
-                    backSearchTermModifier = " %";
-                }
-            }
-            else
-            {
-                matchStatement = "MATCH";
-                frontSearchTermModifier = "";
-                backSearchTermModifier = "";
-            }
+            contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
 
             negatedSqlPart += QString("(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE title %1 '%2%3%4')) AND "
@@ -7660,6 +7610,41 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
     }
 
     return true;
+}
+
+void LocalStorageManagerPrivate::contentSearchTermToSQLQueryPart(QString & frontSearchTermModifier, QString & searchTerm,
+                                                                 QString & backSearchTermModifier, QString & matchStatement) const
+{
+    QRegExp whitespaceRegex("\\p{Z}");
+
+    if ((whitespaceRegex.indexIn(searchTerm) >= 0) || (searchTerm.contains('*') && !searchTerm.endsWith('*')))
+    {
+        // FTS "MATCH" clause doesn't work for phrased search or search with asterisk somewhere but the end of the search term,
+        // need to use the slow "LIKE" clause instead
+        matchStatement = "LIKE";
+
+        while(searchTerm.startsWith('*')) {
+            searchTerm.remove(0, 1);
+        }
+
+        while(searchTerm.endsWith('*')) {
+            searchTerm.chop(1);
+        }
+
+        frontSearchTermModifier = "%";
+        backSearchTermModifier = "%";
+
+        int pos = -1;
+        while((pos = searchTerm.indexOf('*')) >= 0) {
+            searchTerm.replace(pos, 1, '%');
+        }
+    }
+    else
+    {
+        matchStatement = "MATCH";
+        frontSearchTermModifier = "";
+        backSearchTermModifier = "";
+    }
 }
 
 bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tagNames,

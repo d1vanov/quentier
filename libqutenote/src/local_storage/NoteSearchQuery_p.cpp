@@ -394,17 +394,6 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
             continue;
         }
 
-        // Only accept asterisk if there's a single one in the end of the search term
-        int indexOfAsterisk = searchTerm.indexOf("*");
-        int lastIndexOfAsterisk = searchTerm.lastIndexOf("*");
-        if (indexOfAsterisk != lastIndexOfAsterisk) {
-            continue;
-        }
-
-        if ((indexOfAsterisk >= 0) && (indexOfAsterisk != (searchTerm.size() - 1))) {
-            continue;
-        }
-
         // Normalize the search term to use the lower case
         if (negated) {
             m_negatedContentSearchTerms << searchTerm.simplified().toLower();

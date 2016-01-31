@@ -264,6 +264,9 @@ private:
     bool noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
                                                 QString & sql, QString & errorDescription) const;
 
+    void contentSearchTermToSQLQueryPart(QString & frontSearchTermModifier, QString & searchTerm,
+                                         QString & backSearchTermModifier, QString & matchStatement) const;
+
     bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
                                  QString & errorDescription) const;
     bool resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,

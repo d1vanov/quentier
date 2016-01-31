@@ -236,10 +236,10 @@ bool NoteSearchQueryTest(QString & error)
     timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
 
     QStringList contentSearchTerms;
-    contentSearchTerms << "THINK[] !" << "[do! " << " act]!" << "*";
+    contentSearchTerms << "THINK[] !" << "[do! " << " act]!" << "*" << "a*t" << "*ct";
 
     QStringList negatedContentSearchTerms;
-    negatedContentSearchTerms << "BIRD[" << "*is" << "a" << "word*" << "***";
+    negatedContentSearchTerms << "BIRD[" << "*is" << "a" << "word*" << "***" << "w*rd" << "*ord";
 
     NoteSearchQuery noteSearchQuery;
 
@@ -808,17 +808,6 @@ bool NoteSearchQueryTest(QString & error)
             continue;
         }
 
-        // Only accept asterisk if there's a single one in the end of the search term
-        int indexOfAsterisk = filteredSearchTerm.indexOf("*");
-        int lastIndexOfAsterisk = filteredSearchTerm.lastIndexOf("*");
-        if (indexOfAsterisk != lastIndexOfAsterisk) {
-            continue;
-        }
-
-        if ((indexOfAsterisk >= 0) && (indexOfAsterisk != (filteredSearchTerm.size() - 1))) {
-            continue;
-        }
-
         filteredContentSearchTerms << filteredSearchTerm.simplified().toLower();
     }
 
@@ -858,17 +847,6 @@ bool NoteSearchQueryTest(QString & error)
         QString filteredNegatedSearchTermWithoutAsterisks = filteredNegatedSearchTerm;
         filteredNegatedSearchTermWithoutAsterisks.remove(asteriskFilter);
         if (filteredNegatedSearchTermWithoutAsterisks.isEmpty()) {
-            continue;
-        }
-
-        // Only accept asterisk if there's a single one in the end of the search term
-        int indexOfAsterisk = filteredNegatedSearchTerm.indexOf("*");
-        int lastIndexOfAsterisk = filteredNegatedSearchTerm.lastIndexOf("*");
-        if (indexOfAsterisk != lastIndexOfAsterisk) {
-            continue;
-        }
-
-        if ((indexOfAsterisk >= 0) && (indexOfAsterisk != (filteredNegatedSearchTerm.size() - 1))) {
             continue;
         }
 
