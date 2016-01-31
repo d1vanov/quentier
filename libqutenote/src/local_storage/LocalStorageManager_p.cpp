@@ -7535,6 +7535,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
 
     QString currentSearchTerm;
 
+    QRegExp whitespaceRegex("\\p{Z}");
+
     const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
     if (!contentSearchTerms.isEmpty())
     {
@@ -7546,7 +7548,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             positiveSqlPart += "(";
 
             currentSearchTerm = contentSearchTerms[i];
-            if (currentSearchTerm.contains(' '))
+            if (whitespaceRegex.indexIn(currentSearchTerm) >= 0)
             {
                 // FTS "MATCH" statement doesn't work for phrased search, need to use the slow "LIKE" statement instead
                 matchStatement = "LIKE";
@@ -7599,7 +7601,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             negatedSqlPart += "(";
 
             currentSearchTerm = negatedContentSearchTerms[i];
-            if (currentSearchTerm.contains(' '))
+            if (whitespaceRegex.indexIn(currentSearchTerm) >= 0)
             {
                 // FTS "MATCH" statement doesn't work for phrased search, need to use the slow "LIKE" statement instead
                 matchStatement = "LIKE";
