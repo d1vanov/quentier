@@ -118,7 +118,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
-    m_expungeUserQueryPrepared(false)
+    m_expungeUserQueryPrepared(false),
+    m_stringUtils()
 {
     switchUser(username, userId, startFromScratch);
 }
@@ -4555,7 +4556,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
             }
 
             QString listOfWords = plainTextAndListOfWords.second.join(" ");
-            removePunctuation(listOfWords, /* keep asterisk = */ false);
+            m_stringUtils.removePunctuation(listOfWords);
 
             query.bindValue(":contentPlainText", (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
             query.bindValue(":contentListOfWords", (listOfWords.isEmpty() ? nullValue : listOfWords));

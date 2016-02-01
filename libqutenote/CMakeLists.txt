@@ -247,7 +247,8 @@ set(PRIVATE_HEADERS
     src/utility/EncryptionManager_p.h
     src/utility/FileIOThreadWorker_p.h
     src/utility/FileSystemWatcher_p.h
-    src/utility/ShortcutManager_p.h)
+    src/utility/ShortcutManager_p.h
+    src/utility/StringUtils_p.h)
 
 if(NOT USE_QT_WEB_ENGINE)
   list(APPEND PRIVATE_HEADERS
@@ -391,6 +392,7 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/ShortcutManager.cpp
     src/utility/ShortcutManager_p.cpp
     src/utility/StringUtils.cpp
+    src/utility/StringUtils_p.cpp
     src/utility/Utility.cpp)
 
 if(NOT USE_QT_WEB_ENGINE)

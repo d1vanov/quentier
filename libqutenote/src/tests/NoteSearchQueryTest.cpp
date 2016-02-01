@@ -4,6 +4,8 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QStringList>
 #include <QDateTime>
+#include <QString>
+#include <QVector>
 #include <bitset>
 
 namespace qute_note {
@@ -789,6 +791,11 @@ bool NoteSearchQueryTest(QString & error)
     const QStringList & contentSearchTermsFromQuery = noteSearchQuery.contentSearchTerms();
     const int numContentSearchTermsFromQuery = contentSearchTermsFromQuery.size();
 
+    StringUtils stringUtils;
+    QVector<QChar> asteriskPreservedChar;
+    asteriskPreservedChar.reserve(1);
+    asteriskPreservedChar.push_back('*');
+
     QRegExp asteriskFilter("[*]");
 
     QStringList filteredContentSearchTerms;
@@ -796,7 +803,7 @@ bool NoteSearchQueryTest(QString & error)
     for(int i = 0, numOriginalContentSearchTerms = contentSearchTerms.size(); i < numOriginalContentSearchTerms; ++i)
     {
         QString filteredSearchTerm = contentSearchTerms[i];
-        removePunctuation(filteredSearchTerm);
+        stringUtils.removePunctuation(filteredSearchTerm, asteriskPreservedChar);
         if (filteredSearchTerm.isEmpty()) {
             continue;
         }
@@ -838,7 +845,7 @@ bool NoteSearchQueryTest(QString & error)
     for(int i = 0, numOriginalNegatedContentSearchTerms = negatedContentSearchTerms.size(); i < numOriginalNegatedContentSearchTerms; ++i)
     {
         QString filteredNegatedSearchTerm = negatedContentSearchTerms[i];
-        removePunctuation(filteredNegatedSearchTerm);
+        stringUtils.removePunctuation(filteredNegatedSearchTerm, asteriskPreservedChar);
         if (filteredNegatedSearchTerm.isEmpty()) {
             continue;
         }

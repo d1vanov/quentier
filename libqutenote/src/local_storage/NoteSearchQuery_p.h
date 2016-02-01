@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__LOCAL_STORAGE__NOTE_SEARCH_QUERY_P_H
 
 #include <qute_note/utility/Printable.h>
+#include <qute_note/utility/StringUtils.h>
 #include <QStringList>
 #include <QVector>
 
@@ -120,6 +121,10 @@ private:
     bool dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, QString & error) const;
     bool convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const;
     void removeBoundaryQuotesFromWord(QString & word) const;
+
+private:
+    StringUtils     m_stringUtils;
+    QVector<QChar>  m_asteriskPreservedChar;
 };
 
 } // namespace qute_note

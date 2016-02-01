@@ -17,6 +17,7 @@
 #include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/types/LinkedNotebook.h>
 #include <qute_note/types/SavedSearch.h>
+#include <qute_note/utility/StringUtils.h>
 #include <QtSql>
 
 namespace qute_note {
@@ -462,6 +463,8 @@ private:
 
     QSqlQuery           m_expungeUserQuery;
     bool                m_expungeUserQueryPrepared;
+
+    StringUtils         m_stringUtils;
 };
 
 } // namespace qute_note

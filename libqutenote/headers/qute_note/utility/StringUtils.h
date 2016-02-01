@@ -3,10 +3,24 @@
 
 #include <qute_note/utility/Linkage.h>
 #include <QString>
+#include <QVector>
 
 namespace qute_note {
 
-void QUTE_NOTE_EXPORT removePunctuation(QString & str, const bool keepAsterisk = true);
+QT_FORWARD_DECLARE_CLASS(StringUtilsPrivate)
+
+class QUTE_NOTE_EXPORT StringUtils
+{
+public:
+    StringUtils();
+    virtual ~StringUtils();
+
+    void removePunctuation(QString & str, const QVector<QChar> & charactersToPreserve = QVector<QChar>()) const;
+
+private:
+    StringUtilsPrivate * const d_ptr;
+    Q_DECLARE_PRIVATE(StringUtils);
+};
 
 } // namespace qute_note
 

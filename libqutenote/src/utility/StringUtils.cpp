@@ -1,22 +1,21 @@
 #include <qute_note/utility/StringUtils.h>
-#include <qute_note/logging/QuteNoteLogger.h>
-#include <QRegExp>
+#include "StringUtils_p.h"
 
 namespace qute_note {
 
-void removePunctuation(QString & str, const bool keepAsterisk)
+StringUtils::StringUtils() :
+    d_ptr(new StringUtilsPrivate)
+{}
+
+StringUtils::~StringUtils()
 {
-    QNDEBUG("removePunctuation: " << str << "; keep asterisk = " << (keepAsterisk ? "true" : "false"));
+    delete d_ptr;
+}
 
-    QString filterStr = QString::fromUtf8("[`~!@#$%^&()—+=|:;<>«»,.?/{}\'\"\\[\\]]");
-    if (!keepAsterisk) {
-        filterStr += "*";
-    }
-
-    QRegExp punctuationFilter(filterStr);
-    str.remove(punctuationFilter);
-
-    QNTRACE("After removing punctuation: " << str);
+void StringUtils::removePunctuation(QString & str, const QVector<QChar> & charactersToPreserve) const
+{
+    Q_D(const StringUtils);
+    d->removePunctuation(str, charactersToPreserve);
 }
 
 } // namespace qute_note
