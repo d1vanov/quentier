@@ -18,4 +18,10 @@ void StringUtils::removePunctuation(QString & str, const QVector<QChar> & charac
     d->removePunctuation(str, charactersToPreserve);
 }
 
+void StringUtils::removeDiacritics(QString & str) const
+{
+    Q_D(const StringUtils);
+    d->removeDiacritics(str);
+}
+
 } // namespace qute_note

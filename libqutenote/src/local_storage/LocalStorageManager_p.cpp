@@ -3033,6 +3033,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  isLocal                         INTEGER              NOT NULL, "
                      "  hasShortcut                     INTEGER              NOT NULL, "
                      "  title                           TEXT                 DEFAULT NULL, "
+                     "  titleNormalized                 TEXT                 DEFAULT NULL, "
                      "  content                         TEXT                 DEFAULT NULL, "
                      "  contentLength                   INTEGER              DEFAULT NULL, "
                      "  contentHash                     TEXT                 DEFAULT NULL, "
@@ -3078,8 +3079,8 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     res = query.exec("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalGuid)");
     DATABASE_CHECK_AND_SET_ERROR("can't create index NotesNotebooks");
 
-    res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localGuid, title, "
-                     "contentPlainText, contentListOfWords, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
+    res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localGuid, titleNormalized, "
+                     "contentListOfWords, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
                      "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
                      "isActive, notebookLocalGuid, notebookGuid, subjectDate, latitude, longitude, "
                      "altitude, author, source, sourceApplication, reminderOrder, reminderDoneTime, "
@@ -4530,6 +4531,12 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
         QSqlQuery & query = m_insertOrReplaceNoteQuery;
         DATABASE_CHECK_AND_SET_ERROR("Can't insert data into \"Notes\" table in SQL database: can't prepare SQL query");
 
+        QString titleNormalized;
+        if (note.hasTitle()) {
+            titleNormalized = note.title();
+            m_stringUtils.removeDiacritics(titleNormalized);
+        }
+
         query.bindValue(":localGuid", localGuid);
         query.bindValue(":guid", (note.hasGuid() ? note.guid() : nullValue));
         query.bindValue(":updateSequenceNumber", (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
@@ -4537,6 +4544,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
         query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
         query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
         query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
+        query.bindValue(":titleNormalized", (titleNormalized.isEmpty() ? nullValue : titleNormalized));
         query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
         query.bindValue(":contentContainsUnfinishedToDo", (note.containsUncheckedTodo() ? 1 : nullValue));
         query.bindValue(":contentContainsFinishedToDo", (note.containsCheckedTodo() ? 1 : nullValue));
@@ -4557,6 +4565,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
 
             QString listOfWords = plainTextAndListOfWords.second.join(" ");
             m_stringUtils.removePunctuation(listOfWords);
+            m_stringUtils.removeDiacritics(listOfWords);
 
             query.bindValue(":contentPlainText", (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
             query.bindValue(":contentListOfWords", (listOfWords.isEmpty() ? nullValue : listOfWords));
@@ -4865,7 +4874,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
         m_insertOrReplaceNoteQuery = QSqlQuery(m_sqlDatabase);
 
         QString columns = "localGuid, guid, updateSequenceNumber, isDirty, isLocal, "
-                          "hasShortcut, title, content, contentLength, contentHash, "
+                          "hasShortcut, title, titleNormalized, content, contentLength, contentHash, "
                           "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
                           "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
                           "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
@@ -4877,7 +4886,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
                           "applicationDataValues, classificationKeys, classificationValues";
 
         QString values = ":localGuid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
-                         ":hasShortcut, :title, :content, :contentLength, :contentHash, "
+                         ":hasShortcut, :title, :titleNormalized, :content, :contentLength, :contentHash, "
                          ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
                          ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
                          ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
@@ -4981,12 +4990,18 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QStri
 
     QVariant nullValue;
 
+    QString tagNameNormalized;
+    if (tag.hasName()) {
+        tagNameNormalized = tag.name().toUpper();
+        m_stringUtils.removeDiacritics(tagNameNormalized);
+    }
+
     query.bindValue(":localGuid", localGuid);
     query.bindValue(":guid", (tag.hasGuid() ? tag.guid() : nullValue));
     query.bindValue(":linkedNotebookGuid", tag.hasLinkedNotebookGuid() ? tag.linkedNotebookGuid() : nullValue);
     query.bindValue(":updateSequenceNumber", (tag.hasUpdateSequenceNumber() ? tag.updateSequenceNumber() : nullValue));
     query.bindValue(":name", (tag.hasName() ? tag.name() : nullValue));
-    query.bindValue(":nameUpper", (tag.hasName() ? tag.name().toUpper() : nullValue));
+    query.bindValue(":nameUpper", (tag.hasName() ? tagNameNormalized : nullValue));
     query.bindValue(":parentGuid", (tag.hasParentGuid() ? tag.parentGuid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
@@ -5185,6 +5200,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
             }
 
             recognitionData.chop(1);    // Remove trailing whitespace
+            m_stringUtils.removeDiacritics(recognitionData);
 
             if (!recognitionData.isEmpty())
             {
@@ -7550,7 +7566,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
 
             positiveSqlPart += QString("(localGuid IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) OR "
-                                       "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE title %1 '%2%3%4')) OR "
+                                       "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE "
                                        "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper %1 '%2%3%4'))))")
@@ -7579,7 +7595,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
 
             negatedSqlPart += QString("(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) AND "
-                                      "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE title %1 '%2%3%4')) AND "
+                                      "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS on NoteTags.localTag=TagFTS.localGuid WHERE "
                                       "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper %1 '%2%3%4'))))")
