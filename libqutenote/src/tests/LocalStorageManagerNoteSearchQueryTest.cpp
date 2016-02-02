@@ -136,7 +136,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     tags[4].setName("Browser");
     tags[5].setName("Tracker");
     tags[6].setName("Application");
-    tags[7].setName("Footlocker αυΤΟκίΝΗτο");
+    tags[7].setName(QString::fromUtf8("Footlocker αυΤΟκίΝΗτο"));
     tags[8].setName("Money");
 
     tags[0].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813a");
@@ -168,22 +168,23 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res0.setDataBody(QByteArray("fake image/gif byte array"));
     res0.setDataSize(res0.dataBody().size());
     res0.setDataHash("Fake_hash______1");
-    res0.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
-                                           "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
-                                           "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                           "<t w=\"87\">INFO ?</t>"
-                                           "<t w=\"83\">INFORMATION</t>"
-                                           "<t w=\"82\">LNFOPWATION</t>"
-                                           "<t w=\"71\">LNFOPMATION</t>"
-                                           "<t w=\"67\">LNFOPWATJOM</t>"
-                                           "<t w=\"67\">LMFOPWAFJOM</t>"
-                                           "<t w=\"62\">ΕΊΝΑΙ ένα</t>"
-                                           "</item>"
-                                           "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
-                                           "<t w=\"11\">et</t>"
-                                           "<t w=\"10\">TQ</t>"
-                                           "</item>"
-                                           "</recoIndex>"));
+    QString recognitionBodyStr = QString::fromUtf8("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                                   "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                                   "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                                   "<t w=\"87\">INFO ?</t>"
+                                                   "<t w=\"83\">INFORMATION</t>"
+                                                   "<t w=\"82\">LNFOPWATION</t>"
+                                                   "<t w=\"71\">LNFOPMATION</t>"
+                                                   "<t w=\"67\">LNFOPWATJOM</t>"
+                                                   "<t w=\"67\">LMFOPWAFJOM</t>"
+                                                   "<t w=\"62\">ΕΊΝΑΙ ένα</t>"
+                                                   "</item>"
+                                                   "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                                   "<t w=\"11\">et</t>"
+                                                   "<t w=\"10\">TQ</t>"
+                                                   "</item>"
+                                                   "</recoIndex>");
+    res0.setRecognitionDataBody(recognitionBodyStr.toUtf8());
     res0.setRecognitionDataSize(res0.recognitionDataBody().size());
     res0.setRecognitionDataHash("Fake_hash______2");
 
@@ -221,7 +222,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     int numTitles = 3;
     QVector<QString> titles;
     titles.reserve(numTitles);
-    titles << "Potato (είΝΑΙ)" << "Ham" << "Eggs";
+    titles << QString::fromUtf8("Potato (είΝΑΙ)") << "Ham" << "Eggs";
 
     int numContents = 9;
     QVector<QString> contents;
@@ -229,11 +230,12 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     contents << "<en-note><h1>The unique identifier of this note. Will be set by the server</h1></en-note>"
              << "<en-note><h1>The XHTML block that makes up the note. This is the canonical form of the note's contents</h1><en-todo checked = \"true\"/></en-note>"
              << "<en-note><h1>The binary MD5 checksum of the UTF-8 encoded content body.</h1></en-note>"
-             << "<en-note><h1>The number of Unicode characters \"αυτό είναι ένα αυτοκίνητο\" in the content of the note.</h1><en-todo/></en-note>"
+             << QString::fromUtf8("<en-note><h1>The number of Unicode characters \"αυτό είναι ένα αυτοκίνητο\" in the content of the note.</h1><en-todo/></en-note>")
              << "<en-note><en-todo checked = \"true\"/><h1>The date and time when the note was created in one of the clients.</h1><en-todo checked = \"false\"/></en-note>"
              << "<en-note><h1>If present [code characters], the note is considered \"deleted\", and this stores the date and time when the note was deleted</h1></en-note>"
-             << "<en-note><h1>If the note is available {ΑΥΤΌ ΕΊΝΑΙ ΈΝΑ ΑΥΤΟΚΊΝΗΤΟ} for normal actions and viewing, this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>"
-             << "<en-note><h1>A number identifying the last transaction (Αυτό ΕΊΝΑΙ ένα αυΤΟκίΝΗτο) to modify the state of this note</h1></en-note>"
+             << QString::fromUtf8("<en-note><h1>If the note is available {ΑΥΤΌ ΕΊΝΑΙ ΈΝΑ ΑΥΤΟΚΊΝΗΤΟ} for normal actions and viewing, "
+                                  "this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>")
+             << QString::fromUtf8("<en-note><h1>A number identifying the last transaction (Αυτό ΕΊΝΑΙ ένα αυΤΟκίΝΗτο) to modify the state of this note</h1></en-note>")
              << "<en-note><h1>The list of resources that are embedded within this note.</h1><en-todo checked = \"true\"/><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
 
     QHash<QString,qint64> timestampForDateTimeString;
@@ -1732,7 +1734,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.1 Find notes corresponding to Greek letters using characters with diacritics for the note search query
-    queryString = "είναι";
+    queryString = QString::fromUtf8("είναι");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
@@ -1744,7 +1746,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.2 Find notes corresponding to Greek letters using characters with diacritics and upper case for the note search query
-    queryString = "ΕΊΝΑΙ";
+    queryString = QString::fromUtf8("ΕΊΝΑΙ");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
@@ -1756,7 +1758,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.3 Find notes corresponding to Greek letters using characters with diacritics and mixed case for the note search query
-    queryString = "ΕΊναι";
+    queryString = QString::fromUtf8("ΕΊναι");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
@@ -1768,7 +1770,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.4 Find notes corresponding to Greek letters using characters without diacritics
-    queryString = "ειναι";
+    queryString = QString::fromUtf8("ειναι");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
@@ -1780,7 +1782,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.5 Find notes corresponding to Greek letters using characters without diacritics in upper case
-    queryString = "ΕΙΝΑΙ";
+    queryString = QString::fromUtf8("ΕΙΝΑΙ");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
@@ -1792,7 +1794,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.6 Find notes corresponding to Greek letters using characters without diacritics in mixed case
-    queryString = "ΕΙναι";
+    queryString = QString::fromUtf8("ΕΙναι");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
@@ -1804,7 +1806,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     RUN_CHECK()
 
     // 8.6.7 Find notes corresponding to Greek letters using characters with and without diacritics in mixed case when tags are also involved
-    queryString = "ΕΊναι any: αυΤΟκιΝΗτο";
+    queryString = QString::fromUtf8("ΕΊναι any: αυΤΟκιΝΗτο");
 
     for(int i = 0; i < numNotes; ++i) {
         expectedContainedNotesIndices[i] = true;
