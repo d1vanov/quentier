@@ -136,7 +136,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     tags[4].setName("Browser");
     tags[5].setName("Tracker");
     tags[6].setName("Application");
-    tags[7].setName("Footlocker");
+    tags[7].setName("Footlocker αυΤΟκίΝΗτο");
     tags[8].setName("Money");
 
     tags[0].setGuid("8743428c-ef91-4d05-9e7c-4a2e856e813a");
@@ -177,6 +177,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                                            "<t w=\"71\">LNFOPMATION</t>"
                                            "<t w=\"67\">LNFOPWATJOM</t>"
                                            "<t w=\"67\">LMFOPWAFJOM</t>"
+                                           "<t w=\"62\">ΕΊΝΑΙ ένα</t>"
                                            "</item>"
                                            "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
                                            "<t w=\"11\">et</t>"
@@ -220,7 +221,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     int numTitles = 3;
     QVector<QString> titles;
     titles.reserve(numTitles);
-    titles << "Potato" << "Ham" << "Eggs";
+    titles << "Potato (είΝΑΙ)" << "Ham" << "Eggs";
 
     int numContents = 9;
     QVector<QString> contents;
@@ -228,11 +229,11 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     contents << "<en-note><h1>The unique identifier of this note. Will be set by the server</h1></en-note>"
              << "<en-note><h1>The XHTML block that makes up the note. This is the canonical form of the note's contents</h1><en-todo checked = \"true\"/></en-note>"
              << "<en-note><h1>The binary MD5 checksum of the UTF-8 encoded content body.</h1></en-note>"
-             << "<en-note><h1>The number of Unicode characters in the content of the note.</h1><en-todo/></en-note>"
+             << "<en-note><h1>The number of Unicode characters \"αυτό είναι ένα αυτοκίνητο\" in the content of the note.</h1><en-todo/></en-note>"
              << "<en-note><en-todo checked = \"true\"/><h1>The date and time when the note was created in one of the clients.</h1><en-todo checked = \"false\"/></en-note>"
              << "<en-note><h1>If present [code characters], the note is considered \"deleted\", and this stores the date and time when the note was deleted</h1></en-note>"
-             << "<en-note><h1>If the note is available for normal actions and viewing, this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>"
-             << "<en-note><h1>A number identifying the last transaction to modify the state of this note</h1></en-note>"
+             << "<en-note><h1>If the note is available {ΑΥΤΌ ΕΊΝΑΙ ΈΝΑ ΑΥΤΟΚΊΝΗΤΟ} for normal actions and viewing, this flag will be set to true.</h1><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>"
+             << "<en-note><h1>A number identifying the last transaction (Αυτό ΕΊΝΑΙ ένα αυΤΟκίΝΗτο) to modify the state of this note</h1></en-note>"
              << "<en-note><h1>The list of resources that are embedded within this note.</h1><en-todo checked = \"true\"/><en-crypt hint=\"My Cat\'s Name\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
 
     QHash<QString,qint64> timestampForDateTimeString;
@@ -1727,6 +1728,89 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     }
     expectedContainedNotesIndices[3] = true;
     expectedContainedNotesIndices[5] = true;
+
+    RUN_CHECK()
+
+    // 8.6.1 Find notes corresponding to Greek letters using characters with diacritics for the note search query
+    queryString = "είναι";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    RUN_CHECK()
+
+    // 8.6.2 Find notes corresponding to Greek letters using characters with diacritics and upper case for the note search query
+    queryString = "ΕΊΝΑΙ";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    RUN_CHECK()
+
+    // 8.6.3 Find notes corresponding to Greek letters using characters with diacritics and mixed case for the note search query
+    queryString = "ΕΊναι";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    RUN_CHECK()
+
+    // 8.6.4 Find notes corresponding to Greek letters using characters without diacritics
+    queryString = "ειναι";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    RUN_CHECK()
+
+    // 8.6.5 Find notes corresponding to Greek letters using characters without diacritics in upper case
+    queryString = "ΕΙΝΑΙ";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    RUN_CHECK()
+
+    // 8.6.6 Find notes corresponding to Greek letters using characters without diacritics in mixed case
+    queryString = "ΕΙναι";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[5] = false;
+    expectedContainedNotesIndices[8] = false;
+
+    RUN_CHECK()
+
+    // 8.6.7 Find notes corresponding to Greek letters using characters with and without diacritics in mixed case when tags are also involved
+    queryString = "ΕΊναι any: αυΤΟκιΝΗτο";
+
+    for(int i = 0; i < numNotes; ++i) {
+        expectedContainedNotesIndices[i] = true;
+    }
+    expectedContainedNotesIndices[4] = false;
+    expectedContainedNotesIndices[8] = false;
 
     RUN_CHECK()
 

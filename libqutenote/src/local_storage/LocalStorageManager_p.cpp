@@ -2087,8 +2087,8 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
             return false;
         }
 
-        column = "nameUpper";
-        value = tag.name().toUpper();
+        column = "nameLower";
+        value = tag.name().toLower();
     }
     else
     {
@@ -2602,8 +2602,8 @@ bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QString &
             return false;
         }
 
-        column = "nameUpper";
-        value = search.name().toUpper();
+        column = "nameLower";
+        value = search.name().toLower();
     }
     else
     {
@@ -3217,20 +3217,20 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber  INTEGER              DEFAULT NULL, "
                      "  name                  TEXT                 DEFAULT NULL, "
-                     "  nameUpper             TEXT                 DEFAULT NULL, "
+                     "  nameLower             TEXT                 DEFAULT NULL, "
                      "  parentGuid            TEXT                 DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              NOT NULL, "
                      "  hasShortcut           INTEGER              NOT NULL, "
-                     "  UNIQUE(linkedNotebookGuid, nameUpper) "
+                     "  UNIQUE(linkedNotebookGuid, nameLower) "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
 
-    res = query.exec("CREATE INDEX IF NOT EXISTS TagNameUpperIndex ON Tags(nameUpper)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS TagNameUpperIndex ON Tags(nameLower)");
     DATABASE_CHECK_AND_SET_ERROR("can't create TagNameUpperIndex index");
 
-    res = query.exec("CREATE VIRTUAL TABLE TagFTS USING FTS4(content=\"Tags\", localGuid, guid, nameUpper)");
+    res = query.exec("CREATE VIRTUAL TABLE TagFTS USING FTS4(content=\"Tags\", localGuid, guid, nameLower)");
     DATABASE_CHECK_AND_SET_ERROR("can't create virtual FTS4 table TagFTS");
 
     res = query.exec("CREATE TRIGGER TagFTS_BeforeDeleteTrigger BEFORE DELETE ON Tags "
@@ -3245,7 +3245,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger TagFTS_AfterInsertTrigger");
 
-    res = query.exec("CREATE INDEX IF NOT EXISTS TagsSearchName ON Tags(nameUpper)");
+    res = query.exec("CREATE INDEX IF NOT EXISTS TagsSearchName ON Tags(nameLower)");
     DATABASE_CHECK_AND_SET_ERROR("can't create TagsSearchName index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
@@ -3272,14 +3272,14 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     res = query.exec("CREATE INDEX IF NOT EXISTS NoteResourcesNote ON NoteResources(localNote)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteResourcesNote index");
 
-    // NOTE: reasoning for existence and unique constraint for nameUpper, citing Evernote API reference:
+    // NOTE: reasoning for existence and unique constraint for nameLower, citing Evernote API reference:
     // "The account may only contain one search with a given name (case-insensitive compare)"
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  localGuid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "
                      "  guid                            TEXT                DEFAULT NULL UNIQUE, "
                      "  name                            TEXT                DEFAULT NULL, "
-                     "  nameUpper                       TEXT                DEFAULT NULL UNIQUE, "
+                     "  nameLower                       TEXT                DEFAULT NULL UNIQUE, "
                      "  query                           TEXT                DEFAULT NULL, "
                      "  format                          INTEGER             DEFAULT NULL, "
                      "  updateSequenceNumber            INTEGER             DEFAULT NULL, "
@@ -4537,7 +4537,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
 
         QString titleNormalized;
         if (note.hasTitle()) {
-            titleNormalized = note.title();
+            titleNormalized = note.title().toLower();
             m_stringUtils.removeDiacritics(titleNormalized);
         }
 
@@ -4569,6 +4569,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
 
             QString listOfWords = plainTextAndListOfWords.second.join(" ");
             m_stringUtils.removePunctuation(listOfWords);
+            listOfWords = listOfWords.toLower();
             m_stringUtils.removeDiacritics(listOfWords);
 
             query.bindValue(":contentPlainText", (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
@@ -4996,7 +4997,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QStri
 
     QString tagNameNormalized;
     if (tag.hasName()) {
-        tagNameNormalized = tag.name().toUpper();
+        tagNameNormalized = tag.name().toLower();
         m_stringUtils.removeDiacritics(tagNameNormalized);
     }
 
@@ -5005,7 +5006,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QStri
     query.bindValue(":linkedNotebookGuid", tag.hasLinkedNotebookGuid() ? tag.linkedNotebookGuid() : nullValue);
     query.bindValue(":updateSequenceNumber", (tag.hasUpdateSequenceNumber() ? tag.updateSequenceNumber() : nullValue));
     query.bindValue(":name", (tag.hasName() ? tag.name() : nullValue));
-    query.bindValue(":nameUpper", (tag.hasName() ? tagNameNormalized : nullValue));
+    query.bindValue(":nameLower", (tag.hasName() ? tagNameNormalized : nullValue));
     query.bindValue(":parentGuid", (tag.hasParentGuid() ? tag.parentGuid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
@@ -5043,10 +5044,10 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
         m_insertOrReplaceTagQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
                                                      "(localGuid, guid, linkedNotebookGuid, updateSequenceNumber, "
-                                                     "name, nameUpper, parentGuid, isDirty, "
+                                                     "name, nameLower, parentGuid, isDirty, "
                                                      "isLocal, isDeleted, hasShortcut) "
                                                      "VALUES(:localGuid, :guid, :linkedNotebookGuid, "
-                                                     ":updateSequenceNumber, :name, :nameUpper, "
+                                                     ":updateSequenceNumber, :name, :nameLower, "
                                                      ":parentGuid, :isDirty, :isLocal, "
                                                      ":isDeleted, :hasShortcut)");
         if (res) {
@@ -5204,6 +5205,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
             }
 
             recognitionData.chop(1);    // Remove trailing whitespace
+            m_stringUtils.removePunctuation(recognitionData);
             m_stringUtils.removeDiacritics(recognitionData);
 
             if (!recognitionData.isEmpty())
@@ -5626,7 +5628,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & 
                                    : overrideLocalGuid));
     query.bindValue(":guid", (search.hasGuid() ? search.guid() : nullValue));
     query.bindValue(":name", (search.hasName() ? search.name() : nullValue));
-    query.bindValue(":nameUpper", (search.hasName() ? search.name().toUpper() : nullValue));
+    query.bindValue(":nameLower", (search.hasName() ? search.name().toLower() : nullValue));
 
     query.bindValue(":query", (search.hasQuery() ? search.query() : nullValue));
     query.bindValue(":format", (search.hasQueryFormat() ? search.queryFormat() : nullValue));
@@ -5658,11 +5660,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSavedSearchQuery(
     {
         QNDEBUG("Preparing SQL query to insert or replace SavedSearch");
 
-        QString columns = "localGuid, guid, name, nameUpper, query, format, updateSequenceNumber, isDirty, "
+        QString columns = "localGuid, guid, name, nameLower, query, format, updateSequenceNumber, isDirty, "
                           "isLocal, includeAccount, includePersonalLinkedNotebooks, "
                           "includeBusinessLinkedNotebooks, hasShortcut";
 
-        QString valuesNames = ":localGuid, :guid, :name, :nameUpper, :query, :format, :updateSequenceNumber, :isDirty, "
+        QString valuesNames = ":localGuid, :guid, :name, :nameLower, :query, :format, :updateSequenceNumber, :isDirty, "
                               ":isLocal, :includeAccount, :includePersonalLinkedNotebooks, "
                               ":includeBusinessLinkedNotebooks, :hasShortcut";
 
@@ -7576,7 +7578,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
                                        "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localGuid WHERE "
-                                       "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper %1 '%2%3%4'))))")
+                                       "(nameLower IN (SELECT nameLower FROM TagFTS WHERE nameLower %1 '%2%3%4'))))")
                                .arg(matchStatement, frontSearchTermModifier, currentSearchTerm, backSearchTermModifier);
             positiveSqlPart += ")";
 
@@ -7611,7 +7613,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
                                       "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS on NoteTags.localTag=TagFTS.localGuid WHERE "
-                                      "(nameUpper IN (SELECT nameUpper FROM TagFTS WHERE nameUpper %1 '%2%3%4'))))")
+                                      "(nameLower IN (SELECT nameLower FROM TagFTS WHERE nameLower %1 '%2%3%4'))))")
                               .arg(matchStatement, frontSearchTermModifier, currentSearchTerm, backSearchTermModifier);
             negatedSqlPart += ")";
 
@@ -7693,10 +7695,10 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
     bool singleTagName = (tagNames.size() == 1);
     if (singleTagName)
     {
-        bool res = query.prepare("SELECT localGuid FROM TagFTS WHERE nameUpper MATCH :names");
+        bool res = query.prepare("SELECT localGuid FROM TagFTS WHERE nameLower MATCH :names");
         DATABASE_CHECK_AND_SET_ERROR("can't select tag local guids for tag names: can't prepare SQL query");
 
-        QString names = tagNames.at(0).toUpper();
+        QString names = tagNames.at(0).toLower();
         names.prepend("\'");
         names.append("\'");
         query.bindValue(":names", names);
@@ -7720,8 +7722,8 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
             queryString = "SELECT localGuid FROM Tags WHERE ";
 
             foreach(const QString & tagName, tagNames) {
-                queryString += "(nameUpper = \'";
-                queryString += tagName.toUpper();
+                queryString += "(nameLower = \'";
+                queryString += tagName.toLower();
                 queryString += "\') OR ";
             }
             queryString.chop(4);    // remove trailing " OR "
@@ -7731,8 +7733,8 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalGuids(const QStringList & tag
             queryString = "SELECT localGuid FROM TagFTS WHERE ";
 
             foreach(const QString & tagName, tagNames) {
-                queryString += "(localGuid IN (SELECT localGuid FROM TagFTS WHERE nameUpper MATCH \'";
-                queryString += tagName.toUpper();
+                queryString += "(localGuid IN (SELECT localGuid FROM TagFTS WHERE nameLower MATCH \'";
+                queryString += tagName.toLower();
                 queryString += "\')) OR ";
             }
             queryString.chop(4);    // remove trailing " OR "
@@ -8105,7 +8107,7 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
         result = "updateSequenceNumber";
         break;
     case LocalStorageManager::ListTagsOrder::ByName:
-        result = "nameUpper";
+        result = "nameLower";
         break;
     default:
         break;
@@ -8125,7 +8127,7 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
         result = "updateSequenceNumber";
         break;
     case LocalStorageManager::ListSavedSearchesOrder::ByName:
-        result = "nameUpper";
+        result = "nameLower";
         break;
     case LocalStorageManager::ListSavedSearchesOrder::ByFormat:
         result = "format";

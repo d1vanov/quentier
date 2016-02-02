@@ -29,11 +29,22 @@ void StringUtilsPrivate::removePunctuation(QString & str, const QVector<QChar> &
 
 void StringUtilsPrivate::removeDiacritics(QString & str) const
 {
-    str = str.normalized(QString::NormalizationForm_D);
+    QNTRACE("str before normalizing by D form: " << str);
+    str = str.normalized(QString::NormalizationForm_KD);
+    QNTRACE("str after normalizing by KD form: " << str);
 
     for(int i = 0; i < str.length(); ++i)
     {
         QChar currentCharacter = str[i];
+        QChar::Category category = currentCharacter.category();
+        if ( (category == QChar::Mark_NonSpacing) ||
+             (category == QChar::Mark_SpacingCombining) ||
+             (category == QChar::Mark_Enclosing) )
+        {
+            str.remove(i, 1);
+            continue;
+        }
+
         int diacriticIndex = m_diacriticLetters.indexOf(currentCharacter);
         if (diacriticIndex < 0) {
             continue;
@@ -42,6 +53,8 @@ void StringUtilsPrivate::removeDiacritics(QString & str) const
         const QString & replacement = m_noDiacriticLetters[diacriticIndex];
         str.replace(i, 1, replacement);
     }
+
+    QNTRACE("str after removing diacritics: " << str);
 }
 
 void StringUtilsPrivate::initialize()
