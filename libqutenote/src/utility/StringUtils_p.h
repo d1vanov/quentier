@@ -3,6 +3,7 @@
 
 #include <qute_note/utility/StringUtils.h>
 #include <QHash>
+#include <QStringList>
 
 namespace qute_note {
 
