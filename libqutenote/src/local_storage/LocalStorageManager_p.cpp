@@ -438,6 +438,11 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
                                                    "for SQL local storage database"));
     }
 
+    QString writeAheadLoggingQuery = QString("PRAGMA journal_mode=WAL");
+    if (!query.exec(writeAheadLoggingQuery)) {
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set journal_mode pragma to WAL for SQL local storage database"));
+    }
+
     QString errorDescription;
     if (!createTables(errorDescription)) {
         throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot initialize tables in SQL database: ") +
