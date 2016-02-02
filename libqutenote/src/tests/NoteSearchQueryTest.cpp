@@ -1,6 +1,5 @@
 #include "NoteSearchQueryTest.h"
 #include <qute_note/local_storage/NoteSearchQuery.h>
-#include <qute_note/utility/StringUtils.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QStringList>
 #include <QDateTime>
@@ -238,7 +237,7 @@ bool NoteSearchQueryTest(QString & error)
     timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
 
     QStringList contentSearchTerms;
-    contentSearchTerms << "THINK[] !" << "[do! " << " act]!" << "*" << "a*t" << "*ct";
+    contentSearchTerms << "THINK[]!" << "[do! " << " act]!" << "*" << "a*t" << "*ct";
 
     QStringList negatedContentSearchTerms;
     negatedContentSearchTerms << "BIRD[" << "*is" << "a" << "word*" << "***" << "w*rd" << "*ord";
@@ -791,11 +790,6 @@ bool NoteSearchQueryTest(QString & error)
     const QStringList & contentSearchTermsFromQuery = noteSearchQuery.contentSearchTerms();
     const int numContentSearchTermsFromQuery = contentSearchTermsFromQuery.size();
 
-    StringUtils stringUtils;
-    QVector<QChar> asteriskPreservedChar;
-    asteriskPreservedChar.reserve(1);
-    asteriskPreservedChar.push_back('*');
-
     QRegExp asteriskFilter("[*]");
 
     QStringList filteredContentSearchTerms;
@@ -803,10 +797,6 @@ bool NoteSearchQueryTest(QString & error)
     for(int i = 0, numOriginalContentSearchTerms = contentSearchTerms.size(); i < numOriginalContentSearchTerms; ++i)
     {
         QString filteredSearchTerm = contentSearchTerms[i];
-        stringUtils.removePunctuation(filteredSearchTerm, asteriskPreservedChar);
-        if (filteredSearchTerm.isEmpty()) {
-            continue;
-        }
 
         // Don't accept search terms consisting only of asterisks
         QString filteredSearchTermWithoutAsterisks = filteredSearchTerm;
@@ -820,8 +810,8 @@ bool NoteSearchQueryTest(QString & error)
 
     if (numContentSearchTermsFromQuery != filteredContentSearchTerms.size()) {
         error = "Internal error: the number of content search terms doesn't match the expected one after parsing the note search query";
-        QNWARNING(error << "; original content search terms: " << contentSearchTerms.join(" ") << "; filtered content search terms: "
-                  << filteredContentSearchTerms.join(" ") << "; processed search query terms: " << contentSearchTermsFromQuery.join(" "));
+        QNWARNING(error << "; original content search terms: " << contentSearchTerms.join("; ") << "; filtered content search terms: "
+                  << filteredContentSearchTerms.join("; ") << "; processed search query terms: " << contentSearchTermsFromQuery.join("; "));
         return false;
     }
 
@@ -831,8 +821,8 @@ bool NoteSearchQueryTest(QString & error)
         int index = filteredContentSearchTerms.indexOf(contentSearchTermFromQuery);
         if (index < 0) {
             error = "Internal error: can't find one of original content search terms after parsing the note search query";
-            QNWARNING(error << "; filtered original content search terms: " << filteredContentSearchTerms.join(" ")
-                      << "; parsed content search terms: " << contentSearchTermsFromQuery.join(" "));
+            QNWARNING(error << "; filtered original content search terms: " << filteredContentSearchTerms.join("; ")
+                      << "; parsed content search terms: " << contentSearchTermsFromQuery.join("; "));
             return false;
         }
     }
@@ -845,10 +835,6 @@ bool NoteSearchQueryTest(QString & error)
     for(int i = 0, numOriginalNegatedContentSearchTerms = negatedContentSearchTerms.size(); i < numOriginalNegatedContentSearchTerms; ++i)
     {
         QString filteredNegatedSearchTerm = negatedContentSearchTerms[i];
-        stringUtils.removePunctuation(filteredNegatedSearchTerm, asteriskPreservedChar);
-        if (filteredNegatedSearchTerm.isEmpty()) {
-            continue;
-        }
 
         // Don't accept search terms consisting only of asterisks
         QString filteredNegatedSearchTermWithoutAsterisks = filteredNegatedSearchTerm;

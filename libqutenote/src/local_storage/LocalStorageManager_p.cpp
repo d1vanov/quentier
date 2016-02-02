@@ -119,8 +119,12 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_deleteUserQueryPrepared(false),
     m_expungeUserQuery(),
     m_expungeUserQueryPrepared(false),
-    m_stringUtils()
+    m_stringUtils(),
+    m_preservedAsterisk()
 {
+    m_preservedAsterisk.reserve(1);
+    m_preservedAsterisk.push_back('*');
+
     switchUser(username, userId, startFromScratch);
 }
 
@@ -7555,16 +7559,19 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
     const QStringList & contentSearchTerms = noteSearchQuery.contentSearchTerms();
     if (!contentSearchTerms.isEmpty())
     {
-        positiveSqlPart = "(";
-
         const int numContentSearchTerms = contentSearchTerms.size();
         for(int i = 0; i < numContentSearchTerms; ++i)
         {
-            positiveSqlPart += "(";
-
             currentSearchTerm = contentSearchTerms[i];
-            contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
+            m_stringUtils.removePunctuation(currentSearchTerm, m_preservedAsterisk);
+            if (currentSearchTerm.isEmpty()) {
+                continue;
+            }
 
+            m_stringUtils.removeDiacritics(currentSearchTerm);
+
+            positiveSqlPart += "(";
+            contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
             positiveSqlPart += QString("(localGuid IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT localGuid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) OR "
                                        "(localGuid IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) OR "
@@ -7578,22 +7585,28 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             }
         }
 
-        positiveSqlPart += ")";
+        if (!positiveSqlPart.isEmpty()) {
+            positiveSqlPart.prepend("(");
+            positiveSqlPart += ")";
+        }
     }
 
     const QStringList & negatedContentSearchTerms = noteSearchQuery.negatedContentSearchTerms();
     if (!negatedContentSearchTerms.isEmpty())
     {
-        negatedSqlPart = "(";
-
         const int numNegatedContentSearchTerms = negatedContentSearchTerms.size();
         for(int i = 0; i < numNegatedContentSearchTerms; ++i)
         {
-            negatedSqlPart += "(";
-
             currentSearchTerm = negatedContentSearchTerms[i];
-            contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
+            m_stringUtils.removePunctuation(currentSearchTerm, m_preservedAsterisk);
+            if (currentSearchTerm.isEmpty()) {
+                continue;
+            }
 
+            m_stringUtils.removeDiacritics(currentSearchTerm);
+
+            negatedSqlPart += "(";
+            contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
             negatedSqlPart += QString("(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT localGuid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) AND "
                                       "(localGuid NOT IN (SELECT noteLocalGuid FROM ResourceRecognitionDataFTS WHERE recognitionData %1 '%2%3%4')) AND "
@@ -7607,7 +7620,10 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
             }
         }
 
-        negatedSqlPart += ")";
+        if (!negatedSqlPart.isEmpty()) {
+            negatedSqlPart.prepend("(");
+            negatedSqlPart += ")";
+        }
     }
 
     // ======= First append all positive terms of the query =======

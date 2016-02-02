@@ -465,6 +465,7 @@ private:
     bool                m_expungeUserQueryPrepared;
 
     StringUtils         m_stringUtils;
+    QVector<QChar>      m_preservedAsterisk;
 };
 
 } // namespace qute_note

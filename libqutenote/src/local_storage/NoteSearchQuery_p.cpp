@@ -1,5 +1,4 @@
 #include "NoteSearchQuery_p.h"
-#include <qute_note/utility/StringUtils.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QDateTime>
 
@@ -90,13 +89,8 @@ NoteSearchQueryPrivate::NoteSearchQueryPrivate() :
     m_hasEncryption(false),
     m_hasNegatedEncryption(false),
     m_contentSearchTerms(),
-    m_negatedContentSearchTerms(),
-    m_stringUtils(),
-    m_asteriskPreservedChar()
-{
-    m_asteriskPreservedChar.reserve(1);
-    m_asteriskPreservedChar.push_back('*');
-}
+    m_negatedContentSearchTerms()
+{}
 
 void NoteSearchQueryPrivate::clear()
 {
@@ -387,7 +381,6 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
             searchTerm.remove(0, 1);
         }
 
-        m_stringUtils.removePunctuation(searchTerm, m_asteriskPreservedChar);
         if (searchTerm.isEmpty()) {
             continue;
         }
