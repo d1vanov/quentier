@@ -27,8 +27,9 @@ typedef qevercloud::UserID UserID;
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
-class QUTE_NOTE_EXPORT LocalStorageManager
+class QUTE_NOTE_EXPORT LocalStorageManager: public QObject
 {
+    Q_OBJECT
 public:
     /**
      * @brief LocalStorageManager - constructor. Accepts name and id of user
@@ -41,6 +42,15 @@ public:
     LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch);
     virtual ~LocalStorageManager();
 
+Q_SIGNALS:
+    /**
+     * @brief LocalStorageManager is capable of performing the automatic database upgrades when it is necessary
+     * as it can be a lengthy operation, this signal is meant to provide some feedback on the progress of the upgrade
+     * @param progress - the value from 0 to 1 denoting the database upgrade progress
+     */
+    void upgradeProgress(double progress);
+
+public:
     /**
      * @brief The ListObjectsOption enum is the base enum for QFlags which allows to specify
      * the desired local stortage elements in calls to methods listing them from local storage:

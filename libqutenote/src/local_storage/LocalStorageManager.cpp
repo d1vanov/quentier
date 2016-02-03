@@ -9,7 +9,10 @@ namespace qute_note {
 LocalStorageManager::LocalStorageManager(const QString & username, const UserID userId,
                                          const bool startFromScratch) :
     d_ptr(new LocalStorageManagerPrivate(username, userId, startFromScratch))
-{}
+{
+    QObject::connect(d_ptr, QNSIGNAL(LocalStorageManagerPrivate,upgradeProgress,double),
+                     this, QNSIGNAL(LocalStorageManager,upgradeProgress,double));
+}
 
 LocalStorageManager::~LocalStorageManager()
 {

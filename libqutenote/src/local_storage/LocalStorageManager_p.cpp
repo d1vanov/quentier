@@ -351,7 +351,7 @@ int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
 }
 
 void LocalStorageManagerPrivate::switchUser(const QString & username, const UserID userId,
-                                     const bool startFromScratch)
+                                            const bool startFromScratch)
 {
     if ( (username == m_currentUsername) &&
          (userId == m_currentUserId) )
@@ -447,6 +447,13 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     if (!createTables(errorDescription)) {
         throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot initialize tables in SQL database: ") +
                                         errorDescription);
+    }
+
+    // TODO: in future should check whether the upgrade from the previous database version is necessary
+
+    if (!query.exec("INSERT INTO Auxiliary DEFAULT VALUES")) {
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot initialize the auxiliary info table in SQL database: ") +
+                                        query.lastError().text());
     }
 }
 
@@ -2820,6 +2827,12 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
     bool res;
+
+    res = query.exec("CREATE TABLE IF NOT EXISTS Auxiliary("
+                     "  lock                        CHAR(1) PRIMARY KEY     NOT NULL DEFAULT 'X'    CHECK (lock='X'), "
+                     "  version                     INTEGER                 NOT NULL DEFAULT 1"
+                     ")");
+    DATABASE_CHECK_AND_SET_ERROR("can't create Auxiliary table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Users("
                      "  id                          INTEGER PRIMARY KEY     NOT NULL UNIQUE, "

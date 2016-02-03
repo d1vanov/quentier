@@ -33,6 +33,10 @@ public:
                                const bool startFromScratch);
     ~LocalStorageManagerPrivate();
 
+Q_SIGNALS:
+    void upgradeProgress(double progress);
+
+public:
     void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
     int userCount(QString & errorDescription) const;
     bool addUser(const IUser & user, QString & errorDescription);
