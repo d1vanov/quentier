@@ -121,7 +121,7 @@ function TableManager() {
             var row = table.rows[i];
             var cell = row.insertCell(cellIndex);
             cell.style.cssText = currentColumn.style.cssText;
-            cell.innerHTML = "<div> </div>";
+            cell.innerHTML = "\u00a0";
         }
     }
 
@@ -164,7 +164,9 @@ function TableManager() {
         var columnIndex = -1;
         var previousColumn = element;
         while(previousColumn) {
-            ++columnIndex;
+            if (previousColumn.nodeName == "TD") {
+                ++columnIndex;
+            }
             previousColumn = previousColumn.previousSibling;
         }
 
@@ -184,13 +186,8 @@ function TableManager() {
             return;
         }
 
-        if (!element.parentNode) {
-            console.log("Found table has no parent");
-            return;
-        }
-
-        undoNodes.push(element.parentNode);
-        undoNodeInnerHtmls.push(element.parentNode.innerHTML);
+        undoNodes.push(element);
+        undoNodeInnerHtmls.push(element.innerHTML);
 
         for(var i = 0; i < element.rows.length; ++i) {
             element.rows[i].deleteCell(columnIndex);
