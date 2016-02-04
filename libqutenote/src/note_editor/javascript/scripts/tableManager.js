@@ -6,6 +6,8 @@ function TableManager() {
     var redoNodeInnerHtmls = [];
 
     this.insertRow = function() {
+        console.log("TableManager::insertRow");
+
         var currentRow = this.getElementUnderCursor("tr");
 
         if (!currentRow) {
@@ -68,6 +70,8 @@ function TableManager() {
     }
 
     this.insertColumn = function() {
+        console.log("TableManager::insertColumn");
+
         var currentColumn = this.getElementUnderCursor("td");
 
         if (!currentColumn) {
@@ -80,10 +84,14 @@ function TableManager() {
             return;
         }
 
-        var columnIndex = -1;
+        console.log("source column: " + currentColumn.outerHTML);
+
+        var columnIndex = 0;
         var previousColumn = currentColumn;
         while(previousColumn) {
-            ++columnIndex;
+            if (previousColumn.nodeName == "TD") {
+                ++columnIndex;
+            }
             previousColumn = previousColumn.previousSibling;
         }
 
@@ -106,14 +114,20 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
+        var cellIndex = columnIndex;
+        var numRows = table.rows.length;
+
         for(var i = 0; i < table.rows.length; ++i) {
             var row = table.rows[i];
-            var cell = row.insertCell(Math.max(columnIndex - 1, 0));
-            cell.style = cell.previousSibling.style;
+            var cell = row.insertCell(cellIndex);
+            cell.style.cssText = currentColumn.style.cssText;
+            cell.innerHTML = "<div> </div>";
         }
     }
 
     this.removeRow = function() {
+        console.log("TableManager::removeRow");
+
         var element = this.getElementUnderCursor("tr");
 
         if (!element) {
@@ -133,6 +147,8 @@ function TableManager() {
     }
 
     this.removeColumn = function() {
+        console.log("TableManager::removeColumn");
+
         var element = this.getElementUnderCursor("td");
 
         if (!element) {
