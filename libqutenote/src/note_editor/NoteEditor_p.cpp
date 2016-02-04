@@ -110,6 +110,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resizableTableColumnsJs(),
     m_debounceJs(),
     m_onTableResizeJs(),
+    m_tableManagerJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
@@ -348,6 +349,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_onTableResizeJs);
+    page->executeJavaScript(m_tableManagerJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
     page->executeJavaScript(m_findSelectedHyperlinkIdJs);
@@ -2994,8 +2996,19 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertTable, "Insert table...",
-                             m_pGenericTextContextMenu, insertTableDialog);
+    if (extraData.contains("InsideTable")) {
+        QMenu * pTableMenu = m_pGenericTextContextMenu->addMenu(tr("Table"));
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertRow, "Insert row", pTableMenu, insertTableRow);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertColumn, "Insert column", pTableMenu, insertTableColumn);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveRow, "Remove row", pTableMenu, removeTableRow);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveColumn, "Remove column", pTableMenu, removeTableColumn);
+        Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+    }
+    else {
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertTable, "Insert table...",
+                                 m_pGenericTextContextMenu, insertTableDialog);
+    }
+
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertHorizontalLine, "Insert horizontal line",
                              m_pGenericTextContextMenu, insertHorizontalLine);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AddAttachment, "Add attachment...",
@@ -3191,6 +3204,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
     SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
+    SETUP_SCRIPT("javascript/scripts/tableManager.js", m_tableManagerJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
@@ -4535,6 +4549,38 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
     execJavascriptCommand("insertHTML", htmlTable);
     updateColResizableTableBindings();
     setFocus();
+}
+
+void NoteEditorPrivate::insertTableRow()
+{
+    QNDEBUG("NoteEditorPrivate::insertTableRow");
+
+    GET_PAGE()
+    page->executeJavaScript("tableManager.insertRow();");
+}
+
+void NoteEditorPrivate::insertTableColumn()
+{
+    QNDEBUG("NoteEditorPrivate::insertTableColumn");
+
+    GET_PAGE()
+    page->executeJavaScript("tableManager.insertColumn();");
+}
+
+void NoteEditorPrivate::removeTableRow()
+{
+    QNDEBUG("NoteEditorPrivate::removeTableRow");
+
+    GET_PAGE()
+    page->executeJavaScript("tableManager.removeRow();");
+}
+
+void NoteEditorPrivate::removeTableColumn()
+{
+    QNDEBUG("NoteEditorPrivate::removeTableColumn");
+
+    GET_PAGE()
+    page->executeJavaScript("tableManager.removeColumn();");
 }
 
 void NoteEditorPrivate::addAttachmentDialog()

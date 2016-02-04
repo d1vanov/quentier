@@ -1,5 +1,4 @@
-function TableManager
-{
+function TableManager() {
     var undoNodes = [];
     var undoNodeInnerHtmls = [];
 
@@ -7,7 +6,7 @@ function TableManager
     var redoNodeInnerHtmls = [];
 
     this.insertRow = function() {
-        var currentRow = getElementUnderCursor("tr");
+        var currentRow = this.getElementUnderCursor("tr");
 
         if (!currentRow) {
             console.log("Can't find table row to insert the new row after");
@@ -23,7 +22,7 @@ function TableManager
         var previousRow = currentRow;
         while(previousRow) {
             ++rowIndex;
-            previousRow = currentRow.previousSibling;
+            previousRow = previousRow.previousSibling;
         }
 
         console.log("The index of current row appears to be " + rowIndex);
@@ -43,20 +42,79 @@ function TableManager
             return;
         }
 
-        if (!table.parentNode) {
-            console.log("Found table has no parent");
+        undoNodes.push(table);
+        undoNodeInnerHtmls.push(table.innerHTML);
+
+        table.insertRow(rowIndex + 1);
+        var newRow = table.rows[rowIndex + 1];
+
+        var existingRowChildren = currentRow.children;
+        for(var i = 0; i < existingRowChildren.length; ++i) {
+            var td = existingRowChildren[i];
+            if (td.nodeName != "TD") {
+                continue;
+            }
+
+            var newTd = document.createElement("td");
+
+            var attr;
+            var attributes = Array.prototype.slice.call(td.attributes);
+            while(attr = attributes.pop()) {
+                newTd.setAttribute(attr.nodeName, attr.nodeValue);
+            }
+
+            newRow.appendChild(newTd);
+        }
+    }
+
+    this.insertColumn = function() {
+        var currentColumn = this.getElementUnderCursor("td");
+
+        if (!currentColumn) {
+            console.log("Can't find table column to insert the new column after");
             return;
         }
 
-        undoNodes.push(table.parentNode);
-        undoNodeInnerHtmls.push(table.parentNode.innerHTML);
+        if (!currentColumn.parentNode) {
+            console.log("Found table column has no parent");
+            return;
+        }
 
-        table.insertRow(rowIndex + 1);
-        // TODO: also insert the columns with appropriate styles and widths
+        var columnIndex = -1;
+        var previousColumn = currentColumn;
+        while(previousColumn) {
+            ++columnIndex;
+            previousColumn = previousColumn.previousSibling;
+        }
+
+        console.log("The index of column to add the new column after appears to be " + columnIndex);
+
+        var table = currentColumn;
+        while(table) {
+            if (table.nodeName == "TABLE") {
+                break;
+            }
+
+            table = table.parentNode;
+        }
+
+        if (!table) {
+            console.log("Can't find table to insert column into");
+            return;
+        }
+
+        undoNodes.push(table);
+        undoNodeInnerHtmls.push(table.innerHTML);
+
+        for(var i = 0; i < table.rows.length; ++i) {
+            var row = table.rows[i];
+            var cell = row.insertCell(Math.max(columnIndex - 1, 0));
+            cell.style = cell.previousSibling.style;
+        }
     }
 
-    this.deleteRow = function() {
-        var element = getElementUnderCursor("tr");
+    this.removeRow = function() {
+        var element = this.getElementUnderCursor("tr");
 
         if (!element) {
             console.log("Can't find table row to remove");
@@ -74,8 +132,8 @@ function TableManager
         element.parentNode.removeChild(element);
     }
 
-    this.deleteColumn = function() {
-        var element = getElementUnderCursor("td");
+    this.removeColumn = function() {
+        var element = this.getElementUnderCursor("td");
 
         if (!element) {
             console.log("Can't find table column to remove");
@@ -91,7 +149,7 @@ function TableManager
         var previousColumn = element;
         while(previousColumn) {
             ++columnIndex;
-            previousColumn = element.parentNode.previousSibling;
+            previousColumn = previousColumn.previousSibling;
         }
 
         console.log("The index of column to remove appears to be " + columnIndex);
@@ -156,4 +214,55 @@ function TableManager
 
         return element;
     }
+
+    this.undo = function() {
+        return this.undoRedoImpl(undoNodes, undoNodeInnerHtmls,
+                                 redoNodes, redoNodeInnerHtmls, true);
+
+    }
+
+    this.redo = function() {
+        return this.undoRedoImpl(redoNodes, redoNodeInnerHtmls,
+                                 undoNodes, undoNodeInnerHtmls, false);
+    }
+
+    this.undoRedoImpl = function(sourceNodes, sourceNodeInnerHtmls,
+                                 destNodes, destNodeInnerHtmls, performingUndo) {
+        console.log("tableManager.undoRedoImpl: performingUndo = " + (performingUndo ? "true" : "false"));
+
+        var actionString = (performingUndo ? "undo" : "redo");
+
+        if (!sourceNodes) {
+            console.warn("Can't " + actionString + " the table action: no source nodes helper array");
+            return false;
+        }
+
+        if (!sourceNodeInnerHtmls) {
+            console.warn("Can't " + actionString + " the table action: no source node inner html helper array");
+            return false;
+        }
+
+        var sourceNode = sourceNodes.pop();
+        if (!sourceNode) {
+            console.warn("Can't " + actionString + " the table action: no source node");
+            return false;
+        }
+
+        var sourceNodeInnerHtml = sourceNodeInnerHtmls.pop();
+        if (!sourceNodeInnerHtml) {
+            console.warn("Can't " + actionString + " the table action: no source node's inner html");
+            return false;
+        }
+
+        destNodes.push(sourceNode);
+        destNodeInnerHtmls.push(sourceNodeInnerHtml);
+
+        console.log("Html before: " + sourceNode.innerHTML + "; html to paste: " + sourceNodeInnerHtml);
+
+        sourceNode.innerHTML = sourceNodeInnerHtml;
+    }
 }
+
+(function() {
+    window.tableManager = new TableManager;
+})();

@@ -9,6 +9,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
 
     var foundImageResource = false;
     var foundNonImageResource = false;
+    var foundTable = false;
     var resourceHash = "";
 
     var foundEnCryptTag = false;
@@ -22,7 +23,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
 
     // get context menu event target
     var element = document.elementFromPoint(x, y);
-    console.log("Context menu event target: " + $(element).html());
+    console.log("Context menu event target: " + element.outerHTML);
 
     while(element) {
         if (Object.prototype.toString.call(element) === '[object Array]') {
@@ -90,6 +91,11 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                             ", en-decrypted-id = " + enDecryptedId);
                 break;
             }
+
+            if (element.nodeName == "TABLE") {
+                foundTable = true;
+                console.log("Found table");
+            }
         }
 
         element = element.parentNode;
@@ -110,6 +116,10 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
         if (!selectedHtml) {
             snapSelectionToWord();
             selectedHtml = getSelectionHtml();
+        }
+
+        if (foundTable) {
+            extraData.push("InsideTable");
         }
 
         contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, insideDecryptedTextFragment, extraData, contextMenuSequenceNumber);

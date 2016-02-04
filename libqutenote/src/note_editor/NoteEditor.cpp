@@ -239,6 +239,26 @@ void NoteEditor::insertRelativeWidthTable(const int rows, const int columns, con
     m_backend->insertRelativeWidthTable(rows, columns, relativeWidth);
 }
 
+void NoteEditor::insertTableRow()
+{
+    m_backend->insertTableRow();
+}
+
+void NoteEditor::insertTableColumn()
+{
+    m_backend->insertTableColumn();
+}
+
+void NoteEditor::removeTableRow()
+{
+    m_backend->removeTableRow();
+}
+
+void NoteEditor::removeTableColumn()
+{
+    m_backend->removeTableColumn();
+}
+
 void NoteEditor::addAttachmentDialog()
 {
     m_backend->addAttachmentDialog();

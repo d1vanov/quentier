@@ -74,6 +74,10 @@ public:
     virtual void insertTableDialog() = 0;
     virtual void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels) = 0;
     virtual void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth) = 0;
+    virtual void insertTableRow() = 0;
+    virtual void insertTableColumn() = 0;
+    virtual void removeTableRow() = 0;
+    virtual void removeTableColumn() = 0;
 
     virtual void addAttachmentDialog() = 0;
     virtual void saveAttachmentDialog(const QString & resourceHash) = 0;

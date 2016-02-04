@@ -107,6 +107,10 @@ public Q_SLOTS:
     void insertTableDialog();
     void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels);
     void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth);
+    void insertTableRow();
+    void insertTableColumn();
+    void removeTableRow();
+    void removeTableColumn();
 
     void addAttachmentDialog();
     void saveAttachmentDialog(const QString & resourceHash);

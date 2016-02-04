@@ -203,6 +203,10 @@ public Q_SLOTS:
     virtual void insertTableDialog() Q_DECL_OVERRIDE;
     virtual void insertFixedWidthTable(const int rows, const int columns, const int widthInPixels) Q_DECL_OVERRIDE;
     virtual void insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth) Q_DECL_OVERRIDE;
+    virtual void insertTableRow() Q_DECL_OVERRIDE;
+    virtual void insertTableColumn() Q_DECL_OVERRIDE;
+    virtual void removeTableRow() Q_DECL_OVERRIDE;
+    virtual void removeTableColumn() Q_DECL_OVERRIDE;
     virtual void addAttachmentDialog() Q_DECL_OVERRIDE;
     virtual void saveAttachmentDialog(const QString & resourceHash) Q_DECL_OVERRIDE;
     virtual void saveAttachmentUnderCursor() Q_DECL_OVERRIDE;
@@ -583,6 +587,7 @@ private:
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
     QString     m_onTableResizeJs;
+    QString     m_tableManagerJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
