@@ -23,7 +23,9 @@ function TableManager() {
         var rowIndex = -1;
         var previousRow = currentRow;
         while(previousRow) {
-            ++rowIndex;
+            if (previousRow.nodeName === "TR") {
+                ++rowIndex;
+            }
             previousRow = previousRow.previousSibling;
         }
 
@@ -32,7 +34,7 @@ function TableManager() {
         var table = currentRow;
         while(table)
         {
-            if (table.nodeName == "TABLE") {
+            if (table.nodeName === "TABLE") {
                 break;
             }
 
@@ -58,13 +60,8 @@ function TableManager() {
             }
 
             var newTd = document.createElement("td");
-
-            var attr;
-            var attributes = Array.prototype.slice.call(td.attributes);
-            while(attr = attributes.pop()) {
-                newTd.setAttribute(attr.nodeName, attr.nodeValue);
-            }
-
+            newTd.style.cssText = td.style.cssText;
+            newTd.innerHTML = "\u00a0";
             newRow.appendChild(newTd);
         }
     }
@@ -86,10 +83,10 @@ function TableManager() {
 
         console.log("source column: " + currentColumn.outerHTML);
 
-        var columnIndex = 0;
+        var columnIndex = -1;
         var previousColumn = currentColumn;
         while(previousColumn) {
-            if (previousColumn.nodeName == "TD") {
+            if (previousColumn.nodeName === "TD") {
                 ++columnIndex;
             }
             previousColumn = previousColumn.previousSibling;
@@ -99,7 +96,7 @@ function TableManager() {
 
         var table = currentColumn;
         while(table) {
-            if (table.nodeName == "TABLE") {
+            if (table.nodeName === "TABLE") {
                 break;
             }
 
@@ -114,8 +111,10 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
-        var cellIndex = columnIndex;
+        var cellIndex = columnIndex + 1;
         var numRows = table.rows.length;
+
+        this.disableColumnHandles(table);
 
         for(var i = 0; i < table.rows.length; ++i) {
             var row = table.rows[i];
@@ -123,48 +122,65 @@ function TableManager() {
             cell.style.cssText = currentColumn.style.cssText;
             cell.innerHTML = "\u00a0";
         }
+
+        this.updateColumnHandles(table);
     }
 
     this.removeRow = function() {
         console.log("TableManager::removeRow");
 
-        var element = this.getElementUnderCursor("tr");
+        var currentRow = this.getElementUnderCursor("tr");
 
-        if (!element) {
+        if (!currentRow) {
             console.log("Can't find table row to remove");
             return;
         }
 
-        if (!element.parentNode) {
+        if (!currentRow.parentNode) {
             console.log("Found table row has no parent");
             return;
         }
 
-        undoNodes.push(element.parentNode);
-        undoNodeInnerHtmls.push(element.parentNode.innerHTML);
+        var table = currentRow;
+        while(table)
+        {
+            if (table.nodeName === "TABLE") {
+                break;
+            }
 
-        element.parentNode.removeChild(element);
+            table = table.parentNode;
+        }
+
+        if (!table) {
+            console.log("Can't find table element to remove row from");
+            return;
+        }
+
+        undoNodes.push(table);
+        undoNodeInnerHtmls.push(table.innerHTML);
+
+        currentRow.parentNode.removeChild(currentRow);
     }
 
     this.removeColumn = function() {
         console.log("TableManager::removeColumn");
 
-        var element = this.getElementUnderCursor("td");
+        var currentColumn = this.getElementUnderCursor("td");
 
-        if (!element) {
+        if (!currentColumn) {
             console.log("Can't find table column to remove");
             return;
         }
 
-        if (!element.parentNode) {
+        if (!currentColumn.parentNode) {
             console.log("Found table column has no parent");
             return;
         }
 
         var columnIndex = -1;
-        var previousColumn = element;
+        var previousColumn = currentColumn;
         while(previousColumn) {
-            if (previousColumn.nodeName == "TD") {
+            if (previousColumn.nodeName === "TD") {
                 ++columnIndex;
             }
             previousColumn = previousColumn.previousSibling;
@@ -172,26 +188,31 @@ function TableManager() {
 
         console.log("The index of column to remove appears to be " + columnIndex);
 
-        while(element)
+        var table = currentColumn;
+        while(table)
         {
-            if (element.nodeName == "TABLE") {
+            if (table.nodeName === "TABLE") {
                 break;
             }
 
-            element = element.parentNode;
+            table = table.parentNode;
         }
 
-        if (!element) {
+        if (!table) {
             console.log("Can't find table element to remove column from");
             return;
         }
 
-        undoNodes.push(element);
-        undoNodeInnerHtmls.push(element.innerHTML);
+        undoNodes.push(table);
+        undoNodeInnerHtmls.push(table.innerHTML);
 
-        for(var i = 0; i < element.rows.length; ++i) {
-            element.rows[i].deleteCell(columnIndex);
+        this.disableColumnHandles(table);
+
+        for(var i = 0; i < table.rows.length; ++i) {
+            table.rows[i].deleteCell(columnIndex);
         }
+
+        this.updateColumnHandles(table);
     }
 
     this.getElementUnderCursor = function(nodeName) {
@@ -272,7 +293,22 @@ function TableManager() {
 
         console.log("Html before: " + sourceNode.innerHTML + "; html to paste: " + sourceNodeInnerHtml);
 
+        this.disableColumnHandles(sourceNode);
         sourceNode.innerHTML = sourceNodeInnerHtml;
+        this.updateColumnHandles(sourceNode);
+    }
+
+    this.disableColumnHandles = function(table) {
+        $(table).colResizable({
+            disable:true
+        });
+    }
+
+    this.updateColumnHandles = function(table) {
+        $(table).colResizable({
+            liveDrag:true,
+            draggingClass:"dragging"
+        });
     }
 }
 

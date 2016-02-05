@@ -2114,14 +2114,7 @@ void NoteEditorPrivate::updateColResizableTableBindings()
         colResizable += "disable:true});";
     }
     else {
-        colResizable += "liveDrag:true, "
-                        "gripInnerHtml:\"<div class=\\'grip\\'></div>\", "
-                        "draggingClass:\"dragging\", "
-                        "postbackSafe:true, "
-                        "partialRefresh:true, "
-                        "flush:true, "
-                        "onResize:onTableResize"
-                        "});";
+        colResizable += "liveDrag:true, draggingClass:\"dragging\" });";
     }
 
     QNTRACE("colResizable js code: " << colResizable);
