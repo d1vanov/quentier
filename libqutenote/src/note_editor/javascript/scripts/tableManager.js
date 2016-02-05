@@ -114,13 +114,77 @@ function TableManager() {
         var cellIndex = columnIndex + 1;
         var numRows = table.rows.length;
 
+        // Need to calculate the appropriate width for the new column
+        var isRelativeWidthTable = false;   // Note that colResizable makes even relative width table have fixed size
+                                            // when at least one column resizing is done
+        var columnWidths = [];
+        var rowChildren = table.rows[0].children;
+        for(var i = 0; i < rowChildren.length; ++i) {
+            var rowChild = rowChildren[i];
+            if (rowChild.nodeName != "TD") {
+                continue;
+            }
+
+            var currentColumnWidth = rowChild.style.width;
+            if ((typeof currentColumnWidth === "string") && (currentColumnWidth.indexOf("%") >= 0)) {
+                isRelativeWidthTable = true;
+                console.log("The table appears to have width relative to the page's width");
+                break;
+            }
+
+            currentColumnWidth = parseInt(currentColumnWidth, 10);
+            if (!currentColumnWidth) {
+                continue;
+            }
+
+            columnWidths.push(currentColumnWidth);
+            console.log("Pushed column width " + currentColumnWidth);
+        }
+
+        var newAverageColumnWidth;
+        var columnWidthProportion;
+        if (!isRelativeWidthTable) {
+            averageColumnWidth = 0;
+            for(i = 0; i < columnWidths.length; ++i) {
+                averageColumnWidth += columnWidths[i];
+            }
+            newAverageColumnWidth = Math.round(averageColumnWidth / (columnWidths.length + 1));
+            columnWidthProportion = columnWidths.length / (columnWidths.length + 1);
+            console.log("The average column width would become " + newAverageColumnWidth + " after the new column insertion; " +
+                        "all the other columns would need their width multiplied by " + columnWidthProportion + " to compensate");
+        }
+
         this.disableColumnHandles(table);
 
-        for(var i = 0; i < table.rows.length; ++i) {
+        for(i = 0; i < table.rows.length; ++i) {
             var row = table.rows[i];
             var cell = row.insertCell(cellIndex);
             cell.style.cssText = currentColumn.style.cssText;
             cell.innerHTML = "\u00a0";
+
+            if (!isRelativeWidthTable) {
+                cell.style.width = "" + newAverageColumnWidth.toString() + "px";
+                console.log("Set new cell's width to " + newAverageColumnWidth + " after cell insertion at row " + i);
+
+                rowChildren = row.children;
+                var columnWidthIndex = 0;
+                for(var j = 0; j < rowChildren.length; ++j) {
+                    if (j === cellIndex) {
+                        continue;
+                    }
+
+                    rowChild = rowChildren[j];
+                    if (rowChild.nodeName != "TD") {
+                        continue;
+                    }
+
+                    console.log("Column width was " + rowChild.style.width);
+                    rowChild.style.width = "" + Math.round(columnWidths[columnWidthIndex] * columnWidthProportion).toString() + "px";
+                    console.log("Column width was assumed to be " + columnWidths[columnWidthIndex] +
+                                ", now it is " + rowChild.style.width);
+                    ++columnWidthIndex;
+                }
+            }
         }
 
         this.updateColumnHandles(table);
