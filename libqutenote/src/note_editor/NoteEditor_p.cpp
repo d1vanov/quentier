@@ -1928,7 +1928,7 @@ void NoteEditorPrivate::onJavaScriptQueueEmptyAfterReplace()
     QNDEBUG("NoteEditorPrivate::onJavaScriptQueueEmptyAfterReplace");
 
     GET_PAGE()
-    page->executeJavaScript("window.observer.disabled = false");
+    page->executeJavaScript("observer.start();");
 
     QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptQueueEmptyAfterReplace));
 }
@@ -2109,18 +2109,16 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 
     bool readOnly = !isPageEditable();
 
-    QString colResizable = "$(\"table\").colResizable({";
+    QString javascript;
     if (readOnly) {
-        colResizable += "disable:true});";
+        javascript = "tableManager.disableColumnHandles(\"table\");";
     }
     else {
-        colResizable += "liveDrag:true, draggingClass:\"dragging\" });";
+        javascript = "tableManager.updateColumnHandles(\"table\");";
     }
 
-    QNTRACE("colResizable js code: " << colResizable);
-
     GET_PAGE()
-    page->executeJavaScript(colResizable);
+    page->executeJavaScript(javascript);
 }
 
 bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)

@@ -49,6 +49,8 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
+        observer.stop();
+
         table.insertRow(rowIndex + 1);
         var newRow = table.rows[rowIndex + 1];
 
@@ -154,6 +156,8 @@ function TableManager() {
                         "all the other columns would need their width multiplied by " + columnWidthProportion + " to compensate");
         }
 
+        observer.stop();
+
         this.disableColumnHandles(table);
 
         for(i = 0; i < table.rows.length; ++i) {
@@ -223,6 +227,8 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
+        observer.stop();
+
         currentRow.parentNode.removeChild(currentRow);
     }
 
@@ -269,6 +275,8 @@ function TableManager() {
 
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
+
+        observer.stop();
 
         this.disableColumnHandles(table);
 
@@ -356,6 +364,8 @@ function TableManager() {
         destNodeInnerHtmls.push(sourceNodeInnerHtml);
 
         console.log("Html before: " + sourceNode.innerHTML + "; html to paste: " + sourceNodeInnerHtml);
+
+        observer.stop();
 
         this.disableColumnHandles(sourceNode);
         sourceNode.innerHTML = sourceNodeInnerHtml;

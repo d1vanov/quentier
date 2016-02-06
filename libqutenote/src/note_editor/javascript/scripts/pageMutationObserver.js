@@ -6,12 +6,6 @@ var observer = new MutationObserver(function(mutations, observer) {
         return;
     }
 
-    console.log("observer.disabled = " + observer.disabled);
-    if (observer.disabled) {
-        console.log("The page mutation observer is disabled");
-        return;
-    }
-
     var numMutations = mutations.length;
     if (!numMutations) {
         return;
@@ -114,11 +108,17 @@ var observer = new MutationObserver(function(mutations, observer) {
     }
 });
 
-observer.disabled = false;
+observer.start = function() {
+    this.observe(document, {
+        subtree: true,
+        attributes: true,
+        childList: true,
+        characterData: true
+    });
+}
 
-observer.observe(document, {
-  subtree: true,
-  attributes: true,
-  childList: true,
-  characterData: true
-});
+observer.stop = function() {
+    this.disconnect();
+}
+
+observer.start();

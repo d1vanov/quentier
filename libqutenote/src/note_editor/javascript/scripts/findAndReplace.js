@@ -159,7 +159,7 @@ function findAndReplace() {
         console.log("replaceAll: text to replace = " + textToReplace +
                     "; replacement text = " + replacementText + "; match case = " + matchCase);
 
-        window.observer.disabled = true;
+        observer.stop();
 
         var counter = 0;
         while(this.replace(textToReplace, replacementText, matchCase)) {
@@ -172,7 +172,7 @@ function findAndReplace() {
     this.undoReplaceAll = function() {
         console.log("undoReplaceAll");
 
-        window.observer.disabled = true;
+        observer.stop();
 
         var counter = undoReplaceAllCounters.pop();
         for(var i = 0; i < counter; ++i) {
@@ -185,7 +185,7 @@ function findAndReplace() {
     this.redoReplaceAll = function() {
         console.log("redoReplaceAll");
 
-        window.observer.disabled = true;
+        observer.stop();
 
         var counter = redoReplaceAllCounters.pop();
         for(var i = 0; i < counter; ++i) {
