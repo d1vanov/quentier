@@ -5,4 +5,6 @@ function onTableResize(e)
     if (window.hasOwnProperty('tableResizeHandler')) {
         tableResizeHandler.onTableResize();
     }
+
+    return true;
 };

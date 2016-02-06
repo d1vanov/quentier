@@ -381,7 +381,8 @@ function TableManager() {
     this.updateColumnHandles = function(table) {
         $(table).colResizable({
             liveDrag:true,
-            draggingClass:"dragging"
+            draggingClass:"dragging",
+            onResize:onTableResize
         });
     }
 }
