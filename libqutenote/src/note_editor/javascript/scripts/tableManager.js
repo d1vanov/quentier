@@ -361,7 +361,7 @@ function TableManager() {
         }
 
         destNodes.push(sourceNode);
-        destNodeInnerHtmls.push(sourceNodeInnerHtml);
+        destNodeInnerHtmls.push(sourceNode.innerHTML);
 
         console.log("Html before: " + sourceNode.innerHTML + "; html to paste: " + sourceNodeInnerHtml);
 

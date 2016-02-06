@@ -30,6 +30,7 @@
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
 #include "undo_stack/ReplaceUndoCommand.h"
 #include "undo_stack/ReplaceAllUndoCommand.h"
+#include "undo_stack/TableActionUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
 #include <qute_note/utility/ApplicationSettings.h>
@@ -3517,6 +3518,16 @@ void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, con
 #endif
 }
 
+void NoteEditorPrivate::onTableActionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onTableActionDone");
+
+    Q_UNUSED(dummy);
+    Q_UNUSED(extraData);
+
+    convertToNote();
+}
+
 int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
                                            const QString & resourceHash) const
 {
@@ -4546,32 +4557,52 @@ void NoteEditorPrivate::insertTableRow()
 {
     QNDEBUG("NoteEditorPrivate::insertTableRow");
 
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
+
     GET_PAGE()
-    page->executeJavaScript("tableManager.insertRow();");
+    page->executeJavaScript("tableManager.insertRow();", callback);
+
+    TableActionUndoCommand * pCommand = new TableActionUndoCommand(*this, tr("Insert row"), callback);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::insertTableColumn()
 {
     QNDEBUG("NoteEditorPrivate::insertTableColumn");
 
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
+
     GET_PAGE()
-    page->executeJavaScript("tableManager.insertColumn();");
+    page->executeJavaScript("tableManager.insertColumn();", callback);
+
+    TableActionUndoCommand * pCommand = new TableActionUndoCommand(*this, tr("Insert column"), callback);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::removeTableRow()
 {
     QNDEBUG("NoteEditorPrivate::removeTableRow");
 
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
+
     GET_PAGE()
-    page->executeJavaScript("tableManager.removeRow();");
+    page->executeJavaScript("tableManager.removeRow();", callback);
+
+    TableActionUndoCommand * pCommand = new TableActionUndoCommand(*this, tr("Remove row"), callback);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::removeTableColumn()
 {
     QNDEBUG("NoteEditorPrivate::removeTableColumn");
 
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
+
     GET_PAGE()
-    page->executeJavaScript("tableManager.removeColumn();");
+    page->executeJavaScript("tableManager.removeColumn();", callback);
+
+    TableActionUndoCommand * pCommand = new TableActionUndoCommand(*this, tr("Remove column"), callback);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::addAttachmentDialog()

@@ -223,6 +223,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/ImageResourceRotationUndoCommand.h
     src/note_editor/undo_stack/ReplaceUndoCommand.h
     src/note_editor/undo_stack/ReplaceAllUndoCommand.h
+    src/note_editor/undo_stack/TableActionUndoCommand.h
     src/types/data/DataElementWithShortcutData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -316,6 +317,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/ImageResourceRotationUndoCommand.cpp
     src/note_editor/undo_stack/ReplaceUndoCommand.cpp
     src/note_editor/undo_stack/ReplaceAllUndoCommand.cpp
+    src/note_editor/undo_stack/TableActionUndoCommand.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp

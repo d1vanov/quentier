@@ -441,6 +441,8 @@ private:
     void onPageHtmlReceived(const QString & html, const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >());
     void onSelectedTextEncryptionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 
+    void onTableActionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
+
     int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
                             const QString & resourceHash) const;
 
