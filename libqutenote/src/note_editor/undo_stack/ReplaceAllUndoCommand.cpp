@@ -39,7 +39,7 @@ void ReplaceAllUndoCommand::redoImpl()
 
     GET_PAGE()
 
-    QString javascript = "Replacer.redoReplaceAll();";
+    QString javascript = "findReplaceManager.redoReplaceAll();";
     page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {
@@ -53,7 +53,7 @@ void ReplaceAllUndoCommand::undoImpl()
 
     GET_PAGE()
 
-    QString javascript = "Replacer.undoReplaceAll();";
+    QString javascript = "findReplaceManager.undoReplaceAll();";
     page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {

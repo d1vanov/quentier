@@ -1,4 +1,4 @@
-function findAndReplace() {
+function FindReplaceManager() {
     var undoNodes = [];
     var undoNodeInnerHtmls = [];
 
@@ -7,6 +7,23 @@ function findAndReplace() {
 
     var undoReplaceAllCounters = [];
     var redoReplaceAllCounters = [];
+
+    this.setSearchHighlight = function(textToHighlight, matchCase) {
+        observer.stop();
+
+        try {
+            searchHilitor.remove();
+            if (textToHighlight && (textToHighlight != "")) {
+                searchHilitor.caseSensitive = (matchCase ? true : false);
+                searchHilitor.openLeft = true;
+                searchHilitor.openRight = true;
+                searchHilitor.apply(textToHighlight);
+            }
+        }
+        finally {
+            observer.start();
+        }
+    }
 
     this.replace = function(textToReplace, replacementText, matchCase) {
         console.log("replace: text to replace = " + textToReplace +
@@ -66,10 +83,17 @@ function findAndReplace() {
 
         console.log("replace: pushed html to undo stack: " + undoHtml);
 
-        var res = replaceSelectionWithHtml(replacementText);
-        if (!res) {
-            console.warn("replace: replaceSelectionWithHtml failed");
-            return false;
+        observer.stop();
+
+        try {
+            var res = replaceSelectionWithHtml(replacementText);
+            if (!res) {
+                console.warn("replace: replaceSelectionWithHtml failed");
+                return false;
+            }
+        }
+        finally {
+            observer.start();
         }
 
         return true;
@@ -114,14 +138,21 @@ function findAndReplace() {
             return false;
         }
 
-        var currentHtml = this.clearHighlightTags(anchorNode.innerHTML);
+        observer.stop();
 
-        destNodes.push(anchorNode);
-        destNodeInnerHtmls.push(currentHtml);
+        try {
+            var currentHtml = this.clearHighlightTags(anchorNode.innerHTML);
 
-        console.log("Html before: " + anchorNode.innerHTML + "; html to paste: " + anchorNodeInnerHtml + "; html before without highlighting tags: " + currentHtml);
+            destNodes.push(anchorNode);
+            destNodeInnerHtmls.push(currentHtml);
 
-        anchorNode.innerHTML = anchorNodeInnerHtml;
+            console.log("Html before: " + anchorNode.innerHTML + "; html to paste: " + anchorNodeInnerHtml + "; html before without highlighting tags: " + currentHtml);
+
+            anchorNode.innerHTML = anchorNodeInnerHtml;
+        }
+        finally {
+            observer.start();
+        }
     }
 
     // TODO: should replace this with some more proper way
@@ -161,12 +192,17 @@ function findAndReplace() {
 
         observer.stop();
 
-        var counter = 0;
-        while(this.replace(textToReplace, replacementText, matchCase)) {
-            ++counter;
-        }
+        try {
+            var counter = 0;
+            while(this.replace(textToReplace, replacementText, matchCase)) {
+                ++counter;
+            }
 
-        undoReplaceAllCounters.push(counter);
+            undoReplaceAllCounters.push(counter);
+        }
+        finally {
+            observer.start();
+        }
     }
 
     this.undoReplaceAll = function() {
@@ -174,12 +210,17 @@ function findAndReplace() {
 
         observer.stop();
 
-        var counter = undoReplaceAllCounters.pop();
-        for(var i = 0; i < counter; ++i) {
-            this.undo();
-        }
+        try {
+            var counter = undoReplaceAllCounters.pop();
+            for(var i = 0; i < counter; ++i) {
+                this.undo();
+            }
 
-        redoReplaceAllCounters.push(counter);
+            redoReplaceAllCounters.push(counter);
+        }
+        finally {
+            observer.start();
+        }
     }
 
     this.redoReplaceAll = function() {
@@ -187,15 +228,20 @@ function findAndReplace() {
 
         observer.stop();
 
-        var counter = redoReplaceAllCounters.pop();
-        for(var i = 0; i < counter; ++i) {
-            this.redo();
-        }
+        try {
+            var counter = redoReplaceAllCounters.pop();
+            for(var i = 0; i < counter; ++i) {
+                this.redo();
+            }
 
-        undoReplaceAllCounters.push(counter);
+            undoReplaceAllCounters.push(counter);
+        }
+        finally {
+            observer.start();
+        }
     }
 }
 
 (function() {
-    window.Replacer = new findAndReplace();
+    window.findReplaceManager = new FindReplaceManager;
 })();

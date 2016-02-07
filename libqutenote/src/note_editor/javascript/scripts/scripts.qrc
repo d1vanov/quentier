@@ -37,6 +37,6 @@
         <file>getCurrentScroll.js</file>
         <file>setScroll.js</file>
         <file>hideDecryptedText.js</file>
-        <file>findAndReplace.js</file>
+        <file>findReplaceManager.js</file>
     </qresource>
 </RCC>

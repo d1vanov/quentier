@@ -232,5 +232,8 @@ function Hilitor2(id, tag)
     }
     return outputString;
   }
-
 }
+
+(function() {
+  window.searchHilitor = new Hilitor2;
+})();

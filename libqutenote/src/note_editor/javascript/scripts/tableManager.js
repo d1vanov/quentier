@@ -51,20 +51,25 @@ function TableManager() {
 
         observer.stop();
 
-        table.insertRow(rowIndex + 1);
-        var newRow = table.rows[rowIndex + 1];
+        try {
+            table.insertRow(rowIndex + 1);
+            var newRow = table.rows[rowIndex + 1];
 
-        var existingRowChildren = currentRow.children;
-        for(var i = 0; i < existingRowChildren.length; ++i) {
-            var td = existingRowChildren[i];
-            if (td.nodeName != "TD") {
-                continue;
+            var existingRowChildren = currentRow.children;
+            for(var i = 0; i < existingRowChildren.length; ++i) {
+                var td = existingRowChildren[i];
+                if (td.nodeName != "TD") {
+                    continue;
+                }
+
+                var newTd = document.createElement("td");
+                newTd.style.cssText = td.style.cssText;
+                newTd.innerHTML = "\u00a0";
+                newRow.appendChild(newTd);
             }
-
-            var newTd = document.createElement("td");
-            newTd.style.cssText = td.style.cssText;
-            newTd.innerHTML = "\u00a0";
-            newRow.appendChild(newTd);
+        }
+        finally {
+            observer.start();
         }
     }
 
@@ -158,40 +163,45 @@ function TableManager() {
 
         observer.stop();
 
-        this.disableColumnHandles(table);
+        try {
+            this.disableColumnHandles(table);
 
-        for(i = 0; i < table.rows.length; ++i) {
-            var row = table.rows[i];
-            var cell = row.insertCell(cellIndex);
-            cell.style.cssText = currentColumn.style.cssText;
-            cell.innerHTML = "\u00a0";
+            for(i = 0; i < table.rows.length; ++i) {
+                var row = table.rows[i];
+                var cell = row.insertCell(cellIndex);
+                cell.style.cssText = currentColumn.style.cssText;
+                cell.innerHTML = "\u00a0";
 
-            if (!isRelativeWidthTable) {
-                cell.style.width = "" + newAverageColumnWidth.toString() + "px";
-                console.log("Set new cell's width to " + newAverageColumnWidth + " after cell insertion at row " + i);
+                if (!isRelativeWidthTable) {
+                    cell.style.width = "" + newAverageColumnWidth.toString() + "px";
+                    console.log("Set new cell's width to " + newAverageColumnWidth + " after cell insertion at row " + i);
 
-                rowChildren = row.children;
-                var columnWidthIndex = 0;
-                for(var j = 0; j < rowChildren.length; ++j) {
-                    if (j === cellIndex) {
-                        continue;
+                    rowChildren = row.children;
+                    var columnWidthIndex = 0;
+                    for(var j = 0; j < rowChildren.length; ++j) {
+                        if (j === cellIndex) {
+                            continue;
+                        }
+
+                        rowChild = rowChildren[j];
+                        if (rowChild.nodeName != "TD") {
+                            continue;
+                        }
+
+                        console.log("Column width was " + rowChild.style.width);
+                        rowChild.style.width = "" + Math.round(columnWidths[columnWidthIndex] * columnWidthProportion).toString() + "px";
+                        console.log("Column width was assumed to be " + columnWidths[columnWidthIndex] +
+                                    ", now it is " + rowChild.style.width);
+                        ++columnWidthIndex;
                     }
-
-                    rowChild = rowChildren[j];
-                    if (rowChild.nodeName != "TD") {
-                        continue;
-                    }
-
-                    console.log("Column width was " + rowChild.style.width);
-                    rowChild.style.width = "" + Math.round(columnWidths[columnWidthIndex] * columnWidthProportion).toString() + "px";
-                    console.log("Column width was assumed to be " + columnWidths[columnWidthIndex] +
-                                ", now it is " + rowChild.style.width);
-                    ++columnWidthIndex;
                 }
             }
-        }
 
-        this.updateColumnHandles(table);
+            this.updateColumnHandles(table);
+        }
+        finally {
+            observer.start();
+        }
     }
 
     this.removeRow = function() {
@@ -229,7 +239,12 @@ function TableManager() {
 
         observer.stop();
 
-        currentRow.parentNode.removeChild(currentRow);
+        try {
+            currentRow.parentNode.removeChild(currentRow);
+        }
+        finally {
+            observer.start();
+        }
     }
 
     this.removeColumn = function() {
@@ -278,13 +293,18 @@ function TableManager() {
 
         observer.stop();
 
-        this.disableColumnHandles(table);
+        try {
+            this.disableColumnHandles(table);
 
-        for(var i = 0; i < table.rows.length; ++i) {
-            table.rows[i].deleteCell(columnIndex);
+            for(var i = 0; i < table.rows.length; ++i) {
+                table.rows[i].deleteCell(columnIndex);
+            }
+
+            this.updateColumnHandles(table);
         }
-
-        this.updateColumnHandles(table);
+        finally {
+            observer.start();
+        }
     }
 
     this.getElementUnderCursor = function(nodeName) {
@@ -367,9 +387,14 @@ function TableManager() {
 
         observer.stop();
 
-        this.disableColumnHandles(sourceNode);
-        sourceNode.innerHTML = sourceNodeInnerHtml;
-        this.updateColumnHandles(sourceNode);
+        try {
+            this.disableColumnHandles(sourceNode);
+            sourceNode.innerHTML = sourceNodeInnerHtml;
+            this.updateColumnHandles(sourceNode);
+        }
+        finally {
+            observer.start();
+        }
     }
 
     this.disableColumnHandles = function(table) {

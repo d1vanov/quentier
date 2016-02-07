@@ -42,7 +42,7 @@ void ReplaceUndoCommand::redoImpl()
 
     m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
 
-    QString javascript = "Replacer.redo();";
+    QString javascript = "findReplaceManager.redo();";
     page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {
@@ -58,7 +58,7 @@ void ReplaceUndoCommand::undoImpl()
 
     m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
 
-    QString javascript = "Replacer.undo();";
+    QString javascript = "findReplaceManager.undo();";
     page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {

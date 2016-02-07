@@ -385,7 +385,6 @@ private:
 
     void findText(const QString & textToFind, const bool matchCase, const bool searchBackward = false,
                   NoteEditorPage::Callback = 0) const;
-    void onJavaScriptQueueEmptyAfterReplace();
 
     void clearEditorContent();
     void noteToEditorContent();
@@ -616,7 +615,7 @@ private:
     QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;
     QString     m_hilitorJs;
-    QString     m_findAndReplaceJs;
+    QString     m_findReplaceManagerJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
