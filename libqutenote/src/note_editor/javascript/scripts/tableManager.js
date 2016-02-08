@@ -404,10 +404,40 @@ function TableManager() {
     }
 
     this.updateColumnHandles = function(table) {
-        $(table).colResizable({
-            liveDrag:true,
-            draggingClass:"dragging",
-            onResize:onTableResize
+        $(table).each(function(index, element) {
+            var foundRelativeWidthColumn = false;
+            if (element.rows.length > 0) {
+                var row = element.rows[0];
+                var rowChildren = row.childNodes;
+                if (rowChildren.length > 0) {
+                    for(var columnIndex = 0; columnIndex < rowChildren.length; ++columnIndex) {
+                        var column = rowChildren[columnIndex];
+                        if (column.nodeName != "TD") {
+                            continue;
+                        }
+                        var styleWidthStr = column.style.width;
+                        if (styleWidthStr.indexOf("%") > -1) {
+                            foundRelativeWidthColumn = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (foundRelativeWidthColumn) {
+                $(element).colResizable({
+                    liveDrag:true,
+                    draggingClass:"dragging",
+                    onResize:onTableResize
+                });
+            }
+            else {
+                $(element).colResizable({
+                    liveDrag:true,
+                    fixed:false,
+                    draggingClass:"dragging",
+                    onResize:onTableResize
+                });
+            }
         });
     }
 }
