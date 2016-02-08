@@ -463,21 +463,21 @@ private:
     class NoteEditorCallbackFunctor
     {
     public:
-        NoteEditorCallbackFunctor(NoteEditorPrivate * editor,
+        NoteEditorCallbackFunctor(NoteEditorPrivate * pNoteEditor,
                                   void (NoteEditorPrivate::* method)(const T & result,
                                                                      const QVector<QPair<QString,QString> > & extraData),
                                   const QVector<QPair<QString,QString> > & extraData = QVector<QPair<QString,QString> >()) :
-            m_editor(editor), m_method(method), m_extraData(extraData)
+            m_pNoteEditor(pNoteEditor), m_method(method), m_extraData(extraData)
         {}
 
-        NoteEditorCallbackFunctor(const NoteEditorCallbackFunctor<T> & other) : m_editor(other.m_editor), m_method(other.m_method), m_extraData(other.m_extraData) {}
+        NoteEditorCallbackFunctor(const NoteEditorCallbackFunctor<T> & other) : m_pNoteEditor(other.m_pNoteEditor), m_method(other.m_method), m_extraData(other.m_extraData) {}
         NoteEditorCallbackFunctor & operator=(const NoteEditorCallbackFunctor<T> & other)
-        { if (this != &other) { m_editor = other.m_editor; m_method = other.m_method; m_extraData = other.m_extraData; } return *this; }
+        { if (this != &other) { m_pNoteEditor = other.m_pNoteEditor; m_method = other.m_method; m_extraData = other.m_extraData; } return *this; }
 
-        void operator()(const T & result) { (m_editor->*m_method)(result, m_extraData); }
+        void operator()(const T & result) { if (Q_LIKELY(!m_pNoteEditor.isNull())) { (m_pNoteEditor->*m_method)(result, m_extraData); } }
 
     private:
-        NoteEditorPrivate * m_editor;
+        QPointer<NoteEditorPrivate> m_pNoteEditor;
         void (NoteEditorPrivate::* m_method)(const T & result, const QVector<QPair<QString,QString> > & extraData);
         QVector<QPair<QString, QString> > m_extraData;
     };
