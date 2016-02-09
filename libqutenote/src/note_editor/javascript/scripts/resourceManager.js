@@ -3,8 +3,7 @@
  * and corresponding undo/redo commands
  */
 
-function ResourceManager
-{
+function ResourceManager() {
     var undoNodes = [];
     var undoNodeInnerHtmls = [];
 
@@ -13,7 +12,7 @@ function ResourceManager
 
     var lastError;
 
-    this.addResource(resourceHtml)
+    this.addResource = function(resourceHtml)
     {
         console.log("ResourceManager::addResource");
 
@@ -21,21 +20,21 @@ function ResourceManager
         if (!selection) {
             lastError = "selection is null";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         var anchorNode = selection.anchorNode;
         if (!anchorNode) {
             lastError = "selection.anchorNode is null";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         var parentNode = anchorNode.parentNode;
         if (!parentNode) {
             lastError = "selection.anchorNode.parentNode is null";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         undoNodes.push(parentNode);
@@ -49,7 +48,7 @@ function ResourceManager
             observer.start();
         }
 
-        return { true, "" };
+        return { status:true, error:"" };
     }
 
     this.removeResource = function(resourceHash) {
@@ -59,14 +58,14 @@ function ResourceManager
         if (!resource) {
             lastError = "can't find the resource to be removed: hash = " + resourceHash;
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         var parentNode = resource.parentNode;
         if (!parentNode) {
             lastError = "the resource element has no parent: hash = " + resourceHash;
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         undoNodes.push(parentNode);
@@ -80,7 +79,7 @@ function ResourceManager
             observer.start();
         }
 
-        return { true, "" };
+        return { status:true, error:"" };
     }
 
     this.undo = function() {
@@ -103,27 +102,27 @@ function ResourceManager
         if (!sourceNodes) {
             lastError = "can't " + actionString + " the resource action: no source nodes helper array";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         if (!sourceNodeInnerHtmls) {
             lastError = "can't " + actionString + " the resource action: no source node inner html helper array";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         var sourceNode = sourceNodes.pop();
         if (!sourceNode) {
             lastError = "can't " + actionString + " the resource action: no source node";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         var sourceNodeInnerHtml = sourceNodeInnerHtmls.pop();
         if (!sourceNodeInnerHtml) {
             lastError = "can't " + actionString + " the resource action: no source node's inner html";
             console.warn(lastError);
-            return { false, lastError };
+            return { status:false, error:lastError };
         }
 
         destNodes.push(sourceNode);
@@ -139,6 +138,10 @@ function ResourceManager
             observer.start();
         }
 
-        return { true, "" };
+        return { status:true, error:"" };
     }
 }
+
+(function() {
+    window.resourceManager = new ResourceManager;
+})();

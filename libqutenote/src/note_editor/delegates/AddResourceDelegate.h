@@ -32,8 +32,7 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                  QString resourceFileStoragePath, int pageXOffset, int pageYOffset);
+    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath);
     void notifyError(QString error);
 
 // private signals
@@ -59,36 +58,13 @@ private Q_SLOTS:
                                      QUuid requestId);
 
     void onNewResourceHtmlInserted(const QVariant & data);
-    void onPageWithNewResourceHtmlReceived(const QString & html);
-    void onPageScrollReceived(const QVariant & data);
-
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-    void onModifiedPageLoaded();
 
 private:
     void doStart();
-    void requestPageScroll();
     void insertNewResourceHtml();
 
 private:
     typedef JsResultCallbackFunctor<AddResourceDelegate> JsCallback;
-
-    class HtmlCallbackFunctor
-    {
-    public:
-        typedef void (AddResourceDelegate::*Method)(const QString &);
-
-        HtmlCallbackFunctor(AddResourceDelegate & member, Method method) :
-            m_member(member),
-            m_method(method)
-        {}
-
-        void operator()(const QString & html) { (m_member.*m_method)(html); }
-
-    private:
-        AddResourceDelegate &       m_member;
-        Method                      m_method;
-    };
 
 private:
     NoteEditorPrivate &             m_noteEditor;
@@ -106,12 +82,6 @@ private:
 
     QUuid                           m_readResourceFileRequestId;
     QUuid                           m_saveResourceToStorageRequestId;
-
-    int                             m_pageXOffset;
-    int                             m_pageYOffset;
-
-    QString                         m_modifiedHtml;
-    QUuid                           m_writeModifiedHtmlToPageSourceRequestId;
 };
 
 } // namespace qute_note

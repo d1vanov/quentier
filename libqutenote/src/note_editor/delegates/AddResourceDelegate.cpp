@@ -44,11 +44,7 @@ AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPri
     m_resource(),
     m_resourceFileStoragePath(),
     m_readResourceFileRequestId(),
-    m_saveResourceToStorageRequestId(),
-    m_pageXOffset(-1),
-    m_pageYOffset(-1),
-    m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId()
+    m_saveResourceToStorageRequestId()
 {}
 
 void AddResourceDelegate::start()
@@ -208,7 +204,7 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
 
     if (m_resourceFileMimeType.name().startsWith("image/")) {
         QNTRACE("Done adding the image resource to the note, moving on to adding it to the page");
-        requestPageScroll();
+        insertNewResourceHtml();
         return;
     }
 
@@ -262,30 +258,6 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
         return;
     }
 
-    requestPageScroll();
-}
-
-void AddResourceDelegate::requestPageScroll()
-{
-    QNDEBUG("AddResourceDelegate::requestPageScroll");
-
-    GET_PAGE()
-    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &AddResourceDelegate::onPageScrollReceived));
-}
-
-void AddResourceDelegate::onPageScrollReceived(const QVariant & data)
-{
-    QNDEBUG("AddResourceDelegate::onPageScrollReceived: " << data);
-
-    QString errorDescription;
-    bool res = parsePageScrollData(data, m_pageXOffset, m_pageYOffset, errorDescription);
-    if (Q_UNLIKELY(!res)) {
-        errorDescription = QT_TR_NOOP("Can't add resource: ") + errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
-
     insertNewResourceHtml();
 }
 
@@ -305,108 +277,44 @@ void AddResourceDelegate::insertNewResourceHtml()
 
     QNTRACE("Resource html: " << resourceHtml);
 
-    // NOTE: insertHtml can be undone via the explicit call of NoteEditorPrivate::undoPageAction;
-    // we don't want the dedicated undo command to appear in the stack, instead
-    // we'd have the undo command related to the resource addition
-    m_noteEditor.skipPushingUndoCommandOnNextContentChange();
-
-    m_noteEditor.execJavascriptCommand("insertHtml", resourceHtml,
-                                       JsCallback(*this, &AddResourceDelegate::onNewResourceHtmlInserted));
+    GET_PAGE()
+    page->executeJavaScript("resourceManager.addResource('" + resourceHtml + "');",
+                            JsCallback(*this, &AddResourceDelegate::onNewResourceHtmlInserted));
 }
 
 void AddResourceDelegate::onNewResourceHtmlInserted(const QVariant & data)
 {
     QNDEBUG("AddResourceDelegate::onNewResourceHtmlInserted");
 
-    Q_UNUSED(data)
+    QMap<QString,QVariant> resultMap = data.toMap();
 
-    GET_PAGE()
-
-#ifdef USE_QT_WEB_ENGINE
-    page->toHtml(HtmlCallbackFunctor(*this, &AddResourceDelegate::onPageWithNewResourceHtmlReceived));
-#else
-    QString html = page->mainFrame()->toHtml();
-    onPageWithNewResourceHtmlReceived(html);
-#endif
-}
-
-void AddResourceDelegate::onPageWithNewResourceHtmlReceived(const QString & html)
-{
-    QNDEBUG("AddResourceDelegate::onPageWithNewResourceHtmlReceived");
-
-    // Now the tricky part begins: we need to undo the change
-    // for the original page and then create the new page
-    // and set this modified HTML there
-
-    m_modifiedHtml = html;
-
-    // Now we need to undo the attachment addition we just did for the old page
-
-    m_noteEditor.skipNextContentChange();
-    m_noteEditor.undoPageAction();
-
-    // Now can switch the page to the new one and set the modified HTML there
-    m_noteEditor.switchEditorPage(/* should convert from note = */ false);
-
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(AddResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(AddResourceDelegate,writeFile,QString,QByteArray,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-
-    m_writeModifiedHtmlToPageSourceRequestId = QUuid::createUuid();
-    emit writeFile(m_noteEditor.noteEditorPagePath(), m_modifiedHtml.toLocal8Bit(),
-                   m_writeModifiedHtmlToPageSourceRequestId);
-}
-
-void AddResourceDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
-{
-    if (requestId != m_writeModifiedHtmlToPageSourceRequestId) {
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of new resource html insertion from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 
-    QNDEBUG("AddResourceDelegate::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription << ", request id = " << requestId);
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
 
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(AddResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,writeFile,QString,QByteArray,QUuid),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of new resource html insertion from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't insert resource html into the note editor: ") + errorIt.value().toString();
+        }
 
-    if (Q_UNLIKELY(!success)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the addition of attachment processing, "
-                                      "can't write the modified HTML to the note editor: ") + errorDescription;
-        QNWARNING(errorDescription);
-        m_noteEditor.removeResourceFromNote(m_resource);
-        emit notifyError(errorDescription);
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 
-    QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
-
-    GET_PAGE()
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
-
-    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
-
-#ifdef USE_QT_WEB_ENGINE
-    page->setUrl(url);
-    page->load(url);
-#else
-    page->mainFrame()->setUrl(url);
-    page->mainFrame()->load(url);
-#endif
-}
-
-void AddResourceDelegate::onModifiedPageLoaded()
-{
-    QNDEBUG("AddResourceDelegate::onModifiedPageLoaded");
-
-    GET_PAGE()
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(AddResourceDelegate,onModifiedPageLoaded));
-
-    emit finished(m_resource, m_modifiedHtml, m_resourceFileStoragePath, m_pageXOffset, m_pageYOffset);
+    emit finished(m_resource, m_resourceFileStoragePath);
 }
 
 } // namespace qute_note

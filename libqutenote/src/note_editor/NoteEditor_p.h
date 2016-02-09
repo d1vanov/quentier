@@ -330,9 +330,9 @@ private Q_SLOTS:
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
     // Slots for delegates
-    void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                                       QString resourceFileStoragePath, int pageXOffset, int pageYOffset);
+    void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
     void onAddResourceDelegateError(QString error);
+    void onAddResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
                                           int pageXOffset, int pageYOffset);
@@ -588,7 +588,6 @@ private:
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
     QString     m_onTableResizeJs;
-    QString     m_tableManagerJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
     QString     m_replaceSelectionWithHtmlJs;
@@ -611,6 +610,8 @@ private:
     QString     m_changeFontSizeForSelectionJs;
     QString     m_decryptEncryptedTextPermanentlyJs;
     QString     m_pageMutationObserverJs;
+    QString     m_tableManagerJs;
+    QString     m_resourceManagerJs;
     QString     m_getCurrentScrollJs;
     QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;

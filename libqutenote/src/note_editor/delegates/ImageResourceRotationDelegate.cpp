@@ -57,6 +57,8 @@ void ImageResourceRotationDelegate::onOriginalPageConvertedToNote(Note note)
 
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(ImageResourceRotationDelegate,onOriginalPageConvertedToNote,Note));
+
+    rotateImageResource();
 }
 
 void ImageResourceRotationDelegate::rotateImageResource()

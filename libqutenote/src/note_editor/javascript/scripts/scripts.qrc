@@ -2,6 +2,7 @@
     <qresource prefix="/javascript/scripts">
         <file>onTableResize.js</file>
         <file>tableManager.js</file>
+        <file>resourceManager.js</file>
         <file>getSelectionHtml.js</file>
         <file>snapSelectionToWord.js</file>
         <file>replaceSelectionWithHtml.js</file>

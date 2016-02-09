@@ -111,7 +111,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resizableTableColumnsJs(),
     m_debounceJs(),
     m_onTableResizeJs(),
-    m_tableManagerJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
@@ -134,6 +133,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_changeFontSizeForSelectionJs(),
     m_decryptEncryptedTextPermanentlyJs(),
     m_pageMutationObserverJs(),
+    m_tableManagerJs(),
+    m_resourceManagerJs(),
     m_getCurrentScrollJs(),
     m_setScrollJs(),
     m_hideDecryptedTextJs(),
@@ -350,7 +351,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_onTableResizeJs);
-    page->executeJavaScript(m_tableManagerJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_findSelectedHyperlinkElementJs);
     page->executeJavaScript(m_findSelectedHyperlinkIdJs);
@@ -369,6 +369,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
     page->executeJavaScript(m_decryptEncryptedTextPermanentlyJs);
+    page->executeJavaScript(m_tableManagerJs);
+    page->executeJavaScript(m_resourceManagerJs);
     page->executeJavaScript(m_getCurrentScrollJs);
     page->executeJavaScript(m_setScrollJs);
     page->executeJavaScript(m_hideDecryptedTextJs);
@@ -1249,11 +1251,9 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
     }
 }
 
-void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString htmlWithAddedResource,
-                                                      QString resourceFileStoragePath, int pageXOffset, int pageYOffset)
+void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath)
 {
-    QNDEBUG("NoteEditorPrivate::onAddResourceDelegateFinished: resource file storage path = " << resourceFileStoragePath
-             << ", page X offset = " << pageXOffset << ", page Y offset = " << pageYOffset);
+    QNDEBUG("NoteEditorPrivate::onAddResourceDelegateFinished: resource file storage path = " << resourceFileStoragePath);
 
     QNTRACE(addedResource);
 
@@ -1265,13 +1265,33 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
         return;
     }
 
-    AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource, htmlWithAddedResource, pageXOffset, pageYOffset, *this);
+    if (Q_UNLIKELY(!addedResource.hasDataSize())) {
+        QString error = QT_TR_NOOP("The added resource doesn't contain the data size");
+        QNWARNING(error);
+        removeResourceFromNote(addedResource);
+        emit notifyError(error);
+        return;
+    }
+
+    m_resourceFileStoragePathsByResourceLocalGuid[addedResource.localGuid()] = resourceFileStoragePath;
+
+    m_resourceInfo.cacheResourceInfo(addedResource.dataHash(), addedResource.displayName(),
+                                     humanReadableSize(addedResource.dataSize()), resourceFileStoragePath);
+
+    setupGenericResourceImages();
+    provideSrcForResourceImgTags();
+
+    AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource,
+                                                                   NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onAddResourceUndoRedoFinished),
+                                                                   *this);
     m_pUndoStack->push(pCommand);
 
     AddResourceDelegate * delegate = qobject_cast<AddResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onAddResourceDelegateError(QString error)
@@ -1283,6 +1303,43 @@ void NoteEditorPrivate::onAddResourceDelegateError(QString error)
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+}
+
+void NoteEditorPrivate::onAddResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onAddResourceUndoRedoFinished: " << data);
+
+    Q_UNUSED(extraData);
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of new resource html insertion from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of new resource html insertion from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't insert resource html into the note editor: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
@@ -3174,7 +3231,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
     SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
-    SETUP_SCRIPT("javascript/scripts/tableManager.js", m_tableManagerJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
@@ -3194,6 +3250,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
     SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
     SETUP_SCRIPT("javascript/scripts/decryptEncryptedTextPermanently.js", m_decryptEncryptedTextPermanentlyJs);
+    SETUP_SCRIPT("javascript/scripts/tableManager.js", m_tableManagerJs);
+    SETUP_SCRIPT("javascript/scripts/resourceManager.js", m_resourceManagerJs);
     SETUP_SCRIPT("javascript/scripts/getCurrentScroll.js", m_getCurrentScrollJs);
     SETUP_SCRIPT("javascript/scripts/setScroll.js", m_setScrollJs);
     SETUP_SCRIPT("javascript/scripts/hideDecryptedText.js", m_hideDecryptedTextJs);
@@ -3727,6 +3785,7 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
 
     if (resource.hasDataHash()) {
         m_resourceInfo.removeResourceInfo(resource.dataHash());
+        // FIXME: also ensure the stale file(s) from this resource are properly deleted as they are no longer needed
     }
 }
 
@@ -5279,8 +5338,8 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
                                                              m_pFileIOThreadWorker, m_pGenericResourceImageWriter,
                                                              m_genericResourceImageFilePathsByResourceHash);
 
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString,QString,int,int),
-                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString,QString,int,int));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QString));
 
