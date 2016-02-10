@@ -725,90 +725,6 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     }
 }
 
-void NoteEditorPrivate::onDroppedFileRead(bool success, QString errorDescription,
-                                          QByteArray data, QUuid requestId)
-{
-    QNTRACE("NoteEditorPrivate::onDroppedFileRead: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription << ", request id = " << requestId);
-
-    auto it = m_droppedFilePathsAndMimeTypesByReadRequestIds.find(requestId);
-    if (it == m_droppedFilePathsAndMimeTypesByReadRequestIds.end()) {
-        return;
-    }
-
-    const QString filePath = it.value().first;
-    QFileInfo fileInfo(filePath);
-
-    const QMimeType mimeType = it.value().second;
-
-    Q_UNUSED(m_droppedFilePathsAndMimeTypesByReadRequestIds.erase(it));
-
-    if (Q_UNLIKELY(!success)) {
-        QNDEBUG("Could not read the content of the dropped file for request id " << requestId
-                << ": " << errorDescription);
-        return;
-    }
-
-    if (Q_UNLIKELY(!m_pNote)) {
-        QNDEBUG("Current note is empty");
-        return;
-    }
-
-    QNDEBUG("Successfully read the content of the dropped file for request id " << requestId);
-
-    QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
-    ResourceWrapper newResource = attachResourceToNote(data, dataHash, mimeType, fileInfo.fileName());
-    QString newResourceLocalGuid = newResource.localGuid();
-    if (Q_UNLIKELY(newResourceLocalGuid.isEmpty())) {
-        return;
-    }
-
-    QString resourceHtml = ENMLConverter::resourceHtml(newResource, errorDescription);
-    if (Q_UNLIKELY(resourceHtml.isEmpty())) {
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        m_pNote->removeResource(newResource);
-        return;
-    }
-
-    QNTRACE("Resource html: " << resourceHtml);
-
-    skipPushingUndoCommandOnNextContentChange();
-    execJavascriptCommand("insertHtml", resourceHtml);
-
-    QUuid saveResourceToStorageRequestId = QUuid::createUuid();
-
-    QString fileStoragePath;
-    if (mimeType.name().startsWith("image/")) {
-        fileStoragePath = m_noteEditorImageResourcesStoragePath;
-    }
-    else {
-        fileStoragePath = m_resourceLocalFileStorageFolder;
-    }
-
-    fileStoragePath += "/" + newResourceLocalGuid;
-
-    QString fileInfoSuffix = fileInfo.completeSuffix();
-    if (!fileInfoSuffix.isEmpty())
-    {
-        fileStoragePath += "." + fileInfoSuffix;
-    }
-    else
-    {
-        const QStringList suffixes = mimeType.suffixes();
-        if (!suffixes.isEmpty()) {
-            fileStoragePath += "." + suffixes.front();
-        }
-    }
-
-    m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceToStorageRequestId] = newResourceLocalGuid;
-    emit saveResourceToStorage(newResourceLocalGuid, data, dataHash, fileStoragePath, saveResourceToStorageRequestId);
-
-    QNTRACE("Emitted request to save the dropped resource to local file storage: generated local guid = "
-            << newResourceLocalGuid << ", data hash = " << dataHash << ", request id = "
-            << saveResourceToStorageRequestId << ", mime type name = " << mimeType.name());
-}
-
 #ifdef USE_QT_WEB_ENGINE
 void NoteEditorPrivate::onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
                                                     QString filePath, QString errorDescription,
@@ -3161,10 +3077,6 @@ void NoteEditorPrivate::setupFileIO()
     m_pFileIOThreadWorker = new FileIOThreadWorker;
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readDroppedFileData,QString,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                     this, QNSLOT(NoteEditorPrivate,onDroppedFileRead,bool,QString,QByteArray,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeImageResourceToFile,QString,QByteArray,QUuid),

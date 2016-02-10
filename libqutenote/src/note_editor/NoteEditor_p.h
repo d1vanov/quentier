@@ -255,7 +255,6 @@ Q_SIGNALS:
                                QString fileStoragePath, QUuid requestId);
     void readResourceFromStorage(QString fileStoragePath, QString localGuid, QUuid requestId);
     void openResourceFile(QString absoluteFilePath);
-    void readDroppedFileData(QString absoluteFilePath, QUuid requestId);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId);
     void writeImageResourceToFile(QString absoluteFilePath, QByteArray imageData, QUuid requestId);
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId);
@@ -282,8 +281,6 @@ private Q_SLOTS:
     void onResourceFileChanged(QString resourceLocalGuid, QString fileStoragePath);
     void onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
-
-    void onDroppedFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
 #ifdef USE_QT_WEB_ENGINE
     void onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
