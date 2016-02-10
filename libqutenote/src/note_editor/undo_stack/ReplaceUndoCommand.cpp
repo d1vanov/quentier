@@ -40,8 +40,6 @@ void ReplaceUndoCommand::redoImpl()
 
     GET_PAGE()
 
-    m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
-
     QString javascript = "findReplaceManager.redo();";
     page->executeJavaScript(javascript, m_callback);
 
@@ -55,8 +53,6 @@ void ReplaceUndoCommand::undoImpl()
     QNDEBUG("ReplaceUndoCommand::undoImpl");
 
     GET_PAGE()
-
-    m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
 
     QString javascript = "findReplaceManager.undo();";
     page->executeJavaScript(javascript, m_callback);
