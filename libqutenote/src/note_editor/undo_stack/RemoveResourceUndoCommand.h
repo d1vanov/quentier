@@ -10,11 +10,9 @@ namespace qute_note {
 class RemoveResourceUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    RemoveResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithRemovedResource,
-                              const int pageXOffset, const int pageYOffset, NoteEditorPrivate & noteEditorPrivate,
+    RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
                               QUndoCommand * parent = Q_NULLPTR);
-    RemoveResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithRemovedResource,
-                              const int pageXOffset, const int pageYOffset, NoteEditorPrivate & noteEditorPrivate,
+    RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
                               const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~RemoveResourceUndoCommand();
 
@@ -23,9 +21,6 @@ public:
 
 private:
     ResourceWrapper     m_resource;
-    QString             m_htmlWithRemovedResource;
-    int                 m_pageXOffset;
-    int                 m_pageYOffset;
 };
 
 } // namespace qute_note

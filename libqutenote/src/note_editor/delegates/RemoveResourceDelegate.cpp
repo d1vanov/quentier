@@ -1,12 +1,6 @@
 #include "RemoveResourceDelegate.h"
-#include "ParsePageScrollData.h"
 #include "../NoteEditor_p.h"
-#include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
-
-#ifndef USE_QT_WEB_ENGINE
-#include <QWebFrame>
-#endif
 
 namespace qute_note {
 
@@ -19,15 +13,9 @@ namespace qute_note {
         return; \
     }
 
-RemoveResourceDelegate::RemoveResourceDelegate(const ResourceWrapper & resourceToRemove, NoteEditorPrivate & noteEditor,
-                                               FileIOThreadWorker * pFileIOThreadWorker) :
+RemoveResourceDelegate::RemoveResourceDelegate(const ResourceWrapper & resourceToRemove, NoteEditorPrivate & noteEditor) :
     m_noteEditor(noteEditor),
-    m_pFileIOThreadWorker(pFileIOThreadWorker),
-    m_resource(resourceToRemove),
-    m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId(),
-    m_pageXOffset(-1),
-    m_pageYOffset(-1)
+    m_resource(resourceToRemove)
 {}
 
 void RemoveResourceDelegate::start()
@@ -40,7 +28,7 @@ void RemoveResourceDelegate::start()
         m_noteEditor.convertToNote();
     }
     else {
-        requestPageScroll();
+        doStart();
     }
 }
 
@@ -52,30 +40,6 @@ void RemoveResourceDelegate::onOriginalPageConvertedToNote(Note note)
 
     QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(RemoveResourceDelegate,onOriginalPageConvertedToNote,Note));
-
-    requestPageScroll();
-}
-
-void RemoveResourceDelegate::requestPageScroll()
-{
-    QNDEBUG("RemoveResourceDelegate::requestPageScroll");
-
-    GET_PAGE()
-    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &RemoveResourceDelegate::onPageScrollReceived));
-}
-
-void RemoveResourceDelegate::onPageScrollReceived(const QVariant & data)
-{
-    QNDEBUG("RemoveResourceDelegate::onPageScrollReceived: " << data);
-
-    QString errorDescription;
-    bool res = parsePageScrollData(data, m_pageXOffset, m_pageYOffset, errorDescription);
-    if (Q_UNLIKELY(!res)) {
-        errorDescription = QT_TR_NOOP("Can't remove resource: ") + errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
 
     doStart();
 }
@@ -91,41 +55,9 @@ void RemoveResourceDelegate::doStart()
         return;
     }
 
-    m_noteEditor.switchEditorPage(/* should convert to note = */ false);
+    QString javascript = "resourceManager.removeResource('" + m_resource.dataHash() + "');";
 
     GET_PAGE()
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
-                     this, QNSLOT(RemoveResourceDelegate,onSwitchedPageLoaded,bool));
-
-    m_noteEditor.updateFromNote();
-}
-
-void RemoveResourceDelegate::onSwitchedPageLoaded(bool ok)
-{
-    QNDEBUG("RemoveResourceDelegate::onSwitchedPageLoaded: ok = " << (ok ? "true" : "false"));
-
-    Q_UNUSED(ok)
-
-    GET_PAGE()
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool),
-                        this, QNSLOT(RemoveResourceDelegate,onSwitchedPageLoaded,bool));
-
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(RemoveResourceDelegate,onSwitchedPageJavaScriptLoaded));
-}
-
-void RemoveResourceDelegate::onSwitchedPageJavaScriptLoaded()
-{
-    QNDEBUG("RemoveResourceDelegate::onSwitchedPageJavaScriptLoaded");
-
-    GET_PAGE()
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(RemoveResourceDelegate,onSwitchedPageJavaScriptLoaded));
-
-    m_noteEditor.skipNextContentChange();
-
-    QString javascript = "removeResource('" + m_resource.dataHash() + "');";
-
     page->executeJavaScript(javascript, JsCallback(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));
 }
 
@@ -133,83 +65,37 @@ void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVa
 {
     QNDEBUG("RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent");
 
-    Q_UNUSED(data)
+    QMap<QString,QVariant> resultMap = data.toMap();
 
-    GET_PAGE()
-#ifdef USE_QT_WEB_ENGINE
-    page->toHtml(HtmlCallbackFunctor(*this, &RemoveResourceDelegate::onPageHtmlWithoutResourceReceived));
-#else
-    QString html = page->mainFrame()->toHtml();
-    onPageHtmlWithoutResourceReceived(html);
-#endif
-}
-
-void RemoveResourceDelegate::onPageHtmlWithoutResourceReceived(const QString & html)
-{
-    QNDEBUG("RemoveResourceDelegate::onPageHtmlWithoutResourceReceived");
-
-    m_modifiedHtml = html;
-
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(RemoveResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(RemoveResourceDelegate,writeFile,QString,QByteArray,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-
-    m_writeModifiedHtmlToPageSourceRequestId = QUuid::createUuid();
-    emit writeFile(m_noteEditor.noteEditorPagePath(), m_modifiedHtml.toLocal8Bit(),
-                   m_writeModifiedHtmlToPageSourceRequestId);
-}
-
-void RemoveResourceDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
-{
-    if (requestId != m_writeModifiedHtmlToPageSourceRequestId) {
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of resource reference removal from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 
-    QNDEBUG("RemoveResourceDelegate::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription << ", request id = " << requestId);
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
 
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(RemoveResourceDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::disconnect(this, QNSIGNAL(RemoveResourceDelegate,writeFile,QString,QByteArray,QUuid),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of resource reference removal from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't remove resource reference from the note editor: ") + errorIt.value().toString();
+        }
 
-    if (Q_UNLIKELY(!success)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the removal of attachment processing, "
-                                      "can't write the modified HTML to the note editor: ") + errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
-
-    QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
-
-    GET_PAGE()
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(RemoveResourceDelegate,onModifiedPageLoaded));
-
-    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
-
-#ifdef USE_QT_WEB_ENGINE
-    page->setUrl(url);
-    page->load(url);
-#else
-    page->mainFrame()->setUrl(url);
-    page->mainFrame()->load(url);
-#endif
-}
-
-void RemoveResourceDelegate::onModifiedPageLoaded()
-{
-    QNDEBUG("RemoveResourceDelegate::onModifiedPageLoaded");
-
-    GET_PAGE()
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(RemoveResourceDelegate,onModifiedPageLoaded));
 
     m_noteEditor.removeResourceFromNote(m_resource);
 
-    emit finished(m_resource, m_modifiedHtml, m_pageXOffset, m_pageYOffset);
+    emit finished(m_resource);
 }
 
 } // namespace qute_note

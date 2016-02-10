@@ -334,8 +334,7 @@ private Q_SLOTS:
     void onAddResourceDelegateError(QString error);
     void onAddResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
-    void onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
-                                          int pageXOffset, int pageYOffset);
+    void onRemoveResourceDelegateFinished(ResourceWrapper removedResource);
     void onRemoveResourceDelegateError(QString error);
 
     void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
@@ -603,7 +602,6 @@ private:
     QString     m_provideSrcForResourceImgTagsJs;
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;
-    QString     m_removeResourceJs;
     QString     m_onResourceInfoReceivedJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;

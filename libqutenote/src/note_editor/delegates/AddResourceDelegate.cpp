@@ -1,5 +1,4 @@
 #include "AddResourceDelegate.h"
-#include "ParsePageScrollData.h"
 #include "../NoteEditor_p.h"
 #include "../NoteEditorPage.h"
 #include "../GenericResourceImageWriter.h"

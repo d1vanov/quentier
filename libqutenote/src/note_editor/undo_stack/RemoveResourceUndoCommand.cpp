@@ -4,26 +4,26 @@
 
 namespace qute_note {
 
-RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithRemovedResource,
-                                                     const int pageXOffset, const int pageYOffset, NoteEditorPrivate & noteEditorPrivate,
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't undo/redo remove attachment: can't get note editor page"); \
+        QNWARNING(error); \
+        return; \
+    }
+
+RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
                                                      QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
-    m_resource(resource),
-    m_htmlWithRemovedResource(htmlWithRemovedResource),
-    m_pageXOffset(pageXOffset),
-    m_pageYOffset(pageYOffset)
+    m_resource(resource)
 {
     setText(QObject::tr("Remove attachment"));
 }
 
-RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, const QString & htmlWithRemovedResource,
-                                                     const int pageXOffset, const int pageYOffset, NoteEditorPrivate & noteEditorPrivate,
+RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
                                                      const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
-    m_resource(resource),
-    m_htmlWithRemovedResource(htmlWithRemovedResource),
-    m_pageXOffset(pageXOffset),
-    m_pageYOffset(pageYOffset)
+    m_resource(resource)
 {}
 
 RemoveResourceUndoCommand::~RemoveResourceUndoCommand()
@@ -34,18 +34,20 @@ void RemoveResourceUndoCommand::undoImpl()
     QNDEBUG("RemoveResourceUndoCommand::undoImpl");
 
     m_noteEditorPrivate.addResourceToNote(m_resource);
-    m_noteEditorPrivate.popEditorPage();
+
+    GET_PAGE()
+    page->executeJavaScript("resourceManager.undo();");
+    page->executeJavaScript("setupGenericResourceOnClickHandler();");
 }
 
 void RemoveResourceUndoCommand::redoImpl()
 {
     QNDEBUG("RemoveResourceUndoCommand::redoImpl");
 
-    m_noteEditorPrivate.switchEditorPage(/* should convert from note = */ false);
     m_noteEditorPrivate.removeResourceFromNote(m_resource);
-    m_noteEditorPrivate.skipPushingUndoCommandOnNextContentChange();
-    m_noteEditorPrivate.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
-    m_noteEditorPrivate.setNoteHtml(m_htmlWithRemovedResource);
+
+    GET_PAGE()
+    page->executeJavaScript("resourceManager.redo();");
 }
 
 } // namespace qute_note

@@ -126,7 +126,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_provideSrcForResourceImgTagsJs(),
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
-    m_removeResourceJs(),
     m_onResourceInfoReceivedJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
@@ -364,7 +363,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
     page->executeJavaScript(m_setupEnToDoTagsJs);
     page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
-    page->executeJavaScript(m_removeResourceJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
@@ -1278,7 +1276,10 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
     m_resourceInfo.cacheResourceInfo(addedResource.dataHash(), addedResource.displayName(),
                                      humanReadableSize(addedResource.dataSize()), resourceFileStoragePath);
 
+#ifdef USE_QT_WEB_ENGINE
     setupGenericResourceImages();
+#endif
+
     provideSrcForResourceImgTags();
 
     AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource,
@@ -1342,16 +1343,11 @@ void NoteEditorPrivate::onAddResourceUndoRedoFinished(const QVariant & data, con
     convertToNote();
 }
 
-void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource, QString htmlWithRemovedResource,
-                                                         int pageXOffset, int pageYOffset)
+void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource)
 {
-    QNDEBUG("onRemoveResourceDelegateFinished: removed resource = " << removedResource
-            << "\npage X offset = " << pageXOffset << ", page Y offset = " << pageYOffset);
+    QNDEBUG("onRemoveResourceDelegateFinished: removed resource = " << removedResource);
 
-    Q_UNUSED(htmlWithRemovedResource)
-
-    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, htmlWithRemovedResource,
-                                                                         pageXOffset, pageYOffset, *this);
+    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, *this);
     m_pUndoStack->push(pCommand);
 
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
@@ -3265,7 +3261,6 @@ void NoteEditorPrivate::setupScripts()
 
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
-    SETUP_SCRIPT("javascript/scripts/removeResource.js", m_removeResourceJs);
 #ifdef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
@@ -3693,6 +3688,11 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
             m_decryptedTextManager.clearNonRememberedForSessionEntries();
             QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
+
+            // FIXME: remove any stale resource files left which are not related to the previous note
+            // i.e. stale files for generic & image resources being removed from the note, stale image files
+            // representing such removed generic resources etc; however, keep the resource files corresponding
+            // to the resources the previous note still has
         }
     }
 
@@ -3785,7 +3785,6 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
 
     if (resource.hasDataHash()) {
         m_resourceInfo.removeResourceInfo(resource.dataHash());
-        // FIXME: also ensure the stale file(s) from this resource are properly deleted as they are no longer needed
     }
 }
 
@@ -4817,9 +4816,9 @@ void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
         {
             m_resourceInfo.removeResourceInfo(resource.dataHash());
 
-            RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this, m_pFileIOThreadWorker);
-            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper,QString,int,int),
-                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper,QString,int,int));
+            RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this);
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper));
             QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QString),
                              this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QString));
             delegate->start();
