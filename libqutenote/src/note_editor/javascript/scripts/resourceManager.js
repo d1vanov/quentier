@@ -1,5 +1,5 @@
 /**
- * This small function implements the JavaScript side control resource html insertion/removal
+ * This function implements the JavaScript side control over resource html insertion/removal
  * and corresponding undo/redo commands
  */
 
