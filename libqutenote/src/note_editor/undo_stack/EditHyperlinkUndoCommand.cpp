@@ -4,28 +4,24 @@
 
 namespace qute_note {
 
-EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(const quint64 hyperlinkId, const QString & linkBefore, const QString & textBefore,
-                                                   const QString & linkAfter, const QString & textAfter, NoteEditorPrivate & noteEditorPrivate,
-                                                   QUndoCommand * parent) :
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't undo/redo hyperlink edit: can't get note editor page"); \
+        QNWARNING(error); \
+        return; \
+    }
+
+EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(NoteEditorPrivate & noteEditorPrivate, const Callback & callback, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
-    m_hyperlinkId(hyperlinkId),
-    m_linkBefore(linkBefore),
-    m_textBefore(textBefore),
-    m_linkAfter(linkAfter),
-    m_textAfter(textAfter)
+    m_callback(callback)
 {
     setText(QObject::tr("Edit hyperlink"));
 }
 
-EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(const quint64 hyperlinkId, const QString & linkBefore, const QString & textBefore,
-                                                   const QString & linkAfter, const QString & textAfter, NoteEditorPrivate & noteEditorPrivate,
-                                                   const QString & text, QUndoCommand * parent) :
+EditHyperlinkUndoCommand::EditHyperlinkUndoCommand(NoteEditorPrivate & noteEditorPrivate, const Callback & callback, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
-    m_hyperlinkId(hyperlinkId),
-    m_linkBefore(linkBefore),
-    m_textBefore(textBefore),
-    m_linkAfter(linkAfter),
-    m_textAfter(textAfter)
+    m_callback(callback)
 {}
 
 EditHyperlinkUndoCommand::~EditHyperlinkUndoCommand()
@@ -34,13 +30,17 @@ EditHyperlinkUndoCommand::~EditHyperlinkUndoCommand()
 void EditHyperlinkUndoCommand::redoImpl()
 {
     QNDEBUG("EditHyperlinkUndoCommand::redoImpl");
-    m_noteEditorPrivate.replaceHyperlinkContent(m_hyperlinkId, m_linkAfter, m_textAfter);
+
+    GET_PAGE()
+    page->executeJavaScript("hyperlinkManager.redo();", m_callback);
 }
 
 void EditHyperlinkUndoCommand::undoImpl()
 {
     QNDEBUG("EditHyperlinkUndoCommand::undoImpl");
-    m_noteEditorPrivate.replaceHyperlinkContent(m_hyperlinkId, m_linkBefore, m_textBefore);
+
+    GET_PAGE()
+    page->executeJavaScript("hyperlinkManager.undo();", m_callback);
 }
 
 } // namespace qute_note

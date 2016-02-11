@@ -17,12 +17,17 @@ function HyperlinkManager() {
 
         var element = document.querySelector("[en-hyperlink-id='" + hyperlinkId + "']");
         if (!element) {
-            lastError = "Can't replace hyperlink content: can't find hyperlink element by id number";
+            lastError = "can't replace hyperlink content: can't find hyperlink element by id number";
             return { status:false, error:lastError };
         }
 
-        undoNodes.push(element);
-        undoNodeInnerHtmls.push(element.innerHTML);
+        if (!element.parentNode) {
+            lastError = "can't replace hyperlink content: the found hyperlink element has no parent";
+            return { status:false, error:lastError };
+        }
+
+        undoNodes.push(element.parentNode);
+        undoNodeInnerHtmls.push(element.parentNode.innerHTML);
 
         observer.stop();
 
@@ -67,6 +72,37 @@ function HyperlinkManager() {
             else {
                 element.outerHTML = element.innerHTML;
             }
+        }
+        finally {
+            observer.start();
+        }
+
+        return { status:true, error:"" };
+    }
+
+    this.setHyperlinkData = function(text, link, hyperlinkIdNumber) {
+        console.log("HyperlinkManager::setHyperlinkData: text = " + text + "; link = " + link +
+                    "; hyperlink id number = " + hyperlinkIdNumber);
+
+        var element = document.querySelector("[en-hyperlink-id='" + hyperlinkIdNumber + "']");
+        if (!element) {
+            lastError = "can't find the hyperlink element for given id number";
+            return { status:false, error:lastError };
+        }
+
+        if (!element.parentNode) {
+            lastError = "found hyperlink element has no parent";
+            return { status:false, error:lastError };
+        }
+
+        undoNodes.push(element.parentNode);
+        undoNodeInnerHtmls.push(element.parentNode.innerHTML);
+
+        observer.stop();
+
+        try {
+            element.textContent = text;
+            element.href = link;
         }
         finally {
             observer.start();

@@ -1482,24 +1482,52 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished(const QVari
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished");
 
-    Q_UNUSED(data)
     Q_UNUSED(extraData)
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of hyperlink addition undo/redo from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of hyperlink addition undo/redo from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't undo/redo the hyperlink addition: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
 
     convertToNote();
 }
 
-void NoteEditorPrivate::onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl,
-                                                        QString newText, QString newUrl)
+void NoteEditorPrivate::onEditHyperlinkDelegateFinished()
 {
     QNDEBUG("NoteEditorPrivate::onEditHyperlinkDelegateFinished");
 
-    EditHyperlinkUndoCommand * pCommand = new EditHyperlinkUndoCommand(hyperlinkId, previousUrl, previousText, newUrl, newText, *this);
+    EditHyperlinkUndoCommand * pCommand = new EditHyperlinkUndoCommand(*this, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onEditHyperlinkUndoRedoFinished));
     m_pUndoStack->push(pCommand);
 
     EditHyperlinkDelegate * delegate = qobject_cast<EditHyperlinkDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onEditHyperlinkDelegateCancelled()
@@ -1521,6 +1549,43 @@ void NoteEditorPrivate::onEditHyperlinkDelegateError(QString error)
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+}
+
+void NoteEditorPrivate::onEditHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onEditHyperlinkUndoRedoFinished");
+
+    Q_UNUSED(extraData)
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of hyperlink edit undo/redo from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of hyperlink edit undo/redo from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't undo/redo the hyperlink edit: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId, bool performingUndo)
@@ -1741,18 +1806,6 @@ void NoteEditorPrivate::undoLastEncryption()
 
     QString javascript = "decryptEncryptedTextPermanently('" + m_lastEncryptedText + "', '" +
                          decryptedText + "', " + QString::number(m_lastFreeEnCryptIdNumber - 1) + ");";
-    GET_PAGE()
-    page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text)
-{
-    QNDEBUG("NoteEditorPrivate::replaceHyperlinkContent: hyperlink id = " << hyperlinkId
-            << ", link = " << link << ", text = " << text);
-
-    skipPushingUndoCommandOnNextContentChange();
-
-    QString javascript = "replaceHyperlinkContent(" + QString::number(hyperlinkId) + ", '" + link + "', '" + text + "');";
     GET_PAGE()
     page->executeJavaScript(javascript);
 }
@@ -5241,8 +5294,8 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
 
     QNTRACE("Will edit the hyperlink with id " << hyperlinkId);
     EditHyperlinkDelegate * delegate = new EditHyperlinkDelegate(*this, hyperlinkId);
-    QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,finished,quint64,QString,QString,QString,QString),
-                     this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateFinished,quint64,QString,QString,QString,QString));
+    QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,finished),
+                     this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,cancelled), this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateCancelled));
     QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateError,QString));

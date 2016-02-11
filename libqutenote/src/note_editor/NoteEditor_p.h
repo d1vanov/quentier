@@ -132,8 +132,6 @@ public:
 
     void undoLastEncryption();
 
-    void replaceHyperlinkContent(const quint64 hyperlinkId, const QString & link, const QString & text);
-
     bool isModified() const;
     Note * GetNotePrt() { return m_pNote; }
 
@@ -360,9 +358,10 @@ private Q_SLOTS:
     void onAddHyperlinkToSelectedTextDelegateError(QString error);
     void onAddHyperlinkToSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
-    void onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl, QString newText, QString newUrl);
+    void onEditHyperlinkDelegateFinished();
     void onEditHyperlinkDelegateCancelled();
     void onEditHyperlinkDelegateError(QString error);
+    void onEditHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId, bool performingUndo);
     void onRemoveHyperlinkDelegateError(QString error);

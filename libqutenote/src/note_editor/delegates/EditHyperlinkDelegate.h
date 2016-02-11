@@ -20,17 +20,19 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished(quint64 hyperlinkId, QString previousText, QString prevousUrl, QString newText, QString newUrl);
+    void finished();
     void cancelled();
     void notifyError(QString error);
 
 private Q_SLOTS:
+    void onOriginalPageConvertedToNote(Note note);
     void onHyperlinkDataReceived(const QVariant & data);
     void onHyperlinkDataEdited(QString text, QUrl url, quint64 hyperlinkId, bool startupUrlWasEmpty);
     void onHyperlinkModified(const QVariant & data);
 
 private:
-    void raiseEditHyperlinkDialog();
+    void doStart();
+    void raiseEditHyperlinkDialog(const QString & startupHyperlinkText, const QString & startupHyperlinkUrl);
 
 private:
     typedef JsResultCallbackFunctor<EditHyperlinkDelegate> JsCallback;
@@ -38,10 +40,6 @@ private:
 private:
     NoteEditorPrivate &     m_noteEditor;
     const quint64           m_hyperlinkId;
-    QString                 m_originalHyperlinkText;
-    QString                 m_originalHyperlinkUrl;
-    QString                 m_newHyperlinkText;
-    QString                 m_newHyperlinkUrl;
 };
 
 } // namespace qute_note
