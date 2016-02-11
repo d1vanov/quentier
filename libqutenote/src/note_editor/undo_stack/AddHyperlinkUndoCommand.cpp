@@ -4,22 +4,24 @@
 
 namespace qute_note {
 
-AddHyperlinkUndoCommand::AddHyperlinkUndoCommand(const QString & htmlWithHyperlink, const int pageXOffset, const int pageYOffset,
-                                                 NoteEditorPrivate & noteEditor, QUndoCommand * parent) :
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't undo/redo adding the hyperlink to the selected text: can't get note editor page"); \
+        QNWARNING(error); \
+        return; \
+    }
+
+AddHyperlinkUndoCommand::AddHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, parent),
-    m_htmlWithHyperlink(htmlWithHyperlink),
-    m_pageXOffset(pageXOffset),
-    m_pageYOffset(pageYOffset)
+    m_callback(callback)
 {
     setText(QObject::tr("Add hyperlink"));
 }
 
-AddHyperlinkUndoCommand::AddHyperlinkUndoCommand(const QString & htmlWithHyperlink, const int pageXOffset, const int pageYOffset,
-                                                 NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent) :
+AddHyperlinkUndoCommand::AddHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, text, parent),
-    m_htmlWithHyperlink(htmlWithHyperlink),
-    m_pageXOffset(pageXOffset),
-    m_pageYOffset(pageYOffset)
+    m_callback(callback)
 {}
 
 AddHyperlinkUndoCommand::~AddHyperlinkUndoCommand()
@@ -29,16 +31,16 @@ void AddHyperlinkUndoCommand::redoImpl()
 {
     QNDEBUG("AddHyperlinkUndoCommand::redoImpl");
 
-    m_noteEditorPrivate.switchEditorPage(/* should convert from note = */ false);
-    m_noteEditorPrivate.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
-    m_noteEditorPrivate.setNoteHtml(m_htmlWithHyperlink);
+    GET_PAGE()
+    page->executeJavaScript("hyperlinkManager.redo();", m_callback);
 }
 
 void AddHyperlinkUndoCommand::undoImpl()
 {
     QNDEBUG("AddHyperlinkUndoCommand::undoImpl");
 
-    m_noteEditorPrivate.popEditorPage();
+    GET_PAGE()
+    page->executeJavaScript("hyperlinkManager.undo();", m_callback);
 }
 
 } // namespace qute_note

@@ -355,9 +355,10 @@ private Q_SLOTS:
     void onDecryptEncryptedTextDelegateCancelled();
     void onDecryptEncryptedTextDelegateError(QString error);
 
-    void onAddHyperlinkToSelectedTextDelegateFinished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);
+    void onAddHyperlinkToSelectedTextDelegateFinished();
     void onAddHyperlinkToSelectedTextDelegateCancelled();
     void onAddHyperlinkToSelectedTextDelegateError(QString error);
+    void onAddHyperlinkToSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl, QString newText, QString newUrl);
     void onEditHyperlinkDelegateCancelled();
@@ -607,6 +608,7 @@ private:
     QString     m_pageMutationObserverJs;
     QString     m_tableManagerJs;
     QString     m_resourceManagerJs;
+    QString     m_hyperlinkManagerJs;
     QString     m_getCurrentScrollJs;
     QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;

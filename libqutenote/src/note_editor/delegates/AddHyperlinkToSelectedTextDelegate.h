@@ -10,8 +10,6 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-QT_FORWARD_DECLARE_CLASS(NoteEditorPage)
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
 /**
  * @brief The AddHyperlinkToSelectedTextDelegate class encapsulates a chain of callbacks
@@ -23,20 +21,14 @@ class AddHyperlinkToSelectedTextDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit AddHyperlinkToSelectedTextDelegate(NoteEditorPrivate & noteEditor,
-                                                NoteEditorPage * pOriginalPage,
-                                                FileIOThreadWorker * pFileIOThreadWorker,
-                                                const quint64 hyperlinkIdToAdd);
+    explicit AddHyperlinkToSelectedTextDelegate(NoteEditorPrivate & noteEditor, const quint64 hyperlinkIdToAdd);
     void start();
     void startWithPresetHyperlink(const QString & presetHyperlink);
 
 Q_SIGNALS:
-    void finished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset);
+    void finished();
     void cancelled();
     void notifyError(QString error);
-
-// private signals
-    void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId);
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
@@ -44,13 +36,7 @@ private Q_SLOTS:
 
     void onAddHyperlinkDialogFinished(QString text, QUrl url, quint64 hyperlinkId, bool startupUrlWasEmpty);
 
-    void onOriginalPageModified(const QVariant & data);
-    void onPageScrollReceived(const QVariant & data);
-    void onOriginalPageModificationUndone(const QVariant & data);
-
-    void onModifiedPageHtmlReceived(const QString & html);
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-    void onModifiedPageLoaded();
+    void onHyperlinkSetToSelection(const QVariant & data);
 
 private:
     void requestPageScroll();
@@ -61,27 +47,8 @@ private:
 private:
     typedef JsResultCallbackFunctor<AddHyperlinkToSelectedTextDelegate> JsCallback;
 
-    class HtmlCallbackFunctor
-    {
-    public:
-        typedef void (AddHyperlinkToSelectedTextDelegate::*Method)(const QString &);
-
-        HtmlCallbackFunctor(AddHyperlinkToSelectedTextDelegate & member, Method method) :
-            m_member(member),
-            m_method(method)
-        {}
-
-        void operator()(const QString & html) { (m_member.*m_method)(html); }
-
-    private:
-        AddHyperlinkToSelectedTextDelegate &    m_member;
-        Method                                  m_method;
-    };
-
 private:
     NoteEditorPrivate &     m_noteEditor;
-    NoteEditorPage *        m_pOriginalPage;
-    FileIOThreadWorker *    m_pFileIOThreadWorker;
 
     bool                    m_shouldGetHyperlinkFromDialog;
     QString                 m_presetHyperlink;
@@ -89,11 +56,6 @@ private:
     bool                    m_initialTextWasEmpty;
 
     const quint64           m_hyperlinkId;
-    QString                 m_modifiedHtml;
-    QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
-
-    int                     m_pageXOffset;
-    int                     m_pageYOffset;
 };
 
 } // namespace qute_note

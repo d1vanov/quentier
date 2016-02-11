@@ -134,6 +134,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pageMutationObserverJs(),
     m_tableManagerJs(),
     m_resourceManagerJs(),
+    m_hyperlinkManagerJs(),
     m_getCurrentScrollJs(),
     m_setScrollJs(),
     m_hideDecryptedTextJs(),
@@ -369,6 +370,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_decryptEncryptedTextPermanentlyJs);
     page->executeJavaScript(m_tableManagerJs);
     page->executeJavaScript(m_resourceManagerJs);
+    page->executeJavaScript(m_hyperlinkManagerJs);
     page->executeJavaScript(m_getCurrentScrollJs);
     page->executeJavaScript(m_setScrollJs);
     page->executeJavaScript(m_hideDecryptedTextJs);
@@ -1440,17 +1442,19 @@ void NoteEditorPrivate::onDecryptEncryptedTextDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished(QString htmlWithAddedHyperlink, int pageXOffset, int pageYOffset)
+void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished()
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished");
 
-    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(htmlWithAddedHyperlink, pageXOffset, pageYOffset, *this);
+    AddHyperlinkUndoCommand * pCommand = new AddHyperlinkUndoCommand(*this, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished));
     m_pUndoStack->push(pCommand);
 
     AddHyperlinkToSelectedTextDelegate * delegate = qobject_cast<AddHyperlinkToSelectedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateCancelled()
@@ -1472,6 +1476,16 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QString error)
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+}
+
+void NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished");
+
+    Q_UNUSED(data)
+    Q_UNUSED(extraData)
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onEditHyperlinkDelegateFinished(quint64 hyperlinkId, QString previousText, QString previousUrl,
@@ -3160,6 +3174,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/decryptEncryptedTextPermanently.js", m_decryptEncryptedTextPermanentlyJs);
     SETUP_SCRIPT("javascript/scripts/tableManager.js", m_tableManagerJs);
     SETUP_SCRIPT("javascript/scripts/resourceManager.js", m_resourceManagerJs);
+    SETUP_SCRIPT("javascript/scripts/hyperlinkManager.js", m_hyperlinkManagerJs);
     SETUP_SCRIPT("javascript/scripts/getCurrentScroll.js", m_getCurrentScrollJs);
     SETUP_SCRIPT("javascript/scripts/setScroll.js", m_setScrollJs);
     SETUP_SCRIPT("javascript/scripts/hideDecryptedText.js", m_hideDecryptedTextJs);
@@ -4082,7 +4097,7 @@ void NoteEditorPrivate::paste()
 
     quint64 hyperlinkId = m_lastFreeHyperlinkIdNumber++;
 
-    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker, hyperlinkId);
+    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, hyperlinkId);
     QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished,QString,int,int),
                      this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished,QString,int,int));
     QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
@@ -5098,7 +5113,7 @@ void NoteEditorPrivate::editHyperlinkDialog()
     // NOTE: when adding the new hyperlink, the selected html can be empty, it's ok
     m_lastSelectedHtmlForHyperlink = m_lastSelectedHtml;
 
-    QString javascript = "findSelectedHyperlinkId();";
+    QString javascript = "hyperlinkManager.findSelectedHyperlinkId();";
     GET_PAGE()
 
     page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundSelectedHyperlinkId));
@@ -5174,17 +5189,27 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
     QNDEBUG("NoteEditorPrivate::onFoundSelectedHyperlinkId: " << hyperlinkData);
     Q_UNUSED(extraData);
 
-    QString hyperlinkDataStr = hyperlinkData.toString();
-    if (hyperlinkDataStr.isEmpty())
+    QMap<QString,QVariant> resultMap = hyperlinkData.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of the attempt to find the hyperlink data by id from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
     {
         QNTRACE("No hyperlink id under cursor was found, assuming we're adding the new hyperlink to the selected text");
 
         GET_PAGE()
 
         quint64 hyperlinkId = m_lastFreeHyperlinkIdNumber++;
-        AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, page, m_pFileIOThreadWorker, hyperlinkId);
-        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished,QString,int,int),
-                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished,QString,int,int));
+        AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, hyperlinkId);
+        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
+                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
         QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
                          this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateCancelled));
         QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
@@ -5193,6 +5218,17 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
 
         return;
     }
+
+    auto dataIt = resultMap.find("data");
+    if (Q_UNLIKELY(dataIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the seemingly positive result of the attempt "
+                                   "to find the hyperlink data by id from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString hyperlinkDataStr = dataIt.value().toString();
 
     bool conversionResult = false;
     quint64 hyperlinkId = hyperlinkDataStr.toULongLong(&conversionResult);

@@ -11,6 +11,30 @@ function HyperlinkManager() {
 
     var lastError;
 
+    this.replaceHyperlinkContent = function(hyperlinkId, link, text) {
+        console.log("HyperlinkManager::replaceHyperlinkContent: hyperlink id = " + hyperlinkId +
+                    ", link = " + link + ", text = " + text);
+
+        var element = document.querySelector("[en-hyperlink-id='" + hyperlinkId + "']");
+        if (!element) {
+            lastError = "Can't replace hyperlink content: can't find hyperlink element by id number";
+            return { status:false, error:lastError };
+        }
+
+        undoNodes.push(element);
+        undoNodeInnerHtmls.push(element.innerHTML);
+
+        observer.stop();
+
+        try {
+            element.setAttribute("href", link);
+            element.innerHTML = text;
+        }
+        finally {
+            observer.start();
+        }
+    }
+
     this.removeHyperlink = function(hyperlinkIdNumber, completely) {
         console.log("HyperlinkManager::removeHyperlink: id number = " + hyperlinkIdNumber +
                     ", completely = " + (completely ? "true" : "false"));
@@ -52,17 +76,23 @@ function HyperlinkManager() {
     }
 
     this.setHyperlinkToSelection = function(text, link, hyperlinkIdNumber) {
-        console.log("setHyperlinkToSelection: text = " + text + "; link = " + link +
+        console.log("HyperlinkManager::setHyperlinkToSelection: text = " + text + "; link = " + link +
                     "; id number = " + hyperlinkIdNumber);
 
-        var element = this.findSelectedHyperlinkElement();
+        var element = this.findSelectedHyperlink();
         if (element) {
             return this.setHyperlinkToElement(element, text, link);
         }
 
+        var selection = window.getSelection();
+        if (!selection || !selection.anchorNode || !selection.anchorNode.parentNode) {
+            lastError = "can't set hyperlink to selection: selection or its anchor node or its parent node is empty";
+            return { status:false, error:lastError };
+        }
+
         console.log("Found no link node within the selection");
         if (!text) {
-            text = window.getSelection().toString();
+            text = selection.toString();
             if (!text) {
                 console.log("Selection converted to string yields empty string, " +
                             "will use the link itself as link text");
@@ -70,7 +100,8 @@ function HyperlinkManager() {
             }
         }
 
-        // TODO: undo stuff
+        undoNodes.push(selection.anchorNode.parentNode);
+        undoNodeInnerHtmls.push(selection.anchorNode.parentNode.innerHTML);
 
         observer.stop();
 
@@ -81,9 +112,13 @@ function HyperlinkManager() {
         finally {
             observer.start();
         }
+
+        return { status:true, error:"" };
     }
 
     this.setHyperlinkToElement = function(element, text, link) {
+        console.log("HyperlinkManager::setHyperlinkToElement");
+
         if (!element) {
             return { status:false, error:"Element to set hyperlink to is empty" };
         }
@@ -108,8 +143,24 @@ function HyperlinkManager() {
         }
     }
 
+    this.getHyperlinkData = function(hyperlinkId) {
+        console.log("HyperlinkManager::getHyperlinkData: hyperlink id = " + hyperlinkId);
+
+        var element = document.querySelector("[en-hyperlink-id='" + hyperlinkId + "']");
+        if (!element) {
+            lastError = "Can't get hyperlink data: can't find hyperlink element by id number";
+            return { status:false, error:lastError };
+        }
+
+        console.log("Found hyperlink under selection, returning [" + element.innerHTML +
+                    ", " + element.href + "]");
+        return { status:true, error:"", data:[element.innerHTML, element.href] };
+    }
+
     this.getSelectedHyperlinkData = function() {
-        var element = this.findSelectedHyperlinkElement();
+        console.log("HyperlinkManager::getSelectedHyperlinkData");
+
+        var element = this.findSelectedHyperlink();
         if (!element) {
             console.log("Haven't found hyperlink under selection");
             var text = getSelectionHtml();
@@ -126,8 +177,21 @@ function HyperlinkManager() {
         return [element.innerHTML, element.href, idNumber.toString()];
     }
 
+    this.findSelectedHyperlinkId = function() {
+        console.log("HyperlinkManager::findSelectedHyperlinkId");
+
+        var element = this.findSelectedHyperlink();
+        if (!element) {
+            lastError = "can't find selected hyperlink by id number";
+            return { status:false, error:lastError };
+        }
+
+        var hyperlinkId = element.getAttribute("en-hyperlink-id");
+        return { status:true, error:"", data:hyperlinkId };
+    }
+
     this.findSelectedHyperlink = function() {
-        console.log("findSelectedHyperlinkElement");
+        console.log("HyperlinkManager::findSelectedHyperlink");
 
         var element;
         var selection = window.getSelection();
@@ -220,3 +284,7 @@ function HyperlinkManager() {
         return { status:true, error:"" };
     }
 }
+
+(function() {
+    window.hyperlinkManager = new HyperlinkManager;
+})();
