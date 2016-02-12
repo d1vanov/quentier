@@ -1480,7 +1480,7 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QString error)
 
 void NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
 {
-    QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished");
+    QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished: " << data);
 
     Q_UNUSED(extraData)
 
@@ -1553,7 +1553,7 @@ void NoteEditorPrivate::onEditHyperlinkDelegateError(QString error)
 
 void NoteEditorPrivate::onEditHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
 {
-    QNDEBUG("NoteEditorPrivate::onEditHyperlinkUndoRedoFinished");
+    QNDEBUG("NoteEditorPrivate::onEditHyperlinkUndoRedoFinished: " << data);
 
     Q_UNUSED(extraData)
 
@@ -1588,20 +1588,19 @@ void NoteEditorPrivate::onEditHyperlinkUndoRedoFinished(const QVariant & data, c
     convertToNote();
 }
 
-void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId, bool performingUndo)
+void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished()
 {
-    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished: removed hyperlink id = " << removedHyperlinkId
-            << ", performing undo = " << (performingUndo ? "true" : "false"));
+    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished");
 
-    if (!performingUndo) {
-        RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(removedHyperlinkId, *this);
-        m_pUndoStack->push(pCommand);
-    }
+    RemoveHyperlinkUndoCommand * pCommand = new RemoveHyperlinkUndoCommand(*this, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onRemoveHyperlinkUndoRedoFinished));
+    m_pUndoStack->push(pCommand);
 
     RemoveHyperlinkDelegate * delegate = qobject_cast<RemoveHyperlinkDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QString error)
@@ -1613,6 +1612,43 @@ void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QString error)
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+}
+
+void NoteEditorPrivate::onRemoveHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkUndoRedoFinished: " << data);
+
+    Q_UNUSED(extraData)
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of hyperlink removal undo/redo from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of hyperlink removal undo/redo from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't undo/redo the hyperlink removal: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    convertToNote();
 }
 
 void NoteEditorPrivate::timerEvent(QTimerEvent * pEvent)
@@ -5184,26 +5220,12 @@ void NoteEditorPrivate::copyHyperlink()
 void NoteEditorPrivate::removeHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::removeHyperlink");
-    doRemoveHyperlink(/* should track delegate = */ true, 0);   // NOTE: "0" means "don't know, pick from current selection" here
-}
 
-void NoteEditorPrivate::doRemoveHyperlink(const bool shouldTrackDelegate, const quint64 hyperlinkIdToRemove)
-{
-    QNDEBUG("NoteEditorPrivate::doRemoveHyperlink: should track delegate = " << (shouldTrackDelegate ? "true" : "false")
-            << ", hyperlink id to remove = " << hyperlinkIdToRemove);
-
-    GET_PAGE()
-    RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this, page, !shouldTrackDelegate);
-
-    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished,quint64,bool),
-                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished,quint64,bool));
+    RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this);
+    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished),
+                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QString));
-
-    if (hyperlinkIdToRemove != 0) {
-        delegate->setHyperlinkId(hyperlinkIdToRemove);
-    }
-
     delegate->start();
 }
 

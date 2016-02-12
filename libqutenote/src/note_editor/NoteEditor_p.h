@@ -235,8 +235,6 @@ public Q_SLOTS:
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
     virtual void removeHyperlink() Q_DECL_OVERRIDE;
 
-    void doRemoveHyperlink(const bool shouldTrackDelegate, const quint64 hyperlinkIdToRemove);
-
     virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
 
     virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) Q_DECL_OVERRIDE;
@@ -363,8 +361,9 @@ private Q_SLOTS:
     void onEditHyperlinkDelegateError(QString error);
     void onEditHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
-    void onRemoveHyperlinkDelegateFinished(quint64 removedHyperlinkId, bool performingUndo);
+    void onRemoveHyperlinkDelegateFinished();
     void onRemoveHyperlinkDelegateError(QString error);
+    void onRemoveHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
 private:
     void pushNoteContentEditUndoCommand();

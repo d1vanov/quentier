@@ -4,18 +4,26 @@
 
 namespace qute_note {
 
-RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(const quint64 removedHyperlinkId, NoteEditorPrivate & noteEditor,
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't undo/redo hyperlink removal: can't get note editor's page"); \
+        QNWARNING(error); \
+        return; \
+    }
+
+RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback,
                                                        QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, parent),
-    m_hyperlinkId(removedHyperlinkId)
+    m_callback(callback)
 {
     setText(QObject::tr("Remove hyperlink"));
 }
 
-RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(const quint64 removedHyperlinkId, NoteEditorPrivate & noteEditor,
+RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback,
                                                        const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, text, parent),
-    m_hyperlinkId(removedHyperlinkId)
+    m_callback(callback)
 {}
 
 RemoveHyperlinkUndoCommand::~RemoveHyperlinkUndoCommand()
@@ -25,14 +33,16 @@ void RemoveHyperlinkUndoCommand::redoImpl()
 {
     QNDEBUG("RemoveHyperlinkUndoCommand::redoImpl");
 
-    m_noteEditorPrivate.doRemoveHyperlink(/* should track delegate = */ false, m_hyperlinkId);
+    GET_PAGE()
+    page->executeJavaScript("hyperlinkManager.redo();", m_callback);
 }
 
 void RemoveHyperlinkUndoCommand::undoImpl()
 {
     QNDEBUG("RemoveHyperlinkUndoCommand::undoImpl");
 
-    m_noteEditorPrivate.popEditorPage();
+    GET_PAGE()
+    page->executeJavaScript("hyperlinkManager.undo();", m_callback);
 }
 
 } // namespace qute_note
