@@ -114,12 +114,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
-    m_findSelectedHyperlinkElementJs(),
-    m_findSelectedHyperlinkIdJs(),
-    m_setHyperlinkToSelectionJs(),
-    m_getHyperlinkFromSelectionJs(),
-    m_getHyperlinkDataJs(),
-    m_removeHyperlinkJs(),
     m_replaceHyperlinkContentJs(),
     m_updateResourceHashJs(),
     m_updateImageResourceSrcJs(),
@@ -352,12 +346,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_onTableResizeJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
-    page->executeJavaScript(m_findSelectedHyperlinkElementJs);
-    page->executeJavaScript(m_findSelectedHyperlinkIdJs);
-    page->executeJavaScript(m_setHyperlinkToSelectionJs);
-    page->executeJavaScript(m_getHyperlinkFromSelectionJs);
-    page->executeJavaScript(m_getHyperlinkDataJs);
-    page->executeJavaScript(m_removeHyperlinkJs);
     page->executeJavaScript(m_replaceHyperlinkContentJs);
     page->executeJavaScript(m_updateResourceHashJs);
     page->executeJavaScript(m_updateImageResourceSrcJs);
@@ -3246,12 +3234,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/findReplaceManager.js", m_findReplaceManagerJs);
-    SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkElement.js", m_findSelectedHyperlinkElementJs);
-    SETUP_SCRIPT("javascript/scripts/findSelectedHyperlinkId.js", m_findSelectedHyperlinkIdJs);
-    SETUP_SCRIPT("javascript/scripts/setHyperlinkToSelection.js", m_setHyperlinkToSelectionJs);
-    SETUP_SCRIPT("javascript/scripts/getHyperlinkFromSelection.js", m_getHyperlinkFromSelectionJs);
-    SETUP_SCRIPT("javascript/scripts/getHyperlinkData.js", m_getHyperlinkDataJs);
-    SETUP_SCRIPT("javascript/scripts/removeHyperlink.js", m_removeHyperlinkJs);
     SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
     SETUP_SCRIPT("javascript/scripts/updateResourceHash.js", m_updateResourceHashJs);
     SETUP_SCRIPT("javascript/scripts/updateImageResourceSrc.js", m_updateImageResourceSrcJs);
@@ -5212,9 +5194,9 @@ void NoteEditorPrivate::copyHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::copyHyperlink");
 
-    QVector<QPair<QString,QString> > extraData;
     GET_PAGE()
-    page->executeJavaScript("getHyperlinkFromSelection();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToCopy, extraData));
+    page->executeJavaScript("hyperlinkManager.getSelectedHyperlinkData();",
+                            NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onFoundHyperlinkToCopy));
 }
 
 void NoteEditorPrivate::removeHyperlink()

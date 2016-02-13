@@ -24,12 +24,6 @@
         <file>genericResourceOnClickHandler.js</file>
         <file>setupGenericResourceOnClickHandler.js</file>
         <file>changeFontSizeForSelection.js</file>
-        <file>setHyperlinkToSelection.js</file>
-        <file>getHyperlinkFromSelection.js</file>
-        <file>findSelectedHyperlinkElement.js</file>
-        <file>findSelectedHyperlinkId.js</file>
-        <file>getHyperlinkData.js</file>
-        <file>removeHyperlink.js</file>
         <file>replaceHyperlinkContent.js</file>
         <file>decryptEncryptedTextPermanently.js</file>
         <file>flipEnToDoCheckboxState.js</file>
