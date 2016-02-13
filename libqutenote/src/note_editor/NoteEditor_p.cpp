@@ -5055,8 +5055,7 @@ void NoteEditorPrivate::encryptSelectedText()
 {
     QNDEBUG("NoteEditorPrivate::encryptSelectedText");
 
-    EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(this, m_encryptionManager, m_decryptedTextManager,
-                                                                             m_lastFreeEnCryptIdNumber++);
+    EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(this, m_encryptionManager, m_decryptedTextManager);
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QString),

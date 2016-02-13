@@ -149,6 +149,9 @@ public:
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(const QString & filepath);
 
+    quint64 GetFreeEncryptedTextId() { return m_lastFreeEnCryptIdNumber++; }
+    quint64 GetFreeDecryptedTextId() { return m_lastFreeEnDecryptedIdNumber++; }
+
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
     virtual QWidget * widget() Q_DECL_OVERRIDE { return this; }

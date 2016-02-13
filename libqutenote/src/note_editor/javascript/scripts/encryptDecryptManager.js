@@ -10,6 +10,62 @@ function EncryptDecryptManager() {
 
     var lastError;
 
+    this.replaceSelectionWithDecryptedText = function(id, decryptedText, encryptedText, hint, cipher, keyLength) {
+        console.log("EncryptDecryptManager::replaceSelectionWithDecryptedText");
+
+        var selection = window.getSelection();
+        if (!selection || !selection.anchorNode || !selection.anchorNode.parentNode) {
+            lastError = "can't encrypt the selected text: selection or its anchor node or its parent node is empty";
+            return { status:false, error:lastError };
+        }
+
+        if (selection.isCollapsed) {
+            lastError = "can't encrypt the selected text: the selection is collapsed";
+            return { status:false, error:lastError };
+        }
+
+        if (!selection.rangeCount) {
+            lastError = "can't encrypt the selected text: the selection has no ranges";
+            return { status:false, error:lastError };
+        }
+
+        undoNodes.push(selection.anchorNode.parentNode);
+        undoNodeInnerHtmls.push(selection.anchorNode.parentNode.innerHTML);
+
+        observer.stop();
+
+        try {
+            var decryptedTextElement = document.createElement("div");
+            decryptedTextElement.setAttribute("en-tag", "en-decrypted");
+            decryptedTextElement.setAttribute("encrypted_text", encryptedText);
+            decryptedTextElement.setAttribute("en-decrypted-id", id);
+            decryptedTextElement.className = "en-decrypted hvr-border-color";
+
+            if (cipher) {
+                decryptedTextElement.setAttribute("cipher", cipher);
+            }
+
+            if (keyLength) {
+                decryptedTextElement.setAttribute("length", keyLength);
+            }
+
+            if (hint) {
+                decryptedTextElement.setAttribute("hint", hint);
+            }
+
+            decryptedTextElement.innerHTML = decryptedText;
+
+            var range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(decryptedTextElement);
+        }
+        finally {
+            observer.start();
+        }
+
+        return { status:true, error:"" };
+    }
+
     this.encryptSelectedText = function(encryptedTextHtml) {
         console.log("EncryptDecryptManager::encryptSelectedText");
 

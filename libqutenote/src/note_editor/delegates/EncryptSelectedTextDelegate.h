@@ -22,8 +22,7 @@ class EncryptSelectedTextDelegate: public QObject
     Q_OBJECT
 public:
     explicit EncryptSelectedTextDelegate(NoteEditorPrivate * pNoteEditor, QSharedPointer<EncryptionManager> encryptionManager,
-                                         QSharedPointer<DecryptedTextManager> decryptedTextManager, const quint64 encryptedTextId);
-
+                                         QSharedPointer<DecryptedTextManager> decryptedTextManager);
     void start(const QString & selectionHtml);
 
 Q_SIGNALS:
@@ -48,9 +47,15 @@ private:
     QPointer<NoteEditorPrivate>             m_pNoteEditor;
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
-    quint64                                 m_encryptedTextId;
-    QString                                 m_selectionHtml;
+
     QString                                 m_encryptedTextHtml;
+
+    QString                                 m_selectionHtml;
+    QString                                 m_encryptedText;
+    QString                                 m_cipher;
+    QString                                 m_keyLength;
+    QString                                 m_hint;
+    bool                                    m_rememberForSession;
 };
 
 } // namespace qute_note

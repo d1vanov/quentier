@@ -23,15 +23,18 @@ namespace qute_note {
 
 EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate * pNoteEditor,
                                                          QSharedPointer<EncryptionManager> encryptionManager,
-                                                         QSharedPointer<DecryptedTextManager> decryptedTextManager,
-                                                         const quint64 encryptedTextId) :
+                                                         QSharedPointer<DecryptedTextManager> decryptedTextManager) :
     QObject(pNoteEditor),
     m_pNoteEditor(pNoteEditor),
     m_encryptionManager(encryptionManager),
     m_decryptedTextManager(decryptedTextManager),
-    m_encryptedTextId(encryptedTextId),
+    m_encryptedTextHtml(),
     m_selectionHtml(),
-    m_encryptedTextHtml()
+    m_encryptedText(),
+    m_cipher(),
+    m_keyLength(),
+    m_hint(),
+    m_rememberForSession(false)
 {}
 
 void EncryptSelectedTextDelegate::start(const QString & selectionHtml)
@@ -77,17 +80,25 @@ void EncryptSelectedTextDelegate::onSelectedTextEncrypted(QString selectedText, 
 
     CHECK_NOTE_EDITOR()
 
-    m_encryptedTextHtml = (rememberForSession
-                           ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, cipher, keyLength, m_encryptedTextId)
-                           : ENMLConverter::encryptedTextHtml(encryptedText, hint, cipher, keyLength, m_encryptedTextId));
+    m_rememberForSession = rememberForSession;
 
-    ENMLConverter::escapeString(m_encryptedTextHtml);
+    if (m_rememberForSession)
+    {
+        m_encryptedText = encryptedText;
+        ENMLConverter::escapeString(m_encryptedText);
 
-    if (rememberForSession) {
-        // NOTE: workarounding both QtWebKit and QWebEngine always omitting the div element from the html inserted with
-        // execCommand & insertHTML
-        m_encryptedTextHtml.prepend("<br>");
-        m_encryptedTextHtml.append("<br>");
+        m_cipher = cipher;
+        ENMLConverter::escapeString(m_cipher);
+
+        m_keyLength = QString::number(keyLength);
+
+        m_hint = hint;
+        ENMLConverter::escapeString(m_hint);
+    }
+    else
+    {
+        m_encryptedTextHtml = ENMLConverter::encryptedTextHtml(encryptedText, hint, cipher, keyLength, m_pNoteEditor->GetFreeEncryptedTextId());
+        ENMLConverter::escapeString(m_encryptedTextHtml);
     }
 
     if (m_pNoteEditor->isModified()) {
@@ -118,8 +129,23 @@ void EncryptSelectedTextDelegate::encryptSelectedText()
 {
     QNDEBUG("EncryptSelectedTextDelegate::encryptSelectedText");
 
-    QString javascript = QString("encryptDecryptManager.encryptSelectedText('%1');").arg(m_encryptedTextHtml);
     GET_PAGE()
+
+    QString javascript;
+    if (m_rememberForSession)
+    {
+        QString id = QString::number(m_pNoteEditor->GetFreeDecryptedTextId());
+        QString escapedDecryptedText = m_selectionHtml;
+        ENMLConverter::escapeString(escapedDecryptedText);
+        javascript = "encryptDecryptManager.replaceSelectionWithDecryptedText('" + id +
+                     "', '" + escapedDecryptedText + "', '" + m_encryptedText + "', '" + m_hint +
+                     "', '" + m_cipher + "', '" + m_keyLength + "');";
+    }
+    else
+    {
+        javascript = QString("encryptDecryptManager.encryptSelectedText('%1');").arg(m_encryptedTextHtml);
+    }
+
     page->executeJavaScript(javascript, JsCallback(*this, &EncryptSelectedTextDelegate::onEncryptionScriptDone));
 }
 
