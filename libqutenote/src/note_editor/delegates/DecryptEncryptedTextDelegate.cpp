@@ -29,7 +29,7 @@ DecryptEncryptedTextDelegate::DecryptEncryptedTextDelegate(QString encryptedText
                                                            NoteEditorPrivate & noteEditor,
                                                            FileIOThreadWorker * pFileIOThreadWorker,
                                                            QSharedPointer<EncryptionManager> encryptionManager,
-                                                           DecryptedTextManager & decryptedTextManager) :
+                                                           QSharedPointer<DecryptedTextManager> decryptedTextManager) :
     m_encryptedText(encryptedText),
     m_cipher(cipher),
     m_length(0),

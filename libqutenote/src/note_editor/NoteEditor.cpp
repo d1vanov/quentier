@@ -294,9 +294,9 @@ void NoteEditor::copyAttachmentUnderCursor()
     m_backend->copyAttachmentUnderCursor();
 }
 
-void NoteEditor::encryptSelectedTextDialog()
+void NoteEditor::encryptSelectedText()
 {
-    m_backend->encryptSelectedTextDialog();
+    m_backend->encryptSelectedText();
 }
 
 void NoteEditor::decryptEncryptedTextUnderCursor()

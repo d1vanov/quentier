@@ -182,7 +182,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_secondsToWaitBeforeConversionStart(30),
     m_pageToNoteContentPostponeTimerId(0),
     m_encryptionManager(new EncryptionManager),
-    m_decryptedTextManager(),
+    m_decryptedTextManager(new DecryptedTextManager),
     m_enmlConverter(),
 #ifndef USE_QT_WEB_ENGINE
     m_pluginFactory(Q_NULLPTR),
@@ -1816,7 +1816,7 @@ void NoteEditorPrivate::undoLastEncryption()
 
     QString decryptedText;
     bool rememberForSession;
-    bool found = m_decryptedTextManager.findDecryptedTextByEncryptedText(m_lastEncryptedText, decryptedText, rememberForSession);
+    bool found = m_decryptedTextManager->findDecryptedTextByEncryptedText(m_lastEncryptedText, decryptedText, rememberForSession);
     if (!found) {
         QString error = QT_TR_NOOP("Can't undo last encryption: can't find corresponding decrypted text");
         QNWARNING(error);
@@ -1824,7 +1824,7 @@ void NoteEditorPrivate::undoLastEncryption()
         return;
     }
 
-    m_decryptedTextManager.removeEntry(m_lastEncryptedText);
+    m_decryptedTextManager->removeEntry(m_lastEncryptedText);
 
     skipPushingUndoCommandOnNextContentChange();
 
@@ -2066,7 +2066,7 @@ void NoteEditorPrivate::noteToEditorContent()
 
     ENMLConverter::NoteContentToHtmlExtraData extraData;
     bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory,
-                                                 m_errorCachedMemory, m_decryptedTextManager,
+                                                 m_errorCachedMemory, *m_decryptedTextManager,
                                                  extraData);
     if (!res) {
         QNWARNING("Can't convert note's content to HTML: " << m_errorCachedMemory);
@@ -3057,7 +3057,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
     if (!insideDecryptedTextFragment && !selectedHtml.isEmpty()) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Encrypt, "Encrypt selected fragment...",
-                                 m_pGenericTextContextMenu, encryptSelectedTextDialog);
+                                 m_pGenericTextContextMenu, encryptSelectedText);
     }
     else if (insideDecryptedTextFragment) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
@@ -3510,7 +3510,7 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
     m_enmlCachedMemory.resize(0);
     m_errorCachedMemory.resize(0);
     bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory,
-                                                 m_decryptedTextManager, m_errorCachedMemory,
+                                                 *m_decryptedTextManager, m_errorCachedMemory,
                                                  m_skipRulesForHtmlToEnmlConversion);
     if (!res)
     {
@@ -3684,7 +3684,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         {
             *m_pNote = note;
 
-            m_decryptedTextManager.clearNonRememberedForSessionEntries();
+            m_decryptedTextManager->clearNonRememberedForSessionEntries();
             QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
 
             // FIXME: remove any stale resource files left which are not related to the previous note
@@ -5031,9 +5031,9 @@ void NoteEditorPrivate::rotateImageAttachmentUnderCursorCounterclockwise()
     rotateImageAttachmentUnderCursor(Rotation::Counterclockwise);
 }
 
-void NoteEditorPrivate::encryptSelectedTextDialog()
+void NoteEditorPrivate::encryptSelectedText()
 {
-    QNDEBUG("NoteEditorPrivate::encryptSelectedTextDialog");
+    QNDEBUG("NoteEditorPrivate::encryptSelectedText");
 
     if (m_lastSelectedHtml.isEmpty()) {
         QString error = QT_TR_NOOP("Requested encrypt selected text dialog "
@@ -5153,7 +5153,7 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher,
 {
     QNDEBUG("NoteEditorPrivate::hideDecryptedText");
 
-    m_decryptedTextManager.removeEntry(encryptedText);
+    m_decryptedTextManager->removeEntry(encryptedText);
 
     bool conversionResult = false;
     size_t keyLengthInt = static_cast<size_t>(keyLength.toInt(&conversionResult));

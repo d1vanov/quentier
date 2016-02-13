@@ -105,7 +105,7 @@ public:
     virtual void rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection) = 0;
     virtual void rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection) = 0;
 
-    virtual void encryptSelectedTextDialog() = 0;
+    virtual void encryptSelectedText() = 0;
 
     virtual void decryptEncryptedTextUnderCursor() = 0;
     virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString enCryptIndex) = 0;

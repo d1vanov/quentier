@@ -10,7 +10,7 @@ namespace qute_note {
 DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString & cipher,
                                    const QString & hint, const size_t keyLength,
                                    QSharedPointer<EncryptionManager> encryptionManager,
-                                   DecryptedTextManager & decryptedTextManager,
+                                   QSharedPointer<DecryptedTextManager> decryptedTextManager,
                                    QWidget * parent, bool decryptPermanentlyFlag) :
     QDialog(parent),
     m_pUI(new Ui::DecryptionDialog),
@@ -139,8 +139,8 @@ void DecryptionDialog::accept()
     bool rememberForSession = m_pUI->rememberPasswordCheckBox->isChecked();
     bool decryptPermanently = m_pUI->decryptPermanentlyCheckBox->isChecked();
 
-    m_decryptedTextManager.addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
-                                    passphrase, m_cipher, m_keyLength);
+    m_decryptedTextManager->addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
+                                     passphrase, m_cipher, m_keyLength);
     QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
             << "; remember for session = " << (rememberForSession ? "true" : "false")
             << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));

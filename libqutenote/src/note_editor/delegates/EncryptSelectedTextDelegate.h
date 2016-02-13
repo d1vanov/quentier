@@ -16,8 +16,7 @@ QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 /**
  * @brief The EncryptSelectedTextDelegate class encapsulates a chain of callbacks
  * required for proper implementation of currently selected text encryption
- * considering the details of wrapping this action around undo stack and necessary switching
- * of note editor page during the process
+ * considering the details of wrapping this action around the undo stack
  */
 class EncryptSelectedTextDelegate: public QObject
 {

@@ -120,7 +120,7 @@ public Q_SLOTS:
     void copyAttachment(const QString & resourceHash);
     void copyAttachmentUnderCursor();
 
-    void encryptSelectedTextDialog();
+    void encryptSelectedText();
     void decryptEncryptedTextUnderCursor();
 
     void editHyperlinkDialog();

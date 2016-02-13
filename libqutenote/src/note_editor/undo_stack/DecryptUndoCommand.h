@@ -3,6 +3,8 @@
 
 #include "INoteEditorUndoCommand.h"
 #include "EncryptDecryptUndoCommandInfo.h"
+#include <qute_note/note_editor/DecryptedTextManager.h>
+#include <QSharedPointer>
 
 namespace qute_note {
 
@@ -11,10 +13,10 @@ QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 class DecryptUndoCommand: public INoteEditorUndoCommand
 {
 public:
-    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
+    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, QSharedPointer<DecryptedTextManager> decryptedTextManager,
                        const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
                        NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
-    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, DecryptedTextManager & decryptedTextManager,
+    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, QSharedPointer<DecryptedTextManager> decryptedTextManager,
                        const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
                        NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~DecryptUndoCommand();
@@ -23,12 +25,12 @@ public:
     virtual void undoImpl() Q_DECL_OVERRIDE;
 
 private:
-    EncryptDecryptUndoCommandInfo   m_info;
-    DecryptedTextManager &          m_decryptedTextManager;
-    QString                         m_htmlWithDecryptedText;
+    EncryptDecryptUndoCommandInfo           m_info;
+    QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
+    QString                                 m_htmlWithDecryptedText;
 
-    int                             m_pageXOffset;
-    int                             m_pageYOffset;
+    int                                     m_pageXOffset;
+    int                                     m_pageYOffset;
 };
 
 } // namespace qute_note

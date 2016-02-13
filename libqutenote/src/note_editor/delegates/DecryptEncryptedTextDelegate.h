@@ -31,7 +31,7 @@ public:
                                           NoteEditorPrivate & noteEditor,
                                           FileIOThreadWorker * pFileIOThreadWorker,
                                           QSharedPointer<EncryptionManager> encryptionManager,
-                                          DecryptedTextManager & decryptedTextManager);
+                                          QSharedPointer<DecryptedTextManager> decryptedTextManager);
 
     void start();
 
@@ -84,10 +84,10 @@ private:
     bool        m_rememberForSession;
     bool        m_decryptPermanently;
 
-    NoteEditorPrivate &                 m_noteEditor;
-    FileIOThreadWorker *                m_pFileIOThreadWorker;
-    QSharedPointer<EncryptionManager>   m_encryptionManager;
-    DecryptedTextManager &              m_decryptedTextManager;
+    NoteEditorPrivate &                     m_noteEditor;
+    FileIOThreadWorker *                    m_pFileIOThreadWorker;
+    QSharedPointer<EncryptionManager>       m_encryptionManager;
+    QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
 
     QString     m_modifiedHtml;
     QUuid       m_writeModifiedHtmlToPageSourceRequestId;

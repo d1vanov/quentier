@@ -20,7 +20,7 @@ class EncryptionDialog: public QDialog
 public:
     explicit EncryptionDialog(const QString & textToEncrypt,
                               QSharedPointer<EncryptionManager> encryptionManager,
-                              DecryptedTextManager & decryptedTextManager,
+                              QSharedPointer<DecryptedTextManager> decryptedTextManager,
                               QWidget * parent = Q_NULLPTR);
     virtual ~EncryptionDialog();
 
@@ -45,11 +45,11 @@ private:
     void setError(const QString & error);
 
 private:
-    Ui::EncryptionDialog *              m_pUI;
-    QString                             m_textToEncrypt;
-    QString                             m_cachedEncryptedText;
-    QSharedPointer<EncryptionManager>   m_encryptionManager;
-    DecryptedTextManager &              m_decryptedTextManager;
+    Ui::EncryptionDialog *                  m_pUI;
+    QString                                 m_textToEncrypt;
+    QString                                 m_cachedEncryptedText;
+    QSharedPointer<EncryptionManager>       m_encryptionManager;
+    QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
 };
 
 } // namespace qute_note

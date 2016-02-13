@@ -18,14 +18,10 @@ class DecryptionDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit DecryptionDialog(const QString & encryptedText,
-                              const QString & cipher,
-                              const QString & hint,
-                              const size_t keyLength,
-                              QSharedPointer<EncryptionManager> encryptionManager,
-                              DecryptedTextManager & decryptedTextManager,
-                              QWidget * parent = Q_NULLPTR,
-                              bool decryptPermanentlyFlag = false);
+    explicit DecryptionDialog(const QString & encryptedText, const QString & cipher, const QString & hint,
+                              const size_t keyLength, QSharedPointer<EncryptionManager> encryptionManager,
+                              QSharedPointer<DecryptedTextManager> decryptedTextManager,
+                              QWidget * parent = Q_NULLPTR, bool decryptPermanentlyFlag = false);
     virtual ~DecryptionDialog();
 
     QString passphrase() const;
@@ -54,17 +50,17 @@ private:
     void setError(const QString & error);
 
 private:
-    Ui::DecryptionDialog *              m_pUI;
-    QString                             m_encryptedText;
-    QString                             m_cipher;
-    QString                             m_hint;
+    Ui::DecryptionDialog *                  m_pUI;
+    QString                                 m_encryptedText;
+    QString                                 m_cipher;
+    QString                                 m_hint;
 
-    QString                             m_cachedDecryptedText;
+    QString                                 m_cachedDecryptedText;
 
-    QSharedPointer<EncryptionManager>   m_encryptionManager;
-    DecryptedTextManager &              m_decryptedTextManager;
+    QSharedPointer<EncryptionManager>       m_encryptionManager;
+    QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
 
-    size_t                              m_keyLength;
+    size_t                                  m_keyLength;
 };
 
 } // namespace qute_note

@@ -10,7 +10,7 @@ namespace qute_note {
 
 EncryptionDialog::EncryptionDialog(const QString & textToEncrypt,
                                    QSharedPointer<EncryptionManager> encryptionManager,
-                                   DecryptedTextManager & decryptedTextManager,
+                                   QSharedPointer<DecryptedTextManager> decryptedTextManager,
                                    QWidget * parent) :
     QDialog(parent),
     m_pUI(new Ui::EncryptionDialog),
@@ -114,8 +114,8 @@ void EncryptionDialog::accept()
 
     bool rememberForSession = m_pUI->rememberPasswordForSessionCheckBox->isChecked();
 
-    m_decryptedTextManager.addEntry(m_cachedEncryptedText, m_textToEncrypt, rememberForSession,
-                                    passphrase, cipher, keyLength);
+    m_decryptedTextManager->addEntry(m_cachedEncryptedText, m_textToEncrypt, rememberForSession,
+                                     passphrase, cipher, keyLength);
 
     emit accepted(m_textToEncrypt, m_cachedEncryptedText, passphrase, cipher, keyLength,
                   m_pUI->hintLineEdit->text(), rememberForSession);

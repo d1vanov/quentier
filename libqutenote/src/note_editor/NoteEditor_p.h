@@ -222,7 +222,7 @@ public Q_SLOTS:
     void rotateImageAttachmentUnderCursorClockwise();
     void rotateImageAttachmentUnderCursorCounterclockwise();
 
-    virtual void encryptSelectedTextDialog() Q_DECL_OVERRIDE;
+    virtual void encryptSelectedText() Q_DECL_OVERRIDE;
     void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
 
     virtual void decryptEncryptedTextUnderCursor() Q_DECL_OVERRIDE;
@@ -685,7 +685,7 @@ private:
     int         m_pageToNoteContentPostponeTimerId;
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
-    DecryptedTextManager                    m_decryptedTextManager;
+    QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
 
     ENMLConverter                           m_enmlConverter;
 
