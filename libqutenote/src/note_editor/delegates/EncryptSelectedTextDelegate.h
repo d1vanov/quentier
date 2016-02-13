@@ -4,14 +4,13 @@
 #include "JsResultCallbackFunctor.hpp"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
-#include <QObject>
-#include <QUuid>
+#include <QPointer>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-QT_FORWARD_DECLARE_CLASS(NoteEditorPage)
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(EncryptionManager)
+QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 
 /**
  * @brief The EncryptSelectedTextDelegate class encapsulates a chain of callbacks
@@ -22,65 +21,36 @@ class EncryptSelectedTextDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit EncryptSelectedTextDelegate(NoteEditorPrivate & noteEditor,
-                                         NoteEditorPage * pOriginalPage,
-                                         FileIOThreadWorker * pFileIOThreadWorker);
+    explicit EncryptSelectedTextDelegate(NoteEditorPrivate * pNoteEditor, QSharedPointer<EncryptionManager> encryptionManager,
+                                         QSharedPointer<DecryptedTextManager> decryptedTextManager, const quint64 encryptedTextId);
 
-    void start();
+    void start(const QString & selectionHtml);
 
 Q_SIGNALS:
-    void finished(QString htmlWithEncryption, int pageXOffset, int pageYOffset);
+    void finished();
     void cancelled();
     void notifyError(QString error);
 
-// private signals
-    void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId);
-
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
-    void onPageScrollReceived(const QVariant & data);
-
-    void onOriginalPageModified();
-    void onOriginalPageModificationUndone();
-
-    void onModifiedPageHtmlReceived(const QString & html);
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-    void onModifiedPageLoaded();
+    void onSelectedTextEncrypted(QString selectedText, QString encryptedText, QString cipher,
+                                 size_t keyLength, QString hint, bool rememberForSession);
+    void onEncryptionScriptDone(const QVariant & data);
 
 private:
-    void requestPageScroll();
+    void raiseEncryptionDialog();
     void encryptSelectedText();
 
 private:
     typedef JsResultCallbackFunctor<EncryptSelectedTextDelegate> JsCallback;
 
 private:
-    NoteEditorPrivate &     m_noteEditor;
-    NoteEditorPage *        m_pOriginalPage;
-    FileIOThreadWorker *    m_pFileIOThreadWorker;
-
-    class HtmlCallbackFunctor
-    {
-    public:
-        typedef void (EncryptSelectedTextDelegate::*Method)(const QString &);
-
-        HtmlCallbackFunctor(EncryptSelectedTextDelegate & member, Method method) :
-            m_member(member),
-            m_method(method)
-        {}
-
-        void operator()(const QString & html) { (m_member.*m_method)(html); }
-
-    private:
-        EncryptSelectedTextDelegate &   m_member;
-        Method                          m_method;
-    };
-
-    QString                 m_modifiedHtml;
-    QUuid                   m_writeModifiedHtmlToPageSourceRequestId;
-
-    int                     m_pageXOffset;
-    int                     m_pageYOffset;
+    QPointer<NoteEditorPrivate>             m_pNoteEditor;
+    QSharedPointer<EncryptionManager>       m_encryptionManager;
+    QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
+    quint64                                 m_encryptedTextId;
+    QString                                 m_selectionHtml;
+    QString                                 m_encryptedTextHtml;
 };
 
 } // namespace qute_note

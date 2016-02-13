@@ -117,7 +117,7 @@ void EncryptionDialog::accept()
     m_decryptedTextManager->addEntry(m_cachedEncryptedText, m_textToEncrypt, rememberForSession,
                                      passphrase, cipher, keyLength);
 
-    emit accepted(m_textToEncrypt, m_cachedEncryptedText, passphrase, cipher, keyLength,
+    emit accepted(m_textToEncrypt, m_cachedEncryptedText, cipher, keyLength,
                   m_pUI->hintLineEdit->text(), rememberForSession);
     QDialog::accept();
 }

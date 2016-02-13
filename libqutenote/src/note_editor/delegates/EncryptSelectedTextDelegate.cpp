@@ -1,48 +1,102 @@
 #include "EncryptSelectedTextDelegate.h"
-#include "ParsePageScrollData.h"
 #include "../NoteEditor_p.h"
-#include <qute_note/utility/FileIOThreadWorker.h>
+#include "../dialogs/EncryptionDialog.h"
 #include <qute_note/logging/QuteNoteLogger.h>
-
-#ifndef USE_QT_WEB_ENGINE
-#include <QWebFrame>
-#endif
 
 namespace qute_note {
 
+#define CHECK_NOTE_EDITOR() \
+    if (Q_UNLIKELY(m_pNoteEditor.isNull())) { \
+        QNDEBUG("Note editor is null"); \
+        return; \
+    }
+
 #define GET_PAGE() \
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
+    CHECK_NOTE_EDITOR() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_pNoteEditor->page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't add attachment: can't get note editor page"); \
+        QString error = QT_TR_NOOP("Can't encrypt the selected text: can't get note editor page"); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
     }
 
-EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate & noteEditor,
-                                                         NoteEditorPage * pOriginalPage,
-                                                         FileIOThreadWorker * pFileIOThreadWorker) :
-    QObject(&noteEditor),
-    m_noteEditor(noteEditor),
-    m_pOriginalPage(pOriginalPage),
-    m_pFileIOThreadWorker(pFileIOThreadWorker),
-    m_modifiedHtml(),
-    m_writeModifiedHtmlToPageSourceRequestId(),
-    m_pageXOffset(-1),
-    m_pageYOffset(-1)
+EncryptSelectedTextDelegate::EncryptSelectedTextDelegate(NoteEditorPrivate * pNoteEditor,
+                                                         QSharedPointer<EncryptionManager> encryptionManager,
+                                                         QSharedPointer<DecryptedTextManager> decryptedTextManager,
+                                                         const quint64 encryptedTextId) :
+    QObject(pNoteEditor),
+    m_pNoteEditor(pNoteEditor),
+    m_encryptionManager(encryptionManager),
+    m_decryptedTextManager(decryptedTextManager),
+    m_encryptedTextId(encryptedTextId),
+    m_selectionHtml(),
+    m_encryptedTextHtml()
 {}
 
-void EncryptSelectedTextDelegate::start()
+void EncryptSelectedTextDelegate::start(const QString & selectionHtml)
 {
-    QNDEBUG("EncryptSelectedTextDelegate::start");
+    QNDEBUG("EncryptSelectedTextDelegate::start: selection html = " << selectionHtml);
 
-    if (m_noteEditor.isModified()) {
-        QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+    CHECK_NOTE_EDITOR()
+
+    if (selectionHtml.isEmpty()) {
+        QNDEBUG("No selection html, nothing to encrypt");
+        emit cancelled();
+        return;
+    }
+
+    m_selectionHtml = selectionHtml;
+
+    raiseEncryptionDialog();
+}
+
+void EncryptSelectedTextDelegate::raiseEncryptionDialog()
+{
+    QNDEBUG("EncryptSelectedTextDelegate::raiseEncryptionDialog");
+
+    QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_selectionHtml, m_encryptionManager,
+                                                                            m_decryptedTextManager, m_pNoteEditor));
+    pEncryptionDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,size_t,QString,bool),
+                     this, QNSLOT(EncryptSelectedTextDelegate,onSelectedTextEncrypted,QString,QString,QString,size_t,QString,bool));
+    int res = pEncryptionDialog->exec();
+    QNTRACE("Executed encryption dialog: " << (res == QDialog::Accepted ? "accepted" : "rejected"));
+    if (res == QDialog::Rejected) {
+        emit cancelled();
+        return;
+    }
+}
+
+void EncryptSelectedTextDelegate::onSelectedTextEncrypted(QString selectedText, QString encryptedText,
+                                                          QString cipher, size_t keyLength, QString hint, bool rememberForSession)
+{
+    QNDEBUG("EncryptSelectedTextDelegate::onSelectedTextEncrypted: "
+            << "encrypted text = " << encryptedText << ", hint = " << hint
+            << ", remember for session = " << (rememberForSession ? "true" : "false"));
+
+    CHECK_NOTE_EDITOR()
+
+    m_encryptedTextHtml = (rememberForSession
+                           ? ENMLConverter::decryptedTextHtml(selectedText, encryptedText, hint, cipher, keyLength, m_encryptedTextId)
+                           : ENMLConverter::encryptedTextHtml(encryptedText, hint, cipher, keyLength, m_encryptedTextId));
+
+    ENMLConverter::escapeString(m_encryptedTextHtml);
+
+    if (rememberForSession) {
+        // NOTE: workarounding both QtWebKit and QWebEngine always omitting the div element from the html inserted with
+        // execCommand & insertHTML
+        m_encryptedTextHtml.prepend("<br>");
+        m_encryptedTextHtml.append("<br>");
+    }
+
+    if (m_pNoteEditor->isModified()) {
+        QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                          this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
-        m_noteEditor.convertToNote();
+        m_pNoteEditor->convertToNote();
     }
     else {
-        requestPageScroll();
+        encryptSelectedText();
     }
 }
 
@@ -50,34 +104,12 @@ void EncryptSelectedTextDelegate::onOriginalPageConvertedToNote(Note note)
 {
     QNDEBUG("EncryptSelectedTextDelegate::onOriginalPageConvertedToNote");
 
+    CHECK_NOTE_EDITOR()
+
     Q_UNUSED(note)
 
-    QObject::disconnect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+    QObject::disconnect(m_pNoteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
-
-    requestPageScroll();
-}
-
-void EncryptSelectedTextDelegate::requestPageScroll()
-{
-    QNDEBUG("EncryptSelectedTextDelegate::requestPageScroll");
-
-    GET_PAGE()
-    page->executeJavaScript("getCurrentScroll();", JsCallback(*this, &EncryptSelectedTextDelegate::onPageScrollReceived));
-}
-
-void EncryptSelectedTextDelegate::onPageScrollReceived(const QVariant & data)
-{
-    QNDEBUG("EncryptSelectedTextDelegate::onPageScrollReceived: " << data);
-
-    QString errorDescription;
-    bool res = parsePageScrollData(data, m_pageXOffset, m_pageYOffset, errorDescription);
-    if (Q_UNLIKELY(!res)) {
-        errorDescription = QT_TR_NOOP("Can't encrypt selected text: ") + errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
-        return;
-    }
 
     encryptSelectedText();
 }
@@ -86,119 +118,44 @@ void EncryptSelectedTextDelegate::encryptSelectedText()
 {
     QNDEBUG("EncryptSelectedTextDelegate::encryptSelectedText");
 
-    QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModified));
-
-    bool encryptionCancelled = false;
-    m_noteEditor.doEncryptSelectedTextDialog(&encryptionCancelled);
-    if (encryptionCancelled) {
-        QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                            this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModified));
-        emit cancelled();
-    }
+    QString javascript = QString("encryptDecryptManager.encryptSelectedText('%1');").arg(m_encryptedTextHtml);
+    GET_PAGE()
+    page->executeJavaScript(javascript, JsCallback(*this, &EncryptSelectedTextDelegate::onEncryptionScriptDone));
 }
 
-void EncryptSelectedTextDelegate::onOriginalPageModified()
+void EncryptSelectedTextDelegate::onEncryptionScriptDone(const QVariant & data)
 {
-    QNDEBUG("EncryptSelectedTextDelegate::onOriginalPageModified");
+    QNDEBUG("EncryptSelectedTextDelegate::onEncryptionScriptDone: " << data);
 
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModified));
+    QMap<QString,QVariant> resultMap = data.toMap();
 
-#ifdef USE_QT_WEB_ENGINE
-    m_pOriginalPage->toHtml(HtmlCallbackFunctor(*this, &EncryptSelectedTextDelegate::onModifiedPageHtmlReceived));
-#else
-    QString html = m_pOriginalPage->mainFrame()->toHtml();
-    onModifiedPageHtmlReceived(html);
-#endif
-}
-
-void EncryptSelectedTextDelegate::onModifiedPageHtmlReceived(const QString & html)
-{
-    QNDEBUG("EncryptSelectedTextDelegate::onModifiedPageHtmlReceived");
-
-    // Now the tricky part begins: we need to undo the change
-    // for the original page and then create the new page
-    // and set this modified HTML there
-
-    m_modifiedHtml = html;
-
-    QObject::connect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModificationUndone));
-
-    m_noteEditor.undoLastEncryption();
-}
-
-void EncryptSelectedTextDelegate::onOriginalPageModificationUndone()
-{
-    QNDEBUG("EncryptSelectedTextDelegate::onOriginalPageModificationUndone");
-
-    QObject::disconnect(m_pOriginalPage, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageModificationUndone));
-
-    m_noteEditor.switchEditorPage(/* should convert from note = */ false);
-
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(EncryptSelectedTextDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(EncryptSelectedTextDelegate,writeFile,QString,QByteArray,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
-
-    m_writeModifiedHtmlToPageSourceRequestId = QUuid::createUuid();
-    emit writeFile(m_noteEditor.noteEditorPagePath(), m_modifiedHtml.toLocal8Bit(),
-                   m_writeModifiedHtmlToPageSourceRequestId);
-}
-
-void EncryptSelectedTextDelegate::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
-{
-    if (requestId != m_writeModifiedHtmlToPageSourceRequestId) {
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of text encryption script from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 
-    QNDEBUG("EncryptSelectedTextDelegate::onWriteFileRequestProcessed: success = "
-            << (success ? "true" : "false") << ", error = " << errorDescription
-            << ", request id =" << requestId);
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
 
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(EncryptSelectedTextDelegate,onWriteFileRequestProcessed,bool,QString,QUuid));
-    QObject::disconnect(this, QNSIGNAL(EncryptSelectedTextDelegate,writeFile,QString,QByteArray,QUuid),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of text encryption from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't encrypt the selected text: ") + errorIt.value().toString();
+        }
 
-    if (Q_UNLIKELY(!success)) {
-        errorDescription = QT_TR_NOOP("Can't finalize the encrypted text processing, "
-                                      "can't write the modified HTML to the note editor: ") + errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 
-    QUrl url = QUrl::fromLocalFile(m_noteEditor.noteEditorPagePath());
-
-    GET_PAGE()
-
-    QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                     this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));
-
-    m_noteEditor.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
-
-#ifdef USE_QT_WEB_ENGINE
-    page->setUrl(url);
-    page->load(url);
-#else
-    page->mainFrame()->setUrl(url);
-    page->mainFrame()->load(url);
-#endif
-}
-
-void EncryptSelectedTextDelegate::onModifiedPageLoaded()
-{
-    QNDEBUG("EncryptSelectedTextDelegate::onModifiedPageLoaded");
-
-    GET_PAGE()
-
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded),
-                        this, QNSLOT(EncryptSelectedTextDelegate,onModifiedPageLoaded));
-
-    emit finished(m_modifiedHtml, m_pageXOffset, m_pageYOffset);
+    emit finished();
 }
 
 } // namespace qute_note

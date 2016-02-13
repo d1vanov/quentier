@@ -4,6 +4,7 @@
         <file>tableManager.js</file>
         <file>resourceManager.js</file>
         <file>hyperlinkManager.js</file>
+        <file>encryptDecryptManager.js</file>
         <file>getSelectionHtml.js</file>
         <file>snapSelectionToWord.js</file>
         <file>replaceSelectionWithHtml.js</file>

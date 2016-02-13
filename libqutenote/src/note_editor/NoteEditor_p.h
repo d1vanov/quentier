@@ -223,7 +223,6 @@ public Q_SLOTS:
     void rotateImageAttachmentUnderCursorCounterclockwise();
 
     virtual void encryptSelectedText() Q_DECL_OVERRIDE;
-    void doEncryptSelectedTextDialog(bool * pCancelled = Q_NULLPTR);
 
     virtual void decryptEncryptedTextUnderCursor() Q_DECL_OVERRIDE;
     virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString enCryptIndex) Q_DECL_OVERRIDE;
@@ -266,9 +265,6 @@ private Q_SLOTS:
     void onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
                                 const QVector<QPair<QString, QString> > & extraData);
 
-    void onSelectedTextEncryption(QString selectedText, QString encryptedText,
-                                  QString passphrase, QString cipher, size_t keyLength,
-                                  QString hint, bool rememberForSession);
     void onNoteLoadFinished(bool ok);
     void onContentChanged();
 
@@ -340,9 +336,10 @@ private Q_SLOTS:
                                                  INoteEditorBackend::Rotation::type rotationDirection);
     void onImageResourceRotationDelegateError(QString error);
 
-    void onEncryptSelectedTextDelegateFinished(QString htmlWithEncryption, int pageXOffset, int pageYOffset);
+    void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateCancelled();
     void onEncryptSelectedTextDelegateError(QString error);
+    void onEncryptSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
                                                 QString encryptedText, QString cipher, size_t length, QString hint,
@@ -374,9 +371,6 @@ private:
 
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
-
-    void replaceSelectedTextWithEncryptedOrDecryptedText(const QString & selectedText, const QString & encryptedText,
-                                                         const QString & hint, const bool rememberForSession);
 
     void findText(const QString & textToFind, const bool matchCase, const bool searchBackward = false,
                   NoteEditorPage::Callback = 0) const;
@@ -601,6 +595,7 @@ private:
     QString     m_tableManagerJs;
     QString     m_resourceManagerJs;
     QString     m_hyperlinkManagerJs;
+    QString     m_encryptDecryptManagerJs;
     QString     m_getCurrentScrollJs;
     QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;

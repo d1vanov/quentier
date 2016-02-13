@@ -2,25 +2,25 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__UNDO_STACK__ENCRYPT_UNDO_COMMAND_H
 
 #include "INoteEditorUndoCommand.h"
+#include "../NoteEditorPage.h"
 
 namespace qute_note {
 
 class EncryptUndoCommand: public INoteEditorUndoCommand
 {
+    typedef NoteEditorPage::Callback Callback;
 public:
-    EncryptUndoCommand(const QString & htmlWithEncryption, const int pageXOffset, const int pageYOffset,
-                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
-    EncryptUndoCommand(const QString & htmlWithEncryption, const int pageXOffset, const int pageYOffset,
-                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate, const Callback & callback,
+                       QUndoCommand * parent = Q_NULLPTR);
+    EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate, const Callback & callback,
+                       const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~EncryptUndoCommand();
 
     virtual void redoImpl() Q_DECL_OVERRIDE;
     virtual void undoImpl() Q_DECL_OVERRIDE;
 
 private:
-    QString     m_htmlWithEncryption;
-    int         m_pageXOffset;
-    int         m_pageYOffset;
+    Callback    m_callback;
 };
 
 } // namespace qute_note
