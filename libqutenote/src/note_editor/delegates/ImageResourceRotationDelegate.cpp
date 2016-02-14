@@ -191,7 +191,12 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     linkFileName.remove(linkFileName.size() - 4, 4);
     linkFileName += "_";
     linkFileName += QString::number(QDateTime::currentMSecsSinceEpoch());
+
+#ifdef Q_OS_WIN
+    linkFileName += ".lnk";
+#else
     linkFileName += ".png";
+#endif
 
     bool res = rotatedImageResourceFile.link(linkFileName);
     if (Q_UNLIKELY(!res)) {
@@ -235,8 +240,22 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     if (m_resourceFileStoragePathBefore != fileStoragePath)
     {
         QFile oldResourceFile(m_resourceFileStoragePathBefore);
-        if (Q_UNLIKELY(!oldResourceFile.remove())) {
+        if (Q_UNLIKELY(!oldResourceFile.remove()))
+        {
+#ifdef Q_OS_WIN
+            if (m_resourceFileStoragePathBefore.endsWith(".lnk")) {
+                // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
+                // for any *.lnk files even though the files are actually getting removed
+                QNTRACE("Skipping the reported failure at removing the .lnk file");
+            }
+            else {
+#endif
+
             QNINFO("Can't remove stale resource file " + m_resourceFileStoragePathBefore);
+
+#ifdef Q_OS_WIN
+            }
+#endif
         }
     }
 

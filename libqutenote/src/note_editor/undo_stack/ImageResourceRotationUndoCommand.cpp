@@ -35,7 +35,7 @@ void ImageResourceRotationUndoCommand::redoImpl()
 {
     QNDEBUG("ImageResourceRotationUndoCommand::redoImpl");
 
-    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();;
+    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();
     fileStoragePath += "/" + m_resourceAfter.localGuid();
     fileStoragePath += ".png";
 
@@ -50,7 +50,7 @@ void ImageResourceRotationUndoCommand::undoImpl()
     resource.setDataBody(m_resourceDataBefore);
     resource.setDataSize(m_resourceDataBefore.size());
 
-    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();;
+    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();
     fileStoragePath += "/" + resource.localGuid();
     fileStoragePath += ".png";
 

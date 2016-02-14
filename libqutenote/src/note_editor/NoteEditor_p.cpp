@@ -3485,7 +3485,7 @@ void NoteEditorPrivate::determineContextMenuEventTarget()
 
 void NoteEditorPrivate::setPageEditable(const bool editable)
 {
-    QNTRACE("NoteEditorPrivate::setPageEditable: " << (editable ? "true" : "false"));
+    QNDEBUG("NoteEditorPrivate::setPageEditable: " << (editable ? "true" : "false"));
 
     GET_PAGE()
 
@@ -3495,7 +3495,7 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
     QString javascript = QString("document.body.contentEditable='") + QString(editable ? "true" : "false") + QString("'; ") +
                          QString("document.designMode='") + QString(editable ? "on" : "off") + QString("'; void 0;");
     page->executeJavaScript(javascript);
-    QNINFO("Queued javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
+    QNTRACE("Queued javascript to make page " << (editable ? "editable" : "non-editable") << ": " << javascript);
 #endif
 
     m_isPageEditable = editable;
@@ -3918,11 +3918,22 @@ void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceL
         }
 
         QFile entryFile(entryFilePath);
+        entryFile.close();  // NOTE: it appears to be important for Windows
+
         bool res = entryFile.remove();
         if (res) {
             QNTRACE("Successfully removed file " << entryFilePath);
             continue;
         }
+
+#ifdef Q_OS_WIN
+        if (entryFilePath.endsWith(".lnk")) {
+            // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
+            // for any *.lnk files even though the files are actually getting removed
+            QNTRACE("Skipping the reported failure at removing the .lnk file");
+            continue;
+        }
+#endif
 
         QNWARNING("Can't remove stale file " << entryFilePath << ": " << entryFile.errorString());
     }
@@ -3937,7 +3948,13 @@ QString NoteEditorPrivate::createLinkToImageResourceFile(const QString & fileSto
     linkFileName.remove(linkFileName.size() - 4, 4);
     linkFileName += "_";
     linkFileName += QString::number(QDateTime::currentMSecsSinceEpoch());
+
+#ifdef Q_OS_WIN
+    linkFileName += ".lnk";
+#else
     linkFileName += ".png";
+#endif
+
     QNTRACE("Link file name = " << linkFileName);
 
     cleanupStaleImageResourceFiles(localGuid);

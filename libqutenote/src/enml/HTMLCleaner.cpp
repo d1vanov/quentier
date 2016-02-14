@@ -136,8 +136,8 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
     if (rc >= 0)
     {
         if (rc > 0) {
-            QNINFO("Tidy diagnostics: " << QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
-                                                      static_cast<int>(m_tidyErrorBuffer.size)));
+            QNTRACE("Tidy diagnostics: " << QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
+                                                       static_cast<int>(m_tidyErrorBuffer.size)));
         }
 
         output.resize(0);
