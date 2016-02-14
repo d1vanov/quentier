@@ -124,18 +124,11 @@ public:
     void updateResource(const QString & resourceLocalGuid, const QString & previousResourceHash,
                         ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
 
-    void switchEditorPage(const bool shouldConvertFromNote = true);
-    void popEditorPage();
-
     void skipPushingUndoCommandOnNextContentChange() const;
     void skipNextContentChange() const;
 
-    void undoLastEncryption();
-
     bool isModified() const;
     Note * GetNotePrt() { return m_pNote; }
-
-    void setPageOffsetsForNextLoad(const int pageXOffset, const int pageYOffset);
 
     const QString & noteEditorPagePath() const { return m_noteEditorPagePath; }
     const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
@@ -593,14 +586,11 @@ private:
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;
     QString     m_changeFontSizeForSelectionJs;
-    QString     m_decryptEncryptedTextPermanentlyJs;
     QString     m_pageMutationObserverJs;
     QString     m_tableManagerJs;
     QString     m_resourceManagerJs;
     QString     m_hyperlinkManagerJs;
     QString     m_encryptDecryptManagerJs;
-    QString     m_getCurrentScrollJs;
-    QString     m_setScrollJs;
     QString     m_hideDecryptedTextJs;
     QString     m_hilitorJs;
     QString     m_findReplaceManagerJs;
@@ -752,12 +742,6 @@ private:
     quint64     m_lastFreeEnDecryptedIdNumber;
 
     QString     m_lastEncryptedText;
-
-    LimitedStack<NoteEditorPage*>    m_pagesStack;
-    quint32     m_lastNoteEditorPageFreeIndex;
-
-    int         m_pageXOffsetForNextLoad;
-    int         m_pageYOffsetForNextLoad;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)

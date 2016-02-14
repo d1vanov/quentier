@@ -27,11 +27,10 @@ public:
     typedef JavaScriptInOrderExecutor::Callback Callback;
 
 public:
-    explicit NoteEditorPage(NoteEditorPrivate & parent, const quint32 index);
+    explicit NoteEditorPage(NoteEditorPrivate & parent);
     virtual ~NoteEditorPage();
 
     bool javaScriptQueueEmpty() const;
-    quint32 index() const { return m_index; }
 
     void setInactive();
     void setActive();
@@ -77,7 +76,6 @@ private:
 private:
     NoteEditorPrivate *         m_parent;
     JavaScriptInOrderExecutor * m_pJavaScriptInOrderExecutor;
-    quint32                     m_index;
     bool                        m_javaScriptAutoExecution;
 };
 

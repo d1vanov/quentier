@@ -8,11 +8,10 @@
 
 namespace qute_note {
 
-NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent, const quint32 index) :
+NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent) :
     WebPage(&parent),
     m_parent(&parent),
     m_pJavaScriptInOrderExecutor(new JavaScriptInOrderExecutor(parent, this)),
-    m_index(index),
     m_javaScriptAutoExecution(true)
 {
     QUTE_NOTE_CHECK_PTR(m_parent);

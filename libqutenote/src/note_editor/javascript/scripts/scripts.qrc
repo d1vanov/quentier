@@ -26,12 +26,9 @@
         <file>setupGenericResourceOnClickHandler.js</file>
         <file>changeFontSizeForSelection.js</file>
         <file>replaceHyperlinkContent.js</file>
-        <file>decryptEncryptedTextPermanently.js</file>
         <file>flipEnToDoCheckboxState.js</file>
         <file>setupTextCursorPositionTracking.js</file>
         <file>clickInterceptor.js</file>
-        <file>getCurrentScroll.js</file>
-        <file>setScroll.js</file>
         <file>hideDecryptedText.js</file>
         <file>findReplaceManager.js</file>
     </qresource>

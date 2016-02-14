@@ -123,14 +123,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
     m_changeFontSizeForSelectionJs(),
-    m_decryptEncryptedTextPermanentlyJs(),
     m_pageMutationObserverJs(),
     m_tableManagerJs(),
     m_resourceManagerJs(),
     m_hyperlinkManagerJs(),
     m_encryptDecryptManagerJs(),
-    m_getCurrentScrollJs(),
-    m_setScrollJs(),
     m_hideDecryptedTextJs(),
     m_hilitorJs(),
     m_findReplaceManagerJs(),
@@ -238,14 +235,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_lastFreeEnCryptIdNumber(1),
     m_lastFreeEnDecryptedIdNumber(1),
     m_lastEncryptedText(),
-    m_pagesStack(&NoteEditorPageDeleter),
-    m_lastNoteEditorPageFreeIndex(0),
-    m_pageXOffsetForNextLoad(0),
-    m_pageYOffsetForNextLoad(0),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_noteEditorPageFolderPath = applicationPersistentStoragePath() + "/NoteEditorPage";
+    m_noteEditorPagePath = m_noteEditorPageFolderPath + "/index.html";
     m_noteEditorImageResourcesStoragePath = m_noteEditorPageFolderPath + "/imageResources";
 
     setupSkipRulesForHtmlToEnmlConversion();
@@ -355,13 +349,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
-    page->executeJavaScript(m_decryptEncryptedTextPermanentlyJs);
     page->executeJavaScript(m_tableManagerJs);
     page->executeJavaScript(m_resourceManagerJs);
     page->executeJavaScript(m_hyperlinkManagerJs);
     page->executeJavaScript(m_encryptDecryptManagerJs);
-    page->executeJavaScript(m_getCurrentScrollJs);
-    page->executeJavaScript(m_setScrollJs);
     page->executeJavaScript(m_hideDecryptedTextJs);
     page->executeJavaScript(m_hilitorJs);
 
@@ -375,13 +366,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     setupTextCursorPositionTracking();
     setupGenericResourceImages();
 #endif
-
-    if (m_pageXOffsetForNextLoad || m_pageYOffsetForNextLoad) {
-        page->executeJavaScript("setScroll(" + QString::number(m_pageXOffsetForNextLoad) + ", " +
-                                QString::number(m_pageYOffsetForNextLoad) + ");");
-        m_pageXOffsetForNextLoad = 0;
-        m_pageYOffsetForNextLoad = 0;
-    }
 
     // NOTE: executing page mutation observer's script last
     // so that it doesn't catch the mutations originating from the above scripts
@@ -1819,73 +1803,6 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
     m_pUndoStack->push(new NoteEditorContentEditUndoCommand(*this, resources));
 }
 
-void NoteEditorPrivate::switchEditorPage(const bool shouldConvertFromNote)
-{
-    QNDEBUG("NoteEditorPrivate::switchEditorPage: should convert from note = "
-            << (shouldConvertFromNote ? "true" : "false"));
-
-    GET_PAGE()
-
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
-#ifndef USE_QT_WEB_ENGINE
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
-
-    QWebFrame * frame = page->mainFrame();
-    QObject::disconnect(frame, QNSIGNAL(QWebFrame,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
-#else
-    QObject::disconnect(page, QNSIGNAL(NoteEditorPage,loadFinished,bool), this, QNSLOT(NoteEditorPrivate,onNoteLoadFinished,bool));
-#endif
-
-    page->setInactive();
-    page->setView(Q_NULLPTR);
-    page->setParent(Q_NULLPTR);
-    m_pagesStack.push(page);
-
-    setupNoteEditorPage();
-
-    if (shouldConvertFromNote) {
-        noteToEditorContent();
-    }
-}
-
-void NoteEditorPrivate::popEditorPage()
-{
-    QNDEBUG("NoteEditorPrivate::popEditorPage");
-
-    if (Q_UNLIKELY(m_pagesStack.isEmpty())) {
-        m_errorCachedMemory = QT_TR_NOOP("The stack of note pages is unexpectedly empty after popping out the top page");
-        QNWARNING(m_errorCachedMemory);
-        emit notifyError(m_errorCachedMemory);
-        return;
-    }
-
-    NoteEditorPage * page = m_pagesStack.pop();
-    if (Q_UNLIKELY(!page)) {
-        m_errorCachedMemory = QT_TR_NOOP("Detected null pointer to note editor page in the pages stack");
-        QNWARNING(m_errorCachedMemory);
-        emit notifyError(m_errorCachedMemory);
-        return;
-    }
-
-    --m_lastNoteEditorPageFreeIndex;
-    QNTRACE("Updated last note editor page free index to " << m_lastNoteEditorPageFreeIndex);
-
-    page->setView(this);
-    updateNoteEditorPagePath(page->index());
-    setupNoteEditorPageConnections(page);
-
-    setPage(page);
-    page->setActive();
-
-#ifdef USE_QT_WEB_ENGINE
-    QNTRACE("Set note editor page with url: " << page->url());
-#else
-    QNTRACE("Set note editor page with url: " << page->mainFrame()->url());
-#endif
-
-    convertToNote();
-}
-
 void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange() const
 {
     QNDEBUG("NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange");
@@ -1896,42 +1813,6 @@ void NoteEditorPrivate::skipNextContentChange() const
 {
     QNDEBUG("NoteEditorPrivate::skipNextContentChange");
     m_skipNextContentChange = true;
-}
-
-void NoteEditorPrivate::undoLastEncryption()
-{
-    QNDEBUG("NoteEditorPrivate::undoLastEncryption");
-
-    if (m_lastFreeEnCryptIdNumber == 1) {
-        QNWARNING("Detected attempt to undo last encryption even though "
-                  "there're no encrypted text nodes within the current note");
-        return;
-    }
-
-    if (Q_UNLIKELY(m_lastEncryptedText.isEmpty())) {
-        QNWARNING("Detected attempt to undo last encryption even though "
-                  "last encrypted text is empty");
-        return;
-    }
-
-    QString decryptedText;
-    bool rememberForSession;
-    bool found = m_decryptedTextManager->findDecryptedTextByEncryptedText(m_lastEncryptedText, decryptedText, rememberForSession);
-    if (!found) {
-        QString error = QT_TR_NOOP("Can't undo last encryption: can't find corresponding decrypted text");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    m_decryptedTextManager->removeEntry(m_lastEncryptedText);
-
-    skipPushingUndoCommandOnNextContentChange();
-
-    QString javascript = "decryptEncryptedTextPermanently('" + m_lastEncryptedText + "', '" +
-                         decryptedText + "', " + QString::number(m_lastFreeEnCryptIdNumber - 1) + ");";
-    GET_PAGE()
-    page->executeJavaScript(javascript);
 }
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
@@ -3313,13 +3194,10 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
     SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
-    SETUP_SCRIPT("javascript/scripts/decryptEncryptedTextPermanently.js", m_decryptEncryptedTextPermanentlyJs);
     SETUP_SCRIPT("javascript/scripts/tableManager.js", m_tableManagerJs);
     SETUP_SCRIPT("javascript/scripts/resourceManager.js", m_resourceManagerJs);
     SETUP_SCRIPT("javascript/scripts/hyperlinkManager.js", m_hyperlinkManagerJs);
     SETUP_SCRIPT("javascript/scripts/encryptDecryptManager.js", m_encryptDecryptManagerJs);
-    SETUP_SCRIPT("javascript/scripts/getCurrentScroll.js", m_getCurrentScrollJs);
-    SETUP_SCRIPT("javascript/scripts/setScroll.js", m_setScrollJs);
     SETUP_SCRIPT("javascript/scripts/hideDecryptedText.js", m_hideDecryptedTextJs);
 
 #ifndef USE_QT_WEB_ENGINE
@@ -3374,13 +3252,10 @@ void NoteEditorPrivate::setupNoteEditorPage()
 {
     QNDEBUG("NoteEditorPrivate::setupNoteEditorPage");
 
-    NoteEditorPage * page = new NoteEditorPage(*this, m_lastNoteEditorPageFreeIndex++);
-    QNTRACE("Updated last note editor page free index to " << m_lastNoteEditorPageFreeIndex);
+    NoteEditorPage * page = new NoteEditorPage(*this);
 
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, false);
-
-    updateNoteEditorPagePath(page->index());
 
 #ifndef USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
@@ -3644,11 +3519,6 @@ int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resour
     }
 
     return -1;
-}
-
-void NoteEditorPrivate::updateNoteEditorPagePath(const quint32 index)
-{
-    m_noteEditorPagePath = m_noteEditorPageFolderPath + "/index_" + QString::number(index) + ".html";
 }
 
 bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
@@ -3917,14 +3787,6 @@ void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resource
 bool NoteEditorPrivate::isModified() const
 {
     return m_modified;
-}
-
-void NoteEditorPrivate::setPageOffsetsForNextLoad(const int pageXOffset, const int pageYOffset)
-{
-    QNDEBUG("NoteEditorPrivate::setPageOffsetsForNextLoad: x = " << pageXOffset << ", y = " << pageYOffset);
-
-    m_pageXOffsetForNextLoad = pageXOffset;
-    m_pageYOffsetForNextLoad = pageYOffset;
 }
 
 void NoteEditorPrivate::setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate)
