@@ -1,8 +1,9 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__UNDO_STACK__DECRYPT_UNDO_COMMAND_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__UNDO_STACK__DECRYPT_UNDO_COMMAND_H
 
-#include "INoteEditorUndoCommand.h"
 #include "EncryptDecryptUndoCommandInfo.h"
+#include "INoteEditorUndoCommand.h"
+#include "../NoteEditorPage.h"
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <QSharedPointer>
 
@@ -12,13 +13,12 @@ QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 
 class DecryptUndoCommand: public INoteEditorUndoCommand
 {
+    typedef NoteEditorPage::Callback Callback;
 public:
-    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, QSharedPointer<DecryptedTextManager> decryptedTextManager,
-                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
-                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
-    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, QSharedPointer<DecryptedTextManager> decryptedTextManager,
-                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
-                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
+    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, const QSharedPointer<DecryptedTextManager> & decryptedTextManager,
+                       NoteEditorPrivate & noteEditorPrivate, const Callback & callback, QUndoCommand * parent = Q_NULLPTR);
+    DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, const QSharedPointer<DecryptedTextManager> & decryptedTextManager,
+                       NoteEditorPrivate & noteEditorPrivate, const Callback & callback, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~DecryptUndoCommand();
 
     virtual void redoImpl() Q_DECL_OVERRIDE;
@@ -27,10 +27,7 @@ public:
 private:
     EncryptDecryptUndoCommandInfo           m_info;
     QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
-    QString                                 m_htmlWithDecryptedText;
-
-    int                                     m_pageXOffset;
-    int                                     m_pageYOffset;
+    Callback                                m_callback;
 };
 
 } // namespace qute_note

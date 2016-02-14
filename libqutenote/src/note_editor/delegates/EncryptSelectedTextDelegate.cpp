@@ -80,6 +80,8 @@ void EncryptSelectedTextDelegate::onSelectedTextEncrypted(QString selectedText, 
 
     CHECK_NOTE_EDITOR()
 
+    Q_UNUSED(selectedText)
+
     m_rememberForSession = rememberForSession;
 
     if (m_rememberForSession)

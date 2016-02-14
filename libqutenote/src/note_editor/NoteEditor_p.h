@@ -344,12 +344,12 @@ private Q_SLOTS:
     void onEncryptSelectedTextDelegateError(QString error);
     void onEncryptSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
-    void onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
-                                                QString encryptedText, QString cipher, size_t length, QString hint,
+    void onDecryptEncryptedTextDelegateFinished(QString encryptedText, QString cipher, size_t length, QString hint,
                                                 QString decryptedText, QString passphrase, bool rememberForSession,
                                                 bool decryptPermanently);
     void onDecryptEncryptedTextDelegateCancelled();
     void onDecryptEncryptedTextDelegateError(QString error);
+    void onDecryptEncryptedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onAddHyperlinkToSelectedTextDelegateFinished();
     void onAddHyperlinkToSelectedTextDelegateCancelled();

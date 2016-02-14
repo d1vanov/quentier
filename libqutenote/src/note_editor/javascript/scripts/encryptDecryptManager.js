@@ -110,7 +110,7 @@ function EncryptDecryptManager() {
         observer.stop();
 
         try {
-            replaceSelectionWithHtml(decryptedTextHtml);
+            element.outerHTML = decryptedTextHtml;
         }
         finally {
             observer.start();

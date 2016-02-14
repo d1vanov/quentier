@@ -4,28 +4,30 @@
 
 namespace qute_note {
 
-DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, QSharedPointer<DecryptedTextManager> decryptedTextManager,
-                                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
-                                       NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
+#define GET_PAGE() \
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
+    if (Q_UNLIKELY(!page)) { \
+        QString error = QT_TR_NOOP("Can't undo/redo the encrypted text decryption: can't get note editor page"); \
+        QNWARNING(error); \
+        return; \
+    }
+
+DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, const QSharedPointer<DecryptedTextManager> & decryptedTextManager,
+                                       NoteEditorPrivate & noteEditorPrivate, const Callback & callback, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager),
-    m_htmlWithDecryptedText(htmlWithDecryptedText),
-    m_pageXOffset(pageXOffset),
-    m_pageYOffset(pageYOffset)
+    m_callback(callback)
 {
     QUndoCommand::setText(QObject::tr("Decrypt text"));
 }
 
-DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, QSharedPointer<DecryptedTextManager> decryptedTextManager,
-                                       const QString & htmlWithDecryptedText, const int pageXOffset, const int pageYOffset,
-                                       NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
+DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, const QSharedPointer<DecryptedTextManager> & decryptedTextManager,
+                                       NoteEditorPrivate & noteEditorPrivate, const Callback & callback, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_info(info),
     m_decryptedTextManager(decryptedTextManager),
-    m_htmlWithDecryptedText(htmlWithDecryptedText),
-    m_pageXOffset(pageXOffset),
-    m_pageYOffset(pageYOffset)
+    m_callback(callback)
 {}
 
 DecryptUndoCommand::~DecryptUndoCommand()
@@ -35,32 +37,28 @@ void DecryptUndoCommand::redoImpl()
 {
     QNDEBUG("DecryptUndoCommand::redoImpl");
 
+    GET_PAGE()
+
     if (!m_info.m_decryptPermanently) {
         m_decryptedTextManager->addEntry(m_info.m_encryptedText, m_info.m_decryptedText,
                                          m_info.m_rememberForSession, m_info.m_passphrase,
                                          m_info.m_cipher, m_info.m_keyLength);
     }
 
-    m_noteEditorPrivate.switchEditorPage(/* should convert from note = */ false);
-    m_noteEditorPrivate.setPageOffsetsForNextLoad(m_pageXOffset, m_pageYOffset);
-
-    if (m_info.m_decryptPermanently) {
-        m_noteEditorPrivate.setNoteHtml(m_htmlWithDecryptedText);
-    }
-    else {
-        m_noteEditorPrivate.updateFromNote();
-    }
+    page->executeJavaScript("encryptDecryptManager.redo();", m_callback);
 }
 
 void DecryptUndoCommand::undoImpl()
 {
     QNDEBUG("DecryptUndoCommand::undoImpl");
 
+    GET_PAGE()
+
     if (!m_info.m_decryptPermanently) {
         m_decryptedTextManager->removeEntry(m_info.m_encryptedText);
     }
 
-    m_noteEditorPrivate.popEditorPage();
+    page->executeJavaScript("encryptDecryptManager.undo();", m_callback);
 }
 
 } // namespace qute_note

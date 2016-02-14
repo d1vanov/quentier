@@ -2,79 +2,54 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__DELEGATES__DECRYPT_ENCRYPTED_TEXT_DELEGATE_H
 
 #include "JsResultCallbackFunctor.hpp"
-#include "HtmlCallbackFunctor.hpp"
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/types/Note.h>
-#include <QObject>
-#include <QUuid>
+#include <QPointer>
 
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-QT_FORWARD_DECLARE_CLASS(NoteEditorPage)
-QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(EncryptionManager)
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 
 /**
  * @brief The DecryptEncryptedTextDelegate class encapsulates a chain of callbacks
  * required for proper implementation of decryption for encrypted text
- * considering the details of wrapping this action around undo stack and necessary switching
- * of note editor page during the process
+ * considering the details of wrapping this action around the undo stack
  */
 class DecryptEncryptedTextDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit DecryptEncryptedTextDelegate(QString encryptedText, QString cipher,
-                                          QString length, QString hint,
-                                          NoteEditorPrivate & noteEditor,
-                                          FileIOThreadWorker * pFileIOThreadWorker,
+    explicit DecryptEncryptedTextDelegate(const QString & encryptedTextId, const QString & encryptedText,
+                                          const QString & cipher, const QString & length, const QString & hint,
+                                          NoteEditorPrivate * pNoteEditor,
                                           QSharedPointer<EncryptionManager> encryptionManager,
                                           QSharedPointer<DecryptedTextManager> decryptedTextManager);
 
     void start();
 
 Q_SIGNALS:
-    void finished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset, QString encryptedText,
-                  QString cipher, size_t length, QString hint, QString decryptedText, QString passphrase,
-                  bool rememberForSession, bool decryptPermanently);
+    void finished(QString encryptedText, QString cipher, size_t length, QString hint,
+                  QString decryptedText, QString passphrase, bool rememberForSession,
+                  bool decryptPermanently);
     void cancelled();
     void notifyError(QString error);
 
-// private signals
-    void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId);
-
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
-    void onPageScrollReceived(const QVariant & data);
-
-    void onNewPageLoaded(bool ok);
-    void onNewPageJavaScriptLoaded();
-
-    void onEncryptedTextDecrypted(QString cipher, size_t keyLength,
-                                  QString encryptedText, QString passphrase,
-                                  QString decryptedText, bool rememberForSession,
-                                  bool decryptPermanently, bool createDecryptUndoCommand);
-    void onPermanentDecryptionScriptFinished(const QVariant & data);
-    void onModifiedPageHtmlReceived(const QString & html);
-
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-
-    void onModifiedPageLoaded(bool ok);
-    void onModifiedPageJavaScriptLoaded();
+    void onEncryptedTextDecrypted(QString cipher, size_t keyLength, QString encryptedText, QString passphrase,
+                                  QString decryptedText, bool rememberForSession, bool decryptPermanently);
+    void onDecryptionScriptFinished(const QVariant & data);
 
 private:
     void raiseDecryptionDialog();
-    void requestPageScroll();
-    void continueDecryptionProcessing();
-    void requestPageHtml();
 
 private:
     typedef JsResultCallbackFunctor<DecryptEncryptedTextDelegate> JsCallback;
-    typedef HtmlCallbackFunctor<DecryptEncryptedTextDelegate> HtmlCallback;
 
 private:
+    QString     m_encryptedTextId;
     QString     m_encryptedText;
     QString     m_cipher;
     size_t      m_length;
@@ -84,16 +59,9 @@ private:
     bool        m_rememberForSession;
     bool        m_decryptPermanently;
 
-    NoteEditorPrivate &                     m_noteEditor;
-    FileIOThreadWorker *                    m_pFileIOThreadWorker;
+    QPointer<NoteEditorPrivate>             m_pNoteEditor;
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;
-
-    QString     m_modifiedHtml;
-    QUuid       m_writeModifiedHtmlToPageSourceRequestId;
-
-    int         m_pageXOffset;
-    int         m_pageYOffset;
 };
 
 } // namespace qute_note

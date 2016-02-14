@@ -1429,8 +1429,7 @@ void NoteEditorPrivate::onEncryptSelectedTextUndoRedoFinished(const QVariant & d
 #endif
 }
 
-void NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished(QString htmlWithDecryptedText, int pageXOffset, int pageYOffset,
-                                                               QString encryptedText, QString cipher, size_t length, QString hint,
+void NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished(QString encryptedText, QString cipher, size_t length, QString hint,
                                                                QString decryptedText, QString passphrase, bool rememberForSession,
                                                                bool decryptPermanently)
 {
@@ -1446,13 +1445,20 @@ void NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished(QString htmlWithD
     info.m_rememberForSession = rememberForSession;
     info.m_decryptPermanently = decryptPermanently;
 
-    DecryptUndoCommand * pCommand = new DecryptUndoCommand(info, m_decryptedTextManager, htmlWithDecryptedText,
-                                                           pageXOffset, pageYOffset, *this);
+    QVector<QPair<QString, QString> > extraData;
+    extraData << QPair<QString, QString>("decryptPermanently", (decryptPermanently ? "true" : "false"));
+
+    DecryptUndoCommand * pCommand = new DecryptUndoCommand(info, m_decryptedTextManager, *this,
+                                                           NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onDecryptEncryptedTextUndoRedoFinished, extraData));
     m_pUndoStack->push(pCommand);
 
     DecryptEncryptedTextDelegate * delegate = qobject_cast<DecryptEncryptedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
+    }
+
+    if (decryptPermanently) {
+        convertToNote();
     }
 }
 
@@ -1475,6 +1481,52 @@ void NoteEditorPrivate::onDecryptEncryptedTextDelegateError(QString error)
     DecryptEncryptedTextDelegate * delegate = qobject_cast<DecryptEncryptedTextDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onDecryptEncryptedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onDecryptEncryptedTextUndoRedoFinished: " << data);
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of encrypted text decryption undo/redo from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of encrypted text decryption undo/redo from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't undo/redo the encrypted text decryption: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool shouldConvertToNote = true;
+    if (!extraData.isEmpty())
+    {
+        const QPair<QString, QString> & pair = extraData[0];
+        if (pair.second == "false") {
+            shouldConvertToNote = false;
+        }
+    }
+
+    if (shouldConvertToNote) {
+        convertToNote();
     }
 }
 
@@ -5105,15 +5157,11 @@ void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString ciph
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedText");
 
-    // TODO: put enCryptIndex to a good use
-    Q_UNUSED(enCryptIndex)
+    DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(enCryptIndex, encryptedText, cipher, length, hint, this,
+                                                                               m_encryptionManager, m_decryptedTextManager);
 
-    DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(encryptedText, cipher, length, hint, *this,
-                                                                               m_pFileIOThreadWorker, m_encryptionManager,
-                                                                               m_decryptedTextManager);
-
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,int,int,QString,QString,size_t,QString,QString,QString,bool,bool),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,int,int,QString,QString,size_t,QString,QString,QString,bool,bool));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,finished,QString,QString,size_t,QString,QString,QString,bool,bool),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,QString,size_t,QString,QString,QString,bool,bool));
     QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
     QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QString),
