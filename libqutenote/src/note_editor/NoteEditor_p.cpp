@@ -19,6 +19,7 @@
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
 #include "undo_stack/EncryptUndoCommand.h"
 #include "undo_stack/DecryptUndoCommand.h"
+#include "undo_stack/HideDecryptedTextUndoCommand.h"
 #include "undo_stack/AddHyperlinkUndoCommand.h"
 #include "undo_stack/EditHyperlinkUndoCommand.h"
 #include "undo_stack/RemoveHyperlinkUndoCommand.h"
@@ -128,7 +129,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_resourceManagerJs(),
     m_hyperlinkManagerJs(),
     m_encryptDecryptManagerJs(),
-    m_hideDecryptedTextJs(),
     m_hilitorJs(),
     m_findReplaceManagerJs(),
 #ifndef USE_QT_WEB_ENGINE
@@ -353,7 +353,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_resourceManagerJs);
     page->executeJavaScript(m_hyperlinkManagerJs);
     page->executeJavaScript(m_encryptDecryptManagerJs);
-    page->executeJavaScript(m_hideDecryptedTextJs);
     page->executeJavaScript(m_hilitorJs);
 
     setPageEditable(true);
@@ -1330,6 +1329,87 @@ void NoteEditorPrivate::onImageResourceRotationDelegateError(QString error)
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+}
+
+void NoteEditorPrivate::onHideDecryptedTextFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onHideDecryptedTextFinished: " << data);
+
+    Q_UNUSED(extraData)
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of decrypted text hiding from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of decrypted text hiding from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't hide the decrypted text: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+#ifdef USE_QT_WEB_ENGINE
+    provideSrcAndOnClickScriptForImgEnCryptTags();
+#endif
+
+    HideDecryptedTextUndoCommand * pCommand = new HideDecryptedTextUndoCommand(*this, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onHideDecryptedTextUndoRedoFinished));
+    m_pUndoStack->push(pCommand);
+}
+
+void NoteEditorPrivate::onHideDecryptedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onHideDecryptedTextUndoRedoFinished: " << data);
+
+    Q_UNUSED(extraData)
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of decrypted text hiding undo/redo from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of decrypted text hiding undo/redo from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't undo/redo the decrypted text hiding: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+#ifdef USE_QT_WEB_ENGINE
+    provideSrcAndOnClickScriptForImgEnCryptTags();
+#endif
 }
 
 void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished()
@@ -3198,7 +3278,6 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/resourceManager.js", m_resourceManagerJs);
     SETUP_SCRIPT("javascript/scripts/hyperlinkManager.js", m_hyperlinkManagerJs);
     SETUP_SCRIPT("javascript/scripts/encryptDecryptManager.js", m_encryptDecryptManagerJs);
-    SETUP_SCRIPT("javascript/scripts/hideDecryptedText.js", m_hideDecryptedTextJs);
 
 #ifndef USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
@@ -5061,8 +5140,6 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher,
 {
     QNDEBUG("NoteEditorPrivate::hideDecryptedText");
 
-    m_decryptedTextManager->removeEntry(encryptedText);
-
     bool conversionResult = false;
     size_t keyLengthInt = static_cast<size_t>(keyLength.toInt(&conversionResult));
     if (Q_UNLIKELY(!conversionResult)) {
@@ -5076,13 +5153,9 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher,
     QString html = ENMLConverter::encryptedTextHtml(encryptedText, hint, cipher, keyLengthInt, enCryptIndex);
     ENMLConverter::escapeString(html);
 
-    QString javascript = "hideDecryptedText('" + id + "', '" + html + "');";
+    QString javascript = "encryptDecryptManager.replaceDecryptedTextWithEncryptedText('" + id + "', '" + html + "');";
     GET_PAGE()
-    page->executeJavaScript(javascript);
-
-#ifdef USE_QT_WEB_ENGINE
-    provideSrcAndOnClickScriptForImgEnCryptTags();
-#endif
+    page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onHideDecryptedTextFinished));
 }
 
 void NoteEditorPrivate::editHyperlinkDialog()

@@ -66,6 +66,30 @@ function EncryptDecryptManager() {
         return { status:true, error:"" };
     }
 
+    this.replaceDecryptedTextWithEncryptedText = function(enDecryptedId, encryptedTextHtml) {
+        console.log("EncryptDecryptManager::replaceDecryptedTextWithEncryptedText");
+
+        var element = document.querySelector("[en-decrypted-id='" + enDecryptedId + "']");
+        if (!element) {
+            lastError = "can't hide the decrypted text: can't find the decrypted text to encrypt";
+            return { status:false, error:lastError };
+        }
+
+        undoNodes.push(element.parentNode);
+        undoNodeInnerHtmls.push(element.parentNode.innerHTML);
+
+        observer.stop();
+
+        try {
+            element.outerHTML = encryptedTextHtml;
+        }
+        finally {
+            observer.start();
+        }
+
+        return { status:true, error:"" };
+    }
+
     this.encryptSelectedText = function(encryptedTextHtml) {
         console.log("EncryptDecryptManager::encryptSelectedText");
 

@@ -332,6 +332,9 @@ private Q_SLOTS:
                                                  INoteEditorBackend::Rotation::type rotationDirection);
     void onImageResourceRotationDelegateError(QString error);
 
+    void onHideDecryptedTextFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
+    void onHideDecryptedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
+
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateCancelled();
     void onEncryptSelectedTextDelegateError(QString error);
@@ -591,7 +594,6 @@ private:
     QString     m_resourceManagerJs;
     QString     m_hyperlinkManagerJs;
     QString     m_encryptDecryptManagerJs;
-    QString     m_hideDecryptedTextJs;
     QString     m_hilitorJs;
     QString     m_findReplaceManagerJs;
 

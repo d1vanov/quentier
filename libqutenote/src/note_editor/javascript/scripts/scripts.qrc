@@ -29,7 +29,6 @@
         <file>flipEnToDoCheckboxState.js</file>
         <file>setupTextCursorPositionTracking.js</file>
         <file>clickInterceptor.js</file>
-        <file>hideDecryptedText.js</file>
         <file>findReplaceManager.js</file>
     </qresource>
 </RCC>
