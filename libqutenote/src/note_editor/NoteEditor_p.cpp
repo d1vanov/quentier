@@ -170,7 +170,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pendingIndexHtmlWritingToFile(false),
     m_pendingJavaScriptExecution(false),
     m_skipPushingUndoCommandOnNextContentChange(false),
-    m_skipNextContentChange(false),
     m_pNote(Q_NULLPTR),
     m_pNotebook(Q_NULLPTR),
     m_modified(false),
@@ -380,12 +379,6 @@ void NoteEditorPrivate::onContentChanged()
 
     if (m_pendingNotePageLoad || m_pendingIndexHtmlWritingToFile || m_pendingJavaScriptExecution) {
         QNTRACE("Skipping the content change as the note page has not fully loaded yet");
-        return;
-    }
-
-    if (m_skipNextContentChange) {
-        m_skipNextContentChange = false;
-        QNTRACE("Skipping this content change entirely");
         return;
     }
 
@@ -1881,18 +1874,6 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
     }
 
     m_pUndoStack->push(new NoteEditorContentEditUndoCommand(*this, resources));
-}
-
-void NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange() const
-{
-    QNDEBUG("NoteEditorPrivate::skipPushingUndoCommandOnNextContentChange");
-    m_skipPushingUndoCommandOnNextContentChange = true;
-}
-
-void NoteEditorPrivate::skipNextContentChange() const
-{
-    QNDEBUG("NoteEditorPrivate::skipNextContentChange");
-    m_skipNextContentChange = true;
 }
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
@@ -4106,13 +4087,13 @@ void NoteEditorPrivate::redo()
 
 void NoteEditorPrivate::undoPageAction()
 {
-    skipPushingUndoCommandOnNextContentChange();
+    m_skipPushingUndoCommandOnNextContentChange = true;
     HANDLE_ACTION(undoPageAction, Undo);
 }
 
 void NoteEditorPrivate::redoPageAction()
 {
-    skipPushingUndoCommandOnNextContentChange();
+    m_skipPushingUndoCommandOnNextContentChange = true;
     HANDLE_ACTION(redoPageAction, Redo);
 }
 

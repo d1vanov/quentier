@@ -124,9 +124,6 @@ public:
     void updateResource(const QString & resourceLocalGuid, const QString & previousResourceHash,
                         ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
 
-    void skipPushingUndoCommandOnNextContentChange() const;
-    void skipNextContentChange() const;
-
     bool isModified() const;
     Note * GetNotePrt() { return m_pNote; }
 
@@ -645,8 +642,7 @@ private:
     bool        m_pendingIndexHtmlWritingToFile;
     bool        m_pendingJavaScriptExecution;
 
-    mutable bool        m_skipPushingUndoCommandOnNextContentChange;
-    mutable bool        m_skipNextContentChange;
+    bool        m_skipPushingUndoCommandOnNextContentChange;
 
     Note *      m_pNote;
     Notebook *  m_pNotebook;
