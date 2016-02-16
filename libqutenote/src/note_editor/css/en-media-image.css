@@ -8,4 +8,5 @@
     vertical-align: bottom;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    position: relative;
 }

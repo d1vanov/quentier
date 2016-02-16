@@ -592,6 +592,7 @@ private:
     QString     m_hyperlinkManagerJs;
     QString     m_encryptDecryptManagerJs;
     QString     m_hilitorJs;
+    QString     m_imageAreasHilitorJs;
     QString     m_findReplaceManagerJs;
 
 #ifndef USE_QT_WEB_ENGINE

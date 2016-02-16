@@ -130,6 +130,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_hyperlinkManagerJs(),
     m_encryptDecryptManagerJs(),
     m_hilitorJs(),
+    m_imageAreasHilitorJs(),
     m_findReplaceManagerJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
@@ -195,6 +196,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-generic.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-media-image.css\">"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/image-area-hilitor.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-todo.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/link.css\">"
                  "<title></title></head>"),
@@ -353,6 +355,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_hyperlinkManagerJs);
     page->executeJavaScript(m_encryptDecryptManagerJs);
     page->executeJavaScript(m_hilitorJs);
+    page->executeJavaScript(m_imageAreasHilitorJs);
 
     setPageEditable(true);
     updateColResizableTableBindings();
@@ -3242,6 +3245,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
     SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
+    SETUP_SCRIPT("javascript/scripts/imageAreasHilitor.js", m_imageAreasHilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
@@ -3431,7 +3435,7 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
 {
     QNDEBUG("NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion");
 
-    m_skipRulesForHtmlToEnmlConversion.reserve(2);
+    m_skipRulesForHtmlToEnmlConversion.reserve(3);
 
     ENMLConverter::SkipHtmlElementRule tableSkipRule;
     tableSkipRule.m_attributeValueToSkip = "JCLRgrip";
@@ -3444,7 +3448,14 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
     hilitorSkipRule.m_attributeValueToSkip = "hilitorHelper";
     hilitorSkipRule.m_attributeValueCaseSensitivity = Qt::CaseInsensitive;
     hilitorSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
-    m_skipRulesForHtmlToEnmlConversion << tableSkipRule;
+    m_skipRulesForHtmlToEnmlConversion << hilitorSkipRule;
+
+    ENMLConverter::SkipHtmlElementRule imageAreaHilitorSkipRule;
+    imageAreaHilitorSkipRule.m_includeElementContents = true;
+    imageAreaHilitorSkipRule.m_attributeValueToSkip = "image-area-hilitor";
+    imageAreaHilitorSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+    imageAreaHilitorSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
+    m_skipRulesForHtmlToEnmlConversion << imageAreaHilitorSkipRule;
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()

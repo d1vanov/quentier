@@ -30,5 +30,6 @@
         <file>setupTextCursorPositionTracking.js</file>
         <file>clickInterceptor.js</file>
         <file>findReplaceManager.js</file>
+        <file>imageAreasHilitor.js</file>
     </qresource>
 </RCC>
