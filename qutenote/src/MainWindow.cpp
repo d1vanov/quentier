@@ -488,6 +488,16 @@ void MainWindow::onSetTestNoteWithResources()
 
     resource.setResourceAttributes(resourceAttributes);
 
+    // Gather the recognition data as well
+    resourceFile.setFileName(":/test_notes/Architecture_whats_the_architecture_recognition_data.xml");
+    resourceFile.open(QIODevice::ReadOnly);
+    QByteArray resourceRecognitionData = resourceFile.readAll();
+    resourceFile.close();
+
+    resource.setRecognitionDataBody(resourceRecognitionData);
+    resource.setRecognitionDataSize(resourceRecognitionData.size());
+    resource.setRecognitionDataHash(QCryptographicHash::hash(resourceRecognitionData, QCryptographicHash::Md5).toHex());
+
     // Add the first resource to the note
     m_testNote.addResource(resource);
 

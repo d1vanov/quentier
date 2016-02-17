@@ -4,5 +4,6 @@
         <file>Architecture_whats_the_architecture.png</file>
         <file>GrowlNotify.pkg</file>
         <file>cDock_v8.2.zip</file>
+        <file>Architecture_whats_the_architecture_recognition_data.xml</file>
     </qresource>
 </RCC>

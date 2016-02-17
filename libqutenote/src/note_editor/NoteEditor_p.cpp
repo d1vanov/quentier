@@ -60,6 +60,8 @@ typedef QWebEngineSettings WebSettings;
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/ResourceWrapper.h>
+#include <qute_note/types/ResourceRecognitionIndices.h>
+#include <qute_note/types/ResourceRecognitionIndexItem.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/Utility.h>
 #include <qute_note/types/ResourceAdapter.h>
@@ -2025,6 +2027,64 @@ void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const boo
     GET_PAGE()
     page->executeJavaScript("findReplaceManager.setSearchHighlight('" + escapedTextToFind + "', " +
                             (matchCase ? "true" : "false") + ");");
+    page->executeJavaScript("imageAreasHilitor.clearImageHilitors();");
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNTRACE("No note is set");
+        return;
+    }
+
+    if (!m_pNote->hasResources()) {
+        QNTRACE("The note has no resources");
+        return;
+    }
+
+    QList<ResourceAdapter> resources = m_pNote->resourceAdapters();
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resource = resources[i];
+        if (Q_UNLIKELY(!resource.hasDataHash())) {
+            QNDEBUG("Skipping the resource without the data hash: " << resource);
+            continue;
+        }
+
+        if (!resource.hasRecognitionDataBody()) {
+            QNTRACE("Skipping the resource without recognition data body");
+            continue;
+        }
+
+        ResourceRecognitionIndices recoIndices(resource.recognitionDataBody());
+        if (recoIndices.isNull() || !recoIndices.isValid()) {
+            QNTRACE("Skipping null/invalid resource recognition indices");
+            continue;
+        }
+
+        QVector<ResourceRecognitionIndexItem> recoIndexItems = recoIndices.items();
+        const int numIndexItems = recoIndexItems.size();
+        for(int j = 0; j < numIndexItems; ++j)
+        {
+            const ResourceRecognitionIndexItem & recoIndexItem = recoIndexItems[j];
+            QVector<ResourceRecognitionIndexItem::TextItem> textItems = recoIndexItem.textItems();
+            const int numTextItems = textItems.size();
+
+            bool matchFound = false;
+            for(int k = 0; k < numTextItems; ++k)
+            {
+                const ResourceRecognitionIndexItem::TextItem & textItem = textItems[k];
+                if (textItem.m_text.contains(textToFind, (matchCase ? Qt::CaseSensitive : Qt::CaseInsensitive))) {
+                    QNTRACE("Found text item matching with the text to find: " << textItem.m_text);
+                    matchFound = true;
+                }
+            }
+
+            if (matchFound) {
+                page->executeJavaScript("imageAreasHilitor.hiliteImageArea('" + resource.dataHash() + "', " +
+                                        QString::number(recoIndexItem.x()) + ", " + QString::number(recoIndexItem.y()) + ", " +
+                                        QString::number(recoIndexItem.h()) + ", " + QString::number(recoIndexItem.w()) + ");");
+            }
+        }
+    }
 }
 
 void NoteEditorPrivate::clearEditorContent()

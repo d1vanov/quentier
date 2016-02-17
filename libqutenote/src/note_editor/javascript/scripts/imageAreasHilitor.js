@@ -14,9 +14,11 @@ function ImageAreasHilitor() {
         try {
             var div = document.createElement("div");
             div.className = "image-area-hilitor";
-            div.style = "position: absolute; left: " + rectX + "; top: " + rectY +
-                "; width: " + rectWidth + "; height: " + rectHeight + ";";
-            image.appendChild(div);
+            $(div).css("position: absolute; left: " + rectX + "; top: " + rectY +
+                "; width: " + rectWidth + "; height: " + rectHeight + ";");
+            div.innerHTML = " ";
+            image.parentNode.appendChild(div);
+            console.log("Successfully inserted the child image-area-hilitor div to the parent of the image");
         }
         finally {
             observer.start();
@@ -30,12 +32,8 @@ function ImageAreasHilitor() {
 
         try {
             var elements = document.querySelectorAll(".image-area-hilitor");
-            var element;
-            while(elements.length && (element = elements[0])) {
-                var parent = element.parentNode;
-                if (parent) {
-                    parent.removeChild(element);
-                }
+            for(var index = 0; index < elements.length; ++index) {
+                elements[index].parentNode.removeChild(elements[index]);
             }
         }
         finally {

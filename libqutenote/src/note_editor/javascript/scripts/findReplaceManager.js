@@ -9,6 +9,8 @@ function FindReplaceManager() {
     var redoReplaceAllCounters = [];
 
     this.setSearchHighlight = function(textToHighlight, matchCase) {
+        console.log("FindReplaceManager::setSearchHighlight: " + textToHighlight + "; match case = " + (matchCase ? "true" : "false"));
+
         observer.stop();
 
         try {
@@ -26,7 +28,7 @@ function FindReplaceManager() {
     }
 
     this.replace = function(textToReplace, replacementText, matchCase) {
-        console.log("replace: text to replace = " + textToReplace +
+        console.log("FindReplaceManage::replace: " + textToReplace +
                     "; replacement text = " + replacementText + "; match case = " + matchCase);
 
         var currentlySelectedHtml = getSelectionHtml();
