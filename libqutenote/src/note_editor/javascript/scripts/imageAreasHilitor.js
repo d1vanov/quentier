@@ -14,11 +14,17 @@ function ImageAreasHilitor() {
         try {
             var div = document.createElement("div");
             div.className = "image-area-hilitor";
-            $(div).css("position: absolute; left: " + rectX + "; top: " + rectY +
-                "; width: " + rectWidth + "; height: " + rectHeight + ";");
             div.innerHTML = " ";
-            image.parentNode.appendChild(div);
-            console.log("Successfully inserted the child image-area-hilitor div to the parent of the image");
+            document.body.appendChild(div);
+            var imageOffset = $(image).offset();
+            var top = imageOffset.top + rectY;
+            var left = imageOffset.left + rectX;
+            div.style.top = top + "px";
+            div.style.left = left + "px";
+            div.style.width = rectWidth + "px";
+            div.style.height = rectHeight + "px";
+            console.log("Successfully inserted the child image-area-hilitor div to the document body: top = " + div.style.top +
+                        ", left = " + div.style.left + ", width = " + div.style.width + ", height = " + div.style.height);
         }
         finally {
             observer.start();

@@ -2029,6 +2029,10 @@ void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const boo
                             (matchCase ? "true" : "false") + ");");
     page->executeJavaScript("imageAreasHilitor.clearImageHilitors();");
 
+    if (escapedTextToFind.isEmpty()) {
+        return;
+    }
+
     if (Q_UNLIKELY(!m_pNote)) {
         QNTRACE("No note is set");
         return;
@@ -3511,7 +3515,7 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
     m_skipRulesForHtmlToEnmlConversion << hilitorSkipRule;
 
     ENMLConverter::SkipHtmlElementRule imageAreaHilitorSkipRule;
-    imageAreaHilitorSkipRule.m_includeElementContents = true;
+    imageAreaHilitorSkipRule.m_includeElementContents = false;
     imageAreaHilitorSkipRule.m_attributeValueToSkip = "image-area-hilitor";
     imageAreaHilitorSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
     imageAreaHilitorSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
