@@ -23,8 +23,12 @@ function ImageAreasHilitor() {
             div.style.left = left + "px";
             div.style.width = rectWidth + "px";
             div.style.height = rectHeight + "px";
-            console.log("Successfully inserted the child image-area-hilitor div to the document body: top = " + div.style.top +
-                        ", left = " + div.style.left + ", width = " + div.style.width + ", height = " + div.style.height);
+
+            // See if we need to scroll to the position of that image - only if the same text was not found within the note's text
+            var firstTextHilitorHelper = document.querySelector(".hilitorHelper");
+            if (!firstTextHilitorHelper) {
+                div.scrollIntoView(/* scroll to top = */ false);
+            }
         }
         finally {
             observer.start();
