@@ -60,7 +60,6 @@ typedef QWebEngineSettings WebSettings;
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/ResourceWrapper.h>
-#include <qute_note/types/ResourceRecognitionIndices.h>
 #include <qute_note/types/ResourceRecognitionIndexItem.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/Utility.h>
@@ -230,14 +229,13 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pGenericResoureImageJavaScriptHandler(new GenericResourceImageJavaScriptHandler(m_genericResourceImageFilePathsByResourceHash, this)),
 #endif
     m_saveGenericResourceImageToFileRequestIds(),
+    m_recognitionIndicesByResourceHash(),
     m_currentContextMenuExtraData(),
-    m_droppedFilePathsAndMimeTypesByReadRequestIds(),
     m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds(),
     m_lastFreeEnToDoIdNumber(1),
     m_lastFreeHyperlinkIdNumber(1),
     m_lastFreeEnCryptIdNumber(1),
     m_lastFreeEnDecryptedIdNumber(1),
-    m_lastEncryptedText(),
     q_ptr(&noteEditor)
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
@@ -447,10 +445,10 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         if (linkFileName.isEmpty()) {
             QNWARNING(errorDescription);
             emit notifyError(errorDescription);
-            return;
         }
-
-        fileStoragePath = linkFileName;
+        else {
+            fileStoragePath = linkFileName;
+        }
     }
 
     m_resourceFileStoragePathsByResourceLocalGuid[localGuid] = fileStoragePath;
@@ -479,10 +477,21 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
             resource.setDataHash(dataHash);
 
+            if (resource.hasRecognitionDataBody())
+            {
+                ResourceRecognitionIndices recoIndices(resource.recognitionDataBody());
+                if (!recoIndices.isNull() && recoIndices.isValid()) {
+                    m_recognitionIndicesByResourceHash[dataHash] = recoIndices;
+                    QNDEBUG("Updated recognition indices for resource with hash " << dataHash);
+                }
+            }
+
             resourceDisplayName = resource.displayName();
             if (resource.hasDataSize()) {
                 resourceDisplaySize = humanReadableSize(resource.dataSize());
             }
+
+            break;
         }
 
         if (shouldUpdateNoteResources) {
@@ -499,6 +508,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
     if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHashStr)) {
         updateHashForResourceTag(oldResourceHash, dataHashStr);
+        highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
     }
 
     if (m_genericResourceLocalGuidBySaveToStorageRequestIds.isEmpty() && !m_pendingNotePageLoad) {
@@ -1302,13 +1312,16 @@ void NoteEditorPrivate::onRenameResourceDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore, ResourceWrapper resourceAfter,
-                                                                INoteEditorBackend::Rotation::type rotationDirection)
+void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore,
+                                                                QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
+                                                                ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection)
 {
     QNDEBUG("NoteEditorPrivate::onImageResourceRotationDelegateFinished: previous resource hash = " << resourceHashBefore
             << ", resource local guid = " << resourceAfter.localGuid() << ", rotation direction = " << rotationDirection);
 
     ImageResourceRotationUndoCommand * pCommand = new ImageResourceRotationUndoCommand(resourceDataBefore, resourceHashBefore,
+                                                                                       resourceRecognitionDataBefore,
+                                                                                       resourceRecognitionDataHashBefore,
                                                                                        resourceAfter, rotationDirection, *this);
     m_pUndoStack->push(pCommand);
 
@@ -1316,6 +1329,8 @@ void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resou
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
     }
+
+    highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
 }
 
 void NoteEditorPrivate::onImageResourceRotationDelegateError(QString error)
@@ -2027,42 +2042,35 @@ void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const boo
     GET_PAGE()
     page->executeJavaScript("findReplaceManager.setSearchHighlight('" + escapedTextToFind + "', " +
                             (matchCase ? "true" : "false") + ");");
+
+    highlightRecognizedImageAreas(textToFind, matchCase);
+}
+
+void NoteEditorPrivate::highlightRecognizedImageAreas(const QString & textToFind, const bool matchCase) const
+{
+    QNDEBUG("NoteEditorPrivate::highlightRecognizedImageAreas");
+
+    GET_PAGE()
     page->executeJavaScript("imageAreasHilitor.clearImageHilitors();");
 
+    if (m_lastSearchHighlightedText.isEmpty()) {
+        QNTRACE("Last search highlighted text is empty");
+        return;
+    }
+
+    QString escapedTextToFind = m_lastSearchHighlightedText;
+    ENMLConverter::escapeString(escapedTextToFind);
+
     if (escapedTextToFind.isEmpty()) {
+        QNTRACE("Escaped search highlighted text is empty");
         return;
     }
 
-    if (Q_UNLIKELY(!m_pNote)) {
-        QNTRACE("No note is set");
-        return;
-    }
-
-    if (!m_pNote->hasResources()) {
-        QNTRACE("The note has no resources");
-        return;
-    }
-
-    QList<ResourceAdapter> resources = m_pNote->resourceAdapters();
-    const int numResources = resources.size();
-    for(int i = 0; i < numResources; ++i)
+    for(auto it = m_recognitionIndicesByResourceHash.begin(), end = m_recognitionIndicesByResourceHash.end(); it != end; ++it)
     {
-        const ResourceAdapter & resource = resources[i];
-        if (Q_UNLIKELY(!resource.hasDataHash())) {
-            QNDEBUG("Skipping the resource without the data hash: " << resource);
-            continue;
-        }
-
-        if (!resource.hasRecognitionDataBody()) {
-            QNTRACE("Skipping the resource without recognition data body");
-            continue;
-        }
-
-        ResourceRecognitionIndices recoIndices(resource.recognitionDataBody());
-        if (recoIndices.isNull() || !recoIndices.isValid()) {
-            QNTRACE("Skipping null/invalid resource recognition indices");
-            continue;
-        }
+        const QByteArray & resourceHash = it.key();
+        const ResourceRecognitionIndices & recoIndices = it.value();
+        QNTRACE("Processing recognition data for resource hash " << resourceHash);
 
         QVector<ResourceRecognitionIndexItem> recoIndexItems = recoIndices.items();
         const int numIndexItems = recoIndexItems.size();
@@ -2083,7 +2091,7 @@ void NoteEditorPrivate::setSearchHighlight(const QString & textToFind, const boo
             }
 
             if (matchFound) {
-                page->executeJavaScript("imageAreasHilitor.hiliteImageArea('" + resource.dataHash() + "', " +
+                page->executeJavaScript("imageAreasHilitor.hiliteImageArea('" + resourceHash + "', " +
                                         QString::number(recoIndexItem.x()) + ", " + QString::number(recoIndexItem.y()) + ", " +
                                         QString::number(recoIndexItem.h()) + ", " + QString::number(recoIndexItem.w()) + ");");
             }
@@ -2113,8 +2121,6 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastFreeHyperlinkIdNumber = 1;
     m_lastFreeEnCryptIdNumber = 1;
     m_lastFreeEnDecryptedIdNumber = 1;
-
-    m_lastEncryptedText.resize(0);
 
     m_lastSearchHighlightedText.resize(0);
     m_lastSearchHighlightedTextCaseSensitivity = false;
@@ -2159,8 +2165,6 @@ void NoteEditorPrivate::noteToEditorContent()
     m_lastFreeHyperlinkIdNumber = extraData.m_numHyperlinkNodes + 1;
     m_lastFreeEnCryptIdNumber = extraData.m_numEnCryptNodes + 1;
     m_lastFreeEnDecryptedIdNumber = extraData.m_numEnDecryptedNodes + 1;
-
-    m_lastEncryptedText.resize(0);
 
     int bodyTagIndex = m_htmlCachedMemory.indexOf("<body>");
     if (bodyTagIndex < 0) {
@@ -2956,7 +2960,7 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 void NoteEditorPrivate::updateResource(const QString & resourceLocalGuid, const QString & previousResourceHash,
                                        ResourceWrapper updatedResource, const QString & resourceFileStoragePath)
 {
-    QNDEBUG("NoteEditorPrivate::updateResourceInfo: resource local guid = " << resourceLocalGuid << ", previous hash = "
+    QNDEBUG("NoteEditorPrivate::updateResource: resource local guid = " << resourceLocalGuid << ", previous hash = "
             << previousResourceHash << ", updated resource: " << updatedResource << "\nResource file storage path = "
             << resourceFileStoragePath);
 
@@ -2974,9 +2978,11 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalGuid, const 
         return;
     }
 
+    QByteArray key = previousResourceHash.toLocal8Bit();
+
     // NOTE: intentionally set the "wrong", "stale" hash value here, it is required for proper update procedure
     // once the resource is saved in the local file storage; it's kinda hacky but it seems the simplest option
-    updatedResource.setDataHash(previousResourceHash.toLocal8Bit());
+    updatedResource.setDataHash(key);
 
     bool res = m_pNote->updateResource(updatedResource);
     if (Q_UNLIKELY(!res)) {
@@ -2987,6 +2993,11 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalGuid, const 
     }
 
     m_resourceInfo.removeResourceInfo(previousResourceHash);
+
+    auto recoIt = m_recognitionIndicesByResourceHash.find(key);
+    if (recoIt != m_recognitionIndicesByResourceHash.end()) {
+        Q_UNUSED(m_recognitionIndicesByResourceHash.erase(recoIt));
+    }
 
     QUuid saveResourceRequestId = QUuid::createUuid();
     m_genericResourceLocalGuidBySaveToStorageRequestIds[saveResourceRequestId] = updatedResource.localGuid();
@@ -3678,6 +3689,47 @@ bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList
     return true;
 }
 
+void NoteEditorPrivate::rebuildRecognitionIndicesCache()
+{
+    QNDEBUG("NoteEditorPrivate::rebuildRecognitionIndicesCache");
+
+    m_recognitionIndicesByResourceHash.clear();
+
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNTRACE("No note is set");
+        return;
+    }
+
+    if (!m_pNote->hasResources()) {
+        QNTRACE("The note has no resources");
+        return;
+    }
+
+    QList<ResourceAdapter> resources = m_pNote->resourceAdapters();
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceAdapter & resource = resources[i];
+        if (Q_UNLIKELY(!resource.hasDataHash())) {
+            QNDEBUG("Skipping the resource without the data hash: " << resource);
+            continue;
+        }
+
+        if (!resource.hasRecognitionDataBody()) {
+            QNTRACE("Skipping the resource without recognition data body");
+            continue;
+        }
+
+        ResourceRecognitionIndices recoIndices(resource.recognitionDataBody());
+        if (recoIndices.isNull() || !recoIndices.isValid()) {
+            QNTRACE("Skipping null/invalid resource recognition indices");
+            continue;
+        }
+
+        m_recognitionIndicesByResourceHash[resource.dataHash()] = recoIndices;
+    }
+}
+
 #define COMMAND_TO_JS(command) \
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
 
@@ -3780,6 +3832,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         QNTRACE("Cleared the cache of generic resource image files by resource hash");
     }
     m_saveGenericResourceImageToFileRequestIds.clear();
+    rebuildRecognitionIndicesCache();
 
     m_lastSearchHighlightedText.resize(0);
     m_lastSearchHighlightedTextCaseSensitivity = false;
@@ -3842,6 +3895,15 @@ void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
     }
 
     m_pNote->addResource(resource);
+
+    if (resource.hasDataHash() && resource.hasRecognitionDataBody())
+    {
+        ResourceRecognitionIndices recoIndices(resource.recognitionDataBody());
+        if (!recoIndices.isNull() && recoIndices.isValid()) {
+            m_recognitionIndicesByResourceHash[resource.dataHash()] = recoIndices;
+            QNDEBUG("Set recognition indices for new resource: " << recoIndices);
+        }
+    }
 }
 
 void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
@@ -3858,8 +3920,13 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
 
     m_pNote->removeResource(resource);
 
-    if (resource.hasDataHash()) {
-        m_resourceInfo.removeResourceInfo(resource.dataHash());
+    if (resource.hasDataHash())
+    {
+        auto it = m_recognitionIndicesByResourceHash.find(resource.dataHash());
+        if (it != m_recognitionIndicesByResourceHash.end()) {
+            Q_UNUSED(m_recognitionIndicesByResourceHash.erase(it));
+            highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
+        }
     }
 }
 
@@ -3901,8 +3968,13 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
         return;
     }
 
-    resources[resourceIndex] = resource;
-    m_pNote->setResources(resources);
+    const ResourceWrapper & targetResource = resources[resourceIndex];
+    QByteArray previousResourceHash;
+    if (targetResource.hasDataHash()) {
+        previousResourceHash = targetResource.dataHash();
+    }
+
+    updateResource(targetResource.localGuid(), previousResourceHash, resource);
 }
 
 void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resources)
@@ -3917,6 +3989,7 @@ void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resource
     }
 
     m_pNote->setResources(resources);
+    rebuildRecognitionIndicesCache();
 }
 
 bool NoteEditorPrivate::isModified() const
@@ -5081,8 +5154,8 @@ void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, cons
                                                                                  *this, m_resourceInfo, *m_pResourceFileStorageManager,
                                                                                  m_resourceFileStoragePathsByResourceLocalGuid);
 
-    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QString,ResourceWrapper,INoteEditorBackend::Rotation::type),
-                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QString,ResourceWrapper,INoteEditorBackend::Rotation::type));
+    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QString,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QString,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type));
     QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,QString));
 

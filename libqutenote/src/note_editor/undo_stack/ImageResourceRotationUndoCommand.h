@@ -11,9 +11,11 @@ class ImageResourceRotationUndoCommand: public INoteEditorUndoCommand
 {
 public:
     ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QString & resourceHashBefore,
+                                     const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
                                      const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                      NoteEditorPrivate & noteEditor, QUndoCommand * parent = Q_NULLPTR);
     ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QString & resourceHashBefore,
+                                     const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
                                      const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                      NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~ImageResourceRotationUndoCommand();
@@ -24,6 +26,8 @@ public:
 private:
     const QByteArray                            m_resourceDataBefore;
     const QString                               m_resourceHashBefore;
+    const QByteArray                            m_resourceRecognitionDataBefore;
+    const QByteArray                            m_resourceRecognitionDataHashBefore;
     const ResourceWrapper                       m_resourceAfter;
     const INoteEditorBackend::Rotation::type    m_rotationDirection;
 };

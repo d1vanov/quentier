@@ -14,6 +14,7 @@ function ImageAreasHilitor() {
         try {
             var div = document.createElement("div");
             div.className = "image-area-hilitor";
+            div.setAttribute("hash", imageResourceHash);
             div.innerHTML = " ";
             document.body.appendChild(div);
             var imageOffset = $(image).offset();
@@ -35,13 +36,18 @@ function ImageAreasHilitor() {
         }
     }
 
-    this.clearImageHilitors = function() {
-        console.log("ImageAreasHilitor::clearImageHilitors");
+    this.clearImageHilitors = function(hash) {
+        console.log("ImageAreasHilitor::clearImageHilitors: hash = " + (hash ? hash : "<all>"));
 
         observer.stop();
 
         try {
-            var elements = document.querySelectorAll(".image-area-hilitor");
+            var selector = "";
+            if (hash) {
+                selector += "[hash='" + hash + "']";
+            }
+            selector += ".image-area-hilitor";
+            var elements = document.querySelectorAll(selector);
             for(var index = 0; index < elements.length; ++index) {
                 elements[index].parentNode.removeChild(elements[index]);
             }

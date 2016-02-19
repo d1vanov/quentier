@@ -18,8 +18,9 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished(QByteArray resourceDataBefore, QString resourceHashBefore, ResourceWrapper resourceAfter,
-                  INoteEditorBackend::Rotation::type rotationDirection);
+    void finished(QByteArray resourceDataBefore, QString resourceHashBefore,
+                  QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
+                  ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
     void notifyError(QString error);
 
 // private signals
@@ -51,6 +52,9 @@ private:
 
     QByteArray                      m_resourceDataBefore;
     QString                         m_resourceHashBefore;
+
+    QByteArray                      m_resourceRecognitionDataBefore;
+    QByteArray                      m_resourceRecognitionDataHashBefore;
 
     QString                         m_resourceFileStoragePathBefore;
     QString                         m_resourceFileStoragePathAfter;

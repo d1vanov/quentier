@@ -29,6 +29,8 @@ ImageResourceRotationDelegate::ImageResourceRotationDelegate(const QString & res
     m_pNote(Q_NULLPTR),
     m_resourceDataBefore(),
     m_resourceHashBefore(resourceHashBefore),
+    m_resourceRecognitionDataBefore(),
+    m_resourceRecognitionDataHashBefore(),
     m_resourceFileStoragePathBefore(),
     m_resourceFileStoragePathAfter(),
     m_rotatedResource(),
@@ -120,6 +122,14 @@ void ImageResourceRotationDelegate::rotateImageResource()
 
     m_resourceDataBefore = m_rotatedResource.dataBody();
 
+    if (m_rotatedResource.hasRecognitionDataBody()) {
+        m_resourceRecognitionDataBefore = m_rotatedResource.recognitionDataBody();
+    }
+
+    if (m_rotatedResource.hasRecognitionDataHash()) {
+        m_resourceRecognitionDataHashBefore = m_rotatedResource.recognitionDataHash();
+    }
+
     QImage resourceImage;
     bool loaded = resourceImage.loadFromData(m_rotatedResource.dataBody());
     if (Q_UNLIKELY(!loaded)) {
@@ -142,6 +152,11 @@ void ImageResourceRotationDelegate::rotateImageResource()
     m_rotatedResource.setDataBody(rotatedResourceData);
     m_rotatedResource.setDataSize(rotatedResourceData.size());
     m_rotatedResource.setDataHash(QByteArray());
+
+    // Need to destroy the recognition data (if any) because it would no longer correspond to the rotated image
+    m_rotatedResource.setRecognitionDataBody(QByteArray());
+    m_rotatedResource.setRecognitionDataSize(0);
+    m_rotatedResource.setRecognitionDataHash(QByteArray());
 
     m_resourceFileStoragePathAfter = m_noteEditor.imageResourcesStoragePath();
     m_resourceFileStoragePathAfter += "/" + m_rotatedResource.localGuid();
@@ -283,7 +298,8 @@ void ImageResourceRotationDelegate::onResourceTagSrcUpdated(const QVariant & dat
 
     Q_UNUSED(data)
 
-    emit finished(m_resourceDataBefore, m_resourceHashBefore, m_rotatedResource, m_rotationDirection);
+    emit finished(m_resourceDataBefore, m_resourceHashBefore, m_resourceRecognitionDataBefore,
+                  m_resourceRecognitionDataHashBefore, m_rotatedResource, m_rotationDirection);
 }
 
 } // namespace qute_note

@@ -8,7 +8,7 @@
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/EncryptionManager.h>
-#include <qute_note/utility/LimitedStack.h>
+#include <qute_note/types/ResourceRecognitionIndices.h>
 #include <QObject>
 #include <QMimeType>
 #include <QFont>
@@ -172,6 +172,7 @@ public Q_SLOTS:
 
     bool searchHighlightEnabled() const;
     void setSearchHighlight(const QString & textToFind, const bool matchCase, const bool force = false) const;
+    void highlightRecognizedImageAreas(const QString & textToFind, const bool matchCase) const;
 
     virtual void replace(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
     virtual void replaceAll(const QString & textToReplace, const QString & replacementText, const bool matchCase) Q_DECL_OVERRIDE;
@@ -325,8 +326,9 @@ private Q_SLOTS:
     void onRenameResourceDelegateCancelled();
     void onRenameResourceDelegateError(QString error);
 
-    void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore, ResourceWrapper resourceAfter,
-                                                 INoteEditorBackend::Rotation::type rotationDirection);
+    void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore,
+                                                 QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
+                                                 ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
     void onImageResourceRotationDelegateError(QString error);
 
     void onHideDecryptedTextFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
@@ -435,6 +437,8 @@ private:
     bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                 QString & cipher, QString & keyLength, QString & hint,
                                                 QString & id, QString & errorDescription) const;
+
+    void rebuildRecognitionIndicesCache();
 
 private:
     // Overrides for some Qt's virtual methods
@@ -730,8 +734,9 @@ private:
 
     QSet<QUuid>                                 m_saveGenericResourceImageToFileRequestIds;
 
+    QHash<QByteArray, ResourceRecognitionIndices>   m_recognitionIndicesByResourceHash;
+
     CurrentContextMenuExtraData                 m_currentContextMenuExtraData;
-    QHash<QUuid, QPair<QString, QMimeType> >    m_droppedFilePathsAndMimeTypesByReadRequestIds;
 
     QHash<QUuid, QPair<QString, QString> >      m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds;
 
@@ -739,8 +744,6 @@ private:
     quint64     m_lastFreeHyperlinkIdNumber;
     quint64     m_lastFreeEnCryptIdNumber;
     quint64     m_lastFreeEnDecryptedIdNumber;
-
-    QString     m_lastEncryptedText;
 
     NoteEditor * const q_ptr;
     Q_DECLARE_PUBLIC(NoteEditor)
