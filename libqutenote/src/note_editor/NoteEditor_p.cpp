@@ -1245,7 +1245,8 @@ void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removed
 {
     QNDEBUG("onRemoveResourceDelegateFinished: removed resource = " << removedResource);
 
-    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, *this);
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onRemoveResourceUndoRedoFinished);
+    RemoveResourceUndoCommand * pCommand = new RemoveResourceUndoCommand(removedResource, callback, *this);
     m_pUndoStack->push(pCommand);
 
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
@@ -1262,6 +1263,17 @@ void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
     RemoveResourceDelegate * delegate = qobject_cast<RemoveResourceDelegate*>(sender());
     if (Q_LIKELY(delegate)) {
         delegate->deleteLater();
+    }
+}
+
+void NoteEditorPrivate::onRemoveResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onRemoveResourceUndoRedoFinished: " << data);
+
+    Q_UNUSED(extraData)
+
+    if (!m_lastSearchHighlightedText.isEmpty()) {
+        highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
     }
 }
 

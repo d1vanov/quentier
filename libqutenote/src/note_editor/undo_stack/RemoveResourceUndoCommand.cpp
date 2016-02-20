@@ -12,18 +12,21 @@ namespace qute_note {
         return; \
     }
 
-RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
-                                                     QUndoCommand * parent) :
+RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback,
+                                                     NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
-    m_resource(resource)
+    m_resource(resource),
+    m_callback(callback)
 {
     setText(QObject::tr("Remove attachment"));
 }
 
-RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, NoteEditorPrivate & noteEditorPrivate,
-                                                     const QString & text, QUndoCommand * parent) :
+RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback,
+                                                     NoteEditorPrivate & noteEditorPrivate, const QString & text,
+                                                     QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
-    m_resource(resource)
+    m_resource(resource),
+    m_callback(callback)
 {}
 
 RemoveResourceUndoCommand::~RemoveResourceUndoCommand()
@@ -37,7 +40,7 @@ void RemoveResourceUndoCommand::undoImpl()
 
     GET_PAGE()
     page->executeJavaScript("resourceManager.undo();");
-    page->executeJavaScript("setupGenericResourceOnClickHandler();");
+    page->executeJavaScript("setupGenericResourceOnClickHandler();", m_callback);
 }
 
 void RemoveResourceUndoCommand::redoImpl()
@@ -47,7 +50,7 @@ void RemoveResourceUndoCommand::redoImpl()
     m_noteEditorPrivate.removeResourceFromNote(m_resource);
 
     GET_PAGE()
-    page->executeJavaScript("resourceManager.redo();");
+    page->executeJavaScript("resourceManager.redo();", m_callback);
 }
 
 } // namespace qute_note

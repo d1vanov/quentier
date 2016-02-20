@@ -319,6 +319,7 @@ private Q_SLOTS:
 
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource);
     void onRemoveResourceDelegateError(QString error);
+    void onRemoveResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
                                           ResourceWrapper resource, bool performingUndo,
