@@ -2,6 +2,7 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
 #include "ResourceInfo.h"
+#include "SpellChecker.h"
 #include "NoteEditorPage.h"
 #include <qute_note/note_editor/INoteEditorBackend.h>
 #include <qute_note/note_editor/NoteEditor.h>
@@ -690,7 +691,9 @@ private:
     QMenu *                                 m_pNonImageResourceContextMenu;
     QMenu *                                 m_pEncryptedTextContextMenu;
 
-    const QString     m_pagePrefix;
+    SpellChecker        m_spellChecker;
+
+    const QString       m_pagePrefix;
 
     QString     m_lastSelectedHtml;
     QString     m_lastSelectedHtmlForEncryption;

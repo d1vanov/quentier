@@ -8,5 +8,6 @@
         <file>image-area-hilitor.css</file>
         <file>en-todo.css</file>
         <file>link.css</file>
+        <file>misspell.css</file>
     </qresource>
 </RCC>

@@ -184,6 +184,7 @@ set(PRIVATE_HEADERS
     src/note_editor/JavaScriptInOrderExecutor.h
     src/note_editor/ResourceFileStorageManager_p.h
     src/note_editor/ResourceInfo.h
+    src/note_editor/SpellChecker.h
     src/note_editor/dialogs/AttachmentStoragePathConfigDialog.h
     src/note_editor/dialogs/EncryptionDialog.h
     src/note_editor/dialogs/DecryptionDialog.h
@@ -282,6 +283,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceFileStorageManager.cpp
     src/note_editor/ResourceFileStorageManager_p.cpp
     src/note_editor/ResourceInfo.cpp
+    src/note_editor/SpellChecker.cpp
     src/note_editor/dialogs/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/dialogs/EncryptionDialog.cpp
     src/note_editor/dialogs/DecryptionDialog.cpp

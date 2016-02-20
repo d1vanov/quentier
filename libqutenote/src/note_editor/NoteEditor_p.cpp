@@ -189,6 +189,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pImageResourceContextMenu(Q_NULLPTR),
     m_pNonImageResourceContextMenu(Q_NULLPTR),
     m_pEncryptedTextContextMenu(Q_NULLPTR),
+    m_spellChecker(),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
@@ -3023,6 +3024,41 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
             << "; inside decrypted text fragment = " << (insideDecryptedTextFragment ? "true" : "false"));
 
     m_lastSelectedHtml = selectedHtml;
+
+    // See if extraData contains the misspelled word
+    QString misSpelledWord;
+    const int extraDataSize = extraData.size();
+    for(int i = 0; i < extraDataSize; ++i)
+    {
+        const QString & item = extraData[i];
+        if (!item.startsWith("MisSpelledWord_")) {
+            continue;
+        }
+
+        misSpelledWord = item.mid(15);
+    }
+
+    if (!misSpelledWord.isEmpty())
+    {
+        QStringList correctionSuggestions = m_spellChecker.spellCorrectionSuggestions(misSpelledWord);
+        if (!correctionSuggestions.isEmpty())
+        {
+            // TODO: add action to learn the new word
+
+            const int numCorrectionSuggestions = correctionSuggestions.size();
+            for(int i = 0; i < numCorrectionSuggestions; ++i)
+            {
+                const QString & correctionSuggestion = correctionSuggestions[i];
+
+                // TODO: create a new action which would somehow contain this correction suggestion;
+                // either via subclassing QAction or using some trick of QAction if there is one;
+                // The action would need to be connected to some slot to process the spell corrections
+                Q_UNUSED(correctionSuggestion)
+            }
+
+            Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+        }
+    }
 
     if (insideDecryptedTextFragment)
     {

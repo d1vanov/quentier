@@ -19,6 +19,8 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     var hint = "";
     var insideDecryptedTextFragment = false;
 
+    var misSpelledWord;
+
     var extraData = [];
 
     // get context menu event target
@@ -33,6 +35,10 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                 console.log("First element of the array is null");
                 break;
             }
+        }
+
+        if (element.classList.contains("misspell")) {
+            misSpelledWord = element.textContent;
         }
 
         if (element.nodeType == 1) {
@@ -120,6 +126,10 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
 
         if (foundTable) {
             extraData.push("InsideTable");
+        }
+
+        if (misSpelledWord) {
+            extraData.push("MisSpelledWord_" + misSpelledWord);
         }
 
         contextMenuEventHandler.setContextMenuContent("GenericText", selectedHtml, insideDecryptedTextFragment, extraData, contextMenuSequenceNumber);
