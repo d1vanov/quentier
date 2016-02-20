@@ -1,5 +1,6 @@
 #include "NoteEditor_p.h"
 #include "GenericResourceImageWriter.h"
+#include "SpellChecker.h"
 #include "dialogs/DecryptionDialog.h"
 #include "delegates/AddResourceDelegate.h"
 #include "delegates/RemoveResourceDelegate.h"
@@ -189,7 +190,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pImageResourceContextMenu(Q_NULLPTR),
     m_pNonImageResourceContextMenu(Q_NULLPTR),
     m_pEncryptedTextContextMenu(Q_NULLPTR),
-    m_spellChecker(),
+    m_pSpellChecker(Q_NULLPTR),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
@@ -246,6 +247,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 
     setupSkipRulesForHtmlToEnmlConversion();
     setupFileIO();
+
+    m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, this);
 
 #ifdef USE_QT_WEB_ENGINE
     setupWebSocketServer();
@@ -3040,7 +3043,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     if (!misSpelledWord.isEmpty())
     {
-        QStringList correctionSuggestions = m_spellChecker.spellCorrectionSuggestions(misSpelledWord);
+        QStringList correctionSuggestions = m_pSpellChecker->spellCorrectionSuggestions(misSpelledWord);
         if (!correctionSuggestions.isEmpty())
         {
             // TODO: add action to learn the new word

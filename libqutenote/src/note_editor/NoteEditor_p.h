@@ -2,7 +2,6 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
 
 #include "ResourceInfo.h"
-#include "SpellChecker.h"
 #include "NoteEditorPage.h"
 #include <qute_note/note_editor/INoteEditorBackend.h>
 #include <qute_note/note_editor/NoteEditor.h>
@@ -52,6 +51,7 @@ QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(RenameResourceDelegate)
+QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
@@ -691,7 +691,7 @@ private:
     QMenu *                                 m_pNonImageResourceContextMenu;
     QMenu *                                 m_pEncryptedTextContextMenu;
 
-    SpellChecker        m_spellChecker;
+    SpellChecker *      m_pSpellChecker;
 
     const QString       m_pagePrefix;
 
