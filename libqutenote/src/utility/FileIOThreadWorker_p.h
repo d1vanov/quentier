@@ -24,7 +24,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onWriteFileRequest(QString absoluteFilePath, QByteArray data,
-                            QUuid requestId, QIODevice::OpenMode mode);
+                            QUuid requestId, bool append);
 
     void onReadFileRequest(QString absoluteFilePath, QUuid requestId);
 

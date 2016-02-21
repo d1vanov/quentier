@@ -25,10 +25,11 @@ void FileIOThreadWorkerPrivate::setIdleTimePeriod(const qint32 seconds)
     m_postOperationTimerId = startTimer(SEC_TO_MSEC(m_idleTimePeriodSeconds)); \
     QNTRACE("FileIOThreadWorkerPrivate: started timer with id " << m_postOperationTimerId)
 
-void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode)
+void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QByteArray data,
+                                                   QUuid requestId, bool append)
 {
     QNDEBUG("FileIOThreadWorkerPrivate::onWriteFileRequest: file path = " << absoluteFilePath
-            << ", request id = " << requestId << ", open mode = " << mode);
+            << ", request id = " << requestId << ", append = " << (append ? "true" : "false"));
 
     QFileInfo fileInfo(absoluteFilePath);
     QDir folder = fileInfo.absoluteDir();
@@ -45,6 +46,15 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     }
 
     QFile file(absoluteFilePath);
+
+    QIODevice::OpenMode mode;
+    if (append) {
+        mode = QIODevice::Append;
+    }
+    else {
+        mode = QIODevice::WriteOnly;
+    }
+
     bool open = file.open(mode);
     if (!open) {
         QString error = QT_TR_NOOP("Can't open file: ") + absoluteFilePath;
@@ -75,6 +85,13 @@ void FileIOThreadWorkerPrivate::onReadFileRequest(QString absoluteFilePath, QUui
             << ", request id = " << requestId);
 
     QFile file(absoluteFilePath);
+    if (!file.exists()) {
+        QNTRACE("The file to read does not exist, sending empty data in return");
+        emit readFileRequestProcessed(true, QString(), QByteArray(), requestId);
+        RESTART_TIMER();
+        return;
+    }
+
     bool open = file.open(QIODevice::ReadOnly);
     if (!open) {
         emit readFileRequestProcessed(false, QT_TR_NOOP("Can't open file for reading: ") + absoluteFilePath,

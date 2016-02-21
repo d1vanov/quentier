@@ -273,7 +273,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, QIODevice::WriteOnly);
+                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
     QNTRACE("Emitted the request to write the index html file, request id: " << m_writeNoteHtmlToFileRequestId);
 }
 
@@ -2145,7 +2145,7 @@ void NoteEditorPrivate::clearEditorContent()
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, QIODevice::WriteOnly);
+                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
 }
 
 void NoteEditorPrivate::noteToEditorContent()
@@ -2239,7 +2239,8 @@ void NoteEditorPrivate::noteToEditorContent()
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, m_htmlCachedMemory.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, QIODevice::WriteOnly);
+                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
+    QNTRACE("Emitted the request to write the note html to file: id = " << m_writeNoteHtmlToFileRequestId);
 }
 
 void NoteEditorPrivate::updateColResizableTableBindings()
@@ -2586,7 +2587,7 @@ void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
                                : resource.alternateDataBody());
 
     Q_UNUSED(m_manualSaveResourceToFileRequestIds.insert(saveResourceToFileRequestId));
-    emit saveResourceToFile(absoluteFilePath, data, saveResourceToFileRequestId, QIODevice::WriteOnly);
+    emit saveResourceToFile(absoluteFilePath, data, saveResourceToFileRequestId, /* append = */ false);
     QNDEBUG("Sent request to manually save resource to file, request id = " << saveResourceToFileRequestId
             << ", resource local guid = " << resource.localGuid());
 }
@@ -3310,10 +3311,10 @@ void NoteEditorPrivate::setupFileIO()
     m_pFileIOThreadWorker = new FileIOThreadWorker;
     m_pFileIOThreadWorker->moveToThread(m_pIOThread);
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid,bool),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid,bool),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
 
@@ -3928,7 +3929,7 @@ void NoteEditorPrivate::setNoteHtml(const QString & html)
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     m_pendingIndexHtmlWritingToFile = true;
     emit writeNoteHtmlToFile(m_noteEditorPagePath, html.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, QIODevice::WriteOnly);
+                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
 }
 
 void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)

@@ -303,9 +303,15 @@ void SpellChecker::addSystemDictionary(const QString & path, const QString & nam
         return;
     }
 
+    QByteArray dictionaryFileInfoPathData = dictionaryFileInfo.absoluteFilePath().toLocal8Bit();
+    QByteArray affixFileInfoPathData = affixFileInfo.absoluteFilePath().toLocal8Bit();
+
+    const char * rawDictionaryFilePath = dictionaryFileInfoPathData.constData();
+    const char * rawAffixFilePath = affixFileInfoPathData.constData();
+    QNTRACE("Raw dictionary file path = " << rawDictionaryFilePath << ", raw affix file path = " << rawAffixFilePath);
+
     Dictionary & dictionary = m_systemDictionaries[name];
-    dictionary.m_pHunspell = QSharedPointer<Hunspell>(new Hunspell(dictionaryFileInfo.absoluteFilePath().toUtf8().constData(),
-                                                                   affixFileInfo.absolutePath().toUtf8().constData()));
+    dictionary.m_pHunspell = QSharedPointer<Hunspell>(new Hunspell(rawAffixFilePath, rawDictionaryFilePath));
     dictionary.m_enabled = true;
     QNTRACE("Added dictionary for language " << name << "; dictionary file " << dictionaryFileInfo.absoluteFilePath()
             << ", affix file " << affixFileInfo.absoluteFilePath());
@@ -446,13 +452,13 @@ void SpellChecker::checkUserDictionaryDataPendingWriting()
 
     if (!dataToWrite.isEmpty())
     {
-        QObject::connect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
-                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
+        QObject::connect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
+                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
         QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                          this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
 
         m_appendUserDictionaryPartToFileRequestId = QUuid::createUuid();
-        emit writeFile(m_userDictionaryPath, dataToWrite, m_appendUserDictionaryPartToFileRequestId, QIODevice::Append);
+        emit writeFile(m_userDictionaryPath, dataToWrite, m_appendUserDictionaryPartToFileRequestId, /* append = */ true);
         QNTRACE("Sent the request to append the data pending writing to user dictionary, id = "
                 << m_appendUserDictionaryPartToFileRequestId);
     }
@@ -469,7 +475,25 @@ void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescrip
     QNDEBUG("SpellChecker::onReadFileRequestProcessed: success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription << ", request id = " << requestId);
 
+    m_readUserDictionaryRequestId = QUuid();
+
+    QObject::disconnect(this, QNSIGNAL(SpellChecker,readFile,QString,QUuid),
+                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
+    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
+                        this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QString,QByteArray,QUuid));
+
+    if (Q_UNLIKELY(!success)) {
+        QNWARNING("Can't read the data from user's dictionary");
+        return;
+    }
+
     QBuffer buffer(&data);
+    bool res = buffer.open(QIODevice::ReadOnly);
+    if (Q_UNLIKELY(!res)) {
+        QNWARNING("Can't open the data buffer for reading");
+        return;
+    }
+
     QTextStream stream(&buffer);
     QString word;
     while(true)
@@ -481,13 +505,7 @@ void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescrip
 
         m_userDictionary << word;
     }
-
-    m_readUserDictionaryRequestId = QUuid();
-
-    QObject::disconnect(this, QNSIGNAL(SpellChecker,readFile,QString,QUuid),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                        this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QString,QByteArray,QUuid));
+    buffer.close();
 
     checkUserDictionaryDataPendingWriting();
 }
@@ -501,17 +519,17 @@ void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescri
     QNDEBUG("SpellChecker::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription << ", request id = " << requestId);
 
+    m_appendUserDictionaryPartToFileRequestId = QUuid();
+
+    QObject::disconnect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
+                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                        this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
+
     if (Q_UNLIKELY(!success)) {
         QNWARNING("Can't update user dictionary file: " << errorDescription);
         return;
     }
-
-    m_appendUserDictionaryPartToFileRequestId = QUuid();
-
-    QObject::disconnect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
 
     checkUserDictionaryDataPendingWriting();
 }

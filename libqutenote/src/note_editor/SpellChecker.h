@@ -8,7 +8,6 @@
 #include <QPair>
 #include <QSharedPointer>
 #include <QUuid>
-#include <QIODevice>
 #include <QHash>
 
 QT_FORWARD_DECLARE_CLASS(Hunspell)
@@ -40,7 +39,7 @@ Q_SIGNALS:
 
 // private signals
     void readFile(QString absoluteFilePath, QUuid requestId);
-    void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode);
+    void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId, bool append);
 
 private:
     void scanSystemDictionaries();

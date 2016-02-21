@@ -245,8 +245,8 @@ Q_SIGNALS:
                                QString fileStoragePath, QUuid requestId);
     void readResourceFromStorage(QString fileStoragePath, QString localGuid, QUuid requestId);
     void openResourceFile(QString absoluteFilePath);
-    void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId, QIODevice::OpenMode);
-    void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId, QIODevice::OpenMode);
+    void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId, bool append);
+    void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId, bool append);
     void saveGenericResourceImageToFile(QString resourceLocalGuid, QByteArray resourceImageData,
                                         QString resourceFileSuffix, QByteArray resourceActualHash,
                                         QString resourceDisplayName, QUuid requestId);
