@@ -5,8 +5,11 @@
 #include <QObject>
 #include <QStringList>
 #include <QVector>
+#include <QPair>
 #include <QSharedPointer>
 #include <QUuid>
+#include <QIODevice>
+#include <QHash>
 
 QT_FORWARD_DECLARE_CLASS(Hunspell)
 
@@ -18,9 +21,14 @@ class SpellChecker: public QObject
 {
     Q_OBJECT
 public:
-    SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent = Q_NULLPTR, const QString & userDictionaryPath = QString());
+    SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent = Q_NULLPTR,
+                 const QString & userDictionaryPath = QString());
 
-    bool isValid() const;
+    // The second bool in the pair indicates whether the dictionary is enabled or disabled
+    QVector<QPair<QString,bool> > listAvailableDictionaries() const;
+
+    void enableDictionary(const QString & language);
+    void disableDictionary(const QString & language);
 
     bool checkSpell(const QString & word) const;
     QStringList spellCorrectionSuggestions(const QString & misSpelledWord) const;
@@ -30,20 +38,18 @@ public:
 Q_SIGNALS:
     void ready();
 
+// private signals
+    void readFile(QString absoluteFilePath, QUuid requestId);
+    void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode);
+
 private:
     void scanSystemDictionaries();
+    void addSystemDictionary(const QString & path, const QString & name);
+
     void initializeUserDictionary(const QString & userDictionaryPath);
     bool checkUserDictionaryPath(const QString & userDictionaryPath) const;
 
-    void onUserDictionaryFileRead(bool success, QString errorDescription, QByteArray data, QUuid requestId);
-    void onUserAffixFileRead(bool success, QString & errorDescription, QByteArray data, QUuid requestId);
-
-    void onSystemDictionaryFileRead(bool success, QString & errorDescription, QByteArray data, QUuid requestId,
-                                    const qint64 dictionaryIndex);
-    void onSystemAffixFileRead(bool success, QString & errorDescription, QByteArray data, QUuid requestId,
-                               const qint64 dictionaryIndex);
-
-    void checkAndNotifyDictionariesReadiness();
+    void checkUserDictionaryDataPendingWriting();
 
 private Q_SLOTS:
     void onReadFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId);
@@ -60,41 +66,22 @@ private:
     public:
         QSharedPointer<Hunspell>    m_pHunspell;
         QString                     m_dictionaryPath;
-
-        QUuid                       m_readDictionaryFileRequestId;
-        QUuid                       m_readAffixFileRequestId;
-
-        QByteArray                  m_dictionaryFileData;
-        QByteArray                  m_affixFileData;
-
-        bool                        m_dictionaryFileRead;
-        bool                        m_affixFileRead;
-    };
-
-    class CompareByReadDictionaryFileRequestId
-    {
-    public:
-        CompareByReadDictionaryFileRequestId(const QUuid & requestId) : m_requestId(requestId) {}
-        bool operator()(const Dictionary & dictionary) const { return m_requestId == dictionary.m_readDictionaryFileRequestId; }
-
-    private:
-        QUuid   m_requestId;
-    };
-
-    class CompareByReadAffixFileRequestId
-    {
-    public:
-        CompareByReadAffixFileRequestId(const QUuid & requestId) : m_requestId(requestId) {}
-        bool operator()(const Dictionary & dictionary) const { return m_requestId == dictionary.m_readAffixFileRequestId; }
-
-    private:
-        QUuid   m_requestId;
+        bool                        m_enabled;
     };
 
 private:
-    FileIOThreadWorker *    m_pFileIOThreadWorker;
-    QVector<Dictionary>     m_systemDictionaries;
-    Dictionary              m_userDictionary;
+    FileIOThreadWorker *        m_pFileIOThreadWorker;
+
+    // Hashed by the language code
+    QHash<QString, Dictionary>  m_systemDictionaries;
+
+    QUuid                       m_readUserDictionaryRequestId;
+    QString                     m_userDictionaryPath;
+    QStringList                 m_userDictionary;
+    bool                        m_userDictionaryReady;
+
+    QStringList                 m_userDictionaryPartPendingWriting;
+    QUuid                       m_appendUserDictionaryPartToFileRequestId;
 };
 
 } // namespace qute_note

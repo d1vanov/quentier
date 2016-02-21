@@ -1,6 +1,6 @@
 #include "NoteEditor_p.h"
-#include "GenericResourceImageWriter.h"
 #include "SpellChecker.h"
+#include "GenericResourceImageWriter.h"
 #include "dialogs/DecryptionDialog.h"
 #include "delegates/AddResourceDelegate.h"
 #include "delegates/RemoveResourceDelegate.h"
