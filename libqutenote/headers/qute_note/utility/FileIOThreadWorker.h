@@ -7,6 +7,7 @@
 #include <QString>
 #include <QUuid>
 #include <QByteArray>
+#include <QIODevice>
 
 namespace qute_note {
 
@@ -64,10 +65,10 @@ public Q_SLOTS:
      * @param absoluteFilePath - absolute file path to be written
      * @param data - data to be written to the file
      * @param requestId - unique identifier of the file write request
+     * @param mode - I/O mode used to open the file for writing
      */
-    void onWriteFileRequest(QString absoluteFilePath,
-                            QByteArray data,
-                            QUuid requestId);
+    void onWriteFileRequest(QString absoluteFilePath, QByteArray data,
+                            QUuid requestId, QIODevice::OpenMode mode);
 
     /**
      * @brief onReadFileRequest - slot processing the file read request with given request id

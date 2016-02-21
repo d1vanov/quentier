@@ -25,10 +25,10 @@ void FileIOThreadWorkerPrivate::setIdleTimePeriod(const qint32 seconds)
     m_postOperationTimerId = startTimer(SEC_TO_MSEC(m_idleTimePeriodSeconds)); \
     QNTRACE("FileIOThreadWorkerPrivate: started timer with id " << m_postOperationTimerId)
 
-void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QByteArray data, QUuid requestId)
+void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode)
 {
     QNDEBUG("FileIOThreadWorkerPrivate::onWriteFileRequest: file path = " << absoluteFilePath
-            << ", request id = " << requestId);
+            << ", request id = " << requestId << ", open mode = " << mode);
 
     QFileInfo fileInfo(absoluteFilePath);
     QDir folder = fileInfo.absoluteDir();
@@ -45,10 +45,9 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     }
 
     QFile file(absoluteFilePath);
-
-    bool open = file.open(QIODevice::WriteOnly);
+    bool open = file.open(mode);
     if (!open) {
-        QString error = QT_TR_NOOP("Can't open file for writing: ") + absoluteFilePath;
+        QString error = QT_TR_NOOP("Can't open file: ") + absoluteFilePath;
         QNDEBUG(error);
         emit writeFileRequestProcessed(false, error, requestId);
         RESTART_TIMER();
@@ -57,7 +56,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
 
     qint64 writtenBytes = file.write(data);
     if (writtenBytes < data.size()) {
-        QString error = QT_TR_NOOP("Can't write the whole file: ") + absoluteFilePath;
+        QString error = QT_TR_NOOP("Can't write the whole data: ") + absoluteFilePath;
         QNDEBUG(error);
         emit writeFileRequestProcessed(false, error, requestId);
         RESTART_TIMER();

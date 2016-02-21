@@ -86,8 +86,8 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid));
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
 
     QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(qobject_cast<QWidget*>(parent()));
     if (resourceFileStorageLocation.isEmpty()) {
@@ -249,7 +249,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     }
 
     m_saveResourceToFileRequestId = QUuid::createUuid();
-    emit saveResourceToFile(fileName, data, m_saveResourceToFileRequestId);
+    emit saveResourceToFile(fileName, data, m_saveResourceToFileRequestId, QIODevice::WriteOnly);
     QNDEBUG("Sent request to save resource to file, request id = " << m_saveResourceToFileRequestId);
 }
 

@@ -41,7 +41,7 @@ Q_SIGNALS:
 // private signals
 Q_SIGNALS:
     void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QString manualFileStoragePath, QUuid requestId);
-    void saveResourceToFile(QString filePath, QByteArray data, QUuid requestId);
+    void saveResourceToFile(QString filePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode);
 
 private Q_SLOTS:
     void onOpenWithButtonPressed();

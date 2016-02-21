@@ -22,10 +22,10 @@ void FileIOThreadWorker::setIdleTimePeriod(qint32 seconds)
     d->setIdleTimePeriod(seconds);
 }
 
-void FileIOThreadWorker::onWriteFileRequest(QString absoluteFilePath, QByteArray data, QUuid requestId)
+void FileIOThreadWorker::onWriteFileRequest(QString absoluteFilePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode)
 {
     Q_D(FileIOThreadWorker);
-    d->onWriteFileRequest(absoluteFilePath, data, requestId);
+    d->onWriteFileRequest(absoluteFilePath, data, requestId, mode);
 }
 
 void FileIOThreadWorker::onReadFileRequest(QString absoluteFilePath, QUuid requestId)

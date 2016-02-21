@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QString>
 #include <QUuid>
+#include <QIODevice>
 
 namespace qute_note {
 
@@ -18,18 +19,14 @@ public:
 
 Q_SIGNALS:
     void readyForIO();
-    void writeFileRequestProcessed(bool success, QString errorDescription,
-                                   QUuid requestId);
-    void readFileRequestProcessed(bool success, QString errorDescription,
-                                  QByteArray data, QUuid requestId);
+    void writeFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void readFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId);
 
 public Q_SLOTS:
-    void onWriteFileRequest(QString absoluteFilePath,
-                            QByteArray data,
-                            QUuid requestId);
+    void onWriteFileRequest(QString absoluteFilePath, QByteArray data,
+                            QUuid requestId, QIODevice::OpenMode mode);
 
-    void onReadFileRequest(QString absoluteFilePath,
-                           QUuid requestId);
+    void onReadFileRequest(QString absoluteFilePath, QUuid requestId);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent);
