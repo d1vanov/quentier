@@ -441,6 +441,9 @@ private:
 
     void rebuildRecognitionIndicesCache();
 
+    void enableSpellCheck();
+    void disableSpellCheck();
+
 private:
     // Overrides for some Qt's virtual methods
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
@@ -691,6 +694,7 @@ private:
     QMenu *                                 m_pEncryptedTextContextMenu;
 
     SpellChecker *      m_pSpellChecker;
+    bool                m_spellCheckerEnabled;
 
     const QString       m_pagePrefix;
 

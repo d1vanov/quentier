@@ -191,6 +191,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pNonImageResourceContextMenu(Q_NULLPTR),
     m_pEncryptedTextContextMenu(Q_NULLPTR),
     m_pSpellChecker(Q_NULLPTR),
+    m_spellCheckerEnabled(true),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
@@ -3780,6 +3781,22 @@ void NoteEditorPrivate::rebuildRecognitionIndicesCache()
     }
 }
 
+void NoteEditorPrivate::enableSpellCheck()
+{
+    QNDEBUG("NoteEditorPrivate::enableSpellCheck");
+
+    // TODO: refresh the list of misspelled words
+    // TODO: run JavaScript to highlight the misspelled words
+}
+
+void NoteEditorPrivate::disableSpellCheck()
+{
+    QNDEBUG("NoteEditorPrivate::disableSpellCheck");
+
+    // TODO: clean up the list of misspelled words
+    // TODO: run JavaScript cleaning up the misspelled words from the note editor
+}
+
 #define COMMAND_TO_JS(command) \
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
 
@@ -4574,7 +4591,19 @@ void NoteEditorPrivate::setSpellcheck(const bool enabled)
 {
     QNDEBUG("stub: NoteEditorPrivate::setSpellcheck: enabled = "
             << (enabled ? "true" : "false"));
-    // TODO: implement
+
+    if (m_spellCheckerEnabled == enabled) {
+        QNTRACE("Spell checker enabled flag didn't change");
+        return;
+    }
+
+    m_spellCheckerEnabled = enabled;
+    if (m_spellCheckerEnabled) {
+        enableSpellCheck();
+    }
+    else {
+        disableSpellCheck();
+    }
 
     setFocus();
 }
