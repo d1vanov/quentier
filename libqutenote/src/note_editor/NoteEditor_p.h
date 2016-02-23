@@ -443,6 +443,9 @@ private:
 
     void enableSpellCheck();
     void disableSpellCheck();
+    void refreshMisSpelledWordsList();
+
+    bool isNoteReadOnly() const;
 
 private:
     // Overrides for some Qt's virtual methods
@@ -695,6 +698,7 @@ private:
 
     SpellChecker *      m_pSpellChecker;
     bool                m_spellCheckerEnabled;
+    QStringList         m_currentNoteMisSpelledWords;
 
     const QString       m_pagePrefix;
 

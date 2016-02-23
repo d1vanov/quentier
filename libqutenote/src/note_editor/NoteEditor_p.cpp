@@ -192,6 +192,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pEncryptedTextContextMenu(Q_NULLPTR),
     m_pSpellChecker(Q_NULLPTR),
     m_spellCheckerEnabled(true),
+    m_currentNoteMisSpelledWords(),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
@@ -3561,7 +3562,7 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
 {
     QNDEBUG("NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion");
 
-    m_skipRulesForHtmlToEnmlConversion.reserve(3);
+    m_skipRulesForHtmlToEnmlConversion.reserve(4);
 
     ENMLConverter::SkipHtmlElementRule tableSkipRule;
     tableSkipRule.m_attributeValueToSkip = "JCLRgrip";
@@ -3582,6 +3583,13 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
     imageAreaHilitorSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
     imageAreaHilitorSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
     m_skipRulesForHtmlToEnmlConversion << imageAreaHilitorSkipRule;
+
+    ENMLConverter::SkipHtmlElementRule spellCheckerHelperSkipRule;
+    spellCheckerHelperSkipRule.m_includeElementContents = true;
+    spellCheckerHelperSkipRule.m_attributeValueToSkip = "misspell";
+    spellCheckerHelperSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+    spellCheckerHelperSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
+    m_skipRulesForHtmlToEnmlConversion << spellCheckerHelperSkipRule;
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
@@ -3785,7 +3793,12 @@ void NoteEditorPrivate::enableSpellCheck()
 {
     QNDEBUG("NoteEditorPrivate::enableSpellCheck");
 
-    // TODO: refresh the list of misspelled words
+    refreshMisSpelledWordsList();
+    if (m_currentNoteMisSpelledWords.isEmpty()) {
+        // TODO: run JavaScript to remove the highlighting from any previously detected misspelled words
+        return;
+    }
+
     // TODO: run JavaScript to highlight the misspelled words
 }
 
@@ -3793,9 +3806,58 @@ void NoteEditorPrivate::disableSpellCheck()
 {
     QNDEBUG("NoteEditorPrivate::disableSpellCheck");
 
-    // TODO: clean up the list of misspelled words
+    m_currentNoteMisSpelledWords.clear();
+
     // TODO: run JavaScript cleaning up the misspelled words from the note editor
 }
+
+void NoteEditorPrivate::refreshMisSpelledWordsList()
+{
+    QNDEBUG("NoteEditorPrivate::refreshMisSpelledWordsList");
+
+    if (!m_pNote) {
+        QNDEBUG("No note is set to the editor");
+        return;
+    }
+
+    QString error;
+    m_currentNoteMisSpelledWords = m_pNote->listOfWords(&error);
+    if (m_currentNoteMisSpelledWords.isEmpty() && !error.isEmpty()) {
+        error = QT_TR_NOOP("Can't get the list of words from the note: ") + error;
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+}
+
+bool NoteEditorPrivate::isNoteReadOnly() const
+{
+    QNDEBUG("NoteEditorPrivate::isNoteReadOnly");
+
+    if (!m_pNote) {
+        QNTRACE("No note is set to the editor");
+        return true;
+    }
+
+    if (!m_pNotebook) {
+        QNTRACE("No notebook is set to the editor");
+        return true;
+    }
+
+    if (!m_pNotebook->hasRestrictions()) {
+        QNTRACE("Notebook has no restrictions");
+        return false;
+    }
+
+    const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
+    if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
+        QNTRACE("Restriction on note updating applies");
+        return true;
+    }
+
+    return false;
+}
+
 
 #define COMMAND_TO_JS(command) \
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
