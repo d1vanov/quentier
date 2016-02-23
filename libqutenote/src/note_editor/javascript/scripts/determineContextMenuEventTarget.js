@@ -37,7 +37,8 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
             }
         }
 
-        if (element.classList.contains("misspell")) {
+        var elementClasses = element.classList;
+        if (elementClasses && elementClasses.contains("misspell")) {
             misSpelledWord = element.textContent;
         }
 

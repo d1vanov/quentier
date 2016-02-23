@@ -134,6 +134,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_hilitorJs(),
     m_imageAreasHilitorJs(),
     m_findReplaceManagerJs(),
+    m_spellCheckerJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -362,6 +363,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_encryptDecryptManagerJs);
     page->executeJavaScript(m_hilitorJs);
     page->executeJavaScript(m_imageAreasHilitorJs);
+    page->executeJavaScript(m_spellCheckerJs);
 
     setPageEditable(true);
     updateColResizableTableBindings();
@@ -3378,6 +3380,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/findReplaceManager.js", m_findReplaceManagerJs);
+    SETUP_SCRIPT("javascript/scripts/spellChecker.js", m_spellCheckerJs);
     SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
     SETUP_SCRIPT("javascript/scripts/updateResourceHash.js", m_updateResourceHashJs);
     SETUP_SCRIPT("javascript/scripts/updateImageResourceSrc.js", m_updateImageResourceSrcJs);
@@ -3820,13 +3823,25 @@ void NoteEditorPrivate::refreshMisSpelledWordsList()
         return;
     }
 
+    m_currentNoteMisSpelledWords.clear();
+
     QString error;
-    m_currentNoteMisSpelledWords = m_pNote->listOfWords(&error);
-    if (m_currentNoteMisSpelledWords.isEmpty() && !error.isEmpty()) {
+    QStringList words = m_pNote->listOfWords(&error);
+    if (words.isEmpty() && !error.isEmpty()) {
         error = QT_TR_NOOP("Can't get the list of words from the note: ") + error;
         QNWARNING(error);
         emit notifyError(error);
         return;
+    }
+
+    for(auto it = words.begin(), end = words.end(); it != end; ++it)
+    {
+        const QString & word = *it;
+
+        if (!m_pSpellChecker->checkSpell(word)) {
+            m_currentNoteMisSpelledWords << word;
+            QNTRACE("Misspelled word: \"" << word << "\"");
+        }
     }
 }
 

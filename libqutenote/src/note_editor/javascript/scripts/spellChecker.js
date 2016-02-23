@@ -8,9 +8,11 @@ function SpellChecker() {
     var lastError;
 
     var matchRegex = "";
+    var misspellTag = "EM";
+    var skipTags = new RegExp("^(?:" + misspellTag + "|SCRIPT|FORM)$");
 
-    this.highlightMisSpelledWords = function() {
-        console.log("SpellChecker::highlightMisSpelledWords");
+    this.apply = function() {
+        console.log("SpellChecker::apply");
 
         // Convert args to a long string with words separated by spaces
         var input = "";
@@ -21,7 +23,31 @@ function SpellChecker() {
         }
 
         this.setRegex(input);
-        this.apply(document.body);
+
+        observer.stop();
+
+        try {
+            this.highlightMisSpelledWords(document.body);
+        }
+        finally {
+            observer.start();
+        }
+    }
+
+    this.remove = function() {
+        console.log("SpellChecker::remove");
+
+        observer.stop();
+
+        try {
+            var elements = document.getElementsByTagName(misspellTag);
+            for(var index = 0; index < elements.length; ++index) {
+                elements[index].parentNode.removeChild(elements[index]);
+            }
+        }
+        finally {
+            observer.start();
+        }
     }
 
     this.setRegex = function(input) {
@@ -34,12 +60,16 @@ function SpellChecker() {
         this.matchRegex = new RegExp(re, flags);
     }
 
-    this.apply = function(node) {
+    this.highlightMisSpelledWords = function(node) {
         if (!this.matchRegex) {
             return;
         }
 
         if (node === undefined || !node) {
+            return;
+        }
+
+        if (this.skipTags.test(node.nodeName)) {
             return;
         }
 
@@ -54,7 +84,20 @@ function SpellChecker() {
             var nv = node.nodeValue;
             var regs;
             if (nv && (regs = this.matchRegex.exec(nv))) {
-                // TODO: implement this section
+                var match = document.createElement(this.misspellTag);
+                match.appendChild(document.createTextNode(regs[1]));
+                match.className = "misspell";
+
+                var after;
+                if(regs[0].match(/^\s/)) { // in case of leading whitespace
+                    after = node.splitText(regs.index + 1);
+                }
+                else {
+                    after = node.splitText(regs.index);
+                }
+
+                after.nodeValue = after.nodeValue.substring(regs[1].length);
+                node.parentNode.insertBefore(match, after);
             }
         }
     }

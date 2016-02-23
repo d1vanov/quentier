@@ -605,6 +605,7 @@ private:
     QString     m_hilitorJs;
     QString     m_imageAreasHilitorJs;
     QString     m_findReplaceManagerJs;
+    QString     m_spellCheckerJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
