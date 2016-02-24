@@ -18,7 +18,7 @@ function SpellChecker() {
         var input = "";
         var numArgs = arguments.length;
         for(var index = 0; index < numArgs; ++index) {
-            input += arguments[i];
+            input += arguments[index];
             input += " ";
         }
 
@@ -27,11 +27,43 @@ function SpellChecker() {
         observer.stop();
 
         try {
+            this.remove();
             this.highlightMisSpelledWords(document.body);
         }
         finally {
             observer.start();
         }
+    }
+
+    this.correctSpelling = function(correction) {
+        console.log("SpellChecker::correctSpelling: " << correction);
+
+        var selection = window.getSelection();
+        if (!selection || !selection.anchorNode || selection.anchorNode.parentNode) {
+            lastError = "Can't correct spelling: no proper selection";
+            console.warn(lastError);
+            return { status:false, error:lastError };
+        }
+
+        if (selection.isCollapsed) {
+            lastError = "Can't correct spelling: the selection is collapsed";
+            console.warn(lastError);
+            return { status:false, error:lastError };
+        }
+
+        undoNodes.push(selection.anchorNode.parentNode);
+        undoNodeInnerHtmls.push(selection.anchorNode.parentNode.innerHTML);
+
+        observer.stop();
+
+        try {
+            document.execCommand("insertText", false, correction);
+        }
+        finally {
+            observer.start();
+        }
+
+        return { status:true, error:"" };
     }
 
     this.remove = function() {
@@ -61,7 +93,7 @@ function SpellChecker() {
     }
 
     this.highlightMisSpelledWords = function(node) {
-        if (!this.matchRegex) {
+        if (!matchRegex) {
             return;
         }
 
@@ -69,7 +101,7 @@ function SpellChecker() {
             return;
         }
 
-        if (this.skipTags.test(node.nodeName)) {
+        if (skipTags.test(node.nodeName)) {
             return;
         }
 
@@ -84,7 +116,7 @@ function SpellChecker() {
             var nv = node.nodeValue;
             var regs;
             if (nv && (regs = this.matchRegex.exec(nv))) {
-                var match = document.createElement(this.misspellTag);
+                var match = document.createElement(misspellTag);
                 match.appendChild(document.createTextNode(regs[1]));
                 match.className = "misspell";
 
@@ -99,6 +131,60 @@ function SpellChecker() {
                 after.nodeValue = after.nodeValue.substring(regs[1].length);
                 node.parentNode.insertBefore(match, after);
             }
+        }
+    }
+
+    this.undo = function() {
+        return this.undoRedoImpl(undoNodes, undoNodeInnerHtmls,
+                                 redoNodes, redoNodeInnerHtmls, true);
+
+    }
+
+    this.redo = function() {
+        return this.undoRedoImpl(redoNodes, redoNodeInnerHtmls,
+                                 undoNodes, undoNodeInnerHtmls, false);
+    }
+
+    this.undoRedoImpl = function(sourceNodes, sourceNodeInnerHtmls,
+                                 destNodes, destNodeInnerHtmls, performingUndo) {
+        console.log("tableManager.undoRedoImpl: performingUndo = " + (performingUndo ? "true" : "false"));
+
+        var actionString = (performingUndo ? "undo" : "redo");
+
+        if (!sourceNodes) {
+            console.warn("Can't " + actionString + " the spell check correction action: no source nodes helper array");
+            return false;
+        }
+
+        if (!sourceNodeInnerHtmls) {
+            console.warn("Can't " + actionString + " the spell check correction action: no source node inner html helper array");
+            return false;
+        }
+
+        var sourceNode = sourceNodes.pop();
+        if (!sourceNode) {
+            console.warn("Can't " + actionString + " the spell check correction action: no source node");
+            return false;
+        }
+
+        var sourceNodeInnerHtml = sourceNodeInnerHtmls.pop();
+        if (!sourceNodeInnerHtml) {
+            console.warn("Can't " + actionString + " the table action: no source node's inner html");
+            return false;
+        }
+
+        destNodes.push(sourceNode);
+        destNodeInnerHtmls.push(sourceNode.innerHTML);
+
+        console.log("Html before: " + sourceNode.innerHTML + "; html to paste: " + sourceNodeInnerHtml);
+
+        observer.stop();
+
+        try {
+            sourceNode.innerHTML = sourceNodeInnerHtml;
+        }
+        finally {
+            observer.start();
         }
     }
 }

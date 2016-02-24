@@ -59,7 +59,7 @@ private Q_SLOTS:
     void onNoteChooseTextColor(QColor color);
     void onNoteChooseBackgroundColor(QColor color);
 
-    void onNoteTextSpellCheckToggled() { /* TODO: implement */ }
+    void onNoteTextSpellCheckToggled();
     void onNoteTextInsertToDoCheckBoxAction();
 
     void onNoteTextInsertTableDialogAction();

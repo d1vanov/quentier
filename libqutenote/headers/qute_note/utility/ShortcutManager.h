@@ -75,6 +75,8 @@ public:
         UpgradeLocalStorage,
         LocalStorageStatus,
         SpellCheck,
+        SpellCheckIgnoreWord,
+        SpellCheckAddWordToUserDictionary,
         SaveImage,
         AnnotateImage,
         ImageRotateClockwise,

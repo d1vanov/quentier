@@ -31,6 +31,7 @@
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
 #include "undo_stack/ReplaceUndoCommand.h"
 #include "undo_stack/ReplaceAllUndoCommand.h"
+#include "undo_stack/SpellCheckerUndoCommand.h"
 #include "undo_stack/TableActionUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
@@ -192,7 +193,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pNonImageResourceContextMenu(Q_NULLPTR),
     m_pEncryptedTextContextMenu(Q_NULLPTR),
     m_pSpellChecker(Q_NULLPTR),
-    m_spellCheckerEnabled(true),
+    m_spellCheckerEnabled(false),
     m_currentNoteMisSpelledWords(),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
@@ -379,6 +380,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     // NOTE: executing page mutation observer's script last
     // so that it doesn't catch the mutations originating from the above scripts
     page->executeJavaScript(m_pageMutationObserverJs);
+
+    if (m_spellCheckerEnabled) {
+        applySpellCheck();
+    }
 
     QNTRACE("Sent commands to execute all the page's necessary scripts");
     page->startJavaScriptAutoExecution();
@@ -3033,6 +3038,14 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     m_lastSelectedHtml = selectedHtml;
 
+#define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
+    { \
+        QAction * action = new QAction(tr(name), menu); \
+        setupActionShortcut(key, QString(#__VA_ARGS__), *action); \
+        QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,slot)); \
+        menu->addAction(action); \
+    }
+
     // See if extraData contains the misspelled word
     QString misSpelledWord;
     const int extraDataSize = extraData.size();
@@ -3051,19 +3064,21 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
         QStringList correctionSuggestions = m_pSpellChecker->spellCorrectionSuggestions(misSpelledWord);
         if (!correctionSuggestions.isEmpty())
         {
-            // TODO: add action to learn the new word
-
             const int numCorrectionSuggestions = correctionSuggestions.size();
             for(int i = 0; i < numCorrectionSuggestions; ++i)
             {
                 const QString & correctionSuggestion = correctionSuggestions[i];
 
-                // TODO: create a new action which would somehow contain this correction suggestion;
-                // either via subclassing QAction or using some trick of QAction if there is one;
-                // The action would need to be connected to some slot to process the spell corrections
-                Q_UNUSED(correctionSuggestion)
+                QAction * action = new QAction(correctionSuggestion, m_pGenericTextContextMenu);
+                action->setText(correctionSuggestion);
+                action->setToolTip(tr("Correct the misspelled word"));
+                QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,onSpellCheckCorrectionAction));
             }
 
+            ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckIgnoreWord, "Ignore word",
+                                     m_pGenericTextContextMenu, onSpellCheckIgnoreWordAction);
+            ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckAddWordToUserDictionary, "Add word to user dictionary",
+                                     m_pGenericTextContextMenu, onSpellCheckAddWordToUserDictionaryAction);
             Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         }
     }
@@ -3088,14 +3103,6 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     delete m_pGenericTextContextMenu;
     m_pGenericTextContextMenu = new QMenu(this);
-
-#define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
-    { \
-        QAction * action = new QAction(tr(name), menu); \
-        setupActionShortcut(key, QString(#__VA_ARGS__), *action); \
-        QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,slot)); \
-        menu->addAction(action); \
-    }
 
     if (!selectedHtml.isEmpty()) {
         ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pGenericTextContextMenu, cut);
@@ -3797,12 +3804,7 @@ void NoteEditorPrivate::enableSpellCheck()
     QNDEBUG("NoteEditorPrivate::enableSpellCheck");
 
     refreshMisSpelledWordsList();
-    if (m_currentNoteMisSpelledWords.isEmpty()) {
-        // TODO: run JavaScript to remove the highlighting from any previously detected misspelled words
-        return;
-    }
-
-    // TODO: run JavaScript to highlight the misspelled words
+    applySpellCheck();
 }
 
 void NoteEditorPrivate::disableSpellCheck()
@@ -3810,8 +3812,8 @@ void NoteEditorPrivate::disableSpellCheck()
     QNDEBUG("NoteEditorPrivate::disableSpellCheck");
 
     m_currentNoteMisSpelledWords.clear();
-
-    // TODO: run JavaScript cleaning up the misspelled words from the note editor
+    GET_PAGE()
+    page->executeJavaScript("SpellChecker.remove();");
 }
 
 void NoteEditorPrivate::refreshMisSpelledWordsList()
@@ -3843,6 +3845,22 @@ void NoteEditorPrivate::refreshMisSpelledWordsList()
             QNTRACE("Misspelled word: \"" << word << "\"");
         }
     }
+}
+
+void NoteEditorPrivate::applySpellCheck()
+{
+    QNDEBUG("NoteEditorPrivate::applySpellCheck");
+
+    QString javascript = "spellChecker.apply('";
+    for(auto it = m_currentNoteMisSpelledWords.begin(), end = m_currentNoteMisSpelledWords.end(); it != end; ++it) {
+        javascript += *it;
+        javascript += "', '";
+    }
+    javascript.chop(3);     // Remove trailing ", '";
+    javascript += ");";
+
+    GET_PAGE()
+    page->executeJavaScript(javascript);
 }
 
 bool NoteEditorPrivate::isNoteReadOnly() const
@@ -4396,6 +4414,128 @@ void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
     GET_PAGE()
     QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
     page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::onSpellCheckCorrectionAction()
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckCorrectionAction");
+
+    if (!m_spellCheckerEnabled) {
+        QNDEBUG("Not enabled, won't do anything");
+        return;
+    }
+
+    QAction * action = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!action)) {
+        QString error = QT_TR_NOOP("Internal error: can't get the action which has toggled the spelling correction");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    const QString & correction = action->text();
+    if (Q_UNLIKELY(correction.isEmpty())) {
+        QNWARNING("No correction specified");
+        return;
+    }
+
+    GET_PAGE()
+    page->executeJavaScript("spellChecker.correctSpelling('" + correction + "');",
+                            NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckCorrectionActionDone));
+}
+
+void NoteEditorPrivate::onSpellCheckIgnoreWordAction()
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckIgnoreWordAction");
+
+    if (!m_spellCheckerEnabled) {
+        QNDEBUG("Not enabled, won't do anything");
+        return;
+    }
+
+    QAction * action = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!action)) {
+        QString error = QT_TR_NOOP("Internal error: can't get the action which has toggled ignoring the word for the spell check");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    const QString & text = action->text();
+    if (Q_UNLIKELY(text.isEmpty())) {
+        QNWARNING("No word to ignore");
+        return;
+    }
+
+    m_pSpellChecker->ignoreWord(text);
+    m_currentNoteMisSpelledWords.removeAll(text);
+    applySpellCheck();
+}
+
+void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction");
+
+    if (!m_spellCheckerEnabled) {
+        QNDEBUG("Not enabled, won't do anything");
+        return;
+    }
+
+    QAction * action = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!action)) {
+        QString error = QT_TR_NOOP("Internal error: can't get the action which has toggled the addition of the word to the user dictionary");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    const QString & text = action->text();
+    if (Q_UNLIKELY(text.isEmpty())) {
+        QNWARNING("No word to add to user dictionary");
+        return;
+    }
+
+    m_pSpellChecker->addToUserWordlist(text);
+    m_currentNoteMisSpelledWords.removeAll(text);
+    applySpellCheck();
+}
+
+void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckCorrectionActionDone: " << data);
+
+    Q_UNUSED(extraData)
+
+    QMap<QString,QVariant> resultMap = data.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't parse the result of spelling correction from JavaScript");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString error;
+
+        auto errorIt = resultMap.find("error");
+        if (Q_UNLIKELY(errorIt == resultMap.end())) {
+            error = QT_TR_NOOP("Internal error: can't parse the error of spelling correction from JavaScript");
+        }
+        else {
+            error = QT_TR_NOOP("Can't correct spelling: ") + errorIt.value().toString();
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    SpellCheckerUndoCommand * pCommand = new SpellCheckerUndoCommand(*this);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::cut()

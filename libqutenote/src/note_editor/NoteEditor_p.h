@@ -312,6 +312,12 @@ private Q_SLOTS:
 
     void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
 
+    void onSpellCheckCorrectionAction();
+    void onSpellCheckIgnoreWordAction();
+    void onSpellCheckAddWordToUserDictionaryAction();
+
+    void onSpellCheckCorrectionActionDone(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
+
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
     void onAddResourceDelegateError(QString error);
@@ -444,6 +450,8 @@ private:
     void enableSpellCheck();
     void disableSpellCheck();
     void refreshMisSpelledWordsList();
+
+    void applySpellCheck();
 
     bool isNoteReadOnly() const;
 

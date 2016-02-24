@@ -141,7 +141,11 @@ void MainWindow::connectActionsToEditorSlots()
     // Font combo box
     QObject::connect(m_pUI->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont), this, QNSLOT(MainWindow,onFontComboBoxFontChanged,QFont));
     // Font size combo box
+    // NOTE: something seems fishy with these two signal-slot signatures, they don't work with Qt5 connection syntax
     QObject::connect(m_pUI->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onFontSizeComboBoxIndexChanged(int)));
+    // Spell checking
+    QObject::connect(m_pUI->ActionSpellCheck, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextSpellCheckToggled));
+    QObject::connect(m_pUI->spellCheckBox, QNSIGNAL(QCheckBox,clicked,bool), m_pNoteEditor, QNSLOT(NoteEditor,setSpellcheck,bool));
     // Format actions
     QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
     QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
@@ -385,6 +389,12 @@ void MainWindow::onNoteChooseTextColor(QColor color)
 void MainWindow::onNoteChooseBackgroundColor(QColor color)
 {
     m_pNoteEditor->setBackgroundColor(color);
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onNoteTextSpellCheckToggled()
+{
+    m_pNoteEditor->setSpellcheck(m_pUI->spellCheckBox->isEnabled());
     m_pNoteEditor->setFocus();
 }
 
