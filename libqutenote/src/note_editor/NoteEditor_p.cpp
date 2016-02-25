@@ -195,6 +195,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pSpellChecker(Q_NULLPTR),
     m_spellCheckerEnabled(false),
     m_currentNoteMisSpelledWords(),
+    m_stringUtils(),
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
@@ -3838,9 +3839,42 @@ void NoteEditorPrivate::refreshMisSpelledWordsList()
 
     for(auto it = words.begin(), end = words.end(); it != end; ++it)
     {
-        const QString & word = *it;
+        const QString & originalWord = *it;
+        QNTRACE("Checking the word " << originalWord);
+
+        QString word = originalWord;
+
+        bool conversionResult = false;
+        qint32 integerNumber = word.toInt(&conversionResult);
+        if (conversionResult) {
+            QNTRACE("Skipping the integer number " << word);
+            continue;
+        }
+
+        qint64 longIntegerNumber = word.toLongLong(&conversionResult);
+        if (conversionResult) {
+            QNTRACE("Skipping the long long integer number " << word);
+            continue;
+        }
+
+        Q_UNUSED(integerNumber)
+        Q_UNUSED(longIntegerNumber)
+
+        m_stringUtils.removePunctuation(word);
+        if (word.isEmpty()) {
+            QNTRACE("Skipping the word which becomes empty after stripping off the punctuation: " << originalWord);
+            continue;
+        }
+
+        word = word.toLower();
+        word = word.trimmed();
+
+        QNTRACE("Checking the spelling of the modified word " << word);
 
         if (!m_pSpellChecker->checkSpell(word)) {
+            word = originalWord;
+            m_stringUtils.removePunctuation(word);
+            word = word.trimmed();
             m_currentNoteMisSpelledWords << word;
             QNTRACE("Misspelled word: \"" << word << "\"");
         }

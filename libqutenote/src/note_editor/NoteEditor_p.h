@@ -8,6 +8,7 @@
 #include <qute_note/note_editor/DecryptedTextManager.h>
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/EncryptionManager.h>
+#include <qute_note/utility/StringUtils.h>
 #include <qute_note/types/ResourceRecognitionIndices.h>
 #include <QObject>
 #include <QMimeType>
@@ -708,6 +709,7 @@ private:
     SpellChecker *      m_pSpellChecker;
     bool                m_spellCheckerEnabled;
     QStringList         m_currentNoteMisSpelledWords;
+    StringUtils         m_stringUtils;
 
     const QString       m_pagePrefix;
 

@@ -124,10 +124,15 @@ function Hilitor2(id, tag)
   this.remove = function()
   {
     var arr = document.getElementsByTagName(hiliteTag);
-    while(arr.length && (el = arr[0])) {
-      var parent = el.parentNode;
-      parent.replaceChild(el.firstChild, el);
-      parent.normalize();
+    try {
+      while(arr.length && (el = arr[0])) {
+        var parent = el.parentNode;
+        parent.replaceChild(el.firstChild, el);
+        parent.normalize();
+      }
+    }
+    catch(err) {
+      console.warn("Error removing the highlighting: " + err);
     }
   };
 
