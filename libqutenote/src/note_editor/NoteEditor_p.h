@@ -454,6 +454,8 @@ private:
 
     void applySpellCheck();
 
+    void onSpellCheckSetOrCleared(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
+
     bool isNoteReadOnly() const;
 
 private:

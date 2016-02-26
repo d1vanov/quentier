@@ -3814,7 +3814,7 @@ void NoteEditorPrivate::disableSpellCheck()
 
     m_currentNoteMisSpelledWords.clear();
     GET_PAGE()
-    page->executeJavaScript("SpellChecker.remove();");
+    page->executeJavaScript("spellChecker.remove();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
 }
 
 void NoteEditorPrivate::refreshMisSpelledWordsList()
@@ -3866,17 +3866,17 @@ void NoteEditorPrivate::refreshMisSpelledWordsList()
             continue;
         }
 
-        word = word.toLower();
         word = word.trimmed();
 
-        QNTRACE("Checking the spelling of the modified word " << word);
+        QNTRACE("Checking the spelling of the \"adjusted\" word " << word);
 
         if (!m_pSpellChecker->checkSpell(word)) {
+            QNTRACE("Misspelled word: \"" << word << "\"");
             word = originalWord;
             m_stringUtils.removePunctuation(word);
             word = word.trimmed();
             m_currentNoteMisSpelledWords << word;
-            QNTRACE("Misspelled word: \"" << word << "\"");
+            QNTRACE("Word added to the list: " << word);
         }
     }
 }
@@ -3894,7 +3894,18 @@ void NoteEditorPrivate::applySpellCheck()
     javascript += ");";
 
     GET_PAGE()
-    page->executeJavaScript(javascript);
+    page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
+}
+
+void NoteEditorPrivate::onSpellCheckSetOrCleared(const QVariant & dummy, const QVector<QPair<QString, QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckSetOrCleared");
+
+    Q_UNUSED(dummy)
+    Q_UNUSED(extraData)
+
+    GET_PAGE()
+    page->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 }
 
 bool NoteEditorPrivate::isNoteReadOnly() const

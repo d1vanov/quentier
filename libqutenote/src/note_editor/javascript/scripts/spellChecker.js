@@ -1,4 +1,4 @@
-function SpellChecker() {
+function SpellChecker(id, tag) {
     var undoNodes = [];
     var undoNodeInnerHtmls = [];
 
@@ -7,10 +7,11 @@ function SpellChecker() {
 
     var lastError;
 
-    var matchRegex = "";
-    var misspellTag = "EM";
-    var misspellTagClassName = "misspell";
+    var targetNode = document.getElementById(id) || document.body;
+    var misspellTag = tag || "EM";
     var skipTags = new RegExp("^(?:" + misspellTag + "|SCRIPT|FORM)$");
+    var matchRegex = "";
+    var misspellTagClassName = "misspell";
 
     this.apply = function() {
         console.log("SpellChecker::apply");
@@ -29,7 +30,7 @@ function SpellChecker() {
         observer.stop();
 
         try {
-            this.highlightMisSpelledWords(document.body);
+            this.highlightMisSpelledWords(targetNode);
         }
         finally {
             observer.start();
@@ -73,12 +74,9 @@ function SpellChecker() {
         observer.stop();
 
         try {
-            var elements = document.getElementsByClassName(misspellTagClassName);
-            var element;
-            while(elements.length && (element = elements[0])) {
-                var parent = element.parentNode;
-                parent.replaceChild(element.firstChild, element);
-                parent.normalize();
+            var elements = document.querySelectorAll("." + misspellTagClassName);
+            for(var index = 0; index < elements.length; ++index) {
+                elements[index].outerHTML = elements[index].innerHTML;
             }
         }
         catch(err) {
@@ -93,9 +91,8 @@ function SpellChecker() {
         input = input.replace(/\\([^u]|$)/g, "$1");
         input = input.replace(/[^\w\\\s']+/g, "");
         input = input.replace(/\s+/g, "|");
-        // var re = "(?:^|[\\b\\s])" + "(" + input + ")" + "(?:[\\b\\s]|$)";
-        var re = "(" + input + ")";
-        var flags; // = "i";
+        var re = "(?:^|[\\b\\s])" + "(" + input + ")" + "(?:[\\b\\s]|$)";
+        var flags = "i";
         console.log("Search regex: " + re + "; flags: " + flags);
         matchRegex = new RegExp(re, flags);
     }
@@ -112,10 +109,6 @@ function SpellChecker() {
             return;
         }
 
-        console.log("Checking the node: type = " + node.nodeType + "; node value: " + node.nodeValue +
-                    "; text content = " + node.textContent + "; inner HTML = " + node.innerHTML +
-                    "; wholeText = " + node.wholeText + "; data = " + node.data);
-
         if (skipTags.test(node.nodeName)) {
             var nodeClasses = node.classList;
             if (nodeClasses && nodeClasses.contains(misspellTagClassName)) {
@@ -125,8 +118,7 @@ function SpellChecker() {
         }
 
         if (node.hasChildNodes()) {
-            var numChildNodes = node.childNodes.length;
-            for(var i = 0; i < numChildNodes; i++) {
+            for(var i = 0; i < node.childNodes.length; i++) {
                 this.highlightMisSpelledWords(node.childNodes[i]);
             }
         }
@@ -134,6 +126,15 @@ function SpellChecker() {
         if (node.nodeType == 3) {
             var nv = node.nodeValue;
             console.log("Found text node to check: node value = " + nv);
+
+            var trimmedNv = nv;
+            trimmedNv = trimmedNv.replace(/\s+/g, "");
+            trimmedNv = trimmedNv.replace(/(\r\n|\n|\r)/gm, "");
+            if (trimmedNv == "") {
+                console.log("Skipping string which is empty after removing the whitespace characters; original string: " + nv +
+                            "; processed string: " + trimmedNv);
+                return;
+            }
 
             var regs;
             if (nv) {

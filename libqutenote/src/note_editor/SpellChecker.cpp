@@ -70,22 +70,33 @@ void SpellChecker::disableDictionary(const QString & language)
 
 bool SpellChecker::checkSpell(const QString & word) const
 {
+    QNDEBUG("SpellChecker::checkSpell: " << word);
+
     if (m_userDictionary.contains(word, Qt::CaseInsensitive)) {
         return true;
     }
 
     QByteArray wordData = word.toUtf8();
+    QByteArray lowerWordData = word.toLower().toUtf8();
 
     for(auto it = m_systemDictionaries.begin(), end = m_systemDictionaries.end(); it != end; ++it)
     {
         const Dictionary & dictionary = it.value();
 
         if (dictionary.isEmpty() || !dictionary.m_enabled) {
+            QNTRACE("Skipping dictionary " << dictionary.m_dictionaryPath);
             continue;
         }
 
         int res = dictionary.m_pHunspell->spell(wordData.constData());
         if (res != 0) {
+            QNTRACE("Found word " << word << " in dictionary " << dictionary.m_dictionaryPath);
+            return true;
+        }
+
+        res = dictionary.m_pHunspell->spell(lowerWordData.constData());
+        if (res != 0) {
+            QNTRACE("Found word " << lowerWordData << " in dictionary " << dictionary.m_dictionaryPath);
             return true;
         }
     }
@@ -312,6 +323,7 @@ void SpellChecker::addSystemDictionary(const QString & path, const QString & nam
 
     Dictionary & dictionary = m_systemDictionaries[name];
     dictionary.m_pHunspell = QSharedPointer<Hunspell>(new Hunspell(rawAffixFilePath, rawDictionaryFilePath));
+    dictionary.m_dictionaryPath = dictionaryFileInfo.absoluteFilePath();
     dictionary.m_enabled = true;
     QNTRACE("Added dictionary for language " << name << "; dictionary file " << dictionaryFileInfo.absoluteFilePath()
             << ", affix file " << affixFileInfo.absoluteFilePath());
