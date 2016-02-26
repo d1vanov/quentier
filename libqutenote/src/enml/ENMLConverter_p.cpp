@@ -581,9 +581,11 @@ bool ENMLConverterPrivate::noteContentToPlainText(const QString & noteContent, Q
     QXmlStreamReader reader(noteContent);
     QString lastElementName;
 
+    bool skipIteration = false;
     while(!reader.atEnd())
     {
         Q_UNUSED(reader.readNext());
+
 
         if (reader.isStartDocument()) {
             continue;
@@ -597,15 +599,27 @@ bool ENMLConverterPrivate::noteContentToPlainText(const QString & noteContent, Q
             break;
         }
 
-        if (reader.isStartElement()) {
+        if (reader.isStartElement())
+        {
+            const QStringRef element = reader.name();
+            if ((element == "en-media") || (element == "en-crypt")) {
+                skipIteration = true;
+            }
+
             continue;
         }
 
-        if (reader.isEndElement()) {
+        if (reader.isEndElement())
+        {
+            const QStringRef element = reader.name();
+            if ((element == "en-media") || (element == "en-crypt")) {
+                skipIteration = false;
+            }
+
             continue;
         }
 
-        if (reader.isCharacters()) {
+        if (reader.isCharacters() && !skipIteration) {
             plainText += reader.text();
         }
     }
