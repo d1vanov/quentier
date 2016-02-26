@@ -122,8 +122,13 @@ QStringList SpellChecker::spellCorrectionSuggestions(const QString & misSpelledW
         char **rawCorrectionSuggestions = Q_NULLPTR;
 
         int numSuggestions = dictionary.m_pHunspell->suggest(&rawCorrectionSuggestions, wordData.constData());
-        for(int i = 0; i < numSuggestions; ++i) {
-            result << QString::fromUtf8(rawCorrectionSuggestions[i]);
+        for(int i = 0; i < numSuggestions; ++i)
+        {
+            QString suggestion = QString::fromUtf8(rawCorrectionSuggestions[i]);
+            if (!result.contains(suggestion)) {
+                result << suggestion;
+            }
+
             free(rawCorrectionSuggestions[i]);
         }
     }

@@ -21,6 +21,7 @@
         <file>provideSrcForGenericResourceImages.js</file>
         <file>onGenericResourceImageReceived.js</file>
         <file>notifyTextCursorPositionChanged.js</file>
+        <file>findInnermostElement.js</file>
         <file>determineStatesForCurrentTextCursorPosition.js</file>
         <file>determineContextMenuEventTarget.js</file>
         <file>genericResourceOnClickHandler.js</file>

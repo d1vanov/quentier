@@ -124,6 +124,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_setupEnToDoTagsJs(),
     m_flipEnToDoCheckboxStateJs(),
     m_onResourceInfoReceivedJs(),
+    m_findInnermostElementJs(),
     m_determineStatesForCurrentTextCursorPositionJs(),
     m_determineContextMenuEventTargetJs(),
     m_changeFontSizeForSelectionJs(),
@@ -211,6 +212,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_lastSelectedHtml(),
     m_lastSelectedHtmlForEncryption(),
     m_lastSelectedHtmlForHyperlink(),
+    m_lastMisSpelledWord(),
     m_lastSearchHighlightedText(),
     m_lastSearchHighlightedTextCaseSensitivity(false),
     m_enmlCachedMemory(),
@@ -346,6 +348,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_notifyTextCursorPositionChangedJs);
 #endif
 
+    page->executeJavaScript(m_findInnermostElementJs);
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_onTableResizeJs);
@@ -3039,6 +3042,9 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     m_lastSelectedHtml = selectedHtml;
 
+    delete m_pGenericTextContextMenu;
+    m_pGenericTextContextMenu = new QMenu(this);
+
 #define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
     { \
         QAction * action = new QAction(tr(name), menu); \
@@ -3062,6 +3068,8 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     if (!misSpelledWord.isEmpty())
     {
+        m_lastMisSpelledWord = misSpelledWord;
+
         QStringList correctionSuggestions = m_pSpellChecker->spellCorrectionSuggestions(misSpelledWord);
         if (!correctionSuggestions.isEmpty())
         {
@@ -3069,13 +3077,18 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
             for(int i = 0; i < numCorrectionSuggestions; ++i)
             {
                 const QString & correctionSuggestion = correctionSuggestions[i];
+                if (Q_UNLIKELY(correctionSuggestion.isEmpty())) {
+                    continue;
+                }
 
                 QAction * action = new QAction(correctionSuggestion, m_pGenericTextContextMenu);
                 action->setText(correctionSuggestion);
                 action->setToolTip(tr("Correct the misspelled word"));
                 QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,onSpellCheckCorrectionAction));
+                m_pGenericTextContextMenu->addAction(action);
             }
 
+            Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
             ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckIgnoreWord, "Ignore word",
                                      m_pGenericTextContextMenu, onSpellCheckIgnoreWordAction);
             ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckAddWordToUserDictionary, "Add word to user dictionary",
@@ -3101,9 +3114,6 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
         m_currentContextMenuExtraData.m_hint = hint;
         m_currentContextMenuExtraData.m_id = id;
     }
-
-    delete m_pGenericTextContextMenu;
-    m_pGenericTextContextMenu = new QMenu(this);
 
     if (!selectedHtml.isEmpty()) {
         ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pGenericTextContextMenu, cut);
@@ -3394,6 +3404,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/updateImageResourceSrc.js", m_updateImageResourceSrcJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForResourceImgTags.js", m_provideSrcForResourceImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/onResourceInfoReceived.js", m_onResourceInfoReceivedJs);
+    SETUP_SCRIPT("javascript/scripts/findInnermostElement.js", m_findInnermostElementJs);
     SETUP_SCRIPT("javascript/scripts/determineStatesForCurrentTextCursorPosition.js", m_determineStatesForCurrentTextCursorPositionJs);
     SETUP_SCRIPT("javascript/scripts/determineContextMenuEventTarget.js", m_determineContextMenuEventTargetJs);
     SETUP_SCRIPT("javascript/scripts/changeFontSizeForSelection.js", m_changeFontSizeForSelectionJs);
@@ -4498,22 +4509,8 @@ void NoteEditorPrivate::onSpellCheckIgnoreWordAction()
         return;
     }
 
-    QAction * action = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!action)) {
-        QString error = QT_TR_NOOP("Internal error: can't get the action which has toggled ignoring the word for the spell check");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    const QString & text = action->text();
-    if (Q_UNLIKELY(text.isEmpty())) {
-        QNWARNING("No word to ignore");
-        return;
-    }
-
-    m_pSpellChecker->ignoreWord(text);
-    m_currentNoteMisSpelledWords.removeAll(text);
+    m_pSpellChecker->ignoreWord(m_lastMisSpelledWord);
+    m_currentNoteMisSpelledWords.removeAll(m_lastMisSpelledWord);
     applySpellCheck();
 }
 
@@ -4526,22 +4523,8 @@ void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
         return;
     }
 
-    QAction * action = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!action)) {
-        QString error = QT_TR_NOOP("Internal error: can't get the action which has toggled the addition of the word to the user dictionary");
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
-
-    const QString & text = action->text();
-    if (Q_UNLIKELY(text.isEmpty())) {
-        QNWARNING("No word to add to user dictionary");
-        return;
-    }
-
-    m_pSpellChecker->addToUserWordlist(text);
-    m_currentNoteMisSpelledWords.removeAll(text);
+    m_pSpellChecker->addToUserWordlist(m_lastMisSpelledWord);
+    m_currentNoteMisSpelledWords.removeAll(m_lastMisSpelledWord);
     applySpellCheck();
 }
 
@@ -4581,6 +4564,8 @@ void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, 
 
     SpellCheckerUndoCommand * pCommand = new SpellCheckerUndoCommand(*this);
     m_pUndoStack->push(pCommand);
+
+    applySpellCheck();
 }
 
 void NoteEditorPrivate::cut()

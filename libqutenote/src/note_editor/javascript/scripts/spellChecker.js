@@ -41,7 +41,8 @@ function SpellChecker(id, tag) {
         console.log("SpellChecker::correctSpelling: " << correction);
 
         var selection = window.getSelection();
-        if (!selection || !selection.anchorNode || selection.anchorNode.parentNode) {
+        if ( (!selection || !selection.anchorNode || !selection.anchorNode.parentNode) ||
+             ((selection.anchorNode.parentNode !== document.body) && !selection.anchorNode.parentNode.parentNode) ) {
             lastError = "Can't correct spelling: no proper selection";
             console.warn(lastError);
             return { status:false, error:lastError };
@@ -53,8 +54,13 @@ function SpellChecker(id, tag) {
             return { status:false, error:lastError };
         }
 
-        undoNodes.push(selection.anchorNode.parentNode);
-        undoNodeInnerHtmls.push(selection.anchorNode.parentNode.innerHTML);
+        var sourceNode = selection.anchorNode.parentNode;
+        if (sourceNode.parentNode) {
+            sourceNode = sourceNode.parentNode;
+        }
+
+        undoNodes.push(sourceNode);
+        undoNodeInnerHtmls.push(sourceNode.innerHTML);
 
         observer.stop();
 
@@ -176,7 +182,7 @@ function SpellChecker(id, tag) {
 
     this.undoRedoImpl = function(sourceNodes, sourceNodeInnerHtmls,
                                  destNodes, destNodeInnerHtmls, performingUndo) {
-        console.log("tableManager.undoRedoImpl: performingUndo = " + (performingUndo ? "true" : "false"));
+        console.log("SpellChecker::undoRedoImpl: performingUndo = " + (performingUndo ? "true" : "false"));
 
         var actionString = (performingUndo ? "undo" : "redo");
 

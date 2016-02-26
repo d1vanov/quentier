@@ -25,6 +25,15 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
 
     // get context menu event target
     var element = document.elementFromPoint(x, y);
+    console.log("Element from point: " + element.outerHTML);
+
+    if (element.hasChildNodes()) {
+        var deepest = findInnermostElement(element);
+        if (deepest.deepestElem) {
+            element = deepest.deepestElem;
+        }
+    }
+
     console.log("Context menu event target: " + element.outerHTML);
 
     while(element) {
@@ -37,8 +46,10 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
             }
         }
 
-        var elementClasses = element.classList;
-        if (elementClasses && elementClasses.contains("misspell")) {
+        var elementClass = ' ' + element.className + ' ';
+        console.log("Checking the element with class " + elementClass);
+
+        if (elementClass.indexOf(' misspell ') > -1) {
             misSpelledWord = element.textContent;
         }
 

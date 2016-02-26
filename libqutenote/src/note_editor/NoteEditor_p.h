@@ -605,6 +605,7 @@ private:
     QString     m_setupEnToDoTagsJs;
     QString     m_flipEnToDoCheckboxStateJs;
     QString     m_onResourceInfoReceivedJs;
+    QString     m_findInnermostElementJs;
     QString     m_determineStatesForCurrentTextCursorPositionJs;
     QString     m_determineContextMenuEventTargetJs;
     QString     m_changeFontSizeForSelectionJs;
@@ -718,6 +719,8 @@ private:
     QString     m_lastSelectedHtml;
     QString     m_lastSelectedHtmlForEncryption;
     QString     m_lastSelectedHtmlForHyperlink;
+
+    QString     m_lastMisSpelledWord;
 
     mutable QString   m_lastSearchHighlightedText;
     mutable bool      m_lastSearchHighlightedTextCaseSensitivity;
