@@ -3916,7 +3916,12 @@ void NoteEditorPrivate::onSpellCheckSetOrCleared(const QVariant & dummy, const Q
     Q_UNUSED(extraData)
 
     GET_PAGE()
+#ifndef USE_QT_WEB_ENGINE
+    m_htmlCachedMemory = page->mainFrame()->toHtml();
+    onPageHtmlReceived(m_htmlCachedMemory);
+#else
     page->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
+#endif
 }
 
 bool NoteEditorPrivate::isNoteReadOnly() const
