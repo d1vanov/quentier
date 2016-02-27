@@ -1,8 +1,12 @@
 .misspell {
+    display: inline-block;
+    position: relative;
+}
+.misspell:before {
     content: "~~~~~~~~~~~~";
     font-size: 0.6em;
     font-weight: 700;
-    font-family: Times New Roman, Serif
+    font-family: Times New Roman, Serif;
     color: red;
     width: 100%;
     position: absolute;
