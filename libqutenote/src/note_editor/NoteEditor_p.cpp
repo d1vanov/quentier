@@ -31,7 +31,7 @@
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
 #include "undo_stack/ReplaceUndoCommand.h"
 #include "undo_stack/ReplaceAllUndoCommand.h"
-#include "undo_stack/SpellCheckerUndoCommand.h"
+#include "undo_stack/SpellCorrectionUndoCommand.h"
 #include "undo_stack/TableActionUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
@@ -4568,7 +4568,7 @@ void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, 
         return;
     }
 
-    SpellCheckerUndoCommand * pCommand = new SpellCheckerUndoCommand(*this);
+    SpellCorrectionUndoCommand * pCommand = new SpellCorrectionUndoCommand(*this);
     m_pUndoStack->push(pCommand);
 
     applySpellCheck();

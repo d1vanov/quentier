@@ -1,4 +1,4 @@
-#include "SpellCheckerUndoCommand.h"
+#include "SpellCorrectionUndoCommand.h"
 #include "../NoteEditor_p.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 
@@ -12,26 +12,26 @@ namespace qute_note {
         return; \
     }
 
-SpellCheckerUndoCommand::SpellCheckerUndoCommand(NoteEditorPrivate & noteEditor, QUndoCommand * parent) :
+SpellCorrectionUndoCommand::SpellCorrectionUndoCommand(NoteEditorPrivate & noteEditor, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, parent)
 {
     setText(QObject::tr("Spelling correction"));
 }
 
-SpellCheckerUndoCommand::SpellCheckerUndoCommand(NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent) :
+SpellCorrectionUndoCommand::SpellCorrectionUndoCommand(NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, text, parent)
 {}
 
-SpellCheckerUndoCommand::~SpellCheckerUndoCommand()
+SpellCorrectionUndoCommand::~SpellCorrectionUndoCommand()
 {}
 
-void SpellCheckerUndoCommand::redoImpl()
+void SpellCorrectionUndoCommand::redoImpl()
 {
     GET_PAGE()
     page->executeJavaScript("spellChecker.redo();");
 }
 
-void SpellCheckerUndoCommand::undoImpl()
+void SpellCorrectionUndoCommand::undoImpl()
 {
     GET_PAGE()
     page->executeJavaScript("spellChecker.undo();");
