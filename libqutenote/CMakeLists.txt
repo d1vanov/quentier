@@ -429,6 +429,7 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 endif()
 
 set(RESOURCES
+    src/note_editor/images/underline.qrc
     src/note_editor/css/css.qrc
     src/note_editor/images/icons/checkbox_icons/checkbox_icons.qrc
     src/note_editor/images/icons/encrypted_area_icons/encrypted_area_icons.qrc

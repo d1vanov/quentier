@@ -5819,6 +5819,7 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 
 void __initNoteEditorResources()
 {
+    Q_INIT_RESOURCE(underline);
     Q_INIT_RESOURCE(css);
     Q_INIT_RESOURCE(checkbox_icons);
     Q_INIT_RESOURCE(encrypted_area_icons);

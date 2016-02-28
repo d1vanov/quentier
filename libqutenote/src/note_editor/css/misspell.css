@@ -1,16 +1,3 @@
 .misspell {
-    display: inline-block;
-    position: relative;
-}
-.misspell:before {
-    content: "~~~~~~~~~~~~";
-    font-size: 0.6em;
-    font-weight: 700;
-    font-family: Times New Roman, Serif;
-    color: red;
-    width: 100%;
-    position: absolute;
-    top: 12px;
-    left: -1px;
-    overflow: hidden;
+    background: url(qrc:/underline.gif) bottom repeat-x;
 }
