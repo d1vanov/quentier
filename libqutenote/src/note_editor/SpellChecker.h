@@ -32,7 +32,9 @@ public:
     bool checkSpell(const QString & word) const;
     QStringList spellCorrectionSuggestions(const QString & misSpelledWord) const;
     void addToUserWordlist(const QString & word);
+    void removeFromUserWordList(const QString & word);
     void ignoreWord(const QString & word);
+    void removeWord(const QString & word);
 
 Q_SIGNALS:
     void ready();
@@ -49,6 +51,9 @@ private:
     bool checkUserDictionaryPath(const QString & userDictionaryPath) const;
 
     void checkUserDictionaryDataPendingWriting();
+
+    void onAppendUserDictionaryPartDone(bool success, QString errorDescription);
+    void onUpdateUserDictionaryDone(bool success, QString errorDescription);
 
 private Q_SLOTS:
     void onReadFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId);
@@ -81,6 +86,8 @@ private:
 
     QStringList                 m_userDictionaryPartPendingWriting;
     QUuid                       m_appendUserDictionaryPartToFileRequestId;
+
+    QUuid                       m_updateUserDictionaryFileRequestId;
 };
 
 } // namespace qute_note

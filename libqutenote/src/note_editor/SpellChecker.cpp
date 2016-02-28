@@ -19,7 +19,10 @@ SpellChecker::SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * p
     m_readUserDictionaryRequestId(),
     m_userDictionaryPath(),
     m_userDictionary(),
-    m_userDictionaryReady(false)
+    m_userDictionaryReady(false),
+    m_userDictionaryPartPendingWriting(),
+    m_appendUserDictionaryPartToFileRequestId(),
+    m_updateUserDictionaryFileRequestId()
 {
     initializeUserDictionary(userDictionaryPath);
     scanSystemDictionaries();
@@ -147,6 +150,31 @@ void SpellChecker::addToUserWordlist(const QString & word)
     checkUserDictionaryDataPendingWriting();
 }
 
+void SpellChecker::removeFromUserWordList(const QString & word)
+{
+    QNDEBUG("SpellChecker::removeFromUserWordList: " << word);
+
+    removeWord(word);
+
+    m_userDictionaryPartPendingWriting.removeAll(word);
+    m_userDictionary.removeAll(word);
+
+    QByteArray dataToWrite;
+    for(auto it = m_userDictionary.begin(), end = m_userDictionary.end(); it != end; ++it) {
+        dataToWrite.append(*it);
+    }
+
+    QObject::connect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                     this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
+
+    m_updateUserDictionaryFileRequestId = QUuid::createUuid();
+    emit writeFile(m_userDictionaryPath, dataToWrite, m_updateUserDictionaryFileRequestId, /* append = */ false);
+    QNTRACE("Sent the request to update the user dictionary: "
+            << m_updateUserDictionaryFileRequestId);
+}
+
 void SpellChecker::ignoreWord(const QString & word)
 {
     QNDEBUG("SpellChecker::ignoreWord: " << word);
@@ -162,6 +190,24 @@ void SpellChecker::ignoreWord(const QString & word)
         }
 
         dictionary.m_pHunspell->add(wordData.constData());
+    }
+}
+
+void SpellChecker::removeWord(const QString & word)
+{
+    QNDEBUG("SpellChecker::removeWord: " << word);
+
+    QByteArray wordData = word.toUtf8();
+
+    for(auto it = m_systemDictionaries.begin(), end = m_systemDictionaries.end(); it != end; ++it)
+    {
+        Dictionary & dictionary = it.value();
+
+        if (dictionary.isEmpty() || !dictionary.m_enabled) {
+            continue;
+        }
+
+        dictionary.m_pHunspell->remove(wordData.constData());
     }
 }
 
@@ -616,19 +662,32 @@ void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescrip
 
 void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
 {
-    if (requestId != m_appendUserDictionaryPartToFileRequestId) {
+    if (requestId == m_appendUserDictionaryPartToFileRequestId) {
+        onAppendUserDictionaryPartDone(success, errorDescription);
+    }
+    else if (requestId == m_updateUserDictionaryFileRequestId) {
+        onUpdateUserDictionaryDone(success, errorDescription);
+    }
+    else {
         return;
     }
 
-    QNDEBUG("SpellChecker::onWriteFileRequestProcessed: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription << ", request id = " << requestId);
+    if (m_appendUserDictionaryPartToFileRequestId.isNull() &&
+        m_updateUserDictionaryFileRequestId.isNull())
+    {
+        QObject::disconnect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
+                            m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+        QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
+                            this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
+    }
+}
+
+void SpellChecker::onAppendUserDictionaryPartDone(bool success, QString errorDescription)
+{
+    QNDEBUG("SpellChecker::onAppendUserDictionaryPartDone: success = " << (success ? "true" : "false")
+            << ", error description = " << errorDescription);
 
     m_appendUserDictionaryPartToFileRequestId = QUuid();
-
-    QObject::disconnect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
-                        m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                        this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
 
     if (Q_UNLIKELY(!success)) {
         QNWARNING("Can't update user dictionary file: " << errorDescription);
@@ -636,6 +695,19 @@ void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescri
     }
 
     checkUserDictionaryDataPendingWriting();
+}
+
+void SpellChecker::onUpdateUserDictionaryDone(bool success, QString errorDescription)
+{
+    QNDEBUG("SpellChecker::onUpdateUserDictionaryDone: success = " << (success ? "true" : "false")
+            << ", error description = " << errorDescription);
+
+    m_updateUserDictionaryFileRequestId = QUuid();
+
+    if (Q_UNLIKELY(!success)) {
+        QNWARNING("Can't update user dictionary file: " << errorDescription);
+        return;
+    }
 }
 
 SpellChecker::Dictionary::Dictionary() :
