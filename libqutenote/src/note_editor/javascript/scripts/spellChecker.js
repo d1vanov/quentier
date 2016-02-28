@@ -187,25 +187,29 @@ function SpellChecker(id, tag) {
         var actionString = (performingUndo ? "undo" : "redo");
 
         if (!sourceNodes) {
-            console.warn("Can't " + actionString + " the spell check correction action: no source nodes helper array");
-            return false;
+            lastError = "Can't " + actionString + " the spell check correction action: no source nodes helper array";
+            console.warn(lastError);
+            return { status:false, error:lastError };
         }
 
         if (!sourceNodeInnerHtmls) {
-            console.warn("Can't " + actionString + " the spell check correction action: no source node inner html helper array");
-            return false;
+            lastError = "Can't " + actionString + " the spell check correction action: no source node inner html helper array";
+            console.warn(lastError);
+            return { status:false, error:lastError };
         }
 
         var sourceNode = sourceNodes.pop();
         if (!sourceNode) {
-            console.warn("Can't " + actionString + " the spell check correction action: no source node");
-            return false;
+            lastError = "Can't " + actionString + " the spell check correction action: no source node";
+            console.warn(lastError);
+            return { status:false, error:lastError };
         }
 
         var sourceNodeInnerHtml = sourceNodeInnerHtmls.pop();
         if (!sourceNodeInnerHtml) {
-            console.warn("Can't " + actionString + " the table action: no source node's inner html");
-            return false;
+            lastError = "Can't " + actionString + " the table action: no source node's inner html";
+            console.warn(lastError);
+            return { status:false, error:lastError };
         }
 
         destNodes.push(sourceNode);
@@ -221,6 +225,8 @@ function SpellChecker(id, tag) {
         finally {
             observer.start();
         }
+
+        return { status:true, error:"" };
     }
 }
 
