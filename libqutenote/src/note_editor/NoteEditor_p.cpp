@@ -33,6 +33,7 @@
 #include "undo_stack/ReplaceAllUndoCommand.h"
 #include "undo_stack/SpellCorrectionUndoCommand.h"
 #include "undo_stack/SpellCheckIgnoreWordUndoCommand.h"
+#include "undo_stack/SpellCheckAddToUserWordListUndoCommand.h"
 #include "undo_stack/TableActionUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
@@ -4536,6 +4537,9 @@ void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
     m_pSpellChecker->addToUserWordlist(m_lastMisSpelledWord);
     m_currentNoteMisSpelledWords.removeAll(m_lastMisSpelledWord);
     applySpellCheck();
+
+    SpellCheckAddToUserWordListUndoCommand * pCommand = new SpellCheckAddToUserWordListUndoCommand(*this, m_lastMisSpelledWord, m_pSpellChecker);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, const QVector<QPair<QString,QString> > & extraData)

@@ -227,6 +227,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/ReplaceAllUndoCommand.h
     src/note_editor/undo_stack/SpellCorrectionUndoCommand.h
     src/note_editor/undo_stack/SpellCheckIgnoreWordUndoCommand.h
+    src/note_editor/undo_stack/SpellCheckAddToUserWordListUndoCommand.h
     src/note_editor/undo_stack/TableActionUndoCommand.h
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.h
     src/types/data/DataElementWithShortcutData.h
@@ -325,6 +326,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/ReplaceAllUndoCommand.cpp
     src/note_editor/undo_stack/SpellCorrectionUndoCommand.cpp
     src/note_editor/undo_stack/SpellCheckIgnoreWordUndoCommand.cpp
+    src/note_editor/undo_stack/SpellCheckAddToUserWordListUndoCommand.cpp
     src/note_editor/undo_stack/TableActionUndoCommand.cpp
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.cpp
     src/types/ISharedNotebook.cpp

@@ -161,7 +161,7 @@ void SpellChecker::removeFromUserWordList(const QString & word)
 
     QByteArray dataToWrite;
     for(auto it = m_userDictionary.begin(), end = m_userDictionary.end(); it != end; ++it) {
-        dataToWrite.append(*it);
+        dataToWrite.append(*it + "\n");
     }
 
     QObject::connect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
@@ -597,7 +597,7 @@ void SpellChecker::checkUserDictionaryDataPendingWriting()
     QByteArray dataToWrite;
     for(auto it = m_userDictionaryPartPendingWriting.begin(), end = m_userDictionaryPartPendingWriting.end(); it != end; ++it) {
         m_userDictionary << *it;
-        dataToWrite.append(*it);
+        dataToWrite.append(*it + "\n");
     }
 
     if (!dataToWrite.isEmpty())
