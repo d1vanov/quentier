@@ -144,6 +144,9 @@ public:
     quint64 GetFreeEncryptedTextId() { return m_lastFreeEnCryptIdNumber++; }
     quint64 GetFreeDecryptedTextId() { return m_lastFreeEnDecryptedIdNumber++; }
 
+    void refreshMisSpelledWordsList();
+    void applySpellCheck();
+
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
     virtual QWidget * widget() Q_DECL_OVERRIDE { return this; }
@@ -183,6 +186,7 @@ public Q_SLOTS:
 
     virtual void insertToDoCheckbox() Q_DECL_OVERRIDE;
     virtual void setSpellcheck(const bool enabled) Q_DECL_OVERRIDE;
+    virtual bool spellCheckEnabled() const Q_DECL_OVERRIDE;
     virtual void setFont(const QFont & font) Q_DECL_OVERRIDE;
     virtual void setFontHeight(const int height) Q_DECL_OVERRIDE;
     virtual void setFontColor(const QColor & color) Q_DECL_OVERRIDE;
@@ -451,9 +455,6 @@ private:
 
     void enableSpellCheck();
     void disableSpellCheck();
-    void refreshMisSpelledWordsList();
-
-    void applySpellCheck();
 
     void onSpellCheckSetOrCleared(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 

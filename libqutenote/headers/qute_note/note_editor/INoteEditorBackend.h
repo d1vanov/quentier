@@ -54,6 +54,7 @@ public:
     virtual void insertToDoCheckbox() = 0;
 
     virtual void setSpellcheck(const bool enabled) = 0;
+    virtual bool spellCheckEnabled() const = 0;
 
     virtual void setFont(const QFont & font) = 0;
     virtual void setFontHeight(const int height) = 0;

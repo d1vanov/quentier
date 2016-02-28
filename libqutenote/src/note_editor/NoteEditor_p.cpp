@@ -32,6 +32,7 @@
 #include "undo_stack/ReplaceUndoCommand.h"
 #include "undo_stack/ReplaceAllUndoCommand.h"
 #include "undo_stack/SpellCorrectionUndoCommand.h"
+#include "undo_stack/SpellCheckIgnoreWordUndoCommand.h"
 #include "undo_stack/TableActionUndoCommand.h"
 
 #ifndef USE_QT_WEB_ENGINE
@@ -4518,6 +4519,9 @@ void NoteEditorPrivate::onSpellCheckIgnoreWordAction()
     m_pSpellChecker->ignoreWord(m_lastMisSpelledWord);
     m_currentNoteMisSpelledWords.removeAll(m_lastMisSpelledWord);
     applySpellCheck();
+
+    SpellCheckIgnoreWordUndoCommand * pCommand = new SpellCheckIgnoreWordUndoCommand(*this, m_lastMisSpelledWord, m_pSpellChecker);
+    m_pUndoStack->push(pCommand);
 }
 
 void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
@@ -4898,6 +4902,11 @@ void NoteEditorPrivate::setSpellcheck(const bool enabled)
     }
 
     setFocus();
+}
+
+bool NoteEditorPrivate::spellCheckEnabled() const
+{
+    return m_spellCheckerEnabled;
 }
 
 void NoteEditorPrivate::setFont(const QFont & font)

@@ -87,6 +87,7 @@ public Q_SLOTS:
     void insertToDoCheckbox();
 
     void setSpellcheck(const bool enabled);
+    virtual bool spellCheckEnabled() const;
 
     void setFont(const QFont & font);
     void setFontHeight(const int height);

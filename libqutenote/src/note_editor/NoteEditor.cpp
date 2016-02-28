@@ -169,6 +169,11 @@ void NoteEditor::setSpellcheck(const bool enabled)
     m_backend->setSpellcheck(enabled);
 }
 
+bool NoteEditor::spellCheckEnabled() const
+{
+    return m_backend->spellCheckEnabled();
+}
+
 void NoteEditor::setFont(const QFont & font)
 {
     m_backend->setFont(font);
