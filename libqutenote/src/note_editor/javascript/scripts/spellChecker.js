@@ -7,6 +7,8 @@ function SpellChecker(id, tag) {
 
     var lastError;
 
+    var dynamicModeOn = false;
+
     var targetNode = document.getElementById(id) || document.body;
     var misspellTag = tag || "EM";
     var skipTags = new RegExp("^(?:" + misspellTag + "|SCRIPT|FORM)$");
@@ -167,6 +169,67 @@ function SpellChecker(id, tag) {
                 node.parentNode.insertBefore(match, after);
             }
         }
+    }
+
+    this.enableDynamic = function() {
+        console.log("SpellChecker::enableDynamic");
+
+        if (dynamicModeOn) {
+            console.log("The dynamic mode is already enabled, nothing to do");
+            return;
+        }
+
+        document.body.addEventListener("keyup", this.dynamicCheck);
+        dynamicModeOn = true;
+    }
+
+    this.disableDynamic = function() {
+        console.log("SpellChecker::disableDynamic");
+
+        document.body.removeEventListener("keyup", this.dynamicCheck);
+        dynamicModeOn = false;
+    }
+
+    this.dynamicCheck = function(event) {
+        var keyCode = event.keyCode;
+        if ( (keyCode != 8) &&
+             (keyCode != 9) &&
+             (keyCode != 13) &&
+             (keyCode != 32) &&
+             (keyCode != 106) &&
+             (keyCode != 107) &&
+             (keyCode != 109) &&
+             (keyCode != 110) &&
+             (keyCode != 111) &&
+             (keyCode != 186) &&
+             (keyCode != 187) &&
+             (keyCode != 188) &&
+             (keyCode != 189) &&
+             (keyCode != 190) &&
+             (keyCode != 191) &&
+             (keyCode != 192) &&
+             (keyCode != 219) &&
+             (keyCode != 220) &&
+             (keyCode != 221) )
+        {
+            return;
+        }
+
+        var range = window.getSelection().getRangeAt(0);
+        if (!range.collapsed) {
+            return;
+        }
+
+        var words = [];
+        var text = range.startContainer.textContent.substring(0, range.startOffset + 1);
+        if (text.indexOf(" ") > 0) {
+            words = text.split(" ");
+        }
+        else {
+            words.push(text);
+        }
+
+        spellCheckerDynamicHelper.setLastEnteredWords(words);
     }
 
     this.undo = function() {

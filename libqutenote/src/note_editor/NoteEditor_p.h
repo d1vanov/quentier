@@ -53,6 +53,7 @@ QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(RenameResourceDelegate)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
+QT_FORWARD_DECLARE_CLASS(SpellCheckerDynamicHelper)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
@@ -146,6 +147,8 @@ public:
 
     void refreshMisSpelledWordsList();
     void applySpellCheck();
+    void enableDynamicSpellCheck();
+    void disableDynamicSpellCheck();
 
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
@@ -323,6 +326,7 @@ private Q_SLOTS:
 
     void onSpellCheckCorrectionActionDone(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
     void onSpellCheckCorrectionUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
+    void onSpellCheckerDynamicHelperUpdate(QStringList words);
 
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
@@ -645,10 +649,11 @@ private:
     quint16     m_webSocketServerPort;
 #endif
 
-    TableResizeJavaScriptHandler * m_pTableResizeJavaScriptHandler;
-    GenericResourceImageWriter * m_pGenericResourceImageWriter;
-    ToDoCheckboxOnClickHandler * m_pToDoCheckboxClickHandler;
-    PageMutationHandler * m_pPageMutationHandler;
+    SpellCheckerDynamicHelper *     m_pSpellCheckerDynamicHandler;
+    TableResizeJavaScriptHandler *  m_pTableResizeJavaScriptHandler;
+    GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    ToDoCheckboxOnClickHandler *    m_pToDoCheckboxClickHandler;
+    PageMutationHandler *           m_pPageMutationHandler;
 
     QUndoStack * m_pUndoStack;
 

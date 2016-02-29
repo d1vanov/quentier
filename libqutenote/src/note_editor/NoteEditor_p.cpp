@@ -17,6 +17,7 @@
 #include "javascript_glue/PageMutationHandler.h"
 #include "javascript_glue/ToDoCheckboxOnClickHandler.h"
 #include "javascript_glue/TableResizeJavaScriptHandler.h"
+#include "javascript_glue/SpellCheckerDynamicHelper.h"
 #include "undo_stack/NoteEditorContentEditUndoCommand.h"
 #include "undo_stack/EncryptUndoCommand.h"
 #include "undo_stack/DecryptUndoCommand.h"
@@ -160,6 +161,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pHyperlinkClickJavaScriptHandler(new HyperlinkClickJavaScriptHandler(this)),
     m_webSocketServerPort(0),
 #endif
+    m_pSpellCheckerDynamicHandler(new SpellCheckerDynamicHelper(this)),
     m_pTableResizeJavaScriptHandler(new TableResizeJavaScriptHandler(this)),
     m_pGenericResourceImageWriter(Q_NULLPTR),
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
@@ -2975,6 +2977,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("hyperlinkClickHandler", m_pHyperlinkClickJavaScriptHandler);
     m_pWebChannel->registerObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler);
     m_pWebChannel->registerObject("tableResizeHandler", m_pTableResizeJavaScriptHandler);
+    m_pWebChannel->registerObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
 
@@ -3265,8 +3268,6 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SaveAttachment, "Save as...", m_pImageResourceContextMenu,
                              saveAttachmentUnderCursor);
 
-    // TODO: continue filling the menu items
-
     m_pImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
@@ -3445,6 +3446,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
 
     QObject::connect(m_pTableResizeJavaScriptHandler, QNSIGNAL(TableResizeJavaScriptHandler,tableResized),
                      this, QNSLOT(NoteEditorPrivate,onTableResized));
+    QObject::connect(m_pSpellCheckerDynamicHandler, QNSIGNAL(SpellCheckerDynamicHelper,lastEnteredWords,QStringList),
+                     this, QNSLOT(NoteEditorPrivate,onSpellCheckerDynamicHelperUpdate,QStringList));
     QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,toDoCheckboxClicked,quint64),
                      this, QNSLOT(NoteEditorPrivate,onToDoCheckboxClicked,quint64));
     QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,notifyError,QString),
@@ -3490,6 +3493,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
                                                    QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
@@ -3820,6 +3825,7 @@ void NoteEditorPrivate::enableSpellCheck()
 
     refreshMisSpelledWordsList();
     applySpellCheck();
+    enableDynamicSpellCheck();
 }
 
 void NoteEditorPrivate::disableSpellCheck()
@@ -3829,6 +3835,8 @@ void NoteEditorPrivate::disableSpellCheck()
     m_currentNoteMisSpelledWords.clear();
     GET_PAGE()
     page->executeJavaScript("spellChecker.remove();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
+
+    disableDynamicSpellCheck();
 }
 
 void NoteEditorPrivate::refreshMisSpelledWordsList()
@@ -3909,6 +3917,22 @@ void NoteEditorPrivate::applySpellCheck()
 
     GET_PAGE()
     page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
+}
+
+void NoteEditorPrivate::enableDynamicSpellCheck()
+{
+    QNDEBUG("NoteEditorPrivate::enableDynamicSpellCheck");
+
+    GET_PAGE()
+    page->executeJavaScript("spellChecker.enableDynamic();");
+}
+
+void NoteEditorPrivate::disableDynamicSpellCheck()
+{
+    QNDEBUG("NoteEditorPrivate::disableDynamicSpellCheck");
+
+    GET_PAGE()
+    page->executeJavaScript("spellChecker.disableDynamic();");
 }
 
 void NoteEditorPrivate::onSpellCheckSetOrCleared(const QVariant & dummy, const QVector<QPair<QString, QString> > & extraData)
@@ -4619,6 +4643,41 @@ void NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished(const QVariant & 
     }
 
     convertToNote();
+}
+
+void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate: " << words.join(";"));
+
+    if (!m_spellCheckerEnabled) {
+        QNTRACE("No spell checking is enabled, nothing to do");
+        return;
+    }
+
+    bool foundMisSpelledWords = false;
+    for(auto it = words.begin(), end = words.end(); it != end; ++it)
+    {
+        QString word = *it;
+        word = word.trimmed();
+        m_stringUtils.removePunctuation(word);
+
+        if (m_pSpellChecker->checkSpell(word)) {
+            QNTRACE("No misspelling detected");
+            continue;
+        }
+
+        if (!m_currentNoteMisSpelledWords.contains(word)) {
+            m_currentNoteMisSpelledWords << word;
+        }
+
+        foundMisSpelledWords = true;
+    }
+
+    if (!foundMisSpelledWords) {
+        return;
+    }
+
+    applySpellCheck();
 }
 
 void NoteEditorPrivate::cut()

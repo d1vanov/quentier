@@ -28,6 +28,7 @@
             window.hyperlinkClickHandler = channel.objects.hyperlinkClickHandler;
             window.toDoCheckboxClickHandler = channel.objects.toDoCheckboxClickHandler;
             window.tableResizeHandler = channel.objects.tableResizeHandler;
+            window.spellCheckerDynamicHelper = channel.objects.spellCheckerDynamicHelper;
 
             console.log("Created window variables for objects exposed to JavaScript");
         });
