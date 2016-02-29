@@ -1,3 +1,5 @@
 .misspell {
+    font-style: normal;
+    font-weight: normal;
     background: url(qrc:/underline.gif) bottom repeat-x;
 }
