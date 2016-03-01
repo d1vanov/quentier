@@ -335,6 +335,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
+    frame->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
+                                       QScriptEngine::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
@@ -3903,11 +3905,17 @@ void NoteEditorPrivate::refreshMisSpelledWordsList()
     }
 }
 
-void NoteEditorPrivate::applySpellCheck()
+void NoteEditorPrivate::applySpellCheck(const bool applyToSelection)
 {
-    QNDEBUG("NoteEditorPrivate::applySpellCheck");
+    QNDEBUG("NoteEditorPrivate::applySpellCheck: apply to selection = " << (applyToSelection ? "true" : "false"));
 
-    QString javascript = "spellChecker.apply('";
+    QString javascript = "spellChecker.apply";
+
+    if (applyToSelection) {
+        javascript += "ToSelection";
+    }
+
+    javascript += "('";
     for(auto it = m_currentNoteMisSpelledWords.begin(), end = m_currentNoteMisSpelledWords.end(); it != end; ++it) {
         javascript += *it;
         javascript += "', '";
@@ -4677,7 +4685,7 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
         return;
     }
 
-    applySpellCheck();
+    applySpellCheck(/* apply to selection = */ true);
 }
 
 void NoteEditorPrivate::cut()

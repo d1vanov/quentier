@@ -140,7 +140,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
             extraData.push("InsideTable");
         }
 
-        if (misSpelledWord) {
+        if (misSpelledWord && !window.getSelection().isCollapsed) {
             extraData.push("MisSpelledWord_" + misSpelledWord);
         }
 

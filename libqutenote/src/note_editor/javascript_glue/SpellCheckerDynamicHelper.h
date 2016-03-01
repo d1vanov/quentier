@@ -18,7 +18,13 @@ Q_SIGNALS:
     void lastEnteredWords(QStringList words);
 
 public Q_SLOTS:
+
+    // NOTE: workarounding https://bugreports.qt.io/browse/QTBUG-39951 - JavaScript array doesn't get automatically converted to QVariant
+#ifdef USE_QT_WEB_ENGINE
     void setLastEnteredWords(QVariant words);
+#else
+    void setLastEnteredWords(QVariantList words);
+#endif
 };
 
 } // namespace qute_note

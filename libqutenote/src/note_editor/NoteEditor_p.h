@@ -146,7 +146,7 @@ public:
     quint64 GetFreeDecryptedTextId() { return m_lastFreeEnDecryptedIdNumber++; }
 
     void refreshMisSpelledWordsList();
-    void applySpellCheck();
+    void applySpellCheck(const bool applyToSelection = false);
     void enableDynamicSpellCheck();
     void disableDynamicSpellCheck();
 

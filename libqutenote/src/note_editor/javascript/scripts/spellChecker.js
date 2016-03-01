@@ -6,6 +6,7 @@ function SpellChecker(id, tag) {
     var redoNodeInnerHtmls = [];
 
     var lastError;
+    var lastDynamicCheckTriggeredByBackspace = false;
 
     var dynamicModeOn = false;
 
@@ -18,6 +19,70 @@ function SpellChecker(id, tag) {
     this.apply = function() {
         console.log("SpellChecker::apply");
 
+        this.buildRegex.apply(this, arguments);
+        this.applyToNode(targetNode);
+    }
+
+    this.applyToSelection = function() {
+        console.log("SpellChecker::applyToSelection");
+
+        var selection = window.getSelection();
+        if (!selection || !selection.anchorNode || !selection.anchorNode.parentNode || !selection.focusNode) {
+            console.log("No valid selection");
+            return;
+        }
+
+        var previousRange;
+        if (selection.rangeCount) {
+            previousRange = selection.getRangeAt(0).cloneRange();
+            console.log("Previous range: start offset = " + previousRange.startOffset +
+                        ", end offset = " + previousRange.endOffset);
+        }
+
+        this.buildRegex.apply(this, arguments);
+        this.applyToNode(selection.anchorNode.parentNode);
+
+        // The changes above mess with the text cursor position, need to restore it
+
+        var node = selection.focusNode;
+        var range = document.createRange();
+
+        console.log("lastDynamicCheckTriggeredByBackspace = " + (lastDynamicCheckTriggeredByBackspace ? "true" : "false"));
+        if (lastDynamicCheckTriggeredByBackspace && previousRange) {
+            range.setStart(selection.anchorNode, previousRange.startOffset);
+            range.setEnd(selection.focusNode, previousRange.endOffset);
+            console.log("Restored the offsets");
+        }
+
+        range.selectNodeContents(node);
+        console.log("After selecting the node contents: start offset = " + range.startOffset +
+                    ", end offset = " + range.endOffset);
+
+        range.collapse(false);
+        console.log("After range collapsing: start offset = " + range.startOffset +
+                    ", end offset = " + range.endOffset);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    this.applyToNode = function(node) {
+        console.log("SpellChecker::applyToNode");
+
+        this.remove();
+
+        observer.stop();
+
+        try {
+            this.highlightMisSpelledWords(node);
+        }
+        finally {
+            observer.start();
+        }
+    }
+
+    this.buildRegex = function() {
+        console.log("SpellChecker::buildRegex");
+
         // Convert args to a long string with words separated by spaces
         var input = "";
         var numArgs = arguments.length;
@@ -27,16 +92,6 @@ function SpellChecker(id, tag) {
         }
 
         this.setRegex(input);
-        this.remove();
-
-        observer.stop();
-
-        try {
-            this.highlightMisSpelledWords(targetNode);
-        }
-        finally {
-            observer.start();
-        }
     }
 
     this.correctSpelling = function(correction) {
@@ -214,6 +269,8 @@ function SpellChecker(id, tag) {
         {
             return;
         }
+
+        lastDynamicCheckTriggeredByBackspace = (keyCode == 8);
 
         var range = window.getSelection().getRangeAt(0);
         if (!range.collapsed) {
