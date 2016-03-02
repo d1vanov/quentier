@@ -360,6 +360,9 @@ void SpellChecker::scanSystemDictionaries()
         QDirIterator it(rootDirInfo.absolutePath(), fileFilters, QDir::Files, QDirIterator::Subdirectories);
         while(it.hasNext())
         {
+            QString nextDirName = it.next();
+            QNTRACE("Next dir name = " << nextDirName);
+
             QFileInfo fileInfo = it.fileInfo();
             if (!fileInfo.isReadable()) {
                 QNTRACE("Skipping non-readable file " << fileInfo.absoluteFilePath());
