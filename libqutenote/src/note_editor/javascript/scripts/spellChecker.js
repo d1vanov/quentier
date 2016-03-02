@@ -32,41 +32,25 @@ function SpellChecker(id, tag) {
             return;
         }
 
-        var previousRange;
-        if (selection.rangeCount) {
-            previousRange = selection.getRangeAt(0).cloneRange();
-            console.log("Previous range: start offset = " + previousRange.startOffset +
-                        ", end offset = " + previousRange.endOffset);
-        }
-
         this.buildRegex.apply(this, arguments);
         this.applyToNode(selection.anchorNode.parentNode);
-
-        // The changes above mess with the text cursor position, need to restore it
-
-        var node = selection.focusNode;
-        var range = document.createRange();
-
-        console.log("lastDynamicCheckTriggeredByBackspace = " + (lastDynamicCheckTriggeredByBackspace ? "true" : "false"));
-        if (lastDynamicCheckTriggeredByBackspace && previousRange) {
-            range.setStart(selection.anchorNode, previousRange.startOffset);
-            range.setEnd(selection.focusNode, previousRange.endOffset);
-            console.log("Restored the offsets");
-        }
-
-        range.selectNodeContents(node);
-        console.log("After selecting the node contents: start offset = " + range.startOffset +
-                    ", end offset = " + range.endOffset);
-
-        range.collapse(false);
-        console.log("After range collapsing: start offset = " + range.startOffset +
-                    ", end offset = " + range.endOffset);
-        selection.removeAllRanges();
-        selection.addRange(range);
     }
 
     this.applyToNode = function(node) {
         console.log("SpellChecker::applyToNode");
+
+        if (node) {
+            console.log("Applying to node: value = " + node.nodeValue + ", text content = " + node.textContent +
+                        ", outer HTML = " + node.outerHTML + ", inner HTML = " + node.innerHTML);
+        }
+
+        var selection = window.getSelection();
+        var previousRange;
+        if (selection && selection.anchorNode && selection.focusNode && selection.rangeCount) {
+            previousRange = selection.getRangeAt(0).cloneRange();
+            console.log("Previous range: start offset = " + previousRange.startOffset +
+                        ", end offset = " + previousRange.endOffset);
+        }
 
         this.remove();
 
@@ -74,6 +58,20 @@ function SpellChecker(id, tag) {
 
         try {
             this.highlightMisSpelledWords(node);
+            if (previousRange) {
+                var node = selection.focusNode;
+                var range = document.createRange();
+                /*
+                range.setStart(selection.anchorNode, previousRange.startOffset);
+                range.setEnd(selection.focusNode, previousRange.endOffset);
+                console.log("Set range start to " + range.startOffset + " and end to " + range.endOffset);
+                */
+                range.selectNodeContents(previousRange.endContainer);
+                range.collapse(false);
+                console.log("After collapsing: range start = " + range.startOffset + " and end = " + range.endOffset);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
         }
         finally {
             observer.start();
@@ -155,7 +153,7 @@ function SpellChecker(id, tag) {
         input = input.replace(/[^\w\\\s']+/g, "");
         input = input.replace(/\s+/g, "|");
         var re = "(?:^|[\\b\\s])" + "(" + input + ")" + "(?:[\\b\\s]|$)";
-        var flags = "i";
+        var flags = "gi";
         console.log("Search regex: " + re + "; flags: " + flags);
         matchRegex = new RegExp(re, flags);
     }
@@ -201,27 +199,41 @@ function SpellChecker(id, tag) {
 
             var regs;
             if (nv) {
-                regs = matchRegex.exec(nv);
-                console.log("Regs = " + regs + "; match regex = " + matchRegex);
-            }
+                matchRegex.lastIndex = 0;
+                console.log("match regex = " + matchRegex);
+                while((regs = matchRegex.exec(nv)) !== null)
+                {
+                    console.log("Found misspelled word(s) within the text: " + nv + "; regs.length = " + regs.length +
+                                ", regs[0] = " + regs[0] + ", regs[1] = " + regs[1] + ", regs.index = " + regs.index +
+                                ", matchRegex.lastIndex = " + matchRegex.lastIndex);
 
-            if (nv && regs) {
-                console.log("Found misspelled word: " + nv);
+                    if (regs.index >= nv.length) {
+                        console.log("RegExp result index " + regs.index + " is larger than the text node's length " + nv.length);
+                        break;
+                    }
 
-                var match = document.createElement(misspellTag);
-                match.appendChild(document.createTextNode(regs[1]));
-                match.className = misspellTagClassName;
+                    var match = document.createElement(misspellTag);
+                    match.appendChild(document.createTextNode(regs[1]));
+                    match.className = misspellTagClassName;
 
-                var after;
-                if(regs[0].match(/^\s/)) { // in case of leading whitespace
-                    after = node.splitText(regs.index + 1);
+                    var after;
+                    if(regs[0].match(/^\s/)) { // in case of leading whitespace
+                        if (regs.index + 1 >= node.length) {
+                            console.log("regs.index + 1 = " + (regs.index + 1) + " is larger than the text node's length: " + node.length);
+                            break;
+                        }
+                        after = node.splitText(regs.index + 1);
+                    }
+                    else {
+                        after = node.splitText(regs.index);
+                    }
+
+                    after.nodeValue = after.nodeValue.substring(regs[1].length);
+                    node.parentNode.insertBefore(match, after);
+                    console.log("After misspelled word highlighting: nodeValue = " + node.parentNode.nodeValue +
+                                ", text content: " + node.parentNode.textContent + ", inner HTML: " +
+                                node.parentNode.innerHTML + ", outer HTML: " + node.parentNode.outerHTML);
                 }
-                else {
-                    after = node.splitText(regs.index);
-                }
-
-                after.nodeValue = after.nodeValue.substring(regs[1].length);
-                node.parentNode.insertBefore(match, after);
             }
         }
     }

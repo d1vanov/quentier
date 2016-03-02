@@ -3923,6 +3923,8 @@ void NoteEditorPrivate::applySpellCheck(const bool applyToSelection)
     javascript.chop(3);     // Remove trailing ", '";
     javascript += ");";
 
+    QNTRACE("Script: " << javascript);
+
     GET_PAGE()
     page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
 }
@@ -4669,21 +4671,31 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
         word = word.trimmed();
         m_stringUtils.removePunctuation(word);
 
-        if (m_pSpellChecker->checkSpell(word)) {
-            QNTRACE("No misspelling detected");
-            continue;
-        }
+        QStringList splittedWords = word.split(" ");    // FIXME: This doesn't work! :(((((
+        QNTRACE("Split the word " << word << " into words: " << splittedWords.join(";"));
 
-        if (!m_currentNoteMisSpelledWords.contains(word)) {
-            m_currentNoteMisSpelledWords << word;
-        }
+        for(auto sit = splittedWords.begin(), send = splittedWords.end(); sit != send; ++sit)
+        {
+            word = *sit;
 
-        foundMisSpelledWords = true;
+            if (m_pSpellChecker->checkSpell(word)) {
+                QNTRACE("No misspelling detected");
+                continue;
+            }
+
+            if (!m_currentNoteMisSpelledWords.contains(word)) {
+                m_currentNoteMisSpelledWords << word;
+            }
+
+            foundMisSpelledWords = true;
+        }
     }
 
     if (!foundMisSpelledWords) {
         return;
     }
+
+    QNTRACE("Current note's misspelled words: " << m_currentNoteMisSpelledWords.join(", "));
 
     applySpellCheck(/* apply to selection = */ true);
 }
