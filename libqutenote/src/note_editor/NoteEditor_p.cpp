@@ -116,6 +116,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_jQueryJs(),
     m_resizableTableColumnsJs(),
     m_debounceJs(),
+    m_rangyCoreJs(),
+    m_rangySelectionSaveRestoreJs(),
     m_onTableResizeJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
@@ -358,6 +360,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_findInnermostElementJs);
     page->executeJavaScript(m_resizableTableColumnsJs);
     page->executeJavaScript(m_debounceJs);
+    page->executeJavaScript(m_rangyCoreJs);
+    page->executeJavaScript(m_rangySelectionSaveRestoreJs);
     page->executeJavaScript(m_onTableResizeJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_replaceHyperlinkContentJs);
@@ -3397,6 +3401,8 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
+    SETUP_SCRIPT("javascript/rangy/rangy-core.js", m_rangyCoreJs);
+    SETUP_SCRIPT("javascript/rangy/rangy-selectionsaverestore.js", m_rangySelectionSaveRestoreJs);
     SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
     SETUP_SCRIPT("javascript/scripts/imageAreasHilitor.js", m_imageAreasHilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
@@ -4671,24 +4677,16 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
         word = word.trimmed();
         m_stringUtils.removePunctuation(word);
 
-        QStringList splittedWords = word.split(" ");    // FIXME: This doesn't work! :(((((
-        QNTRACE("Split the word " << word << " into words: " << splittedWords.join(";"));
-
-        for(auto sit = splittedWords.begin(), send = splittedWords.end(); sit != send; ++sit)
-        {
-            word = *sit;
-
-            if (m_pSpellChecker->checkSpell(word)) {
-                QNTRACE("No misspelling detected");
-                continue;
-            }
-
-            if (!m_currentNoteMisSpelledWords.contains(word)) {
-                m_currentNoteMisSpelledWords << word;
-            }
-
-            foundMisSpelledWords = true;
+        if (m_pSpellChecker->checkSpell(word)) {
+            QNTRACE("No misspelling detected");
+            continue;
         }
+
+        if (!m_currentNoteMisSpelledWords.contains(word)) {
+            m_currentNoteMisSpelledWords << word;
+        }
+
+        foundMisSpelledWords = true;
     }
 
     if (!foundMisSpelledWords) {
@@ -5919,6 +5917,7 @@ void __initNoteEditorResources()
     Q_INIT_RESOURCE(jquery);
     Q_INIT_RESOURCE(colResizable);
     Q_INIT_RESOURCE(debounce);
+    Q_INIT_RESOURCE(rangy);
     Q_INIT_RESOURCE(scripts);
     Q_INIT_RESOURCE(hilitor);
 

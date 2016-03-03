@@ -600,6 +600,8 @@ private:
     QString     m_jQueryJs;
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
+    QString     m_rangyCoreJs;
+    QString     m_rangySelectionSaveRestoreJs;
     QString     m_onTableResizeJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;

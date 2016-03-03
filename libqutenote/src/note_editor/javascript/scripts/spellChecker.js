@@ -33,7 +33,7 @@ function SpellChecker(id, tag) {
         }
 
         this.buildRegex.apply(this, arguments);
-        this.applyToNode(selection.anchorNode.parentNode);
+        this.applyToNode(selection.anchorNode.parentNode.parentNode);
     }
 
     this.applyToNode = function(node) {
@@ -44,36 +44,38 @@ function SpellChecker(id, tag) {
                         ", outer HTML = " + node.outerHTML + ", inner HTML = " + node.innerHTML);
         }
 
-        var selection = window.getSelection();
-        var previousRange;
-        if (selection && selection.anchorNode && selection.focusNode && selection.rangeCount) {
-            previousRange = selection.getRangeAt(0).cloneRange();
-            console.log("Previous range: start offset = " + previousRange.startOffset +
-                        ", end offset = " + previousRange.endOffset);
-        }
-
-        this.remove();
-
         observer.stop();
 
         try {
-            this.highlightMisSpelledWords(node);
-            if (previousRange) {
-                var node = selection.focusNode;
-                var range = document.createRange();
-                /*
-                range.setStart(selection.anchorNode, previousRange.startOffset);
-                range.setEnd(selection.focusNode, previousRange.endOffset);
-                console.log("Set range start to " + range.startOffset + " and end to " + range.endOffset);
-                */
-                range.selectNodeContents(previousRange.endContainer);
-                range.collapse(false);
-                console.log("After collapsing: range start = " + range.startOffset + " and end = " + range.endOffset);
-                selection.removeAllRanges();
-                selection.addRange(range);
+            var savedSelection;
+            try {
+                savedSelection = rangy.saveSelection();
             }
+            catch(error) {
+                console.warn("Caught exception while trying to save the selection with rangy: " + error);
+                savedSelection = null;
+            }
+
+            this.remove(node);
+            this.highlightMisSpelledWords(node);
         }
         finally {
+            if (savedSelection) {
+                try {
+                    rangy.restoreSelection(savedSelection);
+                }
+                catch(error) {
+                    console.warn("Caught exception while trying to restore the selection with rangy: " + error);
+
+                    try {
+                        rangy.removeMarkers(savedSelection);
+                    }
+                    catch(error) {
+                        console.warn("Caught exception while trying to remove the saved selection's markers: " + error);
+                    }
+                }
+            }
+
             observer.start();
         }
     }
@@ -129,7 +131,7 @@ function SpellChecker(id, tag) {
         return { status:true, error:"" };
     }
 
-    this.remove = function() {
+    this.remove = function(node) {
         console.log("SpellChecker::remove");
 
         observer.stop();
@@ -137,7 +139,12 @@ function SpellChecker(id, tag) {
         try {
             var elements = document.querySelectorAll("." + misspellTagClassName);
             for(var index = 0; index < elements.length; ++index) {
-                elements[index].outerHTML = elements[index].innerHTML;
+                console.log("Checking element " + elements[index].outerHTML);
+                if (!node || node.contains(elements[index])) {
+                    var parentNode = elements[index].parentNode;
+                    $(elements[index]).contents().unwrap();
+                    console.log("Updated element's outer HTML to " + parentNode.innerHTML);
+                }
             }
         }
         catch(err) {
@@ -151,8 +158,9 @@ function SpellChecker(id, tag) {
     this.setRegex = function(input) {
         input = input.replace(/\\([^u]|$)/g, "$1");
         input = input.replace(/[^\w\\\s']+/g, "");
+        input = input.trim();
         input = input.replace(/\s+/g, "|");
-        var re = "(?:^|[\\b\\s])" + "(" + input + ")" + "(?:[\\b\\s]|$)";
+        var re = "(?:^|[\\b\\s.,;:-=+-_><])" + "(" + input + ")" + "(?:[\\b\\s.,;:-=+-_><]|$)";
         var flags = "gi";
         console.log("Search regex: " + re + "; flags: " + flags);
         matchRegex = new RegExp(re, flags);
@@ -205,14 +213,15 @@ function SpellChecker(id, tag) {
                 {
                     console.log("Found misspelled word(s) within the text: " + nv + "; regs.length = " + regs.length +
                                 ", regs[0] = " + regs[0] + ", regs[1] = " + regs[1] + ", regs.index = " + regs.index +
-                                ", matchRegex.lastIndex = " + matchRegex.lastIndex);
+                                ", matchRegex.lastIndex = " + matchRegex.lastIndex + ", node length = " + nv.length);
 
-                    if (regs.index >= nv.length) {
-                        console.log("RegExp result index " + regs.index + " is larger than the text node's length " + nv.length);
+                    if (regs.index >= node.length) {
+                        console.log("RegExp result index " + regs.index + " is larger than the text node's length " + node.length);
                         break;
                     }
 
                     var match = document.createElement(misspellTag);
+                    match.addEventListener("keyup", this.misspelledWordsDynamicCheck);
                     match.appendChild(document.createTextNode(regs[1]));
                     match.className = misspellTagClassName;
 
@@ -229,10 +238,12 @@ function SpellChecker(id, tag) {
                     }
 
                     after.nodeValue = after.nodeValue.substring(regs[1].length);
-                    node.parentNode.insertBefore(match, after);
-                    console.log("After misspelled word highlighting: nodeValue = " + node.parentNode.nodeValue +
-                                ", text content: " + node.parentNode.textContent + ", inner HTML: " +
-                                node.parentNode.innerHTML + ", outer HTML: " + node.parentNode.outerHTML);
+                    var parentNode = node.parentNode;
+                    parentNode.insertBefore(match, after);
+                    parentNode.normalize();
+                    if (parentNode) {
+                        console.log("After misspelled word highlighting: inner HTML: " + parentNode.innerHTML);
+                    }
                 }
             }
         }
@@ -258,11 +269,17 @@ function SpellChecker(id, tag) {
     }
 
     this.dynamicCheck = function(event) {
+        console.log("SpellChecker::dynamicCheck: key code = " + event.keyCode);
+
         var keyCode = event.keyCode;
         if ( (keyCode != 8) &&
              (keyCode != 9) &&
              (keyCode != 13) &&
              (keyCode != 32) &&
+             (keyCode != 37) &&
+             (keyCode != 38) &&
+             (keyCode != 39) &&
+             (keyCode != 40) &&
              (keyCode != 106) &&
              (keyCode != 107) &&
              (keyCode != 109) &&
@@ -290,15 +307,26 @@ function SpellChecker(id, tag) {
         }
 
         var words = [];
-        var text = range.startContainer.textContent.substring(0, range.startOffset + 1);
-        if (text.indexOf(" ") > 0) {
-            words = text.split(" ");
-        }
-        else {
-            words.push(text);
+        var text = range.startContainer.textContent; // .substring(0, range.startOffset + 1);
+        words = text.split(/\s/);
+        spellCheckerDynamicHelper.setLastEnteredWords(words);
+    }
+
+    this.misspelledWordsDynamicCheck = function(event) {
+        console.log("SpellChecker::misspelledWordsDynamicCheck")
+
+        var node = event.currentTarget;
+        if (!node) {
+            return;
         }
 
+        var words = [];
+        var text = node.textContent;
+        words = text.split(/\s/);
         spellCheckerDynamicHelper.setLastEnteredWords(words);
+
+        event.stopPropagation();
+        event.preventDefault();
     }
 
     this.undo = function() {
