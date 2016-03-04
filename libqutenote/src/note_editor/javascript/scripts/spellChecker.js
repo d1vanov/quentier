@@ -186,67 +186,134 @@ function SpellChecker(id, tag) {
             }
         }
 
+        var nv = "";
         if (node.hasChildNodes()) {
+            var childNode;
             for(var i = 0; i < node.childNodes.length; i++) {
-                this.highlightMisSpelledWords(node.childNodes[i]);
+                childNode = node.childNodes[i];
+                if (!childNode) {
+                    continue;
+                }
+
+                if (childNode.nodeType != 3) {
+                    this.highlightMisSpelledWords(childNode);
+                    continue;
+                }
+
+                nv += childNode.nodeValue;
             }
         }
-
-        if (node.nodeType == 3) {
-            var nv = node.nodeValue;
-            console.log("Found text node to check: node value = " + nv);
-
-            var trimmedNv = nv;
-            trimmedNv = trimmedNv.replace(/\s+/g, "");
-            trimmedNv = trimmedNv.replace(/(\r\n|\n|\r)/gm, "");
-            if (trimmedNv == "") {
-                console.log("Skipping string which is empty after removing the whitespace characters; original string: " + nv +
-                            "; processed string: " + trimmedNv);
+        else {
+            if (node.nodeType != 3) {
+                console.log("Skipping non-text node: type " + node.nodeType + ", name " + node.nodeName + ", html: " + node.innerHTML);
                 return;
             }
 
-            var regs;
-            if (nv) {
-                matchRegex.lastIndex = 0;
-                console.log("match regex = " + matchRegex);
-                while((regs = matchRegex.exec(nv)) !== null)
-                {
-                    console.log("Found misspelled word(s) within the text: " + nv + "; regs.length = " + regs.length +
-                                ", regs[0] = " + regs[0] + ", regs[1] = " + regs[1] + ", regs.index = " + regs.index +
-                                ", matchRegex.lastIndex = " + matchRegex.lastIndex + ", node length = " + nv.length);
+            nv = node.nodeValue;
+        }
 
-                    if (regs.index >= node.length) {
-                        console.log("RegExp result index " + regs.index + " is larger than the text node's length " + node.length);
-                        break;
-                    }
+        if (!nv || nv == "") {
+            console.log("No node value (cumulative or single) to highlight");
+            return;
+        }
 
-                    var match = document.createElement(misspellTag);
-                    match.addEventListener("keyup", this.misspelledWordsDynamicCheck);
-                    match.appendChild(document.createTextNode(regs[1]));
-                    match.className = misspellTagClassName;
+        matchRegex.lastIndex = 0;
+        var regs = matchRegex.exec(nv);
+        if (!regs) {
+            console.log("No match");
+            return;
+        }
 
-                    var after;
-                    if(regs[0].match(/^\s/)) { // in case of leading whitespace
-                        if (regs.index + 1 >= node.length) {
-                            console.log("regs.index + 1 = " + (regs.index + 1) + " is larger than the text node's length: " + node.length);
-                            break;
-                        }
-                        after = node.splitText(regs.index + 1);
-                    }
-                    else {
-                        after = node.splitText(regs.index);
-                    }
+        console.log("Found misspelled word(s) within the text: " + nv + "; regs.length = " + regs.length +
+                    ", regs[0] = " + regs[0] + ", regs[1] = " + regs[1] + ", regs.index = " + regs.index +
+                    ", matchRegex.lastIndex = " + matchRegex.lastIndex);
 
-                    after.nodeValue = after.nodeValue.substring(regs[1].length);
-                    var parentNode = node.parentNode;
-                    parentNode.insertBefore(match, after);
-                    parentNode.normalize();
-                    if (parentNode) {
-                        console.log("After misspelled word highlighting: inner HTML: " + parentNode.innerHTML);
-                    }
+        var match = document.createElement(misspellTag);
+        match.addEventListener("keyup", this.misspelledWordsDynamicCheck);
+        match.appendChild(document.createTextNode(regs[1]));
+        match.className = misspellTagClassName;
+
+        var matchIndex = regs.index;
+        if(regs[0].match(/^\s/)) { // in case of leading whitespace
+            ++matchIndex;
+        }
+
+        var targetNode;
+        var nextNode;
+        if (node.hasChildNodes()) {
+            for(i = 0; i < node.childNodes.length; ++i) {
+                childNode = node.childNodes[i];
+
+                if (!childNode) {
+                    continue;
                 }
+
+                if (childNode.nodeType != 3) {
+                    continue;
+                }
+
+                if (matchIndex >= childNode.length) {
+                    matchIndex -= childNode.length;
+                    continue;
+                }
+
+                targetNode = childNode;
+                console.log("Found target text node for match: name = " + targetNode.nodeName + ", node value: " +
+                            targetNode.nodeValue + "; adjusted match index = " + matchIndex);
+
+                for(var nextNodeIndex = i + 1; nextNodeIndex < node.childNodes.length; ++nextNodeIndex) {
+                    childNode = node.childNodes[nextNodeIndex];
+                    if (!childNode) {
+                        continue;
+                    }
+
+                    if (childNode.nodeType != 3) {
+                        continue;
+                    }
+
+                    nextNode = childNode;
+                    console.log("Found target node's next text node: name = " + nextNode.nodeName + ", node value: " +
+                                nextNode.nodeValue);
+                    break;
+                }
+
+                break;
             }
         }
+        else {
+            targetNode = node;
+        }
+
+        if (matchIndex >= targetNode.length) {
+            console.warn("Match index = " + matchIndex + " is larger than the target node's length: " + targetNode.length);
+            return;
+        }
+
+        var after = targetNode.splitText(matchIndex);
+        console.log("after: node value = " + after.nodeValue);
+
+        var wordPartInNextNode = regs[1].length - after.length;
+        if (wordPartInNextNode > 0) {
+            after.nodeValue = "";
+            console.log("Erased after's node value");
+        }
+        else {
+            after.nodeValue = after.nodeValue.substring(regs[1].length);
+            console.log("after + substring " + regs[1].length + ": node value = " + after.nodeValue);
+        }
+
+        // Part of the matched word might have got stuck in the next node, check for that
+        if (nextNode && wordPartInNextNode > 0) {
+            nextNode.nodeValue = nextNode.nodeValue.substring(wordPartInNextNode);
+            console.log("Next node's node value after removing the part until the first whitespace: " + nextNode.nodeValue);
+        }
+
+        var parentNode = targetNode.parentNode;
+        parentNode.insertBefore(match, after);
+        parentNode.normalize();
+        console.log("After misspelled word highlighting: inner HTML: " + parentNode.innerHTML);
+
+        this.highlightMisSpelledWords(parentNode);
     }
 
     this.enableDynamic = function() {
@@ -301,13 +368,46 @@ function SpellChecker(id, tag) {
 
         lastDynamicCheckTriggeredByBackspace = (keyCode == 8);
 
-        var range = window.getSelection().getRangeAt(0);
+        var selection = window.getSelection();
+        if (!selection || !selection.anchorNode || !selection.rangeCount) {
+            return;
+        }
+
+        var range = selection.getRangeAt(0);
         if (!range.collapsed) {
             return;
         }
 
         var words = [];
-        var text = range.startContainer.textContent; // .substring(0, range.startOffset + 1);
+
+        // Need to take the parent node and compose the cumulative string of all its child text nodes
+        // because otherwise rangy's hidden selection market breaks words into different "sub-words"
+        // and the dynamic spell checking gets broken
+        var text = "";
+
+        var parentNode = selection.anchorNode.parentNode;
+        if (!parentNode) {
+            return;
+        }
+
+        if (parentNode.hasChildNodes()) {
+            for(var index = 0; index < parentNode.childNodes.length; ++index) {
+                var childNode = parentNode.childNodes[index];
+                if (!childNode) {
+                    continue;
+                }
+
+                if (childNode.nodeType != 3) {
+                    continue;
+                }
+
+                text += childNode.textContent;
+            }
+        }
+        else {
+            text = range.startContainer.textContent.substring(0, range.startOffset + 1);
+        }
+
         words = text.split(/\s/);
         spellCheckerDynamicHelper.setLastEnteredWords(words);
     }
