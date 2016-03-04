@@ -4670,7 +4670,6 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
         return;
     }
 
-    bool foundMisSpelledWords = false;
     for(auto it = words.begin(), end = words.end(); it != end; ++it)
     {
         QString word = *it;
@@ -4685,12 +4684,6 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
         if (!m_currentNoteMisSpelledWords.contains(word)) {
             m_currentNoteMisSpelledWords << word;
         }
-
-        foundMisSpelledWords = true;
-    }
-
-    if (!foundMisSpelledWords) {
-        return;
     }
 
     QNTRACE("Current note's misspelled words: " << m_currentNoteMisSpelledWords.join(", "));

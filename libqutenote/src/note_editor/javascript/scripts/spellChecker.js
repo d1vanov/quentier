@@ -6,7 +6,6 @@ function SpellChecker(id, tag) {
     var redoNodeInnerHtmls = [];
 
     var lastError;
-    var lastDynamicCheckTriggeredByBackspace = false;
 
     var dynamicModeOn = false;
 
@@ -229,7 +228,6 @@ function SpellChecker(id, tag) {
                     ", matchRegex.lastIndex = " + matchRegex.lastIndex);
 
         var match = document.createElement(misspellTag);
-        match.addEventListener("keyup", this.misspelledWordsDynamicCheck);
         match.appendChild(document.createTextNode(regs[1]));
         match.className = misspellTagClassName;
 
@@ -339,14 +337,51 @@ function SpellChecker(id, tag) {
         console.log("SpellChecker::dynamicCheck: key code = " + event.keyCode);
 
         var keyCode = event.keyCode;
-        if ( (keyCode != 8) &&
+
+        var navigationKey = ( (keyCode == 37) ||
+                              (keyCode == 38) ||
+                              (keyCode == 39) ||
+                              (keyCode == 40) );
+
+        var insideMisSpelledWord = false;
+        var selection = window.getSelection();
+        if (!selection || !selection.anchorNode || !selection.rangeCount) {
+            return;
+        }
+
+        var range = selection.getRangeAt(0);
+        if (!range.collapsed) {
+            return;
+        }
+
+        var node = selection.anchorNode;
+        while(node) {
+            console.log("Checking node: type = " + node.nodeType + ", name = " + node.nodeName +
+                        ", class = " + node.className);
+            if ((node.nodeName == misspellTag) && node.className) {
+                var className = " " + node.className + " ";
+                var classIndex = className.indexOf(" " + misspellTagClassName + " ");
+                console.log("Extended class name = " + className + ", class index = " + classIndex);
+                if (classIndex >= 0) {
+                    insideMisSpelledWord = true;
+                    break;
+                }
+            }
+            node = node.parentNode;
+        }
+
+        console.log("navigationKey = " + (navigationKey ? "true" : "false") +
+                    ", inside misspelled word = " + (insideMisSpelledWord ? "true" : "false"));
+
+        if (navigationKey && insideMisSpelledWord) {
+            return;
+        }
+
+        if ( !insideMisSpelledWord &&
+             (keyCode != 8) &&
              (keyCode != 9) &&
              (keyCode != 13) &&
              (keyCode != 32) &&
-             (keyCode != 37) &&
-             (keyCode != 38) &&
-             (keyCode != 39) &&
-             (keyCode != 40) &&
              (keyCode != 106) &&
              (keyCode != 107) &&
              (keyCode != 109) &&
@@ -363,18 +398,7 @@ function SpellChecker(id, tag) {
              (keyCode != 220) &&
              (keyCode != 221) )
         {
-            return;
-        }
-
-        lastDynamicCheckTriggeredByBackspace = (keyCode == 8);
-
-        var selection = window.getSelection();
-        if (!selection || !selection.anchorNode || !selection.rangeCount) {
-            return;
-        }
-
-        var range = selection.getRangeAt(0);
-        if (!range.collapsed) {
+            console.log("Not inside misspeled word and not non-character editing key code");
             return;
         }
 
@@ -410,23 +434,6 @@ function SpellChecker(id, tag) {
 
         words = text.split(/\s/);
         spellCheckerDynamicHelper.setLastEnteredWords(words);
-    }
-
-    this.misspelledWordsDynamicCheck = function(event) {
-        console.log("SpellChecker::misspelledWordsDynamicCheck")
-
-        var node = event.currentTarget;
-        if (!node) {
-            return;
-        }
-
-        var words = [];
-        var text = node.textContent;
-        words = text.split(/\s/);
-        spellCheckerDynamicHelper.setLastEnteredWords(words);
-
-        event.stopPropagation();
-        event.preventDefault();
     }
 
     this.undo = function() {
