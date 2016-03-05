@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__SPELL_CHECKER_H
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__SPELL_CHECKER_H
 
+#include "SpellCheckerDictionariesFinder.h"
 #include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
 #include <QStringList>
@@ -42,6 +43,9 @@ Q_SIGNALS:
 // private signals
     void readFile(QString absoluteFilePath, QUuid requestId);
     void writeFile(QString absoluteFilePath, QByteArray data, QUuid requestId, bool append);
+
+private Q_SLOTS:
+    void onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName files);
 
 private:
     void scanSystemDictionaries();

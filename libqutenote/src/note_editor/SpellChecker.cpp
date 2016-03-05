@@ -8,18 +8,10 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QBuffer>
+#include <QThreadPool>
 #include <algorithm>
 
 namespace qute_note {
-
-#define WRAP(x) \
-    << QString(x).toUpper()
-
-static const QSet<QString> localeList = QSet<QString>()
-#include "localeList.inl"
-;
-
-#undef WRAP
 
 SpellChecker::SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent, const QString & userDictionaryPath) :
     QObject(parent),
@@ -220,6 +212,31 @@ void SpellChecker::removeWord(const QString & word)
     }
 }
 
+void SpellChecker::onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName files)
+{
+    QNDEBUG("SpellChecker::onDictionariesFound");
+
+    for(auto it = files.begin(), end = files.end(); it != end; ++it)
+    {
+        const QPair<QString, QString> & pair = it.value();
+        QByteArray dictionaryFilePathData = pair.first.toLocal8Bit();
+        QByteArray affixFilePathData = pair.second.toLocal8Bit();
+
+        const char * rawDictionaryFilePath = dictionaryFilePathData.constData();
+        const char * rawAffixFilePath = affixFilePathData.constData();
+        QNTRACE("Raw dictionary file path = " << rawDictionaryFilePath << ", raw affix file path = " << rawAffixFilePath);
+
+        Dictionary & dictionary = m_systemDictionaries[it.key()];
+        dictionary.m_pHunspell = QSharedPointer<Hunspell>(new Hunspell(rawAffixFilePath, rawDictionaryFilePath));
+        dictionary.m_dictionaryPath = pair.first;
+        dictionary.m_enabled = true;
+        QNTRACE("Added dictionary for language " << it.key() << "; dictionary file " << pair.first
+                << ", affix file " << pair.second);
+    }
+
+    emit ready();
+}
+
 void SpellChecker::scanSystemDictionaries()
 {
     QNDEBUG("SpellChecker::scanSystemDictionaries");
@@ -346,97 +363,16 @@ void SpellChecker::scanSystemDictionaries()
 
     if (!m_systemDictionaries.isEmpty()) {
         QNDEBUG("Found some dictionaries at the expected locations, won't search for dictionaries just everywhere at the system");
+        emit ready();
         return;
     }
 
     QNDEBUG("Still can't find any hunspell dictionaries, trying the full recursive search across the entire system, just to find something");
 
-    QHash<QString, QPair<QString, QString> > dicAndAffFilesHashByDictionaryName;
-    QStringList fileFilters;
-    fileFilters << "*.dic" << "*.aff";
-
-    QFileInfoList rootDirs = QDir::drives();
-    const int numRootDirs = rootDirs.size();
-    for(int i = 0; i < numRootDirs; ++i)
-    {
-        const QFileInfo & rootDirInfo = rootDirs[i];
-
-        if (Q_UNLIKELY(!rootDirInfo.isDir())) {
-            QNTRACE("Skipping non-dir " << rootDirInfo.absoluteDir());
-            continue;
-        }
-
-        QDirIterator it(rootDirInfo.absolutePath(), fileFilters, QDir::Files, QDirIterator::Subdirectories);
-        while(it.hasNext())
-        {
-            QString nextDirName = it.next();
-            QNTRACE("Next dir name = " << nextDirName);
-
-            QFileInfo fileInfo = it.fileInfo();
-            if (!fileInfo.isReadable()) {
-                QNTRACE("Skipping non-readable file " << fileInfo.absoluteFilePath());
-                continue;
-            }
-
-            QString fileNameSuffix = fileInfo.completeSuffix();
-            bool isDicFile = false;
-            if (fileNameSuffix == "dic") {
-                isDicFile = true;
-            }
-            else if (fileNameSuffix != "aff") {
-                QNTRACE("Skipping file not actually matching the filter: " << fileInfo.absoluteFilePath());
-                continue;
-            }
-
-            QString dictionaryName = fileInfo.baseName();
-            if (!localeList.contains(dictionaryName.toUpper())) {
-                QNTRACE("Skipping dictionary which doesn't appear to correspond to any locale: " + dictionaryName);
-                continue;
-            }
-
-            QPair<QString, QString> & pair = dicAndAffFilesHashByDictionaryName[dictionaryName];
-            if (isDicFile) {
-                QNTRACE("Adding dic file " << fileInfo.absoluteFilePath());
-                pair.first = fileInfo.absoluteFilePath();
-            }
-            else {
-                QNTRACE("Adding aff file " << fileInfo.absoluteFilePath());
-                pair.second = fileInfo.absoluteFilePath();
-            }
-        }
-    }
-
-    // Filter out any incomplete pair of dic & aff files
-    for(auto it = dicAndAffFilesHashByDictionaryName.begin(); it != dicAndAffFilesHashByDictionaryName.end(); )
-    {
-        const QPair<QString, QString> & pair = it.value();
-        if (pair.first.isEmpty() || pair.second.isEmpty()) {
-            QNTRACE("Skipping the incomplete pair of dic/aff files: dic file path = "
-                    << pair.first << "; aff file path = " << pair.second);
-            it = dicAndAffFilesHashByDictionaryName.erase(it);
-            continue;
-        }
-
-        ++it;
-    }
-
-    for(auto it = dicAndAffFilesHashByDictionaryName.begin(), end = dicAndAffFilesHashByDictionaryName.end(); it != end; ++it)
-    {
-        const QPair<QString, QString> & pair = it.value();
-        QByteArray dictionaryFilePathData = pair.first.toLocal8Bit();
-        QByteArray affixFilePathData = pair.second.toLocal8Bit();
-
-        const char * rawDictionaryFilePath = dictionaryFilePathData.constData();
-        const char * rawAffixFilePath = affixFilePathData.constData();
-        QNTRACE("Raw dictionary file path = " << rawDictionaryFilePath << ", raw affix file path = " << rawAffixFilePath);
-
-        Dictionary & dictionary = m_systemDictionaries[it.key()];
-        dictionary.m_pHunspell = QSharedPointer<Hunspell>(new Hunspell(rawAffixFilePath, rawDictionaryFilePath));
-        dictionary.m_dictionaryPath = pair.first;
-        dictionary.m_enabled = true;
-        QNTRACE("Added dictionary for language " << it.key() << "; dictionary file " << pair.first
-                << ", affix file " << pair.second);
-    }
+    SpellCheckerDictionariesFinder * pFinder = new SpellCheckerDictionariesFinder;
+    QObject::connect(pFinder, QNSIGNAL(SpellCheckerDictionariesFinder,foundDictionaries,SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName),
+                     this, QNSLOT(SpellChecker,onDictionariesFound,SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName));
+    QThreadPool::globalInstance()->start(pFinder);
 }
 
 void SpellChecker::addSystemDictionary(const QString & path, const QString & name)
