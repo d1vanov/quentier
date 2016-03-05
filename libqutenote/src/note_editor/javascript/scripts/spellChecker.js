@@ -15,24 +15,33 @@ function SpellChecker(id, tag) {
     var matchRegex = "";
     var misspellTagClassName = "misspell";
 
+    var currentHighlightingIsDynamic = false;
+    var lastKeyCodeWasBackspace = false;
+
     this.apply = function() {
         console.log("SpellChecker::apply");
 
         this.buildRegex.apply(this, arguments);
         this.applyToNode(targetNode);
+
+        currentHighlightingIsDynamic = false;
+        lastKeyCodeWasBackspace = false;
     }
 
     this.applyToSelection = function() {
         console.log("SpellChecker::applyToSelection");
 
         var selection = window.getSelection();
-        if (!selection || !selection.anchorNode || !selection.anchorNode.parentNode || !selection.focusNode) {
+        if (selection && selection.anchorNode && selection.anchorNode.parentNode && selection.focusNode) {
+            this.buildRegex.apply(this, arguments);
+            this.applyToNode(selection.anchorNode.parentNode.parentNode);
+        }
+        else {
             console.log("No valid selection");
-            return;
         }
 
-        this.buildRegex.apply(this, arguments);
-        this.applyToNode(selection.anchorNode.parentNode.parentNode);
+        currentHighlightingIsDynamic = false;
+        lastKeyCodeWasBackspace = false;
     }
 
     this.applyToNode = function(node) {
@@ -228,7 +237,6 @@ function SpellChecker(id, tag) {
                     ", matchRegex.lastIndex = " + matchRegex.lastIndex);
 
         var match = document.createElement(misspellTag);
-        match.appendChild(document.createTextNode(regs[1]));
         match.className = misspellTagClassName;
 
         var matchIndex = regs.index;
@@ -238,6 +246,7 @@ function SpellChecker(id, tag) {
 
         var targetNode;
         var nextNode;
+
         if (node.hasChildNodes()) {
             for(i = 0; i < node.childNodes.length; ++i) {
                 childNode = node.childNodes[i];
@@ -301,9 +310,33 @@ function SpellChecker(id, tag) {
         }
 
         // Part of the matched word might have got stuck in the next node, check for that
-        if (nextNode && wordPartInNextNode > 0) {
+        if (nextNode && (wordPartInNextNode > 0)) {
             nextNode.nodeValue = nextNode.nodeValue.substring(wordPartInNextNode);
             console.log("Next node's node value after removing the part until the first whitespace: " + nextNode.nodeValue);
+
+            var middleIndex = regs[1].length - wordPartInNextNode;
+            if (!currentHighlightingIsDynamic || !lastKeyCodeWasBackspace) {
+                ++middleIndex;
+            }
+
+            var startOfMisspelledWord = regs[1].substring(0, middleIndex);
+            var endOfMisspelledWord = regs[1].substring(middleIndex);
+            console.log("Start of misspelled word = " + startOfMisspelledWord + "; end of misspelled word = " +
+                        endOfMisspelledWord + "; regs[1] = " + regs[1] + "; length = " + regs[1].length +
+                        ", wordPartInNextNode = " + wordPartInNextNode + ", middle index = " + middleIndex);
+
+            // Need to manually alter the position of rangy selection boundary which otherwise ends up being in the wrong place
+            match.appendChild(document.createTextNode(startOfMisspelledWord));
+
+            var rangySelectionBoundaryElement = node.querySelector(".rangySelectionBoundary");
+            if (rangySelectionBoundaryElement) {
+                match.appendChild(rangySelectionBoundaryElement);
+            }
+
+            match.appendChild(document.createTextNode(endOfMisspelledWord));
+        }
+        else {
+            match.appendChild(document.createTextNode(regs[1]));
         }
 
         var parentNode = targetNode.parentNode;
@@ -431,6 +464,9 @@ function SpellChecker(id, tag) {
         else {
             text = range.startContainer.textContent.substring(0, range.startOffset + 1);
         }
+
+        currentHighlightingIsDynamic = true;
+        lastKeyCodeWasBackspace = (keyCode === 8);
 
         words = text.split(/\s/);
         spellCheckerDynamicHelper.setLastEnteredWords(words);
