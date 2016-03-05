@@ -12,6 +12,15 @@
 
 namespace qute_note {
 
+#define WRAP(x) \
+    << QString(x).toUpper()
+
+static const QSet<QString> localeList = QSet<QString>()
+#include "localeList.inl"
+;
+
+#undef WRAP
+
 SpellChecker::SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent, const QString & userDictionaryPath) :
     QObject(parent),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
@@ -380,6 +389,11 @@ void SpellChecker::scanSystemDictionaries()
             }
 
             QString dictionaryName = fileInfo.baseName();
+            if (!localeList.contains(dictionaryName.toUpper())) {
+                QNTRACE("Skipping dictionary which doesn't appear to correspond to any locale: " + dictionaryName);
+                continue;
+            }
+
             QPair<QString, QString> & pair = dicAndAffFilesHashByDictionaryName[dictionaryName];
             if (isDicFile) {
                 QNTRACE("Adding dic file " << fileInfo.absoluteFilePath());
