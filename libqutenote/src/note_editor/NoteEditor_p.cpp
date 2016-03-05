@@ -3600,7 +3600,7 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
 {
     QNDEBUG("NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion");
 
-    m_skipRulesForHtmlToEnmlConversion.reserve(4);
+    m_skipRulesForHtmlToEnmlConversion.reserve(5);
 
     ENMLConverter::SkipHtmlElementRule tableSkipRule;
     tableSkipRule.m_attributeValueToSkip = "JCLRgrip";
@@ -3628,6 +3628,13 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
     spellCheckerHelperSkipRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
     spellCheckerHelperSkipRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
     m_skipRulesForHtmlToEnmlConversion << spellCheckerHelperSkipRule;
+
+    ENMLConverter::SkipHtmlElementRule rangySelectionBoundaryRule;
+    rangySelectionBoundaryRule.m_includeElementContents = false;
+    rangySelectionBoundaryRule.m_attributeValueToSkip = "rangySelectionBoundary";
+    rangySelectionBoundaryRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+    rangySelectionBoundaryRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
+    m_skipRulesForHtmlToEnmlConversion << rangySelectionBoundaryRule;
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()
