@@ -12,6 +12,7 @@
 #include "delegates/EditHyperlinkDelegate.h"
 #include "delegates/RemoveHyperlinkDelegate.h"
 #include "javascript_glue/ResourceInfoJavaScriptHandler.h"
+#include "javascript_glue/ResizableImageJavaScriptHandler.h"
 #include "javascript_glue/TextCursorPositionJavaScriptHandler.h"
 #include "javascript_glue/ContextMenuEventJavaScriptHandler.h"
 #include "javascript_glue/PageMutationHandler.h"
@@ -167,6 +168,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 #endif
     m_pSpellCheckerDynamicHandler(new SpellCheckerDynamicHelper(this)),
     m_pTableResizeJavaScriptHandler(new TableResizeJavaScriptHandler(this)),
+    m_pResizableImageJavaScriptHandler(new ResizableImageJavaScriptHandler(this)),
     m_pGenericResourceImageWriter(Q_NULLPTR),
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
@@ -339,6 +341,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     frame->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
+                                       QScriptEngine::QtOwnership);
+    frame->addToJavaScriptWindowObject("resizableImageHandler", m_pResizableImageJavaScriptHandler,
                                        QScriptEngine::QtOwnership);
     frame->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
                                        QScriptEngine::QtOwnership);
@@ -2987,6 +2991,7 @@ void NoteEditorPrivate::setupJavaScriptObjects()
     m_pWebChannel->registerObject("hyperlinkClickHandler", m_pHyperlinkClickJavaScriptHandler);
     m_pWebChannel->registerObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler);
     m_pWebChannel->registerObject("tableResizeHandler", m_pTableResizeJavaScriptHandler);
+    m_pWebChannel->registerObject("resizableImageHandler", m_pResizableImageJavaScriptHandler);
     m_pWebChannel->registerObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler);
     QNDEBUG("Registered objects exposed to JavaScript");
 }
@@ -3469,6 +3474,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
 
     QObject::connect(m_pTableResizeJavaScriptHandler, QNSIGNAL(TableResizeJavaScriptHandler,tableResized),
                      this, QNSLOT(NoteEditorPrivate,onTableResized));
+    QObject::connect(m_pResizableImageJavaScriptHandler, QNSIGNAL(ResizableImageJavaScriptHandler,imageResourceResized),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceResized));
     QObject::connect(m_pSpellCheckerDynamicHandler, QNSIGNAL(SpellCheckerDynamicHelper,lastEnteredWords,QStringList),
                      this, QNSLOT(NoteEditorPrivate,onSpellCheckerDynamicHelperUpdate,QStringList));
     QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,toDoCheckboxClicked,quint64),
@@ -3519,6 +3526,8 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
+                                                   QScriptEngine::QtOwnership);
+    page->mainFrame()->addToJavaScriptWindowObject("resizableImageHandler", m_pResizableImageJavaScriptHandler,
                                                    QScriptEngine::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
                                                    QScriptEngine::QtOwnership);
@@ -4747,6 +4756,12 @@ void NoteEditorPrivate::onSpellCheckerReady()
     }
 
     emit spellCheckerReady();
+}
+
+void NoteEditorPrivate::onImageResourceResized()
+{
+    QNDEBUG("NoteEditorPrivate::onImageResourceResized");
+    convertToNote();
 }
 
 void NoteEditorPrivate::cut()

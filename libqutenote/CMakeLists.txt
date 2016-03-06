@@ -205,6 +205,7 @@ set(PRIVATE_HEADERS
     src/note_editor/delegates/RemoveHyperlinkDelegate.h
     src/note_editor/delegates/RenameResourceDelegate.h
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.h
+    src/note_editor/javascript_glue/ResizableImageJavaScriptHandler.h
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.h
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.h
     src/note_editor/javascript_glue/PageMutationHandler.h
@@ -307,6 +308,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/delegates/RemoveHyperlinkDelegate.cpp
     src/note_editor/delegates/RenameResourceDelegate.cpp
     src/note_editor/javascript_glue/ResourceInfoJavaScriptHandler.cpp
+    src/note_editor/javascript_glue/ResizableImageJavaScriptHandler.cpp
     src/note_editor/javascript_glue/TextCursorPositionJavaScriptHandler.cpp
     src/note_editor/javascript_glue/ContextMenuEventJavaScriptHandler.cpp
     src/note_editor/javascript_glue/PageMutationHandler.cpp

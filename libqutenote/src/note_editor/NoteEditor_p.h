@@ -54,6 +54,7 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
 QT_FORWARD_DECLARE_CLASS(RenameResourceDelegate)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 QT_FORWARD_DECLARE_CLASS(SpellCheckerDynamicHelper)
+QT_FORWARD_DECLARE_CLASS(ResizableImageJavaScriptHandler)
 
 #ifdef USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
@@ -333,6 +334,8 @@ private Q_SLOTS:
     void onSpellCheckerDynamicHelperUpdate(QStringList words);
 
     void onSpellCheckerReady();
+
+    void onImageResourceResized();
 
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
@@ -660,11 +663,12 @@ private:
     quint16     m_webSocketServerPort;
 #endif
 
-    SpellCheckerDynamicHelper *     m_pSpellCheckerDynamicHandler;
-    TableResizeJavaScriptHandler *  m_pTableResizeJavaScriptHandler;
-    GenericResourceImageWriter *    m_pGenericResourceImageWriter;
-    ToDoCheckboxOnClickHandler *    m_pToDoCheckboxClickHandler;
-    PageMutationHandler *           m_pPageMutationHandler;
+    SpellCheckerDynamicHelper *         m_pSpellCheckerDynamicHandler;
+    TableResizeJavaScriptHandler *      m_pTableResizeJavaScriptHandler;
+    ResizableImageJavaScriptHandler *   m_pResizableImageJavaScriptHandler;
+    GenericResourceImageWriter *        m_pGenericResourceImageWriter;
+    ToDoCheckboxOnClickHandler *        m_pToDoCheckboxClickHandler;
+    PageMutationHandler *               m_pPageMutationHandler;
 
     QUndoStack * m_pUndoStack;
 

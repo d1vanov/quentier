@@ -18,6 +18,7 @@
             window.resourceCache.notifyResourceInfo.connect(onResourceInfoReceived);
 
             window.genericResourceImageHandler = channel.objects.genericResourceImageHandler;
+            window.resizableImageHandler = channel.objects.resizableImageHandler;
             window.genericResourceImageHandler.genericResourceImageFound.connect(onGenericResourceImageReceived);
 
             window.pageMutationObserver = channel.objects.pageMutationObserver;

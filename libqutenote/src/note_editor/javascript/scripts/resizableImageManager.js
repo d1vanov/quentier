@@ -28,6 +28,7 @@ function ResizableImageManager() {
 
     this.onResizeStart = function(event, ui) {
         observer.stop();
+        resizableImageHandler.notifyImageResourceResized();
     }
 
     this.onResizeStop = function(event, ui) {
