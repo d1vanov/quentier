@@ -37,6 +37,8 @@ public:
     void ignoreWord(const QString & word);
     void removeWord(const QString & word);
 
+    bool isReady() const;
+
 Q_SIGNALS:
     void ready();
 
@@ -82,6 +84,7 @@ private:
 
     // Hashed by the language code
     QHash<QString, Dictionary>  m_systemDictionaries;
+    bool                        m_systemDictionariesReady;
 
     QUuid                       m_readUserDictionaryRequestId;
     QString                     m_userDictionaryPath;

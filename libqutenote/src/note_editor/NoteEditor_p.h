@@ -88,6 +88,9 @@ Q_SIGNALS:
 
     void currentNoteChanged(Note note);
 
+    void spellCheckerNotReady();
+    void spellCheckerReady();
+
     // Signals to notify anyone interested of the formatting at the current cursor position
     void textBoldState(bool state);
     void textItalicState(bool state);
@@ -147,6 +150,7 @@ public:
 
     void refreshMisSpelledWordsList();
     void applySpellCheck(const bool applyToSelection = false);
+    void removeSpellCheck();
     void enableDynamicSpellCheck();
     void disableDynamicSpellCheck();
 
@@ -328,6 +332,8 @@ private Q_SLOTS:
     void onSpellCheckCorrectionUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
     void onSpellCheckerDynamicHelperUpdate(QStringList words);
 
+    void onSpellCheckerReady();
+
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
     void onAddResourceDelegateError(QString error);
@@ -426,6 +432,7 @@ private:
     void setupActionShortcut(const int key, const QString & context, QAction & action);
 
     void setupFileIO();
+    void setupSpellChecker();
     void setupScripts();
     void setupGeneralSignalSlotConnections();
     void setupNoteEditorPage();

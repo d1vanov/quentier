@@ -36,7 +36,10 @@ Q_SIGNALS:
 
     void noteEditorHtmlUpdated(QString html);
 
-    void currentNoteChanged(Note * pNote);
+    void currentNoteChanged(Note note);
+
+    void spellCheckerNotReady();
+    void spellCheckerReady();
 
     // Signals to notify anyone interested of the formatting at the current cursor position
     void textBoldState(bool state);

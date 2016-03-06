@@ -84,6 +84,9 @@ private Q_SLOTS:
     void onNoteEditorHtmlUpdate(QString html);
     void onNoteEditorError(QString error);
 
+    void onNoteEditorSpellCheckerNotReady();
+    void onNoteEditorSpellCheckerReady();
+
     // Slots used to reflect the change of formatting for the piece of text being the one currently pointed to by the text cursor in the note editor
     void onNoteEditorBoldStateChanged(bool state);
     void onNoteEditorItalicStateChanged(bool state);

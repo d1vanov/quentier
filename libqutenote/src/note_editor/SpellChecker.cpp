@@ -17,6 +17,7 @@ SpellChecker::SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * p
     QObject(parent),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_systemDictionaries(),
+    m_systemDictionariesReady(false),
     m_readUserDictionaryRequestId(),
     m_userDictionaryPath(),
     m_userDictionary(),
@@ -212,6 +213,11 @@ void SpellChecker::removeWord(const QString & word)
     }
 }
 
+bool SpellChecker::isReady() const
+{
+    return m_systemDictionariesReady && m_userDictionaryReady;
+}
+
 void SpellChecker::onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName files)
 {
     QNDEBUG("SpellChecker::onDictionariesFound");
@@ -234,7 +240,10 @@ void SpellChecker::onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAff
                 << ", affix file " << pair.second);
     }
 
-    emit ready();
+    m_systemDictionariesReady = true;
+    if (isReady()) {
+        emit ready();
+    }
 }
 
 void SpellChecker::scanSystemDictionaries()
@@ -361,9 +370,15 @@ void SpellChecker::scanSystemDictionaries()
 
 #endif
 
-    if (!m_systemDictionaries.isEmpty()) {
+    if (!m_systemDictionaries.isEmpty())
+    {
         QNDEBUG("Found some dictionaries at the expected locations, won't search for dictionaries just everywhere at the system");
-        emit ready();
+        m_systemDictionariesReady = true;
+
+        if (isReady()) {
+            emit ready();
+        }
+
         return;
     }
 
@@ -585,32 +600,40 @@ void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescrip
     QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
                         this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QString,QByteArray,QUuid));
 
-    if (Q_UNLIKELY(!success)) {
-        QNWARNING("Can't read the data from user's dictionary");
-        return;
-    }
-
-    QBuffer buffer(&data);
-    bool res = buffer.open(QIODevice::ReadOnly);
-    if (Q_UNLIKELY(!res)) {
-        QNWARNING("Can't open the data buffer for reading");
-        return;
-    }
-
-    QTextStream stream(&buffer);
-    QString word;
-    while(true)
+    if (Q_LIKELY(success))
     {
-        word = stream.readLine();
-        if (word.isEmpty()) {
-            break;
+        QBuffer buffer(&data);
+        bool res = buffer.open(QIODevice::ReadOnly);
+        if (Q_LIKELY(res))
+        {
+            QTextStream stream(&buffer);
+            QString word;
+            while(true)
+            {
+                word = stream.readLine();
+                if (word.isEmpty()) {
+                    break;
+                }
+
+                m_userDictionary << word;
+            }
+            buffer.close();
+            checkUserDictionaryDataPendingWriting();
         }
-
-        m_userDictionary << word;
+        else
+        {
+            QNWARNING("Can't open the data buffer for reading");
+        }
     }
-    buffer.close();
+    else
+    {
+        QNWARNING("Can't read the data from user's dictionary");
+    }
 
-    checkUserDictionaryDataPendingWriting();
+    m_userDictionaryReady = true;
+    if (isReady()) {
+        emit ready();
+    }
 }
 
 void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)

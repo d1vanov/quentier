@@ -214,6 +214,8 @@ void MainWindow::connectEditorSignalsToSlots()
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString), this, QNSLOT(MainWindow,onNoteEditorFontFamilyChanged,QString));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontSizeChanged,int), this, QNSLOT(MainWindow,onNoteEditorFontSizeChanged,int));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,insertTableDialogRequested), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerNotReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerNotReady));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerReady));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -715,6 +717,20 @@ void MainWindow::onNoteEditorError(QString error)
     QNINFO("MainWindow::onNoteEditorError: " << error);
 
     onSetStatusBarText(error, 20);
+}
+
+void MainWindow::onNoteEditorSpellCheckerNotReady()
+{
+    QNDEBUG("MainWindow::onNoteEditorSpellCheckerNotReady");
+
+    onSetStatusBarText(QT_TR_NOOP("Spell checker is loading dictionaries, please wait"));
+}
+
+void MainWindow::onNoteEditorSpellCheckerReady()
+{
+    QNDEBUG("MainWindow::onNoteEditorSpellCheckerReady");
+
+    onSetStatusBarText(QString());
 }
 
 void MainWindow::onNoteEditorBoldStateChanged(bool state)

@@ -261,8 +261,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 
     setupSkipRulesForHtmlToEnmlConversion();
     setupFileIO();
-
-    m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, this);
+    setupSpellChecker();
 
 #ifdef USE_QT_WEB_ENGINE
     setupWebSocketServer();
@@ -3383,6 +3382,15 @@ void NoteEditorPrivate::setupFileIO()
 #endif
 }
 
+void NoteEditorPrivate::setupSpellChecker()
+{
+    QNDEBUG("NoteEditorPrivate::setupSpellChecker");
+
+    m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, this);
+
+    QObject::connect(m_pSpellChecker, QNSIGNAL(SpellChecker,ready), this, QNSLOT(NoteEditorPrivate,onSpellCheckerReady));
+}
+
 void NoteEditorPrivate::setupScripts()
 {
     QNDEBUG("NoteEditorPrivate::setupScripts");
@@ -3472,6 +3480,9 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note), q, QNSIGNAL(NoteEditor,currentNoteChanged,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerNotReady), q, QNSIGNAL(NoteEditor,spellCheckerNotReady));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerReady), q, QNSIGNAL(NoteEditor,spellCheckerReady));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested), q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
 }
 
@@ -3838,6 +3849,12 @@ void NoteEditorPrivate::enableSpellCheck()
 {
     QNDEBUG("NoteEditorPrivate::enableSpellCheck");
 
+    if (!m_pSpellChecker->isReady()) {
+        QNTRACE("Spell checker is not ready");
+        emit spellCheckerNotReady();
+        return;
+    }
+
     refreshMisSpelledWordsList();
     applySpellCheck();
     enableDynamicSpellCheck();
@@ -3848,9 +3865,7 @@ void NoteEditorPrivate::disableSpellCheck()
     QNDEBUG("NoteEditorPrivate::disableSpellCheck");
 
     m_currentNoteMisSpelledWords.clear();
-    GET_PAGE()
-    page->executeJavaScript("spellChecker.remove();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
-
+    removeSpellCheck();
     disableDynamicSpellCheck();
 }
 
@@ -3940,6 +3955,14 @@ void NoteEditorPrivate::applySpellCheck(const bool applyToSelection)
 
     GET_PAGE()
     page->executeJavaScript(javascript, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
+}
+
+void NoteEditorPrivate::removeSpellCheck()
+{
+    QNDEBUG("NoteEditorPrivate::removeSpellCheck");
+
+    GET_PAGE()
+    page->executeJavaScript("spellChecker.remove();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
 }
 
 void NoteEditorPrivate::enableDynamicSpellCheck()
@@ -4696,6 +4719,20 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
     QNTRACE("Current note's misspelled words: " << m_currentNoteMisSpelledWords.join(", "));
 
     applySpellCheck(/* apply to selection = */ true);
+}
+
+void NoteEditorPrivate::onSpellCheckerReady()
+{
+    QNDEBUG("NoteEditorPrivate::onSpellCheckerReady");
+
+    if (m_spellCheckerEnabled) {
+        enableSpellCheck();
+    }
+    else {
+        disableSpellCheck();
+    }
+
+    emit spellCheckerReady();
 }
 
 void NoteEditorPrivate::cut()
