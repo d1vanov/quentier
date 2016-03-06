@@ -385,7 +385,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
     setPageEditable(true);
     updateColResizableTableBindings();
-    updateResizableImagesBindings();
     saveNoteResourcesToLocalFiles();
 
 #ifdef USE_QT_WEB_ENGINE
@@ -1210,7 +1209,6 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
 #endif
 
     provideSrcForResourceImgTags();
-    updateResizableImagesBindings();
 
     AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource,
                                                                    NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onAddResourceUndoRedoFinished),
@@ -2287,41 +2285,6 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 
     GET_PAGE()
     page->executeJavaScript(javascript);
-}
-
-void NoteEditorPrivate::updateResizableImagesBindings()
-{
-    QNDEBUG("NoteEditorPrivate::updateResizableImagesBindings");
-
-    // FIXME: it appears the problem is the fact that jQuery can't calculate the size of the image so it always becomes 0px...
-    // Need to workaround it somehow - either properly wait until all the images are loaded and only them perform the binding
-    // or supply the image size information from the C++ side
-    /*
-    bool readOnly = !isPageEditable();
-
-    QString javascript;
-    if (readOnly) {
-        // TODO: write JavaScript to clear all resizable image bindings
-    }
-    else {
-        javascript = "$(\".en-media-image\").each(function() { "
-                     " var height = $(this).css(\"height\"); "
-                     " var width = $(this).css(\"width\"); "
-                     " console.log(\"Applying resizable to image: \" + this.outerHTML + \"; height = \" + height + \", width = \" + width); "
-                     " if (!this.hasAttribute(\"height\")) { this.setAttribute(\"height\", height); } "
-                     " if (!this.hasAttribute(\"width\")) { this.setAttribute(\"width\", width); } "
-                     " $(this).resizable("
-                     " { maxHeight: height, "
-                     "   maxWidth: width, "
-                     "   minHeight: 10, minWidth: 10 "
-                     " }); });";
-    }
-
-    QNTRACE("Script: " << javascript);
-
-    GET_PAGE()
-    page->executeJavaScript(javascript);
-    */
 }
 
 bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)

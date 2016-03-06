@@ -16,6 +16,15 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
     var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
     resource.setAttribute("src", escapedPath);
 
+    if (document.body.contentEditable && resource.nodeName === "IMG") {
+        $(resource).load(function() {
+            var height = $(this).height();
+            var width = $(this).width();
+            console.log("Applying resizable to image: " + this.outerHTML + "; height = " + height + ", width = " + width);
+            $(this).resizable({ maxHeight: height, maxWidth: width, minHeight: 20, minWidth: 20 });
+        });
+    }
+
     var resourceName = resource.getElementsByClassName("resource-name");
     if (resourceName && resourceName[0]) {
         resourceName[0].textContent = displayName;

@@ -399,7 +399,6 @@ private:
     void clearEditorContent();
     void noteToEditorContent();
     void updateColResizableTableBindings();
-    void updateResizableImagesBindings();
 
     bool htmlToNoteContent(QString & errorDescription);
 
