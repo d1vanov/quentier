@@ -114,6 +114,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_noteEditorImageResourcesStoragePath(),
     m_font(),
     m_jQueryJs(),
+    m_jQueryUiJs(),
     m_resizableTableColumnsJs(),
     m_debounceJs(),
     m_rangyCoreJs(),
@@ -206,6 +207,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pagePrefix("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
                  "<html><head>"
                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
+                 "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/jquery-ui.min.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-crypt.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/hover.css\">"
                  "<link rel=\"stylesheet\" type=\"text/css\" href=\"qrc:/css/en-decrypted.css\">"
@@ -314,6 +316,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->stopJavaScriptAutoExecution();
 
     page->executeJavaScript(m_jQueryJs);
+    page->executeJavaScript(m_jQueryUiJs);
     page->executeJavaScript(m_getSelectionHtmlJs);
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_findReplaceManagerJs);
@@ -382,6 +385,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
     setPageEditable(true);
     updateColResizableTableBindings();
+    updateResizableImagesBindings();
     saveNoteResourcesToLocalFiles();
 
 #ifdef USE_QT_WEB_ENGINE
@@ -1206,6 +1210,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
 #endif
 
     provideSrcForResourceImgTags();
+    updateResizableImagesBindings();
 
     AddResourceUndoCommand * pCommand = new AddResourceUndoCommand(addedResource,
                                                                    NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onAddResourceUndoRedoFinished),
@@ -2282,6 +2287,41 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 
     GET_PAGE()
     page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::updateResizableImagesBindings()
+{
+    QNDEBUG("NoteEditorPrivate::updateResizableImagesBindings");
+
+    // FIXME: it appears the problem is the fact that jQuery can't calculate the size of the image so it always becomes 0px...
+    // Need to workaround it somehow - either properly wait until all the images are loaded and only them perform the binding
+    // or supply the image size information from the C++ side
+    /*
+    bool readOnly = !isPageEditable();
+
+    QString javascript;
+    if (readOnly) {
+        // TODO: write JavaScript to clear all resizable image bindings
+    }
+    else {
+        javascript = "$(\".en-media-image\").each(function() { "
+                     " var height = $(this).css(\"height\"); "
+                     " var width = $(this).css(\"width\"); "
+                     " console.log(\"Applying resizable to image: \" + this.outerHTML + \"; height = \" + height + \", width = \" + width); "
+                     " if (!this.hasAttribute(\"height\")) { this.setAttribute(\"height\", height); } "
+                     " if (!this.hasAttribute(\"width\")) { this.setAttribute(\"width\", width); } "
+                     " $(this).resizable("
+                     " { maxHeight: height, "
+                     "   maxWidth: width, "
+                     "   minHeight: 10, minWidth: 10 "
+                     " }); });";
+    }
+
+    QNTRACE("Script: " << javascript);
+
+    GET_PAGE()
+    page->executeJavaScript(javascript);
+    */
 }
 
 bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
@@ -3406,6 +3446,7 @@ void NoteEditorPrivate::setupScripts()
     file.close()
 
     SETUP_SCRIPT("javascript/jquery/jquery-2.1.3.min.js", m_jQueryJs);
+    SETUP_SCRIPT("javascript/jquery/jquery-ui.min.js", m_jQueryUiJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
@@ -3937,7 +3978,7 @@ void NoteEditorPrivate::applySpellCheck(const bool applyToSelection)
 {
     QNDEBUG("NoteEditorPrivate::applySpellCheck: apply to selection = " << (applyToSelection ? "true" : "false"));
 
-    QString javascript = "spellChecker.apply";
+    QString javascript = "if (window.hasOwnProperty('spellChecker')) { spellChecker.apply";
 
     if (applyToSelection) {
         javascript += "ToSelection";
@@ -3949,7 +3990,7 @@ void NoteEditorPrivate::applySpellCheck(const bool applyToSelection)
         javascript += "', '";
     }
     javascript.chop(3);     // Remove trailing ", '";
-    javascript += ");";
+    javascript += "); }";
 
     QNTRACE("Script: " << javascript);
 
@@ -3962,7 +4003,7 @@ void NoteEditorPrivate::removeSpellCheck()
     QNDEBUG("NoteEditorPrivate::removeSpellCheck");
 
     GET_PAGE()
-    page->executeJavaScript("spellChecker.remove();", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
+    page->executeJavaScript("if (window.hasOwnProperty('spellChecker')) { spellChecker.remove(); }", NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckSetOrCleared));
 }
 
 void NoteEditorPrivate::enableDynamicSpellCheck()
@@ -3970,7 +4011,7 @@ void NoteEditorPrivate::enableDynamicSpellCheck()
     QNDEBUG("NoteEditorPrivate::enableDynamicSpellCheck");
 
     GET_PAGE()
-    page->executeJavaScript("spellChecker.enableDynamic();");
+    page->executeJavaScript("if (window.hasOwnProperty('spellChecker')) { spellChecker.enableDynamic(); }");
 }
 
 void NoteEditorPrivate::disableDynamicSpellCheck()
@@ -3978,7 +4019,7 @@ void NoteEditorPrivate::disableDynamicSpellCheck()
     QNDEBUG("NoteEditorPrivate::disableDynamicSpellCheck");
 
     GET_PAGE()
-    page->executeJavaScript("spellChecker.disableDynamic();");
+    page->executeJavaScript("if (window.hasOwnProperty('spellChecker')) { spellChecker.disableDynamic(); }");
 }
 
 void NoteEditorPrivate::onSpellCheckSetOrCleared(const QVariant & dummy, const QVector<QPair<QString, QString> > & extraData)

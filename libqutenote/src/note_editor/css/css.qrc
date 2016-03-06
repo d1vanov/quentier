@@ -9,5 +9,6 @@
         <file>en-todo.css</file>
         <file>link.css</file>
         <file>misspell.css</file>
+        <file>jquery-ui.min.css</file>
     </qresource>
 </RCC>

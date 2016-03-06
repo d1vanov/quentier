@@ -10,3 +10,7 @@ Made available under a MIT License:
 http://www.opensource.org/licenses/mit-license.php
 
 Hover.css Copyright Ian Lunn 2014. Generated with Sass.
+
+=======================================================
+
+jquery-ui.min.css - Minimalized CSS from jQuery UI library: https://jqueryui.com

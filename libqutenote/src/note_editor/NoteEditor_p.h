@@ -399,6 +399,7 @@ private:
     void clearEditorContent();
     void noteToEditorContent();
     void updateColResizableTableBindings();
+    void updateResizableImagesBindings();
 
     bool htmlToNoteContent(QString & errorDescription);
 
@@ -605,6 +606,7 @@ private:
 
     // JavaScript scripts
     QString     m_jQueryJs;
+    QString     m_jQueryUiJs;
     QString     m_resizableTableColumnsJs;
     QString     m_debounceJs;
     QString     m_rangyCoreJs;
