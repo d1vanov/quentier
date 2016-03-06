@@ -607,6 +607,7 @@ private:
     QString     m_jQueryJs;
     QString     m_jQueryUiJs;
     QString     m_resizableTableColumnsJs;
+    QString     m_resizableImageManagerJs;
     QString     m_debounceJs;
     QString     m_rangyCoreJs;
     QString     m_rangySelectionSaveRestoreJs;

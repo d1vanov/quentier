@@ -14,32 +14,32 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
     }
 
     var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
-    resource.setAttribute("src", escapedPath);
 
-    if (document.body.contentEditable && resource.nodeName === "IMG") {
-        $(resource).load(function() {
-            var height = $(this).height();
-            var width = $(this).width();
-            console.log("Applying resizable to image: " + this.outerHTML + "; height = " + height + ", width = " + width);
-            $(this).resizable({ maxHeight: height, maxWidth: width, minHeight: 20, minWidth: 20 });
-        });
-    }
+    observer.stop();
 
-    var resourceName = resource.getElementsByClassName("resource-name");
-    if (resourceName && resourceName[0]) {
-        resourceName[0].textContent = displayName;
-        console.log("Set resource display name to " + displayName);
-    }
-    else {
-        console.log("Can't find child element for resource display name");
-    }
+    try {
+        resource.setAttribute("src", escapedPath);
+        resizableImageManager.setResizable(resource);
 
-    var resourceSize = resource.getElementsByClassName("resource-size");
-    if (resourceSize && resourceSize[0]) {
-        resourceSize[0].textContent = displaySize;
-        console.log("Set resource display size to " + displaySize);
+        var resourceName = resource.getElementsByClassName("resource-name");
+        if (resourceName && resourceName[0]) {
+            resourceName[0].textContent = displayName;
+            console.log("Set resource display name to " + displayName);
+        }
+        else {
+            console.log("Can't find child element for resource display name");
+        }
+
+        var resourceSize = resource.getElementsByClassName("resource-size");
+        if (resourceSize && resourceSize[0]) {
+            resourceSize[0].textContent = displaySize;
+            console.log("Set resource display size to " + displaySize);
+        }
+        else {
+            console.log("Can't find child element for resource display size");
+        }
     }
-    else {
-        console.log("Can't find child element for resource display size");
+    finally {
+        observer.start();
     }
 }

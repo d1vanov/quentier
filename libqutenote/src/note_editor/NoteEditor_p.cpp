@@ -116,6 +116,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_jQueryJs(),
     m_jQueryUiJs(),
     m_resizableTableColumnsJs(),
+    m_resizableImageManagerJs(),
     m_debounceJs(),
     m_rangyCoreJs(),
     m_rangySelectionSaveRestoreJs(),
@@ -361,6 +362,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 
     page->executeJavaScript(m_findInnermostElementJs);
     page->executeJavaScript(m_resizableTableColumnsJs);
+    page->executeJavaScript(m_resizableImageManagerJs);
     page->executeJavaScript(m_debounceJs);
     page->executeJavaScript(m_rangyCoreJs);
     page->executeJavaScript(m_rangySelectionSaveRestoreJs);
@@ -3412,6 +3414,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/jquery/jquery-ui.min.js", m_jQueryUiJs);
     SETUP_SCRIPT("javascript/scripts/pageMutationObserver.js", m_pageMutationObserverJs);
     SETUP_SCRIPT("javascript/colResizable/colResizable-1.5.min.js", m_resizableTableColumnsJs);
+    SETUP_SCRIPT("javascript/scripts/resizableImageManager.js", m_resizableImageManagerJs);
     SETUP_SCRIPT("javascript/debounce/jquery.debounce-1.0.5.js", m_debounceJs);
     SETUP_SCRIPT("javascript/rangy/rangy-core.js", m_rangyCoreJs);
     SETUP_SCRIPT("javascript/rangy/rangy-selectionsaverestore.js", m_rangySelectionSaveRestoreJs);

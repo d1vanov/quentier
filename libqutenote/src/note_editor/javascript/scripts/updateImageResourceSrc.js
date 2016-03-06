@@ -8,5 +8,17 @@ function updateImageResourceSrc(hash, newSrc) {
     }
 
     var escapedPath = newSrc.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
-    resource.setAttribute("src", escapedPath);
+
+    observer.stop();
+
+    try {
+        resizableImageManager.destroyResizable(resource);
+        resource.setAttribute("height", resource.naturalHeight);
+        resource.setAttribute("width", resource.naturalWidth);
+        resource.setAttribute("src", escapedPath);
+        resizableImageManager.setResizable(resource);
+    }
+    finally {
+        observer.start();
+    }
 }

@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/javascript/scripts">
         <file>onTableResize.js</file>
+        <file>resizableImageManager.js</file>
         <file>tableManager.js</file>
         <file>resourceManager.js</file>
         <file>hyperlinkManager.js</file>
