@@ -108,6 +108,8 @@ var observer = new MutationObserver(function(mutations, observer) {
     }
 });
 
+observer["running"] = false;
+
 observer.start = function() {
     this.observe(document, {
         subtree: true,
@@ -115,10 +117,13 @@ observer.start = function() {
         childList: true,
         characterData: true
     });
+
+    this.running = true;
 }
 
 observer.stop = function() {
     this.disconnect();
+    this.running = false;
 }
 
 observer.start();

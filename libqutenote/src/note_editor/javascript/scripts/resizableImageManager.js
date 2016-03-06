@@ -26,6 +26,19 @@ function ResizableImageManager() {
         $(resource).resizable("destroy");
     }
 
+    this.onResizeStart = function(event, ui) {
+        observer.stop();
+    }
+
+    this.onResizeStop = function(event, ui) {
+        observer.start();
+    }
+
+    this.onResize = function(event, ui) {
+        ui.originalElement[0].setAttribute("height", ui.size.height + "px");
+        ui.originalElement[0].setAttribute("width", ui.size.width + "px");
+    }
+
     this.setResizable = function(resource) {
         console.log("ResizableImageManager::setResizable");
 
@@ -35,13 +48,37 @@ function ResizableImageManager() {
 
         if (document.body.contentEditable && resource.nodeName === "IMG") {
             $(resource).load(function() {
-                var height = this.naturalHeight;
-                var width = this.naturalWidth;
-                console.log("Applying resizable to image: " + this.outerHTML + "; height = " + height + ", width = " + width);
-                $(this).height(height);
-                $(this).width(width);
-                $(this).resizable({ maxHeight: height, maxWidth: width, minHeight: 20, minWidth: 20 });
-                $(this).resizable("enable");
+                var observerWasRunning = observer.running;
+                console.log("observerWasRunning = " + observerWasRunning);
+
+                if (observerWasRunning) {
+                    observer.stop();
+                    console.log("Stopped the observer");
+                }
+
+                try {
+                    var height = this.naturalHeight;
+                    var width = this.naturalWidth;
+                    console.log("Applying resizable to image: " + this.outerHTML + "; height = " + height + ", width = " + width);
+                    $(this).height(height);
+                    $(this).width(width);
+                    $(this).resizable({
+                        maxHeight: height,
+                        maxWidth: width,
+                        minHeight: 20,
+                        minWidth: 20,
+                        start: resizableImageManager.onResizeStart,
+                        stop: resizableImageManager.onResizeStop,
+                        resize: resizableImageManager.onResize
+                    });
+                    $(this).resizable("enable");
+                }
+                finally {
+                    if (observerWasRunning) {
+                        observer.start();
+                        console.log("Started the observer");
+                    }
+                }
             });
         }
     }
