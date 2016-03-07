@@ -226,6 +226,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.h
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.h
     src/note_editor/undo_stack/ImageResourceRotationUndoCommand.h
+    src/note_editor/undo_stack/ImageResizeUndoCommand.h
     src/note_editor/undo_stack/ReplaceUndoCommand.h
     src/note_editor/undo_stack/ReplaceAllUndoCommand.h
     src/note_editor/undo_stack/SpellCorrectionUndoCommand.h
@@ -328,6 +329,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/EditHyperlinkUndoCommand.cpp
     src/note_editor/undo_stack/ToDoCheckboxUndoCommand.cpp
     src/note_editor/undo_stack/ImageResourceRotationUndoCommand.cpp
+    src/note_editor/undo_stack/ImageResizeUndoCommand.cpp
     src/note_editor/undo_stack/ReplaceUndoCommand.cpp
     src/note_editor/undo_stack/ReplaceAllUndoCommand.cpp
     src/note_editor/undo_stack/SpellCorrectionUndoCommand.cpp

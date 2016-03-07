@@ -1,4 +1,9 @@
 function ResizableImageManager() {
+    var undoNodes = [];
+    var undoSizes = [];
+    var redoNodes = [];
+    var redoSizes = [];
+
     this.disableResizable = function(resource) {
         console.log("ResizableImageManager::disableResizable");
         if (!resource) {
@@ -28,11 +33,13 @@ function ResizableImageManager() {
 
     this.onResizeStart = function(event, ui) {
         observer.stop();
-        resizableImageHandler.notifyImageResourceResized();
     }
 
     this.onResizeStop = function(event, ui) {
+        undoNodes.push(ui.originalElement[0]);
+        undoSizes.push(ui.originalSize);
         observer.start();
+        resizableImageHandler.notifyImageResourceResized(true);
     }
 
     this.onResize = function(event, ui) {
@@ -81,6 +88,66 @@ function ResizableImageManager() {
                     }
                 }
             });
+        }
+    }
+
+    this.undo = function() {
+        console.log("ResizableImageManager::undo");
+        this.undoRedoImpl(undoNodes, undoSizes, redoNodes, redoSizes);
+    }
+
+    this.redo = function() {
+        console.log("ResizableImageManager::redo");
+        this.undoRedoImpl(redoNodes, redoSizes, undoNodes, undoSizes);
+    }
+
+    this.undoRedoImpl = function(sourceNodes, sourceSizes, destNodes, destSizes) {
+        var node = sourceNodes.pop();
+        var size = sourceSizes.pop();
+
+        observer.stop();
+
+        try {
+            if (!node) {
+                console.log("No node to undo/redo resizing for");
+                return;
+            }
+
+            if (!size) {
+                console.log("No size saved for undo/redo");
+                return;
+            }
+
+            var naturalHeight = node.naturalHeight;
+            var naturalWidth = node.naturalWidth;
+
+            $(node).height(size.height);
+            $(node).width(size.width);
+
+            $(node).resizable("destroy");
+
+            $(node).resizable({
+                maxHeight: naturalHeight,
+                maxWidth: naturalWidth,
+                minHeight: 20,
+                minWidth: 20,
+                start: resizableImageManager.onResizeStart,
+                stop: resizableImageManager.onResizeStop,
+                resize: resizableImageManager.onResize
+            });
+
+            $(node).height(size.height);
+            $(node).width(size.width);
+
+            $(node).resizable("enable");
+
+            destNodes.push(node);
+            destSizes.push(size);
+
+            resizableImageHandler.notifyImageResourceResized(false);
+        }
+        finally {
+            observer.start();
         }
     }
 }

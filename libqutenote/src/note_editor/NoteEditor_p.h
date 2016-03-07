@@ -335,7 +335,7 @@ private Q_SLOTS:
 
     void onSpellCheckerReady();
 
-    void onImageResourceResized();
+    void onImageResourceResized(bool pushUndoCommand);
 
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);

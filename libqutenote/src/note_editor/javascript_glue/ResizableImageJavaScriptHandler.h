@@ -13,10 +13,10 @@ public:
     ResizableImageJavaScriptHandler(QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void imageResourceResized();
+    void imageResourceResized(bool pushUndoCommand);
 
 public Q_SLOTS:
-    void notifyImageResourceResized();
+    void notifyImageResourceResized(bool pushUndoCommand);
 };
 
 } // namespace qute_note

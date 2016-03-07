@@ -31,6 +31,7 @@
 #include "undo_stack/RemoveResourceUndoCommand.h"
 #include "undo_stack/RenameResourceUndoCommand.h"
 #include "undo_stack/ImageResourceRotationUndoCommand.h"
+#include "undo_stack/ImageResizeUndoCommand.h"
 #include "undo_stack/ReplaceUndoCommand.h"
 #include "undo_stack/ReplaceAllUndoCommand.h"
 #include "undo_stack/SpellCorrectionUndoCommand.h"
@@ -3474,8 +3475,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
 
     QObject::connect(m_pTableResizeJavaScriptHandler, QNSIGNAL(TableResizeJavaScriptHandler,tableResized),
                      this, QNSLOT(NoteEditorPrivate,onTableResized));
-    QObject::connect(m_pResizableImageJavaScriptHandler, QNSIGNAL(ResizableImageJavaScriptHandler,imageResourceResized),
-                     this, QNSLOT(NoteEditorPrivate,onImageResourceResized));
+    QObject::connect(m_pResizableImageJavaScriptHandler, QNSIGNAL(ResizableImageJavaScriptHandler,imageResourceResized,bool),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceResized,bool));
     QObject::connect(m_pSpellCheckerDynamicHandler, QNSIGNAL(SpellCheckerDynamicHelper,lastEnteredWords,QStringList),
                      this, QNSLOT(NoteEditorPrivate,onSpellCheckerDynamicHelperUpdate,QStringList));
     QObject::connect(m_pToDoCheckboxClickHandler, QNSIGNAL(ToDoCheckboxOnClickHandler,toDoCheckboxClicked,quint64),
@@ -4758,9 +4759,15 @@ void NoteEditorPrivate::onSpellCheckerReady()
     emit spellCheckerReady();
 }
 
-void NoteEditorPrivate::onImageResourceResized()
+void NoteEditorPrivate::onImageResourceResized(bool pushUndoCommand)
 {
-    QNDEBUG("NoteEditorPrivate::onImageResourceResized");
+    QNDEBUG("NoteEditorPrivate::onImageResourceResized: push undo command = " << (pushUndoCommand ? "true" : "false"));
+
+    if (pushUndoCommand) {
+        ImageResizeUndoCommand * pCommand = new ImageResizeUndoCommand(*this);
+        m_pUndoStack->push(pCommand);
+    }
+
     convertToNote();
 }
 

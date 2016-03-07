@@ -6,9 +6,9 @@ ResizableImageJavaScriptHandler::ResizableImageJavaScriptHandler(QObject * paren
     QObject(parent)
 {}
 
-void ResizableImageJavaScriptHandler::notifyImageResourceResized()
+void ResizableImageJavaScriptHandler::notifyImageResourceResized(bool pushUndoCommand)
 {
-    emit imageResourceResized();
+    emit imageResourceResized(pushUndoCommand);
 }
 
 } // namespace qute_note
