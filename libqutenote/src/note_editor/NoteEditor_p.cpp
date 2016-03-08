@@ -123,6 +123,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_rangyCoreJs(),
     m_rangySelectionSaveRestoreJs(),
     m_onTableResizeJs(),
+    m_textEditingUndoRedoManagerJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
     m_replaceSelectionWithHtmlJs(),
@@ -372,6 +373,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_rangyCoreJs);
     page->executeJavaScript(m_rangySelectionSaveRestoreJs);
     page->executeJavaScript(m_onTableResizeJs);
+    page->executeJavaScript(m_textEditingUndoRedoManagerJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_replaceHyperlinkContentJs);
     page->executeJavaScript(m_updateResourceHashJs);
@@ -3427,6 +3429,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
     SETUP_SCRIPT("javascript/scripts/imageAreasHilitor.js", m_imageAreasHilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
+    SETUP_SCRIPT("javascript/scripts/textEditingUndoRedoManager.js", m_textEditingUndoRedoManagerJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
@@ -4555,14 +4558,28 @@ void NoteEditorPrivate::redo()
 
 void NoteEditorPrivate::undoPageAction()
 {
+    QNDEBUG("NoteEditorPrivate::undoPageAction");
+
+    GET_PAGE()
+    page->executeJavaScript("textEditingUndoRedoManager.undo()");
+
+    /*
     m_skipPushingUndoCommandOnNextContentChange = true;
     HANDLE_ACTION(undoPageAction, Undo);
+    */
 }
 
 void NoteEditorPrivate::redoPageAction()
 {
+    QNDEBUG("NoteEditorPrivate::redoPageAction");
+
+    GET_PAGE()
+    page->executeJavaScript("textEditingUndoRedoManager.redo()");
+
+    /*
     m_skipPushingUndoCommandOnNextContentChange = true;
     HANDLE_ACTION(redoPageAction, Redo);
+    */
 }
 
 void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)

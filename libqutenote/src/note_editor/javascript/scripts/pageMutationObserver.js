@@ -25,6 +25,10 @@ var observer = new MutationObserver(function(mutations, observer) {
                     (mutation.target ? mutation.target.nodeName : "null") + ", num added nodes = " +
                     numAddedNodes + ", num removed nodes = " + numRemovedNodes);
 
+        if (mutation.type === "characterData") {
+            console.log("Character data mutation: old value = " + mutation.oldValue + ", new value = " + mutation.target.nodeValue);
+        }
+
         if (numAddedNodes) {
             for(var addedNodesIndex = 0; addedNodesIndex < numAddedNodes; ++addedNodesIndex) {
                 var addedNode = mutation.addedNodes[addedNodesIndex];
@@ -94,16 +98,22 @@ var observer = new MutationObserver(function(mutations, observer) {
                     }
                 }
             }
+
+            ++numApprovedMutations;
+            textEditingUndoRedoManager.pushNode(mutation.target.parentNode);
         }
         else if (mutation.type !== "characterData") {
             console.log("Skipping non-characterData mutation");
             continue;
         }
-
-        ++numApprovedMutations;
+        else {
+            ++numApprovedMutations;
+            textEditingUndoRedoManager.pushNode(mutation.target, mutation.oldValue);
+        }
     }
 
     if (numApprovedMutations) {
+        textEditingUndoRedoManager.pushNumMutations(numApprovedMutations);
         pageMutationObserver.onPageMutation();
     }
 });
@@ -115,7 +125,8 @@ observer.start = function() {
         subtree: true,
         attributes: true,
         childList: true,
-        characterData: true
+        characterData: true,
+        characterDataOldValue: true
     });
 
     this.running = true;

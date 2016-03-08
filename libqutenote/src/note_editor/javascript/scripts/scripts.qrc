@@ -6,6 +6,7 @@
         <file>resourceManager.js</file>
         <file>hyperlinkManager.js</file>
         <file>encryptDecryptManager.js</file>
+        <file>textEditingUndoRedoManager.js</file>
         <file>spellChecker.js</file>
         <file>getSelectionHtml.js</file>
         <file>snapSelectionToWord.js</file>
