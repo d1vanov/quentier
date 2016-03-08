@@ -118,28 +118,24 @@ function ResizableImageManager() {
                 return;
             }
 
-            var naturalHeight = node.naturalHeight;
-            var naturalWidth = node.naturalWidth;
+            var $wrapper = $(node).resizable("widget");
+            var $element = $wrapper.find(".ui-resizable");
+            var dx = $element.width() - size.width;
+            var dy = $element.height() - size.height;
 
-            $(node).height(size.height);
-            $(node).width(size.width);
+            var previousHeight = $(node).height();
+            var previousWidth = $(node).width();
 
-            $(node).resizable("destroy");
+            $element.width(size.width);
+            $wrapper.width($wrapper.width() - dx);
+            $element.height(size.height);
+            $wrapper.height($wrapper.height() - dy);
 
-            $(node).resizable({
-                maxHeight: naturalHeight,
-                maxWidth: naturalWidth,
-                minHeight: 20,
-                minWidth: 20,
-                start: resizableImageManager.onResizeStart,
-                stop: resizableImageManager.onResizeStop,
-                resize: resizableImageManager.onResize
-            });
+            console.log("Set element width to " + size.width + ", height to " + size.height +
+                        "; wrapper's width to " + $wrapper.width() + ", height to " + $wrapper.height());
 
-            $(node).height(size.height);
-            $(node).width(size.width);
-
-            $(node).resizable("enable");
+            size.height = previousHeight;
+            size.width = previousWidth;
 
             destNodes.push(node);
             destSizes.push(size);
