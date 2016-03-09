@@ -4562,11 +4562,7 @@ void NoteEditorPrivate::undoPageAction()
 
     GET_PAGE()
     page->executeJavaScript("textEditingUndoRedoManager.undo()");
-
-    /*
-    m_skipPushingUndoCommandOnNextContentChange = true;
-    HANDLE_ACTION(undoPageAction, Undo);
-    */
+    setFocus();
 }
 
 void NoteEditorPrivate::redoPageAction()
@@ -4575,11 +4571,7 @@ void NoteEditorPrivate::redoPageAction()
 
     GET_PAGE()
     page->executeJavaScript("textEditingUndoRedoManager.redo()");
-
-    /*
-    m_skipPushingUndoCommandOnNextContentChange = true;
-    HANDLE_ACTION(redoPageAction, Redo);
-    */
+    setFocus();
 }
 
 void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)

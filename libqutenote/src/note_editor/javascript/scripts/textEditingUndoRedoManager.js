@@ -12,13 +12,52 @@ function TextEditingUndoRedoManager() {
     this.pushNode = function(node, value) {
         console.log("TextEditingUndoRedoManager::pushNode: type = " + node.nodeType + ", name = " + node.nodeName +
                     ", value = " + value + ", node's own value = " + (node.nodeType === 3 ? node.nodeValue : node.innerHTML));
+
+        value = value || (node.nodeType === 3 ? node.nodeValue : node.innerHTML);
+        if (node.nodeType === 3) {
+            var element = node;
+            while(element.nodeType === 3) {
+                element = element.parentNode;
+            }
+
+            var html = this.collectHtmlWithOldTextNodeValue(element, node, value);
+            console.log("Collected html with old text node value: " + html + "; the real current inner HTML of the element: " +
+                        element.innerHTML);
+            node = element;
+            value = html;
+        }
+
         undoNodes.push(node);
-        undoNodeValues.push(value || (node.nodeType === 3 ? node.nodeValue : node.innerHTML));
+        undoNodeValues.push(value);
     }
 
     this.pushNumMutations = function(num) {
         console.log("TextEditingUndoRedoManager::pushNumMutations: " + num);
         undoMutationCounters.push(num);
+    }
+
+    this.collectHtmlWithOldTextNodeValue = function(element, textNode, value) {
+        var html = "";
+        for(var i = 0; i < element.childNodes.length; ++i) {
+            var child = element.childNodes[i];
+            if (child === textNode) {
+                html += value;
+            }
+            else if (child.nodeType === 3) {
+                html += child.nodeValue;
+            }
+            else {
+                html += child.outerHTML;
+            }
+
+            if (child.hasChildNodes()) {
+                for(var j = 0; j < child.childNodes.length; ++j) {
+                    html += this.collectHtmlWithOldTextNodeValue(child.childNodes[j], textNode, value);
+                }
+            }
+        }
+
+        return html;
     }
 
     this.undo = function() {
@@ -95,6 +134,15 @@ function TextEditingUndoRedoManager() {
                 }
                 else {
                     sourceNode.innerHTML = sourceNodeInnerHtml;
+                }
+
+                if (i === (numMutations - 1)) {
+                    var range = document.createRange();
+                    range.selectNodeContents(sourceNode);
+                    range.collapse(false);
+                    var selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
                 }
             }
         }
