@@ -558,9 +558,6 @@ color: rgb(255, 255, 255);</string>
                  <iconset theme="edit-undo">
                   <normaloff>.</normaloff>.</iconset>
                 </property>
-                <property name="shortcut">
-                 <string>Ctrl+S</string>
-                </property>
                 <property name="flat">
                  <bool>true</bool>
                 </property>
@@ -2445,6 +2442,9 @@ stop: 1 #0EB7FF);
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
    </property>
   </action>
   <action name="ActionDelete">
