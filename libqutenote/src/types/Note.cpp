@@ -7,7 +7,7 @@
 
 namespace qute_note {
 
-QN_DEFINE_LOCAL_GUID(Note)
+QN_DEFINE_LOCAL_UID(Note)
 QN_DEFINE_DIRTY(Note)
 QN_DEFINE_LOCAL(Note)
 QN_DEFINE_SHORTCUT(Note)
@@ -127,7 +127,7 @@ void Note::clear()
 
 bool Note::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty() && !d->m_qecNote.guid.isSet()) {
+    if (localUid().isEmpty() && !d->m_qecNote.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Both Note's local and remote guids are empty");
         return false;
     }
@@ -416,9 +416,9 @@ QList<ResourceAdapter> Note::resourceAdapters() const
 
         if (i < numResourceAdditionalInfoEntries) {
             const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
-            resource.setLocalGuid(info.localGuid);
-            if (!info.noteLocalGuid.isEmpty()) {
-                resource.setNoteLocalGuid(info.noteLocalGuid);
+            resource.setLocalUid(info.localUid);
+            if (!info.noteLocalUid.isEmpty()) {
+                resource.setNoteLocalUid(info.noteLocalUid);
             }
             resource.setDirty(info.isDirty);
         }
@@ -448,9 +448,9 @@ QList<ResourceWrapper> Note::resources() const
 
         if (i < numResourceAdditionalInfoEntries) {
             const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
-            resource.setLocalGuid(info.localGuid);
-            if (!info.noteLocalGuid.isEmpty()) {
-                resource.setNoteLocalGuid(info.noteLocalGuid);
+            resource.setLocalUid(info.localUid);
+            if (!info.noteLocalUid.isEmpty()) {
+                resource.setNoteLocalUid(info.noteLocalUid);
             }
             resource.setDirty(info.isDirty);
         }
@@ -472,9 +472,9 @@ QList<ResourceWrapper> Note::resources() const
                 it != resources.constEnd(); ++it) \
             { \
                 d->m_qecNote.resources.ref() << it->GetEnResource(); \
-                info.localGuid = it->localGuid(); \
-                if (it->hasNoteLocalGuid()) { \
-                    info.noteLocalGuid = it->noteLocalGuid(); \
+                info.localUid = it->localUid(); \
+                if (it->hasNoteLocalUid()) { \
+                    info.noteLocalUid = it->noteLocalUid(); \
                 } \
                 info.isDirty = it->isDirty(); \
                 d->m_resourcesAdditionalInfo.push_back(info); \
@@ -505,14 +505,14 @@ void Note::addResource(const IResource & resource)
 
     d->m_qecNote.resources.ref() << resource.GetEnResource();
     NoteData::ResourceAdditionalInfo info;
-    info.localGuid = resource.localGuid();
-    if (resource.hasNoteLocalGuid()) {
-        info.noteLocalGuid = resource.noteLocalGuid();
+    info.localUid = resource.localUid();
+    if (resource.hasNoteLocalUid()) {
+        info.noteLocalUid = resource.noteLocalUid();
     }
     info.isDirty = resource.isDirty();
     d->m_resourcesAdditionalInfo.push_back(info);
 
-    QNDEBUG("Added resource to note, local guid = " << resource.localGuid());
+    QNDEBUG("Added resource to note, local uid = " << resource.localUid());
 }
 
 bool Note::updateResource(const IResource & resource)
@@ -526,7 +526,7 @@ bool Note::updateResource(const IResource & resource)
     const int numResources = d->m_resourcesAdditionalInfo.size();
     for(int i = 0; i < numResources; ++i)
     {
-        if (d->m_resourcesAdditionalInfo[i].localGuid == resource.localGuid()) {
+        if (d->m_resourcesAdditionalInfo[i].localUid == resource.localUid()) {
             targetResourceIndex = i;
             break;
         }
@@ -558,9 +558,9 @@ bool Note::removeResource(const IResource & resource)
 
     QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
     NoteData::ResourceAdditionalInfo info;
-    info.localGuid = resource.localGuid();
-    if (resource.hasNoteLocalGuid()) {
-        info.noteLocalGuid = resource.noteLocalGuid();
+    info.localUid = resource.localUid();
+    if (resource.hasNoteLocalUid()) {
+        info.noteLocalUid = resource.noteLocalUid();
     }
 
     info.isDirty = resource.isDirty();
@@ -640,12 +640,12 @@ QTextStream & Note::Print(QTextStream & strm) const
 #define INSERT_DELIMITER \
     strm << "; \n";
 
-    const QString _localGuid = localGuid();
-    if (!_localGuid.isEmpty()) {
-        strm << "localGuid: " << _localGuid;
+    const QString _localUid = localUid();
+    if (!_localUid.isEmpty()) {
+        strm << "localUid: " << _localUid;
     }
     else {
-        strm << "localGuid is not set";
+        strm << "localUid is not set";
     }
     INSERT_DELIMITER;
 

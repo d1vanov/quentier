@@ -18,11 +18,11 @@ void GenericResourceImageWriter::setStorageFolderPath(const QString & storageFol
     m_storageFolderPath = storageFolderPath;
 }
 
-void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QString resourceLocalGuid, const QByteArray resourceImageData,
+void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QString resourceLocalUid, const QByteArray resourceImageData,
                                                                     const QString resourceFileSuffix, const QByteArray resourceActualHash,
                                                                     const QString resourceDisplayName, const QUuid requestId)
 {
-    QNDEBUG("GenericResourceImageWriter::onGenericResourceImageWriteRequest: resource local guid = " << resourceLocalGuid
+    QNDEBUG("GenericResourceImageWriter::onGenericResourceImageWriteRequest: resource local uid = " << resourceLocalUid
             << ", resource actual hash = " << resourceActualHash << ", request id = " << requestId);
 
 #define RETURN_WITH_ERROR(message) \
@@ -36,8 +36,8 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         RETURN_WITH_ERROR("storage folder path is empty");
     }
 
-    if (Q_UNLIKELY(resourceLocalGuid.isEmpty())) {
-        RETURN_WITH_ERROR("resource local guid is empty");
+    if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {
+        RETURN_WITH_ERROR("resource local uid is empty");
     }
 
     if (Q_UNLIKELY(resourceActualHash.isEmpty())) {
@@ -48,13 +48,13 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         RETURN_WITH_ERROR("resource image file suffix is empty");
     }
 
-    QString resourceFileNameMask = resourceLocalGuid + "*." + resourceFileSuffix;
+    QString resourceFileNameMask = resourceLocalUid + "*." + resourceFileSuffix;
     QDir storageDir(m_storageFolderPath);
     QStringList nameFilter = QStringList() << resourceFileNameMask;
     QFileInfoList existingResourceImageFileInfos = storageDir.entryInfoList(nameFilter, QDir::Files | QDir::Readable);
 
     bool resourceHashChanged = true;
-    QFileInfo resourceHashFileInfo(m_storageFolderPath + "/" + resourceLocalGuid + ".hash");
+    QFileInfo resourceHashFileInfo(m_storageFolderPath + "/" + resourceLocalUid + ".hash");
     bool resourceHashFileExists = resourceHashFileInfo.exists();
     if (resourceHashFileExists)
     {
@@ -76,7 +76,7 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
     }
 
     bool resourceDisplayNameChanged = false;
-    QFileInfo resourceNameFileInfo(m_storageFolderPath + "/" + resourceLocalGuid + ".name");
+    QFileInfo resourceNameFileInfo(m_storageFolderPath + "/" + resourceLocalUid + ".name");
     if (!resourceHashChanged)
     {
         bool resourceNameFileExists = resourceNameFileInfo.exists();
@@ -127,7 +127,7 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
         }
     }
 
-    QString resourceImageFilePath = m_storageFolderPath + "/" + resourceLocalGuid + "_" +
+    QString resourceImageFilePath = m_storageFolderPath + "/" + resourceLocalUid + "_" +
                                     QString::number(QDateTime::currentMSecsSinceEpoch()) + "." + resourceFileSuffix;
 
     QFile resourceImageFile(resourceImageFilePath);

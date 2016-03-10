@@ -146,7 +146,7 @@ public:
     /**
      * @brief addNotebook - adds passed in Notebook to the local storage database;
      * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
-     * in local storage database. Otherwise it is identified by its local guid.
+     * in local storage database. Otherwise it is identified by its local uid.
      * @param notebook - notebook to be added to the local storage database
      * @param errorDescription - error description if notebook could not be added
      * @return true if notebook was added successfully, false otherwise
@@ -156,7 +156,7 @@ public:
     /**
      * @brief updateNotebook - updates passed in Notebook in the local storage database;
      * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
-     * in local storage database. Otherwise it is identified by its local guid.
+     * in local storage database. Otherwise it is identified by its local uid.
      * @param notebook - notebook to be updated in the local storage database
      * @param errorDescription - error description if notebook could not be updated
      * @return true if notebook was updated successfully, false otherwise
@@ -167,11 +167,11 @@ public:
      * @brief findNotebook - attempts to find and set all found fields for passed in
      * by reference Notebook object. If "remote" Evernote service's guid for Notebook is set,
      * it is used to identify the Notebook in local storage database. Otherwise it is
-     * identified by its local guid. If it's empty, the search would attempt to find Notebook
+     * identified by its local uid. If it's empty, the search would attempt to find Notebook
      * by its name. If linked notebook guid is set for notebook, the search would consider only
      * notebooks from that linked notebook; otherwise, the search would consider only notebooks
      * from user's own account
-     * @param notebook - notebook to be found. Must have either "remote" or local guid or title set
+     * @param notebook - notebook to be found. Must have either "remote" or local uid or title set
      * @param errorDescription - error description if notebook could not be found
      * @return true if notebook was found, false otherwise
      */
@@ -284,7 +284,7 @@ public:
     /**
      * @brief listSharedNotebooksPerNotebookGuid - attempts to list all shared notebooks
      * per given notebook's remote guid. It is important, guid here is the remote one,
-     * the one used by Evernote service, not the local guid!
+     * the one used by Evernote service, not the local uid!
      * @param notebookGuid - remote Evernote service's guid of notebook for which
      * shared notebooks are requested
      * @param errorDescription - error description if shared notebooks per notebook guid
@@ -301,7 +301,7 @@ public:
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some notebook is found to be
      * deleted via either official desktop client or web GUI.
-     * @param notebook - notebook to be expunged. Must have either "remote" or local guid set
+     * @param notebook - notebook to be expunged. Must have either "remote" or local uid set
      * @param errorDescription - error description if notebook could not be expunged
      * @return true if notebook was expunged successfully, false otherwise
      */
@@ -336,7 +336,7 @@ public:
 
     /**
      * @brief findLinkedNotebook - attempts to find and set all found fields for passed in
-     * by reference LinkedNotebook object. For LinkedNotebook local guid doesn't mean anything
+     * by reference LinkedNotebook object. For LinkedNotebook local uid doesn't mean anything
      * because it can only be considered valid if it has "remote" Evernote service's guid set.
      * So this passed in LinkedNotebook object must have guid set to identify
      * the linked notebook in the local storage database.
@@ -486,7 +486,7 @@ public:
      * @brief listAllNotesPerNotebook - attempts to list all notes per given notebook
      * @param notebook - notebook for which list of notes is requested. If it has
      * "remote" Evernote service's guid set, it would be used to identify the notebook
-     * in the local storage database, otherwise its local guid would be used
+     * in the local storage database, otherwise its local uid would be used
      * @param errorDescription - error description in case notes could not be listed
      * @param withResourceBinaryData - optional boolean parameter defining whether found notes
      * should be filled with all the contents of their respective attached resources.
@@ -578,7 +578,7 @@ public:
     /**
      * @brief addTag - adds passed in Tag to the local storage database. If tag has
      * "remote" Evernote service's guid set, it is identified in the database by this guid.
-     * Otherwise it is identified by local guid.
+     * Otherwise it is identified by local uid.
      * @param tag - tag to be added to the local storage
      * @param errorDescription - error description if Tag could not be added
      * @return true if Tag was added successfully, false otherwise
@@ -588,7 +588,7 @@ public:
     /**
      * @brief updateTag - updates passed in Tag in the local storage database. If tag has
      * "remote" Evernote service's guid set, it is identified in the database by this guid.
-     * Otherwise it is identified by local guid.
+     * Otherwise it is identified by local uid.
      * @param tag - Tag filled with values to be updated in the local storage database
      * @param errorDescription - error description if Tag could not be updated
      * @return true if Tag was updated successfully, false otherwise
@@ -599,10 +599,10 @@ public:
      * @brief linkTagWithNote - attempts to link the given tag to the given note
      * in the local storage database. Note that "note" parameter is not altered
      * as a result of this method. Both note and tag can have or not have "remote"
-     * Evernote service's guid set, in case they are not set only their local guids
+     * Evernote service's guid set, in case they are not set only their local uids
      * would be linked. This way makes it possible to create both offline notes and tags
      * and link tags to notes. During the synchronization procedure one needs to
-     * carefully review the linkage of tags and notes via local guids to ensure
+     * carefully review the linkage of tags and notes via local uids to ensure
      * no such any connection is forgotten to be re-expressed in terms of "remote" guids.
      * @param tag - tag to be linked with note
      * @param note - note to be linked with tag
@@ -614,12 +614,12 @@ public:
     /**
      * @brief findTag - attempts to find and fill the fields of passed in tag object.
      * If it would have "remote" Evernote service's guid set, it would be used to identify
-     * the tag in the local storage database. Otherwise the local guid would be used. If neither
-     * guid nor local guid are set, tag's name would be used.
+     * the tag in the local storage database. Otherwise the local uid would be used. If neither
+     * guid nor local uid are set, tag's name would be used.
      * If tag has linked notebook guid set, the search for tag would consider only tags
      * from that linked notebook; otherwise, if it's not set, the search for tag would consider
      * only the tags from user's own account
-     * @param tag - tag to be found in the local storage database; must have either guid, local guid or name set
+     * @param tag - tag to be found in the local storage database; must have either guid, local uid or name set
      * @param errorDescription - error description in case tag could not be found
      * @return true if tag was found, false otherwise
      */
@@ -639,7 +639,7 @@ public:
      * @brief listAllTagsPerNote - lists all tags per given note
      * @param note - note for which the list of tags is requested. If it has "remote"
      * Evernote service's guid set, it is used to identify the note in the local storage database.
-     * Otherwise its local guid is used for that.
+     * Otherwise its local uid is used for that.
      * @param errorDescription - error description if tags were not listed successfully.
      * In such case the returned list of tags would be empty and error description won't be empty.
      * However, if, for example, the list of tags is empty and error description is empty too,
@@ -739,7 +739,7 @@ public:
      * @param resource - resource to be added to the database
      * @param note - note for which the resource is added. If note doesn't have
      * "remote" Evernote service's guid set, the resource can be linked to note
-     * by its local guid (but only in the database, not in IResource subclass object).
+     * by its local uid (but only in the database, not in IResource subclass object).
      * @param errorDescription - error description if resource could not be added
      * @return true if resource was added successfully, false otherwise
      */
@@ -750,7 +750,7 @@ public:
      * @param resource - resource to be updated
      * @param note - note for which the resource is updated. If note doesn't have
      * "remote" Evernote service's guid set, the resource can be linked to note
-     * by its local guid (but only in the database, not in IResource subclass object).
+     * by its local uid (but only in the database, not in IResource subclass object).
      * @param errorDescription - error description if resource could not be updated
      * @return true if resource was updated successfully, false otherwise
      */
@@ -760,7 +760,7 @@ public:
      * @brief findEnResource - attempts to find resource in the local storage database
      * @param resource - resource to be found in the local storage database. If it has
      * "remote" Evernote service's guid set, this guid is used to identify the resource
-     * in the local storage database. Otherwise resource's local guid is used
+     * in the local storage database. Otherwise resource's local uid is used
      * @param errorDescription - error description if resource could not be found
      * @param withBinaryData - optional parameter defining whether found resource should have
      * dataBody recognitionBody, alternateDataBody filled with actual binary data.
@@ -791,7 +791,7 @@ public:
     /**
      * @brief addSavedSearch - adds passed in SavedSearch to the local storage database;
      * If search has "remote" Evernote service's guid set, it is identified in the database
-     * by this guid. Otherwise it is identified by local guid.
+     * by this guid. Otherwise it is identified by local uid.
      * @param search - SavedSearch to be added to the local storage
      * @param errorDescription - error description if SavedSearch could not be added
      * @return true if SavedSearch was added successfully, false otherwise
@@ -801,7 +801,7 @@ public:
     /**
      * @brief updateSavedSearch - updates passed in SavedSearch in th local storage database.
      * If search has "remote" Evernote service's guid set, it is identified in the database
-     * by this guid. Otherwise it is identified by local guid.
+     * by this guid. Otherwise it is identified by local uid.
      * @param search - SavedSearch filled with values to be updated in the local storage database
      * @param errorDescription - error description if SavedSearch could not be updated
      * @return true if SavedSearch was updated successfully, false otherwise
@@ -812,7 +812,7 @@ public:
      * @brief findSavedSearch - attempts to find SavedSearch in the local storage database
      * @param search - SavedSearch to be found in the local storage database. If it
      * would have "remote" Evernote service's guid set, it would be used to identify
-     * the search in the local storage database. Otherwise its local guid would be used.
+     * the search in the local storage database. Otherwise its local uid would be used.
      * @param errorDescription - error description if SavedSearch could not be found
      * @return true if SavedSearch was found, false otherwise
      */

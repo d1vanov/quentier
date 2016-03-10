@@ -28,14 +28,14 @@ Q_SIGNALS:
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
-    void resourceFileChanged(QString localGuid, QString fileStoragePath);
+    void resourceFileChanged(QString localUid, QString fileStoragePath);
 
     void diagnosticsCollected(QUuid requestId, QString diagnostics);
 
 public Q_SLOTS:
-    void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash,
+    void onWriteResourceToFileRequest(QString localUid, QByteArray data, QByteArray dataHash,
                                       QString fileStoragePath, QUuid requestId);
-    void onReadResourceFromFileRequest(QString fileStoragePath, QString localGuid, QUuid requestId);
+    void onReadResourceFromFileRequest(QString fileStoragePath, QString localUid, QUuid requestId);
 
     void onOpenResourceRequest(QString fileStoragePath);
 
@@ -50,16 +50,16 @@ private Q_SLOTS:
 private:
     void createConnections();
     QByteArray calculateHash(const QByteArray & data) const;
-    bool checkIfResourceFileExistsAndIsActual(const QString & localGuid, const QString & fileStoragePath,
+    bool checkIfResourceFileExistsAndIsActual(const QString & localUid, const QString & fileStoragePath,
                                               const QByteArray & dataHash) const;
 
-    bool updateResourceHash(const QString & resourceLocalGuid, const QByteArray & dataHash, int & errorCode, QString & errorDescription);
-    void watchResourceFileForChanges(const QString & resourceLocalGuid, const QString & fileStoragePath);
+    bool updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash, int & errorCode, QString & errorDescription);
+    void watchResourceFileForChanges(const QString & resourceLocalUid, const QString & fileStoragePath);
 
 private:
     QString     m_resourceFileStorageLocation;
 
-    QHash<QString, QString>             m_resourceLocalGuidByFilePath;
+    QHash<QString, QString>             m_resourceLocalUidByFilePath;
     FileSystemWatcher                   m_fileSystemWatcher;
 
     ResourceFileStorageManager * const q_ptr;

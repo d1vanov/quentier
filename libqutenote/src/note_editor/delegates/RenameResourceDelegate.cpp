@@ -157,15 +157,15 @@ void RenameResourceDelegate::buildAndSaveGenericResourceImage()
 
     m_genericResourceImageWriterRequestId = QUuid::createUuid();
 
-    QNDEBUG("Emitting request to write generic resource image for resource with local guid "
-            << m_resource.localGuid() << ", request id " << m_genericResourceImageWriterRequestId);
+    QNDEBUG("Emitting request to write generic resource image for resource with local uid "
+            << m_resource.localUid() << ", request id " << m_genericResourceImageWriterRequestId);
 
     QObject::connect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
     QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
 
-    emit saveGenericResourceImageToFile(m_resource.localGuid(), imageData, "png", m_resource.dataHash(), m_resource.displayName(), m_genericResourceImageWriterRequestId);
+    emit saveGenericResourceImageToFile(m_resource.localUid(), imageData, "png", m_resource.dataHash(), m_resource.displayName(), m_genericResourceImageWriterRequestId);
 }
 
 void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,

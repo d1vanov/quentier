@@ -3,7 +3,7 @@
 
 namespace qute_note {
 
-QN_DEFINE_LOCAL_GUID(Tag)
+QN_DEFINE_LOCAL_UID(Tag)
 QN_DEFINE_DIRTY(Tag)
 QN_DEFINE_LOCAL(Tag)
 QN_DEFINE_SHORTCUT(Tag)
@@ -125,7 +125,7 @@ void Tag::setUpdateSequenceNumber(const qint32 usn)
 
 bool Tag::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty() && !d->m_qecTag.guid.isSet()) {
+    if (localUid().isEmpty() && !d->m_qecTag.guid.isSet()) {
         errorDescription = QT_TR_NOOP("both tag's local and remote guids are empty");
         return false;
     }

@@ -227,7 +227,7 @@ void NotebookLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         }
 
         m_foundNotebook = Notebook();
-        m_foundNotebook.setLocalGuid(notebook.localGuid());
+        m_foundNotebook.setLocalUid(notebook.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         emit findNotebookRequest(m_foundNotebook);
@@ -343,7 +343,7 @@ void NotebookLocalStorageManagerAsyncTester::onFindNotebookCompleted(Notebook no
 
         // Attempt to find notebook by name now
         Notebook notebookToFindByName;
-        notebookToFindByName.unsetLocalGuid();
+        notebookToFindByName.unsetLocalUid();
         notebookToFindByName.setName(m_initialNotebook.name());
 
         m_state = STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST;

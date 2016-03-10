@@ -42,10 +42,10 @@ void ImageResourceRotationUndoCommand::redoImpl()
     QNDEBUG("ImageResourceRotationUndoCommand::redoImpl");
 
     QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();
-    fileStoragePath += "/" + m_resourceAfter.localGuid();
+    fileStoragePath += "/" + m_resourceAfter.localUid();
     fileStoragePath += ".png";
 
-    m_noteEditorPrivate.updateResource(m_resourceAfter.localGuid(), m_resourceHashBefore, m_resourceAfter, fileStoragePath);
+    m_noteEditorPrivate.updateResource(m_resourceAfter.localUid(), m_resourceHashBefore, m_resourceAfter, fileStoragePath);
 }
 
 void ImageResourceRotationUndoCommand::undoImpl()
@@ -62,10 +62,10 @@ void ImageResourceRotationUndoCommand::undoImpl()
     }
 
     QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();
-    fileStoragePath += "/" + resource.localGuid();
+    fileStoragePath += "/" + resource.localUid();
     fileStoragePath += ".png";
 
-    m_noteEditorPrivate.updateResource(resource.localGuid(), m_resourceAfter.dataHash(), resource, fileStoragePath);
+    m_noteEditorPrivate.updateResource(resource.localUid(), m_resourceAfter.dataHash(), resource, fileStoragePath);
 }
 
 } // namespace qute_note

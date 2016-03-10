@@ -4,7 +4,7 @@ namespace qute_note {
 
 LocalStorageDataElementData::LocalStorageDataElementData() :
     QSharedData(),
-    m_localGuid(QUuid::createUuid())
+    m_localUid(QUuid::createUuid())
 {}
 
 LocalStorageDataElementData::~LocalStorageDataElementData()
@@ -12,12 +12,12 @@ LocalStorageDataElementData::~LocalStorageDataElementData()
 
 LocalStorageDataElementData::LocalStorageDataElementData(const LocalStorageDataElementData & other) :
     QSharedData(other),
-    m_localGuid(other.m_localGuid)
+    m_localUid(other.m_localUid)
 {}
 
 LocalStorageDataElementData::LocalStorageDataElementData(LocalStorageDataElementData && other) :
     QSharedData(std::move(other)),
-    m_localGuid(std::move(other.m_localGuid))
+    m_localUid(std::move(other.m_localUid))
 {}
 
 } // namespace qute_note

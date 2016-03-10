@@ -511,7 +511,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         resourceAttributes.cameraMake = "Fake resource camera make";
         resourceAttributes.cameraModel = "Fake resource camera model";
 
-        note.unsetLocalGuid();
+        note.unsetLocalUid();
 
         error.clear();
         res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, note, localStorageManager, error);
@@ -559,8 +559,8 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         noteAttributes.sourceApplication = "source application";
         noteAttributes.shareDate = 2;
 
-        note.unsetLocalGuid();
-        notebook.unsetLocalGuid();
+        note.unsetLocalUid();
+        notebook.unsetLocalUid();
 
         res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));

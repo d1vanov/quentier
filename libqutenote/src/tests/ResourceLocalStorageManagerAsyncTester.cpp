@@ -158,8 +158,8 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Noteb
         if (note.hasGuid()) {
             m_initialResource.setNoteGuid(note.guid());
         }
-        if (!note.localGuid().isEmpty()) {
-            m_initialResource.setNoteLocalGuid(note.localGuid());
+        if (!note.localUid().isEmpty()) {
+            m_initialResource.setNoteLocalUid(note.localUid());
         }
         m_initialResource.setIndexInNote(0);
         m_initialResource.setDataBody("Fake resource data body");
@@ -290,7 +290,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddResourceCompleted(ResourceWrap
         }
 
         m_foundResource.clear();
-        m_foundResource.setLocalGuid(m_initialResource.localGuid());
+        m_foundResource.setLocalUid(m_initialResource.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         bool withBinaryData = true;
@@ -325,7 +325,7 @@ void ResourceLocalStorageManagerAsyncTester::onUpdateResourceCompleted(ResourceW
         }
 
         m_foundResource.clear();
-        m_foundResource.setLocalGuid(m_modifiedResource.localGuid());
+        m_foundResource.setLocalUid(m_modifiedResource.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_UPDATE_REQUEST;
         bool withBinaryData = false;    // test find without binary data, for a change

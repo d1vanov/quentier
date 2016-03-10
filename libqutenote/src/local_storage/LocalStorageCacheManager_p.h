@@ -30,7 +30,7 @@ public:
     void cacheNote(const Note & note);
     void expungeNote(const Note & note);
 
-    const Note * findNoteByLocalGuid(const QString & localGuid) const;
+    const Note * findNoteByLocalUid(const QString & localUid) const;
     const Note * findNoteByGuid(const QString & guid) const;
 
     // Notebooks cache
@@ -38,7 +38,7 @@ public:
     void cacheNotebook(const Notebook & notebook);
     void expungeNotebook(const Notebook & notebook);
 
-    const Notebook * findNotebookByLocalGuid(const QString & localGuid) const;
+    const Notebook * findNotebookByLocalUid(const QString & localUid) const;
     const Notebook * findNotebookByGuid(const QString & guid) const;
     const Notebook * findNotebookByName(const QString & name) const;
 
@@ -47,7 +47,7 @@ public:
     void cacheTag(const Tag & tag);
     void expungeTag(const Tag & tag);
 
-    const Tag * findTagByLocalGuid(const QString & localGuid) const;
+    const Tag * findTagByLocalUid(const QString & localUid) const;
     const Tag * findTagByGuid(const QString & guid) const;
     const Tag * findTagByName(const QString & name) const;
 
@@ -63,7 +63,7 @@ public:
     void cacheSavedSearch(const SavedSearch & savedSearch);
     void expungeSavedSearch(const SavedSearch & savedSearch);
 
-    const SavedSearch * findSavedSearchByLocalGuid(const QString & localGuid) const;
+    const SavedSearch * findSavedSearchByLocalUid(const QString & localUid) const;
     const SavedSearch * findSavedSearchByGuid(const QString & guid) const;
     const SavedSearch * findSavedSearchByName(const QString & name) const;
 
@@ -89,11 +89,11 @@ private:
         Note    m_note;
         qint64  m_lastAccessTimestamp;
 
-        const QString localGuid() const { return m_note.localGuid(); }
+        const QString localUid() const { return m_note.localUid(); }
         const QString guid() const;
 
         struct ByLastAccessTimestamp{};
-        struct ByLocalGuid{};
+        struct ByLocalUid{};
         struct ByGuid{};
 
         virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
@@ -107,8 +107,8 @@ private:
                 boost::multi_index::member<NoteHolder,qint64,&NoteHolder::m_lastAccessTimestamp>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<NoteHolder::ByLocalGuid>,
-                boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::localGuid>
+                boost::multi_index::tag<NoteHolder::ByLocalUid>,
+                boost::multi_index::const_mem_fun<NoteHolder,const QString,&NoteHolder::localUid>
             >,
             /* NOTE: non-unique for proper support of empty guids */
             boost::multi_index::ordered_non_unique<
@@ -126,14 +126,14 @@ private:
         Notebook    m_notebook;
         qint64      m_lastAccessTimestamp;
 
-        const QString localGuid() const { return m_notebook.localGuid(); }
+        const QString localUid() const { return m_notebook.localUid(); }
         const QString guid() const;
         const QString nameUpper() const { return (m_notebook.hasName()
                                                   ? m_notebook.name().toUpper()
                                                   : QString()); }
 
         struct ByLastAccessTimestamp{};
-        struct ByLocalGuid{};
+        struct ByLocalUid{};
         struct ByGuid{};
         struct ByName{};
 
@@ -148,8 +148,8 @@ private:
                 boost::multi_index::member<NotebookHolder,qint64,&NotebookHolder::m_lastAccessTimestamp>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<NotebookHolder::ByLocalGuid>,
-                boost::multi_index::const_mem_fun<NotebookHolder,const QString,&NotebookHolder::localGuid>
+                boost::multi_index::tag<NotebookHolder::ByLocalUid>,
+                boost::multi_index::const_mem_fun<NotebookHolder,const QString,&NotebookHolder::localUid>
             >,
             /* NOTE: non-unique for proper support of empty guids */
             boost::multi_index::ordered_non_unique<
@@ -172,14 +172,14 @@ private:
         Tag     m_tag;
         qint64  m_lastAccessTimestamp;
 
-        const QString localGuid() const { return m_tag.localGuid(); }
+        const QString localUid() const { return m_tag.localUid(); }
         const QString guid() const;
         const QString nameUpper() const { return (m_tag.hasName()
                                                   ? m_tag.name().toUpper()
                                                   : QString()); }
 
         struct ByLastAccessTimestamp{};
-        struct ByLocalGuid{};
+        struct ByLocalUid{};
         struct ByGuid{};
         struct ByName{};
 
@@ -194,8 +194,8 @@ private:
                 boost::multi_index::member<TagHolder,qint64,&TagHolder::m_lastAccessTimestamp>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<TagHolder::ByLocalGuid>,
-                boost::multi_index::const_mem_fun<TagHolder,const QString,&TagHolder::localGuid>
+                boost::multi_index::tag<TagHolder::ByLocalUid>,
+                boost::multi_index::const_mem_fun<TagHolder,const QString,&TagHolder::localUid>
             >,
             /* NOTE: non-unique for proper support of empty guids */
             boost::multi_index::ordered_non_unique<
@@ -248,14 +248,14 @@ private:
         SavedSearch     m_savedSearch;
         qint64          m_lastAccessTimestamp;
 
-        const QString localGuid() const { return m_savedSearch.localGuid(); }
+        const QString localUid() const { return m_savedSearch.localUid(); }
         const QString guid() const;
         const QString nameUpper() const { return (m_savedSearch.hasName()
                                                   ? m_savedSearch.name().toUpper()
                                                   : QString()); }
 
         struct ByLastAccessTimestamp{};
-        struct ByLocalGuid{};
+        struct ByLocalUid{};
         struct ByGuid{};
         struct ByName{};
 
@@ -270,8 +270,8 @@ private:
                 boost::multi_index::member<SavedSearchHolder,qint64,&SavedSearchHolder::m_lastAccessTimestamp>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<SavedSearchHolder::ByLocalGuid>,
-                boost::multi_index::const_mem_fun<SavedSearchHolder,const QString,&SavedSearchHolder::localGuid>
+                boost::multi_index::tag<SavedSearchHolder::ByLocalUid>,
+                boost::multi_index::const_mem_fun<SavedSearchHolder,const QString,&SavedSearchHolder::localUid>
             >,
             /* NOTE: non-unique for proper support of empty guids */
             boost::multi_index::ordered_non_unique<

@@ -627,7 +627,7 @@ QString NoteEditorPluginFactory::getFilterStringForMimeType(const QString & mime
 }
 
 NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::GenericResourceDisplayWidgetFinder(const IResource & resource) :
-    m_resourceLocalGuid(resource.localGuid())
+    m_resourceLocalUid(resource.localUid())
 {}
 
 bool NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::operator()(const QPointer<GenericResourceDisplayWidget> & ptr) const
@@ -636,7 +636,7 @@ bool NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::operator()(con
         return false;
     }
 
-    return (ptr->resourceLocalGuid() == m_resourceLocalGuid);
+    return (ptr->resourceLocalUid() == m_resourceLocalUid);
 }
 
 } // namespace qute_note

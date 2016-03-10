@@ -39,7 +39,7 @@ public:
 
     enum Errors
     {
-        EmptyLocalGuid = -1,
+        EmptyLocalUid = -1,
         EmptyRequestId = -2,
         EmptyData = -3,
         NoResourceFileStorageLocation = -4
@@ -51,7 +51,7 @@ Q_SIGNALS:
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
-    void resourceFileChanged(QString localGuid, QString fileStoragePath);
+    void resourceFileChanged(QString localUid, QString fileStoragePath);
 
     void diagnosticsCollected(QUuid requestId, QString diagnostics);
 
@@ -60,24 +60,24 @@ public Q_SLOTS:
      * @brief onWriteResourceToFileRequest - slot being called when the resource data needs to be written
      * to local file; the method would also check that the already existing file (if any) is actual.
      * If so, it would return successfully without doing any IO.
-     * @param localGuid - the local guid of the resource for which the data is written to file
+     * @param localUid - the local uid of the resource for which the data is written to file
      * @param data - the resource data to be written to file
      * @param dataHash - the hash of the resource data; if it's empty, it would be calculated by the method itself
      * @param fileStoragePath - user specified storage path for the resource; if empty, the method would
      * figure out the appropriate path on its own
      * @param requestId - request identifier for writing the data to file
      */
-    void onWriteResourceToFileRequest(QString localGuid, QByteArray data, QByteArray dataHash,
+    void onWriteResourceToFileRequest(QString localUid, QByteArray data, QByteArray dataHash,
                                       QString fileStoragePath, QUuid requestId);
 
     /**
      * @brief onReadResourceFromFileRequest - slot being called when the resource data and hash need to be read
      * from local file
      * @param fileStoragePath - the path at which the resource is stored
-     * @param localGuid - the local guid of the resource for which the data and hash should be read from file
+     * @param localUid - the local uid of the resource for which the data and hash should be read from file
      * @param requestId - request identifier for reading the resource data and hash from file
      */
-    void onReadResourceFromFileRequest(QString fileStoragePath, QString localGuid, QUuid requestId);
+    void onReadResourceFromFileRequest(QString fileStoragePath, QString localUid, QUuid requestId);
 
     /**
      * @brief onOpenResourceRequest - slot being called when the resource file is requested to be opened

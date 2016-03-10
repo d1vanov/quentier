@@ -127,8 +127,8 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook, QUu
 
         if (m_addedNotebooksCount > MAX_NOTEBOOKS_TO_STORE)
         {
-            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
-                                                                                   LocalStorageCacheManager::LocalGuid);
+            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localUid(),
+                                                                                   LocalStorageCacheManager::LocalUid);
             if (pNotebook) {
                 errorDescription = "Found notebook which should not have been present in the local storage cache";
                 QNWARNING(errorDescription << ": " << pNotebook->ToQString());
@@ -142,8 +142,8 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook, QUu
         }
         else if (m_addedNotebooksCount > 1)
         {
-            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localGuid(),
-                                                                                   LocalStorageCacheManager::LocalGuid);
+            const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(m_firstNotebook.localUid(),
+                                                                                   LocalStorageCacheManager::LocalUid);
             if (!pNotebook) {
                 errorDescription = "Notebook which should have been present in the local storage cache was not found there";
                 QNWARNING(errorDescription << ", first notebook: " << m_firstNotebook);
@@ -180,8 +180,8 @@ void LocalStorageCacheAsyncTester::onUpdateNotebookCompleted(Notebook notebook, 
             return;
         }
 
-        const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(notebook.localGuid(),
-                                                                               LocalStorageCacheManager::LocalGuid);
+        const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(notebook.localUid(),
+                                                                               LocalStorageCacheManager::LocalUid);
         if (!pNotebook) {
             errorDescription = "Updated notebook which should have been present in the local storage cache "
                                "was not found there";
@@ -245,8 +245,8 @@ void LocalStorageCacheAsyncTester::onAddNoteCompleted(Note note, Notebook notebo
 
         if (m_addedNotesCount > MAX_NOTES_TO_STORE)
         {
-            const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localGuid(),
-                                                                       LocalStorageCacheManager::LocalGuid);
+            const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localUid(),
+                                                                       LocalStorageCacheManager::LocalUid);
             if (pNote) {
                 errorDescription = "Found note which should not have been present in the local storage cache: " +
                                    pNote->ToQString();
@@ -261,8 +261,8 @@ void LocalStorageCacheAsyncTester::onAddNoteCompleted(Note note, Notebook notebo
         }
         else if (m_addedNotesCount > 1)
         {
-            const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localGuid(),
-                                                                       LocalStorageCacheManager::LocalGuid);
+            const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localUid(),
+                                                                       LocalStorageCacheManager::LocalUid);
             if (!pNote) {
                 errorDescription = "Note which should have been present in the local storage cache was not found there";
                 QNWARNING(errorDescription << ", first note: " << m_firstNote);
@@ -308,8 +308,8 @@ void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook not
             return;
         }
 
-        const Note * pNote = m_pLocalStorageCacheManager->findNote(note.localGuid(),
-                                                                   LocalStorageCacheManager::LocalGuid);
+        const Note * pNote = m_pLocalStorageCacheManager->findNote(note.localUid(),
+                                                                   LocalStorageCacheManager::LocalUid);
         if (!pNote) {
             errorDescription = "Updated note which should have been present in the local storage cache was not found there";
             QNWARNING(errorDescription << ", note: " << note);
@@ -363,8 +363,8 @@ void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag, QUuid requestId)
 
         if (m_addedTagsCount > MAX_TAGS_TO_STORE)
         {
-            const Tag * pTag = m_pLocalStorageCacheManager->findTag(m_firstTag.localGuid(),
-                                                                    LocalStorageCacheManager::LocalGuid);
+            const Tag * pTag = m_pLocalStorageCacheManager->findTag(m_firstTag.localUid(),
+                                                                    LocalStorageCacheManager::LocalUid);
             if (pTag) {
                 errorDescription = "Found tag which should not have been present in the local storage cache";
                 QNWARNING(errorDescription << ": " << *pTag);
@@ -378,8 +378,8 @@ void LocalStorageCacheAsyncTester::onAddTagCompleted(Tag tag, QUuid requestId)
         }
         else if (m_addedTagsCount > 1)
         {
-            const Tag * pTag = m_pLocalStorageCacheManager->findTag(m_firstTag.localGuid(),
-                                                                    LocalStorageCacheManager::LocalGuid);
+            const Tag * pTag = m_pLocalStorageCacheManager->findTag(m_firstTag.localUid(),
+                                                                    LocalStorageCacheManager::LocalUid);
             if (!pTag) {
                 errorDescription = "Tag which should have been present in the local storage cache was not found there";
                 QNWARNING(errorDescription << ", first tag: " << m_firstTag);
@@ -425,8 +425,8 @@ void LocalStorageCacheAsyncTester::onUpdateTagCompleted(Tag tag, QUuid requestId
             return;
         }
 
-        const Tag * pTag = m_pLocalStorageCacheManager->findTag(tag.localGuid(),
-                                                                LocalStorageCacheManager::LocalGuid);
+        const Tag * pTag = m_pLocalStorageCacheManager->findTag(tag.localUid(),
+                                                                LocalStorageCacheManager::LocalUid);
         if (!pTag) {
             errorDescription = "Updated tag which should have been present in the local storage cache "
                                "was not found there";
@@ -588,8 +588,8 @@ void LocalStorageCacheAsyncTester::onAddSavedSearchCompleted(SavedSearch search,
 
         if (m_addedSavedSearchesCount > MAX_SAVED_SEARCHES_TO_STORE)
         {
-            const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(m_firstSavedSearch.localGuid(),
-                                                                                            LocalStorageCacheManager::LocalGuid);
+            const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(m_firstSavedSearch.localUid(),
+                                                                                            LocalStorageCacheManager::LocalUid);
             if (pSavedSearch) {
                 errorDescription = "Found saved search which should not have been present in the local storage cache";
                 QNWARNING(errorDescription << ": " << *pSavedSearch);
@@ -603,8 +603,8 @@ void LocalStorageCacheAsyncTester::onAddSavedSearchCompleted(SavedSearch search,
         }
         else if (m_addedSavedSearchesCount > 1)
         {
-            const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(m_firstSavedSearch.localGuid(),
-                                                                                            LocalStorageCacheManager::LocalGuid);
+            const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(m_firstSavedSearch.localUid(),
+                                                                                            LocalStorageCacheManager::LocalUid);
             if (!pSavedSearch) {
                 errorDescription = "Saved search which should have been present in the local storage cache was not found there";
                 QNWARNING(errorDescription << ", first saved search: " << m_firstSavedSearch);
@@ -641,8 +641,8 @@ void LocalStorageCacheAsyncTester::onUpdateSavedSearchCompleted(SavedSearch sear
             return;
         }
 
-        const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(search.localGuid(),
-                                                                                        LocalStorageCacheManager::LocalGuid);
+        const SavedSearch * pSavedSearch = m_pLocalStorageCacheManager->findSavedSearch(search.localUid(),
+                                                                                        LocalStorageCacheManager::LocalUid);
         if (!pSavedSearch) {
             errorDescription = "Updated saved search which should have been present in the local storage cache "
                                "was not found there";

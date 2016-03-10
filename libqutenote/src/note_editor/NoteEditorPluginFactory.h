@@ -146,7 +146,7 @@ private:
         bool operator()(const QPointer<GenericResourceDisplayWidget> & ptr) const;
 
     private:
-        QString m_resourceLocalGuid;
+        QString m_resourceLocalUid;
     };
 
 private:

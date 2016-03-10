@@ -144,7 +144,7 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(Tag tag, QUuid request
         }
 
         m_foundTag = Tag();
-        m_foundTag.setLocalGuid(tag.localGuid());
+        m_foundTag.setLocalUid(tag.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         emit findTagRequest(m_foundTag);
@@ -229,7 +229,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid reques
 
         // Attempt to find tag by name now
         Tag tagToFindByName;
-        tagToFindByName.unsetLocalGuid();
+        tagToFindByName.unsetLocalUid();
         tagToFindByName.setName(m_initialTag.name());
 
         m_state = STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST;

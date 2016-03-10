@@ -84,9 +84,9 @@ public:
 
 private:
     // hide useless methods inherited from the base class from the public interface
-    virtual const QString localGuid() const Q_DECL_OVERRIDE { return QString(); }
-    virtual void setLocalGuid(const QString &) Q_DECL_OVERRIDE {}
-    virtual void unsetLocalGuid() Q_DECL_OVERRIDE {}
+    virtual const QString localUid() const Q_DECL_OVERRIDE { return QString(); }
+    virtual void setLocalUid(const QString &) Q_DECL_OVERRIDE {}
+    virtual void unsetLocalUid() Q_DECL_OVERRIDE {}
 
     virtual bool isLocal() const Q_DECL_OVERRIDE { return false; }
     virtual void setLocal(const bool) Q_DECL_OVERRIDE {}

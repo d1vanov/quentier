@@ -12,7 +12,7 @@ QT_FORWARD_DECLARE_CLASS(SavedSearchData)
 class QUTE_NOTE_EXPORT SavedSearch: public IDataElementWithShortcut
 {
 public:
-    QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_LOCAL_UID
     QN_DECLARE_DIRTY
     QN_DECLARE_LOCAL
     QN_DECLARE_SHORTCUT

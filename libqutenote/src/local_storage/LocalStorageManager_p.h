@@ -151,7 +151,7 @@ private:
 
     bool createTables(QString & errorDescription);
     bool insertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                             const QString & localGuid, QString & errorDescription);
+                                             const QString & localUid, QString & errorDescription);
     bool insertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
                                        QString & errorDescription);
 
@@ -184,7 +184,7 @@ private:
     bool checkAndPrepareDeleteUserQuery();
     bool checkAndPrepareExpungeUserQuery();
 
-    bool insertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalGuid, QString & errorDescription);
+    bool insertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalUid, QString & errorDescription);
     bool checkAndPrepareNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNotebookQuery();
     bool checkAndPrepareExpungeNotebookFromNotebookRestrictionsQuery();
@@ -198,23 +198,23 @@ private:
     bool checkAndPrepareExpungeLinkedNotebookQuery();
 
     bool insertOrReplaceNote(const Note & note, const Notebook & notebook,
-                             const QString & overrideLocalGuid, QString & errorDescription);
+                             const QString & overrideLocalUid, QString & errorDescription);
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();
     bool checkAndPrepareExpungeNoteFromNoteTagsQuery();
     bool checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
     bool checkAndPrepareExpungeResourcesByNoteQuery();
 
-    bool insertOrReplaceTag(const Tag & tag, const QString & overrideLocalGuid, QString & errorDescription);
+    bool insertOrReplaceTag(const Tag & tag, const QString & overrideLocalUid, QString & errorDescription);
     bool checkAndPrepareTagCountQuery() const;
     bool checkAndPrepareInsertOrReplaceTagQuery();
     bool checkAndPrepareDeleteTagQuery();
     bool checkAndPrepareExpungeTagQuery();
 
-    bool insertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalGuid,
-                                 const Note & note, const QString & overrideNoteLocalGuid,
+    bool insertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalUid,
+                                 const Note & note, const QString & overrideNoteLocalUid,
                                  QString & errorDescription, const bool useSeparateTransaction = true);
-    bool insertOrReplaceResourceAttributes(const QString & localGuid,
+    bool insertOrReplaceResourceAttributes(const QString & localUid,
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
     bool checkAndPrepareInsertOrReplaceResourceQuery();
@@ -229,7 +229,7 @@ private:
     bool checkAndPrepareInsertOrReplaceResourceAttributesApplicationDataFullMapQuery();
     bool checkAndPrepareResourceCountQuery() const;
 
-    bool insertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalGuid, QString & errorDescription);
+    bool insertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalUid, QString & errorDescription);
     bool checkAndPrepareInsertOrReplaceSavedSearchQuery();
     bool checkAndPrepareGetSavedSearchCountQuery() const;
     bool checkAndPrepareExpungeSavedSearchQuery();
@@ -272,14 +272,14 @@ private:
     void contentSearchTermToSQLQueryPart(QString & frontSearchTermModifier, QString & searchTerm,
                                          QString & backSearchTermModifier, QString & matchStatement) const;
 
-    bool tagNamesToTagLocalGuids(const QStringList & tagNames, QStringList & tagLocalGuids,
-                                 QString & errorDescription) const;
-    bool resourceMimeTypesToResourceLocalGuids(const QStringList & resourceMimeTypes,
-                                               QStringList & resourceLocalGuids,
-                                               QString & errorDescription) const;
-    bool resourceRecognitionTypesToResourceLocalGuids(const QStringList & resourceRecognitionTypes,
-                                                      QStringList & resourceLocalGuids,
-                                                      QString & errorDescription) const;
+    bool tagNamesToTagLocalUids(const QStringList & tagNames, QStringList & tagLocalUids,
+                                QString & errorDescription) const;
+    bool resourceMimeTypesToResourceLocalUids(const QStringList & resourceMimeTypes,
+                                              QStringList & resourceLocalUids,
+                                              QString & errorDescription) const;
+    bool resourceRecognitionTypesToResourceLocalUids(const QStringList & resourceRecognitionTypes,
+                                                     QStringList & resourceLocalUids,
+                                                     QString & errorDescription) const;
 
     template <class T>
     QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,

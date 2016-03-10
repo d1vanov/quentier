@@ -8,7 +8,7 @@
 
 namespace qute_note {
 
-QN_DEFINE_LOCAL_GUID(IResource)
+QN_DEFINE_LOCAL_UID(IResource)
 QN_DEFINE_DIRTY(IResource)
 QN_DEFINE_LOCAL(IResource)
 
@@ -17,7 +17,7 @@ IResource::IResource() :
     d(new NoteStoreDataElementData),
     m_isFreeAccount(true),
     m_indexInNote(-1),
-    m_noteLocalGuid()
+    m_noteLocalUid()
 {}
 
 IResource::IResource(const bool isFreeAccount) :
@@ -25,7 +25,7 @@ IResource::IResource(const bool isFreeAccount) :
     d(new NoteStoreDataElementData),
     m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
-    m_noteLocalGuid()
+    m_noteLocalUid()
 {}
 
 IResource::~IResource()
@@ -35,8 +35,8 @@ bool IResource::operator==(const IResource & other) const
 {
     return (GetEnResource() == other.GetEnResource()) &&
            (isDirty() == other.isDirty()) &&
-           (m_noteLocalGuid.isEqual(other.m_noteLocalGuid)) &&
-           (localGuid() == other.localGuid());
+           (m_noteLocalUid.isEqual(other.m_noteLocalUid)) &&
+           (localUid() == other.localUid());
 
     // NOTE: m_indexInNote does not take any part in comparison
     // as it is by nature a helper parameter intended to preserve sorting of resources
@@ -103,7 +103,7 @@ bool IResource::checkParameters(QString & errorDescription) const
 {
     const qevercloud::Resource & enResource = GetEnResource();
 
-    if (localGuid().isEmpty() && !enResource.guid.isSet()) {
+    if (localUid().isEmpty() && !enResource.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Both resource's local and remote guids are empty");
         return false;
     }
@@ -301,23 +301,23 @@ void IResource::setNoteGuid(const QString & guid)
     }
 }
 
-bool IResource::hasNoteLocalGuid() const
+bool IResource::hasNoteLocalUid() const
 {
-    return m_noteLocalGuid.isSet();
+    return m_noteLocalUid.isSet();
 }
 
-const QString & IResource::noteLocalGuid() const
+const QString & IResource::noteLocalUid() const
 {
-    return m_noteLocalGuid;
+    return m_noteLocalUid;
 }
 
-void IResource::setNoteLocalGuid(const QString & guid)
+void IResource::setNoteLocalUid(const QString & guid)
 {
     if (!guid.isEmpty()) {
-        m_noteLocalGuid = guid;
+        m_noteLocalUid = guid;
     }
     else {
-        m_noteLocalGuid.clear();
+        m_noteLocalUid.clear();
     }
 }
 
@@ -659,7 +659,7 @@ IResource::IResource(const IResource & other) :
     d(other.d),
     m_isFreeAccount(other.m_isFreeAccount),
     m_indexInNote(other.indexInNote()),
-    m_noteLocalGuid(other.m_noteLocalGuid)
+    m_noteLocalUid(other.m_noteLocalUid)
 {}
 
 IResource & IResource::operator=(const IResource & other)
@@ -669,7 +669,7 @@ IResource & IResource::operator=(const IResource & other)
         d = other.d;
         setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);
-        setNoteLocalGuid(other.m_noteLocalGuid.isSet() ? other.m_noteLocalGuid.ref() : QString());
+        setNoteLocalUid(other.m_noteLocalUid.isSet() ? other.m_noteLocalUid.ref() : QString());
     }
 
     return *this;
@@ -683,12 +683,12 @@ QTextStream & IResource::Print(QTextStream & strm) const
 
     QString indent = "  ";
 
-    const QString _localGuid = localGuid();
-    if (!_localGuid.isEmpty()) {
-        strm << indent << "local guid = " << _localGuid << "; \n";
+    const QString _localUid = localUid();
+    if (!_localUid.isEmpty()) {
+        strm << indent << "local uid = " << _localUid << "; \n";
     }
     else {
-        strm << indent << "localGuid is empty; \n";
+        strm << indent << "localUid is empty; \n";
     }
 
     strm << indent << "isDirty = " << (isDirty() ? "true" : "false") << "; \n";

@@ -4,7 +4,7 @@
 
 namespace qute_note {
 
-QN_DEFINE_LOCAL_GUID(SavedSearch)
+QN_DEFINE_LOCAL_UID(SavedSearch)
 QN_DEFINE_DIRTY(SavedSearch)
 QN_DEFINE_LOCAL(SavedSearch)
 QN_DEFINE_SHORTCUT(SavedSearch)
@@ -126,7 +126,7 @@ void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
 
 bool SavedSearch::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty() && !d->m_qecSearch.guid.isSet()) {
+    if (localUid().isEmpty() && !d->m_qecSearch.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Both saved search's local and remote guids are empty");
         return false;
     }
@@ -251,12 +251,12 @@ QTextStream & SavedSearch::Print(QTextStream & strm) const
 {
     strm << "Saved search: { \n" ;
 
-    const QString _localGuid = localGuid();
-    if (!_localGuid.isEmpty()) {
-        strm << "localGuid: " << _localGuid << "; \n";
+    const QString _localUid = localUid();
+    if (!_localUid.isEmpty()) {
+        strm << "localUid: " << _localUid << "; \n";
     }
     else {
-        strm << "localGuid is not set; \n";
+        strm << "localUid is not set; \n";
     }
 
     if (d->m_qecSearch.guid.isSet()) {

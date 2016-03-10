@@ -21,9 +21,9 @@ public:
     LocalStorageCacheManager();
     virtual ~LocalStorageCacheManager();
 
-    enum WhichGuid
+    enum WhichUid
     {
-        LocalGuid,
+        LocalUid,
         Guid
     };
 
@@ -34,20 +34,20 @@ public:
     size_t numCachedNotes() const;
     void cacheNote(const Note & note);
     void expungeNote(const Note & note);
-    const Note * findNote(const QString & guid, const WhichGuid wg) const;
+    const Note * findNote(const QString & guid, const WhichUid wg) const;
 
     // Notebooks cache
     size_t numCachedNotebooks() const;
     void cacheNotebook(const Notebook & notebook);
     void expungeNotebook(const Notebook & notebook);
-    const Notebook * findNotebook(const QString & guid, const WhichGuid wg) const;
+    const Notebook * findNotebook(const QString & guid, const WhichUid wg) const;
     const Notebook * findNotebookByName(const QString & name) const;
 
     // Tags cache
     size_t numCachedTags() const;
     void cacheTag(const Tag & tag);
     void expungeTag(const Tag & tag);
-    const Tag * findTag(const QString & guid, const WhichGuid wg) const;
+    const Tag * findTag(const QString & guid, const WhichUid wg) const;
     const Tag * findTagByName(const QString & name) const;
 
     // Linked notebooks cache
@@ -60,7 +60,7 @@ public:
     size_t numCachedSavedSearches() const;
     void cacheSavedSearch(const SavedSearch & savedSearch);
     void expungeSavedSearch(const SavedSearch & savedSearch);
-    const SavedSearch * findSavedSearch(const QString & guid, const WhichGuid wg) const;
+    const SavedSearch * findSavedSearch(const QString & guid, const WhichUid wg) const;
     const SavedSearch * findSavedSearchByName(const QString & name) const;
 
     void installCacheExpiryFunction(const ILocalStorageCacheExpiryChecker & checker);

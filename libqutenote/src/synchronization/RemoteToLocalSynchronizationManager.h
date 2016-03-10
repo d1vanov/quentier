@@ -290,7 +290,7 @@ private:
     void performPostAddOrUpdateChecks();
 
     template <class ElementType>
-    void unsetLocalGuid(ElementType & element);
+    void unsetLocalUid(ElementType & element);
 
     // ========= Expunge helpers ============
 
@@ -528,7 +528,7 @@ private:
     QHash<QString,QPair<Note,Note> >        m_resourceConflictedAndRemoteNotesPerNotebookGuid;
     QSet<QUuid>                             m_findNotebookForNotesWithConflictedResourcesRequestIds;
 
-    QSet<QString>                           m_localGuidsOfElementsAlreadyAttemptedToFindByName;
+    QSet<QString>                           m_localUidsOfElementsAlreadyAttemptedToFindByName;
 
     QHash<int,Note>                         m_notesToAddPerAPICallPostponeTimerId;
     QHash<int,Note>                         m_notesToUpdatePerAPICallPostponeTimerId;

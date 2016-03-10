@@ -31,7 +31,7 @@ public:
                     const ResourceFileStorageManager & resourceFileStorageManager,
                     const FileIOThreadWorker & fileIOThreadWorker);
 
-    QString resourceLocalGuid() const;
+    QString resourceLocalUid() const;
 
     void updateResourceName(const QString & resourceName);
 
@@ -40,7 +40,7 @@ Q_SIGNALS:
 
 // private signals
 Q_SIGNALS:
-    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash, QString manualFileStoragePath, QUuid requestId);
+    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash, QString manualFileStoragePath, QUuid requestId);
     void saveResourceToFile(QString filePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode);
 
 private Q_SLOTS:

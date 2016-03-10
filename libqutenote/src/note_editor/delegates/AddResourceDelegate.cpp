@@ -129,8 +129,8 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
     QFileInfo fileInfo(m_filePath);
     QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
     m_resource = m_noteEditor.attachResourceToNote(data, dataHash, m_resourceFileMimeType, fileInfo.fileName());
-    QString resourceLocalGuid = m_resource.localGuid();
-    if (Q_UNLIKELY(resourceLocalGuid.isEmpty())) {
+    QString resourceLocalUid = m_resource.localUid();
+    if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {
         return;
     }
 
@@ -141,7 +141,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
         m_resourceFileStoragePath = m_noteEditor.resourceLocalFileStoragePath();
     }
 
-    m_resourceFileStoragePath += "/" + resourceLocalGuid;
+    m_resourceFileStoragePath += "/" + resourceLocalUid;
 
     QString fileInfoSuffix = fileInfo.completeSuffix();
     if (!fileInfoSuffix.isEmpty())
@@ -163,11 +163,11 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
-    emit saveResourceToStorage(resourceLocalGuid, data, dataHash, m_resourceFileStoragePath,
+    emit saveResourceToStorage(resourceLocalUid, data, dataHash, m_resourceFileStoragePath,
                                m_saveResourceToStorageRequestId);
 
-    QNTRACE("Emitted request to save the dropped resource to local file storage: generated local guid = "
-            << resourceLocalGuid << ", data hash = " << dataHash << ", request id = "
+    QNTRACE("Emitted request to save the dropped resource to local file storage: generated local uid = "
+            << resourceLocalUid << ", data hash = " << dataHash << ", request id = "
             << m_saveResourceToStorageRequestId << ", mime type name = " << m_resourceFileMimeType.name());
 }
 
@@ -222,9 +222,9 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
     QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 
-    QNDEBUG("Emitting request to write generic resource image for new resource with local guid "
-            << m_resource.localGuid() << ", request id " << m_saveResourceImageRequestId);
-    emit saveGenericResourceImageToFile(m_resource.localGuid(), resourceImageData, "png", dataHash,
+    QNDEBUG("Emitting request to write generic resource image for new resource with local uid "
+            << m_resource.localUid() << ", request id " << m_saveResourceImageRequestId);
+    emit saveGenericResourceImageToFile(m_resource.localUid(), resourceImageData, "png", dataHash,
                                         m_resourceFileStoragePath, m_saveResourceImageRequestId);
 }
 

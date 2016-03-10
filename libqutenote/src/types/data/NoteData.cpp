@@ -40,8 +40,8 @@ NoteData::NoteData(const qevercloud::Note & other) :
 
 bool NoteData::ResourceAdditionalInfo::operator==(const NoteData::ResourceAdditionalInfo & other) const
 {
-    return (localGuid == other.localGuid) &&
-            (noteLocalGuid == other.noteLocalGuid) &&
+    return (localUid == other.localUid) &&
+            (noteLocalUid == other.noteLocalUid) &&
             (isDirty == other.isDirty);
 }
 

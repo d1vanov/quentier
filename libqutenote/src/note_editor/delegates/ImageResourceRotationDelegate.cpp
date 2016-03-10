@@ -20,11 +20,11 @@ namespace qute_note {
 ImageResourceRotationDelegate::ImageResourceRotationDelegate(const QString & resourceHashBefore, const INoteEditorBackend::Rotation::type rotationDirection,
                                                              NoteEditorPrivate & noteEditor, ResourceInfo & resourceInfo,
                                                              ResourceFileStorageManager & resourceFileStorageManager,
-                                                             QHash<QString, QString> & resourceFileStoragePathsByLocalGuid) :
+                                                             QHash<QString, QString> & resourceFileStoragePathsByLocalUid) :
     m_noteEditor(noteEditor),
     m_resourceInfo(resourceInfo),
     m_resourceFileStorageManager(resourceFileStorageManager),
-    m_resourceFileStoragePathsByLocalGuid(resourceFileStoragePathsByLocalGuid),
+    m_resourceFileStoragePathsByLocalUid(resourceFileStoragePathsByLocalUid),
     m_rotationDirection(rotationDirection),
     m_pNote(Q_NULLPTR),
     m_resourceDataBefore(),
@@ -159,7 +159,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
     m_rotatedResource.setRecognitionDataHash(QByteArray());
 
     m_resourceFileStoragePathAfter = m_noteEditor.imageResourcesStoragePath();
-    m_resourceFileStoragePathAfter += "/" + m_rotatedResource.localGuid();
+    m_resourceFileStoragePathAfter += "/" + m_rotatedResource.localUid();
     m_resourceFileStoragePathAfter += ".png";
 
     m_saveResourceRequestId = QUuid::createUuid();
@@ -169,7 +169,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
     QObject::connect(&m_resourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(ImageResourceRotationDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
-    emit saveResourceToStorage(m_rotatedResource.localGuid(), m_rotatedResource.dataBody(), QByteArray(),
+    emit saveResourceToStorage(m_rotatedResource.localUid(), m_rotatedResource.dataBody(), QByteArray(),
                                m_resourceFileStoragePathAfter, m_saveResourceRequestId);
 }
 
@@ -198,8 +198,8 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
         return;
     }
 
-    const QString localGuid = m_rotatedResource.localGuid();
-    m_noteEditor.cleanupStaleImageResourceFiles(localGuid);
+    const QString localUid = m_rotatedResource.localUid();
+    m_noteEditor.cleanupStaleImageResourceFiles(localUid);
 
     QFile rotatedImageResourceFile(fileStoragePath);
     QString linkFileName = fileStoragePath;
@@ -229,8 +229,8 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
 
     m_resourceFileStoragePathAfter = linkFileName;
 
-    auto resourceFileStoragePathIt = m_resourceFileStoragePathsByLocalGuid.find(localGuid);
-    if (Q_UNLIKELY(resourceFileStoragePathIt == m_resourceFileStoragePathsByLocalGuid.end())) {
+    auto resourceFileStoragePathIt = m_resourceFileStoragePathsByLocalUid.find(localUid);
+    if (Q_UNLIKELY(resourceFileStoragePathIt == m_resourceFileStoragePathsByLocalUid.end())) {
         errorDescription = QT_TR_NOOP("Can't rotate image resource: can't find the path to resource file before the rotation");
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);

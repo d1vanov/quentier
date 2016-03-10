@@ -128,7 +128,7 @@ public:
     void provideSrcForGenericResourceImages();
     void setupGenericResourceOnClickHandler();
 
-    void updateResource(const QString & resourceLocalGuid, const QString & previousResourceHash,
+    void updateResource(const QString & resourceLocalUid, const QString & previousResourceHash,
                         ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
 
     bool isModified() const;
@@ -140,8 +140,8 @@ public:
 
     void setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate);
 
-    void cleanupStaleImageResourceFiles(const QString & resourceLocalGuid);
-    QString createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localGuid, QString & errorDescription);
+    void cleanupStaleImageResourceFiles(const QString & resourceLocalUid);
+    QString createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription);
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(const QString & filepath);
@@ -254,13 +254,13 @@ public Q_SLOTS:
 
 // private signals:
 Q_SIGNALS:
-    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
+    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash,
                                QString fileStoragePath, QUuid requestId);
-    void readResourceFromStorage(QString fileStoragePath, QString localGuid, QUuid requestId);
+    void readResourceFromStorage(QString fileStoragePath, QString localUid, QUuid requestId);
     void openResourceFile(QString absoluteFilePath);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId, bool append);
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId, bool append);
-    void saveGenericResourceImageToFile(QString resourceLocalGuid, QByteArray resourceImageData,
+    void saveGenericResourceImageToFile(QString resourceLocalUid, QByteArray resourceImageData,
                                         QString resourceFileSuffix, QByteArray resourceActualHash,
                                         QString resourceDisplayName, QUuid requestId);
 
@@ -277,7 +277,7 @@ private Q_SLOTS:
 
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
                                   int errorCode, QString errorDescription);
-    void onResourceFileChanged(QString resourceLocalGuid, QString fileStoragePath);
+    void onResourceFileChanged(QString resourceLocalUid, QString fileStoragePath);
     void onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QString errorDescription);
 
@@ -763,13 +763,13 @@ private:
 
     QString                         m_resourceLocalFileStorageFolder;
 
-    QHash<QUuid, QString>           m_genericResourceLocalGuidBySaveToStorageRequestIds;
+    QHash<QUuid, QString>           m_genericResourceLocalUidBySaveToStorageRequestIds;
     QSet<QUuid>                     m_imageResourceSaveToStorageRequestIds;
 
-    QHash<QString, QString>         m_resourceFileStoragePathsByResourceLocalGuid;
+    QHash<QString, QString>         m_resourceFileStoragePathsByResourceLocalUid;
 
-    QSet<QString>                   m_localGuidsOfResourcesWantedToBeSaved;
-    QSet<QString>                   m_localGuidsOfResourcesWantedToBeOpened;
+    QSet<QString>                   m_localUidsOfResourcesWantedToBeSaved;
+    QSet<QString>                   m_localUidsOfResourcesWantedToBeOpened;
 
     QSet<QUuid>                     m_manualSaveResourceToFileRequestIds;
 
@@ -788,7 +788,7 @@ private:
 
     CurrentContextMenuExtraData                 m_currentContextMenuExtraData;
 
-    QHash<QUuid, QPair<QString, QString> >      m_resourceLocalGuidAndFileStoragePathByReadResourceRequestIds;
+    QHash<QUuid, QPair<QString, QString> >      m_resourceLocalUidAndFileStoragePathByReadResourceRequestIds;
 
     quint64     m_lastFreeEnToDoIdNumber;
     quint64     m_lastFreeHyperlinkIdNumber;

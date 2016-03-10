@@ -256,12 +256,12 @@ void LocalStorageManagerThreadWorker::onFindNotebookRequest(Notebook notebook, Q
         if (m_useCache)
         {
             bool notebookHasGuid = notebook.hasGuid();
-            if (notebookHasGuid || !notebook.localGuid().isEmpty())
+            if (notebookHasGuid || !notebook.localUid().isEmpty())
             {
-                const QString guid = (notebookHasGuid ? notebook.guid() : notebook.localGuid());
-                LocalStorageCacheManager::WhichGuid wg = (notebookHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+                const QString uid = (notebookHasGuid ? notebook.guid() : notebook.localUid());
+                LocalStorageCacheManager::WhichUid wg = (notebookHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalUid);
 
-                const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(guid, wg);
+                const Notebook * pNotebook = m_pLocalStorageCacheManager->findNotebook(uid, wg);
                 if (pNotebook) {
                     notebook = *pNotebook;
                     foundNotebookInCache = true;
@@ -694,10 +694,10 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
         if (m_useCache)
         {
             bool noteHasGuid = note.hasGuid();
-            const QString guid = (noteHasGuid ? note.guid() : note.localGuid());
-            LocalStorageCacheManager::WhichGuid wg = (noteHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+            const QString uid = (noteHasGuid ? note.guid() : note.localUid());
+            LocalStorageCacheManager::WhichUid wu = (noteHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalUid);
 
-            const Note * pNote = m_pLocalStorageCacheManager->findNote(guid, wg);
+            const Note * pNote = m_pLocalStorageCacheManager->findNote(uid, wu);
             if (pNote) {
                 note = *pNote;
                 foundNoteInCache = true;
@@ -911,12 +911,12 @@ void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
         if (m_useCache)
         {
             bool tagHasGuid = tag.hasGuid();
-            if (tagHasGuid || !tag.localGuid().isEmpty())
+            if (tagHasGuid || !tag.localUid().isEmpty())
             {
-                const QString guid = (tagHasGuid ? tag.guid() : tag.localGuid());
-                LocalStorageCacheManager::WhichGuid wg = (tagHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+                const QString uid = (tagHasGuid ? tag.guid() : tag.localUid());
+                LocalStorageCacheManager::WhichUid wg = (tagHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalUid);
 
-                const Tag * pTag = m_pLocalStorageCacheManager->findTag(guid, wg);
+                const Tag * pTag = m_pLocalStorageCacheManager->findTag(uid, wg);
                 if (pTag) {
                     tag = *pTag;
                     foundTagInCache = true;
@@ -1246,12 +1246,12 @@ void LocalStorageManagerThreadWorker::onFindSavedSearchRequest(SavedSearch searc
         if (m_useCache)
         {
             bool searchHasGuid = search.hasGuid();
-            if (searchHasGuid || !search.localGuid().isEmpty())
+            if (searchHasGuid || !search.localUid().isEmpty())
             {
-                const QString guid = (searchHasGuid ? search.guid() : search.localGuid());
-                const LocalStorageCacheManager::WhichGuid wg = (searchHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalGuid);
+                const QString uid = (searchHasGuid ? search.guid() : search.localUid());
+                const LocalStorageCacheManager::WhichUid wg = (searchHasGuid ? LocalStorageCacheManager::Guid : LocalStorageCacheManager::LocalUid);
 
-                const SavedSearch * pSearch = m_pLocalStorageCacheManager->findSavedSearch(guid, wg);
+                const SavedSearch * pSearch = m_pLocalStorageCacheManager->findSavedSearch(uid, wg);
                 if (pSearch) {
                     search = *pSearch;
                     foundCachedSavedSearch = true;

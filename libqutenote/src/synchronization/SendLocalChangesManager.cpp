@@ -1784,7 +1784,7 @@ void SendLocalChangesManager::findNotebooksForNotes()
     if (!notebookGuids.isEmpty())
     {
         Notebook dummyNotebook;
-        dummyNotebook.unsetLocalGuid();
+        dummyNotebook.unsetLocalUid();
 
         typedef QSet<QString>::const_iterator CIter;
         CIter notebookGuidsEnd = notebookGuids.end();

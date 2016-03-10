@@ -36,7 +36,7 @@ Q_SIGNALS:
 
 // private signals
 #ifdef USE_QT_WEB_ENGINE
-    void saveGenericResourceImageToFile(QString resourceLocalGuid, QByteArray resourceImageData,
+    void saveGenericResourceImageToFile(QString resourceLocalUid, QByteArray resourceImageData,
                                         QString resourceFileSuffix, QByteArray resourceActualHash,
                                         QString resourceDisplayName, QUuid requestId);
 #endif

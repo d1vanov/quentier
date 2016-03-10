@@ -93,7 +93,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_notesPerResourceGuids(),
     m_resourceConflictedAndRemoteNotesPerNotebookGuid(),
     m_findNotebookForNotesWithConflictedResourcesRequestIds(),
-    m_localGuidsOfElementsAlreadyAttemptedToFindByName(),
+    m_localUidsOfElementsAlreadyAttemptedToFindByName(),
     m_notesToAddPerAPICallPostponeTimerId(),
     m_notesToUpdatePerAPICallPostponeTimerId(),
     m_afterUsnForSyncChunkPerAPICallPostponeTimerId(),
@@ -262,8 +262,8 @@ template <>
 void RemoteToLocalSynchronizationManager::emitAddRequest<Note>(const Note & note)
 {
     QString noteGuid = (note.hasGuid() ? note.guid() : QString());
-    QString noteLocalGuid = note.localGuid();
-    QPair<QString,QString> key(noteGuid, noteLocalGuid);
+    QString noteLocalUid = note.localUid();
+    QPair<QString,QString> key(noteGuid, noteLocalUid);
 
     auto it = m_notebooksPerNoteGuids.find(key);
     if (it == m_notebooksPerNoteGuids.end()) {
@@ -284,8 +284,8 @@ template <>
 void RemoteToLocalSynchronizationManager::emitAddRequest<ResourceWrapper>(const ResourceWrapper & resource)
 {
     QString resourceGuid = (resource.hasGuid() ? resource.guid() : QString());
-    QString resourceLocalGuid = resource.localGuid();
-    QPair<QString,QString> key(resourceGuid, resourceLocalGuid);
+    QString resourceLocalUid = resource.localUid();
+    QPair<QString,QString> key(resourceGuid, resourceLocalUid);
 
     auto it = m_notesPerResourceGuids.find(key);
     if (it == m_notesPerResourceGuids.end()) {
@@ -449,11 +449,11 @@ void RemoteToLocalSynchronizationManager::onFindNotebookCompleted(Notebook noteb
         const QUuid & findNoteRequestId = noteWithFindRequestId.second;
 
         QString noteGuid = (note.hasGuid() ? note.guid() : QString());
-        QString noteLocalGuid = note.localGuid();
+        QString noteLocalUid = note.localUid();
 
-        QPair<QString,QString> key(noteGuid, noteLocalGuid);
+        QPair<QString,QString> key(noteGuid, noteLocalUid);
 
-        // NOTE: notebook for notes is only required for its pair of guid + local guid,
+        // NOTE: notebook for notes is only required for its pair of guid + local uid,
         // it shouldn't prohibit the creation or update of the notes during the synchronization procedure
         notebook.setCanCreateNotes(true);
         notebook.setCanUpdateNotes(true);
@@ -491,21 +491,21 @@ void RemoteToLocalSynchronizationManager::onFindNotebookCompleted(Notebook noteb
         const Note & conflictedNote = notesPair.first;
         const Note & updatedNote = notesPair.second;
 
-        QString conflictedNoteLocalGuid = conflictedNote.localGuid();
-        QString updatedNoteLocalGuid = updatedNote.localGuid();
+        QString conflictedNoteLocalUid = conflictedNote.localUid();
+        QString updatedNoteLocalUid = updatedNote.localUid();
 
-        if (!conflictedNoteLocalGuid.isEmpty() || conflictedNote.hasGuid()) {
+        if (!conflictedNoteLocalUid.isEmpty() || conflictedNote.hasGuid()) {
             QPair<QString,QString> key;
             key.first = (conflictedNote.hasGuid() ? conflictedNote.guid() : QString());
-            key.second = conflictedNoteLocalGuid;
+            key.second = conflictedNoteLocalUid;
 
             m_notebooksPerNoteGuids[key] = notebook;
         }
 
-        if (!updatedNoteLocalGuid.isEmpty() || updatedNote.hasGuid()) {
+        if (!updatedNoteLocalUid.isEmpty() || updatedNote.hasGuid()) {
             QPair<QString,QString> key;
             key.first = (updatedNote.hasGuid() ? updatedNote.guid() : QString());
-            key.second = updatedNoteLocalGuid;
+            key.second = updatedNoteLocalUid;
 
             m_notebooksPerNoteGuids[key] = notebook;
         }
@@ -595,7 +595,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
                 QPair<Note,QUuid>(note, requestId);
 
         Notebook notebookToFind;
-        notebookToFind.unsetLocalGuid();
+        notebookToFind.unsetLocalUid();
         notebookToFind.setGuid(note.notebookGuid());
 
         Q_UNUSED(m_findNoteByGuidRequestIds.insert(requestId));
@@ -624,9 +624,9 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         const QUuid & findResourceRequestId = resourceWithFindRequestId.second;
 
         QString resourceGuid = (resource.hasGuid() ? resource.guid() : QString());
-        QString resourceLocalGuid = resource.localGuid();
+        QString resourceLocalUid = resource.localUid();
 
-        QPair<QString,QString> key(resourceGuid, resourceLocalGuid);
+        QPair<QString,QString> key(resourceGuid, resourceLocalUid);
 
         m_notesPerResourceGuids[key] = note;
 
@@ -665,7 +665,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         conflictedNote.setTitle(conflictedNoteTitle);
 
         Note updatedNote(note);
-        updatedNote.unsetLocalGuid();
+        updatedNote.unsetLocalUid();
         bool hasResources = updatedNote.hasResources();
         QList<ResourceAdapter> resources;
         if (hasResources) {
@@ -720,7 +720,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         m_resourceConflictedAndRemoteNotesPerNotebookGuid[note.notebookGuid()] = QPair<Note,Note>(conflictedNote, updatedNote);
 
         Notebook notebookToFind;
-        notebookToFind.unsetLocalGuid();
+        notebookToFind.unsetLocalUid();
         notebookToFind.setGuid(note.notebookGuid());
 
         QUuid findNotebookForNotesWithConflictedResourcesRequestId = QUuid::createUuid();
@@ -869,7 +869,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
             QPair<ResourceWrapper,QUuid>(resource, requestId);
 
         Note noteToFind;
-        noteToFind.unsetLocalGuid();
+        noteToFind.unsetLocalUid();
         noteToFind.setGuid(resource.noteGuid());
 
         Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
@@ -919,7 +919,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
             QPair<ResourceWrapper,QUuid>(resource, requestId);
 
         Note noteToFind;
-        noteToFind.unsetLocalGuid();
+        noteToFind.unsetLocalUid();
         noteToFind.setGuid(resource.noteGuid());
 
         Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
@@ -1089,22 +1089,22 @@ void RemoteToLocalSynchronizationManager::onUpdateDataElementCompleted(const Ele
     if (addIt != elementsToAddByRenameRequestId.end())
     {
         ElementType & elementToAdd = addIt.value();
-        const QString localGuid = elementToAdd.localGuid();
-        if (localGuid.isEmpty()) {
+        const QString localUid = elementToAdd.localUid();
+        if (localUid.isEmpty()) {
             QString errorDescription = QT_TR_NOOP("detected " + typeName + " from local storage "
-                                                  "with empty local guid");
+                                                  "with empty local uid");
             QNWARNING(errorDescription << ": " << elementToAdd);
             emit failure(errorDescription);
             return;
         }
 
-        QSet<QString>::iterator git = m_localGuidsOfElementsAlreadyAttemptedToFindByName.find(localGuid);
-        if (git == m_localGuidsOfElementsAlreadyAttemptedToFindByName.end())
+        QSet<QString>::iterator git = m_localUidsOfElementsAlreadyAttemptedToFindByName.find(localUid);
+        if (git == m_localUidsOfElementsAlreadyAttemptedToFindByName.end())
         {
             QNDEBUG("Checking whether " << typeName << " with the same name already exists in local storage");
-            Q_UNUSED(m_localGuidsOfElementsAlreadyAttemptedToFindByName.insert(localGuid));
+            Q_UNUSED(m_localUidsOfElementsAlreadyAttemptedToFindByName.insert(localUid));
 
-            elementToAdd.unsetLocalGuid();
+            elementToAdd.unsetLocalUid();
             elementToAdd.setGuid("");
             emitFindByNameRequest(elementToAdd);
         }
@@ -1302,15 +1302,15 @@ void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<SavedSear
 }
 
 template <class ElementType>
-void RemoteToLocalSynchronizationManager::unsetLocalGuid(ElementType & element)
+void RemoteToLocalSynchronizationManager::unsetLocalUid(ElementType & element)
 {
-    element.unsetLocalGuid();
+    element.unsetLocalUid();
 }
 
 template <>
-void RemoteToLocalSynchronizationManager::unsetLocalGuid<LinkedNotebook>(LinkedNotebook &)
+void RemoteToLocalSynchronizationManager::unsetLocalUid<LinkedNotebook>(LinkedNotebook &)
 {
-    // do nothing, local guid doesn't make any sense to linked notebook
+    // do nothing, local uid doesn't make any sense to linked notebook
 }
 
 template <class ElementType>
@@ -1360,7 +1360,7 @@ void RemoteToLocalSynchronizationManager::expungeTags()
     }
 
     Tag tagToExpunge;
-    tagToExpunge.unsetLocalGuid();
+    tagToExpunge.unsetLocalUid();
 
     const int numExpungedTags = m_expungedTags.size();
     for(int i = 0; i < numExpungedTags; ++i)
@@ -1383,7 +1383,7 @@ void RemoteToLocalSynchronizationManager::expungeSavedSearches()
     }
 
     SavedSearch searchToExpunge;
-    searchToExpunge.unsetLocalGuid();
+    searchToExpunge.unsetLocalUid();
 
     const int numExpungedSearches = m_expungedSavedSearches.size();
     for(int i = 0; i < numExpungedSearches; ++i)
@@ -1428,7 +1428,7 @@ void RemoteToLocalSynchronizationManager::expungeNotebooks()
     }
 
     Notebook notebookToExpunge;
-    notebookToExpunge.unsetLocalGuid();
+    notebookToExpunge.unsetLocalUid();
 
     const int numExpungedNotebooks = m_expungedNotebooks.size();
     for(int i = 0; i < numExpungedNotebooks; ++i)
@@ -1451,7 +1451,7 @@ void RemoteToLocalSynchronizationManager::expungeNotes()
     }
 
     Note noteToExpunge;
-    noteToExpunge.unsetLocalGuid();
+    noteToExpunge.unsetLocalUid();
 
     const int numExpungedNotes = m_expungedNotes.size();
     for(int i = 0; i < numExpungedNotes; ++i)
@@ -1545,7 +1545,7 @@ template <>
 void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<Tag>(const QString & guid)
 {
     Tag tag;
-    tag.unsetLocalGuid();
+    tag.unsetLocalUid();
     tag.setGuid(guid);
 
     QUuid requestId = QUuid::createUuid();
@@ -1557,7 +1557,7 @@ template <>
 void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<SavedSearch>(const QString & guid)
 {
     SavedSearch search;
-    search.unsetLocalGuid();
+    search.unsetLocalUid();
     search.setGuid(guid);
 
     QUuid requestId = QUuid::createUuid();
@@ -1569,7 +1569,7 @@ template <>
 void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<Notebook>(const QString & guid)
 {
     Notebook notebook;
-    notebook.unsetLocalGuid();
+    notebook.unsetLocalUid();
     notebook.setGuid(guid);
 
     QUuid requestId = QUuid::createUuid();
@@ -1592,7 +1592,7 @@ template <>
 void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<Note>(const QString & guid)
 {
     Note note;
-    note.unsetLocalGuid();
+    note.unsetLocalUid();
     note.setGuid(guid);
 
     QUuid requestId = QUuid::createUuid();
@@ -1605,7 +1605,7 @@ template <>
 void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<ResourceWrapper>(const QString & guid)
 {
     ResourceWrapper resource;
-    resource.unsetLocalGuid();
+    resource.unsetLocalUid();
     resource.setGuid(guid);
 
     QUuid requestId = QUuid::createUuid();
@@ -3122,7 +3122,7 @@ void RemoteToLocalSynchronizationManager::clear()
     m_resourceConflictedAndRemoteNotesPerNotebookGuid.clear();
     m_findNotebookForNotesWithConflictedResourcesRequestIds.clear();
 
-    m_localGuidsOfElementsAlreadyAttemptedToFindByName.clear();
+    m_localUidsOfElementsAlreadyAttemptedToFindByName.clear();
 
     auto notesToAddPerAPICallPostponeTimerIdEnd = m_notesToAddPerAPICallPostponeTimerId.end();
     for(auto it = m_notesToAddPerAPICallPostponeTimerId.begin(); it != notesToAddPerAPICallPostponeTimerIdEnd; ++it) {
@@ -3482,9 +3482,9 @@ const Notebook * RemoteToLocalSynchronizationManager::getNotebookPerNote(const N
     QNDEBUG("RemoteToLocalSynchronizationManager::getNotebookPerNote: note = " << note);
 
     QString noteGuid = (note.hasGuid() ? note.guid() : QString());
-    QString noteLocalGuid = note.localGuid();
+    QString noteLocalUid = note.localUid();
 
-    QPair<QString,QString> key(noteGuid, noteLocalGuid);
+    QPair<QString,QString> key(noteGuid, noteLocalUid);
     QHash<QPair<QString,QString>,Notebook>::const_iterator cit = m_notebooksPerNoteGuids.find(key);
     if (cit == m_notebooksPerNoteGuids.end()) {
         return Q_NULLPTR;
@@ -4399,7 +4399,7 @@ void RemoteToLocalSynchronizationManager::checkUpdateSequenceNumbersAndProcessCo
         {
             // Remote element is more recent, need to update the element existing in local storage
             ElementType elementToUpdate(remoteElement);
-            unsetLocalGuid(elementToUpdate);
+            unsetLocalUid(elementToUpdate);
 
             // NOTE: workarounding the stupidity of MSVC 2013
             emitUpdateRequest<ElementType>(elementToUpdate, static_cast<const ElementType*>(Q_NULLPTR));

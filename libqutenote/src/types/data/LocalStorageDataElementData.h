@@ -16,7 +16,7 @@ public:
     LocalStorageDataElementData(const LocalStorageDataElementData & other);
     LocalStorageDataElementData(LocalStorageDataElementData && other);
 
-    QUuid m_localGuid;
+    QUuid m_localUid;
 
 private:
     LocalStorageDataElementData & operator=(const LocalStorageDataElementData & other) Q_DECL_DELETE;

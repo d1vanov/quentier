@@ -95,7 +95,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
         return;
     }
 
-    m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localGuid();
+    m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localUid();
     QString resourcePreferredSuffix = m_pResource->preferredFileSuffix();
     if (!resourcePreferredSuffix.isEmpty()) {
         m_ownFilePath += "." + resourcePreferredSuffix;
@@ -125,15 +125,15 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     // Write resource's data to file asynchronously so that it can further be opened in some application
     m_saveResourceToStorageRequestId = QUuid::createUuid();
-    emit saveResourceToStorage(m_pResource->localGuid(), data, *dataHash, m_ownFilePath, m_saveResourceToStorageRequestId);
+    emit saveResourceToStorage(m_pResource->localUid(), data, *dataHash, m_ownFilePath, m_saveResourceToStorageRequestId);
     QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
-            << m_saveResourceToStorageRequestId << ", resource local guid = " << m_pResource->localGuid());
+            << m_saveResourceToStorageRequestId << ", resource local uid = " << m_pResource->localUid());
 }
 
-QString GenericResourceDisplayWidget::resourceLocalGuid() const
+QString GenericResourceDisplayWidget::resourceLocalUid() const
 {
     if (m_pResource) {
-        return m_pResource->localGuid();
+        return m_pResource->localUid();
     }
 
     return QString();

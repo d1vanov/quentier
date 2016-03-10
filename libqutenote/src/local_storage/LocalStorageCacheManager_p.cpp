@@ -45,11 +45,11 @@ size_t LocalStorageCacheManagerPrivate::method_name() const \
     return index.size(); \
 }
 
-NUM_CACHED_OBJECTS(Note, numCachedNotes, m_notesCache, ByLocalGuid)
-NUM_CACHED_OBJECTS(Notebook, numCachedNotebooks, m_notebooksCache, ByLocalGuid)
-NUM_CACHED_OBJECTS(Tag, numCachedTags, m_tagsCache, ByLocalGuid)
+NUM_CACHED_OBJECTS(Note, numCachedNotes, m_notesCache, ByLocalUid)
+NUM_CACHED_OBJECTS(Notebook, numCachedNotebooks, m_notebooksCache, ByLocalUid)
+NUM_CACHED_OBJECTS(Tag, numCachedTags, m_tagsCache, ByLocalUid)
 NUM_CACHED_OBJECTS(LinkedNotebook, numCachedLinkedNotebooks, m_linkedNotebooksCache, ByGuid)
-NUM_CACHED_OBJECTS(SavedSearch, numCachedSavedSearches, m_savedSearchesCache, ByLocalGuid)
+NUM_CACHED_OBJECTS(SavedSearch, numCachedSavedSearches, m_savedSearchesCache, ByLocalUid)
 
 #undef NUM_CACHED_OBJECTS
 
@@ -100,13 +100,13 @@ void LocalStorageCacheManagerPrivate::cache##Type(const Type & name) \
     QNDEBUG("Added " #name " to the local storage cache: " << name); \
 }
 
-CACHE_OBJECT(Note, note, NotesCache, m_notesCache, checkNotes, ByLocalGuid, localGuid)
-CACHE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache, checkNotebooks, ByLocalGuid, localGuid)
-CACHE_OBJECT(Tag, tag, TagsCache, m_tagsCache, checkTags, ByLocalGuid, localGuid)
+CACHE_OBJECT(Note, note, NotesCache, m_notesCache, checkNotes, ByLocalUid, localUid)
+CACHE_OBJECT(Notebook, notebook, NotebooksCache, m_notebooksCache, checkNotebooks, ByLocalUid, localUid)
+CACHE_OBJECT(Tag, tag, TagsCache, m_tagsCache, checkTags, ByLocalUid, localUid)
 CACHE_OBJECT(LinkedNotebook, linkedNotebook, LinkedNotebooksCache, m_linkedNotebooksCache,
              checkLinkedNotebooks, ByGuid, guid)
 CACHE_OBJECT(SavedSearch, savedSearch, SavedSearchesCache, m_savedSearchesCache,
-             checkSavedSearches, ByLocalGuid, localGuid)
+             checkSavedSearches, ByLocalUid, localUid)
 
 #undef CACHE_OBJECT
 
@@ -114,13 +114,13 @@ CACHE_OBJECT(SavedSearch, savedSearch, SavedSearchesCache, m_savedSearchesCache,
 void LocalStorageCacheManagerPrivate::expunge##Type(const Type & name) \
 { \
     bool name##HasGuid = name.hasGuid(); \
-    const QString guid = (name##HasGuid ? name.guid() : name.localGuid()); \
+    const QString uid = (name##HasGuid ? name.guid() : name.localUid()); \
     \
     if (name##HasGuid) \
     { \
-        typedef boost::multi_index::index<cache_type,Type##Holder::ByGuid>::type GuidIndex; \
-        GuidIndex & index = cache_name.get<Type##Holder::ByGuid>(); \
-        GuidIndex::iterator it = index.find(guid); \
+        typedef boost::multi_index::index<cache_type,Type##Holder::ByGuid>::type UidIndex; \
+        UidIndex & index = cache_name.get<Type##Holder::ByGuid>(); \
+        UidIndex::iterator it = index.find(uid); \
         if (it != index.end()) { \
             index.erase(it); \
             QNDEBUG("Expunged " #name " from the local storage cache: " << name); \
@@ -128,9 +128,9 @@ void LocalStorageCacheManagerPrivate::expunge##Type(const Type & name) \
     } \
     else \
     { \
-        typedef boost::multi_index::index<cache_type,Type##Holder::ByLocalGuid>::type GuidIndex; \
-        GuidIndex & index = cache_name.get<Type##Holder::ByLocalGuid>(); \
-        GuidIndex::iterator it = index.find(guid); \
+        typedef boost::multi_index::index<cache_type,Type##Holder::ByLocalUid>::type UidIndex; \
+        UidIndex & index = cache_name.get<Type##Holder::ByLocalUid>(); \
+        UidIndex::iterator it = index.find(uid); \
         if (it != index.end()) { \
             index.erase(it); \
             QNDEBUG("Expunged " #name " from the local storage cache: " << name); \
@@ -170,16 +170,16 @@ const Type * LocalStorageCacheManagerPrivate::find##Type##tag(const QString & gu
     return &(it->m_##name); \
 }
 
-FIND_OBJECT(Note, note, ByLocalGuid, m_notesCache)
+FIND_OBJECT(Note, note, ByLocalUid, m_notesCache)
 FIND_OBJECT(Note, note, ByGuid, m_notesCache)
-FIND_OBJECT(Notebook, notebook, ByLocalGuid, m_notebooksCache)
+FIND_OBJECT(Notebook, notebook, ByLocalUid, m_notebooksCache)
 FIND_OBJECT(Notebook, notebook, ByGuid, m_notebooksCache)
 FIND_OBJECT(Notebook, notebook, ByName, m_notebooksCache)
-FIND_OBJECT(Tag, tag, ByLocalGuid, m_tagsCache)
+FIND_OBJECT(Tag, tag, ByLocalUid, m_tagsCache)
 FIND_OBJECT(Tag, tag, ByGuid, m_tagsCache)
 FIND_OBJECT(Tag, tag, ByName, m_tagsCache)
 FIND_OBJECT(LinkedNotebook, linkedNotebook, ByGuid, m_linkedNotebooksCache)
-FIND_OBJECT(SavedSearch, savedSearch, ByLocalGuid, m_savedSearchesCache)
+FIND_OBJECT(SavedSearch, savedSearch, ByLocalUid, m_savedSearchesCache)
 FIND_OBJECT(SavedSearch, savedSearch, ByGuid, m_savedSearchesCache)
 FIND_OBJECT(SavedSearch, savedSearch, ByName, m_savedSearchesCache)
 
@@ -195,8 +195,8 @@ QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
     strm << "LocalStorageCacheManager: {\n";
     strm << "Notes cache: {\n";
 
-    const NotesCache::index<NoteHolder::ByLocalGuid>::type & notesCacheIndex = m_notesCache.get<NoteHolder::ByLocalGuid>();
-    typedef NotesCache::index<NoteHolder::ByLocalGuid>::type::const_iterator NotesConstIter;
+    const NotesCache::index<NoteHolder::ByLocalUid>::type & notesCacheIndex = m_notesCache.get<NoteHolder::ByLocalUid>();
+    typedef NotesCache::index<NoteHolder::ByLocalUid>::type::const_iterator NotesConstIter;
     NotesConstIter notesCacheEnd = notesCacheIndex.end();
     for(NotesConstIter it = notesCacheIndex.begin(); it != notesCacheEnd; ++it) {
         strm << *it;
@@ -205,8 +205,8 @@ QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
     strm << "}; \n";
     strm << "Notebooks cache: {\n";
 
-    const NotebooksCache::index<NotebookHolder::ByLocalGuid>::type & notebooksCacheIndex = m_notebooksCache.get<NotebookHolder::ByLocalGuid>();
-    typedef NotebooksCache::index<NotebookHolder::ByLocalGuid>::type::const_iterator NotebooksConstIter;
+    const NotebooksCache::index<NotebookHolder::ByLocalUid>::type & notebooksCacheIndex = m_notebooksCache.get<NotebookHolder::ByLocalUid>();
+    typedef NotebooksCache::index<NotebookHolder::ByLocalUid>::type::const_iterator NotebooksConstIter;
     NotebooksConstIter notebooksCacheEnd = notebooksCacheIndex.end();
     for(NotebooksConstIter it = notebooksCacheIndex.begin(); it != notebooksCacheEnd; ++it) {
         strm << *it;
@@ -215,8 +215,8 @@ QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
     strm << "}; \n";
     strm << "Tags cache: {\n";
 
-    const TagsCache::index<TagHolder::ByLocalGuid>::type & tagsCacheIndex = m_tagsCache.get<TagHolder::ByLocalGuid>();
-    typedef TagsCache::index<TagHolder::ByLocalGuid>::type::const_iterator TagsConstIter;
+    const TagsCache::index<TagHolder::ByLocalUid>::type & tagsCacheIndex = m_tagsCache.get<TagHolder::ByLocalUid>();
+    typedef TagsCache::index<TagHolder::ByLocalUid>::type::const_iterator TagsConstIter;
     TagsConstIter tagsCacheEnd = tagsCacheIndex.end();
     for(TagsConstIter it = tagsCacheIndex.begin(); it != tagsCacheEnd; ++it) {
         strm << *it;
@@ -235,8 +235,8 @@ QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
     strm << "}; \n";
     strm << "Saved searches cache: {\n";
 
-    const SavedSearchesCache::index<SavedSearchHolder::ByLocalGuid>::type & savedSearchesCacheIndex = m_savedSearchesCache.get<SavedSearchHolder::ByLocalGuid>();
-    typedef SavedSearchesCache::index<SavedSearchHolder::ByLocalGuid>::type::const_iterator SavedSearchesConstIter;
+    const SavedSearchesCache::index<SavedSearchHolder::ByLocalUid>::type & savedSearchesCacheIndex = m_savedSearchesCache.get<SavedSearchHolder::ByLocalUid>();
+    typedef SavedSearchesCache::index<SavedSearchHolder::ByLocalUid>::type::const_iterator SavedSearchesConstIter;
     SavedSearchesConstIter savedSearchesCacheEnd = savedSearchesCacheIndex.end();
     for(SavedSearchesConstIter it = savedSearchesCacheIndex.begin(); it != savedSearchesCacheEnd; ++it) {
         strm << *it;

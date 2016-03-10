@@ -14,7 +14,7 @@ public:
     explicit ImageResourceRotationDelegate(const QString & resourceHashBefore, const INoteEditorBackend::Rotation::type rotationDirection,
                                            NoteEditorPrivate & noteEditor, ResourceInfo & resourceInfo,
                                            ResourceFileStorageManager & resourceFileStorageManager,
-                                           QHash<QString, QString> & resourceFileStoragePathsByLocalGuid);
+                                           QHash<QString, QString> & resourceFileStoragePathsByLocalUid);
     void start();
 
 Q_SIGNALS:
@@ -24,7 +24,7 @@ Q_SIGNALS:
     void notifyError(QString error);
 
 // private signals
-    void saveResourceToStorage(QString localGuid, QByteArray data, QByteArray dataHash,
+    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash,
                                QString fileStoragePath, QUuid requestId);
 
 private Q_SLOTS:
@@ -44,7 +44,7 @@ private:
     NoteEditorPrivate &             m_noteEditor;
     ResourceInfo &                  m_resourceInfo;
     ResourceFileStorageManager &    m_resourceFileStorageManager;
-    QHash<QString, QString> &       m_resourceFileStoragePathsByLocalGuid;
+    QHash<QString, QString> &       m_resourceFileStoragePathsByLocalUid;
 
     INoteEditorBackend::Rotation::type  m_rotationDirection;
 

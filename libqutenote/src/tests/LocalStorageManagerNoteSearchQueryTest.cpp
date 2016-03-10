@@ -520,13 +520,13 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
         if (i != 8) {
             ResourceWrapper resource = resources[i/numResources];
-            resource.setLocalGuid(QUuid::createUuid().toString());
+            resource.setLocalUid(QUuid::createUuid().toString());
             note.addResource(resource);
         }
 
         if (i == 3) {
             ResourceWrapper additionalResource = resources[0];
-            additionalResource.setLocalGuid(QUuid::createUuid().toString());
+            additionalResource.setLocalUid(QUuid::createUuid().toString());
             note.addResource(additionalResource);
         }
     }

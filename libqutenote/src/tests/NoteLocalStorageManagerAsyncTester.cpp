@@ -262,7 +262,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook 
         }
 
         m_foundNote = Note();
-        m_foundNote.setLocalGuid(note.localGuid());
+        m_foundNote.setLocalUid(note.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         bool withResourceBinaryData = true;

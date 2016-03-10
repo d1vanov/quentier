@@ -8,7 +8,7 @@
 
 namespace qute_note {
 
-QN_DEFINE_LOCAL_GUID(Notebook)
+QN_DEFINE_LOCAL_UID(Notebook)
 QN_DEFINE_DIRTY(Notebook)
 QN_DEFINE_LOCAL(Notebook)
 QN_DEFINE_SHORTCUT(Notebook)
@@ -138,7 +138,7 @@ void Notebook::setUpdateSequenceNumber(const qint32 usn)
 
 bool Notebook::checkParameters(QString & errorDescription) const
 {
-    if (localGuid().isEmpty() && !d->m_qecNotebook.guid.isSet()) {
+    if (localUid().isEmpty() && !d->m_qecNotebook.guid.isSet()) {
         errorDescription = QT_TR_NOOP("Both notebook's local and remote guids are not set");
         return false;
     }
@@ -883,7 +883,7 @@ QTextStream & Notebook::Print(QTextStream & strm) const
 #define INSERT_DELIMITER \
     strm << "; \n"
 
-    strm << "local guid: " << d->m_localGuid.toString();
+    strm << "local uid: " << d->m_localUid.toString();
     INSERT_DELIMITER;
 
     if (d->m_qecNotebook.guid.isSet()) {

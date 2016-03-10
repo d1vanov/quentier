@@ -155,7 +155,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onAddSavedSearchCompleted(SavedS
         }
 
         m_foundSavedSearch = SavedSearch();
-        m_foundSavedSearch.setLocalGuid(search.localGuid());
+        m_foundSavedSearch.setLocalUid(search.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_ADD_REQUEST;
         emit findSavedSearchRequest(m_foundSavedSearch);
@@ -214,7 +214,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onUpdateSavedSearchCompleted(Sav
         }
 
         m_foundSavedSearch = SavedSearch();
-        m_foundSavedSearch.setLocalGuid(search.localGuid());
+        m_foundSavedSearch.setLocalUid(search.localUid());
 
         m_state = STATE_SENT_FIND_AFTER_UPDATE_REQUEST;
         emit findSavedSearchRequest(m_foundSavedSearch);
@@ -246,7 +246,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onFindSavedSearchCompleted(Saved
 
         // Attempt to find saved search by name now
         SavedSearch searchToFindByName;
-        searchToFindByName.unsetLocalGuid();
+        searchToFindByName.unsetLocalUid();
         searchToFindByName.setName(search.name());
 
         m_state = STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST;
@@ -373,7 +373,7 @@ void SavedSearchLocalStorageManagerAsyncTester::onExpungeSavedSearchCompleted(Sa
     }
 
     m_foundSavedSearch = SavedSearch();
-    m_foundSavedSearch.setLocalGuid(search.localGuid());
+    m_foundSavedSearch.setLocalUid(search.localUid());
 
     m_state = STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST;
     emit findSavedSearchRequest(m_foundSavedSearch);

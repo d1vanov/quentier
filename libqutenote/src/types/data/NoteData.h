@@ -32,8 +32,8 @@ public:
 
     struct ResourceAdditionalInfo
     {
-        QString  localGuid;
-        QString  noteLocalGuid;
+        QString  localUid;
+        QString  noteLocalUid;
         bool     isDirty;
 
         bool operator==(const ResourceAdditionalInfo & other) const;

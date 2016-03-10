@@ -12,7 +12,7 @@ QT_FORWARD_DECLARE_CLASS(NoteStoreDataElementData)
 class QUTE_NOTE_EXPORT IResource: public INoteStoreDataElement
 {
 public:
-    QN_DECLARE_LOCAL_GUID
+    QN_DECLARE_LOCAL_UID
     QN_DECLARE_DIRTY
     QN_DECLARE_LOCAL
 
@@ -54,9 +54,9 @@ public:
     const QString & noteGuid() const;
     void setNoteGuid(const QString & guid);
 
-    bool hasNoteLocalGuid() const;
-    const QString & noteLocalGuid() const;
-    void setNoteLocalGuid(const QString & guid);
+    bool hasNoteLocalUid() const;
+    const QString & noteLocalUid() const;
+    void setNoteLocalUid(const QString & guid);
 
     bool hasData() const;
 
@@ -135,7 +135,7 @@ private:
 
     bool m_isFreeAccount;
     int  m_indexInNote;
-    qevercloud::Optional<QString> m_noteLocalGuid;
+    qevercloud::Optional<QString> m_noteLocalUid;
 };
 
 } // namespace qute_note

@@ -43,18 +43,18 @@ void LocalStorageCacheManager::expungeNote(const Note & note)
 }
 
 #define FIND_OBJECT(Type) \
-const Type * LocalStorageCacheManager::find##Type(const QString & guid, const LocalStorageCacheManager::WhichGuid wg) const \
+const Type * LocalStorageCacheManager::find##Type(const QString & uid, const LocalStorageCacheManager::WhichUid wu) const \
 { \
     Q_D(const LocalStorageCacheManager); \
     \
-    switch(wg) {    \
-    case LocalGuid: \
-        return d->find##Type##ByLocalGuid(guid); \
+    switch(wu) {    \
+    case LocalUid: \
+        return d->find##Type##ByLocalUid(uid); \
     case Guid: \
-        return d->find##Type##ByGuid(guid); \
+        return d->find##Type##ByGuid(uid); \
     default: \
     { \
-        QNCRITICAL("Detected incorrect local/remote guid qualifier in local storage cache manager"); \
+        QNCRITICAL("Detected incorrect local uid/remote guid qualifier in local storage cache manager"); \
         return Q_NULLPTR; \
     } \
     } \

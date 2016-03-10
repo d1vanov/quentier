@@ -30,9 +30,9 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
-    const QString searchGuid = search.localGuid();
+    const QString searchGuid = search.localUid();
     SavedSearch foundSearch;
-    foundSearch.setLocalGuid(searchGuid);
+    foundSearch.setLocalUid(searchGuid);
     res = localStorageManager.findSavedSearch(foundSearch, errorDescription);
     if (!res) {
         return false;
@@ -47,7 +47,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
 
     // ========= Check Find by name =============
     SavedSearch foundByNameSearch;
-    foundByNameSearch.unsetLocalGuid();
+    foundByNameSearch.unsetLocalUid();
     foundByNameSearch.setName(search.name());
     res = localStorageManager.findSavedSearch(foundByNameSearch, errorDescription);
     if (!res) {
@@ -69,8 +69,8 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
     modifiedSearch.setShortcut(true);
     modifiedSearch.setDirty(true);
 
-    QString localGuid = modifiedSearch.localGuid();
-    modifiedSearch.unsetLocalGuid();
+    QString localUid = modifiedSearch.localUid();
+    modifiedSearch.unsetLocalUid();
 
     res = localStorageManager.updateSavedSearch(modifiedSearch, errorDescription);
     if (!res) {
@@ -82,7 +82,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & searc
         return false;
     }
 
-    modifiedSearch.setLocalGuid(localGuid);
+    modifiedSearch.setLocalUid(localUid);
     if (modifiedSearch != foundSearch) {
         errorDescription = "Updated and found saved searches in local storage don't match";
         QNWARNING(errorDescription << ": SavedSearch updated in LocalStorageManager: " << modifiedSearch
@@ -243,9 +243,9 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    const QString localTagGuid = tag.localGuid();
+    const QString localTagGuid = tag.localUid();
     Tag foundTag;
-    foundTag.setLocalGuid(localTagGuid);
+    foundTag.setLocalUid(localTagGuid);
     if (tag.hasLinkedNotebookGuid()) {
         foundTag.setLinkedNotebookGuid(tag.linkedNotebookGuid());
     }
@@ -264,7 +264,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
 
     // ========== Check Find by name ==========
     Tag foundByNameTag;
-    foundByNameTag.unsetLocalGuid();
+    foundByNameTag.unsetLocalUid();
     foundByNameTag.setName(tag.name());
     if (tag.hasLinkedNotebookGuid()) {
         foundByNameTag.setLinkedNotebookGuid(tag.linkedNotebookGuid());
@@ -287,7 +287,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     modifiedTag.setLinkedNotebookGuid(QString());
     modifiedTag.setName(tag.name() + "_modified");
     modifiedTag.setShortcut(true);
-    modifiedTag.unsetLocalGuid();
+    modifiedTag.unsetLocalUid();
 
     res = localStorageManager.updateTag(modifiedTag, errorDescription);
     if (!res) {
@@ -303,7 +303,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    modifiedTag.setLocalGuid(localTagGuid);
+    modifiedTag.setLocalUid(localTagGuid);
     if (modifiedTag != foundTag) {
         errorDescription = "Updated and found tags in local storage don't match";
         QNWARNING(errorDescription << ": Tag updated in LocalStorageManaged: " << modifiedTag
@@ -447,8 +447,8 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     resourceAttributes.cameraMake = "Modified camera make";
     resourceAttributes.cameraModel = "Modified camera model";
 
-    QString resourceLocalGuid = modifiedResource.localGuid();
-    modifiedResource.unsetLocalGuid();
+    QString resourceLocalUid = modifiedResource.localUid();
+    modifiedResource.unsetLocalUid();
 
     res = localStorageManager.updateEnResource(modifiedResource, note, errorDescription);
     if (!res) {
@@ -461,7 +461,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
         return false;
     }
 
-    modifiedResource.setLocalGuid(resourceLocalGuid);
+    modifiedResource.setLocalUid(resourceLocalUid);
     if (modifiedResource != foundResource) {
         errorDescription = "Updated and found in local storage resources don't match";
         QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
@@ -557,11 +557,11 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    // NOTE: foundNote was searched by guid and might have another local guid is the original note
+    // NOTE: foundNote was searched by guid and might have another local uid is the original note
     // doesn't have one. So use this workaround to ensure the comparison is good for everything
-    // without local guid
-    if (note.localGuid().isEmpty()) {
-        foundNote.unsetLocalGuid();
+    // without local uid
+    if (note.localUid().isEmpty()) {
+        foundNote.unsetLocalUid();
     }
 
     if (note != foundNote) {
@@ -662,7 +662,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
 
     modifiedNote.addResource(newResource);
 
-    modifiedNote.unsetLocalGuid();
+    modifiedNote.unsetLocalUid();
 
     res = localStorageManager.updateNote(modifiedNote, notebook, errorDescription);
     if (!res) {
@@ -677,7 +677,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    foundResource.setNoteLocalGuid(QString());
+    foundResource.setNoteLocalUid(QString());
     if (foundResource != newResource)
     {
         errorDescription = "Something is wrong with the new resource "
@@ -694,11 +694,11 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    // NOTE: foundNote was searched by guid and might have another local guid is the original note
+    // NOTE: foundNote was searched by guid and might have another local uid is the original note
     // doesn't have one. So use this workaround to ensure the comparison is good for everything
-    // without local guid
-    if (modifiedNote.localGuid().isEmpty()) {
-        foundNote.unsetLocalGuid();
+    // without local uid
+    if (modifiedNote.localUid().isEmpty()) {
+        foundNote.unsetLocalUid();
     }
 
     if (modifiedNote != foundNote) {
@@ -823,7 +823,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
 
     // ========== Check Find by name ===========
     Notebook foundByNameNotebook;
-    foundByNameNotebook.unsetLocalGuid();
+    foundByNameNotebook.unsetLocalUid();
     foundByNameNotebook.setName(notebook.name());
     if (notebook.hasLinkedNotebookGuid()) {
         foundByNameNotebook.setLinkedNotebookGuid(notebook.linkedNotebookGuid());
@@ -1326,7 +1326,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     // 7) ============ Update notebook: remove restrictions and shared notebooks =========
     Notebook updatedNotebook;
-    updatedNotebook.setLocalGuid(notebook.localGuid());
+    updatedNotebook.setLocalUid(notebook.localUid());
     updatedNotebook.setGuid(notebook.guid());
     updatedNotebook.setUpdateSequenceNumber(1);
     updatedNotebook.setName("Fake notebook name");
@@ -1417,7 +1417,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     // 11) ============ Update note, remove tag guid and resource ============
     Note updatedNote;
-    updatedNote.setLocalGuid(note.localGuid());
+    updatedNote.setLocalUid(note.localUid());
     updatedNote.setGuid("00000000-0000-0000-c000-000000000045");
     updatedNote.setUpdateSequenceNumber(1);
     updatedNote.setTitle("Fake note title");
@@ -1434,7 +1434,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     // 12) =========== Find updated note in local storage, ensure it doesn't have neither tag guids, nor resources
     Note foundNote;
-    foundNote.setLocalGuid(updatedNote.localGuid());
+    foundNote.setLocalUid(updatedNote.localUid());
     foundNote.setGuid(updatedNote.guid());
 
     res = localStorageManager.findNote(foundNote, errorDescription);
