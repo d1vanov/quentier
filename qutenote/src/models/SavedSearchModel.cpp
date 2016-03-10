@@ -1,13 +1,23 @@
 #include "SavedSearchModel.h"
+#include <qute_note/logging/QuteNoteLogger.h>
+
+// Limit for the queries to the local storage
+#define SAVED_SEARCH_LIST_LIMIT (100)
+
+// Limit for the local cache of full saved search objects size
+#define MAX_SAVED_SEARCH_CACHE_SIZE (20)
 
 namespace qute_note {
 
 SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                    QObject * parent) :
-    QAbstractItemModel(parent)
+    QAbstractItemModel(parent),
+    m_container(),
+    m_cache(),
+    m_currentOffset(0),
+    m_lastListSavedSearchesRequestId()
 {
-    // TODO: set up signal-slot connections with local storage manager thread worker
-    Q_UNUSED(localStorageManagerThreadWorker)
+    createConnections(localStorageManagerThreadWorker);
 }
 
 SavedSearchModel::~SavedSearchModel()
@@ -193,6 +203,21 @@ void SavedSearchModel::onExpungeSavedSearchFailed(SavedSearch search, QString er
     Q_UNUSED(search)
     Q_UNUSED(errorDescription)
     Q_UNUSED(requestId)
+}
+
+void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
+{
+    QNDEBUG("SavedSearchModel::createConnections");
+
+    // TODO: set up signal-slot connections with local storage manager thread worker
+    Q_UNUSED(localStorageManagerThreadWorker)
+}
+
+QTextStream & SavedSearchModel::SavedSearchData::Print(QTextStream & strm) const
+{
+    strm << "Saved search data: local uid = " << m_localUid
+         << ", name = " << m_name << ", query = " << m_query << "\n";
+    return strm;
 }
 
 } // namespace qute_note

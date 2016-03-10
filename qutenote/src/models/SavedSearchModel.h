@@ -6,6 +6,11 @@
 #include <qute_note/utility/Qt4Helper.h>
 #include <QAbstractItemModel>
 #include <QUuid>
+#include <QCache>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 
 namespace qute_note {
 
@@ -64,6 +69,48 @@ private Q_SLOTS:
                                    QString errorDescription, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+
+private:
+    void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+
+private:
+    class SavedSearchData: public Printable
+    {
+    public:
+        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+        struct ByLocalUid{};
+        struct ByName{};
+
+        QString     m_localUid;
+        QString     m_name;
+        QString     m_query;
+    };
+
+    typedef boost::multi_index_container<
+        SavedSearchData,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<SavedSearchData::ByName>,
+                boost::multi_index::member<SavedSearchData,QString,&SavedSearchData::m_name>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<SavedSearchData::ByLocalUid>,
+                boost::multi_index::member<SavedSearchData,QString,&SavedSearchData::m_localUid>
+            >
+        >
+    > SavedSearchContainer;
+
+    typedef QCache<QString, SavedSearch> SavedSearchCache;
+
+private:
+    SavedSearchContainer    m_container;
+    SavedSearchCache        m_cache;
+
+    // Offset for the next local storage query
+    size_t                  m_currentOffset;
+
+    QUuid                   m_lastListSavedSearchesRequestId;
 };
 
 } // namespace qute_note
