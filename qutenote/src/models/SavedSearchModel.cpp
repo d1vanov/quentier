@@ -7,6 +7,8 @@
 // Limit for the local cache of full saved search objects size
 #define MAX_SAVED_SEARCH_CACHE_SIZE (20)
 
+#define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
+
 namespace qute_note {
 
 SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
@@ -25,15 +27,26 @@ SavedSearchModel::~SavedSearchModel()
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    return QAbstractItemModel::flags(index);
+    Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
+    if (index.isValid()) {
+        indexFlags |= Qt::ItemIsSelectable;
+        indexFlags |= Qt::ItemIsEditable;
+        indexFlags |= Qt::ItemIsEnabled;
+    }
+
+    return indexFlags;
 }
 
 QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
+    if (!index.isValid() ||
+        (index.row() < 0) || (index.row() >= static_cast<int>(m_data.size())) ||
+        (index.column() < 0) || (index.column() > NUM_SAVED_SEARCH_MODEL_COLUMNS))
+    {
+        return QVariant();
+    }
+
+    // TODO: implement further
     Q_UNUSED(role)
     return QVariant();
 }
