@@ -16,8 +16,12 @@ function TextEditingUndoRedoManager() {
         value = value || (node.nodeType === 3 ? node.nodeValue : node.innerHTML);
         if (node.nodeType === 3) {
             var element = node;
-            while(element.nodeType === 3) {
+            while(element && element.nodeType === 3) {
                 element = element.parentNode;
+            }
+
+            if (!element) {
+                return;
             }
 
             var html = this.collectHtmlWithOldTextNodeValue(element, node, value);
