@@ -142,7 +142,10 @@ function SpellChecker(id, tag) {
     this.remove = function(node) {
         console.log("SpellChecker::remove");
 
-        observer.stop();
+        var observerWasRunning = observer.running;
+        if (observerWasRunning) {
+            observer.stop();
+        }
 
         try {
             var elements = document.querySelectorAll("." + misspellTagClassName);
@@ -159,7 +162,9 @@ function SpellChecker(id, tag) {
             console.warn("Error removing the misspelled words highlighting: " + err);
         }
         finally {
-            observer.start();
+            if (observerWasRunning) {
+                observer.start();
+            }
         }
     }
 
