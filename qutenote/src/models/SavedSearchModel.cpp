@@ -12,7 +12,7 @@ namespace qute_note {
 SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                    QObject * parent) :
     QAbstractItemModel(parent),
-    m_container(),
+    m_data(),
     m_cache(),
     m_currentOffset(0),
     m_lastListSavedSearchesRequestId()
@@ -211,13 +211,6 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
 
     // TODO: set up signal-slot connections with local storage manager thread worker
     Q_UNUSED(localStorageManagerThreadWorker)
-}
-
-QTextStream & SavedSearchModel::SavedSearchData::Print(QTextStream & strm) const
-{
-    strm << "Saved search data: local uid = " << m_localUid
-         << ", name = " << m_name << ", query = " << m_query << "\n";
-    return strm;
 }
 
 } // namespace qute_note

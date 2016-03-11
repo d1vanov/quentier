@@ -1,6 +1,7 @@
 #ifndef __QUTE_NOTE__MODELS__SAVED_SEARCH_MODEL_H
 #define __QUTE_NOTE__MODELS__SAVED_SEARCH_MODEL_H
 
+#include "SavedSearchModelItem.h"
 #include <qute_note/types/SavedSearch.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -74,37 +75,24 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
 
 private:
-    class SavedSearchData: public Printable
-    {
-    public:
-        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
-
-        struct ByLocalUid{};
-        struct ByName{};
-
-        QString     m_localUid;
-        QString     m_name;
-        QString     m_query;
-    };
-
     typedef boost::multi_index_container<
-        SavedSearchData,
+        SavedSearchModelItem,
         boost::multi_index::indexed_by<
             boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<SavedSearchData::ByName>,
-                boost::multi_index::member<SavedSearchData,QString,&SavedSearchData::m_name>
+                boost::multi_index::tag<SavedSearchModelItem::ByName>,
+                boost::multi_index::member<SavedSearchModelItem,QString,&SavedSearchModelItem::m_name>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<SavedSearchData::ByLocalUid>,
-                boost::multi_index::member<SavedSearchData,QString,&SavedSearchData::m_localUid>
+                boost::multi_index::tag<SavedSearchModelItem::ByLocalUid>,
+                boost::multi_index::member<SavedSearchModelItem,QString,&SavedSearchModelItem::m_localUid>
             >
         >
-    > SavedSearchContainer;
+    > SavedSearchData;
 
     typedef QCache<QString, SavedSearch> SavedSearchCache;
 
 private:
-    SavedSearchContainer    m_container;
+    SavedSearchData         m_data;
     SavedSearchCache        m_cache;
 
     // Offset for the next local storage query
