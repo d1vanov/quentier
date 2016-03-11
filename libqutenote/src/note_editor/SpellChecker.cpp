@@ -385,9 +385,9 @@ void SpellChecker::scanSystemDictionaries()
     QNDEBUG("Still can't find any hunspell dictionaries, trying the full recursive search across the entire system, just to find something");
 
     SpellCheckerDictionariesFinder * pFinder = new SpellCheckerDictionariesFinder;
-    QObject::connect(pFinder, QNSIGNAL(SpellCheckerDictionariesFinder,foundDictionaries,SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName),
-                     this, QNSLOT(SpellChecker,onDictionariesFound,SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName));
     QThreadPool::globalInstance()->start(pFinder);
+    QObject::connect(pFinder, QNSIGNAL(SpellCheckerDictionariesFinder,foundDictionaries,SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName),
+                     this, QNSLOT(SpellChecker,onDictionariesFound,SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName), Qt::QueuedConnection);
 }
 
 void SpellChecker::addSystemDictionary(const QString & path, const QString & name)
