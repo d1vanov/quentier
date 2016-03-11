@@ -93,6 +93,7 @@ void SpellCheckerDictionariesFinder::run()
         ++it;
     }
 
+    QNDEBUG("Found " << m_files.size() << " valid dictionaries");
     emit foundDictionaries(m_files);
 }
 

@@ -66,6 +66,12 @@ bool ResourceRecognitionIndicesData::setData(const QByteArray & rawRecognitionIn
 {
     QNTRACE("ResourceRecognitionIndicesData::setData: " << rawRecognitionIndicesData);
 
+    if (rawRecognitionIndicesData.isEmpty()) {
+        QNTRACE("Recognition data is empty");
+        clear();
+        return true;
+    }
+
     QXmlStreamReader reader(rawRecognitionIndicesData);
 
     QString lastElementName;
