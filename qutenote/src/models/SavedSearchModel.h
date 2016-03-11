@@ -40,7 +40,6 @@ private:
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void getSavedSearchCount(QUuid requestId);
     void addSavedSearch(SavedSearch search, QUuid requestId);
     void updateSavedSearch(SavedSearch search, QUuid requestId);
     void listSavedSearches(LocalStorageManager::ListObjectsOptions flag,
@@ -52,8 +51,6 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     // Slots for response to events from local storage
-    void onGetSavedSearchCountComplete(int savedSearchCount, QUuid requestId);
-    void onGetSavedSearchCountFailed(QString errorDescription, QUuid requestId);
     void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
