@@ -10,7 +10,8 @@ class SavedSearchModelItem: public Printable
 public:
     explicit SavedSearchModelItem(const QString & localUid = QString(),
                                   const QString & name = QString(),
-                                  const QString & query = QString());
+                                  const QString & query = QString(),
+                                  const bool isSynchronizable = false);
 
     bool operator<(const SavedSearchModelItem & other) const;
 
@@ -22,6 +23,7 @@ public:
     QString     m_localUid;
     QString     m_name;
     QString     m_query;
+    bool        m_isSynchronizable;
 };
 
 } // namespace qute_note
