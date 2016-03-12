@@ -17,9 +17,6 @@ public:
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-    struct ByName{};
-    struct ByLocalUid{};
-
     QString     m_localUid;
     QString     m_name;
     QString     m_query;

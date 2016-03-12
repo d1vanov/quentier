@@ -10,7 +10,7 @@
 #include <QCache>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
-#include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 
 namespace qute_note {
@@ -20,8 +20,16 @@ class SavedSearchModel: public QAbstractItemModel
     Q_OBJECT
 public:
     explicit SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                              QObject * parent = nullptr);
+                              QObject * parent = Q_NULLPTR);
     virtual ~SavedSearchModel();
+
+    struct Columns
+    {
+        enum type {
+            Name = 0,
+            Query
+        };
+    };
 
 private:
     // QAbstractItemModel interface
@@ -40,6 +48,9 @@ private:
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
+    void notifyError(QString errorDescription);
+
+// private signals
     void addSavedSearch(SavedSearch search, QUuid requestId);
     void updateSavedSearch(SavedSearch search, QUuid requestId);
     void listSavedSearches(LocalStorageManager::ListObjectsOptions flag,
@@ -70,32 +81,32 @@ private Q_SLOTS:
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void requestSavedSearchesList();
 
 private:
+    struct ByLocalUid{};
+    struct ByIndex{};
+
     typedef boost::multi_index_container<
         SavedSearchModelItem,
         boost::multi_index::indexed_by<
-            boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<SavedSearchModelItem::ByName>,
-                boost::multi_index::member<SavedSearchModelItem,QString,&SavedSearchModelItem::m_name>
+            boost::multi_index::random_access<
+                boost::multi_index::tag<ByIndex>
             >,
             boost::multi_index::ordered_unique<
-                boost::multi_index::tag<SavedSearchModelItem::ByLocalUid>,
+                boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::member<SavedSearchModelItem,QString,&SavedSearchModelItem::m_localUid>
             >
         >
     > SavedSearchData;
 
-    typedef QCache<QString, SavedSearch> SavedSearchCache;
+    typedef SavedSearchData::index<ByLocalUid>::type SavedSearchDataByLocalUid;
+    typedef SavedSearchData::index<ByIndex>::type SavedSearchDataByIndex;
 
 private:
     SavedSearchData         m_data;
-    SavedSearchCache        m_cache;
-
-    // Offset for the next local storage query
-    size_t                  m_currentOffset;
-
-    QUuid                   m_lastListSavedSearchesRequestId;
+    size_t                  m_listSavedSearchesOffset;;
+    QUuid                   m_listSavedSearchesRequestId;
 };
 
 } // namespace qute_note

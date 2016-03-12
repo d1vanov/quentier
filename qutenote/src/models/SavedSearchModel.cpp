@@ -1,5 +1,6 @@
 #include "SavedSearchModel.h"
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <limits>
 
 // Limit for the queries to the local storage
 #define SAVED_SEARCH_LIST_LIMIT (100)
@@ -15,11 +16,11 @@ SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorag
                                    QObject * parent) :
     QAbstractItemModel(parent),
     m_data(),
-    m_cache(),
-    m_currentOffset(0),
-    m_lastListSavedSearchesRequestId()
+    m_listSavedSearchesOffset(0),
+    m_listSavedSearchesRequestId()
 {
     createConnections(localStorageManagerThreadWorker);
+    requestSavedSearchesList();
 }
 
 SavedSearchModel::~SavedSearchModel()
@@ -163,14 +164,81 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
                                                    LocalStorageManager::OrderDirection::type orderDirection,
                                                    QList<SavedSearch> foundSearches, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(foundSearches)
-    Q_UNUSED(requestId)
+    if (requestId != m_listSavedSearchesRequestId) {
+        return;
+    }
+
+    QNDEBUG("SavedSearchModel::onListSavedSearchesComplete: flag = " << flag << ", limit = " << limit
+            << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
+            << ", num found searches = " << foundSearches.size() << ", request id = " << requestId);
+
+    if (foundSearches.isEmpty()) {
+        return;
+    }
+
+    int originalSize = static_cast<int>(m_data.size());
+    int numAddedRows = 0;
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
+    for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it)
+    {
+        SavedSearchModelItem item(it->localUid());
+
+        if (it->hasName()) {
+            item.m_name = it->name();
+        }
+
+        if (it->hasQuery()) {
+            item.m_query = it->query();
+        }
+
+        SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(it->localUid());
+        bool newSavedSearch = (savedSearchIt == orderedIndex.end());
+        if (newSavedSearch)
+        {
+            auto insertionResult = orderedIndex.insert(item);
+            savedSearchIt = insertionResult.first;
+            ++numAddedRows;
+        }
+        else
+        {
+            orderedIndex.replace(savedSearchIt, item);
+
+            auto indexIt = m_data.project<ByIndex>(savedSearchIt);
+            if (Q_UNLIKELY(indexIt == index.end())) {
+                QString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+                QNWARNING(error);
+                emit notifyError(error);
+                continue;
+            }
+
+            qint64 position = std::distance(index.begin(), indexIt);
+            if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
+                QString error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
+                QNWARNING(error);
+                emit notifyError(error);
+                continue;
+            }
+
+            QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), Columns::Name);
+            QModelIndex modelIndexTo = createIndex(static_cast<int>(position), Columns::Query);
+
+            emit dataChanged(modelIndexFrom, modelIndexTo);
+        }
+    }
+
+    if (numAddedRows) {
+        emit beginInsertRows(QModelIndex(), originalSize, originalSize + numAddedRows);
+        emit endInsertRows();
+    }
+
+    m_listSavedSearchesRequestId = QUuid();
+    if (foundSearches.size() == static_cast<int>(limit)) {
+        QNTRACE("The number of found saved searches matches the limit, requesting more saved searches from the local storage");
+        m_listSavedSearchesOffset += limit;
+        requestSavedSearchesList();
+    }
 }
 
 void SavedSearchModel::onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -179,14 +247,17 @@ void SavedSearchModel::onListSavedSearchesFailed(LocalStorageManager::ListObject
                                                  LocalStorageManager::OrderDirection::type orderDirection,
                                                  QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    if (requestId != m_listSavedSearchesRequestId) {
+        return;
+    }
+
+    QNDEBUG("SavedSearchModel::onListSavedSearchesFailed: flag = " << flag << ", limit = " << limit
+            << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
+            << ", error: " << errorDescription << ", request id = " << requestId);
+
+    m_listSavedSearchesRequestId = QUuid();
+
+    emit notifyError(errorDescription);
 }
 
 void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId)
@@ -249,6 +320,21 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(SavedSearchModel,onExpungeSavedSearchComplete,SavedSearch,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchFailed,SavedSearch,QString,QUuid),
                      this, QNSLOT(SavedSearchModel,onExpungeSavedSearchFailed,SavedSearch,QString,QUuid));
+}
+
+void SavedSearchModel::requestSavedSearchesList()
+{
+    QNDEBUG("SavedSearchModel::requestSavedSearchesList: offset = " << m_listSavedSearchesOffset);
+
+    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
+    LocalStorageManager::ListSavedSearchesOrder::type order = LocalStorageManager::ListSavedSearchesOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+
+    m_listSavedSearchesRequestId = QUuid::createUuid();
+    emit listSavedSearches(flags, SAVED_SEARCH_LIST_LIMIT, m_listSavedSearchesOffset,
+                           order, direction, m_listSavedSearchesRequestId);
+    QNTRACE("Emitted the request to list saved searches: offset = " << m_listSavedSearchesOffset
+            << ", request id = " << m_listSavedSearchesRequestId);
 }
 
 } // namespace qute_note
