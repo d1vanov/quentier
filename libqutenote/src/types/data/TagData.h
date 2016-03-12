@@ -24,6 +24,7 @@ public:
     qevercloud::Tag                 m_qecTag;
     bool                            m_isDeleted;
     qevercloud::Optional<QString>   m_linkedNotebookGuid;
+    qevercloud::Optional<QString>   m_parentLocalUid;
 
 private:
     TagData & operator=(const TagData & other) Q_DECL_DELETE;

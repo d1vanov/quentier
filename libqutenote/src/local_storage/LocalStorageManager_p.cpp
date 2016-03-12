@@ -2108,8 +2108,8 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
         value = tag.localUid();
     }
 
-    QString queryString = QString("SELECT localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
-                                  "name, parentGuid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
+    QString queryString = QString("SELECT localUid, guid, linkedNotebookGuid, updateSequenceNumber, name, parentGuid, "
+                                  "parentLocalUid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
                                   "FROM Tags WHERE (%1 = '%2'").arg(column,value);
 
     if (tag.hasLinkedNotebookGuid()) {
@@ -3230,13 +3230,14 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataFullMap table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
-                     "  localUid             TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  localUid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                  TEXT                 DEFAULT NULL UNIQUE, "
                      "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber  INTEGER              DEFAULT NULL, "
                      "  name                  TEXT                 DEFAULT NULL, "
                      "  nameLower             TEXT                 DEFAULT NULL, "
-                     "  parentGuid            TEXT                 DEFAULT NULL, "
+                     "  parentGuid REFERENCES Tags(guid) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT NULL, "
+                     "  parentLocalUid REFERENCES Tags(localUid) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
                      "  isDeleted             INTEGER              NOT NULL, "
@@ -5026,6 +5027,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QStri
     query.bindValue(":name", (tag.hasName() ? tag.name() : nullValue));
     query.bindValue(":nameLower", (tag.hasName() ? tagNameNormalized : nullValue));
     query.bindValue(":parentGuid", (tag.hasParentGuid() ? tag.parentGuid() : nullValue));
+    query.bindValue(":parentLocalUid", (tag.hasParentLocalUid() ? tag.parentLocalUid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
     query.bindValue(":isDeleted", (tag.isDeleted() ? 1 : 0));
@@ -5062,11 +5064,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
         m_insertOrReplaceTagQuery = QSqlQuery(m_sqlDatabase);
         bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
                                                      "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
-                                                     "name, nameLower, parentGuid, isDirty, "
+                                                     "name, nameLower, parentGuid, parentLocalUid, isDirty, "
                                                      "isLocal, isDeleted, hasShortcut) "
                                                      "VALUES(:localUid, :guid, :linkedNotebookGuid, "
                                                      ":updateSequenceNumber, :name, :nameLower, "
-                                                     ":parentGuid, :isDirty, :isLocal, "
+                                                     ":parentGuid, :parentLocalUid, :isDirty, :isLocal, "
                                                      ":isDeleted, :hasShortcut)");
         if (res) {
             m_insertOrReplaceTagQueryPrepared = true;
@@ -6488,6 +6490,8 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLocal, setLocal, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(localUid, setLocalUid, QString, QString, isRequired);
 
+    isRequired = false;
+
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(updateSequenceNumber, setUpdateSequenceNumber,
                                      qint32, qint32, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(notebookName, setName, QString, QString, isRequired);
@@ -6495,9 +6499,6 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
                                      qint64, qint64, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(modificationTimestamp, setModificationTimestamp,
                                      qint64, qint64, isRequired);
-
-    isRequired = false;
-
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(linkedNotebookGuid, setLinkedNotebookGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasShortcut, setShortcut, int, bool, isRequired);
@@ -6690,8 +6691,10 @@ bool LocalStorageManagerPrivate::fillLinkedNotebookFromSqlRecord(const QSqlRecor
     }
 
     bool isRequired = true;
-    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(guid, QString, QString, setGuid, isRequired);
+
+    isRequired = false;
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(updateSequenceNumber, qint32, qint32,
                                            setUpdateSequenceNumber, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shareName, QString, QString, setShareName, isRequired);
@@ -6738,24 +6741,23 @@ bool LocalStorageManagerPrivate::fillSavedSearchFromSqlRecord(const QSqlRecord &
 
     bool isRequired = false;
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(guid, QString, QString, setGuid, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
-
-    isRequired = true;
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(localUid, QString, QString, setLocalUid, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(query, QString, QString, setQuery, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(format, int, qint8, setQueryFormat, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(updateSequenceNumber, qint32, qint32,
                                         setUpdateSequenceNumber, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isDirty, int, bool, setDirty, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isLocal, int, bool, setLocal, isRequired);
-
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeAccount, int, bool, setIncludeAccount,
                                         isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includePersonalLinkedNotebooks, int, bool,
                                         setIncludePersonalLinkedNotebooks, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(includeBusinessLinkedNotebooks, int, bool,
                                         setIncludeBusinessLinkedNotebooks, isRequired);
+
+    isRequired = true;
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(localUid, QString, QString, setLocalUid, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isDirty, int, bool, setDirty, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isLocal, int, bool, setLocal, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
 
 #undef CHECK_AND_SET_SAVED_SEARCH_PROPERTY
 
@@ -6786,17 +6788,18 @@ bool LocalStorageManagerPrivate::fillTagFromSqlRecord(const QSqlRecord & rec, Ta
 
     bool isRequired = false;
     CHECK_AND_SET_TAG_PROPERTY(guid, QString, QString, setGuid, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(updateSequenceNumber, qint32, qint32, setUpdateSequenceNumber, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(linkedNotebookGuid, QString, QString, setLinkedNotebookGuid, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(parentGuid, QString, QString, setParentGuid, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(parentLocalUid, QString, QString, setParentLocalUid, isRequired);
 
     isRequired = true;
     CHECK_AND_SET_TAG_PROPERTY(localUid, QString, QString, setLocalUid, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(updateSequenceNumber, qint32, qint32, setUpdateSequenceNumber, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(name, QString, QString, setName, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDeleted, int, bool, setDeleted, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
 
 #undef CHECK_AND_SET_TAG_PROPERTY
 

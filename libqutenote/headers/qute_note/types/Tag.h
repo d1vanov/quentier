@@ -58,6 +58,10 @@ public:
     const QString & parentGuid() const;
     void setParentGuid(const QString & parentGuid);
 
+    bool hasParentLocalUid() const;
+    const QString & parentLocalUid() const;
+    void setParentLocalUid(const QString & parentLocalUid);
+
     bool hasLinkedNotebookGuid() const;
     const QString & linkedNotebookGuid() const;
     void setLinkedNotebookGuid(const QString & linkedNotebookGuid);
