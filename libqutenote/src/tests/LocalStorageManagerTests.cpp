@@ -354,6 +354,31 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
+    // ========== Add another tag referencing the first tag as its parent =========
+    Tag newTag;
+    newTag.setName("New tag");
+    newTag.setParentGuid(tag.guid());
+    newTag.setParentLocalUid(tag.localUid());
+
+    res = localStorageManager.addTag(newTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    Tag foundNewTag;
+    foundNewTag.setLocalUid(newTag.localUid());
+    res = localStorageManager.findTag(foundNewTag, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    if (newTag != foundNewTag) {
+        errorDescription = "Second added tag and its found copy from the local storage don't match";
+        QNWARNING(errorDescription << ": the second tag added to LocalStorageManager: " << newTag
+                  << "\nTag found in LocalStorageManager: " << foundNewTag);
+        return false;
+    }
+
     // ========== Check Expunge + Find (failure expected) ==========
     res = localStorageManager.expungeTag(modifiedTag, errorDescription);
     if (!res) {

@@ -183,6 +183,26 @@ void Tag::setParentGuid(const QString & parentGuid)
     }
 }
 
+bool Tag::hasParentLocalUid() const
+{
+    return d->m_parentLocalUid.isSet();
+}
+
+const QString & Tag::parentLocalUid() const
+{
+    return d->m_parentLocalUid;
+}
+
+void Tag::setParentLocalUid(const QString & parentLocalUid)
+{
+    if (!parentLocalUid.isEmpty()) {
+        d->m_parentLocalUid = parentLocalUid;
+    }
+    else {
+        d->m_parentLocalUid.clear();
+    }
+}
+
 bool Tag::hasLinkedNotebookGuid() const
 {
     return d->m_linkedNotebookGuid.isSet();
