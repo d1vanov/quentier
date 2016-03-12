@@ -8,7 +8,7 @@
 // Limit for the local cache of full saved search objects size
 #define MAX_SAVED_SEARCH_CACHE_SIZE (20)
 
-#define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
+#define NUM_SAVED_SEARCH_MODEL_COLUMNS (3)
 
 namespace qute_note {
 
@@ -17,7 +17,12 @@ SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorag
     QAbstractItemModel(parent),
     m_data(),
     m_listSavedSearchesOffset(0),
-    m_listSavedSearchesRequestId()
+    m_listSavedSearchesRequestId(),
+    m_savedSearchItemsNotYetInLocalStorageUids(),
+    m_addSavedSearchRequestIds(),
+    m_updateSavedSearchRequestIds(),
+    m_expungeSavedSearchRequestIds(),
+    m_findSavedSearchRequestIds()
 {
     createConnections(localStorageManagerThreadWorker);
     requestSavedSearchesList();
@@ -40,60 +45,98 @@ Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 
 QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
 {
-    if (!index.isValid() ||
-        (index.row() < 0) || (index.row() >= static_cast<int>(m_data.size())) ||
-        (index.column() < 0) || (index.column() > NUM_SAVED_SEARCH_MODEL_COLUMNS))
+    if (!index.isValid()) {
+        return QVariant();
+    }
+
+    int rowIndex = index.row();
+    int columnIndex = index.column();
+
+    if ((rowIndex < 0) || (rowIndex >= static_cast<int>(m_data.size())) ||
+        (columnIndex < 0) || (columnIndex >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
     {
         return QVariant();
     }
 
-    // TODO: implement further
-    Q_UNUSED(role)
-    return QVariant();
+    Columns::type column;
+    switch(columnIndex)
+    {
+    case Columns::Name:
+        column = Columns::Name;
+        break;
+    case Columns::Query:
+        column = Columns::Query;
+        break;
+    case Columns::Synchronizable:
+        column = Columns::Synchronizable;
+        break;
+    default:
+        return QVariant();
+    }
+
+    switch(role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
+    case Qt::ToolTipRole:
+        return dataText(rowIndex, column);
+    case Qt::AccessibleTextRole:
+    case Qt::AccessibleDescriptionRole:
+        return dataAccessibleText(rowIndex, column);
+    default:
+        return QVariant();
+    }
 }
 
 QVariant SavedSearchModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    // TODO: implement
-    Q_UNUSED(section)
-    Q_UNUSED(orientation)
-    Q_UNUSED(role)
-    return QVariant();
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+    }
+
+    if (orientation == Qt::Vertical) {
+        return QVariant(section + 1);
+    }
+
+    switch(section)
+    {
+    case Columns::Name:
+        return QVariant(QT_TR_NOOP("Name"));
+    case Columns::Query:
+        return QVariant(QT_TR_NOOP("Query"));
+    case Columns::Synchronizable:
+        return QVariant(QT_TR_NOOP("Synchronizable"));
+    default:
+        return QVariant();
+    }
 }
 
 int SavedSearchModel::rowCount(const QModelIndex & parent) const
 {
-    // TODO: implement
     Q_UNUSED(parent)
-    return 0;
+    return static_cast<int>(m_data.size());
 }
 
 int SavedSearchModel::columnCount(const QModelIndex & parent) const
 {
-    // TODO: implement
     Q_UNUSED(parent)
-    return 0;
+    return NUM_SAVED_SEARCH_MODEL_COLUMNS;
 }
 
 QModelIndex SavedSearchModel::index(int row, int column, const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
     Q_UNUSED(parent)
-    return QModelIndex();
+    return createIndex(row, column);
 }
 
 QModelIndex SavedSearchModel::parent(const QModelIndex & index) const
 {
-    // TODO: implement
     Q_UNUSED(index)
     return QModelIndex();
 }
 
 bool SavedSearchModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant & value, int role)
 {
-    // TODO: implement
     Q_UNUSED(section)
     Q_UNUSED(orientation)
     Q_UNUSED(value)
@@ -101,61 +144,270 @@ bool SavedSearchModel::setHeaderData(int section, Qt::Orientation orientation, c
     return false;
 }
 
-bool SavedSearchModel::setData(const QModelIndex & index, const QVariant & value, int role)
+bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    Q_UNUSED(value)
-    Q_UNUSED(role)
-    return false;
+    if (!modelIndex.isValid()) {
+        return false;
+    }
+
+    if (role != Qt::EditRole) {
+        return false;
+    }
+
+    int rowIndex = modelIndex.row();
+    if ((rowIndex < 0) || (rowIndex >= static_cast<int>(m_data.size()))) {
+        return false;
+    }
+
+    int columnIndex = modelIndex.column();
+    if ((columnIndex < 0) || (columnIndex >= NUM_SAVED_SEARCH_MODEL_COLUMNS)) {
+        return false;
+    }
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchModelItem item = index[static_cast<size_t>(rowIndex)];
+
+    switch(columnIndex)
+    {
+    case Columns::Name:
+        {
+            QString name = value.toString();
+            if (name.isEmpty()) {
+                return false;
+            }
+
+            item.m_name = name;
+            break;
+        }
+    case Columns::Query:
+        {
+            QString query = value.toString();
+            if (query.isEmpty()) {
+                return false;
+            }
+
+            item.m_query = query;
+            break;
+        }
+    case Columns::Synchronizable:
+        {
+            if (item.m_isSynchronizable == value.toBool()) {
+                return false;
+            }
+
+            if (item.m_isSynchronizable) {
+                emit notifyError(QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable"));
+                return false;
+            }
+
+            item.m_isSynchronizable = value.toBool();
+            break;
+        }
+    default:
+        return false;
+    }
+
+    index.replace(index.begin() + rowIndex, item);
+
+    emit dataChanged(modelIndex, modelIndex);
+
+    SavedSearch savedSearch;
+    savedSearch.setGuid(item.m_guid);
+    savedSearch.setLocalUid(item.m_localUid);
+    savedSearch.setLocal(!item.m_isSynchronizable);
+
+    QUuid requestId = QUuid::createUuid();
+
+    auto notYetSavedItemIt = m_savedSearchItemsNotYetInLocalStorageUids.find(item.m_localUid);
+    if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageUids.end())
+    {
+        Q_UNUSED(m_addSavedSearchRequestIds.insert(requestId));
+        emit addSavedSearch(savedSearch, requestId);
+
+        QNTRACE("Emitted the request to add the saved search to local storage: id = " << requestId
+                << ", saved search: " << savedSearch);
+
+        Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
+    }
+    else
+    {
+        Q_UNUSED(m_updateSavedSearchRequestIds.insert(requestId));
+        emit updateSavedSearch(savedSearch, requestId);
+
+        QNTRACE("Emitted the request to update the saved search in the local storage: id = " << requestId
+                << ", saved search: " << savedSearch);
+    }
+
+    return true;
 }
 
 bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent)
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(count)
+    QNTRACE("SavedSearchModel::insertRows: row = " << row << ", count = " << count);
+
     Q_UNUSED(parent)
+    beginInsertRows(QModelIndex(), row, row + count - 1);
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    for(int i = 0; i < count; ++i)
+    {
+        SavedSearchModelItem item;
+        item.m_localUid = QUuid::createUuid().toString();
+        item.m_localUid.chop(1);
+        item.m_localUid.remove(0, 1);
+        Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.m_localUid));
+
+        Q_UNUSED(index.insert(index.begin() + row, item));
+    }
+
+    endInsertRows();
     return false;
 }
 
 bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(count)
     Q_UNUSED(parent)
-    return false;
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+
+    for(int i = 0; i < count; ++i)
+    {
+        SavedSearchDataByIndex::iterator it = index.begin() + row;
+        if (it->m_isSynchronizable) {
+            QString error = QT_TR_NOOP("Can't remove synchronizable saved search");
+            QNINFO(error);
+            emit notifyError(error);
+            return false;
+        }
+    }
+
+    beginRemoveRows(QModelIndex(), row, row + count - 1);
+    for(int i = 0; i < count; ++i)
+    {
+        SavedSearchDataByIndex::iterator it = index.begin() + row;
+
+        SavedSearch savedSearch;
+        savedSearch.setLocalUid(it->m_localUid);
+
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeSavedSearchRequestIds.insert(requestId))
+        emit expungeSavedSearch(savedSearch, requestId);
+        QNTRACE("Emitted the request to expunge the saved search from the local storage: request id = "
+                << requestId << ", saved search local uid: " << it->m_localUid);
+
+        Q_UNUSED(index.erase(it))
+    }
+    endRemoveRows();
+
+    return true;
 }
 
 void SavedSearchModel::onAddSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(requestId)
+    QNDEBUG("SavedSearchModel::onAddSavedSearchComplete: " << search << "\nRequest id = " << requestId);
+
+    auto it = m_addSavedSearchRequestIds.find(requestId);
+    if (it != m_addSavedSearchRequestIds.end()) {
+        Q_UNUSED(m_addSavedSearchRequestIds.erase(it));
+        return;
+    }
+
+    onSavedSearchAddedOrUpdated(search);
 }
 
 void SavedSearchModel::onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_addSavedSearchRequestIds.find(requestId);
+    if (it == m_addSavedSearchRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("SavedSearchModel::onAddSavedSearchFailed: search = " << search << "\nError description = "
+            << errorDescription << ", request id = " << requestId);
+
+    Q_UNUSED(m_addSavedSearchRequestIds.erase(it))
+
+    emit notifyError(errorDescription);
+
+    SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
+    SavedSearchDataByLocalUid::iterator itemIt = orderedIndex.find(search.localUid());
+    if (Q_UNLIKELY(itemIt == orderedIndex.end())) {
+        QNDEBUG("Can't find the saved search item failed to be added to the local storage within the model's items");
+        return;
+    }
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByIndex::iterator indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QNWARNING("Can't find the indexed reference to the saved search item failed to be added to the local storage: "
+                  << search);
+        return;
+    }
+
+    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
+    beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
+    Q_UNUSED(index.erase(indexIt))
+    endRemoveRows();
 }
 
 void SavedSearchModel::onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(requestId)
+    QNDEBUG("SavedSearchModel::onUpdateSavedSearchComplete: " << search << "\nRequest id = " << requestId);
+
+    auto it = m_updateSavedSearchRequestIds.find(requestId);
+    if (it != m_updateSavedSearchRequestIds.end()) {
+        Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
+        return;
+    }
+
+    onSavedSearchAddedOrUpdated(search);
 }
 
 void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_updateSavedSearchRequestIds.find(requestId);
+    if (it == m_updateSavedSearchRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("SavedSearchModel::onUpdateSavedSearchFailed: search = " << search << "\nError description = "
+            << errorDescription << ", request id = " << requestId);
+
+    Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
+
+    requestId = QUuid::createUuid();
+    Q_UNUSED(m_findSavedSearchRequestIds.insert(requestId));
+    emit findSavedSearch(search, requestId);
+    QNTRACE("Emitted the request to find the saved search: local uid = " << search.localUid()
+            << ", request id = " << requestId);
+}
+
+void SavedSearchModel::onFindSavedSearchComplete(SavedSearch search, QUuid requestId)
+{
+    auto it = m_findSavedSearchRequestIds.find(requestId);
+    if (it == m_findSavedSearchRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("SavedSearchModel::onFindSavedSearchComplete: search = " << search << "\nRequest id = " << requestId);
+
+    Q_UNUSED(m_findSavedSearchRequestIds.erase(it))
+
+    onSavedSearchAddedOrUpdated(search);
+}
+
+void SavedSearchModel::onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+{
+    auto it = m_findSavedSearchRequestIds.find(requestId);
+    if (it == m_findSavedSearchRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING("SavedSearchModel::onFindSavedSearchFailed: search = " << search << "\nError description = "
+              << errorDescription << ", request id = " << requestId);
+
+    Q_UNUSED(m_findSavedSearchRequestIds.erase(it))
+
+    emit notifyError(errorDescription);
 }
 
 void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObjectsOptions flag,
@@ -179,57 +431,17 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
     int originalSize = static_cast<int>(m_data.size());
     int numAddedRows = 0;
 
-    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
-    SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
     for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it)
     {
-        SavedSearchModelItem item(it->localUid());
-
-        if (it->hasName()) {
-            item.m_name = it->name();
-        }
-
-        if (it->hasQuery()) {
-            item.m_query = it->query();
-        }
-
-        SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(it->localUid());
-        bool newSavedSearch = (savedSearchIt == orderedIndex.end());
-        if (newSavedSearch)
-        {
-            auto insertionResult = orderedIndex.insert(item);
-            savedSearchIt = insertionResult.first;
+        bool added = false;
+        onSavedSearchAddedOrUpdated(*it, &added);
+        if (added) {
             ++numAddedRows;
-        }
-        else
-        {
-            orderedIndex.replace(savedSearchIt, item);
-
-            auto indexIt = m_data.project<ByIndex>(savedSearchIt);
-            if (Q_UNLIKELY(indexIt == index.end())) {
-                QString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
-                QNWARNING(error);
-                emit notifyError(error);
-                continue;
-            }
-
-            qint64 position = std::distance(index.begin(), indexIt);
-            if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
-                QString error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
-                QNWARNING(error);
-                emit notifyError(error);
-                continue;
-            }
-
-            QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), Columns::Name);
-            QModelIndex modelIndexTo = createIndex(static_cast<int>(position), Columns::Query);
-
-            emit dataChanged(modelIndexFrom, modelIndexTo);
         }
     }
 
     if (numAddedRows) {
-        emit beginInsertRows(QModelIndex(), originalSize, originalSize + numAddedRows);
+        emit beginInsertRows(QModelIndex(), originalSize, originalSize + numAddedRows - 1);
         emit endInsertRows();
     }
 
@@ -262,17 +474,49 @@ void SavedSearchModel::onListSavedSearchesFailed(LocalStorageManager::ListObject
 
 void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(requestId)
+    QNDEBUG("SavedSearchModel::onExpungeSavedSearchComplete: search = " << search << "\nRequest id = " << requestId);
+
+    auto it = m_expungeSavedSearchRequestIds.find(requestId);
+    if (it != m_expungeSavedSearchRequestIds.end()) {
+        Q_UNUSED(m_expungeSavedSearchRequestIds.erase(it))
+        return;
+    }
+
+    SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
+    SavedSearchDataByLocalUid::iterator orderedIt = orderedIndex.find(search.localUid());
+    if (Q_UNLIKELY(orderedIt == orderedIndex.end())) {
+        QNDEBUG("Expunged saved search was not found within the saved search model items: " << search);
+        return;
+    }
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByIndex::iterator indexIt = m_data.project<ByIndex>(orderedIt);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
+    beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
+    Q_UNUSED(m_data.erase(indexIt))
+    endRemoveRows();
 }
 
 void SavedSearchModel::onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(search)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_expungeSavedSearchRequestIds.find(requestId);
+    if (it == m_expungeSavedSearchRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("SavedSearchModel::onExpungeSavedSearchFailed: search = " << search << "\nError description = "
+            << errorDescription << ", request id = " << requestId);
+
+    Q_UNUSED(m_expungeSavedSearchRequestIds.erase(it))
+
+    onSavedSearchAddedOrUpdated(search);
 }
 
 void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
@@ -284,6 +528,8 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddSavedSearchRequest,SavedSearch,QUuid));
     QObject::connect(this, QNSIGNAL(SavedSearchModel,updateSavedSearch,SavedSearch,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
+    QObject::connect(this, QNSIGNAL(SavedSearchModel,findSavedSearch,SavedSearch,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindSavedSearchRequest,SavedSearch,QUuid));
     QObject::connect(this, QNSIGNAL(SavedSearchModel,listSavedSearches,LocalStorageManager::ListObjectsOptions::type,
                                     size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                     LocalStorageManager::OrderDirection::type,QUuid),
@@ -303,6 +549,10 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(SavedSearchModel,onUpdateSavedSearchComplete,SavedSearch,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QString,QUuid),
                      this, QNSLOT(SavedSearchModel,onUpdateSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchComplete,SavedSearch,QUuid),
+                     this, QNSLOT(SavedSearchModel,onFindSavedSearchComplete,SavedSearch,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QString,QUuid),
+                     this, QNSLOT(SavedSearchModel,onFindSavedSearchFailed,SavedSearch,QString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions::type,
                                                                 size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid),
@@ -335,6 +585,116 @@ void SavedSearchModel::requestSavedSearchesList()
                            order, direction, m_listSavedSearchesRequestId);
     QNTRACE("Emitted the request to list saved searches: offset = " << m_listSavedSearchesOffset
             << ", request id = " << m_listSavedSearchesRequestId);
+}
+
+void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, bool * pAdded)
+{
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
+
+    SavedSearchModelItem item(search.localUid());
+
+    if (search.hasGuid()) {
+        item.m_guid = search.guid();
+    }
+
+    if (search.hasName()) {
+        item.m_name = search.name();
+    }
+
+    if (search.hasQuery()) {
+        item.m_query = search.query();
+    }
+
+    SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(search.localUid());
+    bool newSavedSearch = (savedSearchIt == orderedIndex.end());
+    if (newSavedSearch)
+    {
+        auto insertionResult = orderedIndex.insert(item);
+        savedSearchIt = insertionResult.first;
+        if (pAdded) {
+            *pAdded = true;
+        }
+
+        return;
+    }
+    else
+    {
+        orderedIndex.replace(savedSearchIt, item);
+    }
+
+    auto indexIt = m_data.project<ByIndex>(savedSearchIt);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    qint64 position = std::distance(index.begin(), indexIt);
+    if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
+        QString error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), 0);
+    QModelIndex modelIndexTo = createIndex(static_cast<int>(position), NUM_SAVED_SEARCH_MODEL_COLUMNS - 1);
+
+    emit dataChanged(modelIndexFrom, modelIndexTo);
+}
+
+QVariant SavedSearchModel::dataText(const int row, const Columns::type column) const
+{
+    QNTRACE("SavedSearchModel::dataText: row = " << row << ", column = " << column);
+
+    if (Q_UNLIKELY((row < 0) || (row > static_cast<int>(m_data.size())))) {
+        QNTRACE("Invalid row " << row << ", data size is " << m_data.size());
+        return QVariant();
+    }
+
+    const SavedSearchModelItem & item = m_data.get<ByIndex>()[static_cast<size_t>(row)];
+    switch(column)
+    {
+    case Columns::Name:
+        return QVariant(item.m_name);
+    case Columns::Query:
+        return QVariant(item.m_query);
+    case Columns::Synchronizable:
+        return QVariant(item.m_isSynchronizable);
+    default:
+        return QVariant();
+    }
+}
+
+QVariant SavedSearchModel::dataAccessibleText(const int row, const Columns::type column) const
+{
+    QNTRACE("SavedSearchModel::dataAccessibleText: row = " << row << ", column = " << column);
+
+    QVariant textData = dataText(row, column);
+    if (textData.isNull()) {
+        return QVariant();
+    }
+
+    QString accessibleText = QT_TR_NOOP("Saved search: ");
+
+    switch(column)
+    {
+    case Columns::Name:
+        accessibleText += QT_TR_NOOP("name is ") + textData.toString();
+        break;
+    case Columns::Query:
+        accessibleText += QT_TR_NOOP("query is ") + textData.toString();
+        break;
+    case Columns::Synchronizable:
+        accessibleText += (textData.toBool() ? "synchronizable" : "not synchronizable");
+        break;
+    default:
+        return QVariant();
+    }
+
+    return QVariant(accessibleText);
 }
 
 } // namespace qute_note

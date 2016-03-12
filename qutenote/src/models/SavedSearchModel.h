@@ -7,7 +7,7 @@
 #include <qute_note/utility/Qt4Helper.h>
 #include <QAbstractItemModel>
 #include <QUuid>
-#include <QCache>
+#include <QSet>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/random_access_index.hpp>
@@ -27,7 +27,8 @@ public:
     {
         enum type {
             Name = 0,
-            Query
+            Query,
+            Synchronizable
         };
     };
 
@@ -53,6 +54,7 @@ Q_SIGNALS:
 // private signals
     void addSavedSearch(SavedSearch search, QUuid requestId);
     void updateSavedSearch(SavedSearch search, QUuid requestId);
+    void findSavedSearch(SavedSearch search, QUuid requestId);
     void listSavedSearches(LocalStorageManager::ListObjectsOptions flag,
                            size_t limit, size_t offset,
                            LocalStorageManager::ListSavedSearchesOrder::type order,
@@ -66,6 +68,8 @@ private Q_SLOTS:
     void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
     void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onFindSavedSearchComplete(SavedSearch search, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
     void onListSavedSearchesComplete(LocalStorageManager::ListObjectsOptions flag,
                                      size_t limit, size_t offset,
                                      LocalStorageManager::ListSavedSearchesOrder::type order,
@@ -82,6 +86,11 @@ private Q_SLOTS:
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestSavedSearchesList();
+
+    void onSavedSearchAddedOrUpdated(const SavedSearch & search, bool * pAdded = Q_NULLPTR);
+
+    QVariant dataText(const int row, const Columns::type column) const;
+    QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
 private:
     struct ByLocalUid{};
@@ -107,6 +116,13 @@ private:
     SavedSearchData         m_data;
     size_t                  m_listSavedSearchesOffset;;
     QUuid                   m_listSavedSearchesRequestId;
+    QSet<QUuid>             m_savedSearchItemsNotYetInLocalStorageUids;
+
+    QSet<QUuid>             m_addSavedSearchRequestIds;
+    QSet<QUuid>             m_updateSavedSearchRequestIds;
+    QSet<QUuid>             m_expungeSavedSearchRequestIds;
+
+    QSet<QUuid>             m_findSavedSearchRequestIds;
 };
 
 } // namespace qute_note

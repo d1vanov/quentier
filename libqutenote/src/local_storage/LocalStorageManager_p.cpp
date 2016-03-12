@@ -2528,7 +2528,7 @@ bool LocalStorageManagerPrivate::addSavedSearch(const SavedSearch & search, QStr
 }
 
 bool LocalStorageManagerPrivate::updateSavedSearch(const SavedSearch & search,
-                                            QString & errorDescription)
+                                                   QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't update saved search in local storage database: ");
     QString error;

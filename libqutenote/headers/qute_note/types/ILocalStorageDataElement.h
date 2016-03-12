@@ -25,8 +25,8 @@ public:
         } \
         else { \
             QString result = d->m_localUid.toString(); \
-            result.remove(0,1); \
             result.remove(result.size()-1,1); \
+            result.remove(0,1); \
             return result; \
         } \
     }
