@@ -213,6 +213,8 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
     SavedSearch savedSearch;
     savedSearch.setLocalUid(item.m_localUid);
+    savedSearch.setName(item.m_name);
+    savedSearch.setQuery(item.m_query);
     savedSearch.setLocal(!item.m_isSynchronizable);
 
     QUuid requestId = QUuid::createUuid();
@@ -600,6 +602,8 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, b
     if (search.hasQuery()) {
         item.m_query = search.query();
     }
+
+    item.m_isSynchronizable = !search.isLocal();
 
     SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(search.localUid());
     bool newSavedSearch = (savedSearchIt == orderedIndex.end());
