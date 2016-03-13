@@ -4,7 +4,6 @@
 #include "SavedSearchModelItem.h"
 #include <qute_note/types/SavedSearch.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
-#include <qute_note/utility/Qt4Helper.h>
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>

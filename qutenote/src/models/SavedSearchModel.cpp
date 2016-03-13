@@ -5,9 +5,6 @@
 // Limit for the queries to the local storage
 #define SAVED_SEARCH_LIST_LIMIT (100)
 
-// Limit for the local cache of full saved search objects size
-#define MAX_SAVED_SEARCH_CACHE_SIZE (20)
-
 #define NUM_SAVED_SEARCH_MODEL_COLUMNS (3)
 
 namespace qute_note {
