@@ -12,11 +12,6 @@ SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
     m_isSynchronizable(isSynchronizable)
 {}
 
-bool SavedSearchModelItem::operator<(const SavedSearchModelItem & other) const
-{
-    return (m_name.localeAwareCompare(other.m_name) < 0);
-}
-
 QTextStream & SavedSearchModelItem::Print(QTextStream & strm) const
 {
     strm << "Saved search model item: local uid = " << m_localUid

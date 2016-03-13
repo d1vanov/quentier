@@ -13,8 +13,6 @@ public:
                                   const QString & query = QString(),
                                   const bool isSynchronizable = false);
 
-    bool operator<(const SavedSearchModelItem & other) const;
-
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     QString     m_localUid;
