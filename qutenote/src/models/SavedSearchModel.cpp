@@ -212,7 +212,6 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     emit dataChanged(modelIndex, modelIndex);
 
     SavedSearch savedSearch;
-    savedSearch.setGuid(item.m_guid);
     savedSearch.setLocalUid(item.m_localUid);
     savedSearch.setLocal(!item.m_isSynchronizable);
 
@@ -593,10 +592,6 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, b
     SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
 
     SavedSearchModelItem item(search.localUid());
-
-    if (search.hasGuid()) {
-        item.m_guid = search.guid();
-    }
 
     if (search.hasName()) {
         item.m_name = search.name();
