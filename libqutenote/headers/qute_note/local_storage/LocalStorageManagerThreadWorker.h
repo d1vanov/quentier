@@ -45,7 +45,7 @@ Q_SIGNALS:
     void addUserComplete(UserWrapper user, QUuid requestId = QUuid());
     void addUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
     void updateUserComplete(UserWrapper user, QUuid requestId = QUuid());
-    void updateUserFailed(UserWrapper user, QString errorDecription, QUuid requestId = QUuid());
+    void updateUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
     void findUserComplete(UserWrapper foundUser, QUuid requestId = QUuid());
     void findUserFailed(UserWrapper user, QString errorDescription, QUuid requestId = QUuid());
     void deleteUserComplete(UserWrapper user, QUuid requestId = QUuid());

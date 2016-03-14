@@ -61,7 +61,8 @@ Q_SIGNALS:
                   size_t limit, size_t offset,
                   LocalStorageManager::ListTagsOrder::type order,
                   LocalStorageManager::OrderDirection::type orderDirection,
-                  QUuid requestId);
+                  QString linkedNotebookGuid, QUuid requestId);
+    void deleteTag(Tag tag, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
 
 private Q_SLOTS:
@@ -76,12 +77,14 @@ private Q_SLOTS:
                             size_t limit, size_t offset,
                             LocalStorageManager::ListTagsOrder::type order,
                             LocalStorageManager::OrderDirection::type orderDirection,
-                            QList<Tag> foundTags, QUuid requestId);
+                            QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId);
     void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
                           size_t limit, size_t offset,
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
-                          QString errorDescription, QUuid requestId);
+                          QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
+    void onDeleteTagComplete(Tag tag, QUuid requestId);
+    void onDeleteTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QUuid requestId);
     void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
