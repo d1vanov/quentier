@@ -30,7 +30,8 @@ public:
     {
         enum type {
             Name = 0,
-            Synchronizable
+            Synchronizable,
+            Dirty
         };
     };
 

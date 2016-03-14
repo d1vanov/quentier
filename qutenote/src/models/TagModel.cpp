@@ -5,7 +5,7 @@
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT (100)
 
-#define NUM_TAG_MODEL_COLUMNS (2)
+#define NUM_TAG_MODEL_COLUMNS (3)
 
 namespace qute_note {
 
@@ -30,8 +30,30 @@ TagModel::~TagModel()
 
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 {
-    // TODO: implement
-    return QAbstractItemModel::flags(index);
+    Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
+    if (!index.isValid()) {
+        return indexFlags;
+    }
+
+    indexFlags |= Qt::ItemIsSelectable;
+    indexFlags |= Qt::ItemIsEnabled;
+
+    if (index.column() == Columns::Dirty) {
+        return indexFlags;
+    }
+
+    if (index.column() == Columns::Synchronizable)
+    {
+        // FIXME: need to check this for every parent as well
+        QVariant synchronizable = dataText(index.row(), Columns::Synchronizable);
+        if (!synchronizable.isNull() && synchronizable.toBool()) {
+            return indexFlags;
+        }
+    }
+
+    indexFlags |= Qt::ItemIsEditable;
+
+    return indexFlags;
 }
 
 QVariant TagModel::data(const QModelIndex & index, int role) const
@@ -44,11 +66,25 @@ QVariant TagModel::data(const QModelIndex & index, int role) const
 
 QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    // TODO: implement
-    Q_UNUSED(section)
-    Q_UNUSED(orientation)
-    Q_UNUSED(role)
-    return QVariant();
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+    }
+
+    if (orientation == Qt::Vertical) {
+        return QVariant(section + 1);
+    }
+
+    switch(section)
+    {
+    case Columns::Name:
+        return QVariant(QT_TR_NOOP("Name"));
+    case Columns::Synchronizable:
+        return QVariant(QT_TR_NOOP("Synchronizable"));
+    case Columns::Dirty:
+        return QVariant(QT_TR_NOOP("Dirty"));
+    default:
+        return QVariant();
+    }
 }
 
 int TagModel::rowCount(const QModelIndex & parent) const
