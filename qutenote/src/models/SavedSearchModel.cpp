@@ -5,7 +5,7 @@
 // Limit for the queries to the local storage
 #define SAVED_SEARCH_LIST_LIMIT (100)
 
-#define NUM_SAVED_SEARCH_MODEL_COLUMNS (3)
+#define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
 
 namespace qute_note {
 
@@ -31,12 +31,26 @@ SavedSearchModel::~SavedSearchModel()
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
-    if (index.isValid()) {
-        indexFlags |= Qt::ItemIsSelectable;
-        indexFlags |= Qt::ItemIsEditable;
-        indexFlags |= Qt::ItemIsEnabled;
+    if (!index.isValid()) {
+        return indexFlags;
     }
 
+    indexFlags |= Qt::ItemIsSelectable;
+    indexFlags |= Qt::ItemIsEnabled;
+
+    if (index.column() == Columns::Dirty) {
+        return indexFlags;
+    }
+
+    if (index.column() == Columns::Synchronizable)
+    {
+        QVariant synchronizable = dataText(index.row(), Columns::Synchronizable);
+        if (!synchronizable.isNull() && synchronizable.toBool()) {
+            return indexFlags;
+        }
+    }
+
+    indexFlags |= Qt::ItemIsEditable;
     return indexFlags;
 }
 
@@ -66,6 +80,9 @@ QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
         break;
     case Columns::Synchronizable:
         column = Columns::Synchronizable;
+        break;
+    case Columns::Dirty:
+        column = Columns::Dirty;
         break;
     default:
         return QVariant();
@@ -103,6 +120,8 @@ QVariant SavedSearchModel::headerData(int section, Qt::Orientation orientation, 
         return QVariant(QT_TR_NOOP("Query"));
     case Columns::Synchronizable:
         return QVariant(QT_TR_NOOP("Synchronizable"));
+    case Columns::Dirty:
+        return QVariant(QT_TR_NOOP("Dirty"));
     default:
         return QVariant();
     }
@@ -173,6 +192,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
                 return false;
             }
 
+            item.m_isDirty |= (name != item.m_name);
             item.m_name = name;
             break;
         }
@@ -183,22 +203,25 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
                 return false;
             }
 
+            item.m_isDirty |= (query != item.m_query);
             item.m_query = query;
             break;
         }
     case Columns::Synchronizable:
         {
-            if (item.m_isSynchronizable == value.toBool()) {
-                return false;
-            }
-
             if (item.m_isSynchronizable) {
                 emit notifyError(QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable"));
                 return false;
             }
 
+            item.m_isDirty |= (value.toBool() != item.m_isSynchronizable);
             item.m_isSynchronizable = value.toBool();
             break;
+        }
+    case Columns::Dirty:
+        {
+            emit notifyError(QT_TR_NOOP("The \"dirty\" flag can't be set manually"));
+            return false;
         }
     default:
         return false;
@@ -213,6 +236,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     savedSearch.setName(item.m_name);
     savedSearch.setQuery(item.m_query);
     savedSearch.setLocal(!item.m_isSynchronizable);
+    savedSearch.setDirty(item.m_isDirty);
 
     QUuid requestId = QUuid::createUuid();
 
@@ -601,6 +625,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, b
     }
 
     item.m_isSynchronizable = !search.isLocal();
+    item.m_isDirty = search.isDirty();
 
     SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(search.localUid());
     bool newSavedSearch = (savedSearchIt == orderedIndex.end());
@@ -659,6 +684,8 @@ QVariant SavedSearchModel::dataText(const int row, const Columns::type column) c
         return QVariant(item.m_query);
     case Columns::Synchronizable:
         return QVariant(item.m_isSynchronizable);
+    case Columns::Dirty:
+        return QVariant(item.m_isDirty);
     default:
         return QVariant();
     }
@@ -685,6 +712,9 @@ QVariant SavedSearchModel::dataAccessibleText(const int row, const Columns::type
         break;
     case Columns::Synchronizable:
         accessibleText += (textData.toBool() ? "synchronizable" : "not synchronizable");
+        break;
+    case Columns::Dirty:
+        accessibleText += (textData.toBool() ? "dirty" : "not dirty");
         break;
     default:
         return QVariant();

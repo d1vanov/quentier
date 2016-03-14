@@ -31,7 +31,8 @@ public:
         enum type {
             Name = 0,
             Query,
-            Synchronizable
+            Synchronizable,
+            Dirty
         };
     };
 

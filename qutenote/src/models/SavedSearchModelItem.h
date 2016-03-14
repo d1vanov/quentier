@@ -11,7 +11,8 @@ public:
     explicit SavedSearchModelItem(const QString & localUid = QString(),
                                   const QString & name = QString(),
                                   const QString & query = QString(),
-                                  const bool isSynchronizable = false);
+                                  const bool isSynchronizable = false,
+                                  const bool isDirty = false);
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
@@ -19,6 +20,7 @@ public:
     QString     m_name;
     QString     m_query;
     bool        m_isSynchronizable;
+    bool        m_isDirty;
 };
 
 } // namespace qute_note
