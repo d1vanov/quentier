@@ -13,6 +13,7 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
                    QObject * parent) :
     QAbstractItemModel(parent),
     m_data(),
+    m_fakeRootItem(Q_NULLPTR),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
     m_tagItemsNotYetInLocalStorageUids(),
@@ -26,7 +27,9 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
 }
 
 TagModel::~TagModel()
-{}
+{
+    delete m_fakeRootItem;
+}
 
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 {
@@ -89,9 +92,12 @@ QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role
 
 int TagModel::rowCount(const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(parent)
-    return 0;
+    if (parent.isValid() && (parent.column() != Columns::Name)) {
+        return 0;
+    }
+
+    TagModelItem * parentItem = itemForIndex(parent);
+    return (parentItem ? parentItem->numChildren() : 0);
 }
 
 int TagModel::columnCount(const QModelIndex & parent) const
@@ -342,6 +348,20 @@ QVariant TagModel::dataAccessibleText(const int row, const Columns::type column)
     Q_UNUSED(row)
     Q_UNUSED(column)
     return QVariant();
+}
+
+TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
+{
+    if (!index.isValid()) {
+        return m_fakeRootItem;
+    }
+
+    TagModelItem * item = reinterpret_cast<TagModelItem*>(index.internalPointer());
+    if (item) {
+        return item;
+    }
+
+    return m_fakeRootItem;
 }
 
 } // namespace qute_note

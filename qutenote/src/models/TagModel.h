@@ -11,7 +11,7 @@
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #endif
@@ -98,6 +98,8 @@ private:
     QVariant dataText(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
+    TagModelItem * itemForIndex(const QModelIndex & index) const;
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
@@ -111,11 +113,11 @@ private:
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
-                boost::multi_index::member<TagModelItem,QString,&TagModelItem::m_localUid>
+                boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::localUid>
             >,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByParentLocalUid>,
-                boost::multi_index::member<TagModelItem,QString,&TagModelItem::m_parentLocalUid>
+                boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::parentLocalUid>
             >
         >
     > TagData;
@@ -126,6 +128,8 @@ private:
 
 private:
     TagData                 m_data;
+    TagModelItem *          m_fakeRootItem;
+
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;
     QSet<QUuid>             m_tagItemsNotYetInLocalStorageUids;
