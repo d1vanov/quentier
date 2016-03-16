@@ -279,6 +279,8 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
         item.m_localUid.remove(0, 1);
         Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.m_localUid));
 
+        item.m_name = tr("New saved search");
+
         Q_UNUSED(index.insert(index.begin() + row, item));
     }
 

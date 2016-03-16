@@ -22,9 +22,7 @@ TagModelItem::TagModelItem(const QString & localUid,
 }
 
 TagModelItem::~TagModelItem()
-{
-    qDeleteAll(m_children);
-}
+{}
 
 TagModelItem * TagModelItem::childAtRow(const int row) const
 {

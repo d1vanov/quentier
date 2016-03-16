@@ -47,10 +47,23 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 
     if (index.column() == Columns::Synchronizable)
     {
-        // FIXME: need to check this for every parent as well
-        QVariant synchronizable = dataText(index.row(), Columns::Synchronizable);
-        if (!synchronizable.isNull() && synchronizable.toBool()) {
-            return indexFlags;
+        QModelIndex parentIndex = index;
+
+        while(true) {
+            TagModelItem * item = itemForIndex(parentIndex);
+            if (!item) {
+                break;
+            }
+
+            if (item == m_fakeRootItem) {
+                break;
+            }
+
+            if (item->isSynchronizable()) {
+                return indexFlags;
+            }
+
+            parentIndex = parentIndex.parent();
         }
     }
 
@@ -61,10 +74,52 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 
 QVariant TagModel::data(const QModelIndex & index, int role) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    Q_UNUSED(role)
-    return QVariant();
+    if (!index.isValid()) {
+        return QVariant();
+    }
+
+    int columnIndex = index.column();
+    if ((columnIndex < 0) || (columnIndex >= NUM_TAG_MODEL_COLUMNS)) {
+        return QVariant();
+    }
+
+    TagModelItem * item = itemForIndex(index);
+    if (!item) {
+        return QVariant();
+    }
+
+    if (item == m_fakeRootItem) {
+        return QVariant();
+    }
+
+    Columns::type column;
+    switch(columnIndex)
+    {
+    case Columns::Name:
+        column = Columns::Name;
+        break;
+    case Columns::Synchronizable:
+        column = Columns::Synchronizable;
+        break;
+    case Columns::Dirty:
+        column = Columns::Dirty;
+        break;
+    default:
+        return QVariant();
+    }
+
+    switch(role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
+    case Qt::ToolTipRole:
+        return dataText(*item, column);
+    case Qt::AccessibleTextRole:
+    case Qt::AccessibleDescriptionRole:
+        return dataAccessibleText(*item, column);
+    default:
+        return QVariant();
+    }
 }
 
 QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -73,8 +128,8 @@ QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role
         return QVariant();
     }
 
-    if (orientation == Qt::Vertical) {
-        return QVariant(section + 1);
+    if (orientation != Qt::Horizontal) {
+        return QVariant();
     }
 
     switch(section)
@@ -102,25 +157,65 @@ int TagModel::rowCount(const QModelIndex & parent) const
 
 int TagModel::columnCount(const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(parent)
-    return 0;
+    if (parent.isValid() && (parent.column() != Columns::Name)) {
+        return 0;
+    }
+
+    return NUM_TAG_MODEL_COLUMNS;
 }
 
 QModelIndex TagModel::index(int row, int column, const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
-    Q_UNUSED(parent)
-    return QModelIndex();
+    if (!m_fakeRootItem || (row < 0) || (column < 0) || (column >= NUM_TAG_MODEL_COLUMNS) ||
+        (parent.isValid() && (parent.column() != Columns::Name)))
+    {
+        return QModelIndex();
+    }
+
+    TagModelItem * parentItem = itemForIndex(parent);
+    if (!parentItem) {
+        return QModelIndex();
+    }
+
+    TagModelItem * item = parentItem->childAtRow(row);
+    if (!item) {
+        return QModelIndex();
+    }
+
+    return createIndex(row, column, item);
 }
 
 QModelIndex TagModel::parent(const QModelIndex & index) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    return QModelIndex();
+    if (!index.isValid()) {
+        return QModelIndex();
+    }
+
+    TagModelItem * childItem = itemForIndex(index);
+    if (!childItem) {
+        return QModelIndex();
+    }
+
+    TagModelItem * parentItem = childItem->parent();
+    if (!parentItem) {
+        return QModelIndex();
+    }
+
+    if (parentItem == m_fakeRootItem) {
+        return QModelIndex();
+    }
+
+    TagModelItem * grandParentItem = parentItem->parent();
+    if (!grandParentItem) {
+        return QModelIndex();
+    }
+
+    int row = grandParentItem->rowForChild(parentItem);
+    if (row < 0) {
+        return QModelIndex();
+    }
+
+    return createIndex(row, Columns::Name, parentItem);
 }
 
 bool TagModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant & value, int role)
@@ -134,29 +229,190 @@ bool TagModel::setHeaderData(int section, Qt::Orientation orientation, const QVa
 
 bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
-    // TODO: implement
-    Q_UNUSED(modelIndex)
-    Q_UNUSED(value)
-    Q_UNUSED(role)
-    return false;
+    if (role != Qt::EditRole) {
+        return false;
+    }
+
+    if (!modelIndex.isValid()) {
+        return false;
+    }
+
+    if (modelIndex.column() == Columns::Dirty) {
+        emit notifyError(QT_TR_NOOP("The \"dirty\" flag can't be set manually"));
+        return false;
+    }
+
+    TagModelItem * item = itemForIndex(modelIndex);
+    if (!item) {
+        return false;
+    }
+
+    if (item == m_fakeRootItem) {
+        return false;
+    }
+
+    TagModelItem itemCopy = *item;
+    switch(modelIndex.column())
+    {
+    case Columns::Name:
+        itemCopy.setName(value.toString());
+        break;
+    case Columns::Synchronizable:
+        {
+            if (itemCopy.isSynchronizable()) {
+                emit notifyError(QT_TR_NOOP("Can't make already synchronizable tag not synchronizable"));
+                return false;
+            }
+
+            bool dirty = itemCopy.isDirty();
+            dirty |= (value.toBool() != itemCopy.isSynchronizable());
+            itemCopy.setSynchronizable(value.toBool());
+            break;
+        }
+    default:
+        return false;
+    }
+
+    TagDataByLocalUid & index = m_data.get<ByLocalUid>();
+    auto it = index.find(itemCopy.localUid());
+    if (Q_UNLIKELY(it == index.end())) {
+        QString error = QT_TR_NOOP("Internal error: can't find item in TagModel by its local uid");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    index.replace(it, itemCopy);
+
+    emit dataChanged(modelIndex, modelIndex);
+
+    Tag tag;
+    tag.setLocalUid(itemCopy.localUid());
+    tag.setName(itemCopy.name());
+    tag.setLocal(!itemCopy.isSynchronizable());
+    tag.setDirty(itemCopy.isDirty());
+
+    QUuid requestId = QUuid::createUuid();
+
+    auto notYetSavedItemIt = m_tagItemsNotYetInLocalStorageUids.find(itemCopy.localUid());
+    if (notYetSavedItemIt != m_tagItemsNotYetInLocalStorageUids.end())
+    {
+        Q_UNUSED(m_addTagRequestIds.insert(requestId));
+        emit addTag(tag, requestId);
+
+        QNTRACE("Emitted the request to add the tag to local storage: id = " << requestId
+                << ", tag: " << tag);
+
+        Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
+    }
+    else
+    {
+        Q_UNUSED(m_updateTagRequestIds.insert(requestId));
+        emit updateTag(tag, requestId);
+
+        QNTRACE("Emitted the request to update the tag in the local storage: id = " << requestId
+                << ", tag: " << tag);
+    }
+
+    return true;
 }
 
 bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(count)
-    Q_UNUSED(parent)
-    return false;
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new TagModelItem;
+    }
+
+    TagModelItem * parentItem = (parent.isValid()
+                                 ? itemForIndex(parent)
+                                 : m_fakeRootItem);
+    if (!parentItem) {
+        return false;
+    }
+
+    TagDataByLocalUid & index = m_data.get<ByLocalUid>();
+
+    beginInsertRows(parent, row, row + count - 1);
+    for(int i = 0; i < count; ++i)
+    {
+        TagModelItem item;
+        QString localUid = QUuid::createUuid().toString();
+        localUid.chop(1);
+        localUid.remove(0, 1);
+        item.setLocalUid(localUid);
+        Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(localUid))
+
+        item.setName(tr("New tag"));
+        item.setDirty(true);
+        item.setParent(parentItem);
+
+        Q_UNUSED(index.insert(item))
+    }
+    endInsertRows();
+
+    return true;
 }
 
 bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(count)
-    Q_UNUSED(parent)
-    return false;
+    if (!m_fakeRootItem) {
+        return false;
+    }
+
+    TagModelItem * parentItem = (parent.isValid()
+                                 ? itemForIndex(parent)
+                                 : m_fakeRootItem);
+    if (!parentItem) {
+        return false;
+    }
+
+    for(int i = 0; i < count; ++i)
+    {
+        TagModelItem * item = parentItem->childAtRow(row + i);
+        if (!item) {
+            continue;
+        }
+
+        if (item->isSynchronizable()) {
+            QString error = QT_TR_NOOP("Can't remove synchronizable tag");
+            QNINFO(error);
+            emit notifyError(error);
+            return false;
+        }
+
+        if (hasSynchronizableChildren(item)) {
+            QString error = QT_TR_NOOP("Can't remove tag with synchronizable children");
+            QNINFO(error);
+            emit notifyError(error);
+            return false;
+        }
+    }
+
+    TagDataByLocalUid & index = m_data.get<ByLocalUid>();
+
+    beginRemoveRows(parent, row, row + count - 1);
+    for(int i = 0; i < count; ++i)
+    {
+        TagModelItem * item = parentItem->takeChild(row);
+        if (!item) {
+            continue;
+        }
+
+        Tag tag;
+        tag.setLocalUid(item->localUid());
+
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_expungeTagRequestIds.insert(requestId))
+        emit expungeTag(tag, requestId);
+        QNTRACE("Emitted the request to expunge the tag from the local storage: request id = "
+                << requestId << ", tag local uid: " << item->localUid());
+
+        auto it = index.find(item->localUid());
+        Q_UNUSED(index.erase(it))
+    }
+    endRemoveRows();
+
+    return true;
 }
 
 void TagModel::onAddTagComplete(Tag tag, QUuid requestId)
@@ -334,20 +590,46 @@ void TagModel::onTagAddedOrUpdated(const Tag & tag, bool * pAdded)
     Q_UNUSED(pAdded)
 }
 
-QVariant TagModel::dataText(const int row, const Columns::type column) const
+QVariant TagModel::dataText(const TagModelItem & item, const Columns::type column) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
-    return QVariant();
+    switch(column)
+    {
+    case Columns::Name:
+        return QVariant(item.name());
+    case Columns::Synchronizable:
+        return QVariant(item.isSynchronizable());
+    case Columns::Dirty:
+        return QVariant(item.isDirty());
+    default:
+        return QVariant();
+    }
 }
 
-QVariant TagModel::dataAccessibleText(const int row, const Columns::type column) const
+QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::type column) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
-    return QVariant();
+    QVariant textData = dataText(item, column);
+    if (textData.isNull()) {
+        return QVariant();
+    }
+
+    QString accessibleText = QT_TR_NOOP("Tag: ");
+
+    switch(column)
+    {
+    case Columns::Name:
+        accessibleText += QT_TR_NOOP("name is ") + textData.toString();
+        break;
+    case Columns::Synchronizable:
+        accessibleText += (textData.toBool() ? "synchronizable" : "not synchronizable");
+        break;
+    case Columns::Dirty:
+        accessibleText += (textData.toBool() ? "dirty" : "not dirty");
+        break;
+    default:
+        return QVariant();
+    }
+
+    return QVariant(accessibleText);
 }
 
 TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
@@ -362,6 +644,22 @@ TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
     }
 
     return m_fakeRootItem;
+}
+
+bool TagModel::hasSynchronizableChildren(TagModelItem * item) const
+{
+    if (item->isSynchronizable()) {
+        return true;
+    }
+
+    QList<TagModelItem*> children = item->children();
+    for(auto it = children.begin(), end = children.end(); it != end; ++it) {
+        if (hasSynchronizableChildren(*it)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 } // namespace qute_note

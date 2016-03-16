@@ -95,10 +95,12 @@ private:
 
     void onTagAddedOrUpdated(const Tag & tag, bool * pAdded = Q_NULLPTR);
 
-    QVariant dataText(const int row, const Columns::type column) const;
-    QVariant dataAccessibleText(const int row, const Columns::type column) const;
+    QVariant dataText(const TagModelItem & item, const Columns::type column) const;
+    QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
 
     TagModelItem * itemForIndex(const QModelIndex & index) const;
+
+    bool hasSynchronizableChildren(TagModelItem * item) const;
 
 private:
     struct ByLocalUid{};
