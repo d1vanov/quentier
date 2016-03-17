@@ -38,9 +38,9 @@
 #include "undo_stack/SpellCheckIgnoreWordUndoCommand.h"
 #include "undo_stack/SpellCheckAddToUserWordListUndoCommand.h"
 #include "undo_stack/TableActionUndoCommand.h"
+#include <qute_note/utility/ApplicationSettings.h>
 
 #ifndef USE_QT_WEB_ENGINE
-#include <qute_note/utility/ApplicationSettings.h>
 #include <QWebFrame>
 typedef QWebSettings WebSettings;
 #else
@@ -50,7 +50,6 @@ typedef QWebSettings WebSettings;
 #include "javascript_glue/HyperlinkClickJavaScriptHandler.h"
 #include "WebSocketClientWrapper.h"
 #include "WebSocketTransport.h"
-#include <qute_note/utility/ApplicationSettings.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <QPainter>
 #include <QIcon>

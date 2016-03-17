@@ -11,6 +11,11 @@
 #include <QThreadPool>
 #include <algorithm>
 
+#define SPELL_CHECKER_FOUND_DICTIONARIES_GROUP "SpellCheckerFoundDictionaries"
+#define SPELL_CHECKER_FOUND_DICTIONARIES_DIC_FILE_ITEM "DicFile"
+#define SPELL_CHECKER_FOUND_DICTIONARIES_AFF_FILE_ITEM "AffFile"
+#define SPELL_CHECKER_FOUND_DICTIONARIES_ARRAY "Dictionaries"
+
 namespace qute_note {
 
 SpellChecker::SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent, const QString & userDictionaryPath) :
@@ -240,6 +245,26 @@ void SpellChecker::onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAff
                 << ", affix file " << pair.second);
     }
 
+    ApplicationSettings settings;
+    settings.beginGroup(SPELL_CHECKER_FOUND_DICTIONARIES_GROUP);
+
+    // Removing any previously existing array
+    settings.setValue(SPELL_CHECKER_FOUND_DICTIONARIES_ARRAY, QVariant(QStringList()));
+    // TODO: verify that actually works as expected
+
+    settings.beginWriteArray(SPELL_CHECKER_FOUND_DICTIONARIES_ARRAY);
+    int index = 0;
+    for(auto it = files.begin(), end = files.end(); it != end; ++it)
+    {
+        const QPair<QString, QString> & pair = it.value();
+        settings.setArrayIndex(index);
+        settings.setValue(SPELL_CHECKER_FOUND_DICTIONARIES_DIC_FILE_ITEM, pair.first);
+        settings.setValue(SPELL_CHECKER_FOUND_DICTIONARIES_AFF_FILE_ITEM, pair.second);
+        ++index;
+    }
+    settings.endArray();
+    settings.endGroup();
+
     m_systemDictionariesReady = true;
     if (isReady()) {
         emit ready();
@@ -382,7 +407,52 @@ void SpellChecker::scanSystemDictionaries()
         return;
     }
 
-    QNDEBUG("Still can't find any hunspell dictionaries, trying the full recursive search across the entire system, just to find something");
+    QNDEBUG("Can't find hunspell dictionaries in any of the expected standard locations, will see if there are some "
+            "previously found dictionaries which are still valid");
+
+    SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName dicAndAffFiles;
+    ApplicationSettings settings;
+    QStringList childGroups = settings.childGroups();
+    int foundDictionariesGroupIndex = childGroups.indexOf(SPELL_CHECKER_FOUND_DICTIONARIES_GROUP);
+    if (foundDictionariesGroupIndex >= 0)
+    {
+        settings.beginGroup(SPELL_CHECKER_FOUND_DICTIONARIES_GROUP);
+
+        int numDicFiles = settings.beginReadArray(SPELL_CHECKER_FOUND_DICTIONARIES_ARRAY);
+        dicAndAffFiles.reserve(numDicFiles);
+        for(int i = 0; i < numDicFiles; ++i)
+        {
+            settings.setArrayIndex(i);
+            QString dicFile = settings.value(SPELL_CHECKER_FOUND_DICTIONARIES_DIC_FILE_ITEM).toString();
+            QString affFile = settings.value(SPELL_CHECKER_FOUND_DICTIONARIES_AFF_FILE_ITEM).toString();
+            if (dicFile.isEmpty() || affFile.isEmpty()) {
+                continue;
+            }
+
+            QFileInfo dicFileInfo(dicFile);
+            if (!dicFileInfo.exists() || !dicFileInfo.isReadable()) {
+                continue;
+            }
+
+            QFileInfo affFileInfo(affFile);
+            if (!affFileInfo.exists() || !affFileInfo.isReadable()) {
+                continue;
+            }
+
+            dicAndAffFiles[dicFileInfo.baseName()] = QPair<QString, QString>(dicFile, affFile);
+        }
+
+        settings.endArray();
+        settings.endGroup();
+    }
+
+    if (!dicAndAffFiles.isEmpty()) {
+        QNDEBUG("Found some previously found dictionary files, will use them instead of running a new search across the system");
+        onDictionariesFound(dicAndAffFiles);
+        return;
+    }
+
+    QNDEBUG("Still can't find any valid hunspell dictionaries, trying the full recursive search across the entire system, just to find something");
 
     SpellCheckerDictionariesFinder * pFinder = new SpellCheckerDictionariesFinder;
     QThreadPool::globalInstance()->start(pFinder);
