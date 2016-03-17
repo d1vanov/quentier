@@ -141,7 +141,29 @@ target_link_libraries(${PROJECT_NAME} ${LIB_QUTE_NOTE} ${THIRDPARTY_LIBS})
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif()
-            
+
+# Set up the model tests
+set(MODEL_TEST_HEADERS
+    src/tests/model_test/modeltest.h
+    src/tests/model_test/dynamictreemodel.h)
+
+set(MODEL_TEST_SOURCES
+    src/tests/model_test/modeltest.cpp
+    src/tests/model_test/dynamictreemodel.cpp
+    src/tests/model_test/tst_modeltest.cpp)
+
+add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
+add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)
+
+if(USE_QT5)
+  qt5_use_modules(${PROJECT_NAME}_model_test Core)
+  qt5_use_modules(${PROJECT_NAME}_model_test Gui)
+  qt5_use_modules(${PROJECT_NAME}_model_test Widgets)
+  qt5_use_modules(${PROJECT_NAME}_model_test Test)
+else()
+  target_link_libraries(${PROJECT_NAME}_model_test ${QT_LIBRARIES})
+endif()
+
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/client")
 list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client")
