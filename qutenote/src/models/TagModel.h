@@ -35,6 +35,8 @@ public:
         };
     };
 
+    bool ready() const { return m_ready; }
+
 private:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -52,6 +54,7 @@ private:
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
+    void ready();
     void notifyError(QString errorDescription);
 
 // private signals
@@ -98,9 +101,11 @@ private:
     QVariant dataText(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
 
-    TagModelItem * itemForIndex(const QModelIndex & index) const;
+    const TagModelItem * itemForIndex(const QModelIndex & index) const;
 
-    bool hasSynchronizableChildren(TagModelItem * item) const;
+    bool hasSynchronizableChildren(const TagModelItem * item) const;
+
+    void mapParentAndChildren();
 
 private:
     struct ByLocalUid{};
@@ -132,6 +137,7 @@ private:
     TagData                 m_data;
     TagModelItem *          m_fakeRootItem;
 
+    bool                    m_ready;
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;
     QSet<QUuid>             m_tagItemsNotYetInLocalStorageUids;

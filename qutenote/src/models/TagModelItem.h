@@ -31,20 +31,20 @@ public:
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
-    TagModelItem * parent() const { return m_parent; }
-    void setParent(TagModelItem * parent) { m_parent = parent; }
+    const TagModelItem * parent() const { return m_parent; }
+    void setParent(const TagModelItem * parent) const { m_parent = parent; }
 
-    TagModelItem * childAtRow(const int row) const;
-    int rowForChild(TagModelItem * child) const;
+    const TagModelItem * childAtRow(const int row) const;
+    int rowForChild(const TagModelItem * child) const;
 
     bool hasChildren() const { return !m_children.isEmpty(); }
-    QList<TagModelItem*> children() const { return m_children; }
+    QList<const TagModelItem*> children() const { return m_children; }
     int numChildren() const { return m_children.size(); }
 
-    void insertChild(const int row, TagModelItem * item);
-    void addChild(TagModelItem * item);
-    bool swapChildren(const int sourceRow, const int destRow);
-    TagModelItem * takeChild(const int row);
+    void insertChild(const int row, const TagModelItem * item) const;
+    void addChild(const TagModelItem * item) const;
+    bool swapChildren(const int sourceRow, const int destRow) const;
+    const TagModelItem * takeChild(const int row) const;
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
@@ -55,8 +55,13 @@ private:
     bool        m_isSynchronizable;
     bool        m_isDirty;
 
-    TagModelItem *          m_parent;
-    QList<TagModelItem*>    m_children;
+    // NOTE: these are mutable in order to have the possibility to organize
+    // the efficient storage of TagModelItems in boost::multi_index_container:
+    // it doesn't allow the direct modification of its stored items,
+    // however, these pointers to parent and children don't really affect
+    // that container's indices
+    mutable const TagModelItem *          m_parent;
+    mutable QList<const TagModelItem*>    m_children;
 };
 
 } // namespace qute_note

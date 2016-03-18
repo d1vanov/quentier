@@ -14,6 +14,7 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     QAbstractItemModel(parent),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
+    m_ready(false),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
     m_tagItemsNotYetInLocalStorageUids(),
@@ -41,6 +42,10 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
+    if (!m_ready) {
+        return indexFlags;
+    }
+
     if (index.column() == Columns::Dirty) {
         return indexFlags;
     }
@@ -50,7 +55,7 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
         QModelIndex parentIndex = index;
 
         while(true) {
-            TagModelItem * item = itemForIndex(parentIndex);
+            const TagModelItem * item = itemForIndex(parentIndex);
             if (!item) {
                 break;
             }
@@ -78,12 +83,16 @@ QVariant TagModel::data(const QModelIndex & index, int role) const
         return QVariant();
     }
 
+    if (!m_ready) {
+        return QVariant();
+    }
+
     int columnIndex = index.column();
     if ((columnIndex < 0) || (columnIndex >= NUM_TAG_MODEL_COLUMNS)) {
         return QVariant();
     }
 
-    TagModelItem * item = itemForIndex(index);
+    const TagModelItem * item = itemForIndex(index);
     if (!item) {
         return QVariant();
     }
@@ -151,7 +160,11 @@ int TagModel::rowCount(const QModelIndex & parent) const
         return 0;
     }
 
-    TagModelItem * parentItem = itemForIndex(parent);
+    if (!m_ready) {
+        return 0;
+    }
+
+    const TagModelItem * parentItem = itemForIndex(parent);
     return (parentItem ? parentItem->numChildren() : 0);
 }
 
@@ -166,23 +179,24 @@ int TagModel::columnCount(const QModelIndex & parent) const
 
 QModelIndex TagModel::index(int row, int column, const QModelIndex & parent) const
 {
-    if (!m_fakeRootItem || (row < 0) || (column < 0) || (column >= NUM_TAG_MODEL_COLUMNS) ||
+    if (!m_fakeRootItem || !m_ready || (row < 0) || (column < 0) || (column >= NUM_TAG_MODEL_COLUMNS) ||
         (parent.isValid() && (parent.column() != Columns::Name)))
     {
         return QModelIndex();
     }
 
-    TagModelItem * parentItem = itemForIndex(parent);
+    const TagModelItem * parentItem = itemForIndex(parent);
     if (!parentItem) {
         return QModelIndex();
     }
 
-    TagModelItem * item = parentItem->childAtRow(row);
+    const TagModelItem * item = parentItem->childAtRow(row);
     if (!item) {
         return QModelIndex();
     }
 
-    return createIndex(row, column, item);
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    return createIndex(row, column, const_cast<TagModelItem*>(item));
 }
 
 QModelIndex TagModel::parent(const QModelIndex & index) const
@@ -191,12 +205,16 @@ QModelIndex TagModel::parent(const QModelIndex & index) const
         return QModelIndex();
     }
 
-    TagModelItem * childItem = itemForIndex(index);
+    if (!m_ready) {
+        return QModelIndex();
+    }
+
+    const TagModelItem * childItem = itemForIndex(index);
     if (!childItem) {
         return QModelIndex();
     }
 
-    TagModelItem * parentItem = childItem->parent();
+    const TagModelItem * parentItem = childItem->parent();
     if (!parentItem) {
         return QModelIndex();
     }
@@ -205,7 +223,7 @@ QModelIndex TagModel::parent(const QModelIndex & index) const
         return QModelIndex();
     }
 
-    TagModelItem * grandParentItem = parentItem->parent();
+    const TagModelItem * grandParentItem = parentItem->parent();
     if (!grandParentItem) {
         return QModelIndex();
     }
@@ -215,7 +233,8 @@ QModelIndex TagModel::parent(const QModelIndex & index) const
         return QModelIndex();
     }
 
-    return createIndex(row, Columns::Name, parentItem);
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    return createIndex(row, Columns::Name, const_cast<TagModelItem*>(parentItem));
 }
 
 bool TagModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant & value, int role)
@@ -229,6 +248,10 @@ bool TagModel::setHeaderData(int section, Qt::Orientation orientation, const QVa
 
 bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
+    if (!m_ready) {
+        return false;
+    }
+
     if (role != Qt::EditRole) {
         return false;
     }
@@ -242,7 +265,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
         return false;
     }
 
-    TagModelItem * item = itemForIndex(modelIndex);
+    const TagModelItem * item = itemForIndex(modelIndex);
     if (!item) {
         return false;
     }
@@ -319,13 +342,17 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
 bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
 {
+    if (!m_ready) {
+        return false;
+    }
+
     if (!m_fakeRootItem) {
         m_fakeRootItem = new TagModelItem;
     }
 
-    TagModelItem * parentItem = (parent.isValid()
-                                 ? itemForIndex(parent)
-                                 : m_fakeRootItem);
+    const TagModelItem * parentItem = (parent.isValid()
+                                       ? itemForIndex(parent)
+                                       : m_fakeRootItem);
     if (!parentItem) {
         return false;
     }
@@ -342,6 +369,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         item.setLocalUid(localUid);
         Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(localUid))
 
+        // FIXME: insert some algorithm to ensure the unique name for this new tag item
         item.setName(tr("New tag"));
         item.setDirty(true);
         item.setParent(parentItem);
@@ -355,20 +383,24 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
 
 bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 {
+    if (!m_ready) {
+        return false;
+    }
+
     if (!m_fakeRootItem) {
         return false;
     }
 
-    TagModelItem * parentItem = (parent.isValid()
-                                 ? itemForIndex(parent)
-                                 : m_fakeRootItem);
+    const TagModelItem * parentItem = (parent.isValid()
+                                       ? itemForIndex(parent)
+                                       : m_fakeRootItem);
     if (!parentItem) {
         return false;
     }
 
     for(int i = 0; i < count; ++i)
     {
-        TagModelItem * item = parentItem->childAtRow(row + i);
+        const TagModelItem * item = parentItem->childAtRow(row + i);
         if (!item) {
             continue;
         }
@@ -393,7 +425,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
     beginRemoveRows(parent, row, row + count - 1);
     for(int i = 0; i < count; ++i)
     {
-        TagModelItem * item = parentItem->takeChild(row);
+        const TagModelItem * item = parentItem->takeChild(row);
         if (!item) {
             continue;
         }
@@ -466,15 +498,41 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
                                   LocalStorageManager::OrderDirection::type orderDirection,
                                   QString linkedNotebookGuid, QList<Tag> foundTags, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(linkedNotebookGuid)
-    Q_UNUSED(foundTags)
-    Q_UNUSED(requestId)
+    if (requestId != m_listTagsRequestId) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onListTagsComplete: flag = " << flag << ", limit = " << limit
+            << ", offset = " << offset << ", order = " << order << ", direction = "
+            << orderDirection << ", linked notebook guid = "
+            << (linkedNotebookGuid.isNull() ? QString("<null>") : linkedNotebookGuid)
+            << ", num found tags = " << foundTags.size() << ", request id = " << requestId);
+
+    for(auto it = foundTags.begin(), end = foundTags.end(); it != end; ++it) {
+        onTagAddedOrUpdated(*it);
+    }
+
+    m_listTagsRequestId = QUuid();
+
+    if (foundTags.size() == static_cast<int>(limit)) {
+        QNTRACE("The number of found tags matches the limit, requesting more tags from the local storage");
+        m_listTagsOffset += limit;
+        requestTagsList();
+        return;
+    }
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new TagModelItem;
+    }
+
+    mapParentAndChildren();
+
+    m_ready = true;
+    emit ready();
+
+    int dataSize = static_cast<int>(m_data.size());
+    beginInsertRows(QModelIndex(), 0, dataSize - 1);
+    endInsertRows();
 }
 
 void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -483,15 +541,19 @@ void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
                                 LocalStorageManager::OrderDirection::type orderDirection,
                                 QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(linkedNotebookGuid)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    if (requestId != m_listTagsRequestId) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onListTagsFailed: flag = " << flag << ", limit = " << limit
+            << ", offset = " << offset << ", order = " << order << ", direction = "
+            << orderDirection << ", linked notebook guid = "
+            << (linkedNotebookGuid.isNull() ? QString("<null>") : linkedNotebookGuid)
+            << ", error description = " << errorDescription << ", request id = " << requestId);
+
+    m_listTagsRequestId = QUuid();
+
+    emit notifyError(errorDescription);
 }
 
 void TagModel::onDeleteTagComplete(Tag tag, QUuid requestId)
@@ -580,7 +642,15 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
 
 void TagModel::requestTagsList()
 {
-    // TODO: implement
+    QNDEBUG("TagModel::requestTagsList: offset = " << m_listTagsOffset);
+
+    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
+    LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+
+    m_listTagsRequestId = QUuid::createUuid();
+    emit listTags(flags, TAG_LIST_LIMIT, m_listTagsOffset, order, direction, QString(), m_listTagsRequestId);
+    QNTRACE("Emitted the request to list tags: offset = " << m_listTagsOffset << ", request id = " << m_listTagsRequestId);
 }
 
 void TagModel::onTagAddedOrUpdated(const Tag & tag, bool * pAdded)
@@ -632,13 +702,13 @@ QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::
     return QVariant(accessibleText);
 }
 
-TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
+const TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
 {
     if (!index.isValid()) {
         return m_fakeRootItem;
     }
 
-    TagModelItem * item = reinterpret_cast<TagModelItem*>(index.internalPointer());
+    const TagModelItem * item = reinterpret_cast<const TagModelItem*>(index.internalPointer());
     if (item) {
         return item;
     }
@@ -646,13 +716,13 @@ TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
     return m_fakeRootItem;
 }
 
-bool TagModel::hasSynchronizableChildren(TagModelItem * item) const
+bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
 {
     if (item->isSynchronizable()) {
         return true;
     }
 
-    QList<TagModelItem*> children = item->children();
+    QList<const TagModelItem*> children = item->children();
     for(auto it = children.begin(), end = children.end(); it != end; ++it) {
         if (hasSynchronizableChildren(*it)) {
             return true;
@@ -660,6 +730,34 @@ bool TagModel::hasSynchronizableChildren(TagModelItem * item) const
     }
 
     return false;
+}
+
+void TagModel::mapParentAndChildren()
+{
+    QNDEBUG("TagModel::mapParentAndChildren");
+
+    TagDataByIndex & index = m_data.get<ByIndex>();
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    for(auto it = index.begin(), end = index.end(); it != end; ++it)
+    {
+        const TagModelItem & item = *it;
+
+        const QString & parentLocalUid = item.parentLocalUid();
+        if (!parentLocalUid.isEmpty())
+        {
+            auto parentIt = localUidIndex.find(parentLocalUid);
+            if (Q_UNLIKELY(parentIt == localUidIndex.end())) {
+                QString error = tr("Can't find parent tag for tag ") + "\"" + item.name() + "\"";
+                QNWARNING(error);
+                emit notifyError(error);
+            }
+            else {
+                const TagModelItem & parentItem = *parentIt;
+                parentItem.addChild(&item);
+            }
+        }
+    }
 }
 
 } // namespace qute_note

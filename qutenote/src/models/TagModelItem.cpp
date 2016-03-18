@@ -24,7 +24,7 @@ TagModelItem::TagModelItem(const QString & localUid,
 TagModelItem::~TagModelItem()
 {}
 
-TagModelItem * TagModelItem::childAtRow(const int row) const
+const TagModelItem * TagModelItem::childAtRow(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {
         return Q_NULLPTR;
@@ -33,12 +33,12 @@ TagModelItem * TagModelItem::childAtRow(const int row) const
     return m_children[row];
 }
 
-int TagModelItem::rowForChild(TagModelItem * child) const
+int TagModelItem::rowForChild(const TagModelItem * child) const
 {
     return m_children.indexOf(child);
 }
 
-void TagModelItem::insertChild(const int row, TagModelItem * item)
+void TagModelItem::insertChild(const int row, const TagModelItem * item) const
 {
     if (!item) {
         return;
@@ -48,7 +48,7 @@ void TagModelItem::insertChild(const int row, TagModelItem * item)
     m_children.insert(row, item);
 }
 
-void TagModelItem::addChild(TagModelItem * item)
+void TagModelItem::addChild(const TagModelItem * item) const
 {
     if (!item) {
         return;
@@ -58,7 +58,7 @@ void TagModelItem::addChild(TagModelItem * item)
     m_children.push_back(item);
 }
 
-bool TagModelItem::swapChildren(const int sourceRow, const int destRow)
+bool TagModelItem::swapChildren(const int sourceRow, const int destRow) const
 {
     if ((sourceRow < 0) || (sourceRow >= m_children.size()) ||
         (destRow < 0) || (destRow >= m_children.size()))
@@ -70,13 +70,13 @@ bool TagModelItem::swapChildren(const int sourceRow, const int destRow)
     return true;
 }
 
-TagModelItem * TagModelItem::takeChild(const int row)
+const TagModelItem * TagModelItem::takeChild(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {
         return Q_NULLPTR;
     }
 
-    TagModelItem * item = m_children.takeAt(row);
+    const TagModelItem * item = m_children.takeAt(row);
     if (item) {
         item->m_parent = Q_NULLPTR;
     }
@@ -98,7 +98,7 @@ QTextStream & TagModelItem::Print(QTextStream & strm) const
     else {
         strm << "\n";
         for(auto it = m_children.begin(), end = m_children.end(); it != end; ++it) {
-            TagModelItem * child = *it;
+            const TagModelItem * child = *it;
             strm << (child ? child->m_localUid : QString("<null>")) << "\n";
         }
         strm << "\n";
