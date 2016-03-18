@@ -106,6 +106,7 @@ private:
     bool hasSynchronizableChildren(const TagModelItem * item) const;
 
     void mapParentAndChildren();
+    void mapParent(const TagModelItem & item);
 
 private:
     struct ByLocalUid{};

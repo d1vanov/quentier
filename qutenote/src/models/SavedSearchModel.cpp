@@ -638,6 +638,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, b
     bool newSavedSearch = (savedSearchIt == orderedIndex.end());
     if (newSavedSearch)
     {
+        // FIXME: need to call beginInsertRows and endInsertRows for the appropriate rows
         auto insertionResult = orderedIndex.insert(item);
         savedSearchIt = insertionResult.first;
         if (pAdded) {

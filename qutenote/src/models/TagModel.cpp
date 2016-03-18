@@ -655,6 +655,43 @@ void TagModel::requestTagsList()
 
 void TagModel::onTagAddedOrUpdated(const Tag & tag, bool * pAdded)
 {
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    TagModelItem item(tag.localUid());
+
+    if (tag.hasName()) {
+        item.setName(tag.name());
+    }
+
+    if (tag.hasParentLocalUid()) {
+        item.setParentLocalUid(tag.parentLocalUid());
+    }
+
+    item.setSynchronizable(!tag.isLocal());
+    item.setDirty(tag.isDirty());
+
+    auto itemIt = localUidIndex.find(tag.localUid());
+    bool newTag = (itemIt == localUidIndex.end());
+    if (newTag)
+    {
+        // FIXME: if (m_ready == true), need to call beginInsertRows and endInsertRows for appropriate model index and rows
+
+        auto insertionResult = localUidIndex.insert(item);
+        itemIt = insertionResult.first;
+        if (pAdded) {
+            *pAdded = true;
+        }
+
+        mapParent(*itemIt);
+        return;
+    }
+    else
+    {
+        localUidIndex.replace(itemIt, item);
+    }
+
+    // TODO: create model indices pair and emit dataChanged signal as appropriate
+
     // TODO: implement
     Q_UNUSED(tag)
     Q_UNUSED(pAdded)
@@ -737,25 +774,29 @@ void TagModel::mapParentAndChildren()
     QNDEBUG("TagModel::mapParentAndChildren");
 
     TagDataByIndex & index = m_data.get<ByIndex>();
+
+    for(auto it = index.begin(), end = index.end(); it != end; ++it) {
+        const TagModelItem & item = *it;
+        mapParent(item);
+    }
+}
+
+void TagModel::mapParent(const TagModelItem & item)
+{
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    for(auto it = index.begin(), end = index.end(); it != end; ++it)
+    const QString & parentLocalUid = item.parentLocalUid();
+    if (!parentLocalUid.isEmpty())
     {
-        const TagModelItem & item = *it;
-
-        const QString & parentLocalUid = item.parentLocalUid();
-        if (!parentLocalUid.isEmpty())
-        {
-            auto parentIt = localUidIndex.find(parentLocalUid);
-            if (Q_UNLIKELY(parentIt == localUidIndex.end())) {
-                QString error = tr("Can't find parent tag for tag ") + "\"" + item.name() + "\"";
-                QNWARNING(error);
-                emit notifyError(error);
-            }
-            else {
-                const TagModelItem & parentItem = *parentIt;
-                parentItem.addChild(&item);
-            }
+        auto parentIt = localUidIndex.find(parentLocalUid);
+        if (Q_UNLIKELY(parentIt == localUidIndex.end())) {
+            QString error = tr("Can't find parent tag for tag ") + "\"" + item.name() + "\"";
+            QNWARNING(error);
+            emit notifyError(error);
+        }
+        else {
+            const TagModelItem & parentItem = *parentIt;
+            parentItem.addChild(&item);
         }
     }
 }
