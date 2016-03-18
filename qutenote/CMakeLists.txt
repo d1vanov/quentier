@@ -145,12 +145,16 @@ endif()
 # Set up the model tests
 set(MODEL_TEST_HEADERS
     src/tests/model_test/modeltest.h
-    src/tests/model_test/dynamictreemodel.h)
+    src/tests/model_test/dynamictreemodel.h
+    src/models/SavedSearchModel.h
+    src/models/SavedSearchModelItem.h)
 
 set(MODEL_TEST_SOURCES
     src/tests/model_test/modeltest.cpp
     src/tests/model_test/dynamictreemodel.cpp
-    src/tests/model_test/tst_modeltest.cpp)
+    src/tests/model_test/tst_modeltest.cpp
+    src/models/SavedSearchModel.cpp
+    src/models/SavedSearchModelItem.cpp)
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)
@@ -160,9 +164,13 @@ if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME}_model_test Gui)
   qt5_use_modules(${PROJECT_NAME}_model_test Widgets)
   qt5_use_modules(${PROJECT_NAME}_model_test Test)
+  qt5_use_modules(${PROJECT_NAME}_model_test Xml)
+  qt5_use_modules(${PROJECT_NAME}_model_test Sql)
 else()
   target_link_libraries(${PROJECT_NAME}_model_test ${QT_LIBRARIES})
 endif()
+
+target_link_libraries(${PROJECT_NAME}_model_test ${LIB_QUTE_NOTE} ${THIRDPARTY_LIBS})
 
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/client")

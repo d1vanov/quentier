@@ -142,6 +142,11 @@ int SavedSearchModel::columnCount(const QModelIndex & parent) const
 QModelIndex SavedSearchModel::index(int row, int column, const QModelIndex & parent) const
 {
     Q_UNUSED(parent)
+
+    if ((row < 0) || (column < 0)) {
+        return QModelIndex();
+    }
+
     return createIndex(row, column);
 }
 

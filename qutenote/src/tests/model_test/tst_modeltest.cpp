@@ -39,52 +39,67 @@
 **
 ****************************************************************************/
 
+// Modified by Dmitry Ivanov to support both Qt 4.8 and Qt 5.5+ versions + add tests for QuteNote's own models
+// in addition to some tests for Qt's built-in models
+
+#include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
+#include <qute_note/local_storage/LocalStorageManager.h>
+
+#include <qute_note/exception/IQuteNoteException.h>
+#include <qute_note/utility/SysInfo.h>
+
 #include <QtTest/QtTest>
 #include <QtGui/QtGui>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
+#include <QStringListModel>
+#include <QSortFilterProxyModel>
 #include <QApplication>
 
 #include "modeltest.h"
 #include "dynamictreemodel.h"
 
+#include "../../models/SavedSearchModel.h"
 
 class tst_ModelTest : public QObject
 {
     Q_OBJECT
-
 public:
-    tst_ModelTest() {}
+    tst_ModelTest();
     virtual ~tst_ModelTest() {}
 
-public slots:
+public Q_SLOTS:
     void initTestCase();
     void cleanupTestCase();
     void init();
     void cleanup();
 
-private slots:
+private Q_SLOTS:
     void stringListModel();
     void treeWidgetModel();
     void standardItemModel();
     void testInsertThroughProxy();
     void moveSourceItems();
     void testResetThroughProxy();
+
+    void testSavedSearchModel();
+
+private:
+    qute_note::LocalStorageManagerThreadWorker  * m_pLocalStorageWorker;
 };
 
-
+tst_ModelTest::tst_ModelTest() :
+    m_pLocalStorageWorker(Q_NULLPTR)
+{}
 
 void tst_ModelTest::initTestCase()
-{
-}
+{}
 
 void tst_ModelTest::cleanupTestCase()
-{
-}
+{}
 
 void tst_ModelTest::init()
 {
-
 }
 
 void tst_ModelTest::cleanup()
@@ -338,6 +353,33 @@ void tst_ModelTest::testResetThroughProxy()
 
     QCOMPARE(observer.storePersistentFailureCount, 0);
     QCOMPARE(observer.checkPersistentFailureCount, 0);
+}
+
+void tst_ModelTest::testSavedSearchModel()
+{
+    using namespace qute_note;
+
+    try {
+        delete m_pLocalStorageWorker;
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_fake_user", 300, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker->init();
+        SavedSearchModel * model = new SavedSearchModel(*m_pLocalStorageWorker, this);
+        ModelTest t1(model);
+        Q_UNUSED(t1)
+    }
+    catch(const IQuteNoteException & exception) {
+        SysInfo & sysInfo = SysInfo::GetSingleton();
+        QFAIL(qPrintable("Caught QuteNote exception: " + exception.errorMessage() +
+              ", what: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace()));
+    }
+    catch(const std::exception & exception) {
+        SysInfo & sysInfo = SysInfo::GetSingleton();
+        QFAIL(qPrintable("Caught std::exception: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace()));
+    }
+    catch(...) {
+        SysInfo & sysInfo = SysInfo::GetSingleton();
+        QFAIL(qPrintable("Caught some unknown exception; stack trace: " + sysInfo.GetStackTrace()));
+    }
 }
 
 int main(int argc, char *argv[])
