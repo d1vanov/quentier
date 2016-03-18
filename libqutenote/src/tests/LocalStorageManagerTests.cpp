@@ -284,7 +284,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     // ========== Check Update + Find ==========
     Tag modifiedTag(tag);
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
-    modifiedTag.setLinkedNotebookGuid(QString());
+    modifiedTag.setLinkedNotebookGuid(QString(""));
     modifiedTag.setName(tag.name() + "_modified");
     modifiedTag.setShortcut(true);
     modifiedTag.unsetLocalUid();
@@ -295,7 +295,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     }
 
     if (!modifiedTag.hasLinkedNotebookGuid()) {
-        foundTag.setLinkedNotebookGuid(QString());
+        foundTag.setLinkedNotebookGuid(QString(""));
     }
 
     res = localStorageManager.findTag(foundTag, errorDescription);
@@ -901,7 +901,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook
     // ========== Check Update + Find ==========
     Notebook modifiedNotebook(notebook);
     modifiedNotebook.setUpdateSequenceNumber(notebook.updateSequenceNumber() + 1);
-    modifiedNotebook.setLinkedNotebookGuid(QString());
+    modifiedNotebook.setLinkedNotebookGuid(QString(""));
     modifiedNotebook.setName(notebook.name() + "_modified");
     modifiedNotebook.setDefaultNotebook(false);
     modifiedNotebook.setLastUsed(true);

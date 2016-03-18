@@ -2232,9 +2232,12 @@ QList<Tag> LocalStorageManagerPrivate::listTags(const LocalStorageManager::ListO
 {
     QNDEBUG("LocalStorageManagerPrivate::listTags: flag = " << flag);
 
-    QString linkedNotebookGuidSqlQueryCondition = (linkedNotebookGuid.isEmpty()
-                                                   ? "linkedNotebookGuid IS NULL"
-                                                   : QString("linkedNotebookGuid = '%1'").arg(linkedNotebookGuid));
+    QString linkedNotebookGuidSqlQueryCondition;
+    if (!linkedNotebookGuid.isNull()) {
+       linkedNotebookGuidSqlQueryCondition = (linkedNotebookGuid.isEmpty()
+                                              ? "linkedNotebookGuid IS NULL"
+                                              : QString("linkedNotebookGuid = '%1'").arg(linkedNotebookGuid));
+    }
 
     return listObjects<Tag, LocalStorageManager::ListTagsOrder::type>(flag, errorDescription, limit, offset, order, orderDirection,
                                                                       linkedNotebookGuidSqlQueryCondition);

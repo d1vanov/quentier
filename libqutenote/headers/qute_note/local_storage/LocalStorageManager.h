@@ -668,8 +668,9 @@ public:
      * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
-     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
-     * otherwise, notebooks from corresponding linked notebook would be listed
+     * @param linkedNotebookGuid - if it's null, the method would list tags ignoring their belonging to the current account
+     * or to some linked notebook; if it's empty, only the tags from user's own account would be listed;
+     * otherwise, only the tags corresponding to the certain linked notebook would be listed
      * @return the list of found tags within the account
      */
     QList<Tag> listAllTags(QString & errorDescription, const size_t limit = 0,
@@ -687,8 +688,9 @@ public:
      * @param order - allows to specify particular ordering of tags in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
-     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
-     * otherwise, notebooks from corresponding linked notebook would be listed
+     * @param linkedNotebookGuid - if it's null, the method would list tags ignoring their belonging to the current account
+     * or to some linked notebook; if it's empty, only the tags from user's own account would be listed;
+     * otherwise, only the tags corresponding to the certain linked notebook would be listed
      * @return either list of tags within the account conforming to the filter or empty list
      * in cases of error or no tags conforming to the filter exist within the account
      */
