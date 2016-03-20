@@ -560,11 +560,11 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
     QObject::connect(this, QNSIGNAL(SavedSearchModel,findSavedSearch,SavedSearch,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindSavedSearchRequest,SavedSearch,QUuid));
-    QObject::connect(this, QNSIGNAL(SavedSearchModel,listSavedSearches,LocalStorageManager::ListObjectsOptions::type,
+    QObject::connect(this, QNSIGNAL(SavedSearchModel,listSavedSearches,LocalStorageManager::ListObjectsOptions,
                                     size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                     LocalStorageManager::OrderDirection::type,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListSavedSearchesRequest,
-                                                              LocalStorageManager::ListObjectsOptions::type,
+                                                              LocalStorageManager::ListObjectsOptions,
                                                               size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                               LocalStorageManager::OrderDirection::type,QUuid));
     QObject::connect(this, QNSIGNAL(SavedSearchModel,expungeSavedSearch,SavedSearch,QUuid),
@@ -583,17 +583,17 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(SavedSearchModel,onFindSavedSearchComplete,SavedSearch,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QString,QUuid),
                      this, QNSLOT(SavedSearchModel,onFindSavedSearchFailed,SavedSearch,QString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions::type,
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid),
-                     this, QNSLOT(SavedSearchModel,onListSavedSearchesComplete,LocalStorageManager::ListObjectsOptions::type,
+                     this, QNSLOT(SavedSearchModel,onListSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type, LocalStorageManager::OrderDirection::type,
                                   QList<SavedSearch>,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
-                                                                LocalStorageManager::ListObjectsOptions::type,
+                                                                LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     this, QNSLOT(SavedSearchModel,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions::type,
+                     this, QNSLOT(SavedSearchModel,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
                                   QString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
