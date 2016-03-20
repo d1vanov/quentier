@@ -129,21 +129,35 @@ QVariant SavedSearchModel::headerData(int section, Qt::Orientation orientation, 
 
 int SavedSearchModel::rowCount(const QModelIndex & parent) const
 {
-    Q_UNUSED(parent)
+    if (parent.isValid()) {
+        return 0;
+    }
+
     return static_cast<int>(m_data.size());
 }
 
 int SavedSearchModel::columnCount(const QModelIndex & parent) const
 {
-    Q_UNUSED(parent)
+    if (parent.isValid()) {
+        return 0;
+    }
+
     return NUM_SAVED_SEARCH_MODEL_COLUMNS;
 }
 
 QModelIndex SavedSearchModel::index(int row, int column, const QModelIndex & parent) const
 {
-    Q_UNUSED(parent)
+    if (parent.isValid()) {
+        return QModelIndex();
+    }
 
     if ((row < 0) || (column < 0)) {
+        return QModelIndex();
+    }
+
+    if ((row >= static_cast<int>(m_data.size())) ||
+        (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
+    {
         return QModelIndex();
     }
 
@@ -457,21 +471,8 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
         return;
     }
 
-    int originalSize = static_cast<int>(m_data.size());
-    int numAddedRows = 0;
-
-    for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it)
-    {
-        bool added = false;
-        onSavedSearchAddedOrUpdated(*it, &added);
-        if (added) {
-            ++numAddedRows;
-        }
-    }
-
-    if (numAddedRows) {
-        emit beginInsertRows(QModelIndex(), originalSize, originalSize + numAddedRows - 1);
-        emit endInsertRows();
+    for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it) {
+        onSavedSearchAddedOrUpdated(*it);
     }
 
     m_listSavedSearchesRequestId = QUuid();
@@ -616,7 +617,7 @@ void SavedSearchModel::requestSavedSearchesList()
             << ", request id = " << m_listSavedSearchesRequestId);
 }
 
-void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, bool * pAdded)
+void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 {
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
@@ -636,19 +637,11 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, b
 
     SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(search.localUid());
     bool newSavedSearch = (savedSearchIt == orderedIndex.end());
-    if (newSavedSearch)
-    {
-        // FIXME: need to call beginInsertRows and endInsertRows for the appropriate rows
+    if (newSavedSearch) {
         auto insertionResult = orderedIndex.insert(item);
         savedSearchIt = insertionResult.first;
-        if (pAdded) {
-            *pAdded = true;
-        }
-
-        return;
     }
-    else
-    {
+    else {
         orderedIndex.replace(savedSearchIt, item);
     }
 
@@ -668,10 +661,15 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search, b
         return;
     }
 
-    QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), 0);
-    QModelIndex modelIndexTo = createIndex(static_cast<int>(position), NUM_SAVED_SEARCH_MODEL_COLUMNS - 1);
-
-    emit dataChanged(modelIndexFrom, modelIndexTo);
+    if (newSavedSearch) {
+        beginInsertRows(QModelIndex(), static_cast<int>(position), static_cast<int>(position));
+        endInsertRows();
+    }
+    else {
+        QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), 0);
+        QModelIndex modelIndexTo = createIndex(static_cast<int>(position), NUM_SAVED_SEARCH_MODEL_COLUMNS - 1);
+        emit dataChanged(modelIndexFrom, modelIndexTo);
+    }
 }
 
 QVariant SavedSearchModel::dataText(const int row, const Columns::type column) const

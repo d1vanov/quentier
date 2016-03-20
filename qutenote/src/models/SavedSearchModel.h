@@ -91,7 +91,7 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestSavedSearchesList();
 
-    void onSavedSearchAddedOrUpdated(const SavedSearch & search, bool * pAdded = Q_NULLPTR);
+    void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
     QVariant dataText(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;

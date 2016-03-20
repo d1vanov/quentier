@@ -43,10 +43,9 @@
 // in addition to some tests for Qt's built-in models
 
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
-#include <qute_note/local_storage/LocalStorageManager.h>
-
 #include <qute_note/exception/IQuteNoteException.h>
 #include <qute_note/utility/SysInfo.h>
+#include <qute_note/utility/EventLoopWithExitStatus.h>
 
 #include <QtTest/QtTest>
 #include <QtGui/QtGui>
@@ -60,6 +59,10 @@
 #include "dynamictreemodel.h"
 
 #include "../../models/SavedSearchModel.h"
+#include "SavedSearchModelTestHelper.h"
+
+// 10 minutes should be enough
+#define MAX_ALLOWED_MILLISECONDS 600000
 
 class tst_ModelTest : public QObject
 {
@@ -359,26 +362,40 @@ void tst_ModelTest::testSavedSearchModel()
 {
     using namespace qute_note;
 
-    try {
+    int res = -1;
+    {
+        QTimer timer;
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setSingleShot(true);
+
         delete m_pLocalStorageWorker;
         m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_fake_user", 300, /* start from scratch = */ true, this);
         m_pLocalStorageWorker->init();
-        SavedSearchModel * model = new SavedSearchModel(*m_pLocalStorageWorker, this);
-        ModelTest t1(model);
-        Q_UNUSED(t1)
+
+        SavedSearchModelTestHelper savedSearchModelTestHelper(m_pLocalStorageWorker);
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&savedSearchModelTestHelper, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&savedSearchModelTestHelper, SIGNAL(failure()), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &savedSearchModelTestHelper, SLOT(test()));
+        res = loop.exec();
     }
-    catch(const IQuteNoteException & exception) {
-        SysInfo & sysInfo = SysInfo::GetSingleton();
-        QFAIL(qPrintable("Caught QuteNote exception: " + exception.errorMessage() +
-              ", what: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace()));
+
+    if (res == -1) {
+        QFAIL("Internal error: incorrect return status from saved search model async tester");
     }
-    catch(const std::exception & exception) {
-        SysInfo & sysInfo = SysInfo::GetSingleton();
-        QFAIL(qPrintable("Caught std::exception: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace()));
+    else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in saved search model async tester");
     }
-    catch(...) {
-        SysInfo & sysInfo = SysInfo::GetSingleton();
-        QFAIL(qPrintable("Caught some unknown exception; stack trace: " + sysInfo.GetStackTrace()));
+    else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Saved search model async tester failed to finish in time");
     }
 }
 
