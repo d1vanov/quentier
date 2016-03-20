@@ -525,7 +525,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
         m_fakeRootItem = new TagModelItem;
     }
 
-    mapParentAndChildren();
+    mapParentItems();
 
     m_ready = true;
     emit ready();
@@ -653,7 +653,7 @@ void TagModel::requestTagsList()
     QNTRACE("Emitted the request to list tags: offset = " << m_listTagsOffset << ", request id = " << m_listTagsRequestId);
 }
 
-void TagModel::onTagAddedOrUpdated(const Tag & tag, bool * pAdded)
+void TagModel::onTagAddedOrUpdated(const Tag & tag)
 {
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -672,29 +672,46 @@ void TagModel::onTagAddedOrUpdated(const Tag & tag, bool * pAdded)
 
     auto itemIt = localUidIndex.find(tag.localUid());
     bool newTag = (itemIt == localUidIndex.end());
-    if (newTag)
-    {
-        // FIXME: if (m_ready == true), need to call beginInsertRows and endInsertRows for appropriate model index and rows
-
+    if (newTag) {
         auto insertionResult = localUidIndex.insert(item);
         itemIt = insertionResult.first;
-        if (pAdded) {
-            *pAdded = true;
-        }
-
-        mapParent(*itemIt);
-        return;
+        mapParentItem(*itemIt);
     }
-    else
-    {
+    else {
         localUidIndex.replace(itemIt, item);
     }
 
-    // TODO: create model indices pair and emit dataChanged signal as appropriate
+    if (!m_ready) {
+        QNTRACE("The tag model is not ready yet, won't emit data changed or rows insertion notification");
+        return;
+    }
 
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(pAdded)
+    const TagModelItem * parentItem = itemIt->parent();
+    if (!parentItem) {
+        parentItem = m_fakeRootItem;
+        itemIt->setParent(parentItem);
+    }
+
+    int itemIndex = parentItem->rowForChild(&(*itemIt));
+    if (Q_UNLIKELY(itemIndex < 0)) {
+        QString error = QT_TR_NOOP("Can't find the row of a child item just added or updated in TagModel");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QModelIndex parentItemModelIndex = indexForItem(parentItem);
+
+    if (newTag) {
+        beginInsertRows(parentItemModelIndex, itemIndex, itemIndex);
+        endInsertRows();
+    }
+    else {
+        // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+        QModelIndex modelIndexFrom = createIndex(itemIndex, 0, const_cast<TagModelItem*>(&(*itemIt)));
+        QModelIndex modelIndexTo = createIndex(itemIndex, NUM_TAG_MODEL_COLUMNS - 1, const_cast<TagModelItem*>(&(*itemIt)));
+        emit dataChanged(modelIndexFrom, modelIndexTo);
+    }
 }
 
 QVariant TagModel::dataText(const TagModelItem & item, const Columns::type column) const
@@ -753,6 +770,13 @@ const TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
     return m_fakeRootItem;
 }
 
+QModelIndex TagModel::indexForItem(const TagModelItem * item) const
+{
+    // TODO: implement
+    Q_UNUSED(item)
+    return QModelIndex();
+}
+
 bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
 {
     if (item->isSynchronizable()) {
@@ -769,19 +793,19 @@ bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
     return false;
 }
 
-void TagModel::mapParentAndChildren()
+void TagModel::mapParentItems()
 {
-    QNDEBUG("TagModel::mapParentAndChildren");
+    QNDEBUG("TagModel::mapParentItems");
 
     TagDataByIndex & index = m_data.get<ByIndex>();
 
     for(auto it = index.begin(), end = index.end(); it != end; ++it) {
         const TagModelItem & item = *it;
-        mapParent(item);
+        mapParentItem(item);
     }
 }
 
-void TagModel::mapParent(const TagModelItem & item)
+void TagModel::mapParentItem(const TagModelItem & item)
 {
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 

@@ -96,22 +96,38 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestTagsList();
 
-    void onTagAddedOrUpdated(const Tag & tag, bool * pAdded = Q_NULLPTR);
+    void onTagAddedOrUpdated(const Tag & tag);
 
     QVariant dataText(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
 
     const TagModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const TagModelItem * item) const;
 
     bool hasSynchronizableChildren(const TagModelItem * item) const;
 
-    void mapParentAndChildren();
-    void mapParent(const TagModelItem & item);
+    void mapParentItems();
+    void mapParentItem(const TagModelItem & item);
 
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
     struct ByIndex{};
+    struct ByNameUpper{};
+
+    struct NameComparator
+    {
+        bool operator()(const QString & lhs, const QString & rhs) const
+        {
+            if (lhs.isEmpty() || rhs.isEmpty()) {
+                return true;
+            }
+
+            QString lhsUpper = lhs.toUpper();
+            QString rhsUpper = rhs.toUpper();
+            return (lhsUpper.localeAwareCompare(rhsUpper) < 0);
+        }
+    };
 
     typedef boost::multi_index_container<
         TagModelItem,
@@ -126,6 +142,11 @@ private:
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByParentLocalUid>,
                 boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::parentLocalUid>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<ByNameUpper>,
+                boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::name>,
+                NameComparator
             >
         >
     > TagData;
