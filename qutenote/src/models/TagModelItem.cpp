@@ -3,14 +3,18 @@
 namespace qute_note {
 
 TagModelItem::TagModelItem(const QString & localUid,
+                           const QString & guid,
                            const QString & name,
                            const QString & parentLocalUid,
+                           const QString & parentGuid,
                            const bool isSynchronizable,
                            const bool isDirty,
                            TagModelItem * parent) :
     m_localUid(localUid),
+    m_guid(guid),
     m_name(name),
     m_parentLocalUid(parentLocalUid),
+    m_parentGuid(parentGuid),
     m_isSynchronizable(isSynchronizable),
     m_isDirty(isDirty),
     m_parent(parent),

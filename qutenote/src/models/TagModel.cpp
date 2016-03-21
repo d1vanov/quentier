@@ -735,12 +735,20 @@ void TagModel::onTagAddedOrUpdated(const Tag & tag)
 
     TagModelItem item(tag.localUid());
 
+    if (tag.hasGuid()) {
+        item.setGuid(tag.guid());
+    }
+
     if (tag.hasName()) {
         item.setName(tag.name());
     }
 
     if (tag.hasParentLocalUid()) {
         item.setParentLocalUid(tag.parentLocalUid());
+    }
+
+    if (tag.hasParentGuid()) {
+        item.setParentGuid(tag.parentGuid());
     }
 
     item.setSynchronizable(!tag.isLocal());

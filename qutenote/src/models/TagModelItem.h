@@ -9,8 +9,10 @@ class TagModelItem: public Printable
 {
 public:
     explicit TagModelItem(const QString & localUid = QString(),
+                          const QString & guid = QString(),
                           const QString & name = QString(),
                           const QString & parentLocalUid = QString(),
+                          const QString & parentGuid = QString(),
                           const bool isSynchronizable = false,
                           const bool isDirty = false,
                           TagModelItem * parent = Q_NULLPTR);
@@ -19,10 +21,16 @@ public:
     const QString & localUid() const { return m_localUid; }
     void setLocalUid(const QString & localUid) { m_localUid = localUid; }
 
+    const QString & guid() const { return m_guid; }
+    void setGuid(const QString & guid) { m_guid = guid; }
+
     QString nameUpper() const { return m_name.toUpper(); }
 
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }
+
+    const QString & parentGuid() const { return m_parentGuid; }
+    void setParentGuid(const QString & parentGuid) { m_parentGuid = parentGuid; }
 
     const QString & parentLocalUid() const { return m_parentLocalUid; }
     void setParentLocalUid(const QString & parentLocalUid) { m_parentLocalUid = parentLocalUid; }
@@ -52,8 +60,10 @@ public:
 
 private:
     QString     m_localUid;
+    QString     m_guid;
     QString     m_name;
     QString     m_parentLocalUid;
+    QString     m_parentGuid;
     bool        m_isSynchronizable;
     bool        m_isDirty;
 
