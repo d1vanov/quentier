@@ -109,32 +109,17 @@ private:
     void mapParentItems();
     void mapParentItem(const TagModelItem & item);
 
+    QString nameForNewTag() const;
+    void removeItemByLocalUid(const QString & localUid);
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
-    struct ByIndex{};
     struct ByNameUpper{};
-
-    struct NameComparator
-    {
-        bool operator()(const QString & lhs, const QString & rhs) const
-        {
-            if (lhs.isEmpty() || rhs.isEmpty()) {
-                return true;
-            }
-
-            QString lhsUpper = lhs.toUpper();
-            QString rhsUpper = rhs.toUpper();
-            return (lhsUpper.localeAwareCompare(rhsUpper) < 0);
-        }
-    };
 
     typedef boost::multi_index_container<
         TagModelItem,
         boost::multi_index::indexed_by<
-            boost::multi_index::random_access<
-                boost::multi_index::tag<ByIndex>
-            >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::localUid>
@@ -145,15 +130,14 @@ private:
             >,
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByNameUpper>,
-                boost::multi_index::const_mem_fun<TagModelItem,const QString&,&TagModelItem::name>,
-                NameComparator
+                boost::multi_index::const_mem_fun<TagModelItem,QString,&TagModelItem::nameUpper>
             >
         >
     > TagData;
 
     typedef TagData::index<ByLocalUid>::type TagDataByLocalUid;
     typedef TagData::index<ByParentLocalUid>::type TagDataByParentLocalUid;
-    typedef TagData::index<ByIndex>::type TagDataByIndex;
+    typedef TagData::index<ByNameUpper>::type TagDataByNameUpper;
 
 private:
     TagData                 m_data;
@@ -166,9 +150,12 @@ private:
 
     QSet<QUuid>             m_addTagRequestIds;
     QSet<QUuid>             m_updateTagRequestIds;
+    QSet<QUuid>             m_deleteTagRequestIds;
     QSet<QUuid>             m_expungeTagRequestIds;
 
     QSet<QUuid>             m_findTagRequestIds;
+
+    mutable int             m_lastNewTagNameCounter;
 };
 
 } // namespace qute_note

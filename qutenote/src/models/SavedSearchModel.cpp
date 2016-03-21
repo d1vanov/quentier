@@ -418,7 +418,7 @@ void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QString err
     Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
 
     requestId = QUuid::createUuid();
-    Q_UNUSED(m_findSavedSearchRequestIds.insert(requestId));
+    Q_UNUSED(m_findSavedSearchRequestIds.insert(requestId))
     emit findSavedSearch(search, requestId);
     QNTRACE("Emitted the request to find the saved search: local uid = " << search.localUid()
             << ", request id = " << requestId);

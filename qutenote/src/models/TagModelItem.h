@@ -19,6 +19,8 @@ public:
     const QString & localUid() const { return m_localUid; }
     void setLocalUid(const QString & localUid) { m_localUid = localUid; }
 
+    QString nameUpper() const { return m_name.toUpper(); }
+
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }
 

@@ -20,8 +20,10 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     m_tagItemsNotYetInLocalStorageUids(),
     m_addTagRequestIds(),
     m_updateTagRequestIds(),
+    m_deleteTagRequestIds(),
     m_expungeTagRequestIds(),
-    m_findTagRequestIds()
+    m_findTagRequestIds(),
+    m_lastNewTagNameCounter(0)
 {
     createConnections(localStorageManagerThreadWorker);
     requestTagsList();
@@ -283,7 +285,9 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     case Columns::Synchronizable:
         {
             if (itemCopy.isSynchronizable()) {
-                emit notifyError(QT_TR_NOOP("Can't make already synchronizable tag not synchronizable"));
+                QString error = QT_TR_NOOP("Can't make already synchronizable tag not synchronizable");
+                QNINFO(error);
+                emit notifyError(error);
                 return false;
             }
 
@@ -300,7 +304,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     auto it = index.find(itemCopy.localUid());
     if (Q_UNLIKELY(it == index.end())) {
         QString error = QT_TR_NOOP("Internal error: can't find item in TagModel by its local uid");
-        QNWARNING(error);
+        QNWARNING(error << ", item: " << itemCopy);
         emit notifyError(error);
         return false;
     }
@@ -369,8 +373,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         item.setLocalUid(localUid);
         Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(localUid))
 
-        // FIXME: insert some algorithm to ensure the unique name for this new tag item
-        item.setName(tr("New tag"));
+        item.setName(nameForNewTag());
         item.setDirty(true);
         item.setParent(parentItem);
 
@@ -449,47 +452,93 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 
 void TagModel::onAddTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    QNDEBUG("TagModel::onAddTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    auto it = m_addTagRequestIds.find(requestId);
+    if (it != m_addTagRequestIds.end()) {
+        Q_UNUSED(m_addTagRequestIds.erase(it))
+        return;
+    }
+
+    onTagAddedOrUpdated(tag);
 }
 
 void TagModel::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_addTagRequestIds.find(requestId);
+    if (it == m_addTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onAddTagFailed: tag = " << tag << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_addTagRequestIds.erase(it))
+
+    emit notifyError(errorDescription);
+
+    removeItemByLocalUid(tag.localUid());
 }
 
 void TagModel::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    QNDEBUG("TagModel::onUpdateTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    auto it = m_updateTagRequestIds.find(requestId);
+    if (it != m_updateTagRequestIds.end()) {
+        Q_UNUSED(m_updateTagRequestIds.erase(it))
+        return;
+    }
+
+    onTagAddedOrUpdated(tag);
 }
 
 void TagModel::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_updateTagRequestIds.find(requestId);
+    if (it == m_updateTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onUpdateTagFailed: tag = " << tag << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_updateTagRequestIds.erase(it))
+
+    requestId = QUuid::createUuid();
+    Q_UNUSED(m_findTagRequestIds.insert(requestId))
+    emit findTag(tag, requestId);
+    QNTRACE("Emitted the request to find the tag: local uid = " << tag.localUid()
+            << ", request id = " << requestId);
 }
 
 void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    auto it = m_findTagRequestIds.find(requestId);
+    if (it == m_findTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onFindTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    Q_UNUSED(m_findTagRequestIds.erase(it))
+
+    onTagAddedOrUpdated(tag);
 }
 
 void TagModel::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_findTagRequestIds.find(requestId);
+    if (it == m_findTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onFindTagFailed: tag = " << tag << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_findTagRequestIds.erase(it))
+
+    emit notifyError(errorDescription);
 }
 
 void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
@@ -558,32 +607,59 @@ void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
 
 void TagModel::onDeleteTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    QNDEBUG("TagModel::onDeleteTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    auto it = m_deleteTagRequestIds.find(requestId);
+    if (it != m_deleteTagRequestIds.end()) {
+        Q_UNUSED(m_deleteTagRequestIds.erase(it))
+        return;
+    }
+
+    onTagAddedOrUpdated(tag);
 }
 
 void TagModel::onDeleteTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_deleteTagRequestIds.find(requestId);
+    if (it == m_deleteTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onDeleteTagFailed: tag = " << tag << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_deleteTagRequestIds.erase(it))
+
+    tag.setDeleted(false);
+    onTagAddedOrUpdated(tag);
 }
 
 void TagModel::onExpungeTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    QNDEBUG("TagModel::onExpungeTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    auto it = m_expungeTagRequestIds.find(requestId);
+    if (it != m_expungeTagRequestIds.end()) {
+        Q_UNUSED(m_expungeTagRequestIds.erase(it))
+        return;
+    }
+
+    removeItemByLocalUid(tag.localUid());
 }
 
 void TagModel::onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_expungeTagRequestIds.find(requestId);
+    if (it == m_expungeTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("TagModel::onExpungeTagFailed: tag = " << tag << "\nError description = " << errorDescription
+            << ", rwquest id = " << requestId);
+
+    Q_UNUSED(m_expungeTagRequestIds.erase(it))
+
+    onTagAddedOrUpdated(tag);
 }
 
 void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
@@ -772,9 +848,25 @@ const TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
 
 QModelIndex TagModel::indexForItem(const TagModelItem * item) const
 {
-    // TODO: implement
-    Q_UNUSED(item)
-    return QModelIndex();
+    if (!item) {
+        return QModelIndex();
+    }
+
+    const TagModelItem * parentItem = item->parent();
+    if (!parentItem) {
+        parentItem = m_fakeRootItem;
+        item->setParent(parentItem);
+    }
+
+    int row = parentItem->rowForChild(item);
+    if (Q_UNLIKELY(row < 0)) {
+        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in TagModel");
+        QNWARNING(error << ", child item: " << *item << "\nParent item: " << *parentItem);
+        return QModelIndex();
+    }
+
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    return createIndex(row, Columns::Name, const_cast<TagModelItem*>(item));
 }
 
 bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
@@ -797,9 +889,9 @@ void TagModel::mapParentItems()
 {
     QNDEBUG("TagModel::mapParentItems");
 
-    TagDataByIndex & index = m_data.get<ByIndex>();
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
-    for(auto it = index.begin(), end = index.end(); it != end; ++it) {
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
         const TagModelItem & item = *it;
         mapParentItem(item);
     }
@@ -823,6 +915,59 @@ void TagModel::mapParentItem(const TagModelItem & item)
             parentItem.addChild(&item);
         }
     }
+}
+
+QString TagModel::nameForNewTag() const
+{
+    QString baseName = QT_TR_NOOP("New tag");
+    if (m_lastNewTagNameCounter != 0) {
+        baseName += " (" + QString::number(m_lastNewTagNameCounter) + ")";
+    }
+
+    const TagDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    while(true)
+    {
+        auto it = nameIndex.find(baseName.toUpper());
+        if (it == nameIndex.end()) {
+            return baseName;
+        }
+
+        ++m_lastNewTagNameCounter;
+        baseName += " (" + QString::number(m_lastNewTagNameCounter) + ")";
+    }
+}
+
+void TagModel::removeItemByLocalUid(const QString & localUid)
+{
+    QNDEBUG("TagModel::removeItemByLocalUid: " << localUid);
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        QNDEBUG("Can't find item to remove from the tag model");
+        return;
+    }
+
+    const TagModelItem & item = *itemIt;
+
+    const TagModelItem * parentItem = item.parent();
+    if (!parentItem) {
+        parentItem = m_fakeRootItem;
+        item.setParent(parentItem);
+    }
+
+    int row = parentItem->rowForChild(&item);
+    if (Q_UNLIKELY(row < 0)) {
+        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in TagModel");
+        QNWARNING(error << ", child item: " << item << "\nParent item: " << *parentItem);
+        return;
+    }
+
+    QModelIndex parentItemModelIndex = indexForItem(parentItem);
+    beginRemoveRows(parentItemModelIndex, row, row);
+    Q_UNUSED(localUidIndex.erase(itemIt))
+    endRemoveRows();
 }
 
 } // namespace qute_note
