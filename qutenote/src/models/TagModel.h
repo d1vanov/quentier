@@ -16,6 +16,9 @@
 #include <boost/multi_index/ordered_index.hpp>
 #endif
 
+#define TAG_MODEL_MIME_TYPE "application/x-com.qute_note.tagmodeldatalist"
+#define TAG_MODEL_MIME_DATA_MAX_COMPRESSION (9)
+
 namespace qute_note {
 
 class TagModel: public QAbstractItemModel
@@ -37,7 +40,10 @@ public:
 
     bool ready() const { return m_ready; }
 
-private:
+    const TagModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const TagModelItem * item) const;
+
+public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
     virtual QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
@@ -52,6 +58,19 @@ private:
     virtual bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
     virtual bool insertRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+
+    // Drag-n-drop interfaces
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    virtual Qt::DropActions supportedDragActions() const Q_DECL_OVERRIDE { return Qt::MoveAction; }
+#else
+    Qt::DropActions supportedDragActions() const { return Qt::MoveAction; }
+#endif
+
+    virtual Qt::DropActions supportedDropActions() const Q_DECL_OVERRIDE { return Qt::MoveAction; }
+    virtual QStringList mimeTypes() const Q_DECL_OVERRIDE;
+    virtual QMimeData * mimeData(const QModelIndexList & indexes) const Q_DECL_OVERRIDE;
+    virtual bool dropMimeData(const QMimeData * data, Qt::DropAction action,
+                              int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void ready();
@@ -101,13 +120,10 @@ private:
     QVariant dataText(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
 
-    const TagModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(const TagModelItem * item) const;
-
     bool hasSynchronizableChildren(const TagModelItem * item) const;
 
-    void mapParentItems();
-    void mapParentItem(const TagModelItem & item);
+    void mapChildItems();
+    void mapChildItems(const TagModelItem & item);
 
     QString nameForNewTag() const;
     void removeItemByLocalUid(const QString & localUid);

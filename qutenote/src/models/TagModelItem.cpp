@@ -111,4 +111,20 @@ QTextStream & TagModelItem::Print(QTextStream & strm) const
     return strm;
 }
 
+QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
+{
+    out << item.m_localUid << item.m_guid << item.m_name << item.m_parentLocalUid
+        << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty;
+
+    return out;
+}
+
+QDataStream & operator>>(QDataStream & in, TagModelItem & item)
+{
+    in >> item.m_localUid >> item.m_guid >> item.m_name >> item.m_parentLocalUid
+       >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty;
+
+    return in;
+}
+
 } // namespace qute_note

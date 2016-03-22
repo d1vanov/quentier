@@ -2,6 +2,7 @@
 #define __QUTE_NOTE__MODELS__TAG_MODEL_ITEM_H
 
 #include <qute_note/utility/Printable.h>
+#include <QDataStream>
 
 namespace qute_note {
 
@@ -57,6 +58,9 @@ public:
     const TagModelItem * takeChild(const int row) const;
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+
+    friend QDataStream & operator<<(QDataStream & out, const TagModelItem & item);
+    friend QDataStream & operator>>(QDataStream & in, TagModelItem & item);
 
 private:
     QString     m_localUid;

@@ -3,6 +3,7 @@
 
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
+#include <qute_note/utility/UidGenerator.h>
 #include <QString>
 #include <QUuid>
 
@@ -20,20 +21,12 @@ public:
 
 #define _DEFINE_LOCAL_UID_GETTER(type) \
     const QString type::localUid() const { \
-        if (d->m_localUid.isNull()) { \
-            return QString(); \
-        } \
-        else { \
-            QString result = d->m_localUid.toString(); \
-            result.remove(result.size()-1,1); \
-            result.remove(0,1); \
-            return result; \
-        } \
+        return UidGenerator::UidToString(d->m_localUid); \
     }
 
 #define _DEFINE_LOCAL_UID_SETTER(type) \
-    void type::setLocalUid(const QString & guid) { \
-        d->m_localUid = guid; \
+    void type::setLocalUid(const QString & uid) { \
+        d->m_localUid = uid; \
     }
 
 #define _DEFINE_LOCAL_UID_UNSETTER(type) \

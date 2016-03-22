@@ -1,5 +1,7 @@
 #include "TagModel.h"
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <QByteArray>
+#include <QMimeData>
 #include <limits>
 
 // Limit for the queries to the local storage
@@ -450,6 +452,91 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
     return true;
 }
 
+QStringList TagModel::mimeTypes() const
+{
+    QStringList list;
+    list << TAG_MODEL_MIME_TYPE;
+    return list;
+}
+
+QMimeData * TagModel::mimeData(const QModelIndexList & indexes) const
+{
+    if (indexes.count() != 1) {
+        return Q_NULLPTR;
+    }
+
+    const TagModelItem * item = itemForIndex(indexes.at(0));
+    if (!item) {
+        return Q_NULLPTR;
+    }
+
+    QByteArray encodedItem;
+    QDataStream out(&encodedItem, QIODevice::WriteOnly);
+    out << *item;
+
+    QMimeData * mimeData = new QMimeData;
+    mimeData->setData(TAG_MODEL_MIME_TYPE, qCompress(encodedItem, TAG_MODEL_MIME_DATA_MAX_COMPRESSION));
+    return mimeData;
+}
+
+bool TagModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
+                            int row, int column, const QModelIndex & parent)
+{
+    QNDEBUG("TagModel::dropMimeData: action = " << action << ", row = " << row
+            << ", column = " << column << ", parent: is valid = " << (parent.isValid() ? "true" : "false")
+            << ", parent row = " << parent.row() << ", parent column = " << (parent.column())
+            << ", mime data formats: " << (mimeData ? mimeData->formats().join("; ") : QString("<null>")));
+
+    if (action == Qt::IgnoreAction) {
+        return true;
+    }
+
+    if (action != Qt::MoveAction) {
+        return false;
+    }
+
+    if (!mimeData || !mimeData->hasFormat(TAG_MODEL_MIME_TYPE)) {
+        return false;
+    }
+
+    const TagModelItem * item = itemForIndex(parent);
+    if (!item) {
+        return false;
+    }
+
+    QByteArray data = qUncompress(mimeData->data(TAG_MODEL_MIME_TYPE));
+    TagModelItem localItem;
+    QDataStream in(&data, QIODevice::ReadOnly);
+    in >> localItem;
+
+    localItem.setParent(item);
+    localItem.setParentLocalUid(item->localUid());
+    localItem.setParentGuid(item->guid());
+    mapChildItems(localItem);
+
+    if (row == -1)
+    {
+        if (!parent.isValid() && !m_fakeRootItem) {
+            m_fakeRootItem = new TagModelItem;
+        }
+
+        row = parent.isValid() ? parent.row() : m_fakeRootItem->numChildren();
+    }
+
+    beginInsertRows(parent, row, row);
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto originalItemIt = localUidIndex.find(localItem.localUid());
+    if (originalItemIt != localUidIndex.end()) {
+        localUidIndex.replace(originalItemIt, localItem);
+    }
+    else {
+        Q_UNUSED(localUidIndex.insert(localItem))
+    }
+    endInsertRows();
+
+    return true;
+}
+
 void TagModel::onAddTagComplete(Tag tag, QUuid requestId)
 {
     QNDEBUG("TagModel::onAddTagComplete: tag = " << tag << "\nRequest id = " << requestId);
@@ -574,7 +661,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
         m_fakeRootItem = new TagModelItem;
     }
 
-    mapParentItems();
+    mapChildItems();
 
     m_ready = true;
     emit ready();
@@ -759,7 +846,7 @@ void TagModel::onTagAddedOrUpdated(const Tag & tag)
     if (newTag) {
         auto insertionResult = localUidIndex.insert(item);
         itemIt = insertionResult.first;
-        mapParentItem(*itemIt);
+        mapChildItems(*itemIt);
     }
     else {
         localUidIndex.replace(itemIt, item);
@@ -893,19 +980,19 @@ bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
     return false;
 }
 
-void TagModel::mapParentItems()
+void TagModel::mapChildItems()
 {
-    QNDEBUG("TagModel::mapParentItems");
+    QNDEBUG("TagModel::mapChildItems");
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
         const TagModelItem & item = *it;
-        mapParentItem(item);
+        mapChildItems(item);
     }
 }
 
-void TagModel::mapParentItem(const TagModelItem & item)
+void TagModel::mapChildItems(const TagModelItem & item)
 {
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 

@@ -46,6 +46,8 @@
 #include <qute_note/exception/IQuteNoteException.h>
 #include <qute_note/utility/SysInfo.h>
 #include <qute_note/utility/EventLoopWithExitStatus.h>
+#include <qute_note/utility/UidGenerator.h>
+#include <qute_note/logging/QuteNoteLogger.h>
 
 #include <QtTest/QtTest>
 #include <QtGui/QtGui>
@@ -54,11 +56,13 @@
 #include <QStringListModel>
 #include <QSortFilterProxyModel>
 #include <QApplication>
+#include <QByteArray>
 
 #include "modeltest.h"
 #include "dynamictreemodel.h"
 
 #include "../../models/SavedSearchModel.h"
+#include "../../models/TagModel.h"
 #include "SavedSearchModelTestHelper.h"
 
 // 10 minutes should be enough
@@ -86,6 +90,7 @@ private Q_SLOTS:
     void testResetThroughProxy();
 
     void testSavedSearchModel();
+    void testTagModelItemSerialization();
 
 private:
     qute_note::LocalStorageManagerThreadWorker  * m_pLocalStorageWorker;
@@ -397,6 +402,40 @@ void tst_ModelTest::testSavedSearchModel()
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Saved search model async tester failed to finish in time");
     }
+}
+
+void tst_ModelTest::testTagModelItemSerialization()
+{
+    using namespace qute_note;
+
+    TagModelItem parentItem(UidGenerator::Generate(), UidGenerator::Generate());
+
+    TagModelItem item;
+    item.setLocalUid(UidGenerator::Generate());
+    item.setName("Test item");
+    item.setGuid(UidGenerator::Generate());
+    item.setDirty(true);
+    item.setSynchronizable(false);
+    item.setGuid(UidGenerator::Generate());
+    item.setParentLocalUid(parentItem.localUid());
+    item.setParentGuid(parentItem.guid());
+    item.setParent(&parentItem);
+
+    QByteArray encodedItem;
+    QDataStream out(&encodedItem, QIODevice::WriteOnly);
+    out << item;
+
+    QDataStream in(&encodedItem, QIODevice::ReadOnly);
+    TagModelItem restoredItem;
+    in >> restoredItem;
+
+    QVERIFY2(restoredItem.localUid() == item.localUid(), qPrintable("Local uids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.guid() == item.guid(), qPrintable("Guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.name() == item.name(), qPrintable("Names of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.parentGuid() == item.parentGuid(), qPrintable("Parent guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.parentLocalUid() == item.parentLocalUid(), qPrintable("Parent local uids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.isSynchronizable() == item.isSynchronizable(), qPrintable("Synchronizable flags of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.isDirty() == item.isDirty(), qPrintable("Dirty flags of original and deserialized items don't match"));
 }
 
 int main(int argc, char *argv[])

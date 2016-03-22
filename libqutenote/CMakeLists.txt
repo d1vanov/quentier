@@ -165,6 +165,7 @@ set(UTILITY_HEADERS
     headers/qute_note/utility/QuteNoteCheckPtr.h
     headers/qute_note/utility/QuteNoteUndoCommand.h
     headers/qute_note/utility/Qt4Helper.h
+    headers/qute_note/utility/UidGenerator.h
     headers/qute_note/utility/Utility.h)
 
 set(PUBLIC_HEADERS ${NOTE_EDITOR_HEADERS})
@@ -414,7 +415,8 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/ShortcutManager_p.cpp
     src/utility/StringUtils.cpp
     src/utility/StringUtils_p.cpp
-    src/utility/Utility.cpp)
+    src/utility/Utility.cpp
+    src/utility/UidGenerator.cpp)
 
 if(NOT USE_QT_WEB_ENGINE)
   list(APPEND ${PROJECT_NAME}_SOURCES
