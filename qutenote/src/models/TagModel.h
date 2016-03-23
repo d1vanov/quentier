@@ -43,6 +43,9 @@ public:
     const TagModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const TagModelItem * item) const;
 
+    QModelIndex promote(const QModelIndex & index);
+    QModelIndex demote(const QModelIndex & index);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;

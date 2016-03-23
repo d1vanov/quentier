@@ -480,11 +480,11 @@ QMimeData * TagModel::mimeData(const QModelIndexList & indexes) const
 }
 
 bool TagModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
-                            int row, int column, const QModelIndex & parent)
+                            int row, int column, const QModelIndex & parentIndex)
 {
     QNDEBUG("TagModel::dropMimeData: action = " << action << ", row = " << row
-            << ", column = " << column << ", parent: is valid = " << (parent.isValid() ? "true" : "false")
-            << ", parent row = " << parent.row() << ", parent column = " << (parent.column())
+            << ", column = " << column << ", parent index: is valid = " << (parentIndex.isValid() ? "true" : "false")
+            << ", parent row = " << parentIndex.row() << ", parent column = " << (parentIndex.column())
             << ", mime data formats: " << (mimeData ? mimeData->formats().join("; ") : QString("<null>")));
 
     if (action == Qt::IgnoreAction) {
@@ -499,38 +499,65 @@ bool TagModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
         return false;
     }
 
-    const TagModelItem * item = itemForIndex(parent);
-    if (!item) {
+    const TagModelItem * parentItem = itemForIndex(parentIndex);
+    if (!parentItem) {
         return false;
     }
 
     QByteArray data = qUncompress(mimeData->data(TAG_MODEL_MIME_TYPE));
-    TagModelItem localItem;
+    TagModelItem item;
     QDataStream in(&data, QIODevice::ReadOnly);
-    in >> localItem;
+    in >> item;
 
-    localItem.setParent(item);
-    localItem.setParentLocalUid(item->localUid());
-    localItem.setParentGuid(item->guid());
-    mapChildItems(localItem);
+    item.setParent(parentItem);
+    item.setParentLocalUid(parentItem->localUid());
+    item.setParentGuid(parentItem->guid());
+    mapChildItems(item);
 
     if (row == -1)
     {
-        if (!parent.isValid() && !m_fakeRootItem) {
+        if (!parentIndex.isValid() && !m_fakeRootItem) {
             m_fakeRootItem = new TagModelItem;
         }
 
-        row = parent.isValid() ? parent.row() : m_fakeRootItem->numChildren();
+        row = parentIndex.isValid() ? parentIndex.row() : m_fakeRootItem->numChildren();
     }
 
-    beginInsertRows(parent, row, row);
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    auto originalItemIt = localUidIndex.find(localItem.localUid());
+    auto originalItemIt = localUidIndex.find(item.localUid());
+    if (originalItemIt != localUidIndex.end())
+    {
+        // Need to manually remove the item from its original position and notify the view about it
+
+        const TagModelItem & originalItem = *originalItemIt;
+        const TagModelItem * originalItemParent = originalItem.parent();
+        if (!originalItemParent)
+        {
+            if (!m_fakeRootItem) {
+                m_fakeRootItem = new TagModelItem;
+            }
+
+            originalItemParent = m_fakeRootItem;
+            originalItem.setParent(originalItemParent);
+        }
+
+        QModelIndex originalItemParentIndex = indexForItem(originalItemParent);
+        if (originalItemParentIndex.isValid())
+        {
+            int row = originalItemParent->rowForChild(&originalItem);
+            if (row >= 0) {
+                beginRemoveRows(originalItemParentIndex, row, row);
+                endRemoveRows();
+            }
+        }
+    }
+
+    beginInsertRows(parentIndex, row, row);
     if (originalItemIt != localUidIndex.end()) {
-        localUidIndex.replace(originalItemIt, localItem);
+        localUidIndex.replace(originalItemIt, item);
     }
     else {
-        Q_UNUSED(localUidIndex.insert(localItem))
+        Q_UNUSED(localUidIndex.insert(item))
     }
     endInsertRows();
 
@@ -962,6 +989,160 @@ QModelIndex TagModel::indexForItem(const TagModelItem * item) const
 
     // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
     return createIndex(row, Columns::Name, const_cast<TagModelItem*>(item));
+}
+
+QModelIndex TagModel::promote(const QModelIndex & itemIndex)
+{
+    QNDEBUG("TagModel::promote: index: is valid = " << (itemIndex.isValid() ? "true" : "false")
+            << ", row = " << itemIndex.row() << ", column = " << itemIndex.column());
+
+    if (!itemIndex.isValid()) {
+        return itemIndex;
+    }
+
+    const TagModelItem * item = itemForIndex(itemIndex);
+    if (!item) {
+        QNDEBUG("No item for given index");
+        return itemIndex;
+    }
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new TagModelItem;
+    }
+
+    const TagModelItem * parentItem = item->parent();
+    if (!parentItem) {
+        parentItem = m_fakeRootItem;
+        item->setParent(parentItem);
+    }
+
+    if (parentItem == m_fakeRootItem) {
+        QNDEBUG("Already a top level item");
+        return itemIndex;
+    }
+
+    int row = parentItem->rowForChild(item);
+    if (row < 0) {
+        QNDEBUG("Can't find row of promoted item within its parent item");
+        return itemIndex;
+    }
+
+    const TagModelItem * grandParentItem = parentItem->parent();
+    if (!grandParentItem) {
+        grandParentItem = m_fakeRootItem;
+        parentItem->setParent(grandParentItem);
+    }
+
+    int parentRow = grandParentItem->rowForChild(parentItem);
+    if (parentRow < 0) {
+        QNWARNING("Can't find parent item's row within its own parent item");
+        return itemIndex;
+    }
+
+    QModelIndex grandParentIndex = indexForItem(grandParentItem);
+    if (Q_UNLIKELY(!grandParentIndex.isValid())) {
+        QNWARNING("Can't get the valid index for the grand parent item of the promoted item in tag model");
+        return itemIndex;
+    }
+
+    const TagModelItem * takenItem = parentItem->takeChild(row);
+    if (Q_UNLIKELY(takenItem != item)) {
+        QNWARNING("Internal inconsistency in tag model: item to take out from parent doesn't match the original promoted item");
+        parentItem->insertChild(row, takenItem);
+        return itemIndex;
+    }
+
+    grandParentItem->insertChild(parentRow + 1, takenItem);
+
+    QModelIndex newIndex = index(parentRow + 1, Columns::Name, grandParentIndex);
+    if (!newIndex.isValid()) {
+        QNWARNING("Can't get the valid index for the promoted item in tag model");
+        Q_UNUSED(grandParentItem->takeChild(parentRow + 1))
+        parentItem->insertChild(row, takenItem);
+        return itemIndex;
+    }
+
+    // TODO: change the actual underlying model data: reparent local uids and guids, if any
+
+    emit dataChanged(newIndex, newIndex);
+    return newIndex;
+}
+
+QModelIndex TagModel::demote(const QModelIndex & itemIndex)
+{
+    QNDEBUG("TagModel::demote: index: is valid = " << (itemIndex.isValid() ? "true" : "false")
+            << ", row = " << itemIndex.row() << ", column = " << itemIndex.column());
+
+    if (!itemIndex.isValid()) {
+        return itemIndex;
+    }
+
+    const TagModelItem * item = itemForIndex(itemIndex);
+    if (!item) {
+        QNDEBUG("No item for given index");
+        return itemIndex;
+    }
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new TagModelItem;
+    }
+
+    const TagModelItem * parentItem = item->parent();
+    if (!parentItem) {
+        parentItem = m_fakeRootItem;
+        item->setParent(parentItem);
+    }
+
+    int row = parentItem->rowForChild(item);
+    if (row < 0) {
+        QNDEBUG("Can't find row of promoted item within its parent item");
+        return itemIndex;
+    }
+    else if (row == 0) {
+        QNDEBUG("No preceding sibling in parent to demote this item under");
+        return itemIndex;
+    }
+
+    const TagModelItem * siblingItem = parentItem->childAtRow(row - 1);
+    if (Q_UNLIKELY(!siblingItem)) {
+        QNDEBUG("No sibling item was found");
+        return itemIndex;
+    }
+
+    QModelIndex siblingItemIndex = indexForItem(siblingItem);
+    if (Q_UNLIKELY(!siblingItemIndex.isValid())) {
+        QNDEBUG("Can't get the valid index for sibling item");
+        return itemIndex;
+    }
+
+    const TagModelItem * takenItem = parentItem->takeChild(row);
+    if (Q_UNLIKELY(takenItem != item)) {
+        QNWARNING("Internal inconsistency in tag model: item to take out from parent doesn't match the original demoted item");
+        parentItem->insertChild(row, takenItem);
+        return itemIndex;
+    }
+
+    siblingItem->addChild(takenItem);
+    int newRow = siblingItem->numChildren() - 1;
+    if (Q_UNLIKELY(newRow < 0)) {
+        QNWARNING("Internal inconsistency in tag model: new row for demoted item is negative");
+        Q_UNUSED(siblingItem->takeChild(newRow))
+        parentItem->insertChild(row, takenItem);
+        return itemIndex;
+    }
+
+    QModelIndex newIndex = index(newRow, Columns::Name, siblingItemIndex);
+    if (!newIndex.isValid()) {
+        QNWARNING("Can't get the valid index for the demoted item in tag model");
+        Q_UNUSED(siblingItem->takeChild(newRow))
+        parentItem->insertChild(row, takenItem);
+        return itemIndex;
+    }
+
+    // TODO: change the actual underlying model data: reparent local uids and guids, if any
+
+    emit dataChanged(newIndex, newIndex);
+    return newIndex;
 }
 
 bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
