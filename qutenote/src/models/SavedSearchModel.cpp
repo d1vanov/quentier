@@ -28,6 +28,27 @@ SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorag
 SavedSearchModel::~SavedSearchModel()
 {}
 
+QModelIndex SavedSearchModel::indexForLocalUid(const QString & localUid) const
+{
+    const SavedSearchDataByLocalUid & orderedIndex = m_data.get<ByLocalUid>();
+    SavedSearchDataByLocalUid::const_iterator itemIt = orderedIndex.find(localUid);
+    if (Q_UNLIKELY(itemIt == orderedIndex.end())) {
+        QNDEBUG("Can't find the saved search item by local uid");
+        return QModelIndex();
+    }
+
+    const SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByIndex::const_iterator indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QNWARNING("Can't find the indexed reference to the saved search item: "
+                  << *itemIt);
+        return QModelIndex();
+    }
+
+    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
+    return createIndex(rowIndex, Columns::Name);
+}
+
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);

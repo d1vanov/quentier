@@ -36,6 +36,8 @@ public:
         };
     };
 
+    QModelIndex indexForLocalUid(const QString & localUid) const;
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
