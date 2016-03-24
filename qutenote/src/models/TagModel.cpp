@@ -1062,7 +1062,19 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
         return itemIndex;
     }
 
-    // TODO: change the actual underlying model data: reparent local uids and guids, if any
+    TagModelItem copyItem = *takenItem;
+    copyItem.setParentLocalUid(grandParentItem->localUid());
+    copyItem.setParentGuid(grandParentItem->guid());
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(copyItem.localUid());
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNINFO("The promoted tag model item was not found in the underlying item which is odd. Adding it there");
+        Q_UNUSED(localUidIndex.insert(copyItem))
+    }
+    else {
+        localUidIndex.replace(it, copyItem);
+    }
 
     emit dataChanged(newIndex, newIndex);
     return newIndex;
@@ -1139,7 +1151,19 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
         return itemIndex;
     }
 
-    // TODO: change the actual underlying model data: reparent local uids and guids, if any
+    TagModelItem copyItem = *takenItem;
+    copyItem.setParentLocalUid(siblingItem->localUid());
+    copyItem.setParentGuid(siblingItem->guid());
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(copyItem.localUid());
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNINFO("The deletemoted tag model item was not found in the underlying item which is odd. Adding it there");
+        Q_UNUSED(localUidIndex.insert(copyItem))
+    }
+    else {
+        localUidIndex.replace(it, copyItem);
+    }
 
     emit dataChanged(newIndex, newIndex);
     return newIndex;
