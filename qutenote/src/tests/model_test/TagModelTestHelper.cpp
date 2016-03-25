@@ -223,6 +223,108 @@ void TagModelTestHelper::test()
             return;
         }
 
+        // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
+        secondIndex = model->index(secondIndex.row(), TagModel::Columns::Synchronizable, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid tag item model index for synchronizable column");
+            emit failure();
+            return;
+        }
+
+        res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
+        if (res) {
+            QNWARNING("Was able to change the synchronizable flag in tag model from true to false which is not intended");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the tag model while expected to get the state of synchronizable flag");
+            emit failure();
+            return;
+        }
+
+        if (!data.toBool()) {
+            QNWARNING("The synchronizable state appears to have changed after setData in tag model even though the method returned false");
+            emit failure();
+            return;
+        }
+
+        // Should be able to change name
+        secondIndex = model->index(secondIndex.row(), TagModel::Columns::Name, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid tag item model index for name column");
+            emit failure();
+            return;
+        }
+
+        QString newName = "Second (name modified)";
+        res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
+        if (!res) {
+            QNWARNING("Can't change the name of the tag model item");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the tag model while expected to get the name of the tag item");
+            emit failure();
+            return;
+        }
+
+        if (data.toString() != newName) {
+            QNWARNING("The name of the tag item returned by the model does not match the name just set to this item: "
+                      "received " << data.toString() << ", expected " << newName);
+            emit failure();
+            return;
+        }
+
+        // Should not be able to remove the row with a synchronizable (non-local) saved search
+        res = model->removeRow(secondIndex.row(), secondParentIndex);
+        if (res) {
+            QNWARNING("Was able to remove the row with a synchronizable tag which is not intended");
+            emit failure();
+            return;
+        }
+
+        QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
+        if (!secondIndexAfterFailedRemoval.isValid()) {
+            QNWARNING("Can't get the valid tag item model index after the failed row removal attempt");
+            emit failure();
+            return;
+        }
+
+        if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
+            QNWARNING("Tag model returned item index with a different row after the failed row removal attempt");
+            emit failure();
+            return;
+        }
+
+        // Should be able to remove the row with a non-synchronizable (local) saved search
+        QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
+        if (!firstIndex.isValid()) {
+            QNWARNING("Can't get the valid tag item model index for local uid");
+            emit failure();
+            return;
+        }
+
+        QModelIndex firstParentIndex = model->parent(firstIndex);
+        res = model->removeRow(firstIndex.row(), firstParentIndex);
+        if (!res) {
+            QNWARNING("Can't remove the row with a non-synchronizable tag item from the model");
+            emit failure();
+            return;
+        }
+
+        QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        if (firstIndexAfterRemoval.isValid()) {
+            QNWARNING("Was able to get the valid model index for the removed tag item by local uid which is not intended");
+            emit failure();
+            return;
+        }
+
         // TODO: continue from here
 
         emit success();
