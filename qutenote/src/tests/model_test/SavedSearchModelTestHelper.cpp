@@ -129,7 +129,35 @@ void SavedSearchModelTestHelper::test()
             return;
         }
 
+        // Verify the dirty flag has changed as a result of makind the item synchronizable
+        secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Dirty, QModelIndex());
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid saved search item model index for dirty column");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the saved search model while expected to get the state of dirty flag");
+            emit failure();
+            return;
+        }
+
+        if (!data.toBool()) {
+            QNWARNING("The dirty state hasn't changed after making the saved search model item synchronizable while it was expected to have changed");
+            emit failure();
+            return;
+        }
+
         // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
+        secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Synchronizable, QModelIndex());
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid saved search item model index for synchronizable column");
+            emit failure();
+            return;
+        }
+
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
             QNWARNING("Was able to change the synchronizable flag in saved search model from true to false which is not intended");

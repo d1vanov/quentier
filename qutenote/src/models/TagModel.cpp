@@ -279,11 +279,15 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     }
 
     TagModelItem itemCopy = *item;
+    bool dirty = itemCopy.isDirty();
     switch(modelIndex.column())
     {
     case Columns::Name:
-        itemCopy.setName(value.toString());
-        break;
+        {
+            dirty |= (value.toString() != itemCopy.name());
+            itemCopy.setName(value.toString());
+            break;
+        }
     case Columns::Synchronizable:
         {
             if (itemCopy.isSynchronizable()) {
@@ -293,7 +297,6 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
                 return false;
             }
 
-            bool dirty = itemCopy.isDirty();
             dirty |= (value.toBool() != itemCopy.isSynchronizable());
             itemCopy.setSynchronizable(value.toBool());
             break;
@@ -301,6 +304,8 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     default:
         return false;
     }
+
+    itemCopy.setDirty(dirty);
 
     TagDataByLocalUid & index = m_data.get<ByLocalUid>();
     auto it = index.find(itemCopy.localUid());
