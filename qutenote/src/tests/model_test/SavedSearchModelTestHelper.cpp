@@ -209,6 +209,49 @@ void SavedSearchModelTestHelper::test()
             return;
         }
 
+        // Should not be able to remove the row with a synchronizable (non-local) saved search
+        res = model->removeRow(secondIndex.row(), QModelIndex());
+        if (res) {
+            QNWARNING("Was able to remove the row with a synchronizable saved search which is not intended");
+            emit failure();
+            return;
+        }
+
+        QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
+        if (!secondIndexAfterFailedRemoval.isValid()) {
+            QNWARNING("Can't get the valid saved search item model index after the failed row removal attempt");
+            emit failure();
+            return;
+        }
+
+        if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
+            QNWARNING("Saved search model returned item index with a different row after the failed row removal attempt");
+            emit failure();
+            return;
+        }
+
+        // Should be able to remove the row with a non-synchronizable (local) saved search
+        QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
+        if (!firstIndex.isValid()) {
+            QNWARNING("Can't get the valid saved search item model index for local uid");
+            emit failure();
+            return;
+        }
+
+        res = model->removeRow(firstIndex.row(), QModelIndex());
+        if (!res) {
+            QNWARNING("Can't remove the row with a non-synchronizable saved search item from the model");
+            emit failure();
+            return;
+        }
+
+        QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        if (firstIndexAfterRemoval.isValid()) {
+            QNWARNING("Was able to get the valid model index for the removed saved search item by local uid which is not intended");
+            emit failure();
+            return;
+        }
+
         emit success();
         return;
     }
