@@ -28,6 +28,16 @@ TagModelItem::TagModelItem(const QString & localUid,
 TagModelItem::~TagModelItem()
 {}
 
+void TagModelItem::setParent(const TagModelItem * parent) const
+{
+    m_parent = parent;
+
+    int row = m_parent->rowForChild(this);
+    if (row < 0) {
+        m_parent->addChild(this);
+    }
+}
+
 const TagModelItem * TagModelItem::childAtRow(const int row) const
 {
     if ((row < 0) || (row >= m_children.size())) {

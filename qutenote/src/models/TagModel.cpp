@@ -369,11 +369,8 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     for(int i = 0; i < count; ++i)
     {
         TagModelItem item;
-        QString localUid = QUuid::createUuid().toString();
-        localUid.chop(1);
-        localUid.remove(0, 1);
-        item.setLocalUid(localUid);
-        Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(localUid))
+        item.setLocalUid(UidGenerator::Generate());
+        Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(item.localUid()))
 
         item.setName(nameForNewTag());
         item.setDirty(true);
@@ -989,6 +986,19 @@ QModelIndex TagModel::indexForItem(const TagModelItem * item) const
 
     // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
     return createIndex(row, Columns::Name, const_cast<TagModelItem*>(item));
+}
+
+QModelIndex TagModel::indexForLocalUid(const QString & localUid) const
+{
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto it = localUidIndex.find(localUid);
+    if (it == localUidIndex.end()) {
+        return QModelIndex();
+    }
+
+    const TagModelItem & item = *it;
+    return indexForItem(&item);
 }
 
 QModelIndex TagModel::promote(const QModelIndex & itemIndex)

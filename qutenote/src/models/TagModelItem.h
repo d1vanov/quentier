@@ -43,7 +43,7 @@ public:
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
     const TagModelItem * parent() const { return m_parent; }
-    void setParent(const TagModelItem * parent) const { m_parent = parent; }
+    void setParent(const TagModelItem * parent) const;
 
     const TagModelItem * childAtRow(const int row) const;
     int rowForChild(const TagModelItem * child) const;
