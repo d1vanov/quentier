@@ -3,6 +3,7 @@
 #include "modeltest.h"
 #include <qute_note/utility/SysInfo.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <qute_note/utility/UidGenerator.h>
 
 namespace qute_note {
 
@@ -31,7 +32,132 @@ TagModelTestHelper::TagModelTestHelper(LocalStorageManagerThreadWorker * pLocalS
 
 void TagModelTestHelper::test()
 {
-    // TODO: implement
+    QNDEBUG("TagModelTestHelper::test");
+
+    try {
+        Tag first;
+        first.setName("First");
+        first.setLocal(true);
+        first.setDirty(true);
+        first.setGuid(UidGenerator::Generate());
+
+        Tag second;
+        second.setName("Second");
+        second.setLocal(true);
+        second.setDirty(false);
+        second.setGuid(UidGenerator::Generate());
+
+        Tag third;
+        third.setName("Third");
+        third.setLocal(false);
+        third.setDirty(true);
+        third.setGuid(UidGenerator::Generate());
+
+        Tag fourth;
+        fourth.setName("Fourth");
+        fourth.setLocal(false);
+        fourth.setDirty(false);
+        fourth.setGuid(UidGenerator::Generate());
+
+        Tag fifth;
+        fifth.setName("Fifth");
+        fifth.setLocal(false);
+        fifth.setDirty(false);
+        fifth.setGuid(UidGenerator::Generate());
+
+        Tag sixth;
+        sixth.setName("Sixth");
+        sixth.setLocal(false);
+        sixth.setDirty(false);
+        sixth.setGuid(UidGenerator::Generate());
+        sixth.setParentLocalUid(fifth.localUid());
+        sixth.setParentGuid(fifth.guid());
+
+        Tag seventh;
+        seventh.setName("Seventh");
+        seventh.setLocal(false);
+        seventh.setDirty(false);
+        seventh.setGuid(UidGenerator::Generate());
+        seventh.setParentLocalUid(fifth.localUid());
+        seventh.setParentGuid(fifth.guid());
+
+        Tag eighth;
+        eighth.setName("Eighth");
+        eighth.setLocal(false);
+        eighth.setDirty(true);
+        eighth.setGuid(UidGenerator::Generate());
+        eighth.setParentLocalUid(fifth.localUid());
+        eighth.setParentGuid(fifth.guid());
+
+        Tag nineth;
+        nineth.setName("Nineth");
+        nineth.setLocal(false);
+        nineth.setDirty(false);
+        nineth.setGuid(UidGenerator::Generate());
+        nineth.setParentLocalUid(sixth.localUid());
+        nineth.setParentGuid(sixth.guid());
+
+        Tag tenth;
+        tenth.setName("Tenth");
+        tenth.setLocal(false);
+        tenth.setDirty(true);
+        tenth.setParentLocalUid(eighth.localUid());
+        tenth.setParentGuid(eighth.guid());
+
+        Tag eleventh;
+        eleventh.setName("Eleventh");
+        eleventh.setLocal(false);
+        eleventh.setDirty(true);
+        eleventh.setParentLocalUid(tenth.localUid());
+
+        Tag twelveth;
+        twelveth.setName("Twelveth");
+        twelveth.setLocal(false);
+        twelveth.setDirty(true);
+        twelveth.setParentLocalUid(twelveth.localUid());
+
+#define ADD_TAG(tag) \
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(tag, QUuid())
+
+        ADD_TAG(first);
+        ADD_TAG(second);
+        ADD_TAG(third);
+        ADD_TAG(fourth);
+        ADD_TAG(fifth);
+        ADD_TAG(sixth);
+        ADD_TAG(seventh);
+        ADD_TAG(eighth);
+        ADD_TAG(nineth);
+        ADD_TAG(tenth);
+        ADD_TAG(eleventh);
+        ADD_TAG(twelveth);
+
+#undef ADD_TAG
+
+        TagModel * model = new TagModel(*m_pLocalStorageManagerThreadWorker, this);
+        ModelTest t1(model);
+        Q_UNUSED(t1)
+
+        // TODO: continue from here
+
+        emit success();
+        return;
+    }
+    catch(const IQuteNoteException & exception) {
+        SysInfo & sysInfo = SysInfo::GetSingleton();
+        QNWARNING("Caught QuteNote exception: " + exception.errorMessage() +
+                  ", what: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace());
+    }
+    catch(const std::exception & exception) {
+        SysInfo & sysInfo = SysInfo::GetSingleton();
+        QNWARNING("Caught std::exception: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace());
+    }
+    catch(...) {
+        SysInfo & sysInfo = SysInfo::GetSingleton();
+        QNWARNING("Caught some unknown exception; stack trace: " + sysInfo.GetStackTrace());
+    }
+
+    emit failure();
 }
 
 void TagModelTestHelper::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)

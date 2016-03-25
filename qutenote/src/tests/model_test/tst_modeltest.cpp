@@ -64,6 +64,7 @@
 #include "../../models/SavedSearchModel.h"
 #include "../../models/TagModel.h"
 #include "SavedSearchModelTestHelper.h"
+#include "TagModelTestHelper.h"
 
 // 10 minutes should be enough
 #define MAX_ALLOWED_MILLISECONDS 600000
@@ -90,6 +91,7 @@ private Q_SLOTS:
     void testResetThroughProxy();
 
     void testSavedSearchModel();
+    void testTagModel();
     void testTagModelItemSerialization();
 
 private:
@@ -374,7 +376,7 @@ void tst_ModelTest::testSavedSearchModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_fake_user", 300, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_saved_search_model_test_fake_user", 300, /* start from scratch = */ true, this);
         m_pLocalStorageWorker->init();
 
         SavedSearchModelTestHelper savedSearchModelTestHelper(m_pLocalStorageWorker);
@@ -401,6 +403,47 @@ void tst_ModelTest::testSavedSearchModel()
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Saved search model async tester failed to finish in time");
+    }
+}
+
+void tst_ModelTest::testTagModel()
+{
+    using namespace qute_note;
+
+    int res = -1;
+    {
+        QTimer timer;
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setSingleShot(true);
+
+        delete m_pLocalStorageWorker;
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_tag_model_test_fake_user", 400, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker->init();
+
+        TagModelTestHelper tagModelTestHelper(m_pLocalStorageWorker);
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&tagModelTestHelper, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&tagModelTestHelper, SIGNAL(failure()), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &tagModelTestHelper, SLOT(test()));
+        res = loop.exec();
+    }
+
+    if (res == -1) {
+        QFAIL("Internal error: incorrect return status from tag model async tester");
+    }
+    else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in tag model async tester");
+    }
+    else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Tag model async tester failed to finish in time");
     }
 }
 
