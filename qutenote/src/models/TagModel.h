@@ -119,8 +119,6 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestTagsList();
 
-    void onTagAddedOrUpdated(const Tag & tag);
-
     QVariant dataText(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
 
@@ -158,6 +156,12 @@ private:
     typedef TagData::index<ByLocalUid>::type TagDataByLocalUid;
     typedef TagData::index<ByParentLocalUid>::type TagDataByParentLocalUid;
     typedef TagData::index<ByNameUpper>::type TagDataByNameUpper;
+
+private:
+    void onTagAddedOrUpdated(const Tag & tag);
+    void onTagAdded(const Tag & tag);
+    void onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it);
+    void tagToItem(const Tag & tag, TagModelItem & item);
 
 private:
     TagData                 m_data;

@@ -409,7 +409,7 @@ void SavedSearchModel::onAddSavedSearchFailed(SavedSearch search, QString errorD
 
     int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
     beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
-    Q_UNUSED(index.erase(indexIt))
+    Q_UNUSED(m_data.erase(indexIt))
     endRemoveRows();
 }
 
@@ -659,12 +659,14 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     SavedSearchDataByLocalUid::iterator savedSearchIt = orderedIndex.find(search.localUid());
     bool newSavedSearch = (savedSearchIt == orderedIndex.end());
     if (newSavedSearch) {
-        auto insertionResult = orderedIndex.insert(item);
-        savedSearchIt = insertionResult.first;
+        int row = static_cast<int>(m_data.size());
+        beginInsertRows(QModelIndex(), row, row);
+        Q_UNUSED(orderedIndex.insert(item))
+        endInsertRows();
+        return;
     }
-    else {
-        orderedIndex.replace(savedSearchIt, item);
-    }
+
+    orderedIndex.replace(savedSearchIt, item);
 
     auto indexIt = m_data.project<ByIndex>(savedSearchIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
@@ -682,15 +684,9 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         return;
     }
 
-    if (newSavedSearch) {
-        beginInsertRows(QModelIndex(), static_cast<int>(position), static_cast<int>(position));
-        endInsertRows();
-    }
-    else {
-        QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), 0);
-        QModelIndex modelIndexTo = createIndex(static_cast<int>(position), NUM_SAVED_SEARCH_MODEL_COLUMNS - 1);
-        emit dataChanged(modelIndexFrom, modelIndexTo);
-    }
+    QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), 0);
+    QModelIndex modelIndexTo = createIndex(static_cast<int>(position), NUM_SAVED_SEARCH_MODEL_COLUMNS - 1);
+    emit dataChanged(modelIndexFrom, modelIndexTo);
 }
 
 QVariant SavedSearchModel::dataText(const int row, const Columns::type column) const

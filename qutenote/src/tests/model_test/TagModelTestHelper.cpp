@@ -114,7 +114,7 @@ void TagModelTestHelper::test()
         twelveth.setName("Twelveth");
         twelveth.setLocal(false);
         twelveth.setDirty(true);
-        twelveth.setParentLocalUid(twelveth.localUid());
+        twelveth.setParentLocalUid(tenth.localUid());
 
 #define ADD_TAG(tag) \
         m_pLocalStorageManagerThreadWorker->onAddTagRequest(tag, QUuid())
