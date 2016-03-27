@@ -58,6 +58,7 @@ set(${PROJECT_NAME}_HEADERS
     src/FindAndReplaceWidget.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
+    src/models/NewItemNameGenerator.hpp
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h

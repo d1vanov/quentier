@@ -12,6 +12,7 @@
 #ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #endif
@@ -98,9 +99,12 @@ private:
     QVariant dataText(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
+    QString nameForNewSavedSearch() const;
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
+    struct ByNameUpper{};
 
     typedef boost::multi_index_container<
         SavedSearchModelItem,
@@ -111,12 +115,17 @@ private:
             boost::multi_index::ordered_unique<
                 boost::multi_index::tag<ByLocalUid>,
                 boost::multi_index::member<SavedSearchModelItem,QString,&SavedSearchModelItem::m_localUid>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<ByNameUpper>,
+                boost::multi_index::const_mem_fun<SavedSearchModelItem,QString,&SavedSearchModelItem::nameUpper>
             >
         >
     > SavedSearchData;
 
     typedef SavedSearchData::index<ByLocalUid>::type SavedSearchDataByLocalUid;
     typedef SavedSearchData::index<ByIndex>::type SavedSearchDataByIndex;
+    typedef SavedSearchData::index<ByNameUpper>::type SavedSearchDataByNameUpper;
 
 private:
     SavedSearchData         m_data;
@@ -129,6 +138,11 @@ private:
     QSet<QUuid>             m_expungeSavedSearchRequestIds;
 
     QSet<QUuid>             m_findSavedSearchRequestIds;
+
+    Columns::type           m_sortedColumn;
+    Qt::SortOrder           m_sortOrder;
+
+    mutable int             m_lastNewSavedSearchNameCounter;
 };
 
 } // namespace qute_note

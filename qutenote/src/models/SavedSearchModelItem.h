@@ -16,6 +16,8 @@ public:
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+    QString nameUpper() const { return m_name.toUpper(); }
+
     QString     m_localUid;
     QString     m_name;
     QString     m_query;

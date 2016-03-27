@@ -1,4 +1,5 @@
 #include "TagModel.h"
+#include "NewItemNameGenerator.hpp"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QByteArray>
 #include <QMimeData>
@@ -1338,23 +1339,9 @@ void TagModel::mapChildItems(const TagModelItem & item)
 
 QString TagModel::nameForNewTag() const
 {
-    QString baseName = QT_TR_NOOP("New tag");
-    if (m_lastNewTagNameCounter != 0) {
-        baseName += " (" + QString::number(m_lastNewTagNameCounter) + ")";
-    }
-
+    QString baseName = tr("New tag");
     const TagDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
-
-    while(true)
-    {
-        auto it = nameIndex.find(baseName.toUpper());
-        if (it == nameIndex.end()) {
-            return baseName;
-        }
-
-        ++m_lastNewTagNameCounter;
-        baseName += " (" + QString::number(m_lastNewTagNameCounter) + ")";
-    }
+    return newItemName<TagDataByNameUpper>(nameIndex, m_lastNewTagNameCounter, baseName);
 }
 
 void TagModel::removeItemByLocalUid(const QString & localUid)
