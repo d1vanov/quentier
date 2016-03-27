@@ -383,6 +383,36 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     return true;
 }
 
+void SavedSearchModel::sort(int column, Qt::SortOrder order)
+{
+    QNDEBUG("SavedSearchModel::sort: column = " << column << ", order = " << order
+            << " (" << (order == Qt::AscendingOrder ? "ascending" : "descending"));
+
+    if (column != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return;
+    }
+
+    if (order == m_sortOrder) {
+        QNDEBUG("The sort order already established, nothing to do");
+        return;
+    }
+
+    m_sortOrder = order;
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    std::vector<boost::reference_wrapper<const SavedSearchModelItem> > items(index.begin(), index.end());
+
+    if (m_sortOrder == Qt::AscendingOrder) {
+        std::sort(items.begin(), items.end(), LessByName());
+    }
+    else {
+        std::sort(items.begin(), items.end(), GreaterByName());
+    }
+
+    index.rearrange(items.begin());
+}
+
 void SavedSearchModel::onAddSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
     QNDEBUG("SavedSearchModel::onAddSavedSearchComplete: " << search << "\nRequest id = " << requestId);

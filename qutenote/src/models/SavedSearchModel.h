@@ -55,6 +55,8 @@ public:
     virtual bool insertRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
+    virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
+
 Q_SIGNALS:
     void notifyError(QString errorDescription);
 
