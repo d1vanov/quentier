@@ -520,14 +520,13 @@ void ModelTest::rowsInserted ( const QModelIndex & parent, int start, int end )
 {
     Changing c = insert.pop();
     QVERIFY( c.parent == parent );
-//    qDebug() << "rowsInserted"  << "start=" << start << "end=" << end << "oldsize=" << c.oldSize
-//    << "parent=" << model->data ( parent ).toString() << "current rowcount of parent=" << model->rowCount ( parent );
+//    qDebug() << "rowsInserted: start = " << start << ", end = " << end << ", old size = " << c.oldSize
+//             << ", parent = " << model->data(parent).toString() << ", current rowCount of parent = "
+//             << model->rowCount(parent);
 
-//    for (int ii=start; ii <= end; ii++)
-//    {
-//      qDebug() << "itemWasInserted:" << ii << model->data ( model->index ( ii, 0, parent ));
+//    for(int ii = start; ii <= end; ++ii) {
+//        qDebug() << "itemWasInserted:" << ii << model->data ( model->index ( ii, 0, parent ));
 //    }
-//    qDebug();
 
     QVERIFY( c.oldSize + ( end - start + 1 ) == model->rowCount ( parent ) );
     QVERIFY( c.last == model->data ( model->index ( start - 1, 0, c.parent ) ) );

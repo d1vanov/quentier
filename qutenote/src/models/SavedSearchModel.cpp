@@ -3,6 +3,7 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/UidGenerator.h>
 #include <limits>
+#include <algorithm>
 
 // Limit for the queries to the local storage
 #define SAVED_SEARCH_LIST_LIMIT (100)
@@ -276,6 +277,10 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
     emit dataChanged(modelIndex, modelIndex);
 
+    emit layoutAboutToBeChanged();
+    updateRandomAccessIndexWithRespectToSorting(item);
+    emit layoutChanged();
+
     SavedSearch savedSearch;
     savedSearch.setLocalUid(item.m_localUid);
     savedSearch.setName(item.m_name);
@@ -305,8 +310,6 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
                 << ", saved search: " << savedSearch);
     }
 
-    // TODO: update sorting
-
     return true;
 }
 
@@ -315,21 +318,30 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
     QNTRACE("SavedSearchModel::insertRows: row = " << row << ", count = " << count);
 
     Q_UNUSED(parent)
-    beginInsertRows(QModelIndex(), row, row + count - 1);
 
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+
+    std::vector<SavedSearchDataByIndex::iterator> addedItems;
+    addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
+
+    beginInsertRows(QModelIndex(), row, row + count - 1);
     for(int i = 0; i < count; ++i)
     {
         SavedSearchModelItem item;
         item.m_localUid = UidGenerator::Generate();
         Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.m_localUid));
         item.m_name = nameForNewSavedSearch();
-        Q_UNUSED(index.insert(index.begin() + row, item));
+        auto insertionResult = index.insert(index.begin() + row, item);
+        addedItems.push_back(insertionResult.first);
     }
-
     endInsertRows();
 
-    // TODO: update sorting
+    emit layoutAboutToBeChanged();
+    for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
+        const SavedSearchModelItem & item = *(*it);
+        updateRandomAccessIndexWithRespectToSorting(item);
+    }
+    emit layoutChanged();
 
     return true;
 }
@@ -665,8 +677,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     SavedSearchDataByLocalUid::iterator itemIt = localUidIndex.find(search.localUid());
     bool newSavedSearch = (itemIt == localUidIndex.end());
     if (newSavedSearch) {
-        // FIXME: need to find the appropriate row by the current sorting criteria
-        int row = static_cast<int>(m_data.size());
+        int row = rowForNewItem(item);
         beginInsertRows(QModelIndex(), row, row);
         Q_UNUSED(localUidIndex.insert(item))
         endInsertRows();
@@ -758,6 +769,71 @@ QString SavedSearchModel::nameForNewSavedSearch() const
     QString baseName = tr("New saved search");
     const SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
     return newItemName<SavedSearchDataByNameUpper>(nameIndex, m_lastNewSavedSearchNameCounter, baseName);
+}
+
+int SavedSearchModel::rowForNewItem(const SavedSearchModelItem & newItem) const
+{
+    if (m_sortedColumn != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return static_cast<int>(m_data.size());
+    }
+
+    const SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    auto it = nameIndex.end();
+    if (m_sortOrder == Qt::AscendingOrder) {
+        it = std::lower_bound(nameIndex.begin(), nameIndex.end(), newItem, LessByName());
+    }
+    else {
+        it = std::lower_bound(nameIndex.begin(), nameIndex.end(), newItem, GreaterByName());
+    }
+
+    if (it == nameIndex.end()) {
+        return static_cast<int>(m_data.size());
+    }
+
+    int row = static_cast<int>(std::distance(nameIndex.begin(), it));
+    return row;
+}
+
+void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(const SavedSearchModelItem & item)
+{
+    if (m_sortedColumn != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return;
+    }
+
+    const SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(item.m_localUid);
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        QNWARNING(QT_TR_NOOP("Can't find saved search item by local uid: ") << item);
+        return;
+    }
+
+    const SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    auto appropriateNameIt = nameIndex.end();
+    if (m_sortOrder == Qt::AscendingOrder) {
+        appropriateNameIt = std::lower_bound(nameIndex.begin(), nameIndex.end(), item, LessByName());
+    }
+    else {
+        appropriateNameIt = std::lower_bound(nameIndex.begin(), nameIndex.end(), item, GreaterByName());
+    }
+
+    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByIndex::iterator originalRandomAccessIt = m_data.project<ByIndex>(itemIt);
+    SavedSearchDataByIndex::iterator newRandonAccessIt = m_data.project<ByIndex>(appropriateNameIt);
+    index.relocate(newRandonAccessIt, originalRandomAccessIt);
+}
+
+bool SavedSearchModel::LessByName::operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const
+{
+    return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) <= 0);
+}
+
+bool SavedSearchModel::GreaterByName::operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const
+{
+    return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) > 0);
 }
 
 } // namespace qute_note

@@ -101,6 +101,11 @@ private:
 
     QString nameForNewSavedSearch() const;
 
+    // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
+    int rowForNewItem(const SavedSearchModelItem & newItem) const;
+
+    void updateRandomAccessIndexWithRespectToSorting(const SavedSearchModelItem & item);
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
@@ -126,6 +131,16 @@ private:
     typedef SavedSearchData::index<ByLocalUid>::type SavedSearchDataByLocalUid;
     typedef SavedSearchData::index<ByIndex>::type SavedSearchDataByIndex;
     typedef SavedSearchData::index<ByNameUpper>::type SavedSearchDataByNameUpper;
+
+    struct LessByName
+    {
+        bool operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const;
+    };
+
+    struct GreaterByName
+    {
+        bool operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const;
+    };
 
 private:
     SavedSearchData         m_data;
