@@ -325,6 +325,53 @@ void TagModelTestHelper::test()
             return;
         }
 
+        // Should be able to promote the items
+        QModelIndex twelvethIndex = model->indexForLocalUid(twelveth.localUid());
+        const TagModelItem * twelvethItem = model->itemForIndex(twelvethIndex);
+        const TagModelItem * tenthItem = twelvethItem->parent();
+        if (!tenthItem) {
+            QNWARNING("Parent of one of tag model items is null");
+            emit failure();
+            return;
+        }
+
+        twelvethIndex = model->promote(twelvethIndex);
+        const TagModelItem * newTwelvethItem = model->itemForIndex(twelvethIndex);
+        if (twelvethItem != newTwelvethItem) {
+            QNWARNING("The tag model returns different pointers to items before and after the item promotion");
+            emit failure();
+            return;
+        }
+
+        int rowInTenth = tenthItem->rowForChild(twelvethItem);
+        if (rowInTenth >= 0) {
+            QNWARNING("Tag model item can still be found within the original parent's children after the promotion");
+            emit failure();
+            return;
+        }
+
+        QModelIndex eighthIndex = model->indexForLocalUid(eighth.localUid());
+        const TagModelItem * eighthItem = model->itemForIndex(eighthIndex);
+        if (!eighthItem) {
+            QNWARNING("Can't get the tag model item pointer from the model index");
+            emit failure();
+            return;
+        }
+
+        int rowInEighth = eighthItem->rowForChild(twelvethItem);
+        if (rowInEighth < 0) {
+            QNWARNING("Can't find tag model item within its original grand parent's children after the promotion");
+            emit failure();
+            return;
+        }
+
+        // Should be able to demote the items
+        // TODO: take two items within the eighth item's children: first row and second row
+        // TODO: fetch the parent of the item at the second row
+        // TODO: do demote for the second row
+        // TODO: verify that the item previously being at the second row is now a child of the item at the first row
+        // TODO: and that it is not a child of the original parent
+
         // TODO: continue from here
 
         emit success();
