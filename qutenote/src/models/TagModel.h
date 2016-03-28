@@ -130,6 +130,11 @@ private:
     QString nameForNewTag() const;
     void removeItemByLocalUid(const QString & localUid);
 
+    // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
+    int rowForNewItem(const TagModelItem & parentItem, const TagModelItem & newItem) const;
+
+    void updateItemRowWithRespectToSorting(const TagModelItem & item);
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
@@ -157,6 +162,18 @@ private:
     typedef TagData::index<ByParentLocalUid>::type TagDataByParentLocalUid;
     typedef TagData::index<ByNameUpper>::type TagDataByNameUpper;
 
+    struct LessByName
+    {
+        bool operator()(const TagModelItem & lhs, const TagModelItem & rhs) const;
+        bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
+    };
+
+    struct GreaterByName
+    {
+        bool operator()(const TagModelItem & lhs, const TagModelItem & rhs) const;
+        bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
+    };
+
 private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onTagAdded(const Tag & tag);
@@ -178,6 +195,9 @@ private:
     QSet<QUuid>             m_expungeTagRequestIds;
 
     QSet<QUuid>             m_findTagRequestIds;
+
+    Columns::type           m_sortedColumn;
+    Qt::SortOrder           m_sortOrder;
 
     mutable int             m_lastNewTagNameCounter;
 };

@@ -331,6 +331,8 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
         item.m_localUid = UidGenerator::Generate();
         Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.m_localUid));
         item.m_name = nameForNewSavedSearch();
+        item.m_isDirty = true;
+
         auto insertionResult = index.insert(index.begin() + row, item);
         addedItems.push_back(insertionResult.first);
     }

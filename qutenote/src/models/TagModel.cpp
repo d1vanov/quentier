@@ -26,6 +26,8 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     m_deleteTagRequestIds(),
     m_expungeTagRequestIds(),
     m_findTagRequestIds(),
+    m_sortedColumn(Columns::Name),
+    m_sortOrder(Qt::AscendingOrder),
     m_lastNewTagNameCounter(0)
 {
     createConnections(localStorageManagerThreadWorker);
@@ -363,6 +365,10 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     index.replace(it, itemCopy);
     emit dataChanged(modelIndex, modelIndex);
 
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(itemCopy);
+    emit layoutChanged();
+
     Tag tag;
     tag.setLocalUid(itemCopy.localUid());
     tag.setName(itemCopy.name());
@@ -411,7 +417,10 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
-    TagDataByLocalUid & index = m_data.get<ByLocalUid>();
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    std::vector<TagDataByLocalUid::iterator> addedItems;
+    addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
 
     beginInsertRows(parent, row, row + count - 1);
     for(int i = 0; i < count; ++i)
@@ -424,9 +433,17 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         item.setDirty(true);
         item.setParent(parentItem);
 
-        Q_UNUSED(index.insert(item))
+        auto insertionResult = localUidIndex.insert(item);
+        addedItems.push_back(insertionResult.first);
     }
     endInsertRows();
+
+    emit layoutAboutToBeChanged();
+    for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
+        const TagModelItem & item = *(*it);
+        updateItemRowWithRespectToSorting(item);
+    }
+    emit layoutChanged();
 
     return true;
 }
@@ -939,6 +956,10 @@ void TagModel::onTagAdded(const Tag & tag)
     mapChildItems(*it);
 
     endInsertRows();
+
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(*it);
+    emit layoutChanged();
 }
 
 void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
@@ -974,6 +995,10 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
     QModelIndex modelIndexFrom = createIndex(row, 0, const_cast<TagModelItem*>(item));
     QModelIndex modelIndexTo = createIndex(row, NUM_TAG_MODEL_COLUMNS - 1, const_cast<TagModelItem*>(item));
     emit dataChanged(modelIndexFrom, modelIndexTo);
+
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(*item);
+    emit layoutChanged();
 }
 
 void TagModel::tagToItem(const Tag & tag, TagModelItem & item)
@@ -1164,12 +1189,13 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
         return itemIndex;
     }
 
-    grandParentItem->insertChild(parentRow + 1, takenItem);
+    int appropriateRow = rowForNewItem(*grandParentItem, *takenItem);
+    grandParentItem->insertChild(appropriateRow, takenItem);
 
-    QModelIndex newIndex = index(parentRow + 1, Columns::Name, grandParentIndex);
+    QModelIndex newIndex = index(appropriateRow, Columns::Name, grandParentIndex);
     if (!newIndex.isValid()) {
         QNWARNING("Can't get the valid index for the promoted item in tag model");
-        Q_UNUSED(grandParentItem->takeChild(parentRow + 1))
+        Q_UNUSED(grandParentItem->takeChild(appropriateRow))
         parentItem->insertChild(row, takenItem);
         return itemIndex;
     }
@@ -1251,19 +1277,13 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
         return itemIndex;
     }
 
-    siblingItem->addChild(takenItem);
-    int newRow = siblingItem->numChildren() - 1;
-    if (Q_UNLIKELY(newRow < 0)) {
-        QNWARNING("Internal inconsistency in tag model: new row for demoted item is negative");
-        Q_UNUSED(siblingItem->takeChild(newRow))
-        parentItem->insertChild(row, takenItem);
-        return itemIndex;
-    }
+    int appropriateRow = rowForNewItem(*siblingItem, *takenItem);
+    siblingItem->insertChild(appropriateRow, takenItem);
 
-    QModelIndex newIndex = index(newRow, Columns::Name, siblingItemIndex);
+    QModelIndex newIndex = index(appropriateRow, Columns::Name, siblingItemIndex);
     if (!newIndex.isValid()) {
         QNWARNING("Can't get the valid index for the demoted item in tag model");
-        Q_UNUSED(siblingItem->takeChild(newRow))
+        Q_UNUSED(siblingItem->takeChild(appropriateRow))
         parentItem->insertChild(row, takenItem);
         return itemIndex;
     }
@@ -1331,7 +1351,8 @@ void TagModel::mapChildItems(const TagModelItem & item)
             const TagModelItem & parentItem = *parentIt;
             int row = parentItem.rowForChild(&item);
             if (row < 0) {
-                parentItem.addChild(&item);
+                int row = rowForNewItem(parentItem, item);
+                parentItem.insertChild(row, &item);
             }
         }
     }
@@ -1374,6 +1395,99 @@ void TagModel::removeItemByLocalUid(const QString & localUid)
     beginRemoveRows(parentItemModelIndex, row, row);
     Q_UNUSED(localUidIndex.erase(itemIt))
     endRemoveRows();
+}
+
+int TagModel::rowForNewItem(const TagModelItem & parentItem, const TagModelItem & newItem) const
+{
+    if (m_sortedColumn != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return parentItem.numChildren();
+    }
+
+    QList<const TagModelItem*> children = parentItem.children();
+    auto it = children.end();
+
+    if (m_sortOrder == Qt::AscendingOrder) {
+        it = std::lower_bound(children.begin(), children.end(), &newItem, LessByName());
+    }
+    else {
+        it = std::lower_bound(children.begin(), children.end(), &newItem, GreaterByName());
+    }
+
+    if (it == children.end()) {
+        return parentItem.numChildren();
+    }
+
+    int row = static_cast<int>(std::distance(children.begin(), it));
+    return row;
+}
+
+void TagModel::updateItemRowWithRespectToSorting(const TagModelItem & item)
+{
+    if (m_sortedColumn != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return;
+    }
+
+    const TagModelItem * parentItem = item.parent();
+    if (!parentItem)
+    {
+        if (!m_fakeRootItem) {
+            m_fakeRootItem = new TagModelItem;
+        }
+
+        parentItem = m_fakeRootItem;
+        int row = rowForNewItem(*parentItem, item);
+        parentItem->insertChild(row, &item);
+        return;
+    }
+
+    int currentItemRow = parentItem->rowForChild(&item);
+    if (Q_UNLIKELY(currentItemRow < 0)) {
+        QNWARNING(QT_TR_NOOP("Can't update tag model item's row: can't find its original row within parent: ") << item);
+        return;
+    }
+
+    Q_UNUSED(parentItem->takeChild(currentItemRow))
+    int appropriateRow = rowForNewItem(*parentItem, item);
+    parentItem->insertChild(appropriateRow, &item);
+    QNTRACE("Moved item from row " << currentItemRow << " to row " << appropriateRow << "; item: " << item);
+}
+
+bool TagModel::LessByName::operator()(const TagModelItem & lhs, const TagModelItem & rhs) const
+{
+    return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) <= 0);
+}
+
+bool TagModel::LessByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
+{
+    if (!lhs) {
+        return true;
+    }
+    else if (!rhs) {
+        return false;
+    }
+    else {
+        return this->operator()(*lhs, *rhs);
+    }
+}
+
+bool TagModel::GreaterByName::operator()(const TagModelItem & lhs, const TagModelItem & rhs) const
+{
+    return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) > 0);
+}
+
+bool TagModel::GreaterByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
+{
+    if (!lhs) {
+        return true;
+    }
+    else if (!rhs) {
+        return false;
+    }
+    else {
+        return this->operator()(*lhs, *rhs);
+    }
 }
 
 } // namespace qute_note
