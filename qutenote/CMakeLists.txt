@@ -63,6 +63,9 @@ set(${PROJECT_NAME}_HEADERS
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h
     src/models/TagModelItem.h
+    src/models/NotebookModelItem.h
+    src/models/NotebookItem.h
+    src/models/NotebookStackItem.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -86,6 +89,9 @@ set(${PROJECT_NAME}_SOURCES
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp
     src/models/TagModelItem.cpp
+    src/models/NotebookModelItem.cpp
+    src/models/NotebookItem.cpp
+    src/models/NotebookStackItem.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 

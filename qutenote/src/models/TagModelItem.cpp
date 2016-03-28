@@ -100,12 +100,12 @@ const TagModelItem * TagModelItem::takeChild(const int row) const
 
 QTextStream & TagModelItem::Print(QTextStream & strm) const
 {
-    strm << "Tag model item: local uid = " << m_localUid << ", name = "
-        << m_name << ", parent local uid = " << m_parentLocalUid
-        << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
-        << ", is dirty = " << (m_isDirty ? "true" : "false")
-        << ", parent = " << (m_parent ? m_parent->m_localUid : QString("<null>"))
-        << ", children: ";
+    strm << "Tag model item: local uid = " << m_localUid << ", guid = " << m_guid
+         << ", name = " << m_name << ", parent local uid = " << m_parentLocalUid
+         << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
+         << ", is dirty = " << (m_isDirty ? "true" : "false")
+         << ", parent = " << (m_parent ? m_parent->m_localUid : QString("<null>"))
+         << ", children: ";
     if (m_children.isEmpty()) {
         strm << "<null> \n";
     }
