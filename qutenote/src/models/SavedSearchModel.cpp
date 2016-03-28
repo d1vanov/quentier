@@ -388,7 +388,7 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
 void SavedSearchModel::sort(int column, Qt::SortOrder order)
 {
     QNDEBUG("SavedSearchModel::sort: column = " << column << ", order = " << order
-            << " (" << (order == Qt::AscendingOrder ? "ascending" : "descending"));
+            << " (" << (order == Qt::AscendingOrder ? "ascending" : "descending") << ")");
 
     if (column != Columns::Name) {
         // Sorting by other columns is not yet implemented

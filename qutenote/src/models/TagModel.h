@@ -63,6 +63,8 @@ public:
     virtual bool insertRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
+    virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
+
     // Drag-n-drop interfaces
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     virtual Qt::DropActions supportedDragActions() const Q_DECL_OVERRIDE { return Qt::MoveAction; }

@@ -514,6 +514,29 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
     return true;
 }
 
+void TagModel::sort(int column, Qt::SortOrder order)
+{
+    QNDEBUG("TagModel::sort: column = " << column << ", order = " << order
+            << " (" << (order == Qt::AscendingOrder ? "ascending" : "descending") << ")");
+
+    if (column != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return;
+    }
+
+    if (order == m_sortOrder) {
+        QNDEBUG("The sort order already established, nothing to do");
+        return;
+    }
+
+    m_sortOrder = order;
+
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
+        updateItemRowWithRespectToSorting(*it);
+    }
+}
+
 QStringList TagModel::mimeTypes() const
 {
     QStringList list;
