@@ -366,13 +366,32 @@ void TagModelTestHelper::test()
         }
 
         // Should be able to demote the items
-        // TODO: take two items within the eighth item's children: first row and second row
-        // TODO: fetch the parent of the item at the second row
-        // TODO: do demote for the second row
-        // TODO: verify that the item previously being at the second row is now a child of the item at the first row
-        // TODO: and that it is not a child of the original parent
+        int eighthNumChildren = eighthItem->numChildren();
+        if (eighthNumChildren < 2) {
+            QNWARNING("Expected for the eighth item to have at least two children at this moment of test");
+            emit failure();
+            return;
+        }
 
-        // TODO: continue from here
+        const TagModelItem * firstEighthChild = eighthItem->childAtRow(0);
+        const TagModelItem * secondEighthChild = eighthItem->childAtRow(1);
+
+        QModelIndex secondEighthChildIndex = model->indexForItem(secondEighthChild);
+        secondEighthChildIndex = model->demote(secondEighthChildIndex);
+
+        int formerSecondEighthChildRowInEighth = eighthItem->rowForChild(secondEighthChild);
+        if (formerSecondEighthChildRowInEighth >= 0) {
+            QNWARNING("Tag model item can still be found within the original parent's children after the demotion");
+            emit failure();
+            return;
+        }
+
+        int formerSecondEighthChildRowInNewParent = firstEighthChild->rowForChild(secondEighthChild);
+        if (formerSecondEighthChildRowInNewParent < 0) {
+            QNWARNING("Can't find tag model item within the children of its expected new parent after the demotion");
+            emit failure();
+            return;
+        }
 
         emit success();
         return;
