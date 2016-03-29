@@ -8,6 +8,8 @@
 // Limit for the queries to the local storage
 #define SAVED_SEARCH_LIST_LIMIT (100)
 
+#define SAVED_SEARCH_CACHE_LIMIT (20)
+
 #define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
 
 namespace qute_note {
@@ -19,10 +21,12 @@ SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorag
     m_listSavedSearchesOffset(0),
     m_listSavedSearchesRequestId(),
     m_savedSearchItemsNotYetInLocalStorageUids(),
+    m_cache(SAVED_SEARCH_CACHE_LIMIT),
     m_addSavedSearchRequestIds(),
     m_updateSavedSearchRequestIds(),
     m_expungeSavedSearchRequestIds(),
-    m_findSavedSearchRequestIds(),
+    m_findSavedSearchToRestoreFailedUpdateRequestIds(),
+    m_findSavedSearchToPerformUpdateRequestIds(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
     m_lastNewSavedSearchNameCounter(0)
@@ -281,35 +285,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     updateRandomAccessIndexWithRespectToSorting(item);
     emit layoutChanged();
 
-    SavedSearch savedSearch;
-    savedSearch.setLocalUid(item.m_localUid);
-    savedSearch.setName(item.m_name);
-    savedSearch.setQuery(item.m_query);
-    savedSearch.setLocal(!item.m_isSynchronizable);
-    savedSearch.setDirty(item.m_isDirty);
-
-    QUuid requestId = QUuid::createUuid();
-
-    auto notYetSavedItemIt = m_savedSearchItemsNotYetInLocalStorageUids.find(item.m_localUid);
-    if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageUids.end())
-    {
-        Q_UNUSED(m_addSavedSearchRequestIds.insert(requestId));
-        emit addSavedSearch(savedSearch, requestId);
-
-        QNTRACE("Emitted the request to add the saved search to local storage: id = " << requestId
-                << ", saved search: " << savedSearch);
-
-        Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
-    }
-    else
-    {
-        Q_UNUSED(m_updateSavedSearchRequestIds.insert(requestId));
-        emit updateSavedSearch(savedSearch, requestId);
-
-        QNTRACE("Emitted the request to update the saved search in the local storage: id = " << requestId
-                << ", saved search: " << savedSearch);
-    }
-
+    updateSavedSearchInLocalStorage(item);
     return true;
 }
 
@@ -489,7 +465,7 @@ void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QString err
     Q_UNUSED(m_updateSavedSearchRequestIds.erase(it))
 
     requestId = QUuid::createUuid();
-    Q_UNUSED(m_findSavedSearchRequestIds.insert(requestId))
+    Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.insert(requestId))
     emit findSavedSearch(search, requestId);
     QNTRACE("Emitted the request to find the saved search: local uid = " << search.localUid()
             << ", request id = " << requestId);
@@ -497,29 +473,53 @@ void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QString err
 
 void SavedSearchModel::onFindSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    auto it = m_findSavedSearchRequestIds.find(requestId);
-    if (it == m_findSavedSearchRequestIds.end()) {
+    auto restoreUpdateIt = m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
+    auto performUpdateIt = m_findSavedSearchToPerformUpdateRequestIds.find(requestId);
+
+    if ( (restoreUpdateIt == m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) &&
+         (performUpdateIt == m_findSavedSearchToPerformUpdateRequestIds.end()) )
+    {
         return;
     }
 
     QNDEBUG("SavedSearchModel::onFindSavedSearchComplete: search = " << search << "\nRequest id = " << requestId);
 
-    Q_UNUSED(m_findSavedSearchRequestIds.erase(it))
-
-    onSavedSearchAddedOrUpdated(search);
+    if (restoreUpdateIt != m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) {
+        Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
+        onSavedSearchAddedOrUpdated(search);
+    }
+    else if (performUpdateIt != m_findSavedSearchToPerformUpdateRequestIds.end())
+    {
+        Q_UNUSED(m_findSavedSearchToPerformUpdateRequestIds.erase(performUpdateIt))
+        m_cache.put(search.localUid(), search);
+        SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto it = localUidIndex.find(search.localUid());
+        if (it != localUidIndex.end()) {
+            updateSavedSearchInLocalStorage(*it);
+        }
+    }
 }
 
 void SavedSearchModel::onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
 {
-    auto it = m_findSavedSearchRequestIds.find(requestId);
-    if (it == m_findSavedSearchRequestIds.end()) {
+    auto restoreUpdateIt = m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
+    auto performUpdateIt = m_findSavedSearchToPerformUpdateRequestIds.find(requestId);
+
+    if ( (restoreUpdateIt == m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) &&
+         (performUpdateIt == m_findSavedSearchToPerformUpdateRequestIds.end()) )
+    {
         return;
     }
 
     QNWARNING("SavedSearchModel::onFindSavedSearchFailed: search = " << search << "\nError description = "
               << errorDescription << ", request id = " << requestId);
 
-    Q_UNUSED(m_findSavedSearchRequestIds.erase(it))
+    if (restoreUpdateIt != m_findSavedSearchToRestoreFailedUpdateRequestIds.end()) {
+        Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
+    }
+    else if (performUpdateIt != m_findSavedSearchToPerformUpdateRequestIds.end()) {
+        Q_UNUSED(m_findSavedSearchToPerformUpdateRequestIds.erase(performUpdateIt))
+    }
 
     emit notifyError(errorDescription);
 }
@@ -693,6 +693,8 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
+    m_cache.put(search.localUid(), search);
+
     SavedSearchModelItem item(search.localUid());
 
     if (search.hasName()) {
@@ -856,6 +858,53 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(const SavedSe
     SavedSearchDataByIndex::iterator originalRandomAccessIt = m_data.project<ByIndex>(itemIt);
     SavedSearchDataByIndex::iterator newRandonAccessIt = m_data.project<ByIndex>(appropriateNameIt);
     index.relocate(newRandonAccessIt, originalRandomAccessIt);
+}
+
+void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelItem & item)
+{
+    QNDEBUG("SavedSearchModel::updateSavedSearchInLocalStorage: local uid = " << item);
+
+    const SavedSearch * pCachedItem = m_cache.get(item.m_localUid);
+    if (Q_UNLIKELY(!pCachedItem))
+    {
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_findSavedSearchToPerformUpdateRequestIds.insert(requestId))
+        SavedSearch dummy;
+        dummy.setLocalUid(item.m_localUid);
+        emit findSavedSearch(dummy, requestId);
+        QNDEBUG("Emitted the request to find the saved search: local uid = " << item.m_localUid
+                << ", request id = " << requestId);
+        return;
+    }
+
+    SavedSearch savedSearch(*pCachedItem);
+    savedSearch.setLocalUid(item.m_localUid);
+    savedSearch.setName(item.m_name);
+    savedSearch.setQuery(item.m_query);
+    savedSearch.setLocal(!item.m_isSynchronizable);
+    savedSearch.setDirty(item.m_isDirty);
+
+    QUuid requestId = QUuid::createUuid();
+
+    auto notYetSavedItemIt = m_savedSearchItemsNotYetInLocalStorageUids.find(item.m_localUid);
+    if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageUids.end())
+    {
+        Q_UNUSED(m_addSavedSearchRequestIds.insert(requestId));
+        emit addSavedSearch(savedSearch, requestId);
+
+        QNTRACE("Emitted the request to add the saved search to local storage: id = " << requestId
+                << ", saved search: " << savedSearch);
+
+        Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
+    }
+    else
+    {
+        Q_UNUSED(m_updateSavedSearchRequestIds.insert(requestId));
+        emit updateSavedSearch(savedSearch, requestId);
+
+        QNTRACE("Emitted the request to update the saved search in the local storage: id = " << requestId
+                << ", saved search: " << savedSearch);
+    }
 }
 
 bool SavedSearchModel::LessByName::operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const

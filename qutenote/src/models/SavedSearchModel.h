@@ -4,6 +4,7 @@
 #include "SavedSearchModelItem.h"
 #include <qute_note/types/SavedSearch.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
+#include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
@@ -108,6 +109,8 @@ private:
 
     void updateRandomAccessIndexWithRespectToSorting(const SavedSearchModelItem & item);
 
+    void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
@@ -144,17 +147,22 @@ private:
         bool operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const;
     };
 
+    typedef LRUCache<QString, SavedSearch>  Cache;
+
 private:
     SavedSearchData         m_data;
     size_t                  m_listSavedSearchesOffset;;
     QUuid                   m_listSavedSearchesRequestId;
     QSet<QUuid>             m_savedSearchItemsNotYetInLocalStorageUids;
 
+    Cache                   m_cache;
+
     QSet<QUuid>             m_addSavedSearchRequestIds;
     QSet<QUuid>             m_updateSavedSearchRequestIds;
     QSet<QUuid>             m_expungeSavedSearchRequestIds;
 
-    QSet<QUuid>             m_findSavedSearchRequestIds;
+    QSet<QUuid>             m_findSavedSearchToRestoreFailedUpdateRequestIds;
+    QSet<QUuid>             m_findSavedSearchToPerformUpdateRequestIds;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
