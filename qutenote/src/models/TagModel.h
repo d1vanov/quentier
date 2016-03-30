@@ -4,6 +4,7 @@
 #include "TagModelItem.h"
 #include <qute_note/types/Tag.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
+#include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
@@ -137,6 +138,8 @@ private:
 
     void updateItemRowWithRespectToSorting(const TagModelItem & item);
 
+    void updateTagInLocalStorage(const TagModelItem & item);
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
@@ -176,6 +179,8 @@ private:
         bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
     };
 
+    typedef LRUCache<QString, Tag> Cache;
+
 private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onTagAdded(const Tag & tag);
@@ -185,6 +190,8 @@ private:
 private:
     TagData                 m_data;
     TagModelItem *          m_fakeRootItem;
+
+    Cache                   m_cache;
 
     bool                    m_ready;
     size_t                  m_listTagsOffset;
@@ -196,7 +203,8 @@ private:
     QSet<QUuid>             m_deleteTagRequestIds;
     QSet<QUuid>             m_expungeTagRequestIds;
 
-    QSet<QUuid>             m_findTagRequestIds;
+    QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;
+    QSet<QUuid>             m_findTagToPerformUpdateRequestIds;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;

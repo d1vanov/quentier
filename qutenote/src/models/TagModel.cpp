@@ -8,6 +8,8 @@
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT (100)
 
+#define TAG_CACHE_LIMIT (20)
+
 #define NUM_TAG_MODEL_COLUMNS (3)
 
 namespace qute_note {
@@ -17,6 +19,7 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     QAbstractItemModel(parent),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
+    m_cache(TAG_CACHE_LIMIT),
     m_ready(false),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
@@ -25,7 +28,8 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     m_updateTagRequestIds(),
     m_deleteTagRequestIds(),
     m_expungeTagRequestIds(),
-    m_findTagRequestIds(),
+    m_findTagToRestoreFailedUpdateRequestIds(),
+    m_findTagToPerformUpdateRequestIds(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
     m_lastNewTagNameCounter(0)
@@ -369,34 +373,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     updateItemRowWithRespectToSorting(itemCopy);
     emit layoutChanged();
 
-    Tag tag;
-    tag.setLocalUid(itemCopy.localUid());
-    tag.setName(itemCopy.name());
-    tag.setLocal(!itemCopy.isSynchronizable());
-    tag.setDirty(itemCopy.isDirty());
-
-    QUuid requestId = QUuid::createUuid();
-
-    auto notYetSavedItemIt = m_tagItemsNotYetInLocalStorageUids.find(itemCopy.localUid());
-    if (notYetSavedItemIt != m_tagItemsNotYetInLocalStorageUids.end())
-    {
-        Q_UNUSED(m_addTagRequestIds.insert(requestId));
-        emit addTag(tag, requestId);
-
-        QNTRACE("Emitted the request to add the tag to local storage: id = " << requestId
-                << ", tag: " << tag);
-
-        Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
-    }
-    else
-    {
-        Q_UNUSED(m_updateTagRequestIds.insert(requestId));
-        emit updateTag(tag, requestId);
-
-        QNTRACE("Emitted the request to update the tag in the local storage: id = " << requestId
-                << ", tag: " << tag);
-    }
-
+    updateTagInLocalStorage(itemCopy);
     return true;
 }
 
@@ -698,7 +675,7 @@ void TagModel::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid reques
     Q_UNUSED(m_updateTagRequestIds.erase(it))
 
     requestId = QUuid::createUuid();
-    Q_UNUSED(m_findTagRequestIds.insert(requestId))
+    Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.insert(requestId))
     emit findTag(tag, requestId);
     QNTRACE("Emitted the request to find the tag: local uid = " << tag.localUid()
             << ", request id = " << requestId);
@@ -706,29 +683,50 @@ void TagModel::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid reques
 
 void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
 {
-    auto it = m_findTagRequestIds.find(requestId);
-    if (it == m_findTagRequestIds.end()) {
+    auto restoreUpdateIt = m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
+    auto performUpdateIt = m_findTagToPerformUpdateRequestIds.find(requestId);
+    if ((restoreUpdateIt == m_findTagToRestoreFailedUpdateRequestIds.end()) &&
+        (performUpdateIt == m_findTagToPerformUpdateRequestIds.end()))
+    {
         return;
     }
 
     QNDEBUG("TagModel::onFindTagComplete: tag = " << tag << "\nRequest id = " << requestId);
 
-    Q_UNUSED(m_findTagRequestIds.erase(it))
-
-    onTagAddedOrUpdated(tag);
+    if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end()) {
+        Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
+        onTagAddedOrUpdated(tag);
+    }
+    else if (performUpdateIt != m_findTagToPerformUpdateRequestIds.end()) {
+        Q_UNUSED(m_findTagToPerformUpdateRequestIds.erase(performUpdateIt))
+        m_cache.put(tag.localUid(), tag);
+        TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto it = localUidIndex.find(tag.localUid());
+        if (it != localUidIndex.end()) {
+            updateTagInLocalStorage(*it);
+        }
+    }
 }
 
 void TagModel::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
 {
-    auto it = m_findTagRequestIds.find(requestId);
-    if (it == m_findTagRequestIds.end()) {
+    auto restoreUpdateIt = m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
+    auto performUpdateIt = m_findTagToPerformUpdateRequestIds.find(requestId);
+    if ((restoreUpdateIt == m_findTagToRestoreFailedUpdateRequestIds.end()) &&
+        (performUpdateIt == m_findTagToPerformUpdateRequestIds.end()))
+    {
         return;
     }
 
     QNDEBUG("TagModel::onFindTagFailed: tag = " << tag << "\nError description = " << errorDescription
             << ", request id = " << requestId);
 
-    Q_UNUSED(m_findTagRequestIds.erase(it))
+    if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end()) {
+        Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
+    }
+    else if (performUpdateIt != m_findTagToPerformUpdateRequestIds.end()) {
+        Q_UNUSED(m_findTagToPerformUpdateRequestIds.erase(performUpdateIt))
+    }
 
     emit notifyError(errorDescription);
 }
@@ -920,6 +918,8 @@ void TagModel::requestTagsList()
 void TagModel::onTagAddedOrUpdated(const Tag & tag)
 {
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    m_cache.put(tag.localUid(), tag);
 
     auto itemIt = localUidIndex.find(tag.localUid());
     bool newTag = (itemIt == localUidIndex.end());
@@ -1475,6 +1475,62 @@ void TagModel::updateItemRowWithRespectToSorting(const TagModelItem & item)
     int appropriateRow = rowForNewItem(*parentItem, item);
     parentItem->insertChild(appropriateRow, &item);
     QNTRACE("Moved item from row " << currentItemRow << " to row " << appropriateRow << "; item: " << item);
+}
+
+void TagModel::updateTagInLocalStorage(const TagModelItem & item)
+{
+    QNDEBUG("TagModel::updateTagInLocalStorage: local uid = " << item.localUid());
+
+    Tag tag;
+
+    auto notYetSavedItemIt = m_tagItemsNotYetInLocalStorageUids.find(item.localUid());
+    if (notYetSavedItemIt == m_tagItemsNotYetInLocalStorageUids.end())
+    {
+        QNDEBUG("Updating the tag");
+
+        const Tag * pCachedTag = m_cache.get(item.localUid());
+        if (Q_UNLIKELY(!pCachedTag))
+        {
+            QUuid requestId = QUuid::createUuid();
+            Q_UNUSED(m_findTagToPerformUpdateRequestIds.insert(requestId))
+            Tag dummy;
+            dummy.setLocalUid(item.localUid());
+            emit findTag(dummy, requestId);
+            QNDEBUG("Emitted the request to find the tag: local uid = " << item.localUid()
+                    << ", request id = " << requestId);
+            return;
+        }
+
+        tag = *pCachedTag;
+    }
+
+    tag.setLocalUid(item.localUid());
+    tag.setName(item.name());
+    tag.setLocal(!item.isSynchronizable());
+    tag.setDirty(item.isDirty());
+
+    m_cache.put(tag.localUid(), tag);
+
+    QUuid requestId = QUuid::createUuid();
+
+    if (notYetSavedItemIt != m_tagItemsNotYetInLocalStorageUids.end())
+    {
+        Q_UNUSED(m_addTagRequestIds.insert(requestId));
+        emit addTag(tag, requestId);
+
+        QNTRACE("Emitted the request to add the tag to local storage: id = " << requestId
+                << ", tag: " << tag);
+
+        Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
+    }
+    else
+    {
+        Q_UNUSED(m_updateTagRequestIds.insert(requestId));
+        emit updateTag(tag, requestId);
+
+        QNTRACE("Emitted the request to update the tag in the local storage: id = " << requestId
+                << ", tag: " << tag);
+    }
 }
 
 bool TagModel::LessByName::operator()(const TagModelItem & lhs, const TagModelItem & rhs) const
