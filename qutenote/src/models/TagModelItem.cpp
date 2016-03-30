@@ -56,7 +56,7 @@ int TagModelItem::rowForChild(const TagModelItem * child) const
 
 void TagModelItem::insertChild(const int row, const TagModelItem * item) const
 {
-    if (!item) {
+    if (Q_UNLIKELY(!item)) {
         return;
     }
 
@@ -66,7 +66,7 @@ void TagModelItem::insertChild(const int row, const TagModelItem * item) const
 
 void TagModelItem::addChild(const TagModelItem * item) const
 {
-    if (!item) {
+    if (Q_UNLIKELY(!item)) {
         return;
     }
 

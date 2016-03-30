@@ -22,8 +22,8 @@ public:
                       const NotebookStackItem * notebookStackItem = Q_NULLPTR);
     ~NotebookModelItem();
 
-    Type::type type() const;
-    void setType(const Type::type type);
+    Type::type type() const { return m_type; }
+    void setType(const Type::type type) { m_type = type; }
 
     const NotebookItem * notebookItem() const { return m_notebookItem; }
     void setNotebookItem(const NotebookItem * notebookItem) { m_notebookItem = notebookItem; }

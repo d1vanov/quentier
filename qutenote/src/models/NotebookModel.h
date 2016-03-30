@@ -41,6 +41,10 @@ public:
         };
     };
 
+    const NotebookModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const NotebookModelItem * item) const;
+    QModelIndex indexForLocalUid(const QString & localUid) const;
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -56,6 +60,9 @@ public:
     virtual bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
     virtual bool insertRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
+
+Q_SIGNALS:
+    void notifyError(QString errorDescription);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
