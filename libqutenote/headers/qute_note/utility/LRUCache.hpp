@@ -8,7 +8,7 @@
 
 namespace qute_note {
 
-template<class Key, class Value, class Allocator = std::allocator<std::pair<const Key, Value> > >
+template<class Key, class Value, class Allocator = std::allocator<std::pair<Key, Value> > >
 class LRUCache
 {
 public:
