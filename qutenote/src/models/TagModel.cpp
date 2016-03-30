@@ -20,7 +20,6 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
     m_cache(TAG_CACHE_LIMIT),
-    m_ready(false),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
     m_tagItemsNotYetInLocalStorageUids(),
@@ -52,10 +51,6 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
-
-    if (!m_ready) {
-        return indexFlags;
-    }
 
     if (index.column() == Columns::Dirty) {
         return indexFlags;
@@ -91,10 +86,6 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 QVariant TagModel::data(const QModelIndex & index, int role) const
 {
     if (!index.isValid()) {
-        return QVariant();
-    }
-
-    if (!m_ready) {
         return QVariant();
     }
 
@@ -171,10 +162,6 @@ int TagModel::rowCount(const QModelIndex & parent) const
         return 0;
     }
 
-    if (!m_ready) {
-        return 0;
-    }
-
     const TagModelItem * parentItem = itemForIndex(parent);
     return (parentItem ? parentItem->numChildren() : 0);
 }
@@ -190,7 +177,7 @@ int TagModel::columnCount(const QModelIndex & parent) const
 
 QModelIndex TagModel::index(int row, int column, const QModelIndex & parent) const
 {
-    if (!m_fakeRootItem || !m_ready || (row < 0) || (column < 0) || (column >= NUM_TAG_MODEL_COLUMNS) ||
+    if (!m_fakeRootItem || (row < 0) || (column < 0) || (column >= NUM_TAG_MODEL_COLUMNS) ||
         (parent.isValid() && (parent.column() != Columns::Name)))
     {
         return QModelIndex();
@@ -213,10 +200,6 @@ QModelIndex TagModel::index(int row, int column, const QModelIndex & parent) con
 QModelIndex TagModel::parent(const QModelIndex & index) const
 {
     if (!index.isValid()) {
-        return QModelIndex();
-    }
-
-    if (!m_ready) {
         return QModelIndex();
     }
 
@@ -259,10 +242,6 @@ bool TagModel::setHeaderData(int section, Qt::Orientation orientation, const QVa
 
 bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
-    if (!m_ready) {
-        return false;
-    }
-
     if (role != Qt::EditRole) {
         return false;
     }
@@ -379,10 +358,6 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
 bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
 {
-    if (!m_ready) {
-        return false;
-    }
-
     if (!m_fakeRootItem) {
         m_fakeRootItem = new TagModelItem;
     }
@@ -427,10 +402,6 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
 
 bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-    if (!m_ready) {
-        return false;
-    }
-
     if (!m_fakeRootItem) {
         return false;
     }
@@ -757,17 +728,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
         QNTRACE("The number of found tags matches the limit, requesting more tags from the local storage");
         m_listTagsOffset += limit;
         requestTagsList();
-        return;
     }
-
-    if (!m_fakeRootItem) {
-        m_fakeRootItem = new TagModelItem;
-    }
-
-    mapChildItems();
-
-    m_ready = true;
-    emit ready();
 }
 
 void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -923,8 +884,7 @@ void TagModel::onTagAddedOrUpdated(const Tag & tag)
 
     auto itemIt = localUidIndex.find(tag.localUid());
     bool newTag = (itemIt == localUidIndex.end());
-    if (newTag)
-    {
+    if (newTag) {
         onTagAdded(tag);
     }
     else {

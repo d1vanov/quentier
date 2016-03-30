@@ -13,7 +13,6 @@
 #ifndef Q_MOC_RUN
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #endif
 
@@ -38,8 +37,6 @@ public:
             Dirty
         };
     };
-
-    bool ready() const { return m_ready; }
 
     const TagModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const TagModelItem * item) const;
@@ -193,7 +190,6 @@ private:
 
     Cache                   m_cache;
 
-    bool                    m_ready;
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;
     QSet<QUuid>             m_tagItemsNotYetInLocalStorageUids;
