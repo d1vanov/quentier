@@ -864,29 +864,39 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
 {
     QNDEBUG("SavedSearchModel::updateSavedSearchInLocalStorage: local uid = " << item);
 
-    const SavedSearch * pCachedItem = m_cache.get(item.m_localUid);
-    if (Q_UNLIKELY(!pCachedItem))
+    SavedSearch savedSearch;
+
+    auto notYetSavedItemIt = m_savedSearchItemsNotYetInLocalStorageUids.find(item.m_localUid);
+    if (notYetSavedItemIt == m_savedSearchItemsNotYetInLocalStorageUids.end())
     {
-        QUuid requestId = QUuid::createUuid();
-        Q_UNUSED(m_findSavedSearchToPerformUpdateRequestIds.insert(requestId))
-        SavedSearch dummy;
-        dummy.setLocalUid(item.m_localUid);
-        emit findSavedSearch(dummy, requestId);
-        QNDEBUG("Emitted the request to find the saved search: local uid = " << item.m_localUid
-                << ", request id = " << requestId);
-        return;
+        QNDEBUG("Updating the saved search");
+
+        const SavedSearch * pCachedSearch = m_cache.get(item.m_localUid);
+        if (Q_UNLIKELY(!pCachedSearch))
+        {
+            QUuid requestId = QUuid::createUuid();
+            Q_UNUSED(m_findSavedSearchToPerformUpdateRequestIds.insert(requestId))
+                SavedSearch dummy;
+            dummy.setLocalUid(item.m_localUid);
+            emit findSavedSearch(dummy, requestId);
+            QNDEBUG("Emitted the request to find the saved search: local uid = " << item.m_localUid
+                    << ", request id = " << requestId);
+            return;
+        }
+
+        savedSearch = *pCachedSearch;
     }
 
-    SavedSearch savedSearch(*pCachedItem);
     savedSearch.setLocalUid(item.m_localUid);
     savedSearch.setName(item.m_name);
     savedSearch.setQuery(item.m_query);
     savedSearch.setLocal(!item.m_isSynchronizable);
     savedSearch.setDirty(item.m_isDirty);
 
+    m_cache.put(item.m_localUid, savedSearch);
+
     QUuid requestId = QUuid::createUuid();
 
-    auto notYetSavedItemIt = m_savedSearchItemsNotYetInLocalStorageUids.find(item.m_localUid);
     if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageUids.end())
     {
         Q_UNUSED(m_addSavedSearchRequestIds.insert(requestId));
