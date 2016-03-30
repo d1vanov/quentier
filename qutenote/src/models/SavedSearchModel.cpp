@@ -378,6 +378,8 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
 
     m_sortOrder = order;
 
+    emit layoutAboutToBeChanged();
+
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     std::vector<boost::reference_wrapper<const SavedSearchModelItem> > items(index.begin(), index.end());
 
@@ -389,6 +391,8 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
     }
 
     index.rearrange(items.begin());
+
+    emit layoutChanged();
 }
 
 void SavedSearchModel::onAddSavedSearchComplete(SavedSearch search, QUuid requestId)

@@ -498,10 +498,14 @@ void TagModel::sort(int column, Qt::SortOrder order)
 
     m_sortOrder = order;
 
+    emit layoutAboutToBeChanged();
+
     const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
         updateItemRowWithRespectToSorting(*it);
     }
+
+    emit layoutChanged();
 }
 
 QStringList TagModel::mimeTypes() const
