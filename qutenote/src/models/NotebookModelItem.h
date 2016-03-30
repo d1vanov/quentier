@@ -20,6 +20,7 @@ public:
     NotebookModelItem(const Type::type type = Type::Notebook,
                       const NotebookItem * notebookItem = Q_NULLPTR,
                       const NotebookStackItem * notebookStackItem = Q_NULLPTR);
+    ~NotebookModelItem();
 
     Type::type type() const;
     void setType(const Type::type type);

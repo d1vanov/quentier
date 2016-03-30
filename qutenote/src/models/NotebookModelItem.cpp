@@ -10,6 +10,12 @@ NotebookModelItem::NotebookModelItem(const Type::type type,
     m_notebookStackItem(notebookStackItem)
 {}
 
+NotebookModelItem::~NotebookModelItem()
+{
+    delete m_notebookItem;
+    delete m_notebookStackItem;
+}
+
 QTextStream & NotebookModelItem::Print(QTextStream & strm) const
 {
     strm << "Notebook model item (" << (m_type == Type::Notebook ? "notebook" : "stack")

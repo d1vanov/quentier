@@ -63,6 +63,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h
     src/models/TagModelItem.h
+    src/models/NotebookModel.h
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
@@ -89,6 +90,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp
     src/models/TagModelItem.cpp
+    src/models/NotebookModel.cpp
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
