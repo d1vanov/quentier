@@ -4,6 +4,7 @@ namespace qute_note {
 
 TagModelItem::TagModelItem(const QString & localUid,
                            const QString & guid,
+                           const QString & linkedNotebookGuid,
                            const QString & name,
                            const QString & parentLocalUid,
                            const QString & parentGuid,
@@ -12,6 +13,7 @@ TagModelItem::TagModelItem(const QString & localUid,
                            TagModelItem * parent) :
     m_localUid(localUid),
     m_guid(guid),
+    m_linkedNotebookGuid(linkedNotebookGuid),
     m_name(name),
     m_parentLocalUid(parentLocalUid),
     m_parentGuid(parentGuid),
@@ -101,6 +103,7 @@ const TagModelItem * TagModelItem::takeChild(const int row) const
 QTextStream & TagModelItem::Print(QTextStream & strm) const
 {
     strm << "Tag model item: local uid = " << m_localUid << ", guid = " << m_guid
+         << ", linked notebook guid = " << m_linkedNotebookGuid
          << ", name = " << m_name << ", parent local uid = " << m_parentLocalUid
          << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false")
@@ -123,16 +126,16 @@ QTextStream & TagModelItem::Print(QTextStream & strm) const
 
 QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
 {
-    out << item.m_localUid << item.m_guid << item.m_name << item.m_parentLocalUid
-        << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty;
+    out << item.m_localUid << item.m_guid << item.m_linkedNotebookGuid << item.m_name
+        << item.m_parentLocalUid << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty;
 
     return out;
 }
 
 QDataStream & operator>>(QDataStream & in, TagModelItem & item)
 {
-    in >> item.m_localUid >> item.m_guid >> item.m_name >> item.m_parentLocalUid
-       >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty;
+    in >> item.m_localUid >> item.m_guid >> item.m_linkedNotebookGuid >> item.m_name
+       >> item.m_parentLocalUid >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty;
 
     return in;
 }

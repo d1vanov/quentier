@@ -34,7 +34,8 @@ public:
         enum type {
             Name = 0,
             Synchronizable,
-            Dirty
+            Dirty,
+            FromLinkedNotebook
         };
     };
 
@@ -77,7 +78,6 @@ public:
                               int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void ready();
     void notifyError(QString errorDescription);
 
 // private signals

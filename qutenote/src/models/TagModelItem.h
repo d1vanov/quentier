@@ -11,6 +11,7 @@ class TagModelItem: public Printable
 public:
     explicit TagModelItem(const QString & localUid = QString(),
                           const QString & guid = QString(),
+                          const QString & linkedNotebookGuid = QString(),
                           const QString & name = QString(),
                           const QString & parentLocalUid = QString(),
                           const QString & parentGuid = QString(),
@@ -24,6 +25,9 @@ public:
 
     const QString & guid() const { return m_guid; }
     void setGuid(const QString & guid) { m_guid = guid; }
+
+    const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
+    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
 
     QString nameUpper() const { return m_name.toUpper(); }
 
@@ -65,6 +69,7 @@ public:
 private:
     QString     m_localUid;
     QString     m_guid;
+    QString     m_linkedNotebookGuid;
     QString     m_name;
     QString     m_parentLocalUid;
     QString     m_parentGuid;

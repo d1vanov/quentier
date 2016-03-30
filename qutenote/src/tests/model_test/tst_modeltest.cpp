@@ -457,6 +457,7 @@ void tst_ModelTest::testTagModelItemSerialization()
     item.setLocalUid(UidGenerator::Generate());
     item.setName("Test item");
     item.setGuid(UidGenerator::Generate());
+    item.setLinkedNotebookGuid(UidGenerator::Generate());
     item.setDirty(true);
     item.setSynchronizable(false);
     item.setGuid(UidGenerator::Generate());
@@ -474,6 +475,7 @@ void tst_ModelTest::testTagModelItemSerialization()
 
     QVERIFY2(restoredItem.localUid() == item.localUid(), qPrintable("Local uids of original and deserialized items don't match"));
     QVERIFY2(restoredItem.guid() == item.guid(), qPrintable("Guids of original and deserialized items don't match"));
+    QVERIFY2(restoredItem.linkedNotebookGuid() == item.linkedNotebookGuid(), qPrintable("Linked notebook guids of original and deserialized items don't match"));
     QVERIFY2(restoredItem.name() == item.name(), qPrintable("Names of original and deserialized items don't match"));
     QVERIFY2(restoredItem.parentGuid() == item.parentGuid(), qPrintable("Parent guids of original and deserialized items don't match"));
     QVERIFY2(restoredItem.parentLocalUid() == item.parentLocalUid(), qPrintable("Parent local uids of original and deserialized items don't match"));

@@ -10,7 +10,7 @@
 
 #define TAG_CACHE_LIMIT (20)
 
-#define NUM_TAG_MODEL_COLUMNS (3)
+#define NUM_TAG_MODEL_COLUMNS (4)
 
 namespace qute_note {
 
@@ -52,7 +52,9 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
 
-    if (index.column() == Columns::Dirty) {
+    if ((index.column() == Columns::Dirty) ||
+        (index.column() == Columns::FromLinkedNotebook))
+    {
         return indexFlags;
     }
 
@@ -115,6 +117,9 @@ QVariant TagModel::data(const QModelIndex & index, int role) const
     case Columns::Dirty:
         column = Columns::Dirty;
         break;
+    case Columns::FromLinkedNotebook:
+        column = Columns::FromLinkedNotebook;
+        break;
     default:
         return QVariant();
     }
@@ -146,11 +151,13 @@ QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role
     switch(section)
     {
     case Columns::Name:
-        return QVariant(QT_TR_NOOP("Name"));
+        return QVariant(tr("Name"));
     case Columns::Synchronizable:
-        return QVariant(QT_TR_NOOP("Synchronizable"));
+        return QVariant(tr("Synchronizable"));
     case Columns::Dirty:
-        return QVariant(QT_TR_NOOP("Dirty"));
+        return QVariant(tr("Dirty"));
+    case Columns::FromLinkedNotebook:
+        return QVariant(tr("From linked notebook"));
     default:
         return QVariant();
     }
@@ -252,6 +259,11 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
     if (modelIndex.column() == Columns::Dirty) {
         emit notifyError(QT_TR_NOOP("The \"dirty\" flag can't be set manually"));
+        return false;
+    }
+
+    if (modelIndex.column() == Columns::FromLinkedNotebook) {
+        emit notifyError(QT_TR_NOOP("The \"from linked notebook\" flag can't be set manually"));
         return false;
     }
 
@@ -418,6 +430,13 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         const TagModelItem * item = parentItem->childAtRow(row + i);
         if (!item) {
             continue;
+        }
+
+        if (!item->linkedNotebookGuid().isEmpty()) {
+            QString error = QT_TR_NOOP("Can't remove tag from linked notebook");
+            QNINFO(error);
+            emit notifyError(error);
+            return false;
         }
 
         if (item->isSynchronizable()) {
@@ -1004,6 +1023,10 @@ void TagModel::tagToItem(const Tag & tag, TagModelItem & item)
         item.setParentGuid(tag.parentGuid());
     }
 
+    if (tag.hasLinkedNotebookGuid()) {
+        item.setLinkedNotebookGuid(tag.linkedNotebookGuid());
+    }
+
     item.setSynchronizable(!tag.isLocal());
     item.setDirty(tag.isDirty());
 
@@ -1020,6 +1043,8 @@ QVariant TagModel::dataText(const TagModelItem & item, const Columns::type colum
         return QVariant(item.isSynchronizable());
     case Columns::Dirty:
         return QVariant(item.isDirty());
+    case Columns::FromLinkedNotebook:
+        return QVariant(!item.linkedNotebookGuid().isEmpty());
     default:
         return QVariant();
     }
@@ -1044,6 +1069,9 @@ QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::
         break;
     case Columns::Dirty:
         accessibleText += (textData.toBool() ? "dirty" : "not dirty");
+        break;
+    case Columns::FromLinkedNotebook:
+        accessibleText += (textData.toBool() ? "from linked notebook" : "from own account");
         break;
     default:
         return QVariant();
@@ -1465,6 +1493,8 @@ void TagModel::updateTagInLocalStorage(const TagModelItem & item)
     }
 
     tag.setLocalUid(item.localUid());
+    tag.setGuid(item.guid());
+    tag.setLinkedNotebookGuid(item.linkedNotebookGuid());
     tag.setName(item.name());
     tag.setLocal(!item.isSynchronizable());
     tag.setDirty(item.isDirty());
