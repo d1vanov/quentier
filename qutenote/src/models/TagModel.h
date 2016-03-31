@@ -3,6 +3,7 @@
 
 #include "TagModelItem.h"
 #include <qute_note/types/Tag.h>
+#include <qute_note/types/Notebook.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -14,6 +15,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/bimap.hpp>
 #endif
 
 #define TAG_MODEL_MIME_TYPE "application/x-com.qute_note.tagmodeldatalist"
@@ -91,6 +93,7 @@ Q_SIGNALS:
                   QString linkedNotebookGuid, QUuid requestId);
     void deleteTag(Tag tag, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
+    void findNotebook(Notebook notebook, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -114,6 +117,9 @@ private Q_SLOTS:
     void onDeleteTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QUuid requestId);
     void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+
+    void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
@@ -183,6 +189,8 @@ private:
     void onTagAdded(const Tag & tag);
     void onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it);
     void tagToItem(const Tag & tag, TagModelItem & item);
+    bool canUpdateTagItem(const TagModelItem & item) const;
+    bool canCreateTagItem(const TagModelItem & parentItem) const;
 
 private:
     TagData                 m_data;
@@ -204,6 +212,22 @@ private:
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
+
+    struct Restrictions
+    {
+        Restrictions() :
+            m_canCreateTags(false),
+            m_canUpdateTags(false)
+        {}
+
+        bool    m_canCreateTags;
+        bool    m_canUpdateTags;
+    };
+
+    QHash<QString, Restrictions>    m_tagRestrictionsByLinkedNotebookGuid;
+
+    typedef boost::bimap<QString, QUuid> LinkedNotebookGuidWithFindNotebookRequestIdBimap;
+    LinkedNotebookGuidWithFindNotebookRequestIdBimap    m_findNotebookRequestForLinkedNotebookGuid;
 
     mutable int             m_lastNewTagNameCounter;
 };
