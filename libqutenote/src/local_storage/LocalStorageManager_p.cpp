@@ -1344,7 +1344,7 @@ bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & 
 }
 
 bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescription,
-                                   const bool withResourceBinaryData) const
+                                          const bool withResourceBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findNote");
 

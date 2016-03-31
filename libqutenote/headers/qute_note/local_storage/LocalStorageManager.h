@@ -168,8 +168,8 @@ public:
      * by reference Notebook object. If "remote" Evernote service's guid for Notebook is set,
      * it is used to identify the Notebook in local storage database. Otherwise it is
      * identified by its local uid. If it's empty, the search would attempt to find Notebook
-     * by its name. If linked notebook guid is set for notebook, the search would consider only
-     * notebooks from that linked notebook; otherwise, the search would consider only notebooks
+     * by its name. If linked notebook guid is set for notebook, the search would try to find
+     * the notebook corresponding to that linked notebook; otherwise, the search would consider only notebooks
      * from user's own account
      * @param notebook - notebook to be found. Must have either "remote" or local uid or title set
      * @param errorDescription - error description if notebook could not be found
@@ -240,8 +240,9 @@ public:
      * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
-     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
-     * otherwise, notebooks from corresponding linked notebook would be listed
+     * @param linkedNotebookGuid - if it's null, the method would list notebooks ignoring their belonging to the current account
+     * or to some linked notebook; if it's empty, the notebooks from user's own account would be listed;
+     * otherwise, the only one notebook from corresponding linked notebook would be listed
      * @return either list of all notebooks within the account or empty list in cases of
      * error or no notebooks presence within the account
      */
@@ -261,8 +262,9 @@ public:
      * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
-     * @param linkedNotebookGuid - if it's empty, the notebooks from user's own account would be listed;
-     * otherwise, notebooks from corresponding linked notebook would be listed
+     * @param linkedNotebookGuid - if it's null, the method would list notebooks ignoring their belonging to the current account
+     * or to some linked notebook; if it's empty, the notebooks from user's own account would be listed;
+     * otherwise, the only one notebook from corresponding linked notebook would be listed
      * @return either list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
