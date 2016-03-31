@@ -2987,7 +2987,8 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  businessNotebookIsRecommended   INTEGER           DEFAULT NULL, "
                      "  contactId                       INTEGER           DEFAULT NULL, "
                      "  UNIQUE(localUid, guid), "
-                     "  UNIQUE(linkedNotebookGuid, notebookNameUpper) "
+                     "  UNIQUE(linkedNotebookGuid), "
+                     "  UNIQUE(notebookNameUpper) "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Notebooks table");
 
