@@ -3,6 +3,13 @@
 
 namespace qute_note {
 
+// Limit for the queries to the local storage
+#define NOTEBOOK_LIST_LIMIT (40)
+
+#define NOTEBOOK_CACHE_LIMIT (5)
+
+#define NUM_NOTEBOOK_MODEL_COLUMNS (6)
+
 NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                              QObject * parent) :
     QAbstractItemModel(parent),
@@ -183,10 +190,61 @@ Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
 
 QVariant NotebookModel::data(const QModelIndex & index, int role) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    Q_UNUSED(role)
-    return QVariant();
+    if (!index.isValid()) {
+        return QVariant();
+    }
+
+    int columnIndex = index.column();
+    if ((columnIndex < 0) || (columnIndex >= NUM_NOTEBOOK_MODEL_COLUMNS)) {
+        return QVariant();
+    }
+
+    const NotebookModelItem * item = itemForIndex(index);
+    if (!item) {
+        return QVariant();
+    }
+
+    if (item == m_fakeRootItem) {
+        return QVariant();
+    }
+
+    Columns::type column;
+    switch(columnIndex)
+    {
+    case Columns::Name:
+        column = Columns::Name;
+        break;
+    case Columns::Synchronizable:
+        column = Columns::Synchronizable;
+        break;
+    case Columns::Dirty:
+        column = Columns::Dirty;
+        break;
+    case Columns::Default:
+        column = Columns::Default;
+        break;
+    case Columns::Published:
+        column = Columns::Published;
+        break;
+    case Columns::FromLinkedNotebook:
+        column = Columns::FromLinkedNotebook;
+        break;
+    default:
+        return QVariant();
+    }
+
+    switch(role)
+    {
+    case Qt::DisplayRole:
+    case Qt::EditRole:
+    case Qt::ToolTipRole:
+        return dataText(*item, column);
+    case Qt::AccessibleTextRole:
+    case Qt::AccessibleDescriptionRole:
+        return dataAccessibleText(*item, column);
+    default:
+        return QVariant();
+    }
 }
 
 QVariant NotebookModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -419,6 +477,22 @@ void NotebookModel::requestNotebooksList()
     QNDEBUG("NotebookModel::requestNotebooksList");
 
     // TODO: implement
+}
+
+QVariant NotebookModel::dataText(const NotebookModelItem & item, const Columns::type column) const
+{
+    // TODO: implement
+    Q_UNUSED(item)
+    Q_UNUSED(column)
+    return QVariant();
+}
+
+QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const Columns::type column) const
+{
+    // TODO: implement
+    Q_UNUSED(item)
+    Q_UNUSED(column)
+    return QVariant();
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

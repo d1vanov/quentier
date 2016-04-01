@@ -102,6 +102,9 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNotebooksList();
 
+    QVariant dataText(const NotebookModelItem & item, const Columns::type column) const;
+    QVariant dataAccessibleText(const NotebookModelItem & item, const Columns::type column) const;
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
