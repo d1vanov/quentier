@@ -22,6 +22,15 @@ NotebookItem::NotebookItem(const QString & localUid,
 NotebookItem::~NotebookItem()
 {}
 
+QString NotebookItem::stack() const
+{
+    return (m_parent
+            ? (m_parent->notebookStackItem()
+               ? m_parent->notebookStackItem()->name()
+               : QString())
+            : QString());
+}
+
 void NotebookItem::setParent(const NotebookModelItem * parent) const
 {
     m_parent = parent;

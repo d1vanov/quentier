@@ -26,6 +26,7 @@ public:
     void setGuid(const QString & guid) { m_guid = guid; }
 
     QString nameUpper() const { return m_name.toUpper(); }
+    QString stack() const;
 
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }

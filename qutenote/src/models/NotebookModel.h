@@ -8,6 +8,7 @@
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
+#include <QHash>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -64,8 +65,122 @@ public:
 Q_SIGNALS:
     void notifyError(QString errorDescription);
 
+// private signals
+    void addNotebook(Notebook notebook, QUuid requestId);
+    void updateNotebook(Notebook notebook, QUuid requestId);
+    void findNotebook(Notebook notebook, QUuid requestId);
+    void listNotebooks(LocalStorageManager::ListObjectsOptions flag,
+                       size_t limit, size_t offset,
+                       LocalStorageManager::ListNotebooksOrder::type order,
+                       LocalStorageManager::OrderDirection::type orderDirection,
+                       QString linkedNotebookGuid, QUuid requestId);
+    void expungeNotebook(Notebook notebook, QUuid requestId);
+
+private Q_SLOTS:
+    // Slots for response to events from local storage
+    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onListNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
+                                 size_t limit, size_t offset,
+                                 LocalStorageManager::ListNotebooksOrder::type order,
+                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                 QString linkedNotebookGuid, QList<Notebook> foundNotebooks,
+                                 QUuid requestId);
+    void onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
+                               size_t limit, size_t offset,
+                               LocalStorageManager::ListNotebooksOrder::type order,
+                               LocalStorageManager::OrderDirection::type orderDirection,
+                               QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
+    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+    void requestNotebooksList();
+
+private:
+    struct ByLocalUid{};
+    struct ByNameUpper{};
+    struct ByStack{};
+
+    typedef boost::multi_index_container<
+        NotebookItem,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<ByLocalUid>,
+                boost::multi_index::const_mem_fun<NotebookItem,const QString&,&NotebookItem::localUid>
+            >,
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<ByNameUpper>,
+                boost::multi_index::const_mem_fun<NotebookItem,QString,&NotebookItem::nameUpper>
+            >,
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<ByStack>,
+                boost::multi_index::const_mem_fun<NotebookItem,QString,&NotebookItem::stack>
+            >
+        >
+    > NotebookData;
+
+    typedef NotebookData::index<ByLocalUid>::type NotebookDataByLocalUid;
+    typedef NotebookData::index<ByNameUpper>::type NotebookDataByNameUpper;
+    typedef NotebookData::index<ByStack>::type NotebookDataByStack;
+
+    struct LessByName
+    {
+        bool operator()(const NotebookItem & lhs, const NotebookItem & rhs) const;
+        bool operator()(const NotebookItem * lhs, const NotebookItem * rhs) const;
+
+        bool operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const;
+        bool operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const;
+
+        bool operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const;
+        bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+    };
+
+    struct GreaterByName
+    {
+        bool operator()(const NotebookItem & lhs, const NotebookItem & rhs) const;
+        bool operator()(const NotebookItem * lhs, const NotebookItem * rhs) const;
+
+        bool operator()(const NotebookStackItem & lhs, const NotebookStackItem & rhs) const;
+        bool operator()(const NotebookStackItem * lhs, const NotebookStackItem * rhs) const;
+
+        bool operator()(const NotebookModelItem & lhs, const NotebookModelItem & rhs) const;
+        bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+    };
+
+    typedef QHash<QString, NotebookModelItem> ModelItems;
+
+    typedef LRUCache<QString, Notebook> Cache;
+
+private:
+    NotebookData            m_data;
+    NotebookModelItem *     m_fakeRootItem;
+
+    ModelItems              m_modelItemsByLocalUid;
+    ModelItems              m_modelItemsByStack;
+
+    Cache                   m_cache;
+
+    size_t                  m_listNotebooksOffset;
+    QUuid                   m_listNotebooksRequestId;
+    QSet<QUuid>             m_notebookItemsNotYetInLocalStorageUids;
+
+    QSet<QUuid>             m_addNotebookRequestIds;
+    QSet<QUuid>             m_updateNotebookRequestIds;
+    QSet<QUuid>             m_expungeNotebookRequestIds;
+
+    QSet<QUuid>             m_findNotebookToRestoreFailedUpdateRequestIds;
+    QSet<QUuid>             m_findNotebookToPerformUpdateRequestIds;
+
+    Columns::type           m_sortedColumn;
+    Qt::SortOrder           m_sortOrder;
+
+    mutable int             m_lastNewNotebookNameCounter;
 };
 
 } // namespace qute_note

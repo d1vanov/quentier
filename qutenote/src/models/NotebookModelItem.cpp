@@ -11,10 +11,7 @@ NotebookModelItem::NotebookModelItem(const Type::type type,
 {}
 
 NotebookModelItem::~NotebookModelItem()
-{
-    delete m_notebookItem;
-    delete m_notebookStackItem;
-}
+{}
 
 QTextStream & NotebookModelItem::Print(QTextStream & strm) const
 {
