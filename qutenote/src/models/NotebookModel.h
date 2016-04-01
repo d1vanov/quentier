@@ -120,7 +120,7 @@ private:
             >,
             boost::multi_index::ordered_non_unique<
                 boost::multi_index::tag<ByStack>,
-                boost::multi_index::const_mem_fun<NotebookItem,QString,&NotebookItem::stack>
+                boost::multi_index::const_mem_fun<NotebookItem,const QString&,&NotebookItem::stack>
             >
         >
     > NotebookData;

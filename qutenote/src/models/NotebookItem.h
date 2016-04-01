@@ -6,17 +6,15 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
-
 class NotebookItem: public Printable
 {
 public:
     explicit NotebookItem(const QString & localUid = QString(),
                           const QString & guid = QString(),
                           const QString & name = QString(),
+                          const QString & stack = QString(),
                           const bool isSynchronizable = false,
-                          const bool isDirty = false,
-                          const NotebookModelItem * parent = Q_NULLPTR);
+                          const bool isDirty = false);
     ~NotebookItem();
 
     const QString & localUid() const { return m_localUid; }
@@ -26,7 +24,9 @@ public:
     void setGuid(const QString & guid) { m_guid = guid; }
 
     QString nameUpper() const { return m_name.toUpper(); }
-    QString stack() const;
+
+    const QString & stack() const { return m_stack; }
+    void setStack(const QString & stack) { m_stack = stack; }
 
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }
@@ -37,9 +37,6 @@ public:
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
-    const NotebookModelItem * parent() const { return m_parent; }
-    void setParent(const NotebookModelItem * parent) const;
-
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     friend QDataStream & operator<<(QDataStream & out, const NotebookItem & item);
@@ -49,15 +46,9 @@ private:
     QString     m_localUid;
     QString     m_guid;
     QString     m_name;
+    QString     m_stack;
     bool        m_isSynchronizable;
     bool        m_isDirty;
-
-    // NOTE: this is mutable in order to have the possibility to organize
-    // the efficient storage of TagModelItems in boost::multi_index_container:
-    // it doesn't allow the direct modification of its stored items,
-    // however, these pointers to parent and children don't really affect
-    // that container's indices
-    mutable const NotebookModelItem *     m_parent;
 };
 
 } // namespace qute_note

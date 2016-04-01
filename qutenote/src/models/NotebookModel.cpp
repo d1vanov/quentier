@@ -31,23 +31,76 @@ NotebookModel::~NotebookModel()
 
 const NotebookModelItem * NotebookModel::itemForIndex(const QModelIndex & index) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    return Q_NULLPTR;
+    if (!index.isValid()) {
+        return m_fakeRootItem;
+    }
+
+    const NotebookModelItem * item = reinterpret_cast<const NotebookModelItem*>(index.internalPointer());
+    if (item) {
+        return item;
+    }
+
+    return m_fakeRootItem;
 }
 
 QModelIndex NotebookModel::indexForItem(const NotebookModelItem * item) const
 {
-    // TODO: implement
-    Q_UNUSED(item)
-    return QModelIndex();
+    if (!item) {
+        return QModelIndex();
+    }
+
+    if (item == m_fakeRootItem) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * parentItem = Q_NULLPTR;
+
+    if ((item->type() == NotebookModelItem::Type::Notebook) && item->notebookItem())
+    {
+        QString stack = item->notebookItem()->stack();
+        if (stack.isEmpty()) {
+            // That means the actual parent is fake root item
+            return QModelIndex();
+        }
+
+        auto it = m_modelItemsByStack.find(stack);
+        if (Q_UNLIKELY(it == m_modelItemsByStack.end())) {
+            QNDEBUG("Notebook " << item->notebookItem()->name() << " (local uid " << item->notebookItem()->localUid()
+                    << ") has stack " << stack << " but the NotebookModelItem corresponding to it cannot be found");
+            return QModelIndex();
+        }
+
+        parentItem = &(it.value());
+    }
+    else if ((item->type() == NotebookModelItem::Type::Stack) && item->notebookStackItem())
+    {
+        parentItem = m_fakeRootItem;
+    }
+
+    if (!parentItem) {
+        return QModelIndex();
+    }
+
+    int row = parentItem->rowForChild(item);
+    if (Q_UNLIKELY(row < 0)) {
+        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in TagModel");
+        QNWARNING(error << ", child item: " << *item << "\nParent item: " << *parentItem);
+        return QModelIndex();
+    }
+
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    return createIndex(row, Columns::Name, const_cast<NotebookModelItem*>(item));
 }
 
 QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
 {
-    // TODO: implement
-    Q_UNUSED(localUid)
-    return QModelIndex();
+    auto it = m_modelItemsByLocalUid.find(localUid);
+    if (it == m_modelItemsByLocalUid.end()) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * item = &(it.value());
+    return indexForItem(item);
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
@@ -84,12 +137,23 @@ Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
                 return indexFlags;
             }
 
-            QList<const NotebookItem*> notebooks = stackItem->children();
-            for(auto it = notebooks.begin(), end = notebooks.end(); it != end; ++it)
+            QList<const NotebookModelItem*> children = item->children();
+            for(auto it = children.begin(), end = children.end(); it != end; ++it)
             {
-                const NotebookItem * notebookItem = *it;
+                const NotebookModelItem * childItem = *it;
+                if (Q_UNLIKELY(!childItem)) {
+                    QNWARNING("Detected null pointer to notebook model item within the children of another notebook model item");
+                    continue;
+                }
+
+                if (Q_UNLIKELY(childItem->type() == NotebookModelItem::Type::Stack)) {
+                    QNWARNING("Detected nested notebook stack items which is unexpected and most probably incorrect");
+                    continue;
+                }
+
+                const NotebookItem * notebookItem = childItem->notebookItem();
                 if (Q_UNLIKELY(!notebookItem)) {
-                    QNWARNING("Detected null pointer to notebook item within the children of notebook stack item");
+                    QNWARNING("Detected null pointer to notebook item in notebook model item having a type of notebook (not stack)");
                     continue;
                 }
 
