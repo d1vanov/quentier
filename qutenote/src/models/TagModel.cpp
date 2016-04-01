@@ -866,14 +866,14 @@ void TagModel::onExpungeTagFailed(Tag tag, QString errorDescription, QUuid reque
     onTagAddedOrUpdated(tag);
 }
 
-void TagModel::onFindNotebookCompleted(Notebook notebook, QUuid requestId)
+void TagModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 {
     auto it = m_findNotebookRequestForLinkedNotebookGuid.right.find(requestId);
     if (it == m_findNotebookRequestForLinkedNotebookGuid.right.end()) {
         return;
     }
 
-    QNDEBUG("TagModel::onFindNotebookCompleted: notebook: " << notebook << "\nRequest id = " << requestId);
+    QNDEBUG("TagModel::onFindNotebookComplete: notebook: " << notebook << "\nRequest id = " << requestId);
 
     Q_UNUSED(m_findNotebookRequestForLinkedNotebookGuid.right.erase(it))
 
@@ -974,7 +974,7 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,QString,QUuid),
                      this, QNSLOT(TagModel,onExpungeTagFailed,Tag,QString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(TagModel,onFindNotebookCompleted,Notebook,QUuid));
+                     this, QNSLOT(TagModel,onFindNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
                      this, QNSLOT(TagModel,onFindNotebookFailed,Notebook,QString,QUuid));
 }

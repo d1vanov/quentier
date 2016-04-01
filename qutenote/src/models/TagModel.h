@@ -118,7 +118,7 @@ private Q_SLOTS:
     void onExpungeTagComplete(Tag tag, QUuid requestId);
     void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
-    void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
+    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
 private:
