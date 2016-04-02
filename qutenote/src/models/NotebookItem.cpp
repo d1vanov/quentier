@@ -7,13 +7,15 @@ NotebookItem::NotebookItem(const QString & localUid,
                            const QString & name,
                            const QString & stack,
                            const bool isSynchronizable,
-                           const bool isDirty) :
+                           const bool isDirty,
+                           const bool isDefault) :
     m_localUid(localUid),
     m_guid(guid),
     m_name(name),
     m_stack(stack),
     m_isSynchronizable(isSynchronizable),
-    m_isDirty(isDirty)
+    m_isDirty(isDirty),
+    m_isDefault(isDefault)
 {}
 
 NotebookItem::~NotebookItem()
@@ -30,13 +32,13 @@ QTextStream & NotebookItem::Print(QTextStream & strm) const
 
 QDataStream & operator<<(QDataStream & out, const NotebookItem & item)
 {
-    out << item.m_localUid << item.m_guid << item.m_name << item.m_stack << item.m_isSynchronizable << item.m_isDirty;
+    out << item.m_localUid << item.m_guid << item.m_name << item.m_stack << item.m_isSynchronizable << item.m_isDirty << item.m_isDefault;
     return out;
 }
 
 QDataStream & operator>>(QDataStream & in, NotebookItem & item)
 {
-    in >> item.m_localUid >> item.m_guid >> item.m_name >> item.m_stack >> item.m_isSynchronizable >> item.m_isDirty;
+    in >> item.m_localUid >> item.m_guid >> item.m_name >> item.m_stack >> item.m_isSynchronizable >> item.m_isDirty >> item.m_isDefault;
     return in;
 }
 

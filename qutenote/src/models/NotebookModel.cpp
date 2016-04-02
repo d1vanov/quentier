@@ -249,41 +249,108 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
 
 QVariant NotebookModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    // TODO: implement
-    Q_UNUSED(section)
-    Q_UNUSED(orientation)
-    Q_UNUSED(role)
-    return QVariant();
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+    }
+
+    if (orientation != Qt::Horizontal) {
+        return QVariant();
+    }
+
+    switch(section)
+    {
+    case Columns::Name:
+        return QVariant(tr("Name"));
+    case Columns::Synchronizable:
+        return QVariant(tr("Synchronizable"));
+    case Columns::Dirty:
+        return QVariant(tr("Dirty"));
+    case Columns::Default:
+        return QVariant(tr("Default"));
+    case Columns::Published:
+        return QVariant(tr("Published"));
+    case Columns::FromLinkedNotebook:
+        return QVariant(tr("From linked notebook"));
+    default:
+        return QVariant();
+    }
 }
 
 int NotebookModel::rowCount(const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(parent)
-    return 0;
+    if (parent.isValid() && (parent.column() != Columns::Name)) {
+        return 0;
+    }
+
+    const NotebookModelItem * parentItem = itemForIndex(parent);
+    return (parentItem ? parentItem->numChildren() : 0);
 }
 
 int NotebookModel::columnCount(const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(parent)
-    return 0;
+    if (parent.isValid() && (parent.column() != Columns::Name)) {
+        return 0;
+    }
+
+    return NUM_NOTEBOOK_MODEL_COLUMNS;
 }
 
 QModelIndex NotebookModel::index(int row, int column, const QModelIndex & parent) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
-    Q_UNUSED(parent)
-    return QModelIndex();
+    if (!m_fakeRootItem || (row < 0) || (column < 0) || (column >= NUM_NOTEBOOK_MODEL_COLUMNS) ||
+        (parent.isValid() && (parent.column() != Columns::Name)))
+    {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * parentItem = itemForIndex(parent);
+    if (!parentItem) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * item = parentItem->childAtRow(row);
+    if (!item) {
+        return QModelIndex();
+    }
+
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    return createIndex(row, column, const_cast<NotebookModelItem*>(item));
 }
 
 QModelIndex NotebookModel::parent(const QModelIndex & index) const
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    return QModelIndex();
+    if (!index.isValid()) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * childItem = itemForIndex(index);
+    if (!childItem) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * parentItem = childItem->parent();
+    if (!parentItem) {
+        return QModelIndex();
+    }
+
+    if (parentItem == m_fakeRootItem) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem * grandParentItem = parentItem->parent();
+    if (!grandParentItem) {
+        return QModelIndex();
+    }
+
+    int row = grandParentItem->rowForChild(parentItem);
+    if (Q_UNLIKELY(row < 0)) {
+        QNWARNING("Internal inconsistency detected in NotebookModel: parent of the item can't find the item within its children: item = "
+                  << *parentItem << "\nParent item: " << *grandParentItem);
+        return QModelIndex();
+    }
+
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    return createIndex(row, Columns::Name, const_cast<NotebookModelItem*>(parentItem));
 }
 
 bool NotebookModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant & value, int role)
@@ -295,13 +362,157 @@ bool NotebookModel::setHeaderData(int section, Qt::Orientation orientation, cons
     return false;
 }
 
-bool NotebookModel::setData(const QModelIndex & index, const QVariant & value, int role)
+bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
-    // TODO: implement
-    Q_UNUSED(index)
-    Q_UNUSED(value)
-    Q_UNUSED(role)
-    return false;
+    if (role != Qt::EditRole) {
+        return false;
+    }
+
+    if (!modelIndex.isValid()) {
+        return false;
+    }
+
+    if (modelIndex.column() == Columns::Dirty) {
+        QNWARNING("The \"dirty\" flag can't be set manually in NotebookModel");
+        return false;
+    }
+
+    if (modelIndex.column() == Columns::Published) {
+        QNWARNING("The \"published\" flag can't be set manually in NotebookModel");
+        return false;
+    }
+
+    if (modelIndex.column() == Columns::FromLinkedNotebook) {
+        QNWARNING("The \"from linked notebook\" flag can't be set manually in NotebookModel");
+        return false;
+    }
+
+    const NotebookModelItem * item = itemForIndex(modelIndex);
+    if (!item) {
+        return false;
+    }
+
+    if (item == m_fakeRootItem) {
+        return false;
+    }
+
+    bool isNotebookItem = (item->type() == NotebookModelItem::Type::Notebook);
+
+    if (Q_UNLIKELY(isNotebookItem && !item->notebookItem())) {
+        QNWARNING("Internal inconsistency detected in NotebookModel: model item of notebook type "
+                  "has a null pointer to notebook item");
+        return false;
+    }
+
+    if (Q_UNLIKELY(!isNotebookItem && !item->notebookStackItem())) {
+        QNWARNING("Internal inconsistency detected in NotebookModel: model item of stack type "
+                  "has a null pointer to stack item");
+        return false;
+    }
+
+    if (isNotebookItem)
+    {
+        const NotebookItem * notebookItem = item->notebookItem();
+
+        if (!canUpdateNotebookItem(*notebookItem)) {
+            QString error = QT_TR_NOOP("Can't update notebook \"" + notebookItem->name() +
+                                       "\": restrictions on notebook update apply");
+            QNINFO(error << ", notebook item: " << *notebookItem);
+            emit notifyError(error);
+            return false;
+        }
+
+        NotebookItem notebookItemCopy = *notebookItem;
+        bool dirty = notebookItemCopy.isDirty();
+
+        switch(modelIndex.column())
+        {
+        case Columns::Name:
+            {
+                QString newName = value.toString();
+                dirty |= (newName != notebookItemCopy.name());
+                notebookItemCopy.setName(newName);
+                break;
+            }
+        case Columns::Synchronizable:
+            {
+                if (notebookItemCopy.isSynchronizable() && value.toBool()) {
+                    QString error = QT_TR_NOOP("Can't make already synchronizable notebook not synchronizable");
+                    QNINFO(error << ", already synchronizable notebook item: " << notebookItemCopy);
+                    emit notifyError(error);
+                    return false;
+                }
+
+                dirty |= (value.toBool() != notebookItemCopy.isSynchronizable());
+                notebookItemCopy.setSynchronizable(value.toBool());
+                break;
+            }
+        case Columns::Default:
+            {
+                if (notebookItemCopy.isDefault() == value.toBool()) {
+                    QNDEBUG("The default state of the notebook hasn't changed, nothing to do");
+                    return true;
+                }
+
+                if (notebookItemCopy.isDefault() && !value.toBool()) {
+                    QString error = QT_TR_NOOP("In order to stop notebook being the default one please choose another default notebook");
+                    QNDEBUG(error);
+                    emit notifyError(error);
+                    return false;
+                }
+
+                notebookItemCopy.setDefault(true);
+                dirty = true;
+
+                // TODO: need to find the previous default notebook item and stop it from being the default item
+                break;
+            }
+        default:
+            return false;
+        }
+    }
+    else
+    {
+        if (modelIndex.column() != Columns::Name) {
+            QNWARNING("Detected attempt to change something rather than name for the notebook stack item, ignoring it");
+            return false;
+        }
+
+        QList<const NotebookModelItem*> children = item->children();
+        for(auto it = children.begin(), end = children.end(); it != end; ++it)
+        {
+            const NotebookModelItem * childItem = *it;
+            if (Q_UNLIKELY(!childItem)) {
+                QNWARNING("Detected null pointer to notebook model item within the children of another item: item = " << *item);
+                continue;
+            }
+
+            if (Q_UNLIKELY(childItem->type() == NotebookModelItem::Type::Stack)) {
+                QNWARNING("Internal inconsistency detected: found notebook stack item being a child of another notebook stack item: "
+                          "item = " << *item);
+                continue;
+            }
+
+            const NotebookItem * notebookItem = childItem->notebookItem();
+            if (Q_UNLIKELY(!notebookItem)) {
+                QNWARNING("Detected null pointer to notebook item within the children of notebook stack item: item = " << *item);
+                continue;
+            }
+
+            if (!canUpdateNotebookItem(*notebookItem)) {
+                QString error = QT_TR_NOOP("Can't update notebook stack \"" + item->notebookStackItem()->name() +
+                                           "\": restrictions on at least one of stacked notebooks' update apply: notebook \"" +
+                                           notebookItem->name() + "\" is restricted from updating");
+                QNINFO(error << ", notebook item for which the restrictions apply: " << *notebookItem);
+                emit notifyError(error);
+                return false;
+            }
+        }
+
+        // TODO: set the name to the stack item and also set the stack property for all the child notebook items
+    }
+
+    return true;
 }
 
 bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
@@ -493,6 +704,13 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
     Q_UNUSED(item)
     Q_UNUSED(column)
     return QVariant();
+}
+
+bool NotebookModel::canUpdateNotebookItem(const NotebookItem & item) const
+{
+    // TODO: implement
+    Q_UNUSED(item)
+    return true;
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

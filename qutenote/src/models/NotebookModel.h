@@ -105,6 +105,8 @@ private:
     QVariant dataText(const NotebookModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const NotebookModelItem & item, const Columns::type column) const;
 
+    bool canUpdateNotebookItem(const NotebookItem & item) const;
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};

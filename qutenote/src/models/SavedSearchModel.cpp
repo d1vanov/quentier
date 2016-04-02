@@ -260,7 +260,9 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     case Columns::Synchronizable:
         {
             if (item.m_isSynchronizable) {
-                emit notifyError(QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable"));
+                QString error = QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable");
+                QNINFO(error << ", already synchronizable saved search item: " << item);
+                emit notifyError(error);
                 return false;
             }
 
@@ -270,7 +272,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
         }
     case Columns::Dirty:
         {
-            emit notifyError(QT_TR_NOOP("The \"dirty\" flag can't be set manually"));
+            QNWARNING("The \"dirty\" flag can't be set manually in SavedSearchModel");
             return false;
         }
     default:

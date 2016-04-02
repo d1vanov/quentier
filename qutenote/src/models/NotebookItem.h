@@ -14,7 +14,8 @@ public:
                           const QString & name = QString(),
                           const QString & stack = QString(),
                           const bool isSynchronizable = false,
-                          const bool isDirty = false);
+                          const bool isDirty = false,
+                          const bool isDefault = false);
     ~NotebookItem();
 
     const QString & localUid() const { return m_localUid; }
@@ -37,6 +38,9 @@ public:
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
+    bool isDefault() const { return m_isDefault; }
+    void setDefault(const bool flag) { m_isDefault = flag; }
+
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     friend QDataStream & operator<<(QDataStream & out, const NotebookItem & item);
@@ -49,6 +53,7 @@ private:
     QString     m_stack;
     bool        m_isSynchronizable;
     bool        m_isDirty;
+    bool        m_isDefault;
 };
 
 } // namespace qute_note

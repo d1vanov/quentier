@@ -245,7 +245,9 @@ QModelIndex TagModel::parent(const QModelIndex & index) const
     }
 
     int row = grandParentItem->rowForChild(parentItem);
-    if (row < 0) {
+    if (Q_UNLIKELY(row < 0)) {
+        QNWARNING("Internal inconsistency detected in TagModel: parent of the item can't fint the item within its children: item = "
+                  << *parentItem << "\nParent item: " << *grandParentItem);
         return QModelIndex();
     }
 
@@ -273,12 +275,12 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     }
 
     if (modelIndex.column() == Columns::Dirty) {
-        emit notifyError(QT_TR_NOOP("The \"dirty\" flag can't be set manually"));
+        QNWARNING("The \"dirty\" flag can't be set manually in TagModel");
         return false;
     }
 
     if (modelIndex.column() == Columns::FromLinkedNotebook) {
-        emit notifyError(QT_TR_NOOP("The \"from linked notebook\" flag can't be set manually"));
+        QNWARNING("The \"from linked notebook\" flag can't be set manually in TagModel");
         return false;
     }
 
@@ -303,15 +305,16 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     {
     case Columns::Name:
         {
-            dirty |= (value.toString() != itemCopy.name());
-            itemCopy.setName(value.toString());
+            QString newName = value.toString();
+            dirty |= (newName != itemCopy.name());
+            itemCopy.setName(newName);
             break;
         }
     case Columns::Synchronizable:
         {
             if (itemCopy.isSynchronizable() && !value.toBool()) {
                 QString error = QT_TR_NOOP("Can't make already synchronizable tag not synchronizable");
-                QNINFO(error);
+                QNINFO(error << ", already synchronizable tag item: " << itemCopy);
                 emit notifyError(error);
                 return false;
             }
