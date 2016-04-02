@@ -15,6 +15,7 @@ NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManag
     QAbstractItemModel(parent),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
+    m_defaultNotebookItem(Q_NULLPTR),
     m_modelItemsByLocalUid(),
     m_modelItemsByStack(),
     m_cache(),
@@ -422,6 +423,15 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             return false;
         }
 
+        NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
+        if (Q_UNLIKELY(notebookItemIt == localUidIndex.end())) {
+            QString error = QT_TR_NOOP("Can't update notebook: can't find the notebook being updated in the model");
+            QNWARNING(error << ", notebook item: " << *notebookItem);
+            emit notifyError(error);
+            return false;
+        }
+
         NotebookItem notebookItemCopy = *notebookItem;
         bool dirty = notebookItemCopy.isDirty();
 
@@ -464,12 +474,27 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 notebookItemCopy.setDefault(true);
                 dirty = true;
 
-                // TODO: need to find the previous default notebook item and stop it from being the default item
+                if (m_defaultNotebookItem)
+                {
+                    auto previousDefaultItemIt = localUidIndex.find(m_defaultNotebookItem->localUid());
+                    if (previousDefaultItemIt != localUidIndex.end())
+                    {
+                        NotebookItem previousDefaultItemCopy(*previousDefaultItemIt);
+                        previousDefaultItemCopy.setDefault(false);
+                        localUidIndex.replace(previousDefaultItemIt, previousDefaultItemCopy);
+                        updateNotebookInLocalStorage(previousDefaultItemCopy);
+                    }
+                }
+
+                m_defaultNotebookItem = &(*notebookItemIt);
                 break;
             }
         default:
             return false;
         }
+
+        localUidIndex.replace(notebookItemIt, notebookItemCopy);
+        updateNotebookInLocalStorage(notebookItemCopy);
     }
     else
     {
@@ -478,26 +503,37 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             return false;
         }
 
+        const NotebookStackItem * notebookStackItem = item->notebookStackItem();
+        QString newStack = value.toString();
+        QString previousStack = notebookStackItem->name();
+        if (newStack == previousStack) {
+            QNDEBUG("Notebook stack hasn't changed, nothing to do");
+            return true;
+        }
+
+#define CHECK_ITEM(childItem) \
+            if (Q_UNLIKELY(!childItem)) { \
+                QNWARNING("Detected null pointer to notebook model item within the children of another item: item = " << *item); \
+                continue; \
+            } \
+            \
+            if (Q_UNLIKELY(childItem->type() == NotebookModelItem::Type::Stack)) { \
+                QNWARNING("Internal inconsistency detected: found notebook stack item being a child of another notebook stack item: " \
+                          "item = " << *item); \
+                continue; \
+            } \
+            \
+            const NotebookItem * notebookItem = childItem->notebookItem(); \
+            if (Q_UNLIKELY(!notebookItem)) { \
+                QNWARNING("Detected null pointer to notebook item within the children of notebook stack item: item = " << *item); \
+                continue; \
+            }
+
         QList<const NotebookModelItem*> children = item->children();
         for(auto it = children.begin(), end = children.end(); it != end; ++it)
         {
             const NotebookModelItem * childItem = *it;
-            if (Q_UNLIKELY(!childItem)) {
-                QNWARNING("Detected null pointer to notebook model item within the children of another item: item = " << *item);
-                continue;
-            }
-
-            if (Q_UNLIKELY(childItem->type() == NotebookModelItem::Type::Stack)) {
-                QNWARNING("Internal inconsistency detected: found notebook stack item being a child of another notebook stack item: "
-                          "item = " << *item);
-                continue;
-            }
-
-            const NotebookItem * notebookItem = childItem->notebookItem();
-            if (Q_UNLIKELY(!notebookItem)) {
-                QNWARNING("Detected null pointer to notebook item within the children of notebook stack item: item = " << *item);
-                continue;
-            }
+            CHECK_ITEM(childItem)
 
             if (!canUpdateNotebookItem(*notebookItem)) {
                 QString error = QT_TR_NOOP("Can't update notebook stack \"" + item->notebookStackItem()->name() +
@@ -509,7 +545,59 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             }
         }
 
-        // TODO: set the name to the stack item and also set the stack property for all the child notebook items
+        // Change the stack item
+        auto stackItemIt = m_modelItemsByStack.find(previousStack);
+        if (stackItemIt == m_modelItemsByStack.end()) {
+            QString error = QT_TR_NOOP("Can't update notebook stack item: can't find the item for the previous stack value");
+            QNWARNING(error << ", previous stack: \"" << previousStack << "\", new stack: \"" << newStack << "\"");
+            emit notifyError(error);
+            return false;
+        }
+
+        NotebookModelItem stackItemCopy(stackItemIt.value());
+        if (Q_UNLIKELY(stackItemCopy.type() != NotebookModelItem::Type::Stack)) {
+            QNWARNING("Internal inconsistency detected: non-stack item is kept within the hash of model items supposed to be stack items: "
+                      "item: " << stackItemCopy);
+            return false;
+        }
+
+        const NotebookStackItem * stackItem = stackItemCopy.notebookStackItem();
+        if (Q_UNLIKELY(!stackItem)) {
+            QNWARNING("Detected null pointer to notebook stack item in notebook model item wrapping it; item: " << stackItemCopy);
+            return false;
+        }
+
+        NotebookStackItem * newStackItem = new NotebookStackItem(*stackItem);
+        newStackItem->setName(newStack);
+        Q_UNUSED(m_modelItemsByStack.erase(stackItemIt));
+        stackItemIt = m_modelItemsByStack.insert(newStack, NotebookModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, newStackItem));
+
+        // Change all the child items
+        NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+        // Refresh the list of children; shouldn't be necessary but just n case
+        children = stackItemIt->children();
+
+        for(auto it = children.begin(), end = children.end(); it != end; ++it)
+        {
+            const NotebookModelItem * childItem = *it;
+            CHECK_ITEM(childItem)
+
+            auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
+            if (notebookItemIt == localUidIndex.end()) {
+                QNWARNING("Internal inconsistency detected: can't find the iterator for the notebook item for which the stack it being changed: "
+                          "non-found notebook item: " << *notebookItem);
+                continue;
+            }
+
+            NotebookItem notebookItemCopy(*notebookItem);
+            notebookItemCopy.setStack(newStack);
+            localUidIndex.replace(notebookItemIt, notebookItemCopy);
+            updateNotebookInLocalStorage(notebookItemCopy);
+        }
+
+#undef CHECK_ITEM
+
     }
 
     return true;
@@ -711,6 +799,12 @@ bool NotebookModel::canUpdateNotebookItem(const NotebookItem & item) const
     // TODO: implement
     Q_UNUSED(item)
     return true;
+}
+
+void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
+{
+    // TODO: implement
+    Q_UNUSED(item)
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

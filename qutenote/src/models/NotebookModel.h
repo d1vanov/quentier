@@ -107,6 +107,8 @@ private:
 
     bool canUpdateNotebookItem(const NotebookItem & item) const;
 
+    void updateNotebookInLocalStorage(const NotebookItem & item);
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
@@ -165,6 +167,7 @@ private:
 private:
     NotebookData            m_data;
     NotebookModelItem *     m_fakeRootItem;
+    const NotebookItem *    m_defaultNotebookItem;
 
     ModelItems              m_modelItemsByLocalUid;
     ModelItems              m_modelItemsByStack;
