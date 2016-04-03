@@ -18,6 +18,7 @@ NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManag
     m_defaultNotebookItem(Q_NULLPTR),
     m_modelItemsByLocalUid(),
     m_modelItemsByStack(),
+    m_stackItems(),
     m_cache(),
     m_listNotebooksOffset(0),
     m_listNotebooksRequestId(),
@@ -546,37 +547,46 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         }
 
         // Change the stack item
-        auto stackItemIt = m_modelItemsByStack.find(previousStack);
-        if (stackItemIt == m_modelItemsByStack.end()) {
+        auto stackModelItemIt = m_modelItemsByStack.find(previousStack);
+        if (stackModelItemIt == m_modelItemsByStack.end()) {
             QString error = QT_TR_NOOP("Can't update notebook stack item: can't find the item for the previous stack value");
             QNWARNING(error << ", previous stack: \"" << previousStack << "\", new stack: \"" << newStack << "\"");
             emit notifyError(error);
             return false;
         }
 
-        NotebookModelItem stackItemCopy(stackItemIt.value());
-        if (Q_UNLIKELY(stackItemCopy.type() != NotebookModelItem::Type::Stack)) {
+        NotebookModelItem stackModelItemCopy(stackModelItemIt.value());
+        if (Q_UNLIKELY(stackModelItemCopy.type() != NotebookModelItem::Type::Stack)) {
             QNWARNING("Internal inconsistency detected: non-stack item is kept within the hash of model items supposed to be stack items: "
-                      "item: " << stackItemCopy);
+                      "item: " << stackModelItemCopy);
             return false;
         }
 
-        const NotebookStackItem * stackItem = stackItemCopy.notebookStackItem();
+        const NotebookStackItem * stackItem = stackModelItemCopy.notebookStackItem();
         if (Q_UNLIKELY(!stackItem)) {
-            QNWARNING("Detected null pointer to notebook stack item in notebook model item wrapping it; item: " << stackItemCopy);
+            QNWARNING("Detected null pointer to notebook stack item in notebook model item wrapping it; item: " << stackModelItemCopy);
             return false;
         }
 
-        NotebookStackItem * newStackItem = new NotebookStackItem(*stackItem);
-        newStackItem->setName(newStack);
-        Q_UNUSED(m_modelItemsByStack.erase(stackItemIt));
-        stackItemIt = m_modelItemsByStack.insert(newStack, NotebookModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, newStackItem));
+        NotebookStackItem newStackItem(*stackItem);
+        newStackItem.setName(newStack);
+
+        auto stackItemIt = m_stackItems.find(previousStack);
+        if (stackItemIt != m_stackItems.end()) {
+            Q_UNUSED(m_stackItems.erase(stackItemIt))
+        }
+
+        stackItemIt = m_stackItems.insert(newStack, newStackItem);
+        stackModelItemCopy.setNotebookStackItem(&(*stackItemIt));
+
+        Q_UNUSED(m_modelItemsByStack.erase(stackModelItemIt));
+        stackModelItemIt = m_modelItemsByStack.insert(newStack, stackModelItemCopy);
 
         // Change all the child items
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
         // Refresh the list of children; shouldn't be necessary but just n case
-        children = stackItemIt->children();
+        children = stackModelItemIt->children();
 
         for(auto it = children.begin(), end = children.end(); it != end; ++it)
         {

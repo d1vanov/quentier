@@ -161,6 +161,7 @@ private:
     };
 
     typedef QHash<QString, NotebookModelItem> ModelItems;
+    typedef QHash<QString, NotebookStackItem> StackItems;
 
     typedef LRUCache<QString, Notebook> Cache;
 
@@ -171,6 +172,7 @@ private:
 
     ModelItems              m_modelItemsByLocalUid;
     ModelItems              m_modelItemsByStack;
+    StackItems              m_stackItems;
 
     Cache                   m_cache;
 

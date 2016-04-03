@@ -11,9 +11,7 @@ NotebookModelItem::NotebookModelItem(const Type::type type,
 {}
 
 NotebookModelItem::~NotebookModelItem()
-{
-    delete m_notebookStackItem;
-}
+{}
 
 void NotebookModelItem::setParent(const NotebookModelItem * parent) const
 {
