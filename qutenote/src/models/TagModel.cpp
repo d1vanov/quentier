@@ -456,6 +456,8 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         const TagModelItem * item = parentItem->childAtRow(row + i);
         if (!item) {
+            QNWARNING("Detected null pointer to child tag item on attempt to remove row " << row + i
+                      << " from parent item: " << *parentItem);
             continue;
         }
 

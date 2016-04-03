@@ -682,11 +682,105 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
 
 bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(count)
-    Q_UNUSED(parent)
-    return false;
+    if (!m_fakeRootItem) {
+        return false;
+    }
+
+    const NotebookModelItem * parentItem = (parent.isValid()
+                                            ? itemForIndex(parent)
+                                            : m_fakeRootItem);
+    if (!parentItem) {
+        return false;
+    }
+
+    if (Q_UNLIKELY((parentItem != m_fakeRootItem) && (parentItem->type() != NotebookModelItem::Type::Stack))) {
+        QNDEBUG("Can't remove row(s) from parent item not being a stack item: " << *parentItem);
+        return false;
+    }
+
+    for(int i = 0; i < count; ++i)
+    {
+        const NotebookModelItem * childItem = parentItem->childAtRow(row + i);
+        if (!childItem) {
+            QNWARNING("Detected null pointer to child notebook model item on attempt to remove row " << row + i
+                      << " from parent item: " << *parentItem);
+            continue;
+        }
+
+        bool isNotebookItem = (childItem->type() == NotebookModelItem::Type::Notebook);
+        if (Q_UNLIKELY(isNotebookItem && !childItem->notebookItem())) {
+            QNWARNING("Detected null pointer to notebook item in notebook model item being removed: row in parent = " << row + i
+                      << ", parent item: " << *parentItem << "\nChild item: " << *childItem);
+            continue;
+        }
+
+        if (Q_UNLIKELY(!isNotebookItem && !childItem->notebookStackItem())) {
+            QNWARNING("Detected null pointer to notebook stack item in notebook model item being removed: row in parent = " << row + i
+                      << ", parent item: " << *parentItem << "\nChild item: " << *childItem);
+            continue;
+        }
+
+        QList<const NotebookItem*> notebookItems;
+        if (isNotebookItem)
+        {
+            const NotebookItem * notebookItem = childItem->notebookItem();
+
+#define CHECK_NOTEBOOK_ITEM(notebookItem) \
+            if (notebookItem->isSynchronizable()) { \
+                QString error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it is synchronizable, it can't be removed"); \
+                QNINFO(error << ", notebook: " << *notebookItem); \
+                emit notifyError(error); \
+                return false; \
+            } \
+            \
+            if (notebookItem->isLinkedNotebook()) { \
+                QString error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it is the linked notebook from another account, " \
+                                           "it can't be removed"); \
+                QNINFO(error << ", notebook: " << *notebookItem); \
+                emit notifyError(error); \
+                return false; \
+            }
+
+            CHECK_NOTEBOOK_ITEM(notebookItem)
+            notebookItems.push_back(notebookItem);
+        }
+        else
+        {
+            QList<const NotebookModelItem*> notebookModelItemsWithinStack = childItem->children();
+            for(int j = 0, size = notebookModelItemsWithinStack.size(); j < size; ++j)
+            {
+                const NotebookModelItem * notebookModelItem = notebookModelItemsWithinStack[j];
+                if (Q_UNLIKELY(!notebookModelItem)) {
+                    QNWARNING("Detected null pointer to notebook model item within the children of the stack item being removed: " << *childItem);
+                    continue;
+                }
+
+                if (Q_UNLIKELY(notebookModelItem->type() != NotebookModelItem::Type::Notebook)) {
+                    QNWARNING("Detected notebook model item within the stack item which is not a notebook by type; stack item: " << *childItem
+                              << "\nIts child with wrong type: " << *notebookModelItem);
+                    continue;
+                }
+
+                const NotebookItem * notebookItem = notebookModelItem->notebookItem();
+                if (Q_UNLIKELY(!notebookItem)) {
+                    QNWARNING("Detected null pointer to notebook item in notebook model item being one of those removed "
+                              "along with the stack item containing them; stack item: " << *childItem);
+                    continue;
+                }
+
+                CHECK_NOTEBOOK_ITEM(notebookItem)
+                notebookItems.push_back(notebookItem);
+                Q_UNUSED(childItem->takeChild(j))
+            }
+        }
+
+        for(int j = 0, size = notebookItems.size(); j < size; ++j)
+        {
+            // TODO: remove all the notebook items from both the local data members and then from the local storage
+        }
+    }
+
+    return true;
 }
 
 void NotebookModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)

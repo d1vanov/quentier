@@ -15,7 +15,8 @@ public:
                           const QString & stack = QString(),
                           const bool isSynchronizable = false,
                           const bool isDirty = false,
-                          const bool isDefault = false);
+                          const bool isDefault = false,
+                          const bool isLinkedNotebook = false);
     ~NotebookItem();
 
     const QString & localUid() const { return m_localUid; }
@@ -41,6 +42,9 @@ public:
     bool isDefault() const { return m_isDefault; }
     void setDefault(const bool flag) { m_isDefault = flag; }
 
+    bool isLinkedNotebook() const { return m_isLinkedNotebook; }
+    void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
+
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     friend QDataStream & operator<<(QDataStream & out, const NotebookItem & item);
@@ -54,6 +58,7 @@ private:
     bool        m_isSynchronizable;
     bool        m_isDirty;
     bool        m_isDefault;
+    bool        m_isLinkedNotebook;
 };
 
 } // namespace qute_note
