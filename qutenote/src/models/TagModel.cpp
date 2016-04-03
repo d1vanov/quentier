@@ -432,6 +432,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
         const TagModelItem & item = *(*it);
         updateItemRowWithRespectToSorting(item);
+        updateTagInLocalStorage(item);
     }
     emit layoutChanged();
 
