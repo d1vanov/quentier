@@ -615,11 +615,69 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
 bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(count)
-    Q_UNUSED(parent)
-    return false;
+    QNDEBUG("NotebookModel::insertRows: row = " << row << ", count = " << count
+            << ", parent: is valid = " << (parent.isValid() ? "true" : "false")
+            << ", row = " << parent.row() << ", column = " << parent.column());
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new NotebookModelItem;
+    }
+
+    const NotebookModelItem * parentItem = (parent.isValid()
+                                            ? itemForIndex(parent)
+                                            : m_fakeRootItem);
+    if (!parentItem) {
+        QNDEBUG("No model item for given model index");
+        return false;
+    }
+
+    if (parentItem->type() == NotebookModelItem::Type::Notebook) {
+        QNDEBUG("Can't insert notebook under another notebook, only under the notebook stack");
+        return false;
+    }
+
+    const NotebookStackItem * stackItem = parentItem->notebookStackItem();
+    if (Q_UNLIKELY(!stackItem)) {
+        QNDEBUG("Detected null pointer to notebook stack item within the notebook model item of stack type: model item = "
+                << *parentItem);
+        return false;
+    }
+
+    NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    std::vector<NotebookDataByLocalUid::iterator> addedItems;
+    addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
+
+    beginInsertRows(parent, row, row + count - 1);
+    for(int i = 0; i < count; ++i)
+    {
+        // Adding notebook item
+        NotebookItem item;
+        item.setLocalUid(UidGenerator::Generate());
+        Q_UNUSED(m_notebookItemsNotYetInLocalStorageUids.insert(item.localUid()))
+
+        item.setName(nameForNewNotebook());
+        item.setDirty(true);
+        item.setStack(stackItem->name());
+
+        auto insertionResult = localUidIndex.insert(item);
+        addedItems.push_back(insertionResult.first);
+
+        // Adding wrapping notebook model item
+        NotebookModelItem modelItem(NotebookModelItem::Type::Notebook, &(*(addedItems.back())));
+        auto modelItemInsertionResult = m_modelItemsByLocalUid.insert(item.localUid(), modelItem);
+        modelItemInsertionResult.value().setParent(parentItem);
+    }
+    endInsertRows();
+
+    for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
+        const NotebookItem & item = *(*it);
+        updateNotebookInLocalStorage(item);
+    }
+
+    // TODO: when sorting is implemented, don't forget to re-arrange the rows of inserted items as well
+
+    return true;
 }
 
 bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
@@ -815,6 +873,12 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
 {
     // TODO: implement
     Q_UNUSED(item)
+}
+
+QString NotebookModel::nameForNewNotebook() const
+{
+    // TODO: implement
+    return QString();
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

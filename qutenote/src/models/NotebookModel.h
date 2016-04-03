@@ -109,6 +109,8 @@ private:
 
     void updateNotebookInLocalStorage(const NotebookItem & item);
 
+    QString nameForNewNotebook() const;
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
