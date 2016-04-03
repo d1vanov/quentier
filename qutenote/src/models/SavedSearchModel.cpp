@@ -320,6 +320,7 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
     for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
         const SavedSearchModelItem & item = *(*it);
         updateRandomAccessIndexWithRespectToSorting(item);
+        updateSavedSearchInLocalStorage(item);
     }
     emit layoutChanged();
 
