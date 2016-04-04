@@ -698,6 +698,10 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
+    QList<const NotebookItem*> notebookItemsToRemove;
+    QList<const NotebookStackItem*> notebookStackItemsToRemove;
+
+    // First simply collect all the items to be removed while checking for each of them whether they can be safely removed
     for(int i = 0; i < count; ++i)
     {
         const NotebookModelItem * childItem = parentItem->childAtRow(row + i);
@@ -720,7 +724,6 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             continue;
         }
 
-        QList<const NotebookItem*> notebookItems;
         if (isNotebookItem)
         {
             const NotebookItem * notebookItem = childItem->notebookItem();
@@ -742,7 +745,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             }
 
             CHECK_NOTEBOOK_ITEM(notebookItem)
-            notebookItems.push_back(notebookItem);
+            notebookItemsToRemove.push_back(notebookItem);
         }
         else
         {
@@ -769,16 +772,67 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 }
 
                 CHECK_NOTEBOOK_ITEM(notebookItem)
-                notebookItems.push_back(notebookItem);
+                notebookItemsToRemove.push_back(notebookItem);
                 Q_UNUSED(childItem->takeChild(j))
             }
-        }
 
-        for(int j = 0, size = notebookItems.size(); j < size; ++j)
-        {
-            // TODO: remove all the notebook items from both the local data members and then from the local storage
+            notebookStackItemsToRemove.push_back(childItem->notebookStackItem());
         }
     }
+
+    // Now we are sure all the items collected for the deletion can actually be deleted
+
+    beginRemoveRows(parent, row, row + count - 1);
+
+    NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    for(int i = 0, size = notebookItemsToRemove.size(); i < size; ++i)
+    {
+        const NotebookItem * notebookItem = notebookItemsToRemove[i];
+        QString localUid = notebookItem->localUid();
+        auto it = localUidIndex.find(localUid);
+        if (Q_LIKELY(it != localUidIndex.end())) {
+            Q_UNUSED(localUidIndex.erase(it))
+        }
+        else {
+            QNWARNING("Internal error detected: can't find the notebook item to remove from the NotebookModel: local uid = "
+                      << localUid);
+        }
+
+        auto modelItemIt = m_modelItemsByLocalUid.find(localUid);
+        if (Q_LIKELY(modelItemIt != m_modelItemsByLocalUid.end())) {
+            Q_UNUSED(m_modelItemsByLocalUid.erase(modelItemIt))
+        }
+        else {
+            QNWARNING("Internal error detected: can't find the notebook model item corresponding to the notebook item being removed: "
+                      "local uid = " << localUid);
+        }
+    }
+
+    for(int i = 0, size = notebookStackItemsToRemove.size(); i < size; ++i)
+    {
+        const NotebookStackItem * stackItem = notebookStackItemsToRemove[i];
+        QString stack = stackItem->name();
+        auto stackItemIt = m_stackItems.find(stack);
+        if (Q_LIKELY(stackItemIt != m_stackItems.end())) {
+            Q_UNUSED(m_stackItems.erase(stackItemIt))
+        }
+        else {
+            QNWARNING("Internal error detected: can't find the notebook stack item being removed from the notebook model: stack = "
+                      << stack);
+        }
+
+        auto stackModelItemIt = m_modelItemsByStack.find(stack);
+        if (Q_LIKELY(stackModelItemIt != m_modelItemsByStack.end())) {
+            Q_UNUSED(m_modelItemsByStack.erase(stackModelItemIt))
+        }
+        else {
+            QNWARNING("Internal error detected: can't find the notebook model item corresponding to the notebook stack item "
+                      "being removed from the notebook model: stack = " << stack);
+        }
+    }
+
+    endRemoveRows();
 
     return true;
 }
