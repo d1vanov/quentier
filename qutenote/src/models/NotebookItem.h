@@ -14,8 +14,10 @@ public:
                           const QString & name = QString(),
                           const QString & stack = QString(),
                           const bool isSynchronizable = false,
+                          const bool isUpdatable = false,
                           const bool isDirty = false,
                           const bool isDefault = false,
+                          const bool isPublished = false,
                           const bool isLinkedNotebook = false);
     ~NotebookItem();
 
@@ -36,11 +38,17 @@ public:
     bool isSynchronizable() const { return m_isSynchronizable; }
     void setSynchronizable(const bool synchronizable) { m_isSynchronizable = synchronizable; }
 
+    bool isUpdatable() const { return m_isUpdatable; }
+    void setUpdatable(const bool updatable) { m_isUpdatable = updatable; }
+
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
     bool isDefault() const { return m_isDefault; }
     void setDefault(const bool flag) { m_isDefault = flag; }
+
+    bool isPublished() const { return m_isPublished; }
+    void setPublished(const bool flag) { m_isPublished = flag; }
 
     bool isLinkedNotebook() const { return m_isLinkedNotebook; }
     void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
@@ -56,8 +64,10 @@ private:
     QString     m_name;
     QString     m_stack;
     bool        m_isSynchronizable;
+    bool        m_isUpdatable;
     bool        m_isDirty;
     bool        m_isDefault;
+    bool        m_isPublished;
     bool        m_isLinkedNotebook;
 };
 

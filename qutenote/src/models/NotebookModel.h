@@ -111,6 +111,13 @@ private:
 
     QString nameForNewNotebook() const;
 
+    void onNotebookAddedOrUpdated(const Notebook & notebook);
+    void onNotebookAdded(const Notebook & notebook);
+    void onNotebookUpdated(const Notebook & notebook);
+
+    void removeItemByLocalUid(const QString & localUid);
+    void removeNotebookItemFromStack(const NotebookItem & item);
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
