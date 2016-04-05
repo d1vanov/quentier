@@ -1228,13 +1228,13 @@ QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::
         accessibleText += QT_TR_NOOP("name is ") + textData.toString();
         break;
     case Columns::Synchronizable:
-        accessibleText += (textData.toBool() ? "synchronizable" : "not synchronizable");
+        accessibleText += (textData.toBool() ? QT_TR_NOOP("synchronizable") : QT_TR_NOOP("not synchronizable"));
         break;
     case Columns::Dirty:
-        accessibleText += (textData.toBool() ? "dirty" : "not dirty");
+        accessibleText += (textData.toBool() ? QT_TR_NOOP("dirty") : QT_TR_NOOP("not dirty"));
         break;
     case Columns::FromLinkedNotebook:
-        accessibleText += (textData.toBool() ? "from linked notebook" : "from own account");
+        accessibleText += (textData.toBool() ? QT_TR_NOOP("from linked notebook") : QT_TR_NOOP("from own account"));
         break;
     default:
         return QVariant();
