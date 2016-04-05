@@ -21,6 +21,10 @@ Notebook::Notebook(const Notebook & other) :
     d(other.d)
 {}
 
+Notebook::Notebook(Notebook && other) :
+    d(std::move(other.d))
+{}
+
 Notebook::Notebook(const qevercloud::Notebook & other) :
     d(new NotebookData(other))
 {}
