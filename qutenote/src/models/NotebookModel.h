@@ -111,12 +111,8 @@ private:
 
     QString nameForNewNotebook() const;
 
-    void onNotebookAddedOrUpdated(const Notebook & notebook);
-    void onNotebookAdded(const Notebook & notebook);
-    void onNotebookUpdated(const Notebook & notebook);
-
     void removeItemByLocalUid(const QString & localUid);
-    void removeNotebookItemFromStack(const NotebookItem & item);
+    void notebookToItem(const Notebook & notebook, NotebookItem & item) const;
 
 private:
     struct ByLocalUid{};
@@ -173,6 +169,11 @@ private:
     typedef QHash<QString, NotebookStackItem> StackItems;
 
     typedef LRUCache<QString, Notebook> Cache;
+
+private:
+    void onNotebookAddedOrUpdated(const Notebook & notebook);
+    void onNotebookAdded(const Notebook & notebook);
+    void onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it);
 
 private:
     NotebookData            m_data;
