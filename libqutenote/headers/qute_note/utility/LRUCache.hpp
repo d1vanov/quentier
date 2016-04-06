@@ -115,7 +115,7 @@ private:
     size_t                      m_currentSize;
     size_t                      m_maxSize;
 
-    QHash<QString, iterator>    m_mapper;
+    QHash<Key, iterator>        m_mapper;
 };
 
 } // namespace qute_note
