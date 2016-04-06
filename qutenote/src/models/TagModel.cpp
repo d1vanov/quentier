@@ -1022,21 +1022,14 @@ void TagModel::onTagAdded(const Tag & tag)
 
     const TagModelItem * parentItem = Q_NULLPTR;
 
-    if (tag.hasParentLocalUid())
-    {
+    if (tag.hasParentLocalUid()) {
         auto parentIt = localUidIndex.find(tag.parentLocalUid());
         if (parentIt != localUidIndex.end()) {
             parentItem = &(*parentIt);
         }
-        else {
-            if (!m_fakeRootItem) {
-                m_fakeRootItem = new TagModelItem;
-            }
-
-            parentItem = m_fakeRootItem;
-        }
     }
-    else
+
+    if (!parentItem)
     {
         if (!m_fakeRootItem) {
             m_fakeRootItem = new TagModelItem;
