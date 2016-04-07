@@ -427,7 +427,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             }
         case Columns::Synchronizable:
             {
-                if (notebookItemCopy.isSynchronizable() && value.toBool()) {
+                if (notebookItemCopy.isSynchronizable() && !value.toBool()) {
                     QString error = QT_TR_NOOP("Can't make already synchronizable notebook not synchronizable");
                     QNINFO(error << ", already synchronizable notebook item: " << notebookItemCopy);
                     emit notifyError(error);
