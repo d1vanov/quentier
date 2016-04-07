@@ -1541,6 +1541,9 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
         const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
         item.setUpdatable(!restrictions.noUpdateNotebook.isSet() || !restrictions.noUpdateNotebook.ref());
     }
+    else {
+        item.setUpdatable(true);
+    }
 
     if (notebook.hasLinkedNotebookGuid()) {
         item.setLinkedNotebook(true);
