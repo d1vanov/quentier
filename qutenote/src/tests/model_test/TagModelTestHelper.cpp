@@ -184,7 +184,7 @@ void TagModelTestHelper::test()
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the synchronizable flag from false to true for tag model");
+            QNWARNING("Can't change the synchronizable flag from false to true for tag model item");
             emit failure();
             return;
         }
@@ -202,7 +202,7 @@ void TagModelTestHelper::test()
             return;
         }
 
-        // Verify the dirty flag has changed as a result of makind the item synchronizable
+        // Verify the dirty flag has changed as a result of making the item synchronizable
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Dirty, secondParentIndex);
         if (!secondIndex.isValid()) {
             QNWARNING("Can't get the valid tag item model index for dirty column");
