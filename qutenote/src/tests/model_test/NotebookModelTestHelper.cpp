@@ -122,6 +122,42 @@ void NotebookModelTestHelper::test()
         ModelTest t1(model);
         Q_UNUSED(t1)
 
+        // Should not be able to change the dirty flag manually
+        QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index for local uid");
+            emit failure();
+            return;
+        }
+
+        QModelIndex secondParentIndex = model->parent(secondIndex);
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Dirty, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index for dirty column");
+            emit failure();
+            return;
+        }
+
+        bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        if (res) {
+            QNWARNING("Was able to change the dirty flag in the notebook model manually which is not intended");
+            emit failure();
+            return;
+        }
+
+        QVariant data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the notebook model while expected to get the state of dirty flag");
+            emit failure();
+            return;
+        }
+
+        if (data.toBool()) {
+            QNWARNING("The dirty state appears to have changed after setData in notebook model even though the method returned false");
+            emit failure();
+            return;
+        }
+
         // TODO: add manual tests here
 
         emit success();
