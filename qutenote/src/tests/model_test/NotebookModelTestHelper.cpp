@@ -35,7 +35,95 @@ void NotebookModelTestHelper::test()
     QNDEBUG("NotebookModelTestHelper::test");
 
     try {
-        // TODO: implement
+        Notebook first;
+        first.setName("First");
+        first.setLocal(true);
+        first.setDirty(true);
+
+        Notebook second;
+        second.setName("Second");
+        second.setLocal(true);
+        second.setDirty(false);
+        second.setStack("Stack 1");
+
+        Notebook third;
+        third.setName("Third");
+        third.setLocal(false);
+        third.setGuid(UidGenerator::Generate());
+        third.setDirty(true);
+        third.setStack("Stack 1");
+
+        Notebook fourth;
+        fourth.setName("Fourth");
+        fourth.setLocal(false);
+        fourth.setGuid(UidGenerator::Generate());
+        fourth.setDirty(false);
+        fourth.setPublished(true);
+        fourth.setStack("Stack 1");
+
+        Notebook fifth;
+        fifth.setName("Fifth");
+        fifth.setLocal(false);
+        fifth.setGuid(UidGenerator::Generate());
+        fifth.setLinkedNotebookGuid(fifth.guid());
+        fifth.setDirty(false);
+        fifth.setStack("Stack 1");
+
+        Notebook sixth;
+        sixth.setName("Sixth");
+        sixth.setLocal(false);
+        sixth.setGuid(UidGenerator::Generate());
+        sixth.setDirty(false);
+
+        Notebook seventh;
+        seventh.setName("Seventh");
+        seventh.setLocal(false);
+        seventh.setGuid(UidGenerator::Generate());
+        seventh.setDirty(false);
+        seventh.setPublished(true);
+
+        Notebook eighth;
+        eighth.setName("Eighth");
+        eighth.setLocal(false);
+        eighth.setGuid(UidGenerator::Generate());
+        eighth.setLinkedNotebookGuid(eighth.guid());
+        eighth.setDirty(false);
+
+        Notebook nineth;
+        nineth.setName("Nineth");
+        nineth.setLocal(true);
+        nineth.setDirty(false);
+        nineth.setStack("Stack 2");
+
+        Notebook tenth;
+        tenth.setName("Tenth");
+        tenth.setLocal(false);
+        tenth.setGuid(UidGenerator::Generate());
+        tenth.setDirty(false);
+        tenth.setStack("Stack 2");
+
+#define ADD_NOTEBOOK(notebook) \
+        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(notebook, QUuid())
+
+        ADD_NOTEBOOK(first);
+        ADD_NOTEBOOK(second);
+        ADD_NOTEBOOK(third);
+        ADD_NOTEBOOK(fourth);
+        ADD_NOTEBOOK(fifth);
+        ADD_NOTEBOOK(sixth);
+        ADD_NOTEBOOK(seventh);
+        ADD_NOTEBOOK(eighth);
+        ADD_NOTEBOOK(nineth);
+        ADD_NOTEBOOK(tenth);
+
+#undef ADD_NOTEBOOK
+
+        NotebookModel * model = new NotebookModel(*m_pLocalStorageManagerThreadWorker, this);
+        ModelTest t1(model);
+        Q_UNUSED(t1)
+
+        // TODO: add manual tests here
+
         emit success();
         return;
     }

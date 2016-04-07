@@ -8,7 +8,7 @@
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
-#include <QHash>
+#include <QMap>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -165,8 +165,8 @@ private:
         bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
     };
 
-    typedef QHash<QString, NotebookModelItem> ModelItems;
-    typedef QHash<QString, NotebookStackItem> StackItems;
+    typedef QMap<QString, NotebookModelItem> ModelItems;
+    typedef QMap<QString, NotebookStackItem> StackItems;
 
     typedef LRUCache<QString, Notebook> Cache;
 

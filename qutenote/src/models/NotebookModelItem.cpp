@@ -4,11 +4,18 @@ namespace qute_note {
 
 NotebookModelItem::NotebookModelItem(const Type::type type,
                                      const NotebookItem * notebookItem,
-                                     const NotebookStackItem * notebookStackItem) :
+                                     const NotebookStackItem * notebookStackItem,
+                                     const NotebookModelItem * parent) :
     m_type(type),
     m_notebookItem(notebookItem),
-    m_notebookStackItem(notebookStackItem)
-{}
+    m_notebookStackItem(notebookStackItem),
+    m_parent(Q_NULLPTR),
+    m_children()
+{
+    if (parent) {
+        setParent(parent);
+    }
+}
 
 NotebookModelItem::~NotebookModelItem()
 {}
@@ -89,16 +96,70 @@ QTextStream & NotebookModelItem::Print(QTextStream & strm) const
                       ? (m_notebookItem ? m_notebookItem->ToQString() : QString("<null>"))
                       : (m_notebookStackItem ? m_notebookStackItem->ToQString() : QString("<null>")));
 
-    strm << "Parent item: " << (m_parent ? m_parent->ToQString() : QString("<null>")) << "\n";
+    strm << "Parent item: ";
+    if (Q_UNLIKELY(!m_parent))
+    {
+        strm << "<null>";
+    }
+    else
+    {
+        if (m_parent->type() == NotebookModelItem::Type::Stack) {
+            strm << "stack";
+        }
+        else if (m_parent->type() == NotebookModelItem::Type::Notebook) {
+            strm << "notebook";
+        }
+        else {
+            strm << "<unknown type>";
+        }
+
+        if (m_parent->notebookItem()) {
+            strm << ", notebook local uid = " << m_parent->notebookItem()->localUid() << ", notebook name = "
+                 << m_parent->notebookItem()->name();
+        }
+        else if (m_parent->notebookStackItem()) {
+            strm << ", stack name = " << m_parent->notebookStackItem()->name();
+        }
+
+        strm << "\n";
+    }
 
     if (m_children.isEmpty()) {
         return strm;
     }
 
-    strm << "Children: \n";
-    for(int i = 0, size = m_children.size(); i < size; ++i) {
+    int numChildren = m_children.size();
+    strm << "Num children: " << numChildren << "\n";
+
+    for(int i = 0; i < numChildren; ++i)
+    {
+        strm << "Child[" << i << "]: ";
+
         const NotebookModelItem * childItem = m_children[i];
-        strm << "[" << i << "]: " << (childItem ? childItem->ToQString() : QString("<null>")) << "\n";
+        if (Q_UNLIKELY(!childItem)) {
+            strm << "<null>";
+            continue;
+        }
+
+        if (childItem->type() == NotebookModelItem::Type::Notebook) {
+            strm << "notebook";
+        }
+        else if (childItem->type() == NotebookModelItem::Type::Stack) {
+            strm << "stack";
+        }
+        else {
+            strm << "<unknown type>";
+        }
+
+        if (childItem->notebookItem()) {
+            strm << ", notebook local uid = " << childItem->notebookItem()->localUid() << ", notebook name = "
+                 << childItem->notebookItem()->name();
+        }
+        else if (childItem->notebookStackItem()) {
+            strm << ", stack = " << childItem->notebookStackItem()->name();
+        }
+
+        strm << "\n";
     }
 
     return strm;

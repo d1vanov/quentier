@@ -95,7 +95,7 @@ QModelIndex NotebookModel::indexForItem(const NotebookModelItem * item) const
 
     int row = parentItem->rowForChild(item);
     if (Q_UNLIKELY(row < 0)) {
-        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in TagModel");
+        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in NotebookModel");
         QNWARNING(error << ", child item: " << *item << "\nParent item: " << *parentItem);
         return QModelIndex();
     }

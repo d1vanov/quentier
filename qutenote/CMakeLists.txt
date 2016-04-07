@@ -157,21 +157,31 @@ set(MODEL_TEST_HEADERS
     src/tests/model_test/dynamictreemodel.h
     src/tests/model_test/SavedSearchModelTestHelper.h
     src/tests/model_test/TagModelTestHelper.h
+    src/tests/model_test/NotebookModelTestHelper.h
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h
-    src/models/TagModelItem.h)
+    src/models/TagModelItem.h
+    src/models/NotebookModel.h
+    src/models/NotebookModelItem.h
+    src/models/NotebookItem.h
+    src/models/NotebookStackItem.h)
 
 set(MODEL_TEST_SOURCES
     src/tests/model_test/modeltest.cpp
     src/tests/model_test/dynamictreemodel.cpp
     src/tests/model_test/SavedSearchModelTestHelper.cpp
     src/tests/model_test/TagModelTestHelper.cpp
+    src/tests/model_test/NotebookModelTestHelper.cpp
     src/tests/model_test/tst_modeltest.cpp
     src/models/SavedSearchModel.cpp
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp
-    src/models/TagModelItem.cpp)
+    src/models/TagModelItem.cpp
+    src/models/NotebookModel.cpp
+    src/models/NotebookModelItem.cpp
+    src/models/NotebookItem.cpp
+    src/models/NotebookStackItem.cpp)
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)

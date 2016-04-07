@@ -65,6 +65,7 @@
 #include "../../models/TagModel.h"
 #include "SavedSearchModelTestHelper.h"
 #include "TagModelTestHelper.h"
+#include "NotebookModelTestHelper.h"
 
 // 10 minutes should be enough
 #define MAX_ALLOWED_MILLISECONDS 600000
@@ -92,6 +93,7 @@ private Q_SLOTS:
 
     void testSavedSearchModel();
     void testTagModel();
+    void testNotebookModel();
     void testTagModelItemSerialization();
 
 private:
@@ -444,6 +446,47 @@ void tst_ModelTest::testTagModel()
     }
     else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
         QFAIL("Tag model async tester failed to finish in time");
+    }
+}
+
+void tst_ModelTest::testNotebookModel()
+{
+    using namespace qute_note;
+
+    int res = -1;
+    {
+        QTimer timer;
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setSingleShot(true);
+
+        delete m_pLocalStorageWorker;
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_notebook_model_test_fake_user", 500, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker->init();
+
+        NotebookModelTestHelper notebookModelTestHelper(m_pLocalStorageWorker);
+
+        EventLoopWithExitStatus loop;
+        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
+        loop.connect(&notebookModelTestHelper, SIGNAL(success()), SLOT(exitAsSuccess()));
+        loop.connect(&notebookModelTestHelper, SIGNAL(failure()), SLOT(exitAsFailure()));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &notebookModelTestHelper, SLOT(test()));
+        res = loop.exec();
+    }
+
+    if (res == -1) {
+        QFAIL("Internal error: incorrect return status from notebook model async tester");
+    }
+    else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in notebook model async tester");
+    }
+    else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Notebook model async tester failed to finish in time");
     }
 }
 
