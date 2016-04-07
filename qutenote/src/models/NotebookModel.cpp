@@ -65,30 +65,7 @@ QModelIndex NotebookModel::indexForItem(const NotebookModelItem * item) const
         return QModelIndex();
     }
 
-    const NotebookModelItem * parentItem = Q_NULLPTR;
-
-    if ((item->type() == NotebookModelItem::Type::Notebook) && item->notebookItem())
-    {
-        QString stack = item->notebookItem()->stack();
-        if (stack.isEmpty()) {
-            // That means the actual parent is fake root item
-            return QModelIndex();
-        }
-
-        auto it = m_modelItemsByStack.find(stack);
-        if (Q_UNLIKELY(it == m_modelItemsByStack.end())) {
-            QNDEBUG("Notebook " << item->notebookItem()->name() << " (local uid " << item->notebookItem()->localUid()
-                    << ") has stack " << stack << " but the NotebookModelItem corresponding to it cannot be found");
-            return QModelIndex();
-        }
-
-        parentItem = &(it.value());
-    }
-    else if ((item->type() == NotebookModelItem::Type::Stack) && item->notebookStackItem())
-    {
-        parentItem = m_fakeRootItem;
-    }
-
+    const NotebookModelItem * parentItem = item->parent();
     if (!parentItem) {
         return QModelIndex();
     }
@@ -1344,9 +1321,17 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     {
         const QString & stack = notebook.stack();
         auto it = m_modelItemsByStack.find(stack);
-        if (it == m_modelItemsByStack.end()) {
+        if (it == m_modelItemsByStack.end())
+        {
             auto stackItemIt = m_stackItems.insert(stack, NotebookStackItem(stack));
-            it = m_modelItemsByStack.insert(stack, NotebookModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, &(stackItemIt.value())));
+
+            if (!m_fakeRootItem) {
+                m_fakeRootItem = new NotebookModelItem;
+            }
+
+            NotebookModelItem newStackItem(NotebookModelItem::Type::Stack, Q_NULLPTR, &(stackItemIt.value()));
+            it = m_modelItemsByStack.insert(stack, newStackItem);
+            it->setParent(m_fakeRootItem);
         }
 
         parentItem = &(*it);
@@ -1444,7 +1429,13 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
                 auto stackItemIt = m_stackItems.insert(notebook.stack(), NotebookStackItem(notebook.stack()));
                 const NotebookStackItem * newStackItem = &(stackItemIt.value());
 
-                stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(), NotebookModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, newStackItem));
+                if (!m_fakeRootItem) {
+                    m_fakeRootItem = new NotebookModelItem;
+                }
+
+                NotebookModelItem newStackModelItem(NotebookModelItem::Type::Stack, Q_NULLPTR, newStackItem);
+                stackModelItemIt = m_modelItemsByStack.insert(notebook.stack(), newStackModelItem);
+                stackModelItemIt->setParent(m_fakeRootItem);
             }
 
             parentItem = &(stackModelItemIt.value());
@@ -1524,7 +1515,7 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
 
 void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & item) const
 {
-    item.setLocalUid(item.localUid());
+    item.setLocalUid(notebook.localUid());
 
     if (notebook.hasGuid()) {
         item.setGuid(notebook.guid());
