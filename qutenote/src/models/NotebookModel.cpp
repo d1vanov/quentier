@@ -474,6 +474,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             return false;
         }
 
+        notebookItemCopy.setDirty(dirty);
         localUidIndex.replace(notebookItemIt, notebookItemCopy);
         updateNotebookInLocalStorage(notebookItemCopy);
     }
