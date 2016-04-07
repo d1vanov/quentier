@@ -158,7 +158,56 @@ void NotebookModelTestHelper::test()
             return;
         }
 
-        // TODO: add manual tests here
+        // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Synchronizable, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index for synchronizable column");
+            emit failure();
+            return;
+        }
+
+        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        if (!res) {
+            QNWARNING("Can't change the synchronizable flag from false to true for notebook model item");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the notebook model while expected to get the state of synchronizable flag");
+            emit failure();
+            return;
+        }
+
+        if (!data.toBool()) {
+            QNWARNING("The synchronizable state appears to have not changed after setData in notebook model even though the method returned true");
+            emit failure();
+            return;
+        }
+
+        // Verify the dirty flag has changed as a result of making the item synchronizable
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Dirty, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index for dirty column");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the notebook model while expected to get the state of dirty flag");
+            emit failure();
+            return;
+        }
+
+        if (!data.toBool()) {
+            QNWARNING("The dirty state hasn't changed after making the notebook model item synchronizable while it was expected to have changed");
+            emit failure();
+            return;
+        }
+
+        // TODO: add more manual tests here
 
         emit success();
         return;
