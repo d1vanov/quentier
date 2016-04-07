@@ -207,6 +207,34 @@ void NotebookModelTestHelper::test()
             return;
         }
 
+        // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Synchronizable, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook item model index for synchronizable column");
+            emit failure();
+            return;
+        }
+
+        res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
+        if (res) {
+            QNWARNING("Was able to change the synchronizable flag in notebook model from true to false which is not intended");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the notebook model while expected to get the state of synchronizable flag");
+            emit failure();
+            return;
+        }
+
+        if (!data.toBool()) {
+            QNWARNING("The synchronizable state appears to have changed after setData in notebook model even though the method returned false");
+            emit failure();
+            return;
+        }
+
         // TODO: add more manual tests here
 
         emit success();
