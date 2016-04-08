@@ -781,10 +781,15 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
         }
 
         auto modelItemIt = m_modelItemsByLocalUid.find(localUid);
-        if (Q_LIKELY(modelItemIt != m_modelItemsByLocalUid.end())) {
+        if (Q_LIKELY(modelItemIt != m_modelItemsByLocalUid.end()))
+        {
+            const NotebookModelItem & modelItem = *modelItemIt;
+            removeModelItemFromParent(modelItem);
+
             Q_UNUSED(m_modelItemsByLocalUid.erase(modelItemIt))
         }
-        else {
+        else
+        {
             QNWARNING("Internal error detected: can't find the notebook model item corresponding to the notebook item being removed: "
                       "local uid = " << localUid);
         }
@@ -804,10 +809,14 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
         }
 
         auto stackModelItemIt = m_modelItemsByStack.find(stack);
-        if (Q_LIKELY(stackModelItemIt != m_modelItemsByStack.end())) {
+        if (Q_LIKELY(stackModelItemIt != m_modelItemsByStack.end()))
+        {
+            const NotebookModelItem & stackModelItem = *stackModelItemIt;
+            removeModelItemFromParent(stackModelItem);
             Q_UNUSED(m_modelItemsByStack.erase(stackModelItemIt))
         }
-        else {
+        else
+        {
             QNWARNING("Internal error detected: can't find the notebook model item corresponding to the notebook stack item "
                       "being removed from the notebook model: stack = " << stack);
         }
@@ -1549,6 +1558,26 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
     if (notebook.hasLinkedNotebookGuid()) {
         item.setLinkedNotebook(true);
     }
+}
+
+void NotebookModel::removeModelItemFromParent(const NotebookModelItem & modelItem)
+{
+    QNDEBUG("NotebookModel::removeModelItemFromParent: " << modelItem);
+
+    const NotebookModelItem * parentItem = modelItem.parent();
+    if (Q_UNLIKELY(!parentItem)) {
+        QNDEBUG("No parent item, nothing to do");
+        return;
+    }
+
+    int row = parentItem->rowForChild(&modelItem);
+    if (Q_UNLIKELY(row < 0)) {
+        QNWARNING("Can't find the child notebook model item's row within its parent; child item = " << modelItem
+                  << ", parent item = " << *parentItem);
+        return;
+    }
+
+    Q_UNUSED(parentItem->takeChild(row))
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

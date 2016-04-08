@@ -114,6 +114,8 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void notebookToItem(const Notebook & notebook, NotebookItem & item) const;
 
+    void removeModelItemFromParent(const NotebookModelItem & modelItem);
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
