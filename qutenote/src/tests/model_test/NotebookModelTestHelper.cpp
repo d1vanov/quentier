@@ -235,6 +235,80 @@ void NotebookModelTestHelper::test()
             return;
         }
 
+        // Should be able to change name
+        secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Name, secondParentIndex);
+        if (!secondIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index for name column");
+            emit failure();
+            return;
+        }
+
+        QString newName = "Second (name modified)";
+        res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
+        if (!res) {
+            QNWARNING("Can't change the name of the notebook model item");
+            emit failure();
+            return;
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            QNWARNING("Null data was returned by the notebook model while expected to get the name of the tag item");
+            emit failure();
+            return;
+        }
+
+        if (data.toString() != newName) {
+            QNWARNING("The name of the notebook item returned by the model does not match the name just set to this item: "
+                      "received " << data.toString() << ", expected " << newName);
+            emit failure();
+            return;
+        }
+
+        // Should not be able to remove the row with a synchronizable (non-local) notebook
+        res = model->removeRow(secondIndex.row(), secondParentIndex);
+        if (res) {
+            QNWARNING("Was able to remove the row with a synchronizable notebook which is not intended");
+            emit failure();
+            return;
+        }
+
+        QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
+        if (!secondIndexAfterFailedRemoval.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index after the failed row removal attempt");
+            emit failure();
+            return;
+        }
+
+        if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
+            QNWARNING("Notebook model returned item index with a different row after the failed row removal attempt");
+            emit failure();
+            return;
+        }
+
+        // Should be able to remove the row with a non-synchronizable (local) notebook
+        QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
+        if (!firstIndex.isValid()) {
+            QNWARNING("Can't get the valid notebook model item index for local uid");
+            emit failure();
+            return;
+        }
+
+        QModelIndex firstParentIndex = model->parent(firstIndex);
+        res = model->removeRow(firstIndex.row(), firstParentIndex);
+        if (!res) {
+            QNWARNING("Can't remove the row with a non-synchronizable notebook item from the model");
+            emit failure();
+            return;
+        }
+
+        QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
+        if (firstIndexAfterRemoval.isValid()) {
+            QNWARNING("Was able to get the valid model index for the removed notebook item by local uid which is not intended");
+            emit failure();
+            return;
+        }
+
         // TODO: add more manual tests here
 
         emit success();
