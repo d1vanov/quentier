@@ -46,6 +46,9 @@ public:
     QModelIndex indexForItem(const NotebookModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
+    QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
+    QModelIndex removeFromStack(const QModelIndex & index);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -176,6 +179,8 @@ private:
     void onNotebookAddedOrUpdated(const Notebook & notebook);
     void onNotebookAdded(const Notebook & notebook);
     void onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it);
+
+    ModelItems::iterator addNewStackModelItem(const NotebookStackItem & stackItem);
 
 private:
     NotebookData            m_data;

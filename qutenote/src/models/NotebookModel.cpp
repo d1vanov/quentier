@@ -92,6 +92,94 @@ QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
     return indexForItem(item);
 }
 
+QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString & stack)
+{
+    QNDEBUG("NotebookModel::moveToStack: stack = " << stack);
+
+    if (Q_UNLIKELY(stack.isEmpty())) {
+        return removeFromStack(index);
+    }
+
+    const NotebookModelItem * item = reinterpret_cast<const NotebookModelItem*>(index.internalPointer());
+    if (Q_UNLIKELY(!item)) {
+        QNWARNING("Detected attempt to move notebook item from stack but the model index has no internal pointer "
+                  "to the notebook model item");
+        return index;
+    }
+
+    if (item->type() != NotebookModelItem::Type::Notebook) {
+        QNDEBUG("Can't move the non-notebook model item to stack");
+        return index;
+    }
+
+    const NotebookItem * notebookItem = item->notebookItem();
+    if (Q_UNLIKELY(!notebookItem)) {
+        QNWARNING("Found notebook model item of notebook type but its pointer to the notebook item is null");
+        return index;
+    }
+
+    if (notebookItem->stack() == stack) {
+        QNDEBUG("The stack of the item hasn't changed, nothing to do");
+        return index;
+    }
+
+    removeModelItemFromParent(*item);
+
+    NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
+    if (Q_UNLIKELY(notebookItemIt == localUidIndex.end()))
+    {
+        QNWARNING("Can't find the notebook item being moved to stack " << stack << " by local uid; might be the stale pointer "
+                  "to removed notebook item, cleaning it up");
+        auto it = m_modelItemsByLocalUid.find(notebookItem->localUid());
+        if (it != m_modelItemsByLocalUid.end()) {
+            Q_UNUSED(m_modelItemsByLocalUid.erase(it))
+        }
+        return QModelIndex();
+    }
+
+    auto it = m_modelItemsByStack.end();
+    auto stackItemIt = m_stackItems.find(stack);
+    if (stackItemIt == m_stackItems.end()) {
+        stackItemIt = m_stackItems.insert(stack, NotebookStackItem(stack));
+        it = addNewStackModelItem(stackItemIt.value());
+    }
+
+    if (it == m_modelItemsByStack.end())
+    {
+        it = m_modelItemsByStack.find(stack);
+        if (it == m_modelItemsByStack.end()) {
+            QNWARNING("Internal error: no notebook model item while it's expected to be here; "
+                      "will try to auto-fix it and add the new model item");
+            it = addNewStackModelItem(stackItemIt.value());
+        }
+    }
+
+    if (it == m_modelItemsByStack.end()) {
+        QNCRITICAL("Internal error: no notebook model item while it's expected to be here; failed to auto-fix the problem");
+        return index;
+    }
+
+    NotebookItem notebookItemCopy(*notebookItem);
+    notebookItemCopy.setStack(stack);
+    localUidIndex.replace(notebookItemIt, notebookItemCopy);
+
+    const NotebookModelItem * newParentItem = &(*it);
+    // TODO: when sorting is implemented, remember to insert the new item into the appropriate position within its parent
+    item->setParent(newParentItem);
+
+    return indexForItem(item);
+}
+
+QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
+{
+    QNDEBUG("NotebookModel::removeFromStack");
+
+    // TODO: implement
+    Q_UNUSED(index)
+    return QModelIndex();
+}
+
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
@@ -1331,17 +1419,9 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     {
         const QString & stack = notebook.stack();
         auto it = m_modelItemsByStack.find(stack);
-        if (it == m_modelItemsByStack.end())
-        {
+        if (it == m_modelItemsByStack.end()) {
             auto stackItemIt = m_stackItems.insert(stack, NotebookStackItem(stack));
-
-            if (!m_fakeRootItem) {
-                m_fakeRootItem = new NotebookModelItem;
-            }
-
-            NotebookModelItem newStackItem(NotebookModelItem::Type::Stack, Q_NULLPTR, &(stackItemIt.value()));
-            it = m_modelItemsByStack.insert(stack, newStackItem);
-            it->setParent(m_fakeRootItem);
+            it = addNewStackModelItem(stackItemIt.value());
         }
 
         parentItem = &(*it);
@@ -1480,6 +1560,20 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     emit dataChanged(modelIndexFrom, modelIndexTo);
 
     // TODO: don't forget to correct the new notebook's position in parent with respect to current sorting when it's implemented
+}
+
+NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const NotebookStackItem & stackItem)
+{
+    QNDEBUG("NotebookModel::addNewStackModelItem: stack item = " << stackItem);
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new NotebookModelItem;
+    }
+
+    NotebookModelItem newStackItem(NotebookModelItem::Type::Stack, Q_NULLPTR, &stackItem);
+    auto it = m_modelItemsByStack.insert(stackItem.name(), newStackItem);
+    it->setParent(m_fakeRootItem);
+    return it;
 }
 
 void NotebookModel::removeItemByLocalUid(const QString & localUid)
