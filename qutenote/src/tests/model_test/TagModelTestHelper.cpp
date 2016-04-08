@@ -281,7 +281,7 @@ void TagModelTestHelper::test()
             return;
         }
 
-        // Should not be able to remove the row with a synchronizable (non-local) saved search
+        // Should not be able to remove the row with a synchronizable (non-local) tag
         res = model->removeRow(secondIndex.row(), secondParentIndex);
         if (res) {
             QNWARNING("Was able to remove the row with a synchronizable tag which is not intended");
@@ -302,7 +302,7 @@ void TagModelTestHelper::test()
             return;
         }
 
-        // Should be able to remove the row with a non-synchronizable (local) saved search
+        // Should be able to remove the row with a non-synchronizable (local) tag
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
             QNWARNING("Can't get the valid tag item model index for local uid");
