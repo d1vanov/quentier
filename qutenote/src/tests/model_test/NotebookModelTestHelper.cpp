@@ -5,6 +5,11 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/UidGenerator.h>
 
+#define FAIL(text) \
+    QNWARNING(text); \
+    emit failure(); \
+    return
+
 namespace qute_note {
 
 NotebookModelTestHelper::NotebookModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
@@ -125,188 +130,238 @@ void NotebookModelTestHelper::test()
         // Should not be able to change the dirty flag manually
         QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index for local uid");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index for local uid");
         }
 
         QModelIndex secondParentIndex = model->parent(secondIndex);
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Dirty, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index for dirty column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index for dirty column");
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
-            QNWARNING("Was able to change the dirty flag in the notebook model manually which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to change the dirty flag in the notebook model manually which is not intended");
         }
 
         QVariant data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the notebook model while expected to get the state of dirty flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the notebook model while expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
-            QNWARNING("The dirty state appears to have changed after setData in notebook model even though the method returned false");
-            emit failure();
-            return;
+            FAIL("The dirty state appears to have changed after setData in notebook model even though the method returned false");
         }
 
         // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Synchronizable, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index for synchronizable column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the synchronizable flag from false to true for notebook model item");
-            emit failure();
-            return;
+            FAIL("Can't change the synchronizable flag from false to true for notebook model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the notebook model while expected to get the state of synchronizable flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the notebook model while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The synchronizable state appears to have not changed after setData in notebook model even though the method returned true");
-            emit failure();
-            return;
+            FAIL("The synchronizable state appears to have not changed after setData in notebook model even though the method returned true");
         }
 
         // Verify the dirty flag has changed as a result of making the item synchronizable
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Dirty, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index for dirty column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the notebook model while expected to get the state of dirty flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the notebook model while expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The dirty state hasn't changed after making the notebook model item synchronizable while it was expected to have changed");
-            emit failure();
-            return;
+            FAIL("The dirty state hasn't changed after making the notebook model item synchronizable while it was expected to have changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Synchronizable, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook item model index for synchronizable column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook item model index for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
-            QNWARNING("Was able to change the synchronizable flag in notebook model from true to false which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to change the synchronizable flag in notebook model from true to false which is not intended");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the notebook model while expected to get the state of synchronizable flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the notebook model while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The synchronizable state appears to have changed after setData in notebook model even though the method returned false");
-            emit failure();
-            return;
+            FAIL("The synchronizable state appears to have changed after setData in notebook model even though the method returned false");
         }
 
         // Should be able to change name
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Name, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index for name column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index for name column");
         }
 
         QString newName = "Second (name modified)";
         res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the name of the notebook model item");
-            emit failure();
-            return;
+            FAIL("Can't change the name of the notebook model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the notebook model while expected to get the name of the tag item");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the notebook model while expected to get the name of the tag item");
         }
 
         if (data.toString() != newName) {
-            QNWARNING("The name of the notebook item returned by the model does not match the name just set to this item: "
+            FAIL("The name of the notebook item returned by the model does not match the name just set to this item: "
                       "received " << data.toString() << ", expected " << newName);
-            emit failure();
-            return;
         }
 
         // Should not be able to remove the row with a synchronizable (non-local) notebook
         res = model->removeRow(secondIndex.row(), secondParentIndex);
         if (res) {
-            QNWARNING("Was able to remove the row with a synchronizable notebook which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to remove the row with a synchronizable notebook which is not intended");
         }
 
         QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
         if (!secondIndexAfterFailedRemoval.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index after the failed row removal attempt");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index after the failed row removal attempt");
         }
 
         if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
-            QNWARNING("Notebook model returned item index with a different row after the failed row removal attempt");
-            emit failure();
-            return;
+            FAIL("Notebook model returned item index with a different row after the failed row removal attempt");
         }
 
         // Should be able to remove the row with a non-synchronizable (local) notebook
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
-            QNWARNING("Can't get the valid notebook model item index for local uid");
-            emit failure();
-            return;
+            FAIL("Can't get the valid notebook model item index for local uid");
         }
 
         QModelIndex firstParentIndex = model->parent(firstIndex);
         res = model->removeRow(firstIndex.row(), firstParentIndex);
         if (!res) {
-            QNWARNING("Can't remove the row with a non-synchronizable notebook item from the model");
-            emit failure();
-            return;
+            FAIL("Can't remove the row with a non-synchronizable notebook item from the model");
         }
 
         QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
         if (firstIndexAfterRemoval.isValid()) {
-            QNWARNING("Was able to get the valid model index for the removed notebook item by local uid which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to get the valid model index for the removed notebook item by local uid which is not intended");
+        }
+
+        // Should be able to move the non-stacked item to the existing stack
+        QModelIndex sixthIndex = model->indexForLocalUid(sixth.localUid());
+        if (!sixthIndex.isValid()) {
+            FAIL("Can't get the valid notebook model item index for local uid");
+        }
+
+        QModelIndex sixthIndexMoved = model->moveToStack(sixthIndex, fifth.stack());
+        if (!sixthIndexMoved.isValid()) {
+            FAIL("Can't get the valid notebook model item index from the method intended to move the item to the stack");
+        }
+
+        const NotebookModelItem * sixthItem = model->itemForIndex(sixthIndexMoved);
+        if (!sixthItem) {
+            FAIL("Can't get the notebook model item moved to the stack from its model index");
+        }
+
+        if (sixthItem->type() != NotebookModelItem::Type::Notebook) {
+            FAIL("Notebook model item has wrong type after being moved to the stack: " << *sixthItem);
+        }
+
+        const NotebookItem * sixthNotebookItem = sixthItem->notebookItem();
+        if (!sixthNotebookItem) {
+            FAIL("Notebook model item has null pointer to the notebook item even though it's of notebook type");
+        }
+
+        if (sixthNotebookItem->stack() != fifth.stack()) {
+            FAIL("Notebook item's stack is not equal to the one expected as the notebook model item was moved to this stack: "
+                 << fifth.stack() << "; notebook item: " << *sixthNotebookItem);
+        }
+
+        const NotebookModelItem * sixthParentItem = sixthItem->parent();
+        if (!sixthParentItem) {
+            FAIL("The notebook model item has null parent after it has been moved to the existing stack");
+        }
+
+        if (sixthParentItem->type() != NotebookModelItem::Type::Stack) {
+            FAIL("The notebook model item has parent of non-stack type after it has been moved to the existing stack");
+        }
+
+        const NotebookStackItem * sixthParentStackItem = sixthParentItem->notebookStackItem();
+        if (!sixthParentStackItem) {
+            FAIL("The notebook model item has parent of stack type but with null pointer to the stack item "
+                 "after the model item has been moved to the existing stack");
+        }
+
+        if (sixthParentStackItem->name() != fifth.stack()) {
+            FAIL("The notebook model item has stack parent which name doesn't correspond to the expected one "
+                 "after that item has been moved to the existing stack");
+        }
+
+        // Should be able to move the non-stacked item to the new stack
+        const QString newStack = "My brand new stack";
+
+        QModelIndex seventhIndex = model->indexForLocalUid(seventh.localUid());
+        if (!seventhIndex.isValid()) {
+            FAIL("Can't get the valid notebook model item index from the method intended to move the item to the stack");
+        }
+
+        QModelIndex seventhIndexMoved = model->moveToStack(seventhIndex, newStack);
+        if (!seventhIndexMoved.isValid()) {
+            FAIL("Can't get the valid notebook model item index from the method intended to move the item to the stack");
+        }
+
+        const NotebookModelItem * seventhItem = model->itemForIndex(seventhIndexMoved);
+        if (!seventhItem) {
+            FAIL("Notebook model item has null pointer to the notebook item even though it's of notebook type");
+        }
+
+        if (seventhItem->type() != NotebookModelItem::Type::Notebook) {
+            FAIL("Notebook model item has wrong type after being moved to the stack: " << *seventhItem);
+        }
+
+        const NotebookItem * seventhNotebookItem = seventhItem->notebookItem();
+        if (!seventhNotebookItem) {
+            FAIL("Notebook model item has null pointer to the notebook item even though it's of notebook type");
+        }
+
+        if (seventhNotebookItem->stack() != newStack) {
+            FAIL("Notebook item's stack is not equal to the one expected as the notebook model item was moved to the new stack: "
+                 << newStack << "; notebook item: " << *seventhNotebookItem);
+        }
+
+        const NotebookModelItem * seventhParentItem = seventhItem->parent();
+        if (!seventhParentItem) {
+            FAIL("The notebook model item has null pointer after it has been moved to the new stack");
+        }
+
+        if (seventhParentItem->type() != NotebookModelItem::Type::Stack) {
+            FAIL("The notebook model item has parent of non-stack type after it has been moved to the existing stack");
+        }
+
+        const NotebookStackItem * seventhParentStackItem = seventhParentItem->notebookStackItem();
+        if (!seventhParentStackItem) {
+            FAIL("The notebook model item has parent of stack type but with null pointer to the stack item "
+                 "after the model item has been moved to the existing stack");
+        }
+
+        if (seventhParentStackItem->name() != newStack) {
+            FAIL("The notebook model item has stack parent which name doesn't correspond to the expected one "
+                 "after that item has been moved to the existing stack");
         }
 
         // TODO: add more manual tests here
