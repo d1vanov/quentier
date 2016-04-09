@@ -320,12 +320,12 @@ void NotebookModelTestHelper::test()
 
         QModelIndex seventhIndexMoved = model->moveToStack(seventhIndex, newStack);
         if (!seventhIndexMoved.isValid()) {
-            FAIL("Can't get the valid notebook model item index from the method intended to move the item to the stack");
+            FAIL("Can't get the valid notebook model item index for local uid");
         }
 
         const NotebookModelItem * seventhItem = model->itemForIndex(seventhIndexMoved);
         if (!seventhItem) {
-            FAIL("Notebook model item has null pointer to the notebook item even though it's of notebook type");
+            FAIL("Can't get the notebook model item moved to the stack from its model index");
         }
 
         if (seventhItem->type() != NotebookModelItem::Type::Notebook) {
@@ -362,7 +362,109 @@ void NotebookModelTestHelper::test()
                  "after that item has been moved to the existing stack");
         }
 
-        // TODO: add more manual tests here
+        // Should be able to move items from one stack to the other one
+        QModelIndex fourthIndex = model->indexForLocalUid(fourth.localUid());
+        if (!fourthIndex.isValid()) {
+            FAIL("Can't get the valid notebook model item index for local uid");
+        }
+
+        const NotebookModelItem * fourthItem = model->itemForIndex(fourthIndex);
+        if (!fourthItem) {
+            FAIL("Can't get the notebook model item for its index in turn retrieved from the local uid");
+        }
+
+        const NotebookModelItem * fourthParentItem = fourthItem->parent();
+        if (!fourthParentItem) {
+            FAIL("Detected notebook model item having null parent");
+        }
+
+        if (fourthParentItem->type() != NotebookModelItem::Type::Stack) {
+            FAIL("Detected notebook model item which unexpectedly doesn't have a parent of stack type");
+        }
+
+        const NotebookStackItem * fourthParentStackItem = fourthParentItem->notebookStackItem();
+        if (!fourthParentStackItem) {
+            FAIL("Detected notebook model item which parent of stack type has null pointer to the stack item");
+        }
+
+        QModelIndex newFourthItemIndex = model->moveToStack(fourthIndex, newStack);
+        if (!newFourthItemIndex.isValid()) {
+            FAIL("Can't get the valid notebook model item index after the attempt to move the item to another stack");
+        }
+
+        const NotebookModelItem * fourthItemFromNewIndex = model->itemForIndex(newFourthItemIndex);
+        if (!fourthItemFromNewIndex) {
+            FAIL("Can't get the notebook model item after moving it to another stack");
+        }
+
+        if (fourthItem != fourthItemFromNewIndex) {
+            FAIL("The memory address of the notebook model item appears to have changes as a result of moving the item into another stack");
+        }
+
+        const NotebookModelItem * fourthItemNewParent = fourthItemFromNewIndex->parent();
+        if (!fourthItemNewParent) {
+            FAIL("Notebook model item's parent has become null as a result of moving the item to another stack");
+        }
+
+        if (fourthItemNewParent->type() != NotebookModelItem::Type::Stack) {
+            FAIL("Notebook model item's parent has non-stack type after moving the item to another stack");
+        }
+
+        const NotebookStackItem * fourthItemNewStackItem = fourthItemNewParent->notebookStackItem();
+        if (!fourthItemNewStackItem) {
+            FAIL("Notebook model item's parent is of stack type but has null pointer to the stack item after moving the original item to another stack");
+        }
+
+        if (fourthItemNewStackItem->name() != newStack) {
+            FAIL("Notebook model item's parent stack item has unexpected name after the attempt to move the item to another stack");
+        }
+
+        int row = fourthParentItem->rowForChild(fourthItem);
+        if (row >= 0) {
+            FAIL("Notebook model item has been moved to another stack but it can still be found within the old parent item's children");
+        }
+
+        row = fourthItemNewParent->rowForChild(fourthItemFromNewIndex);
+        if (row < 0) {
+            FAIL("Notebook model item has been moved to another stack but its row within its new parent cannot be found");
+        }
+
+        // Should be able to remove the notebook item from the stack
+        QModelIndex fourthIndexRemovedFromStack = model->removeFromStack(newFourthItemIndex);
+        if (!fourthIndexRemovedFromStack.isValid()) {
+            FAIL("Can't get the valid notebook model item index after the attempt to remove the item from the stack");
+        }
+
+        const NotebookModelItem * fourthItemRemovedFromStack = model->itemForIndex(fourthIndexRemovedFromStack);
+        if (!fourthItemRemovedFromStack) {
+            FAIL("Can't get the pointer to the notebook model item from the index after the item's removal from the stack");
+        }
+
+        if (fourthItemRemovedFromStack != fourthItemFromNewIndex) {
+            FAIL("The memory address of the notebook model item appears to have changed as a result of removing the item from the stack");
+        }
+
+        const NotebookModelItem * fourthItemNoStackParent = fourthItemRemovedFromStack->parent();
+        if (!fourthItemNoStackParent) {
+            FAIL("Notebook model item has null parent after being removed from the stack");
+        }
+
+        if (fourthItemNoStackParent == fourthItemNewParent) {
+            FAIL("The notebook model item's parent hasn't changed as a result of removing the item from the stack");
+        }
+
+        if (fourthItemRemovedFromStack->type() != NotebookModelItem::Type::Notebook) {
+            FAIL("The notebook model item's type has unexpectedly changed after the item's removal from the stack");
+        }
+
+        const NotebookItem * fourthItemRemovedFromStackNotebookItem = fourthItemRemovedFromStack->notebookItem();
+        if (!fourthItemRemovedFromStackNotebookItem) {
+            FAIL("The notebook model item's notebook item is unexpectedly null after the item's removal from the stack");
+        }
+
+        if (!fourthItemRemovedFromStackNotebookItem->stack().isEmpty()) {
+            FAIL("The notebook item's stack is still not empty after the model item has been removed from the stack");
+        }
 
         emit success();
         return;
