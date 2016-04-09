@@ -466,6 +466,20 @@ void NotebookModelTestHelper::test()
             FAIL("The notebook item's stack is still not empty after the model item has been removed from the stack");
         }
 
+        // Check the sorting for notebook and stack items: by default should sort by name in ascending order
+        res = checkSorting(*model, fourthItemNoStackParent);
+        if (!res) {
+            FAIL("Sorting check failed for the notebook model for ascending order");
+        }
+
+        // Change the sort order and check the sorting again
+        model->sort(NotebookModel::Columns::Name, Qt::DescendingOrder);
+
+        res = checkSorting(*model, fourthItemNoStackParent);
+        if (!res) {
+            FAIL("Sorting check failed for the notebook model for descending order");
+        }
+
         emit success();
         return;
     }
@@ -529,6 +543,58 @@ void NotebookModelTestHelper::onExpungeNotebookFailed(Notebook notebook, QString
             << errorDescription << ", request id = " << requestId);
 
     emit failure();
+}
+
+bool NotebookModelTestHelper::checkSorting(const NotebookModel & model, const NotebookModelItem * rootItem) const
+{
+    if (!rootItem) {
+        QNWARNING("Found null pointer to notebook model item when checking the sorting");
+        return false;
+    }
+
+    QList<const NotebookModelItem*> children = rootItem->children();
+    if (children.isEmpty()) {
+        return true;
+    }
+
+    QList<const NotebookModelItem*> sortedChildren = children;
+
+    if (model.sortOrder() == Qt::AscendingOrder) {
+        std::sort(sortedChildren.begin(), sortedChildren.end(), LessByName());
+    }
+    else {
+        std::sort(sortedChildren.begin(), sortedChildren.end(), GreaterByName());
+    }
+
+    bool res = (children == sortedChildren);
+    if (!res) {
+        return false;
+    }
+
+    for(auto it = children.begin(), end = children.end(); it != end; ++it)
+    {
+        const NotebookModelItem * child = *it;
+        res = checkSorting(model, child);
+        if (!res) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool NotebookModelTestHelper::LessByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
+{
+    const QString & leftName = ((lhs->type() == NotebookModelItem::Type::Stack) ? lhs->notebookStackItem()->name() : lhs->notebookItem()->name());
+    const QString & rightName = ((rhs->type() == NotebookModelItem::Type::Stack) ? rhs->notebookStackItem()->name() : rhs->notebookItem()->name());
+    return (leftName.localeAwareCompare(rightName) <= 0);
+}
+
+bool NotebookModelTestHelper::GreaterByName::operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const
+{
+    const QString & leftName = ((lhs->type() == NotebookModelItem::Type::Stack) ? lhs->notebookStackItem()->name() : lhs->notebookItem()->name());
+    const QString & rightName = ((rhs->type() == NotebookModelItem::Type::Stack) ? rhs->notebookStackItem()->name() : rhs->notebookItem()->name());
+    return (leftName.localeAwareCompare(rightName) > 0);
 }
 
 } // namespace qute_note

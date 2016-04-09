@@ -1001,6 +1001,10 @@ void NotebookModel::sort(int column, Qt::SortOrder order)
         updateItemRowWithRespectToSorting(*it);
     }
 
+    for(auto it = m_modelItemsByStack.begin(), end = m_modelItemsByStack.end(); it != end; ++it) {
+        updateItemRowWithRespectToSorting(*it);
+    }
+
     updatePersistentModelIndices();
     emit layoutChanged();
 }
@@ -1669,6 +1673,7 @@ NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const No
     NotebookModelItem newStackItem(NotebookModelItem::Type::Stack, Q_NULLPTR, &stackItem);
     auto it = m_modelItemsByStack.insert(stackItem.name(), newStackItem);
     it->setParent(m_fakeRootItem);
+    updateItemRowWithRespectToSorting(*it);
     return it;
 }
 

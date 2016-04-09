@@ -42,6 +42,9 @@ public:
         };
     };
 
+    int sortingColumn() const { return m_sortedColumn; }
+    Qt::SortOrder sortOrder() const { return m_sortOrder; }
+
     const NotebookModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const NotebookModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;

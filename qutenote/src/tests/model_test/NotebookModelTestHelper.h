@@ -5,6 +5,9 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(NotebookModel)
+QT_FORWARD_DECLARE_CLASS(NotebookModelItem)
+
 class NotebookModelTestHelper: public QObject
 {
     Q_OBJECT
@@ -28,6 +31,19 @@ private Q_SLOTS:
                                LocalStorageManager::OrderDirection::type orderDirection,
                                QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
     void onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+
+private:
+    bool checkSorting(const NotebookModel & model, const NotebookModelItem * item) const;
+
+    struct LessByName
+    {
+        bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+    };
+
+    struct GreaterByName
+    {
+        bool operator()(const NotebookModelItem * lhs, const NotebookModelItem * rhs) const;
+    };
 
 private:
     LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
