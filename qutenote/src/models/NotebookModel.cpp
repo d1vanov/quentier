@@ -165,8 +165,8 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
     localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
     const NotebookModelItem * newParentItem = &(*it);
-    // TODO: when sorting is implemented, remember to insert the new item into the appropriate position within its parent
     item->setParent(newParentItem);
+    updateItemRowWithRespectToSorting(*item);
 
     return indexForItem(item);
 }
@@ -218,8 +218,8 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
     const NotebookModelItem * parentItem = item->parent();
     if (!parentItem) {
         QNDEBUG("Notebook item doesn't have the parent, will set it to fake root item");
-        // TODO: when the sorting is implemented, make sure to insert the item into the appropriate row of the new parent
         item->setParent(m_fakeRootItem);
+        updateItemRowWithRespectToSorting(*item);
         return indexForItem(item);
     }
 
@@ -229,8 +229,8 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
     }
 
     removeModelItemFromParent(*item);
-    // TODO: when the sorting is implemented, make sure to insert the item into the appropriate row of the new parent
     item->setParent(m_fakeRootItem);
+    updateItemRowWithRespectToSorting(*item);
     return indexForItem(item);
 }
 
@@ -798,7 +798,16 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
         updateNotebookInLocalStorage(item);
     }
 
-    // TODO: when sorting is implemented, don't forget to re-arrange the rows of inserted items as well
+    if (m_sortedColumn != Columns::Name) {
+        QNDEBUG("Not sorting by name, returning");
+        return true;
+    }
+
+    emit layoutAboutToBeChanged();
+    for(auto it = m_modelItemsByLocalUid.begin(), end = m_modelItemsByLocalUid.end(); it != end; ++it) {
+        updateItemRowWithRespectToSorting(*it);
+    }
+    emit layoutChanged();
 
     return true;
 }
@@ -967,6 +976,32 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
     endRemoveRows();
 
     return true;
+}
+
+void NotebookModel::sort(int column, Qt::SortOrder order)
+{
+    QNDEBUG("NotebookModel::sort: column = " << column << ", order = " << order
+            << " (" << (order == Qt::AscendingOrder ? "ascending" : "descending") << ")");
+
+    if (column != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return;
+    }
+
+    if (order == m_sortOrder) {
+        QNDEBUG("The sort order already established, nothing to do");
+        return;
+    }
+
+    m_sortOrder = order;
+
+    emit layoutAboutToBeChanged();
+
+    for(auto it = m_modelItemsByLocalUid.begin(), end = m_modelItemsByLocalUid.end(); it != end; ++it) {
+        updateItemRowWithRespectToSorting(*it);
+    }
+
+    emit layoutChanged();
 }
 
 void NotebookModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
@@ -1505,10 +1540,9 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     auto modelItemIt = m_modelItemsByLocalUid.insert(item.localUid(), NotebookModelItem(NotebookModelItem::Type::Notebook, insertedItem, Q_NULLPTR));
     const NotebookModelItem * insertedModelItem = &(*modelItemIt);
     insertedModelItem->setParent(parentItem);
+    updateItemRowWithRespectToSorting(*insertedModelItem);
 
     endInsertRows();
-
-    // TODO: don't forget to correct the new notebook's position in parent with respect to current sorting when it's implemented
 }
 
 void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it)
@@ -1613,7 +1647,14 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     QModelIndex modelIndexTo = createIndex(row, NUM_NOTEBOOK_MODEL_COLUMNS - 1, const_cast<NotebookModelItem*>(modelItem));
     emit dataChanged(modelIndexFrom, modelIndexTo);
 
-    // TODO: don't forget to correct the new notebook's position in parent with respect to current sorting when it's implemented
+    if (m_sortedColumn != Columns::Name) {
+        QNDEBUG("Not sorting by name, returning");
+        return;
+    }
+
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(*modelItem);
+    emit layoutChanged();
 }
 
 NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const NotebookStackItem & stackItem)
@@ -1726,6 +1767,63 @@ void NotebookModel::removeModelItemFromParent(const NotebookModelItem & modelIte
     }
 
     Q_UNUSED(parentItem->takeChild(row))
+}
+
+int NotebookModel::rowForNewItem(const NotebookModelItem & parentItem, const NotebookModelItem & newItem) const
+{
+    if (m_sortedColumn != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return parentItem.numChildren();
+    }
+
+    QList<const NotebookModelItem*> children = parentItem.children();
+    auto it = children.end();
+
+    if (m_sortOrder == Qt::AscendingOrder) {
+        it = std::lower_bound(children.begin(), children.end(), &newItem, LessByName());
+    }
+    else {
+        it = std::lower_bound(children.begin(), children.end(), &newItem, GreaterByName());
+    }
+
+    if (it == children.end()) {
+        return parentItem.numChildren();
+    }
+
+    int row = static_cast<int>(std::distance(children.begin(), it));
+    return row;
+}
+
+void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem)
+{
+    if (m_sortedColumn != Columns::Name) {
+        // Sorting by other columns is not yet implemented
+        return;
+    }
+
+    const NotebookModelItem * parentItem = modelItem.parent();
+    if (!parentItem)
+    {
+        if (!m_fakeRootItem) {
+            m_fakeRootItem = new NotebookModelItem;
+        }
+
+        parentItem = m_fakeRootItem;
+        int row = rowForNewItem(*parentItem, modelItem);
+        parentItem->insertChild(row, &modelItem);
+        return;
+    }
+
+    int currentItemRow = parentItem->rowForChild(&modelItem);
+    if (Q_UNLIKELY(currentItemRow < 0)) {
+        QNWARNING(QT_TR_NOOP("Can't update notebook model item's row: can't find its original row within parent: ") << modelItem);
+        return;
+    }
+
+    Q_UNUSED(parentItem->takeChild(currentItemRow))
+    int appropriateRow = rowForNewItem(*parentItem, modelItem);
+    parentItem->insertChild(appropriateRow, &modelItem);
+    QNTRACE("Moved item from row " << currentItemRow << " to row " << appropriateRow << "; item: " << modelItem);
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

@@ -65,6 +65,8 @@ public:
     virtual bool insertRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
+    virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
+
 Q_SIGNALS:
     void notifyError(QString errorDescription);
 
@@ -118,6 +120,11 @@ private:
     void notebookToItem(const Notebook & notebook, NotebookItem & item) const;
 
     void removeModelItemFromParent(const NotebookModelItem & modelItem);
+
+    // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
+    int rowForNewItem(const NotebookModelItem & parentItem, const NotebookModelItem & newItem) const;
+
+    void updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem);
 
 private:
     struct ByLocalUid{};
