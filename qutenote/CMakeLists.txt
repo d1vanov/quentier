@@ -155,6 +155,7 @@ endif()
 set(MODEL_TEST_HEADERS
     src/tests/model_test/modeltest.h
     src/tests/model_test/dynamictreemodel.h
+    src/tests/model_test/Macros.h
     src/tests/model_test/SavedSearchModelTestHelper.h
     src/tests/model_test/TagModelTestHelper.h
     src/tests/model_test/NotebookModelTestHelper.h

@@ -1,14 +1,10 @@
 #include "NotebookModelTestHelper.h"
 #include "../../models/NotebookModel.h"
 #include "modeltest.h"
+#include "Macros.h"
 #include <qute_note/utility/SysInfo.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/UidGenerator.h>
-
-#define FAIL(text) \
-    QNWARNING(text); \
-    emit failure(); \
-    return
 
 namespace qute_note {
 
@@ -110,6 +106,8 @@ void NotebookModelTestHelper::test()
 #define ADD_NOTEBOOK(notebook) \
         m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(notebook, QUuid())
 
+        // NOTE: exploiting the direct connection used in the current test environment:
+        // after the following lines the local storage would be filled with the test objects
         ADD_NOTEBOOK(first);
         ADD_NOTEBOOK(second);
         ADD_NOTEBOOK(third);

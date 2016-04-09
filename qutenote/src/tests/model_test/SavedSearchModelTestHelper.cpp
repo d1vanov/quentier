@@ -1,6 +1,7 @@
 #include "SavedSearchModelTestHelper.h"
 #include "../../models/SavedSearchModel.h"
 #include "modeltest.h"
+#include "Macros.h"
 #include <qute_note/utility/SysInfo.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 
@@ -57,6 +58,8 @@ void SavedSearchModelTestHelper::test()
         fourth.setLocal(false);
         fourth.setDirty(false);
 
+        // NOTE: exploiting the direct connection used in the current test environment:
+        // after the following lines the local storage would be filled with the test objects
         m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(first, QUuid());
         m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(second, QUuid());
         m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(third, QUuid());
@@ -69,215 +72,155 @@ void SavedSearchModelTestHelper::test()
         // Should not be able to change the dirty flag manually
         QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for local uid");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for local uid");
         }
 
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Dirty, QModelIndex());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for dirty column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for dirty column");
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
-            QNWARNING("Was able to change the dirty flag in saved search model manually which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to change the dirty flag in saved search model manually which is not intended");
         }
 
         QVariant data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the saved search model while expected to get the state of dirty flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the saved search model while expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
-            QNWARNING("The dirty state appears to have changed after setData in saved search model even though the method returned false");
-            emit failure();
-            return;
+            FAIL("The dirty state appears to have changed after setData in saved search model even though the method returned false");
         }
 
         // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Synchronizable, QModelIndex());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for synchronizable column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the synchronizable flag from false to true for saved search model");
-            emit failure();
-            return;
+            FAIL("Can't change the synchronizable flag from false to true for saved search model");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the saved search model while expected to get the state of synchronizable flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the saved search model while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The synchronizable state appears to have not changed after setData in saved search model even though the method returned true");
-            emit failure();
-            return;
+            FAIL("The synchronizable state appears to have not changed after setData in saved search model even though the method returned true");
         }
 
         // Verify the dirty flag has changed as a result of makind the item synchronizable
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Dirty, QModelIndex());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for dirty column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the saved search model while expected to get the state of dirty flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the saved search model while expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The dirty state hasn't changed after making the saved search model item synchronizable while it was expected to have changed");
-            emit failure();
-            return;
+            FAIL("The dirty state hasn't changed after making the saved search model item synchronizable while it was expected to have changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Synchronizable, QModelIndex());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for synchronizable column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
-            QNWARNING("Was able to change the synchronizable flag in saved search model from true to false which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to change the synchronizable flag in saved search model from true to false which is not intended");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the saved search model while expected to get the state of synchronizable flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the saved search model while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The synchronizable state appears to have changed after setData in saved search model even though the method returned false");
-            emit failure();
-            return;
+            FAIL("The synchronizable state appears to have changed after setData in saved search model even though the method returned false");
         }
 
         // Should be able to change name and query columns
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Name);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for name column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for name column");
         }
 
         QString newName = "second (name modified)";
         res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the name of the saved search model item");
-            emit failure();
-            return;
+            FAIL("Can't change the name of the saved search model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the saved search model while expected to get the name of the saved search item");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the saved search model while expected to get the name of the saved search item");
         }
 
         if (data.toString() != newName) {
-            QNWARNING("The name of the saved search item returned by the model does not match the name just set to this item: "
-                      "received " << data.toString() << ", expected " << newName);
-            emit failure();
-            return;
+            FAIL("The name of the saved search item returned by the model does not match the name just set to this item: "
+                 "received " << data.toString() << ", expected " << newName);
         }
 
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Query, QModelIndex());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for query column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for query column");
         }
 
         QString newQuery = "second query (modified)";
         res = model->setData(secondIndex, QVariant(newQuery), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the query of the saved search model item");
-            emit failure();
-            return;
+            FAIL("Can't change the query of the saved search model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the saved search model while expected to get the query of the saved search item");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the saved search model while expected to get the query of the saved search item");
         }
 
         if (data.toString() != newQuery) {
-            QNWARNING("The query of the saved search item returned by the model does not match the query just set to this item: "
-                      "received " << data.toString() << ", expected " << newQuery);
-            emit failure();
-            return;
+            FAIL("The query of the saved search item returned by the model does not match the query just set to this item: "
+                 "received " << data.toString() << ", expected " << newQuery);
         }
 
         // Should not be able to remove the row with a synchronizable (non-local) saved search
         res = model->removeRow(secondIndex.row(), QModelIndex());
         if (res) {
-            QNWARNING("Was able to remove the row with a synchronizable saved search which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to remove the row with a synchronizable saved search which is not intended");
         }
 
         QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
         if (!secondIndexAfterFailedRemoval.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index after the failed row removal attempt");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index after the failed row removal attempt");
         }
 
         if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
-            QNWARNING("Saved search model returned item index with a different row after the failed row removal attempt");
-            emit failure();
-            return;
+            FAIL("Saved search model returned item index with a different row after the failed row removal attempt");
         }
 
         // Should be able to remove the row with a non-synchronizable (local) saved search
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
-            QNWARNING("Can't get the valid saved search item model index for local uid");
-            emit failure();
-            return;
+            FAIL("Can't get the valid saved search item model index for local uid");
         }
 
         res = model->removeRow(firstIndex.row(), QModelIndex());
         if (!res) {
-            QNWARNING("Can't remove the row with a non-synchronizable saved search item from the model");
-            emit failure();
-            return;
+            FAIL("Can't remove the row with a non-synchronizable saved search item from the model");
         }
 
         QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
         if (firstIndexAfterRemoval.isValid()) {
-            QNWARNING("Was able to get the valid model index for the removed saved search item by local uid which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to get the valid model index for the removed saved search item by local uid which is not intended");
         }
 
         emit success();

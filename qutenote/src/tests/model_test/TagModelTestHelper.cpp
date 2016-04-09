@@ -1,6 +1,7 @@
 #include "TagModelTestHelper.h"
 #include "../../models/TagModel.h"
 #include "modeltest.h"
+#include "Macros.h"
 #include <qute_note/utility/SysInfo.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/UidGenerator.h>
@@ -119,6 +120,8 @@ void TagModelTestHelper::test()
 #define ADD_TAG(tag) \
         m_pLocalStorageManagerThreadWorker->onAddTagRequest(tag, QUuid())
 
+        // NOTE: exploiting the direct connection used in the current test environment:
+        // after the following lines the local storage would be filled with the test objects
         ADD_TAG(first);
         ADD_TAG(second);
         ADD_TAG(third);
@@ -141,188 +144,136 @@ void TagModelTestHelper::test()
         // Should not be able to change the dirty flag manually
         QModelIndex secondIndex = model->indexForLocalUid(second.localUid());
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for local uid");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for local uid");
         }
 
         QModelIndex secondParentIndex = model->parent(secondIndex);
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Dirty, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for dirty column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for dirty column");
         }
 
         bool res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (res) {
-            QNWARNING("Was able to change the dirty flag in tag model manually which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to change the dirty flag in tag model manually which is not intended");
         }
 
         QVariant data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the tag model while expected to get the state of dirty flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the tag model while expected to get the state of dirty flag");
         }
 
         if (data.toBool()) {
-            QNWARNING("The dirty state appears to have changed after setData in tag model even though the method returned false");
-            emit failure();
-            return;
+            FAIL("The dirty state appears to have changed after setData in tag model even though the method returned false");
         }
 
         // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Synchronizable, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for synchronizable column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the synchronizable flag from false to true for tag model item");
-            emit failure();
-            return;
+            FAIL("Can't change the synchronizable flag from false to true for tag model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the tag model while expected to get the state of synchronizable flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the tag model while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The synchronizable state appears to have not changed after setData in tag model even though the method returned true");
-            emit failure();
-            return;
+            FAIL("The synchronizable state appears to have not changed after setData in tag model even though the method returned true");
         }
 
         // Verify the dirty flag has changed as a result of making the item synchronizable
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Dirty, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for dirty column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for dirty column");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the tag model while expected to get the state of dirty flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the tag model while expected to get the state of dirty flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The dirty state hasn't changed after making the tag model item synchronizable while it was expected to have changed");
-            emit failure();
-            return;
+            FAIL("The dirty state hasn't changed after making the tag model item synchronizable while it was expected to have changed");
         }
 
         // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Synchronizable, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for synchronizable column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for synchronizable column");
         }
 
         res = model->setData(secondIndex, QVariant(false), Qt::EditRole);
         if (res) {
-            QNWARNING("Was able to change the synchronizable flag in tag model from true to false which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to change the synchronizable flag in tag model from true to false which is not intended");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the tag model while expected to get the state of synchronizable flag");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the tag model while expected to get the state of synchronizable flag");
         }
 
         if (!data.toBool()) {
-            QNWARNING("The synchronizable state appears to have changed after setData in tag model even though the method returned false");
-            emit failure();
-            return;
+            FAIL("The synchronizable state appears to have changed after setData in tag model even though the method returned false");
         }
 
         // Should be able to change name
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Name, secondParentIndex);
         if (!secondIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for name column");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for name column");
         }
 
         QString newName = "Second (name modified)";
         res = model->setData(secondIndex, QVariant(newName), Qt::EditRole);
         if (!res) {
-            QNWARNING("Can't change the name of the tag model item");
-            emit failure();
-            return;
+            FAIL("Can't change the name of the tag model item");
         }
 
         data = model->data(secondIndex, Qt::EditRole);
         if (data.isNull()) {
-            QNWARNING("Null data was returned by the tag model while expected to get the name of the tag item");
-            emit failure();
-            return;
+            FAIL("Null data was returned by the tag model while expected to get the name of the tag item");
         }
 
         if (data.toString() != newName) {
-            QNWARNING("The name of the tag item returned by the model does not match the name just set to this item: "
-                      "received " << data.toString() << ", expected " << newName);
-            emit failure();
-            return;
+            FAIL("The name of the tag item returned by the model does not match the name just set to this item: "
+                 "received " << data.toString() << ", expected " << newName);
         }
 
         // Should not be able to remove the row with a synchronizable (non-local) tag
         res = model->removeRow(secondIndex.row(), secondParentIndex);
         if (res) {
-            QNWARNING("Was able to remove the row with a synchronizable tag which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to remove the row with a synchronizable tag which is not intended");
         }
 
         QModelIndex secondIndexAfterFailedRemoval = model->indexForLocalUid(second.localUid());
         if (!secondIndexAfterFailedRemoval.isValid()) {
-            QNWARNING("Can't get the valid tag item model index after the failed row removal attempt");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index after the failed row removal attempt");
         }
 
         if (secondIndexAfterFailedRemoval.row() != secondIndex.row()) {
-            QNWARNING("Tag model returned item index with a different row after the failed row removal attempt");
-            emit failure();
-            return;
+            FAIL("Tag model returned item index with a different row after the failed row removal attempt");
         }
 
         // Should be able to remove the row with a non-synchronizable (local) tag
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
-            QNWARNING("Can't get the valid tag item model index for local uid");
-            emit failure();
-            return;
+            FAIL("Can't get the valid tag item model index for local uid");
         }
 
         QModelIndex firstParentIndex = model->parent(firstIndex);
         res = model->removeRow(firstIndex.row(), firstParentIndex);
         if (!res) {
-            QNWARNING("Can't remove the row with a non-synchronizable tag item from the model");
-            emit failure();
-            return;
+            FAIL("Can't remove the row with a non-synchronizable tag item from the model");
         }
 
         QModelIndex firstIndexAfterRemoval = model->indexForLocalUid(first.localUid());
         if (firstIndexAfterRemoval.isValid()) {
-            QNWARNING("Was able to get the valid model index for the removed tag item by local uid which is not intended");
-            emit failure();
-            return;
+            FAIL("Was able to get the valid model index for the removed tag item by local uid which is not intended");
         }
 
         // Should be able to promote the items
@@ -330,47 +281,35 @@ void TagModelTestHelper::test()
         const TagModelItem * twelvethItem = model->itemForIndex(twelvethIndex);
         const TagModelItem * tenthItem = twelvethItem->parent();
         if (!tenthItem) {
-            QNWARNING("Parent of one of tag model items is null");
-            emit failure();
-            return;
+            FAIL("Parent of one of tag model items is null");
         }
 
         twelvethIndex = model->promote(twelvethIndex);
         const TagModelItem * newTwelvethItem = model->itemForIndex(twelvethIndex);
         if (twelvethItem != newTwelvethItem) {
-            QNWARNING("The tag model returns different pointers to items before and after the item promotion");
-            emit failure();
-            return;
+            FAIL("The tag model returns different pointers to items before and after the item promotion");
         }
 
         int rowInTenth = tenthItem->rowForChild(twelvethItem);
         if (rowInTenth >= 0) {
-            QNWARNING("Tag model item can still be found within the original parent's children after the promotion");
-            emit failure();
-            return;
+            FAIL("Tag model item can still be found within the original parent's children after the promotion");
         }
 
         QModelIndex eighthIndex = model->indexForLocalUid(eighth.localUid());
         const TagModelItem * eighthItem = model->itemForIndex(eighthIndex);
         if (!eighthItem) {
-            QNWARNING("Can't get the tag model item pointer from the model index");
-            emit failure();
-            return;
+            FAIL("Can't get the tag model item pointer from the model index");
         }
 
         int rowInEighth = eighthItem->rowForChild(twelvethItem);
         if (rowInEighth < 0) {
-            QNWARNING("Can't find tag model item within its original grand parent's children after the promotion");
-            emit failure();
-            return;
+            FAIL("Can't find tag model item within its original grand parent's children after the promotion");
         }
 
         // Should be able to demote the items
         int eighthNumChildren = eighthItem->numChildren();
         if (eighthNumChildren < 2) {
-            QNWARNING("Expected for the eighth item to have at least two children at this moment of test");
-            emit failure();
-            return;
+            FAIL("Expected for the eighth item to have at least two children at this moment of test");
         }
 
         const TagModelItem * firstEighthChild = eighthItem->childAtRow(0);
@@ -381,16 +320,12 @@ void TagModelTestHelper::test()
 
         int formerSecondEighthChildRowInEighth = eighthItem->rowForChild(secondEighthChild);
         if (formerSecondEighthChildRowInEighth >= 0) {
-            QNWARNING("Tag model item can still be found within the original parent's children after the demotion");
-            emit failure();
-            return;
+            FAIL("Tag model item can still be found within the original parent's children after the demotion");
         }
 
         int formerSecondEighthChildRowInNewParent = firstEighthChild->rowForChild(secondEighthChild);
         if (formerSecondEighthChildRowInNewParent < 0) {
-            QNWARNING("Can't find tag model item within the children of its expected new parent after the demotion");
-            emit failure();
-            return;
+            FAIL("Can't find tag model item within the children of its expected new parent after the demotion");
         }
 
         emit success();
