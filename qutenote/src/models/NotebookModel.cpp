@@ -1001,6 +1001,7 @@ void NotebookModel::sort(int column, Qt::SortOrder order)
         updateItemRowWithRespectToSorting(*it);
     }
 
+    updatePersistentModelIndices();
     emit layoutChanged();
 }
 
@@ -1824,6 +1825,21 @@ void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & 
     int appropriateRow = rowForNewItem(*parentItem, modelItem);
     parentItem->insertChild(appropriateRow, &modelItem);
     QNTRACE("Moved item from row " << currentItemRow << " to row " << appropriateRow << "; item: " << modelItem);
+}
+
+void NotebookModel::updatePersistentModelIndices()
+{
+    QNDEBUG("NotebookModel::updatePersistentModelIndices");
+
+    // Ensure any persistent model indices would be updated appropriately
+    QModelIndexList indices = persistentIndexList();
+    for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
+    {
+        const QModelIndex & index = *it;
+        const NotebookModelItem * item = reinterpret_cast<const NotebookModelItem*>(index.internalPointer());
+        QModelIndex replacementIndex = indexForItem(item);
+        changePersistentIndex(index, replacementIndex);
+    }
 }
 
 bool NotebookModel::LessByName::operator()(const NotebookItem & lhs, const NotebookItem & rhs) const

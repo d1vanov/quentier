@@ -111,6 +111,8 @@ private:
 
     void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
 
+    void updatePersistentModelIndices();
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};

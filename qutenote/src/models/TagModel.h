@@ -41,6 +41,9 @@ public:
         };
     };
 
+    int sortingColumn() const { return m_sortedColumn; }
+    Qt::SortOrder sortOrder() const { return m_sortOrder; }
+
     const TagModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const TagModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
@@ -140,6 +143,7 @@ private:
     int rowForNewItem(const TagModelItem & parentItem, const TagModelItem & newItem) const;
 
     void updateItemRowWithRespectToSorting(const TagModelItem & item);
+    void updatePersistentModelIndices();
 
     void updateTagInLocalStorage(const TagModelItem & item);
 

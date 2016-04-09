@@ -534,6 +534,7 @@ void TagModel::sort(int column, Qt::SortOrder order)
         updateItemRowWithRespectToSorting(*it);
     }
 
+    updatePersistentModelIndices();
     emit layoutChanged();
 }
 
@@ -1636,6 +1637,21 @@ void TagModel::updateItemRowWithRespectToSorting(const TagModelItem & item)
     int appropriateRow = rowForNewItem(*parentItem, item);
     parentItem->insertChild(appropriateRow, &item);
     QNTRACE("Moved item from row " << currentItemRow << " to row " << appropriateRow << "; item: " << item);
+}
+
+void TagModel::updatePersistentModelIndices()
+{
+    QNDEBUG("TagModel::updatePersistentModelIndices");
+
+    // Ensure any persistent model indices would be updated appropriately
+    QModelIndexList indices = persistentIndexList();
+    for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
+    {
+        const QModelIndex & index = *it;
+        const TagModelItem * item = reinterpret_cast<const TagModelItem*>(index.internalPointer());
+        QModelIndex replacementIndex = indexForItem(item);
+        changePersistentIndex(index, replacementIndex);
+    }
 }
 
 void TagModel::updateTagInLocalStorage(const TagModelItem & item)

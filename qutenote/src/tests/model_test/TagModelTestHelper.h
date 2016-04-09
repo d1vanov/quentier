@@ -5,6 +5,9 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(TagModel)
+QT_FORWARD_DECLARE_CLASS(TagModelItem)
+
 class TagModelTestHelper: public QObject
 {
     Q_OBJECT
@@ -30,6 +33,19 @@ private Q_SLOTS:
                           QString linkedNotebookGuid,
                           QString errorDescription, QUuid requestId);
     void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+
+private:
+    bool checkSorting(const TagModel & model, const TagModelItem * rootItem) const;
+
+    struct LessByName
+    {
+        bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
+    };
+
+    struct GreaterByName
+    {
+        bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
+    };
 
 private:
     LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;

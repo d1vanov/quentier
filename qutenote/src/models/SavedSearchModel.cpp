@@ -394,7 +394,7 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
     }
 
     index.rearrange(items.begin());
-
+    updatePersistentModelIndices();
     emit layoutChanged();
 }
 
@@ -921,6 +921,21 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
 
         QNTRACE("Emitted the request to update the saved search in the local storage: id = " << requestId
                 << ", saved search: " << savedSearch);
+    }
+}
+
+void SavedSearchModel::updatePersistentModelIndices()
+{
+    QNDEBUG("SavedSearchModel::updatePersistentModelIndices");
+
+    // Ensure any persistent model indices would be updated appropriately
+    QModelIndexList indices = persistentIndexList();
+    for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
+    {
+        const QModelIndex & index = *it;
+        const SavedSearchModelItem * item = reinterpret_cast<const SavedSearchModelItem*>(index.internalPointer());
+        QModelIndex replacementIndex = indexForLocalUid(item->m_localUid);
+        changePersistentIndex(index, replacementIndex);
     }
 }
 

@@ -328,6 +328,35 @@ void TagModelTestHelper::test()
             FAIL("Can't find tag model item within the children of its expected new parent after the demotion");
         }
 
+        // Check the sorting for tag items: by default should sort by name in ascending order
+        QModelIndex fifthIndex = model->indexForLocalUid(fifth.localUid());
+        if (!fifthIndex.isValid()) {
+            FAIL("Can't get the valid tah model item index for local uid");
+        }
+
+        const TagModelItem * fifthItem = model->itemForIndex(fifthIndex);
+        if (!fifthItem) {
+            FAIL("Can't get the tag model item pointer from the model index");
+        }
+
+        const TagModelItem * fakeRootItem = fifthItem->parent();
+        if (!fakeRootItem) {
+            FAIL("Can't get the fake root item in the tag model: getting null pointer instead");
+        }
+
+        res = checkSorting(*model, fakeRootItem);
+        if (!res) {
+            FAIL("Sorting check failed for the tag model for ascending order");
+        }
+
+        // Change the sort order and check the sorting again
+        model->sort(TagModel::Columns::Name, Qt::DescendingOrder);
+
+        res = checkSorting(*model, fakeRootItem);
+        if (!res) {
+            FAIL("Sorting check failed for the tag model for descending order");
+        }
+
         emit success();
         return;
     }
@@ -395,6 +424,54 @@ void TagModelTestHelper::onExpungeTagFailed(Tag tag, QString errorDescription, Q
             << errorDescription << ", request id = " << requestId);
 
     emit failure();
+}
+
+bool TagModelTestHelper::checkSorting(const TagModel & model, const TagModelItem * rootItem) const
+{
+    if (!rootItem) {
+        QNWARNING("Found null pointer to tag model item when checking the sorting");
+        return false;
+    }
+
+    QList<const TagModelItem*> children = rootItem->children();
+    if (children.isEmpty()) {
+        return true;
+    }
+
+    QList<const TagModelItem*> sortedChildren = children;
+
+    if (model.sortOrder() == Qt::AscendingOrder) {
+        std::sort(sortedChildren.begin(), sortedChildren.end(), LessByName());
+    }
+    else {
+        std::sort(sortedChildren.begin(), sortedChildren.end(), GreaterByName());
+    }
+
+    bool res = (children == sortedChildren);
+    if (!res) {
+        return false;
+    }
+
+    for(auto it = children.begin(), end = children.end(); it != end; ++it)
+    {
+        const TagModelItem * child = *it;
+        res = checkSorting(model, child);
+        if (!res) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool TagModelTestHelper::LessByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
+{
+    return (lhs->name().localeAwareCompare(rhs->name()) <= 0);
+}
+
+bool TagModelTestHelper::GreaterByName::operator()(const TagModelItem * lhs, const TagModelItem * rhs) const
+{
+    return (lhs->name().localeAwareCompare(rhs->name()) > 0);
 }
 
 } // namespace qute_note

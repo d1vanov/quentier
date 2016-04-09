@@ -126,6 +126,8 @@ private:
 
     void updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem);
 
+    void updatePersistentModelIndices();
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
