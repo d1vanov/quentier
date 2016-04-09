@@ -5,6 +5,8 @@
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(SavedSearchModel)
+
 class SavedSearchModelTestHelper: public QObject
 {
     Q_OBJECT
@@ -29,6 +31,19 @@ private Q_SLOTS:
                                    LocalStorageManager::OrderDirection::type orderDirection,
                                    QString errorDescription, QUuid requestId);
     void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+
+private:
+    bool checkSorting(const SavedSearchModel & model) const;
+
+    struct LessByName
+    {
+        bool operator()(const QString & lhs, const QString & rhs) const;
+    };
+
+    struct GreaterByName
+    {
+        bool operator()(const QString & lhs, const QString & rhs) const;
+    };
 
 private:
     LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;

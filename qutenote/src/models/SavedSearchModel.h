@@ -38,6 +38,9 @@ public:
         };
     };
 
+    int sortingColumn() const { return m_sortedColumn; }
+    Qt::SortOrder sortOrder() const { return m_sortOrder; }
+
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
 public:
@@ -110,8 +113,6 @@ private:
     void updateRandomAccessIndexWithRespectToSorting(const SavedSearchModelItem & item);
 
     void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
-
-    void updatePersistentModelIndices();
 
 private:
     struct ByLocalUid{};

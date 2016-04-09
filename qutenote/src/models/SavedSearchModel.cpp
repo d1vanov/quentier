@@ -383,6 +383,25 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
 
     emit layoutAboutToBeChanged();
 
+    QModelIndexList persistentIndices = persistentIndexList();
+    QStringList localUidsToUpdate;
+    for(auto it = persistentIndices.begin(), end = persistentIndices.end(); it != end; ++it)
+    {
+        const QModelIndex & index = *it;
+        if (!index.isValid() || (index.column() != Columns::Name)) {
+            localUidsToUpdate << QString();
+            continue;
+        }
+
+        const SavedSearchModelItem * item = reinterpret_cast<const SavedSearchModelItem*>(index.internalPointer());
+        if (!item) {
+            localUidsToUpdate << QString();
+            continue;
+        }
+
+        localUidsToUpdate << item->m_localUid;
+    }
+
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     std::vector<boost::reference_wrapper<const SavedSearchModelItem> > items(index.begin(), index.end());
 
@@ -394,7 +413,21 @@ void SavedSearchModel::sort(int column, Qt::SortOrder order)
     }
 
     index.rearrange(items.begin());
-    updatePersistentModelIndices();
+
+    QModelIndexList replacementIndices;
+    for(auto it = localUidsToUpdate.begin(), end = localUidsToUpdate.end(); it != end; ++it)
+    {
+        const QString & localUid = *it;
+        if (localUid.isEmpty()) {
+            replacementIndices << QModelIndex();
+            continue;
+        }
+        QModelIndex newIndex = indexForLocalUid(localUid);
+        replacementIndices << newIndex;
+    }
+
+    changePersistentIndexList(persistentIndices, replacementIndices);
+
     emit layoutChanged();
 }
 
@@ -717,11 +750,18 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     SavedSearchDataByLocalUid::iterator itemIt = localUidIndex.find(search.localUid());
     bool newSavedSearch = (itemIt == localUidIndex.end());
-    if (newSavedSearch) {
+    if (newSavedSearch)
+    {
         int row = rowForNewItem(item);
         beginInsertRows(QModelIndex(), row, row);
-        Q_UNUSED(localUidIndex.insert(item))
+        auto insertionResult = localUidIndex.insert(item);
+        itemIt = insertionResult.first;
         endInsertRows();
+
+        emit layoutAboutToBeChanged();
+        updateRandomAccessIndexWithRespectToSorting(*itemIt);
+        emit layoutChanged();
+
         return;
     }
 
@@ -746,6 +786,10 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     QModelIndex modelIndexFrom = createIndex(static_cast<int>(position), 0);
     QModelIndex modelIndexTo = createIndex(static_cast<int>(position), NUM_SAVED_SEARCH_MODEL_COLUMNS - 1);
     emit dataChanged(modelIndexFrom, modelIndexTo);
+
+    emit layoutAboutToBeChanged();
+    updateRandomAccessIndexWithRespectToSorting(item);
+    emit layoutChanged();
 }
 
 QVariant SavedSearchModel::dataText(const int row, const Columns::type column) const
@@ -921,21 +965,6 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
 
         QNTRACE("Emitted the request to update the saved search in the local storage: id = " << requestId
                 << ", saved search: " << savedSearch);
-    }
-}
-
-void SavedSearchModel::updatePersistentModelIndices()
-{
-    QNDEBUG("SavedSearchModel::updatePersistentModelIndices");
-
-    // Ensure any persistent model indices would be updated appropriately
-    QModelIndexList indices = persistentIndexList();
-    for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
-    {
-        const QModelIndex & index = *it;
-        const SavedSearchModelItem * item = reinterpret_cast<const SavedSearchModelItem*>(index.internalPointer());
-        QModelIndex replacementIndex = indexForLocalUid(item->m_localUid);
-        changePersistentIndex(index, replacementIndex);
     }
 }
 

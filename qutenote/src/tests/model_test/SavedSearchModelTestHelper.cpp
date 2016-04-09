@@ -223,6 +223,20 @@ void SavedSearchModelTestHelper::test()
             FAIL("Was able to get the valid model index for the removed saved search item by local uid which is not intended");
         }
 
+        // Check the sorting for saved search items: by default should sort by name in ascending order
+        res = checkSorting(*model);
+        if (!res) {
+            FAIL("Sorting check failed for the saved search model for ascending order");
+        }
+
+        // Change the sort order and check the sorting again
+        model->sort(SavedSearchModel::Columns::Name, Qt::DescendingOrder);
+
+        res = checkSorting(*model);
+        if (!res) {
+            FAIL("Sorting check failed for the saved search model for descending order");
+        }
+
         emit success();
         return;
     }
@@ -286,6 +300,39 @@ void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(SavedSearch search, 
             << errorDescription << ", request id = " << requestId);
 
     emit failure();
+}
+
+bool SavedSearchModelTestHelper::checkSorting(const SavedSearchModel & model) const
+{
+    int numRows = model.rowCount(QModelIndex());
+
+    QStringList names;
+    names.reserve(numRows);
+    for(int i = 0; i < numRows; ++i) {
+        QModelIndex index = model.index(i, SavedSearchModel::Columns::Name, QModelIndex());
+        QString name = model.data(index, Qt::EditRole).toString();
+        names << name;
+    }
+
+    QStringList sortedNames = names;
+    if (model.sortOrder() == Qt::AscendingOrder) {
+        std::sort(sortedNames.begin(), sortedNames.end(), LessByName());
+    }
+    else {
+        std::sort(sortedNames.begin(), sortedNames.end(), GreaterByName());
+    }
+
+    return (names == sortedNames);
+}
+
+bool SavedSearchModelTestHelper::LessByName::operator()(const QString & lhs, const QString & rhs) const
+{
+    return (lhs.toUpper().localeAwareCompare(rhs.toUpper()) <= 0);
+}
+
+bool SavedSearchModelTestHelper::GreaterByName::operator()(const QString & lhs, const QString & rhs) const
+{
+    return (lhs.toUpper().localeAwareCompare(rhs.toUpper()) > 0);
 }
 
 } // namespace qute_note
