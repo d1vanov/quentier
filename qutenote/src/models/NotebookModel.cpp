@@ -175,9 +175,63 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
 {
     QNDEBUG("NotebookModel::removeFromStack");
 
-    // TODO: implement
-    Q_UNUSED(index)
-    return QModelIndex();
+    const NotebookModelItem * item = reinterpret_cast<const NotebookModelItem*>(index.internalPointer());
+    if (Q_UNLIKELY(!item)) {
+        QNWARNING("Detected attempt to remove the notebook item from stack but the model index has no internal pointer "
+                  "to the notebook model item");
+        return index;
+    }
+
+    if (item->type() != NotebookModelItem::Type::Notebook) {
+        QNDEBUG("Can't remove the non-notebook model item from stack");
+        return index;
+    }
+
+    const NotebookItem * notebookItem = item->notebookItem();
+    if (Q_UNLIKELY(!notebookItem)) {
+        QNWARNING("Found notebook model item of notebook type but its pointer to the notebook item is null");
+        return index;
+    }
+
+    if (notebookItem->stack().isEmpty())
+    {
+        QNWARNING("The notebook doesn't appear to have the stack but will continue the attempt to remove it from the stack anyway");
+    }
+    else
+    {
+        NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto it = localUidIndex.find(notebookItem->localUid());
+        if (Q_UNLIKELY(it == localUidIndex.end())) {
+            QNWARNING("Can't find the notebook item to be removed from the stack by the local uid: " << notebookItem->localUid());
+            return index;
+        }
+
+        NotebookItem notebookItemCopy(*notebookItem);
+        notebookItemCopy.setStack(QString());
+        localUidIndex.replace(it, notebookItemCopy);
+    }
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new NotebookModelItem;
+    }
+
+    const NotebookModelItem * parentItem = item->parent();
+    if (!parentItem) {
+        QNDEBUG("Notebook item doesn't have the parent, will set it to fake root item");
+        // TODO: when the sorting is implemented, make sure to insert the item into the appropriate row of the new parent
+        item->setParent(m_fakeRootItem);
+        return indexForItem(item);
+    }
+
+    if (parentItem == m_fakeRootItem) {
+        QNDEBUG("The notebook item doesn't belong to any stack, nothing to do");
+        return index;
+    }
+
+    removeModelItemFromParent(*item);
+    // TODO: when the sorting is implemented, make sure to insert the item into the appropriate row of the new parent
+    item->setParent(m_fakeRootItem);
+    return indexForItem(item);
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
