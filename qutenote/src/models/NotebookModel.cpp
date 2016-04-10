@@ -1,6 +1,7 @@
 #include "NotebookModel.h"
 #include "NewItemNameGenerator.hpp"
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <QMimeData>
 
 namespace qute_note {
 
@@ -1007,6 +1008,107 @@ void NotebookModel::sort(int column, Qt::SortOrder order)
 
     updatePersistentModelIndices();
     emit layoutChanged();
+}
+
+QStringList NotebookModel::mimeTypes() const
+{
+    QStringList list;
+    list << NOTEBOOK_MODEL_MIME_TYPE;
+    return list;
+}
+
+QMimeData * NotebookModel::mimeData(const QModelIndexList & indexes) const
+{
+    if (indexes.count() != 1) {
+        return Q_NULLPTR;
+    }
+
+    const NotebookModelItem * item = itemForIndex(indexes.at(0));
+    if (!item) {
+        return Q_NULLPTR;
+    }
+
+    QByteArray encodedItem;
+    QDataStream out(&encodedItem, QIODevice::WriteOnly);
+    out << *item;
+
+    QMimeData * mimeData = new QMimeData;
+    mimeData->setData(NOTEBOOK_MODEL_MIME_TYPE, qCompress(encodedItem, NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION));
+    return mimeData;
+}
+
+bool NotebookModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
+                                 int row, int column, const QModelIndex & parentIndex)
+{
+    QNDEBUG("NotebookModel::dropMimeData: action = " << action << ", row = " << row
+            << ", column = " << column << ", parent index: is valid = " << (parentIndex.isValid() ? "true" : "false")
+            << ", parent row = " << parentIndex.row() << ", parent column = " << (parentIndex.column())
+            << ", mime data formats: " << (mimeData ? mimeData->formats().join("; ") : QString("<null>")));
+
+    if (action == Qt::IgnoreAction) {
+        return true;
+    }
+
+    if (action != Qt::MoveAction) {
+        return false;
+    }
+
+    if (!mimeData || !mimeData->hasFormat(NOTEBOOK_MODEL_MIME_TYPE)) {
+        return false;
+    }
+
+    const NotebookModelItem * parentItem = itemForIndex(parentIndex);
+    if (!parentItem) {
+        return false;
+    }
+
+    if ((parentItem != m_fakeRootItem) && (parentItem->type() != NotebookModelItem::Type::Stack)) {
+        return false;
+    }
+
+    QByteArray data = qUncompress(mimeData->data(NOTEBOOK_MODEL_MIME_TYPE));
+    NotebookModelItem item;
+    QDataStream in(&data, QIODevice::ReadOnly);
+    in >> item;
+
+    if (item.type() != NotebookModelItem::Type::Notebook) {
+        return false;
+    }
+
+    auto it = m_modelItemsByLocalUid.find(item.notebookItem()->localUid());
+    if (it == m_modelItemsByLocalUid.end()) {
+        return false;
+    }
+
+    const NotebookModelItem * originalParentItem = it->parent();
+    int originalRow = -1;
+    if (originalParentItem) {
+        // Need to manually remove the item from its original parent
+        originalRow = originalParentItem->rowForChild(&(*it));
+    }
+
+    if (originalRow >= 0) {
+        QModelIndex originalParentIndex = indexForItem(originalParentItem);
+        beginRemoveRows(originalParentIndex, originalRow, originalRow);
+        Q_UNUSED(originalParentItem->takeChild(originalRow))
+    }
+
+    Q_UNUSED(m_modelItemsByLocalUid.erase(it))
+
+    if (originalRow >= 0) {
+        endRemoveRows();
+    }
+
+    beginInsertRows(parentIndex, row, row);
+    it = m_modelItemsByLocalUid.insert(item.notebookItem()->localUid(), item);
+    parentItem->insertChild(row, &(*it));
+    endInsertRows();
+
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(*it);
+    emit layoutChanged();
+
+    return true;
 }
 
 void NotebookModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)

@@ -2,7 +2,6 @@
 #define __QUTE_NOTE__MODELS__NOTEBOOK_ITEM_H
 
 #include <qute_note/utility/Printable.h>
-#include <QDataStream>
 
 namespace qute_note {
 
@@ -54,9 +53,6 @@ public:
     void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
 
     virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
-
-    friend QDataStream & operator<<(QDataStream & out, const NotebookItem & item);
-    friend QDataStream & operator>>(QDataStream & in, NotebookItem & item);
 
 private:
     QString     m_localUid;

@@ -599,7 +599,6 @@ bool TagModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
     QDataStream in(&data, QIODevice::ReadOnly);
     in >> item;
 
-    item.setParent(parentItem);
     item.setParentLocalUid(parentItem->localUid());
     item.setParentGuid(parentItem->guid());
 
@@ -637,19 +636,35 @@ bool TagModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
             return false;
         }
 
-        Q_UNUSED(originalItemParent->takeChild(row));
+        QModelIndex originalParentIndex = indexForItem(originalItemParent);
+        int originalItemRow = originalItemParent->rowForChild(&(*originalItemIt));
+
+        if (originalItemRow >= 0) {
+            beginRemoveRows(originalParentIndex, originalItemRow, originalItemRow);
+            Q_UNUSED(originalItemParent->takeChild(originalItemRow));
+            endRemoveRows();
+        }
     }
 
     beginInsertRows(parentIndex, row, row);
+    auto it = localUidIndex.end();
     if (originalItemIt != localUidIndex.end()) {
         localUidIndex.replace(originalItemIt, item);
         mapChildItems(*originalItemIt);
+        it = originalItemIt;
     }
     else {
         auto insertionResult = localUidIndex.insert(item);
-        mapChildItems(*(insertionResult.first));
+        it = insertionResult.first;
+        mapChildItems(*it);
     }
+
+    parentItem->insertChild(row, &(*it));
     endInsertRows();
+
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(*it);
+    emit layoutChanged();
 
     return true;
 }

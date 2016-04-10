@@ -165,4 +165,61 @@ QTextStream & NotebookModelItem::Print(QTextStream & strm) const
     return strm;
 }
 
+QDataStream & operator<<(QDataStream & out, const NotebookModelItem & item)
+{
+    qint32 type = item.m_type;
+    out << type;
+
+    qulonglong notebookItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_notebookItem));
+    out << notebookItemPtr;
+
+    qulonglong notebookStackItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_notebookStackItem));
+    out << notebookStackItemPtr;
+
+    qulonglong parentItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_parent));
+    out << parentItemPtr;
+
+    qint32 numChildren = item.m_children.size();
+    out << numChildren;
+
+    for(qint32 i = 0; i < numChildren; ++i) {
+        qulonglong childItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_children[i]));
+        out << childItemPtr;
+    }
+
+    return out;
+}
+
+QDataStream & operator>>(QDataStream & in, NotebookModelItem & item)
+{
+    qint32 type;
+    in >> type;
+    item.m_type = (type == NotebookModelItem::Type::Notebook ? NotebookModelItem::Type::Notebook : NotebookModelItem::Type::Stack);
+
+    qulonglong notebookItemPtr;
+    in >> notebookItemPtr;
+    item.m_notebookItem = reinterpret_cast<const NotebookItem*>(notebookItemPtr);
+
+    qulonglong notebookStackItemPtr;
+    in >> notebookStackItemPtr;
+    item.m_notebookStackItem = reinterpret_cast<const NotebookStackItem*>(notebookStackItemPtr);
+
+    qulonglong notebookParentItemPtr;
+    in >> notebookParentItemPtr;
+    item.m_parent = reinterpret_cast<const NotebookModelItem*>(notebookParentItemPtr);
+
+    qint32 numChildren;
+    in >> numChildren;
+
+    item.m_children.clear();
+    item.m_children.reserve(numChildren);
+    for(qint32 i = 0; i < numChildren; ++i) {
+        qulonglong childItemPtr;
+        in >> childItemPtr;
+        item.m_children << reinterpret_cast<const NotebookModelItem*>(childItemPtr);
+    }
+
+    return in;
+}
+
 } // namespace qute_note

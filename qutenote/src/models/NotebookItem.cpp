@@ -39,18 +39,4 @@ QTextStream & NotebookItem::Print(QTextStream & strm) const
     return strm;
 }
 
-QDataStream & operator<<(QDataStream & out, const NotebookItem & item)
-{
-    out << item.m_localUid << item.m_guid << item.m_name << item.m_stack << item.m_isSynchronizable << item.m_isUpdatable
-        << item.m_isDirty << item.m_isDefault << item.m_isPublished << item.m_isLinkedNotebook;
-    return out;
-}
-
-QDataStream & operator>>(QDataStream & in, NotebookItem & item)
-{
-    in >> item.m_localUid >> item.m_guid >> item.m_name >> item.m_stack >> item.m_isSynchronizable >> item.m_isUpdatable
-       >> item.m_isDirty >> item.m_isDefault >> item.m_isPublished >> item.m_isLinkedNotebook;
-    return in;
-}
-
 } // namespace qute_note

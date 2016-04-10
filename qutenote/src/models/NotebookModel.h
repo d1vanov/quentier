@@ -18,7 +18,7 @@
 #endif
 
 #define NOTEBOOK_MODEL_MIME_TYPE "application/x-com.qute_note.notebookmodeldatalist"
-#define NOTEBOOK_MODEL_DATA_MAX_COMPRESSION (9)
+#define NOTEBOOK_MODEL_MIME_DATA_MAX_COMPRESSION (9)
 
 namespace qute_note {
 
@@ -69,6 +69,19 @@ public:
     virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex()) Q_DECL_OVERRIDE;
 
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
+
+    // Drag-n-drop interfaces
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    virtual Qt::DropActions supportedDragActions() const Q_DECL_OVERRIDE { return Qt::MoveAction; }
+#else
+    Qt::DropActions supportedDragActions() const { return Qt::MoveAction; }
+#endif
+
+    virtual Qt::DropActions supportedDropActions() const Q_DECL_OVERRIDE { return Qt::MoveAction; }
+    virtual QStringList mimeTypes() const Q_DECL_OVERRIDE;
+    virtual QMimeData * mimeData(const QModelIndexList & indexes) const Q_DECL_OVERRIDE;
+    virtual bool dropMimeData(const QMimeData * data, Qt::DropAction action,
+                              int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void notifyError(QString errorDescription);
