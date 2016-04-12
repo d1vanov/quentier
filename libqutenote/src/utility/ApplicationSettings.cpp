@@ -19,7 +19,7 @@ ApplicationSettings::ApplicationSettings() :
 ApplicationSettings::~ApplicationSettings()
 {}
 
-QTextStream & ApplicationSettings::Print(QTextStream & strm) const
+QTextStream & ApplicationSettings::print(QTextStream & strm) const
 {
     QStringList allStoredKeys = QSettings::allKeys();
 

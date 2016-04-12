@@ -36,7 +36,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
                                "query string: ";
             errorDescription += queryString;
             errorDescription += "; \nNoteSearchQuery: ";
-            errorDescription += noteSearchQuery.ToQString();
+            errorDescription += noteSearchQuery.toString();
         }
 
         return false;
@@ -68,7 +68,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
         errorDescription += "Query string: ";
         errorDescription += queryString;
         errorDescription += "; \nNoteSearchQuery: ";
-        errorDescription += noteSearchQuery.ToQString();
+        errorDescription += noteSearchQuery.toString();
 
         for(int i = 0; i < numFoundNotes; ++i)
         {
@@ -76,7 +76,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
             errorDescription += "foundNotes[";
             errorDescription += QString::number(i);
             errorDescription += "]: ";
-            errorDescription += note.ToQString();
+            errorDescription += note.toString();
             errorDescription += "\n";
         }
 
@@ -86,7 +86,7 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
             errorDescription += "originalNotes[";
             errorDescription += QString::number(i);
             errorDescription += "]: ";
-            errorDescription += note.ToQString();
+            errorDescription += note.toString();
             errorDescription += "\n";
         }
 

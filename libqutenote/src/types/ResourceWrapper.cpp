@@ -68,10 +68,10 @@ qevercloud::Resource & ResourceWrapper::GetEnResource()
     return d->m_qecResource;
 }
 
-QTextStream & ResourceWrapper::Print(QTextStream & strm) const
+QTextStream & ResourceWrapper::print(QTextStream & strm) const
 {
     strm << "ResourceWrapper { \n";
-    IResource::Print(strm);
+    IResource::print(strm);
     strm << "} \n";
 
     return strm;

@@ -24,7 +24,7 @@ public:
     virtual bool checkLinkedNotebooks() const = 0;
     virtual bool checkSavedSearches() const = 0;
 
-    virtual QTextStream & Print(QTextStream & strm) const = 0;
+    virtual QTextStream & print(QTextStream & strm) const = 0;
 
 private:
     ILocalStorageCacheExpiryChecker() Q_DECL_DELETE;

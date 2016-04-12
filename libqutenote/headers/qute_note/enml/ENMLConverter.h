@@ -56,7 +56,7 @@ public:
             m_includeElementContents(false)
         {}
 
-        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
         QString             m_elementNameToSkip;
         ComparisonRule      m_elementNameComparisonRule;

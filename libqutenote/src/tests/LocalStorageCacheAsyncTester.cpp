@@ -131,7 +131,7 @@ void LocalStorageCacheAsyncTester::onAddNotebookCompleted(Notebook notebook, QUu
                                                                                    LocalStorageCacheManager::LocalUid);
             if (pNotebook) {
                 errorDescription = "Found notebook which should not have been present in the local storage cache";
-                QNWARNING(errorDescription << ": " << pNotebook->ToQString());
+                QNWARNING(errorDescription << ": " << pNotebook->toString());
                 emit failure(errorDescription);
             }
             else {
@@ -248,8 +248,7 @@ void LocalStorageCacheAsyncTester::onAddNoteCompleted(Note note, Notebook notebo
             const Note * pNote = m_pLocalStorageCacheManager->findNote(m_firstNote.localUid(),
                                                                        LocalStorageCacheManager::LocalUid);
             if (pNote) {
-                errorDescription = "Found note which should not have been present in the local storage cache: " +
-                                   pNote->ToQString();
+                errorDescription = "Found note which should not have been present in the local storage cache: " + pNote->toString();
                 QNWARNING(errorDescription);
                 emit failure(errorDescription);
             }

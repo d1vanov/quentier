@@ -307,7 +307,7 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Tag>(const Tag & tag
                                                                  const Tag * tagToAddLater)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::emitUpdateRequest<Tag>: tag = " << tag
-            << ", tagToAddLater = " << (tagToAddLater ? tagToAddLater->ToQString() : "<null>"));
+            << ", tagToAddLater = " << (tagToAddLater ? tagToAddLater->toString() : "<null>"));
 
     QUuid updateTagRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateTagRequestIds.insert(updateTagRequestId));
@@ -324,7 +324,7 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<SavedSearch>(const S
                                                                          const SavedSearch * searchToAddLater)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::emitUpdateRequest<SavedSearch>: search = " << search
-            << ", searchToAddLater = " << (searchToAddLater ? searchToAddLater->ToQString() : "<null>"));
+            << ", searchToAddLater = " << (searchToAddLater ? searchToAddLater->toString() : "<null>"));
 
     QUuid updateSavedSearchRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateSavedSearchRequestIds.insert(updateSavedSearchRequestId));
@@ -353,7 +353,7 @@ void RemoteToLocalSynchronizationManager::emitUpdateRequest<Notebook>(const Note
                                                                       const Notebook * notebookToAddLater)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::emitUpdateRequest<Notebook>: notebook = " << notebook
-            << ", notebook to add later = " << (notebookToAddLater ? notebookToAddLater->ToQString() : "null"));
+            << ", notebook to add later = " << (notebookToAddLater ? notebookToAddLater->toString() : "null"));
 
     QUuid updateNotebookRequestId = QUuid::createUuid();
     Q_UNUSED(m_updateNotebookRequestIds.insert(updateNotebookRequestId));

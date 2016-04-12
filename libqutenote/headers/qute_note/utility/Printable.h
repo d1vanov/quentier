@@ -20,9 +20,9 @@ namespace qute_note {
 class QUTE_NOTE_EXPORT Printable
 {
 public:
-    virtual QTextStream & Print(QTextStream & strm) const = 0;
+    virtual QTextStream & print(QTextStream & strm) const = 0;
 
-    virtual const QString ToQString() const;
+    virtual const QString toString() const;
 
     friend QUTE_NOTE_EXPORT QTextStream & operator << (QTextStream & strm,
                                                        const Printable & printable);
@@ -39,7 +39,7 @@ protected:
 // printing operators for existing classes not inheriting from Printable
 
 template <class T>
-const QString ToQString(const T & object)
+const QString ToString(const T & object)
 {
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
@@ -48,7 +48,7 @@ const QString ToQString(const T & object)
 }
 
 template <class TKey, class TValue>
-const QString ToQString(const QHash<TKey, TValue> & object)
+const QString ToString(const QHash<TKey, TValue> & object)
 {
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
@@ -63,7 +63,7 @@ const QString ToQString(const QHash<TKey, TValue> & object)
 }
 
 template <class T>
-const QString ToQString(const QSet<T> & object)
+const QString ToString(const QSet<T> & object)
 {
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
@@ -81,7 +81,7 @@ const QString ToQString(const QSet<T> & object)
     QTextStream & operator << (QTextStream & strm, const type & obj); \
     inline QDebug & operator << (QDebug & debug, const type & obj) \
     { \
-        debug << ToQString<type, ##__VA_ARGS__>(obj); \
+        debug << ToString<type, ##__VA_ARGS__>(obj); \
         return debug; \
     }
 

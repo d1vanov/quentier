@@ -404,7 +404,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
     return true;
 }
 
-QTextStream & NoteSearchQueryPrivate::Print(QTextStream & strm) const
+QTextStream & NoteSearchQueryPrivate::print(QTextStream & strm) const
 {
     QString indent = "  ";
 

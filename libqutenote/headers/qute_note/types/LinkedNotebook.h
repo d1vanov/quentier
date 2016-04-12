@@ -80,7 +80,7 @@ public:
     qint32 businessId() const;
     void setBusinessId(const qint32 businessId);
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     // hide useless methods inherited from the base class from the public interface

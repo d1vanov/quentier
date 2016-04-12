@@ -247,7 +247,7 @@ void SavedSearch::setIncludeBusinessLinkedNotebooks(const bool includeBusinessLi
     d->m_qecSearch.scope->includeBusinessLinkedNotebooks = includeBusinessLinkedNotebooks;
 }
 
-QTextStream & SavedSearch::Print(QTextStream & strm) const
+QTextStream & SavedSearch::print(QTextStream & strm) const
 {
     strm << "Saved search: { \n" ;
 

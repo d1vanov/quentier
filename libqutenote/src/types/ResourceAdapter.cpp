@@ -59,10 +59,10 @@ qevercloud::Resource & ResourceAdapter::GetEnResource()
     return static_cast<qevercloud::Resource&>(*m_pEnResource);
 }
 
-QTextStream & ResourceAdapter::Print(QTextStream & strm) const
+QTextStream & ResourceAdapter::print(QTextStream & strm) const
 {
     strm << "ResourceAdapter { \n";
-    IResource::Print(strm);
+    IResource::print(strm);
     strm << "} \n";
 
     return strm;

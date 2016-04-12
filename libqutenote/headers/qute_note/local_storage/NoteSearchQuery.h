@@ -142,9 +142,9 @@ public:
 
     bool isMatcheable() const;
 
-private:
-    QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
+private:
     NoteSearchQueryPrivate * const d_ptr;
     Q_DECLARE_PRIVATE(NoteSearchQuery)
 };

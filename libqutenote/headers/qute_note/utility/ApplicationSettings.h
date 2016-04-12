@@ -13,7 +13,7 @@ public:
     ApplicationSettings();
     ~ApplicationSettings();
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     Q_DISABLE_COPY(ApplicationSettings)

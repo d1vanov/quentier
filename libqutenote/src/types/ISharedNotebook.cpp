@@ -309,7 +309,7 @@ ISharedNotebook & ISharedNotebook::operator=(ISharedNotebook && other)
     return *this;
 }
 
-QTextStream & ISharedNotebook::Print(QTextStream & strm) const
+QTextStream & ISharedNotebook::print(QTextStream & strm) const
 {
     strm << "SharedNotebook { \n";
 

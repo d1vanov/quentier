@@ -3,7 +3,7 @@
 
 namespace qute_note {
 
-const QString Printable::ToQString() const
+const QString Printable::toString() const
 {
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
@@ -22,14 +22,14 @@ Printable::~Printable()
 
 QDebug & operator <<(QDebug & debug, const Printable & printable)
 {
-    debug << printable.ToQString();
+    debug << printable.toString();
     return debug;
 }
 
 QTextStream & operator <<(QTextStream & strm,
                           const Printable & printable)
 {
-    return printable.Print(strm);
+    return printable.print(strm);
 }
 
 } // namespace qute_note
@@ -1515,7 +1515,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Note & note)
         strm << "<empty>; \n";
     }
 
-    strm << indent << "attributes = " << (note.attributes.isSet() ? ToQString(note.attributes.ref()) : "<empty>") << "; \n";
+    strm << indent << "attributes = " << (note.attributes.isSet() ? ToString(note.attributes.ref()) : "<empty>") << "; \n";
 
     strm << indent << "tagNames = ";
     if (note.tagNames.isSet())

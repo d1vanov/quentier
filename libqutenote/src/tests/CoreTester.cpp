@@ -1008,7 +1008,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
 
         if (!firstSearch.hasUpdateSequenceNumber() || !secondSearch.hasUpdateSequenceNumber()) {
             QFAIL(qPrintable("One of found saved searches doesn't have the update sequence number which is unexpected: first search: " +
-                             firstSearch.ToQString() + "\nSecond search: " + secondSearch.ToQString()));
+                             firstSearch.toString() + "\nSecond search: " + secondSearch.toString()));
         }
 
         if (firstSearch.updateSequenceNumber() != 3) {
@@ -1413,7 +1413,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
 
         if ((firstTag.updateSequenceNumber() != 3) || (secondTag.updateSequenceNumber() != 2)) {
             QFAIL(qPrintable("Unexpected order of found tags by update sequence number: first tag: " +
-                             firstTag.ToQString() + "\nSecond tag: " + secondTag.ToQString()));
+                             firstTag.toString() + "\nSecond tag: " + secondTag.toString()));
         }
     }
     CATCH_EXCEPTION();
@@ -1555,7 +1555,7 @@ void CoreTester::localStorageManagerListNotesTest()
 
         if ((firstNote.updateSequenceNumber() != 4) || (secondNote.updateSequenceNumber() != 3)) {
             QFAIL(qPrintable("Unexpected order of found notes by update sequence number: first note: " +
-                             firstNote.ToQString() + "\nSecond note: " + secondNote.ToQString()));
+                             firstNote.toString() + "\nSecond note: " + secondNote.toString()));
         }
 
         // 4) Test method listing all notes

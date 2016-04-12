@@ -190,7 +190,7 @@ void LocalStorageCacheManagerPrivate::installCacheExpiryFunction(const ILocalSto
     m_cacheExpiryChecker.reset(checker.clone());
 }
 
-QTextStream & LocalStorageCacheManagerPrivate::Print(QTextStream & strm) const
+QTextStream & LocalStorageCacheManagerPrivate::print(QTextStream & strm) const
 {
     strm << "LocalStorageCacheManager: {\n";
     strm << "Notes cache: {\n";
@@ -275,14 +275,14 @@ GET_GUID(SavedSearch, savedSearch)
 
 #undef GET_GUID
 
-QTextStream & LocalStorageCacheManagerPrivate::NoteHolder::Print(QTextStream & strm) const
+QTextStream & LocalStorageCacheManagerPrivate::NoteHolder::print(QTextStream & strm) const
 {
     strm << "NoteHolder: note = " << m_note << "last access timestamp = " << m_lastAccessTimestamp
          << " (" << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
     return strm;
 }
 
-QTextStream & LocalStorageCacheManagerPrivate::NotebookHolder::Print(QTextStream & strm) const
+QTextStream & LocalStorageCacheManagerPrivate::NotebookHolder::print(QTextStream & strm) const
 {
     strm << "NotebookHolder: notebook = " << m_notebook
          << "last access timestamp = " << m_lastAccessTimestamp
@@ -290,14 +290,14 @@ QTextStream & LocalStorageCacheManagerPrivate::NotebookHolder::Print(QTextStream
     return strm;
 }
 
-QTextStream & LocalStorageCacheManagerPrivate::TagHolder::Print(QTextStream & strm) const
+QTextStream & LocalStorageCacheManagerPrivate::TagHolder::print(QTextStream & strm) const
 {
     strm << "TagHolder: tag = " << m_tag << "last access timestamp = " << m_lastAccessTimestamp
          << " (" << QDateTime::fromMSecsSinceEpoch(m_lastAccessTimestamp).toString(Qt::ISODate) << "); \n";
     return strm;
 }
 
-QTextStream & LocalStorageCacheManagerPrivate::LinkedNotebookHolder::Print(QTextStream & strm) const
+QTextStream & LocalStorageCacheManagerPrivate::LinkedNotebookHolder::print(QTextStream & strm) const
 {
     strm << "LinkedNotebookHolder: linked notebook = " << m_linkedNotebook
          << "last access timestamp = " << m_lastAccessTimestamp << " ("
@@ -305,7 +305,7 @@ QTextStream & LocalStorageCacheManagerPrivate::LinkedNotebookHolder::Print(QText
     return strm;
 }
 
-QTextStream & LocalStorageCacheManagerPrivate::SavedSearchHolder::Print(QTextStream & strm) const
+QTextStream & LocalStorageCacheManagerPrivate::SavedSearchHolder::print(QTextStream & strm) const
 {
     strm << "SavedSearchHolder: saved search = " << m_savedSearch
          << "last access timestamp = " << m_lastAccessTimestamp

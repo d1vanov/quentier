@@ -4,7 +4,7 @@
 
 namespace qute_note {
 
-QTextStream & NotebookStackItem::Print(QTextStream & strm) const
+QTextStream & NotebookStackItem::print(QTextStream & strm) const
 {
     strm << "Notebook stack: " << m_name;
     return strm;

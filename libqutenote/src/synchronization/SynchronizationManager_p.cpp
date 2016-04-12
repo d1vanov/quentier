@@ -190,12 +190,12 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
             {
                 if (job->error() != QKeychain::NoError) {
                     QString error = QT_TR_NOOP("Error writing the linked notebook's authentication token: error code = ") +
-                                    ToQString(job->error()) + ": " + job->errorString();
+                                    ToString(job->error()) + ": " + job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
                 }
 
-                (void)m_writeLinkedNotebookAuthTokenJobsByGuid.erase(it);
+                Q_UNUSED(m_writeLinkedNotebookAuthTokenJobsByGuid.erase(it))
                 return;
             }
         }
@@ -216,18 +216,18 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                 else if (job->error() == QKeychain::EntryNotFound) {
                     QNDEBUG("Could find authentication token for linked notebook in the keychain: "
                             "linked notebook guid: " << it.key());
-                    (void)m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key());
+                    Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                 }
                 else {
                     QString error = QT_TR_NOOP("Error reading the linked notebook's auth token: error code = ") +
-                                    ToQString(job->error()) + ": " + job->errorString();
+                                    ToString(job->error()) + ": " + job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
                     return;
                 }
 
                 authenticateToLinkedNotebooks();
-                (void)m_readLinkedNotebookAuthTokenJobsByGuid.erase(it);
+                Q_UNUSED(m_readLinkedNotebookAuthTokenJobsByGuid.erase(it))
                 return;
             }
         }
@@ -747,7 +747,7 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
     default:
     {
         QString error = QT_TR_NOOP("Internal error: unknown authentication context: ");
-        error += ToQString(m_authContext);
+        error += ToString(m_authContext);
         emit notifyError(error);
         break;
     }
@@ -872,7 +872,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
             if (noAuthDataIt != m_linkedNotebookGuidsWithoutLocalAuthData.end())
             {
                 forceRemoteAuth = true;
-                (void)m_linkedNotebookGuidsWithoutLocalAuthData.erase(noAuthDataIt);
+                Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.erase(noAuthDataIt))
             }
             else
             {
@@ -1024,7 +1024,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 
         QString key = appName + LINKED_NOTEBOOK_AUTH_TOKEN_KEY_PART + guid;
         QSharedPointer<QKeychain::WritePasswordJob> job(new QKeychain::WritePasswordJob(WRITE_LINKED_NOTEBOOK_AUTH_TOKEN_JOB));
-        (void)m_writeLinkedNotebookAuthTokenJobsByGuid.insert(key, job);
+        Q_UNUSED(m_writeLinkedNotebookAuthTokenJobsByGuid.insert(key, job))
         job->setKey(key);
         job->setTextData(token);
 

@@ -73,7 +73,7 @@ public:
     bool reminderNotifyApp() const;
     void setReminderNotifyApp(const bool notifyApp);
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     friend class Notebook;
 

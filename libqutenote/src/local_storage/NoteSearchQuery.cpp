@@ -549,10 +549,10 @@ bool NoteSearchQuery::isMatcheable() const
     return d->isMatcheable();
 }
 
-QTextStream & NoteSearchQuery::Print(QTextStream & strm) const
+QTextStream & NoteSearchQuery::print(QTextStream & strm) const
 {
     Q_D(const NoteSearchQuery);
-    return d->Print(strm);
+    return d->print(strm);
 }
 
 } // namespace qute_note

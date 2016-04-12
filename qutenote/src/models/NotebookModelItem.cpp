@@ -89,12 +89,12 @@ const NotebookModelItem * NotebookModelItem::takeChild(const int row) const
     return item;
 }
 
-QTextStream & NotebookModelItem::Print(QTextStream & strm) const
+QTextStream & NotebookModelItem::print(QTextStream & strm) const
 {
     strm << "Notebook model item (" << (m_type == Type::Notebook ? "notebook" : "stack")
          << "): " << (m_type == Type::Notebook
-                      ? (m_notebookItem ? m_notebookItem->ToQString() : QString("<null>"))
-                      : (m_notebookStackItem ? m_notebookStackItem->ToQString() : QString("<null>")));
+                      ? (m_notebookItem ? m_notebookItem->toString() : QString("<null>"))
+                      : (m_notebookStackItem ? m_notebookStackItem->toString() : QString("<null>")));
 
     strm << "Parent item: ";
     if (Q_UNLIKELY(!m_parent))

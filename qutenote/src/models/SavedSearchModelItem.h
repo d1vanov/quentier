@@ -14,7 +14,7 @@ public:
                                   const bool isSynchronizable = false,
                                   const bool isDirty = false);
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     QString nameUpper() const { return m_name.toUpper(); }
 

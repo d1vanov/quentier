@@ -99,7 +99,7 @@ private:
 
         Q_DECLARE_FLAGS(Types, type)
 
-        virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+        virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
     };
 
     ShouldSkipElementResult::type shouldSkipElement(const QString & elementName,

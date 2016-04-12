@@ -121,7 +121,7 @@ public:
     friend class Note;
     friend class ResourceWrapper;
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 protected:
     IResource(const IResource & other);

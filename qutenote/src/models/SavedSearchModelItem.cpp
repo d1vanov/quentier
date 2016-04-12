@@ -14,7 +14,7 @@ SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
     m_isDirty(isDirty)
 {}
 
-QTextStream & SavedSearchModelItem::Print(QTextStream & strm) const
+QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
 {
     strm << "Saved search model item: local uid = " << m_localUid
          << ", name = " << m_name << ", query = " << m_query

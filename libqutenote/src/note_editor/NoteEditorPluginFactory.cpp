@@ -207,7 +207,7 @@ bool NoteEditorPluginFactory::hasResourcePluginForMimeType(const QRegExp & mimeT
 
 void NoteEditorPluginFactory::setNote(const Note & note)
 {
-    QNDEBUG("NoteEditorPluginFactory::setNote: change current note to " << (note.hasTitle() ? note.title() : note.ToQString()));
+    QNDEBUG("NoteEditorPluginFactory::setNote: change current note to " << (note.hasTitle() ? note.title() : note.toString()));
     m_pCurrentNote = &note;
 }
 

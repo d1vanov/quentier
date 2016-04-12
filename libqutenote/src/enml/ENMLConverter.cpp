@@ -89,7 +89,7 @@ void ENMLConverter::escapeString(QString & string, const bool simplify)
     ENMLConverterPrivate::escapeString(string, simplify);
 }
 
-QTextStream & ENMLConverter::SkipHtmlElementRule::Print(QTextStream & strm) const
+QTextStream & ENMLConverter::SkipHtmlElementRule::print(QTextStream & strm) const
 {
 #define PRINT_COMPARISON_RULE(rule) \
     switch(rule) \

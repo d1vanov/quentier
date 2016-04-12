@@ -31,8 +31,6 @@ public:
     virtual void setLocal(const bool local) = 0;
 
     virtual ~INoteStoreDataElement() {}
-
-    virtual QTextStream & Print(QTextStream & strm) const = 0;
 };
 
 #define _DECLARE_IS_DIRTY \

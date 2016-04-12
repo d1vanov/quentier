@@ -30,7 +30,7 @@ public:
     virtual const char * what() const Q_DECL_OVERRIDE throw();
 #endif
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 protected:
     IQuteNoteException(const IQuteNoteException & other);

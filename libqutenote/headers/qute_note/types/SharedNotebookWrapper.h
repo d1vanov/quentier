@@ -30,7 +30,7 @@ public:
     virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const Q_DECL_OVERRIDE;
     virtual qevercloud::SharedNotebook & GetEnSharedNotebook() Q_DECL_OVERRIDE;
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     QSharedDataPointer<SharedNotebookWrapperData> d;

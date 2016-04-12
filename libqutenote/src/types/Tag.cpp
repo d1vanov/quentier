@@ -223,7 +223,7 @@ void Tag::setLinkedNotebookGuid(const QString & linkedNotebookGuid)
     }
 }
 
-QTextStream & Tag::Print(QTextStream & strm) const
+QTextStream & Tag::print(QTextStream & strm) const
 {
     strm << "Tag { \n";
 

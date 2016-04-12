@@ -128,7 +128,7 @@ public:
     bool removeBarcodeItem(const BarcodeItem & item);
     bool removeBarcodeItemAt(const int barcodeItemIndex);
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     QSharedDataPointer<ResourceRecognitionIndexItemData> d;

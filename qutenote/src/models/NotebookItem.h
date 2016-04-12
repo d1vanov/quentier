@@ -52,7 +52,7 @@ public:
     bool isLinkedNotebook() const { return m_isLinkedNotebook; }
     void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     QString     m_localUid;

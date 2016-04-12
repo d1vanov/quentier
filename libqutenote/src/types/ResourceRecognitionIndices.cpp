@@ -91,7 +91,7 @@ bool ResourceRecognitionIndices::setData(const QByteArray & rawRecognitionIndice
     return d->setData(rawRecognitionIndicesData);
 }
 
-QTextStream & ResourceRecognitionIndices::Print(QTextStream & strm) const
+QTextStream & ResourceRecognitionIndices::print(QTextStream & strm) const
 {
     strm << "ResourceRecognitionIndices: {\n";
 

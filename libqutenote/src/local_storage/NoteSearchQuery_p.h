@@ -15,7 +15,7 @@ public:
 
     bool parseQueryString(const QString & queryString, QString & error);
 
-    QTextStream & Print(QTextStream & strm) const;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     QString         m_queryString;
     QString         m_notebookModifier;

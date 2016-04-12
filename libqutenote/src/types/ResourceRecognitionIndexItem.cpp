@@ -430,7 +430,7 @@ bool ResourceRecognitionIndexItem::removeBarcodeItemAt(const int barcodeItemInde
     return true;
 }
 
-QTextStream & ResourceRecognitionIndexItem::Print(QTextStream & strm) const
+QTextStream & ResourceRecognitionIndexItem::print(QTextStream & strm) const
 {
     strm << "ResourceRecognitionIndexItem: {\n";
 

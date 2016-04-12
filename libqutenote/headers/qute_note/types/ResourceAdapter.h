@@ -26,7 +26,7 @@ public:
     ResourceAdapter & operator=(const ResourceAdapter & other);
     virtual ~ResourceAdapter();
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     friend class Note;
 

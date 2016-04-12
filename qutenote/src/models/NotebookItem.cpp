@@ -27,7 +27,7 @@ NotebookItem::NotebookItem(const QString & localUid,
 NotebookItem::~NotebookItem()
 {}
 
-QTextStream & NotebookItem::Print(QTextStream & strm) const
+QTextStream & NotebookItem::print(QTextStream & strm) const
 {
     strm << "Notebook item: local uid = " << m_localUid << ", guid = "
          << m_guid << ", name = " << m_name << ", stack = " << m_stack

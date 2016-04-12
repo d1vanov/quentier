@@ -75,7 +75,7 @@ public:
     bool includeBusinessLinkedNotebooks() const;
     void setIncludeBusinessLinkedNotebooks(const bool includeBusinessLinkedNotebooks);
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
     QSharedDataPointer<SavedSearchData> d;

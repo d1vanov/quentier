@@ -33,7 +33,7 @@ const char * IQuteNoteException::what() const throw()
     return qPrintable(m_message);
 }
 
-QTextStream & IQuteNoteException::Print(QTextStream & strm) const
+QTextStream & IQuteNoteException::print(QTextStream & strm) const
 {
     strm << "\n" << " " << "<" << exceptionDisplayName() << ">";
     strm << "\n" << " " << " message: " << m_message;

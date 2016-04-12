@@ -100,7 +100,7 @@ const TagModelItem * TagModelItem::takeChild(const int row) const
     return item;
 }
 
-QTextStream & TagModelItem::Print(QTextStream & strm) const
+QTextStream & TagModelItem::print(QTextStream & strm) const
 {
     strm << "Tag model item: local uid = " << m_localUid << ", guid = " << m_guid
          << ", linked notebook guid = " << m_linkedNotebookGuid

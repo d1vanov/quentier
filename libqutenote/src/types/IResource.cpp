@@ -675,7 +675,7 @@ IResource & IResource::operator=(const IResource & other)
     return *this;
 }
 
-QTextStream & IResource::Print(QTextStream & strm) const
+QTextStream & IResource::print(QTextStream & strm) const
 {
     const qevercloud::Resource & enResource = GetEnResource();
 

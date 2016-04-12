@@ -63,10 +63,10 @@ qevercloud::SharedNotebook & SharedNotebookWrapper::GetEnSharedNotebook()
     return d->m_qecSharedNotebook;
 }
 
-QTextStream & SharedNotebookWrapper::Print(QTextStream & strm) const
+QTextStream & SharedNotebookWrapper::print(QTextStream & strm) const
 {
     strm << "SharedNotebookWrapper: { \n";
-    ISharedNotebook::Print(strm);
+    ISharedNotebook::print(strm);
     strm << "}; \n";
 
     return strm;

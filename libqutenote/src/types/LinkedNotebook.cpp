@@ -286,7 +286,7 @@ void LinkedNotebook::setBusinessId(const qint32 businessId)
     d->m_qecLinkedNotebook.businessId = businessId;
 }
 
-QTextStream & LinkedNotebook::Print(QTextStream & strm) const
+QTextStream & LinkedNotebook::print(QTextStream & strm) const
 {
     strm << "LinkedNotebook: { \n";
     strm << "isDirty = " << (isDirty() ? "true" : "false") << "\n";

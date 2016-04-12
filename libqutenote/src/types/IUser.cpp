@@ -552,7 +552,7 @@ IUser & IUser::operator=(IUser && other)
     return *this;
 }
 
-QTextStream & IUser::Print(QTextStream & strm) const
+QTextStream & IUser::print(QTextStream & strm) const
 {
     strm << "IUser { \n";
     strm << "isDirty = " << (m_isDirty ? "true" : "false") << "; \n";

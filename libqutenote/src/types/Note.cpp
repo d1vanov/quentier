@@ -633,7 +633,7 @@ bool Note::containsEncryption() const
     return d->containsEncryption();
 }
 
-QTextStream & Note::Print(QTextStream & strm) const
+QTextStream & Note::print(QTextStream & strm) const
 {
     strm << "Note: { \n";
 

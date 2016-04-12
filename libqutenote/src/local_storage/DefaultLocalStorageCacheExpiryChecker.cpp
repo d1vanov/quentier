@@ -47,7 +47,7 @@ bool DefaultLocalStorageCacheExpiryChecker::checkSavedSearches() const
     return (numCachedSavedSearches < MAX_SAVED_SEARCHES_TO_STORE);
 }
 
-QTextStream & DefaultLocalStorageCacheExpiryChecker::Print(QTextStream & strm) const
+QTextStream & DefaultLocalStorageCacheExpiryChecker::print(QTextStream & strm) const
 {
     QString indent = "  ";
 

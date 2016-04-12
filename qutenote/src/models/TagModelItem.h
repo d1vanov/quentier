@@ -61,7 +61,7 @@ public:
     bool swapChildren(const int sourceRow, const int destRow) const;
     const TagModelItem * takeChild(const int row) const;
 
-    virtual QTextStream & Print(QTextStream & strm) const Q_DECL_OVERRIDE;
+    virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
     friend QDataStream & operator<<(QDataStream & out, const TagModelItem & item);
     friend QDataStream & operator>>(QDataStream & in, TagModelItem & item);

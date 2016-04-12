@@ -235,7 +235,7 @@ qint32 NoteStore::getSyncState(qevercloud::SyncState & syncState, QString & erro
     catch(const qevercloud::EDAMUserException & userException)
     {
         errorDescription = QT_TR_NOOP("Caught EDAM user exception, error code ");
-        errorDescription += ToQString(userException.errorCode);
+        errorDescription += ToString(userException.errorCode);
 
         auto exceptionData = userException.exceptionData();
         if (!exceptionData.isNull()) {
@@ -289,7 +289,7 @@ qint32 NoteStore::getLinkedNotebookSyncState(const qevercloud::LinkedNotebook & 
     catch(const qevercloud::EDAMUserException & userException)
     {
         errorDescription = QT_TR_NOOP("Caught EDAM user exception, error code = ");
-        errorDescription += ToQString(userException.errorCode);
+        errorDescription += ToString(userException.errorCode);
 
         if (!userException.exceptionData().isNull()) {
             errorDescription += ": ";
@@ -304,7 +304,7 @@ qint32 NoteStore::getLinkedNotebookSyncState(const qevercloud::LinkedNotebook & 
                                       "linked notebook to get sync state for");
         if (!notFoundException.exceptionData().isNull()) {
             errorDescription += ": ";
-            errorDescription += ToQString(notFoundException.exceptionData()->errorMessage);
+            errorDescription += ToString(notFoundException.exceptionData()->errorMessage);
         }
 
         return qevercloud::EDAMErrorCode::UNKNOWN;
@@ -418,7 +418,7 @@ qint32 NoteStore::authenticateToSharedNotebook(const QString & shareKey, qevercl
         }
         else {
             errorDescription = QT_TR_NOOP("Unexpected EDAM user exception, error code: ");
-            errorDescription += ToQString(userException.errorCode);
+            errorDescription += ToString(userException.errorCode);
         }
 
         return userException.errorCode;
@@ -452,7 +452,7 @@ qint32 NoteStore::authenticateToSharedNotebook(const QString & shareKey, qevercl
         }
         else {
             errorDescription = QT_TR_NOOP("Unexpected EDAM system exception, error code: ");
-            errorDescription += ToQString(systemException.errorCode);
+            errorDescription += ToString(systemException.errorCode);
         }
 
         return systemException.errorCode;
@@ -776,7 +776,7 @@ qint32 NoteStore::processEdamUserExceptionForGetNote(const Note & note, const qe
     }
 
     errorDescription = QT_TR_NOOP("Unexpected EDAM user exception on attempt to get note: error code = ");
-    errorDescription += ToQString(userException.errorCode);
+    errorDescription += ToString(userException.errorCode);
 
     if (userException.parameter.isSet()) {
         errorDescription += QT_TR_NOOP("; parameter: ");
@@ -1144,7 +1144,7 @@ qint32 NoteStore::processUnexpectedEdamUserException(const QString & typeName,
     errorDescription += (thrownOnCreation ? QT_TR_NOOP("create") : QT_TR_NOOP("update"));
     errorDescription += typeName;
     errorDescription += QT_TR_NOOP(": error code = ");
-    errorDescription += ToQString(userException.errorCode);
+    errorDescription += ToString(userException.errorCode);
 
     if (userException.parameter.isSet()) {
         errorDescription += QT_TR_NOOP(": parameter: ");
@@ -1175,7 +1175,7 @@ qint32 NoteStore::processEdamSystemException(const qevercloud::EDAMSystemExcepti
     else
     {
         errorDescription = QT_TR_NOOP("Caught EDAM system exception, error code ");
-        errorDescription += ToQString(systemException.errorCode);
+        errorDescription += ToString(systemException.errorCode);
         if (systemException.message.isSet() && !systemException.message->isEmpty()) {
             errorDescription += QT_TR_NOOP(", message: ");
             errorDescription += systemException.message.ref();

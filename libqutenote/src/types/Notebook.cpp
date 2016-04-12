@@ -880,7 +880,7 @@ const qevercloud::NotebookRestrictions & Notebook::restrictions() const
     return d->m_qecNotebook.restrictions;
 }
 
-QTextStream & Notebook::Print(QTextStream & strm) const
+QTextStream & Notebook::print(QTextStream & strm) const
 {
     strm << "Notebook { \n";
 
