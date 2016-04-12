@@ -36,7 +36,7 @@ Q_SIGNALS:
 
 // private signals
 #ifdef USE_QT_WEB_ENGINE
-    void saveGenericResourceImageToFile(QString resourceLocalUid, QByteArray resourceImageData,
+    void saveGenericResourceImageToFile(QString noteLocalUid, QString resourceLocalUid, QByteArray resourceImageData,
                                         QString resourceFileSuffix, QByteArray resourceActualHash,
                                         QString resourceDisplayName, QUuid requestId);
 #endif
@@ -72,6 +72,8 @@ private:
     bool                            m_shouldGetResourceNameFromDialog;
 
     bool                            m_performingUndo;
+
+    Note *                          m_pNote;
 
 #ifdef USE_QT_WEB_ENGINE
     QUuid                           m_genericResourceImageWriterRequestId;

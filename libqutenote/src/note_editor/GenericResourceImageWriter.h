@@ -25,7 +25,7 @@ Q_SIGNALS:
                                         QString errorDescription, QUuid requestId);
 
 public Q_SLOTS:
-    void onGenericResourceImageWriteRequest(QString resourceLocalUid, QByteArray resourceImageData,
+    void onGenericResourceImageWriteRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray resourceImageData,
                                             QString resourceFileSuffix, QByteArray resourceActualHash,
                                             QString resourceDisplayName, QUuid requestId);
 

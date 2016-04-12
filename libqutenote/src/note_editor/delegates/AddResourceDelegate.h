@@ -41,7 +41,7 @@ Q_SIGNALS:
                                QString fileStoragePath, QUuid requestId);
     void writeFile(QString filePath, QByteArray data, QUuid requestId);
 
-    void saveGenericResourceImageToFile(QString localUid, QByteArray data, QString fileSuffix,
+    void saveGenericResourceImageToFile(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QString fileSuffix,
                                         QByteArray dataHash, QString fileStoragePath, QUuid requestId);
 
 private Q_SLOTS:

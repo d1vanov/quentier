@@ -18,12 +18,14 @@ void GenericResourceImageWriter::setStorageFolderPath(const QString & storageFol
     m_storageFolderPath = storageFolderPath;
 }
 
-void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QString resourceLocalUid, const QByteArray resourceImageData,
-                                                                    const QString resourceFileSuffix, const QByteArray resourceActualHash,
-                                                                    const QString resourceDisplayName, const QUuid requestId)
+void GenericResourceImageWriter::onGenericResourceImageWriteRequest(QString noteLocalUid, QString resourceLocalUid,
+                                                                    QByteArray resourceImageData, QString resourceFileSuffix,
+                                                                    QByteArray resourceActualHash, QString resourceDisplayName,
+                                                                    QUuid requestId)
 {
-    QNDEBUG("GenericResourceImageWriter::onGenericResourceImageWriteRequest: resource local uid = " << resourceLocalUid
-            << ", resource actual hash = " << resourceActualHash << ", request id = " << requestId);
+    QNDEBUG("GenericResourceImageWriter::onGenericResourceImageWriteRequest: note local uid = " << noteLocalUid
+            << ", resource local uid = " << resourceLocalUid << ", resource actual hash = " << resourceActualHash
+            << ", request id = " << requestId);
 
 #define RETURN_WITH_ERROR(message) \
     QString errorDescription = QT_TR_NOOP(message); \
@@ -34,6 +36,10 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
 
     if (Q_UNLIKELY(m_storageFolderPath.isEmpty())) {
         RETURN_WITH_ERROR("storage folder path is empty");
+    }
+
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        RETURN_WITH_ERROR("note local uid is empty");
     }
 
     if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {
@@ -49,12 +55,20 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
     }
 
     QString resourceFileNameMask = resourceLocalUid + "*." + resourceFileSuffix;
-    QDir storageDir(m_storageFolderPath);
+    QDir storageDir(m_storageFolderPath + "/" + noteLocalUid);
+    if (Q_UNLIKELY(!storageDir.exists()))
+    {
+        bool res = storageDir.mkpath(storageDir.absolutePath());
+        if (!res) {
+            RETURN_WITH_ERROR("can't create the folder to store the resource image in");
+        }
+    }
+
     QStringList nameFilter = QStringList() << resourceFileNameMask;
     QFileInfoList existingResourceImageFileInfos = storageDir.entryInfoList(nameFilter, QDir::Files | QDir::Readable);
 
     bool resourceHashChanged = true;
-    QFileInfo resourceHashFileInfo(m_storageFolderPath + "/" + resourceLocalUid + ".hash");
+    QFileInfo resourceHashFileInfo(storageDir.absolutePath() + "/" + resourceLocalUid + ".hash");
     bool resourceHashFileExists = resourceHashFileInfo.exists();
     if (resourceHashFileExists)
     {
@@ -76,7 +90,7 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
     }
 
     bool resourceDisplayNameChanged = false;
-    QFileInfo resourceNameFileInfo(m_storageFolderPath + "/" + resourceLocalUid + ".name");
+    QFileInfo resourceNameFileInfo(storageDir.absolutePath() + "/" + resourceLocalUid + ".name");
     if (!resourceHashChanged)
     {
         bool resourceNameFileExists = resourceNameFileInfo.exists();
@@ -118,16 +132,7 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(const QStrin
 
     QNTRACE("Writing resource image file and helper files with hash and display name");
 
-    QDir resourceImageDir(m_storageFolderPath);
-    if (Q_UNLIKELY(!resourceImageDir.exists()))
-    {
-        bool res = resourceImageDir.mkpath(m_storageFolderPath);
-        if (!res) {
-            RETURN_WITH_ERROR("can't create folder to store generic resource image files");
-        }
-    }
-
-    QString resourceImageFilePath = m_storageFolderPath + "/" + resourceLocalUid + "_" +
+    QString resourceImageFilePath = storageDir.absolutePath() + "/" + resourceLocalUid + "_" +
                                     QString::number(QDateTime::currentMSecsSinceEpoch()) + "." + resourceFileSuffix;
 
     QFile resourceImageFile(resourceImageFilePath);

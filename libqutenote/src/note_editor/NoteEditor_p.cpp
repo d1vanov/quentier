@@ -1330,6 +1330,14 @@ void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName
     }
 #endif
 
+    if (resource.hasDataHash()) {
+        m_genericResourceImageFilePathsByResourceHash[resource.dataHash()] = newResourceImageFilePath;
+        QNDEBUG("Cached generic resource image file path " << newResourceImageFilePath << " for resource hash " << resource.dataHash());
+    }
+    else {
+        QNWARNING("Can't update the generic resource image file path as resource data hash is empty: " << resource);
+    }
+
     if (!performingUndo) {
         RenameResourceUndoCommand * pCommand = new RenameResourceUndoCommand(resource, oldResourceName, *this, m_pGenericResourceImageWriter);
         m_pUndoStack->push(pCommand);
@@ -2408,7 +2416,7 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
                 fileStoragePath = m_resourceLocalFileStorageFolder;
             }
 
-            fileStoragePath += "/" + resourceLocalUid;
+            fileStoragePath += "/" + m_pNote->localUid() + "/" + resourceLocalUid;
             QString preferredFileSuffix = resourceAdapter.preferredFileSuffix();
             if (!preferredFileSuffix.isEmpty()) {
                 fileStoragePath += "." + preferredFileSuffix;
@@ -2792,6 +2800,13 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
 {
     QNDEBUG("NoteEditorPrivate::saveGenericResourceImage: resource local uid = " << resource.localUid());
 
+    if (Q_UNLIKELY(!m_pNote)) {
+        QString error = QT_TR_NOOP("Can't save the generic resource image: no note is set to the editor");
+        QNWARNING(error << ", resource: " << resource);
+        emit notifyError(error);
+        return;
+    }
+
     if (Q_UNLIKELY(!resource.hasDataHash() && !resource.hasAlternateDataHash())) {
         QString error = QT_TR_NOOP("Can't save generic resource image: resource has neither data hash nor alternate data hash");
         QNWARNING(error << ", resource: " << resource);
@@ -2809,7 +2824,7 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
 
     QNDEBUG("Emitting request to write generic resource image for resource with local uid "
             << resource.localUid() << ", request id " << requestId);
-    emit saveGenericResourceImageToFile(resource.localUid(), imageData, "png",
+    emit saveGenericResourceImageToFile(m_pNote->localUid(), resource.localUid(), imageData, "png",
                                         (resource.hasDataHash() ? resource.dataHash() : resource.alternateDataHash()),
                                         resource.displayName(), requestId);
 }
@@ -3385,9 +3400,9 @@ void NoteEditorPrivate::setupFileIO()
 
 #ifdef USE_QT_WEB_ENGINE
     QObject::connect(this,
-                     QNSIGNAL(NoteEditorPrivate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
+                     QNSIGNAL(NoteEditorPrivate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageWriter,
-                     QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
+                     QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
     QObject::connect(m_pGenericResourceImageWriter,
                      QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
@@ -4333,10 +4348,16 @@ void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceL
 {
     QNDEBUG("NoteEditorPrivate::cleanupStaleImageResourceFiles: resource local uid = " << resourceLocalUid);
 
-    QString fileStoragePathPrefix = m_noteEditorImageResourcesStoragePath + "/" + resourceLocalUid;
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNDEBUG("Can't cleanup stale resource files: no note is set to the editor");
+        return;
+    }
+
+    QString fileStorageDirPath = m_noteEditorImageResourcesStoragePath + "/" + m_pNote->localUid();
+    QString fileStoragePathPrefix = fileStorageDirPath + "/" + resourceLocalUid;
     QString fileStoragePath = fileStoragePathPrefix + ".png";
 
-    QDir dir(m_noteEditorImageResourcesStoragePath);
+    QDir dir(fileStorageDirPath);
     QFileInfoList entryList = dir.entryInfoList();
 
     const int numEntries = entryList.size();

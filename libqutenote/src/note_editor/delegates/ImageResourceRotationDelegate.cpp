@@ -69,7 +69,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
 
     QString errorPrefix = QT_TR_NOOP("Can't rotate image attachment by hash:") + QString(" ");
 
-    m_pNote = m_noteEditor.GetNotePrt();
+    m_pNote = m_noteEditor.notePtr();
     if (Q_UNLIKELY(!m_pNote)) {
         QString error = errorPrefix + QT_TR_NOOP("no note is set to the editor");
         QNWARNING(error);
@@ -190,7 +190,7 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
         return;
     }
 
-    Note * pNote = m_noteEditor.GetNotePrt();
+    Note * pNote = m_noteEditor.notePtr();
     if (Q_UNLIKELY(pNote != m_pNote)) {
         errorDescription = QT_TR_NOOP("Can't rotate image resource: note was changed during the processing of image rotation");
         QNWARNING(errorDescription);

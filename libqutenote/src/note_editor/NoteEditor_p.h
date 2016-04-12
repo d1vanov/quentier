@@ -132,7 +132,7 @@ public:
                         ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
 
     bool isModified() const;
-    Note * GetNotePrt() { return m_pNote; }
+    Note * notePtr() { return m_pNote; }
 
     const QString & noteEditorPagePath() const { return m_noteEditorPagePath; }
     const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
@@ -260,7 +260,7 @@ Q_SIGNALS:
     void openResourceFile(QString absoluteFilePath);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId, bool append);
     void saveResourceToFile(QString absoluteFilePath, QByteArray resourceData, QUuid requestId, bool append);
-    void saveGenericResourceImageToFile(QString resourceLocalUid, QByteArray resourceImageData,
+    void saveGenericResourceImageToFile(QString noteLocalUid, QString resourceLocalUid, QByteArray resourceImageData,
                                         QString resourceFileSuffix, QByteArray resourceActualHash,
                                         QString resourceDisplayName, QUuid requestId);
 
