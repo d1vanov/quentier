@@ -41,7 +41,13 @@ void ImageResourceRotationUndoCommand::redoImpl()
 {
     QNDEBUG("ImageResourceRotationUndoCommand::redoImpl");
 
-    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();
+    const Note * pNote = m_noteEditorPrivate.notePtr();
+    if (Q_UNLIKELY(!pNote)) {
+        QNDEBUG("Can't redo image resource rotation: no note set to the editor");
+        return;
+    }
+
+    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath() + "/" + pNote->localUid();
     fileStoragePath += "/" + m_resourceAfter.localUid();
     fileStoragePath += ".png";
 
@@ -52,6 +58,12 @@ void ImageResourceRotationUndoCommand::undoImpl()
 {
     QNDEBUG("ImageResourceRotationUndoCommand::undoImpl");
 
+    const Note * pNote = m_noteEditorPrivate.notePtr();
+    if (Q_UNLIKELY(!pNote)) {
+        QNDEBUG("Can't undo image resource rotation: no note set to the editor");
+        return;
+    }
+
     ResourceWrapper resource(m_resourceAfter);
     resource.setDataBody(m_resourceDataBefore);
     resource.setDataSize(m_resourceDataBefore.size());
@@ -61,7 +73,7 @@ void ImageResourceRotationUndoCommand::undoImpl()
         resource.setRecognitionDataSize(m_resourceRecognitionDataBefore.size());
     }
 
-    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath();
+    QString fileStoragePath = m_noteEditorPrivate.imageResourcesStoragePath() + "/" + pNote->localUid();
     fileStoragePath += "/" + resource.localUid();
     fileStoragePath += ".png";
 

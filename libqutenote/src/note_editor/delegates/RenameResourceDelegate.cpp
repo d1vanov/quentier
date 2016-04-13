@@ -20,9 +20,11 @@ namespace qute_note {
 
 RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
                                                GenericResourceImageWriter * pGenericResourceImageWriter,
+                                               QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                                                const bool performingUndo) :
     m_noteEditor(noteEditor),
     m_pGenericResourceImageWriter(pGenericResourceImageWriter),
+    m_genericResourceImageFilePathsByResourceHash(genericResourceImageFilePathsByResourceHash),
     m_resource(resource),
     m_oldResourceName(resource.displayName()),
     m_newResourceName(),
@@ -31,8 +33,7 @@ RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource,
     m_pNote(noteEditor.notePtr())
 #ifdef USE_QT_WEB_ENGINE
     ,
-    m_genericResourceImageWriterRequestId(),
-    m_newGenericResourceImageFilePath()
+    m_genericResourceImageWriterRequestId()
 #endif
 {}
 
@@ -106,7 +107,7 @@ void RenameResourceDelegate::doStart()
 #ifdef USE_QT_WEB_ENGINE
         buildAndSaveGenericResourceImage();
 #else
-        emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo, QString());
+        emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo);
 #endif
     }
 }
@@ -150,7 +151,7 @@ void RenameResourceDelegate::onRenameResourceDialogFinished(QString newResourceN
 #ifdef USE_QT_WEB_ENGINE
     buildAndSaveGenericResourceImage();
 #else
-    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo, QString());
+    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo);
 #endif
 }
 
@@ -205,7 +206,7 @@ void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, 
         return;
     }
 
-    m_newGenericResourceImageFilePath = filePath;
+    m_genericResourceImageFilePathsByResourceHash[resourceHash] = filePath;
 
     QString javascript = "updateImageResourceSrc('" + QString::fromLocal8Bit(resourceHash) + "', '" + filePath + "');";
 
@@ -219,7 +220,7 @@ void RenameResourceDelegate::onGenericResourceImageUpdated(const QVariant & data
 
     Q_UNUSED(data)
 
-    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo, m_newGenericResourceImageFilePath);
+    emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo);
 }
 
 #endif

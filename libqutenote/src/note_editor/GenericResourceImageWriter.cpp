@@ -156,7 +156,8 @@ void GenericResourceImageWriter::onGenericResourceImageWriteRequest(QString note
     resourceNameFile.write(resourceDisplayName.toLocal8Bit());
     resourceNameFile.close();
 
-    QNTRACE("Successfully wrote resource image file and helper files with hash and display name for request " << requestId);
+    QNTRACE("Successfully wrote resource image file and helper files with hash and display name for request " << requestId
+            << ", resource image file path = " << resourceImageFilePath);
     emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
                                         resourceImageFilePath, QString(), requestId);
 

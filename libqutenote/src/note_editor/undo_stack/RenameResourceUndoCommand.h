@@ -3,6 +3,7 @@
 
 #include "INoteEditorUndoCommand.h"
 #include <qute_note/types/ResourceWrapper.h>
+#include <QHash>
 
 namespace qute_note {
 
@@ -13,9 +14,11 @@ class RenameResourceUndoCommand: public INoteEditorUndoCommand
 public:
     RenameResourceUndoCommand(const ResourceWrapper & resource, const QString & previousResourceName,
                               NoteEditorPrivate & noteEditor, GenericResourceImageWriter * pGenericResourceImageWriter,
+                              QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                               QUndoCommand * parent = Q_NULLPTR);
     RenameResourceUndoCommand(const ResourceWrapper & resource, const QString & previousResourceName,
                               NoteEditorPrivate & noteEditor, GenericResourceImageWriter * pGenericResourceImageWriter,
+                              QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                               const QString & text,  QUndoCommand * parent = Q_NULLPTR);
     virtual ~RenameResourceUndoCommand();
 
@@ -27,6 +30,7 @@ private:
     QString                         m_previousResourceName;
     QString                         m_newResourceName;
     GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
 };
 
 } // namespace qute_note

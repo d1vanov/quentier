@@ -1,5 +1,6 @@
 #include "ImageResourceRotationDelegate.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
+#include <qute_note/types/Note.h>
 #include <qute_note/types/ResourceAdapter.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
@@ -158,7 +159,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
     m_rotatedResource.setRecognitionDataSize(0);
     m_rotatedResource.setRecognitionDataHash(QByteArray());
 
-    m_resourceFileStoragePathAfter = m_noteEditor.imageResourcesStoragePath();
+    m_resourceFileStoragePathAfter = m_noteEditor.imageResourcesStoragePath() + "/" + m_pNote->localUid();
     m_resourceFileStoragePathAfter += "/" + m_rotatedResource.localUid();
     m_resourceFileStoragePathAfter += ".png";
 
@@ -199,7 +200,7 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     }
 
     const QString localUid = m_rotatedResource.localUid();
-    m_noteEditor.cleanupStaleImageResourceFiles(localUid);
+    m_noteEditor.removeSymlinksToImageResourceFile(localUid);
 
     QFile rotatedImageResourceFile(fileStoragePath);
     QString linkFileName = fileStoragePath;

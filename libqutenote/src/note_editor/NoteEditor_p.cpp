@@ -111,8 +111,8 @@ void NoteEditorPageDeleter(NoteEditorPage *& page) { delete page; page = Q_NULLP
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     INoteEditorBackend(&noteEditor),
     m_noteEditorPageFolderPath(),
-    m_noteEditorPagePath(),
     m_noteEditorImageResourcesStoragePath(),
+    m_genericResourceImageFileStoragePath(),
     m_font(),
     m_jQueryJs(),
     m_jQueryUiJs(),
@@ -187,8 +187,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pendingIndexHtmlWritingToFile(false),
     m_pendingJavaScriptExecution(false),
     m_skipPushingUndoCommandOnNextContentChange(false),
-    m_pNote(Q_NULLPTR),
-    m_pNotebook(Q_NULLPTR),
+    m_pNote(),
+    m_pNotebook(),
     m_modified(false),
     m_watchingForContentChange(false),
     m_contentChangedSinceWatchingStart(false),
@@ -262,8 +262,8 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 {
     QString initialHtml = m_pagePrefix + "<body></body></html>";
     m_noteEditorPageFolderPath = applicationPersistentStoragePath() + "/NoteEditorPage";
-    m_noteEditorPagePath = m_noteEditorPageFolderPath + "/index.html";
     m_noteEditorImageResourcesStoragePath = m_noteEditorPageFolderPath + "/imageResources";
+    m_genericResourceImageFileStoragePath = m_noteEditorPageFolderPath + "/genericResourceImages";
 
     setupSkipRulesForHtmlToEnmlConversion();
     setupFileIO();
@@ -289,18 +289,11 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     }
     QNTRACE("Resource local file storage folder: " << m_resourceLocalFileStorageFolder);
 
-    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
-    m_pendingIndexHtmlWritingToFile = true;
-    emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
-    QNTRACE("Emitted the request to write the index html file, request id: " << m_writeNoteHtmlToFileRequestId);
+    writeNotePageFile(initialHtml);
 }
 
 NoteEditorPrivate::~NoteEditorPrivate()
 {
-    delete m_pNote;
-    delete m_pNotebook;
-
     m_pIOThread->quit();
 }
 
@@ -479,7 +472,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
         Q_UNUSED(m_imageResourceSaveToStorageRequestIds.erase(imageResourceIt));
 
-        QString linkFileName = createLinkToImageResourceFile(fileStoragePath, localUid, errorDescription);
+        QString linkFileName = createSymlinkToImageResourceFile(fileStoragePath, localUid, errorDescription);
         if (linkFileName.isEmpty()) {
             QNWARNING(errorDescription);
             emit notifyError(errorDescription);
@@ -495,7 +488,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     QString resourceDisplaySize;
 
     QString oldResourceHash;
-    if (m_pNote)
+    if (!m_pNote.isNull())
     {
         bool shouldUpdateNoteResources = false;
         QList<ResourceWrapper> resources = m_pNote->resources();
@@ -562,7 +555,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
         Q_UNUSED(m_localUidsOfResourcesWantedToBeSaved.erase(saveIt));
 
-        if (Q_UNLIKELY(!m_pNote)) {
+        if (Q_UNLIKELY(m_pNote.isNull())) {
             QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
             QNINFO(error << ", resource local uid = " << localUid);
             emit notifyError(error);
@@ -602,7 +595,7 @@ void NoteEditorPrivate::onResourceFileChanged(QString resourceLocalUid, QString 
     QNDEBUG("NoteEditorPrivate::onResourceFileChanged: resource local uid = " << resourceLocalUid
             << ", file storage path = " << fileStoragePath);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QNDEBUG("Can't process resource file change: no note is set to the editor");
         return;
     }
@@ -655,7 +648,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         return;
     }
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QNDEBUG("Can't process the update of the resource file data: no note is set to the editor");
         return;
     }
@@ -721,7 +714,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
 
     if (resourceMimeTypeName.startsWith("image/"))
     {
-        QString linkFileName = createLinkToImageResourceFile(fileStoragePath, resourceLocalUid, errorDescription);
+        QString linkFileName = createSymlinkToImageResourceFile(fileStoragePath, resourceLocalUid, errorDescription);
         if (linkFileName.isEmpty()) {
             QNWARNING(errorDescription);
             emit notifyError(errorDescription);
@@ -838,7 +831,7 @@ void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::onOpenResourceRequest: " << resourceHash);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't open resource: no note is set to the editor");
         QNWARNING(error << ", resource hash = " << resourceHash);
         emit notifyError(error);
@@ -873,7 +866,7 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::onSaveResourceRequest: " << resourceHash);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
         QNINFO(error << ", resource hash = " << resourceHash);
         emit notifyError(error);
@@ -1157,7 +1150,7 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
             return;
         }
 
-        QUrl url = QUrl::fromLocalFile(m_noteEditorPagePath);
+        QUrl url = QUrl::fromLocalFile(noteEditorPagePath());
 
 #ifdef USE_QT_WEB_ENGINE
         page()->setUrl(url);
@@ -1316,13 +1309,11 @@ void NoteEditorPrivate::onRemoveResourceUndoRedoFinished(const QVariant & data, 
 }
 
 void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
-                                                         ResourceWrapper resource, bool performingUndo,
-                                                         QString newResourceImageFilePath)
+                                                         ResourceWrapper resource, bool performingUndo)
 {
     QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateFinished: old resource name = " << oldResourceName
             << ", new resource name = " << newResourceName << ", performing undo = "
-            << (performingUndo ? "true" : "false") << ", resource: " << resource
-            << "\nnew resource image file path = " << newResourceImageFilePath);
+            << (performingUndo ? "true" : "false") << ", resource: " << resource);
 
 #ifndef USE_QT_WEB_ENGINE
     if (m_pluginFactory) {
@@ -1330,16 +1321,10 @@ void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName
     }
 #endif
 
-    if (resource.hasDataHash()) {
-        m_genericResourceImageFilePathsByResourceHash[resource.dataHash()] = newResourceImageFilePath;
-        QNDEBUG("Cached generic resource image file path " << newResourceImageFilePath << " for resource hash " << resource.dataHash());
-    }
-    else {
-        QNWARNING("Can't update the generic resource image file path as resource data hash is empty: " << resource);
-    }
-
     if (!performingUndo) {
-        RenameResourceUndoCommand * pCommand = new RenameResourceUndoCommand(resource, oldResourceName, *this, m_pGenericResourceImageWriter);
+        RenameResourceUndoCommand * pCommand = new RenameResourceUndoCommand(resource, oldResourceName, *this,
+                                                                             m_pGenericResourceImageWriter,
+                                                                             m_genericResourceImageFilePathsByResourceHash);
         m_pUndoStack->push(pCommand);
     }
 
@@ -1941,7 +1926,7 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
 
     QUTE_NOTE_CHECK_PTR(m_pUndoStack, "Undo stack for note editor wasn't initialized");
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QNINFO("Ignoring the content changed signal as the note pointer is null");
         return;
     }
@@ -2184,17 +2169,14 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastSearchHighlightedTextCaseSensitivity = false;
 
     QString initialHtml = m_pagePrefix + "<body></body></html>";
-    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
-    m_pendingIndexHtmlWritingToFile = true;
-    emit writeNoteHtmlToFile(m_noteEditorPagePath, initialHtml.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
+    writeNotePageFile(initialHtml);
 }
 
 void NoteEditorPrivate::noteToEditorContent()
 {
     QNDEBUG("NoteEditorPrivate::noteToEditorContent");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         QNDEBUG("No note has been set yet");
         clearEditorContent();
         return;
@@ -2278,11 +2260,7 @@ void NoteEditorPrivate::noteToEditorContent()
         setPageEditable(true);
     }
 
-    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
-    m_pendingIndexHtmlWritingToFile = true;
-    emit writeNoteHtmlToFile(m_noteEditorPagePath, m_htmlCachedMemory.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
-    QNTRACE("Emitted the request to write the note html to file: id = " << m_writeNoteHtmlToFileRequestId);
+    writeNotePageFile(m_htmlCachedMemory);
 }
 
 void NoteEditorPrivate::updateColResizableTableBindings()
@@ -2307,7 +2285,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
 {
     QNDEBUG("NoteEditorPrivate::htmlToNoteContent");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         errorDescription = QT_TR_NOOP("No note was set to note editor");
         emit cantConvertToNote(errorDescription);
         return false;
@@ -2322,7 +2300,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
         return false;
     }
 
-    if (m_pNotebook && m_pNotebook->hasRestrictions())
+    if (!m_pNotebook.isNull() && m_pNotebook->hasRestrictions())
     {
         const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
@@ -2355,7 +2333,7 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
 {
     QNDEBUG("NoteEditorPrivate::saveNoteResourcesToLocalFiles");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         QNTRACE("No note is set for the editor");
         return;
     }
@@ -2800,7 +2778,7 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
 {
     QNDEBUG("NoteEditorPrivate::saveGenericResourceImage: resource local uid = " << resource.localUid());
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't save the generic resource image: no note is set to the editor");
         QNWARNING(error << ", resource: " << resource);
         emit notifyError(error);
@@ -2834,7 +2812,7 @@ void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
 {
     QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         QNTRACE("No note is set for the editor");
         return;
     }
@@ -2855,7 +2833,7 @@ void NoteEditorPrivate::setupGenericResourceImages()
 {
     QNDEBUG("NoteEditorPrivate::setupGenericResourceImages");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         QNDEBUG("No note to build generic resource images for");
         return;
     }
@@ -3032,7 +3010,7 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
             << previousResourceHash << ", updated resource: " << updatedResource << "\nResource file storage path = "
             << resourceFileStoragePath);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't update resource: no note is set to the editor");
         QNWARNING(error << ", updated resource: " << updatedResource);
         emit notifyError(error);
@@ -3395,7 +3373,7 @@ void NoteEditorPrivate::setupFileIO()
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
     m_pGenericResourceImageWriter = new GenericResourceImageWriter;
-    m_pGenericResourceImageWriter->setStorageFolderPath(m_noteEditorPageFolderPath + "/GenericResourceImages");
+    m_pGenericResourceImageWriter->setStorageFolderPath(m_genericResourceImageFileStoragePath);
     m_pGenericResourceImageWriter->moveToThread(m_pIOThread);
 
 #ifdef USE_QT_WEB_ENGINE
@@ -3551,7 +3529,7 @@ void NoteEditorPrivate::setupNoteEditorPage()
                                                    QScriptEngine::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
-    if (Q_LIKELY(m_pNote)) {
+    if (Q_LIKELY(!m_pNote.isNull())) {
         m_pluginFactory->setNote(*m_pNote);
     }
 
@@ -3747,7 +3725,7 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
         return;
     }
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         m_pendingConversionToNote = false;
         m_errorCachedMemory = QT_TR_NOOP("No current note is set to note editor");
         emit cantConvertToNote(m_errorCachedMemory);
@@ -3823,6 +3801,41 @@ int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resour
     return -1;
 }
 
+void NoteEditorPrivate::writeNotePageFile(const QString & html)
+{
+    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
+    m_pendingIndexHtmlWritingToFile = true;
+    QString pagePath = noteEditorPagePath();
+    emit writeNoteHtmlToFile(pagePath, html.toLocal8Bit(),
+                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
+    QNTRACE("Emitted the request to write the note html to file: id = " << m_writeNoteHtmlToFileRequestId);
+}
+
+bool NoteEditorPrivate::removeFile(const QString & filePath) const
+{
+    QNDEBUG("NoteEditorPrivate::removeFile: " << filePath);
+
+    QFile file(filePath);
+    file.close();   // NOTE: this line seems to be mandatory on Windows
+    bool res = file.remove();
+    if (res) {
+        QNTRACE("Successfully removed file " << filePath);
+        return true;
+    }
+
+#ifdef Q_OS_WIN
+    if (filePath.endsWith(".lnk")) {
+        // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
+        // for any *.lnk files even though the files are actually getting removed
+        QNTRACE("Skipping the reported failure at removing the .lnk file");
+        return true;
+    }
+#endif
+
+    QNWARNING("Cannot remove file " << filePath << ": " << file.errorString() << ", error code " << file.error());
+    return false;
+}
+
 bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                                QString & cipher, QString & keyLength, QString & hint,
                                                                QString & id, QString & errorDescription) const
@@ -3851,7 +3864,7 @@ void NoteEditorPrivate::rebuildRecognitionIndicesCache()
 
     m_recognitionIndicesByResourceHash.clear();
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QNTRACE("No note is set");
         return;
     }
@@ -3914,7 +3927,7 @@ void NoteEditorPrivate::refreshMisSpelledWordsList()
 {
     QNDEBUG("NoteEditorPrivate::refreshMisSpelledWordsList");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         QNDEBUG("No note is set to the editor");
         return;
     }
@@ -4042,12 +4055,12 @@ bool NoteEditorPrivate::isNoteReadOnly() const
 {
     QNDEBUG("NoteEditorPrivate::isNoteReadOnly");
 
-    if (!m_pNote) {
+    if (m_pNote.isNull()) {
         QNTRACE("No note is set to the editor");
         return true;
     }
 
-    if (!m_pNotebook) {
+    if (m_pNotebook.isNull()) {
         QNTRACE("No notebook is set to the editor");
         return true;
     }
@@ -4126,16 +4139,16 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
             << notebook.localUid() << ", guid = " << (notebook.hasGuid() ? notebook.guid() : "<null>")
             << ", name = " << (notebook.hasName() ? notebook.name() : "<null>"));
 
-    if (!m_pNotebook) {
-        m_pNotebook = new Notebook(notebook);
+    if (m_pNotebook.isNull()) {
+        m_pNotebook.reset(new Notebook(notebook));
     }
     else {
         *m_pNotebook = notebook;
     }
 
-    if (!m_pNote)
+    if (m_pNote.isNull())
     {
-        m_pNote = new Note(note);
+        m_pNote.reset(new Note(note));
     }
     else
     {
@@ -4148,15 +4161,12 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         }
         else
         {
+            cleanupStaleNoteResourceFiles();
+
             *m_pNote = note;
 
             m_decryptedTextManager->clearNonRememberedForSessionEntries();
             QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
-
-            // FIXME: remove any stale resource files left which are not related to the previous note
-            // i.e. stale files for generic & image resources being removed from the note, stale image files
-            // representing such removed generic resources etc; however, keep the resource files corresponding
-            // to the resources the previous note still has
         }
     }
 
@@ -4211,12 +4221,9 @@ void NoteEditorPrivate::setNoteHtml(const QString & html)
 {
     QNDEBUG("NoteEditorPrivate::setNoteHtml");
     m_pendingConversionToNote = true;
-    onPageHtmlReceived(html, QVector<QPair<QString,QString> >());
+    onPageHtmlReceived(html);
 
-    m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
-    m_pendingIndexHtmlWritingToFile = true;
-    emit writeNoteHtmlToFile(m_noteEditorPagePath, html.toLocal8Bit(),
-                             m_writeNoteHtmlToFileRequestId, /* append = */ false);
+    writeNotePageFile(html);
 }
 
 void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
@@ -4224,7 +4231,7 @@ void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
     QNDEBUG("NoteEditorPrivate::addResourceToNote");
     QNTRACE(resource);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         m_errorCachedMemory = QT_TR_NOOP("Can't add resource to note: no note is set to the editor");
         QNWARNING(m_errorCachedMemory << ", resource to add: " << resource);
         emit notifyError(m_errorCachedMemory);
@@ -4248,7 +4255,7 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
     QNDEBUG("NoteEditorPrivate::removeResourceFromNote");
     QNTRACE(resource);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         m_errorCachedMemory = QT_TR_NOOP("Can't remove resource from note: no note is set to the editor");
         QNWARNING(m_errorCachedMemory << ", resource to remove: " << resource);
         emit notifyError(m_errorCachedMemory);
@@ -4272,7 +4279,7 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
     QNDEBUG("NoteEditorPrivate::replaceResourceInNote");
     QNTRACE(resource);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         m_errorCachedMemory = QT_TR_NOOP("Can't replace resource in note: no note is set to the editor");
         QNWARNING(m_errorCachedMemory << ", replacement resource: " << resource);
         emit notifyError(m_errorCachedMemory);
@@ -4318,7 +4325,7 @@ void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resource
 {
     QNDEBUG("NoteEditorPrivate::setNoteResources");
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         m_errorCachedMemory = QT_TR_NOOP("Can't set resources to the note: no note is set to the editor");
         QNWARNING(m_errorCachedMemory);
         emit notifyError(m_errorCachedMemory);
@@ -4334,22 +4341,31 @@ bool NoteEditorPrivate::isModified() const
     return m_modified;
 }
 
+QString NoteEditorPrivate::noteEditorPagePath() const
+{
+    if (m_pNote.isNull()) {
+        return m_noteEditorPageFolderPath + "/index.html";
+    }
+
+    return m_noteEditorPageFolderPath + "/" + m_pNote->localUid() + ".html";
+}
+
 void NoteEditorPrivate::setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate)
 {
-    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool,QString));
+    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool));
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateCancelled));
 }
 
-void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceLocalUid)
+void NoteEditorPrivate::removeSymlinksToImageResourceFile(const QString & resourceLocalUid)
 {
-    QNDEBUG("NoteEditorPrivate::cleanupStaleImageResourceFiles: resource local uid = " << resourceLocalUid);
+    QNDEBUG("NoteEditorPrivate::removeSymlinksToImageResourceFile: resource local uid = " << resourceLocalUid);
 
-    if (Q_UNLIKELY(!m_pNote)) {
-        QNDEBUG("Can't cleanup stale resource files: no note is set to the editor");
+    if (Q_UNLIKELY(m_pNote.isNull())) {
+        QNDEBUG("Can't remove symlinks to resource image file: no note is set to the editor");
         return;
     }
 
@@ -4367,12 +4383,12 @@ void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceL
     for(int i = 0; i < numEntries; ++i)
     {
         const QFileInfo & entry = entryList[i];
-        if (!entry.isFile() && !entry.isSymLink()) {
+        if (!entry.isSymLink()) {
             continue;
         }
 
         entryFilePath = entry.absoluteFilePath();
-        QNTRACE("See if we need to remove file " << entryFilePath);
+        QNTRACE("See if we need to remove the symlink to resource image file " << entryFilePath);
 
         if (!entryFilePath.startsWith(fileStoragePathPrefix)) {
             continue;
@@ -4382,31 +4398,13 @@ void NoteEditorPrivate::cleanupStaleImageResourceFiles(const QString & resourceL
             continue;
         }
 
-        QFile entryFile(entryFilePath);
-        entryFile.close();  // NOTE: it appears to be important for Windows
-
-        bool res = entryFile.remove();
-        if (res) {
-            QNTRACE("Successfully removed file " << entryFilePath);
-            continue;
-        }
-
-#ifdef Q_OS_WIN
-        if (entryFilePath.endsWith(".lnk")) {
-            // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
-            // for any *.lnk files even though the files are actually getting removed
-            QNTRACE("Skipping the reported failure at removing the .lnk file");
-            continue;
-        }
-#endif
-
-        QNWARNING("Can't remove stale file " << entryFilePath << ": " << entryFile.errorString());
+        Q_UNUSED(removeFile(entryFilePath))
     }
 }
 
-QString NoteEditorPrivate::createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription)
+QString NoteEditorPrivate::createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription)
 {
-    QNDEBUG("NoteEditorPrivate::createLinkToImageResourceFile: file storage path = " << fileStoragePath
+    QNDEBUG("NoteEditorPrivate::createSymlinkToImageResourceFile: file storage path = " << fileStoragePath
             << ", local uid = " << localUid);
 
     QString linkFileName = fileStoragePath;
@@ -4422,7 +4420,7 @@ QString NoteEditorPrivate::createLinkToImageResourceFile(const QString & fileSto
 
     QNTRACE("Link file name = " << linkFileName);
 
-    cleanupStaleImageResourceFiles(localUid);
+    removeSymlinksToImageResourceFile(localUid);
 
     QFile imageResourceFile(fileStoragePath);
     bool res = imageResourceFile.link(linkFileName);
@@ -4437,6 +4435,71 @@ QString NoteEditorPrivate::createLinkToImageResourceFile(const QString & fileSto
     }
 
     return linkFileName;
+}
+
+void NoteEditorPrivate::cleanupStaleNoteResourceFiles()
+{
+    QNDEBUG("NoteEditorPrivate::cleanupStaleNoteResourceFiles");
+
+    if (Q_UNLIKELY(m_pNote.isNull())) {
+        QNDEBUG("Can't cleanup stale note resource files: no note is set to the editor");
+        return;
+    }
+
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    const int numResources = resourceAdapters.size();
+
+    QFileInfoList fileInfoList;
+    int numFiles = -1;
+
+    QDir imageResourceFilesFolder(m_noteEditorImageResourcesStoragePath + "/" + m_pNote->localUid());
+    if (imageResourceFilesFolder.exists())
+    {
+        fileInfoList = imageResourceFilesFolder.entryInfoList(QDir::Files);
+        numFiles = fileInfoList.size();
+        QNTRACE("Found " << numFiles << " files wihin the image resource files folder for note with local uid " << m_pNote->localUid());
+    }
+
+    QDir genericResourceImagesFolder(m_genericResourceImageFileStoragePath + "/" + m_pNote->localUid());
+    if (genericResourceImagesFolder.exists())
+    {
+        QFileInfoList genericResourceImageFileInfos = genericResourceImagesFolder.entryInfoList(QDir::Files);
+        int numGenericResourceImageFileInfos = genericResourceImageFileInfos.size();
+        QNTRACE("Found " << numGenericResourceImageFileInfos << " files within the generic resource files folder for note with local uid " << m_pNote->localUid());
+
+        fileInfoList.append(genericResourceImageFileInfos);
+        numFiles = fileInfoList.size();
+    }
+
+    QNTRACE("Total " << numFiles << " to check for staleness");
+
+    for(int i = 0; i < numFiles; ++i)
+    {
+        const QFileInfo & fileInfo = fileInfoList[i];
+        QString baseName = fileInfo.baseName();
+        QNTRACE("Checking file with base name " << baseName);
+
+        bool foundResource = false;
+        for(int j = 0; j < numResources; ++j)
+        {
+            QNTRACE("checking against resource with local uid " << resourceAdapters[j].localUid());
+            if (baseName.startsWith(resourceAdapters[j].localUid())) {
+                QNTRACE("File " << fileInfo.fileName() << " appears to correspond to resource "
+                        << resourceAdapters[j].localUid());
+                foundResource = true;
+                break;
+            }
+        }
+
+        if (foundResource) {
+            break;
+        }
+
+        QString filePath = fileInfo.absoluteFilePath();
+        QNTRACE("Found stale image resource file " << filePath << ", removing it");
+
+        Q_UNUSED(removeFile(filePath))
+    }
 }
 
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
@@ -4480,7 +4543,7 @@ const ResourceWrapper NoteEditorPrivate::attachResourceToNote(const QByteArray &
     QString resourceLocalUid = resource.localUid();
     resource.setLocalUid(QString());   // Force the resource to have empty local uid for now
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QNINFO("Can't attach resource to note editor: no actual note was selected");
         return resource;
     }
@@ -5449,7 +5512,7 @@ void NoteEditorPrivate::openAttachmentUnderCursor()
 
 void NoteEditorPrivate::copyAttachment(const QString & resourceHash)
 {
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't copy attachment: no note is set to the editor");
         QNWARNING(error);
         emit notifyError(error);
@@ -5519,7 +5582,7 @@ void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::removeAttachment: hash = " << resourceHash);
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't remove resource by hash: no note is set to the editor");
         QNWARNING(error);
         emit notifyError(error);
@@ -5595,7 +5658,7 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
 
     QString errorPrefix = QT_TR_NOOP("Can't rename attachment:") + QString(" ");
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = errorPrefix + QT_TR_NOOP("no note is set to the editor");
         QNWARNING(error);
         emit notifyError(error);
@@ -5638,7 +5701,7 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
         return;
     }
 
-    RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageWriter);
+    RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageWriter, m_genericResourceImageFilePathsByResourceHash);
 
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool,QString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool,QString));
@@ -5656,7 +5719,7 @@ void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, cons
 
     QString errorPrefix = QT_TR_NOOP("Can't rotate image attachment:") + QString(" ");
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = errorPrefix + QT_TR_NOOP("no note is set to the editor");
         QNWARNING(error);
         emit notifyError(error);

@@ -7,6 +7,7 @@
 #include <qute_note/types/ResourceWrapper.h>
 #include <QObject>
 #include <QUuid>
+#include <QHash>
 
 namespace qute_note {
 
@@ -24,13 +25,14 @@ class RenameResourceDelegate: public QObject
 public:
     explicit RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
                                     GenericResourceImageWriter * pGenericResourceImageWriter,
+                                    QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                                     const bool performingUndo = false);
     void start();
     void startWithPresetNames(const QString & oldResourceName, const QString & newResourceName);
 
 Q_SIGNALS:
     void finished(QString oldResourceName, QString newResourceName, ResourceWrapper resource,
-                  bool performingUndo, QString newResourceImageFilePath);
+                  bool performingUndo);
     void cancelled();
     void notifyError(QString);
 
@@ -65,6 +67,7 @@ private:
 private:
     NoteEditorPrivate &             m_noteEditor;
     GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
     ResourceWrapper                 m_resource;
 
     QString                         m_oldResourceName;
@@ -77,7 +80,6 @@ private:
 
 #ifdef USE_QT_WEB_ENGINE
     QUuid                           m_genericResourceImageWriterRequestId;
-    QString                         m_newGenericResourceImageFilePath;
 #endif
 };
 

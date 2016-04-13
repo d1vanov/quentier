@@ -17,6 +17,7 @@
 #include <QImage>
 #include <QUndoStack>
 #include <QPointer>
+#include <QScopedPointer>
 
 #ifdef USE_QT_WEB_ENGINE
 #include <QWebEngineView>
@@ -132,16 +133,20 @@ public:
                         ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
 
     bool isModified() const;
-    Note * notePtr() { return m_pNote; }
+    Note * notePtr() { return m_pNote.data(); }
 
-    const QString & noteEditorPagePath() const { return m_noteEditorPagePath; }
+    QString noteEditorPagePath() const;
     const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
     const QString & resourceLocalFileStoragePath() const { return m_resourceLocalFileStorageFolder; }
+    const QString & genericResourceImageFileStoragePath() const { return m_genericResourceImageFileStoragePath; }
 
     void setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate);
 
-    void cleanupStaleImageResourceFiles(const QString & resourceLocalUid);
-    QString createLinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription);
+    void removeSymlinksToImageResourceFile(const QString & resourceLocalUid);
+    QString createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription);
+
+    void cleanupStaleNoteResourceFiles();
+    void cleanupStaleNoteResourceFiles(const QString & folderPath);
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(const QString & filepath);
@@ -347,8 +352,7 @@ private Q_SLOTS:
     void onRemoveResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
-                                          ResourceWrapper resource, bool performingUndo,
-                                          QString newResourceImageFilePath);
+                                          ResourceWrapper resource, bool performingUndo);
     void onRenameResourceDelegateCancelled();
     void onRenameResourceDelegateError(QString error);
 
@@ -459,7 +463,8 @@ private:
     int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
                             const QString & resourceHash) const;
 
-    void updateNoteEditorPagePath(const quint32 index);
+    void writeNotePageFile(const QString & html);
+    bool removeFile(const QString & filePath) const;
 
     bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                 QString & cipher, QString & keyLength, QString & hint,
@@ -601,8 +606,8 @@ private:
 
 private:
     QString     m_noteEditorPageFolderPath;
-    QString     m_noteEditorPagePath;
     QString     m_noteEditorImageResourcesStoragePath;
+    QString     m_genericResourceImageFileStoragePath;
 
     QFont       m_font;
 
@@ -692,8 +697,8 @@ private:
 
     bool        m_skipPushingUndoCommandOnNextContentChange;
 
-    Note *      m_pNote;
-    Notebook *  m_pNotebook;
+    QScopedPointer<Note>        m_pNote;
+    QScopedPointer<Notebook>    m_pNotebook;
 
     bool        m_modified;
 
