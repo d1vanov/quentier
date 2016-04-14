@@ -130,7 +130,7 @@ public:
     void setupGenericResourceOnClickHandler();
 
     void updateResource(const QString & resourceLocalUid, const QString & previousResourceHash,
-                        ResourceWrapper updatedResource, const QString & resourceFileStoragePath = QString());
+                        ResourceWrapper updatedResource);
 
     bool isModified() const;
     Note * notePtr() { return m_pNote.data(); }
@@ -144,9 +144,6 @@ public:
 
     void removeSymlinksToImageResourceFile(const QString & resourceLocalUid);
     QString createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription);
-
-    void cleanupStaleNoteResourceFiles();
-    void cleanupStaleNoteResourceFiles(const QString & folderPath);
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(const QString & filepath);
@@ -259,8 +256,8 @@ public Q_SLOTS:
 
 // private signals:
 Q_SIGNALS:
-    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash,
-                               QString fileStoragePath, QUuid requestId);
+    void saveResourceToStorage(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
+                               QString preferredFileSuffix, QUuid requestId, bool isImage);
     void readResourceFromStorage(QString fileStoragePath, QString localUid, QUuid requestId);
     void openResourceFile(QString absoluteFilePath);
     void writeNoteHtmlToFile(QString absoluteFilePath, QByteArray html, QUuid requestId, bool append);
@@ -464,7 +461,6 @@ private:
                             const QString & resourceHash) const;
 
     void writeNotePageFile(const QString & html);
-    bool removeFile(const QString & filePath) const;
 
     bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                 QString & cipher, QString & keyLength, QString & hint,

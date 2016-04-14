@@ -24,8 +24,8 @@ Q_SIGNALS:
     void notifyError(QString error);
 
 // private signals
-    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash,
-                               QString fileStoragePath, QUuid requestId);
+    void saveResourceToStorage(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
+                               QString preferredFileSuffix, QUuid requestId, bool isImage);
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);

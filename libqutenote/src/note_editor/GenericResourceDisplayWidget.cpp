@@ -81,25 +81,13 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,QString));
-    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
-                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QString,QUuid,bool),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
 
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QString,QUuid));
     QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
-
-    QString resourceFileStorageLocation = ResourceFileStorageManager::resourceFileStorageLocation(qobject_cast<QWidget*>(parent()));
-    if (resourceFileStorageLocation.isEmpty()) {
-        QNWARNING("Couldn't determine the path for resource file storage location");
-        return;
-    }
-
-    m_ownFilePath = resourceFileStorageLocation + "/" + m_pResource->localUid();
-    QString resourcePreferredSuffix = m_pResource->preferredFileSuffix();
-    if (!resourcePreferredSuffix.isEmpty()) {
-        m_ownFilePath += "." + resourcePreferredSuffix;
-    }
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);
@@ -124,10 +112,16 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     }
 
     // Write resource's data to file asynchronously so that it can further be opened in some application
+    QString preferredFileSuffix = m_pResource->preferredFileSuffix();
     m_saveResourceToStorageRequestId = QUuid::createUuid();
-    emit saveResourceToStorage(m_pResource->localUid(), data, *dataHash, m_ownFilePath, m_saveResourceToStorageRequestId);
-    QNTRACE("Emitted request to save the attachment to own file storage location, request id = "
+    bool isImage = (m_pResource->hasMime()
+                    ? m_pResource->mime().startsWith("image")
+                    : false);
+
+    QNTRACE("Emitting the request to save the attachment to own file storage location, request id = "
             << m_saveResourceToStorageRequestId << ", resource local uid = " << m_pResource->localUid());
+    emit saveResourceToStorage(m_pResource->noteLocalUid(), m_pResource->localUid(), data, *dataHash,
+                               preferredFileSuffix, m_saveResourceToStorageRequestId, isImage);
 }
 
 QString GenericResourceDisplayWidget::resourceLocalUid() const
@@ -264,8 +258,10 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
     {
         if (errorCode == 0)
         {
-            QNDEBUG("Successfully saved resource to storage, request id = " << requestId);
+            QNDEBUG("Successfully saved resource to storage, request id = " << requestId
+                    << ", file storage path = " << m_ownFilePath);
             m_savedResourceToStorage = true;
+            m_ownFilePath = fileStoragePath;
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
                 openResource();

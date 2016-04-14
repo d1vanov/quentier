@@ -23,11 +23,12 @@ class QUTE_NOTE_EXPORT ResourceFileStorageManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit ResourceFileStorageManager(QObject * parent = Q_NULLPTR);
+    explicit ResourceFileStorageManager(const QString & imageResourceFileStorageFolderPath,
+                                        QObject * parent = Q_NULLPTR);
 
     /**
      * @brief resourceFileStorageLocation - the method tries to return the most appropriate
-     * resource file storage location; first it tries to find it within application settings,
+     * generic (i.e. non-image) resource file storage location; first it tries to find it within application settings,
      * then tries to suggest on its own, then, as a last resort, opens a dialog for that.
      * The method also performs the check that the path it returns is writable (unless it's empty
      * due to the failure to find the appropriate path)
@@ -60,24 +61,25 @@ public Q_SLOTS:
      * @brief onWriteResourceToFileRequest - slot being called when the resource data needs to be written
      * to local file; the method would also check that the already existing file (if any) is actual.
      * If so, it would return successfully without doing any IO.
-     * @param localUid - the local uid of the resource for which the data is written to file
+     * @param noteLocalUid - the local uid of the note to which the resource belongs
+     * @param resourceLocalUid - the local uid of the resource for which the data is written to file
      * @param data - the resource data to be written to file
      * @param dataHash - the hash of the resource data; if it's empty, it would be calculated by the method itself
-     * @param fileStoragePath - user specified storage path for the resource; if empty, the method would
-     * figure out the appropriate path on its own
+     * @param preferredFileSuffix - the preferred file suffix for the resource; if empty, the resource file is written withoug suffix
      * @param requestId - request identifier for writing the data to file
+     * @param isImage - indicates whether the resource is the image which can be displayed inline in the note editor page
      */
-    void onWriteResourceToFileRequest(QString localUid, QByteArray data, QByteArray dataHash,
-                                      QString fileStoragePath, QUuid requestId);
+    void onWriteResourceToFileRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
+                                      QString preferredFileSuffix, QUuid requestId, bool isImage);
 
     /**
      * @brief onReadResourceFromFileRequest - slot being called when the resource data and hash need to be read
      * from local file
      * @param fileStoragePath - the path at which the resource is stored
-     * @param localUid - the local uid of the resource for which the data and hash should be read from file
+     * @param resourceLocalUid - the local uid of the resource for which the data and hash should be read from file
      * @param requestId - request identifier for reading the resource data and hash from file
      */
-    void onReadResourceFromFileRequest(QString fileStoragePath, QString localUid, QUuid requestId);
+    void onReadResourceFromFileRequest(QString fileStoragePath, QString resourceLocalUid, QUuid requestId);
 
     /**
      * @brief onOpenResourceRequest - slot being called when the resource file is requested to be opened

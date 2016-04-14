@@ -46,6 +46,9 @@ const QString QUTE_NOTE_EXPORT relativePathFromAbsolutePath(const QString & abso
 // Convenience function to send URL opening request
 void QUTE_NOTE_EXPORT openUrl(const QUrl url);
 
+// Convenience function to remove a file automatically printing the error to warning and workarounding some platform specific quirks
+bool QUTE_NOTE_EXPORT removeFile(const QString & filePath);
+
 } // namespace qute_note
 
 #endif // __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H

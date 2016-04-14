@@ -37,8 +37,8 @@ Q_SIGNALS:
 
 // private signals
     void readFileData(QString filePath, QUuid requestId);
-    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash,
-                               QString fileStoragePath, QUuid requestId);
+    void saveResourceToStorage(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
+                               QString preferredFileSuffix, QUuid requestId, bool isImage);
     void writeFile(QString filePath, QByteArray data, QUuid requestId);
 
     void saveGenericResourceImageToFile(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QString fileSuffix,

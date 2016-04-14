@@ -2385,27 +2385,16 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
         {
             const QString resourceLocalUid = resourceAdapter.localUid();
             QUuid saveResourceRequestId = QUuid::createUuid();
-
-            QString fileStoragePath;
-            if (resourceAdapter.mime().startsWith("image/")) {
-                fileStoragePath = m_noteEditorImageResourcesStoragePath;
-            }
-            else {
-                fileStoragePath = m_resourceLocalFileStorageFolder;
-            }
-
-            fileStoragePath += "/" + m_pNote->localUid() + "/" + resourceLocalUid;
+            bool isImage = resourceAdapter.mime().startsWith("image/");
             QString preferredFileSuffix = resourceAdapter.preferredFileSuffix();
-            if (!preferredFileSuffix.isEmpty()) {
-                fileStoragePath += "." + preferredFileSuffix;
-            }
 
             m_genericResourceLocalUidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalUid;
-            emit saveResourceToStorage(resourceLocalUid, dataBody, dataHash, fileStoragePath, saveResourceRequestId);
 
-            QNTRACE("Sent request to save resource to file storage: request id = " << saveResourceRequestId
-                    << ", resource local uid = " << resourceLocalUid << ", data hash = " << dataHash
-                    << ", mime type = " << resourceAdapter.mime());
+            QNTRACE("Emitting request to save resource to file storage: request id = " << saveResourceRequestId
+                    << ", note local uid = " << m_pNote->localUid() << ", resource local uid = " << resourceLocalUid
+                    << ", data hash = " << dataHash << ", mime type = " << resourceAdapter.mime());
+            emit saveResourceToStorage(m_pNote->localUid(), resourceLocalUid, dataBody, dataHash,
+                                       preferredFileSuffix, saveResourceRequestId, isImage);
             ++numPendingResourceWritesToLocalFiles;
         }
     }
@@ -3004,14 +2993,27 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 #endif
 
 void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const QString & previousResourceHash,
-                                       ResourceWrapper updatedResource, const QString & resourceFileStoragePath)
+                                       ResourceWrapper updatedResource)
 {
     QNDEBUG("NoteEditorPrivate::updateResource: resource local uid = " << resourceLocalUid << ", previous hash = "
-            << previousResourceHash << ", updated resource: " << updatedResource << "\nResource file storage path = "
-            << resourceFileStoragePath);
+            << previousResourceHash << ", updated resource: " << updatedResource);
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't update resource: no note is set to the editor");
+        QNWARNING(error << ", updated resource: " << updatedResource);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(!updatedResource.hasNoteLocalUid())) {
+        QString error = QT_TR_NOOP("Can't update resource: the updated resource has no note local uid");
+        QNWARNING(error << ", updated resource: " << updatedResource);
+        emit notifyError(error);
+        return;
+    }
+
+    if (Q_UNLIKELY(!updatedResource.hasMime())) {
+        QString error = QT_TR_NOOP("Can't update resource: the updated resource has no mime type");
         QNWARNING(error << ", updated resource: " << updatedResource);
         emit notifyError(error);
         return;
@@ -3046,9 +3048,20 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
     }
 
     QUuid saveResourceRequestId = QUuid::createUuid();
+    QString preferredFileSuffix = updatedResource.preferredFileSuffix();
+
     m_genericResourceLocalUidBySaveToStorageRequestIds[saveResourceRequestId] = updatedResource.localUid();
-    Q_UNUSED(m_imageResourceSaveToStorageRequestIds.insert(saveResourceRequestId))
-    emit saveResourceToStorage(updatedResource.localUid(), updatedResource.dataBody(), QByteArray(), resourceFileStoragePath, saveResourceRequestId);
+
+    bool isImage = updatedResource.mime().startsWith("image");
+    if (isImage) {
+        Q_UNUSED(m_imageResourceSaveToStorageRequestIds.insert(saveResourceRequestId))
+    }
+
+    QNTRACE("Emitting the request to save the resource to file storage: note local uid = " << updatedResource.noteLocalUid()
+            << ", resource local uid = " << updatedResource.localUid() << ", preferred file suffix = " << preferredFileSuffix
+            << ", request id = " << saveResourceRequestId << ", resource is image = " << (isImage ? "true" : "false"));
+    emit saveResourceToStorage(updatedResource.noteLocalUid(), updatedResource.localUid(), updatedResource.dataBody(),
+                               QByteArray(), preferredFileSuffix, saveResourceRequestId, isImage);
 }
 
 void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraData, const QString & selectedHtml, bool insideDecryptedTextFragment)
@@ -3354,7 +3367,7 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QString,QUuid));
 
-    m_pResourceFileStorageManager = new ResourceFileStorageManager;
+    m_pResourceFileStorageManager = new ResourceFileStorageManager(imageResourcesStoragePath());
     m_pResourceFileStorageManager->moveToThread(m_pIOThread);
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note),
@@ -3367,8 +3380,8 @@ void NoteEditorPrivate::setupFileIO()
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onOpenResourceRequest,QString));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,resourceFileChanged,QString,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceFileChanged,QString,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
-                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
@@ -3811,31 +3824,6 @@ void NoteEditorPrivate::writeNotePageFile(const QString & html)
     QNTRACE("Emitted the request to write the note html to file: id = " << m_writeNoteHtmlToFileRequestId);
 }
 
-bool NoteEditorPrivate::removeFile(const QString & filePath) const
-{
-    QNDEBUG("NoteEditorPrivate::removeFile: " << filePath);
-
-    QFile file(filePath);
-    file.close();   // NOTE: this line seems to be mandatory on Windows
-    bool res = file.remove();
-    if (res) {
-        QNTRACE("Successfully removed file " << filePath);
-        return true;
-    }
-
-#ifdef Q_OS_WIN
-    if (filePath.endsWith(".lnk")) {
-        // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
-        // for any *.lnk files even though the files are actually getting removed
-        QNTRACE("Skipping the reported failure at removing the .lnk file");
-        return true;
-    }
-#endif
-
-    QNWARNING("Cannot remove file " << filePath << ": " << file.errorString() << ", error code " << file.error());
-    return false;
-}
-
 bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                                QString & cipher, QString & keyLength, QString & hint,
                                                                QString & id, QString & errorDescription) const
@@ -4161,8 +4149,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         }
         else
         {
-            cleanupStaleNoteResourceFiles();
-
             *m_pNote = note;
 
             m_decryptedTextManager->clearNonRememberedForSessionEntries();
@@ -4435,71 +4421,6 @@ QString NoteEditorPrivate::createSymlinkToImageResourceFile(const QString & file
     }
 
     return linkFileName;
-}
-
-void NoteEditorPrivate::cleanupStaleNoteResourceFiles()
-{
-    QNDEBUG("NoteEditorPrivate::cleanupStaleNoteResourceFiles");
-
-    if (Q_UNLIKELY(m_pNote.isNull())) {
-        QNDEBUG("Can't cleanup stale note resource files: no note is set to the editor");
-        return;
-    }
-
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    const int numResources = resourceAdapters.size();
-
-    QFileInfoList fileInfoList;
-    int numFiles = -1;
-
-    QDir imageResourceFilesFolder(m_noteEditorImageResourcesStoragePath + "/" + m_pNote->localUid());
-    if (imageResourceFilesFolder.exists())
-    {
-        fileInfoList = imageResourceFilesFolder.entryInfoList(QDir::Files);
-        numFiles = fileInfoList.size();
-        QNTRACE("Found " << numFiles << " files wihin the image resource files folder for note with local uid " << m_pNote->localUid());
-    }
-
-    QDir genericResourceImagesFolder(m_genericResourceImageFileStoragePath + "/" + m_pNote->localUid());
-    if (genericResourceImagesFolder.exists())
-    {
-        QFileInfoList genericResourceImageFileInfos = genericResourceImagesFolder.entryInfoList(QDir::Files);
-        int numGenericResourceImageFileInfos = genericResourceImageFileInfos.size();
-        QNTRACE("Found " << numGenericResourceImageFileInfos << " files within the generic resource files folder for note with local uid " << m_pNote->localUid());
-
-        fileInfoList.append(genericResourceImageFileInfos);
-        numFiles = fileInfoList.size();
-    }
-
-    QNTRACE("Total " << numFiles << " to check for staleness");
-
-    for(int i = 0; i < numFiles; ++i)
-    {
-        const QFileInfo & fileInfo = fileInfoList[i];
-        QString baseName = fileInfo.baseName();
-        QNTRACE("Checking file with base name " << baseName);
-
-        bool foundResource = false;
-        for(int j = 0; j < numResources; ++j)
-        {
-            QNTRACE("checking against resource with local uid " << resourceAdapters[j].localUid());
-            if (baseName.startsWith(resourceAdapters[j].localUid())) {
-                QNTRACE("File " << fileInfo.fileName() << " appears to correspond to resource "
-                        << resourceAdapters[j].localUid());
-                foundResource = true;
-                break;
-            }
-        }
-
-        if (foundResource) {
-            break;
-        }
-
-        QString filePath = fileInfo.absoluteFilePath();
-        QNTRACE("Found stale image resource file " << filePath << ", removing it");
-
-        Q_UNUSED(removeFile(filePath))
-    }
 }
 
 void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)

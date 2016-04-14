@@ -4,9 +4,9 @@
 
 namespace qute_note {
 
-ResourceFileStorageManager::ResourceFileStorageManager(QObject * parent) :
+ResourceFileStorageManager::ResourceFileStorageManager(const QString & imageResourceFileStorageFolderPath, QObject * parent) :
     QObject(parent),
-    d_ptr(new ResourceFileStorageManagerPrivate(*this))
+    d_ptr(new ResourceFileStorageManagerPrivate(imageResourceFileStorageFolderPath, *this))
 {}
 
 QString ResourceFileStorageManager::resourceFileStorageLocation(QWidget * context)
@@ -14,18 +14,17 @@ QString ResourceFileStorageManager::resourceFileStorageLocation(QWidget * contex
     return ResourceFileStorageManagerPrivate::resourceFileStorageLocation(context);
 }
 
-void ResourceFileStorageManager::onWriteResourceToFileRequest(QString localUid, QByteArray data,
-                                                              QByteArray dataHash, QString fileStoragePath,
-                                                              QUuid requestId)
+void ResourceFileStorageManager::onWriteResourceToFileRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray data,
+                                                              QByteArray dataHash, QString preferredSuffix, QUuid requestId, bool isImage)
 {
     Q_D(ResourceFileStorageManager);
-    d->onWriteResourceToFileRequest(localUid, data, dataHash, fileStoragePath, requestId);
+    d->onWriteResourceToFileRequest(noteLocalUid, resourceLocalUid, data, dataHash, preferredSuffix, requestId, isImage);
 }
 
-void ResourceFileStorageManager::onReadResourceFromFileRequest(QString fileStoragePath, QString localUid, QUuid requestId)
+void ResourceFileStorageManager::onReadResourceFromFileRequest(QString fileStoragePath, QString resourceLocalUid, QUuid requestId)
 {
     Q_D(ResourceFileStorageManager);
-    d->onReadResourceFromFileRequest(fileStoragePath, localUid, requestId);
+    d->onReadResourceFromFileRequest(fileStoragePath, resourceLocalUid, requestId);
 }
 
 void ResourceFileStorageManager::onOpenResourceRequest(QString fileStoragePath)

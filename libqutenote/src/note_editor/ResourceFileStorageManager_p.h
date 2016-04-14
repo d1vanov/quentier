@@ -6,6 +6,7 @@
 #include <QUuid>
 #include <QStringList>
 #include <QHash>
+#include <QScopedPointer>
 
 QT_FORWARD_DECLARE_CLASS(QWidget)
 
@@ -18,7 +19,8 @@ class ResourceFileStorageManagerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    explicit ResourceFileStorageManagerPrivate(ResourceFileStorageManager & manager);
+    explicit ResourceFileStorageManagerPrivate(const QString & imageResourceFileStorageFolderPath,
+                                               ResourceFileStorageManager & manager);
 
     static QString resourceFileStorageLocation(QWidget * context);
 
@@ -33,9 +35,9 @@ Q_SIGNALS:
     void diagnosticsCollected(QUuid requestId, QString diagnostics);
 
 public Q_SLOTS:
-    void onWriteResourceToFileRequest(QString localUid, QByteArray data, QByteArray dataHash,
-                                      QString fileStoragePath, QUuid requestId);
-    void onReadResourceFromFileRequest(QString fileStoragePath, QString localUid, QUuid requestId);
+    void onWriteResourceToFileRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
+                                      QString preferredFileSuffix, QUuid requestId, bool isImage);
+    void onReadResourceFromFileRequest(QString fileStoragePath, QString resourceLocalUid, QUuid requestId);
 
     void onOpenResourceRequest(QString fileStoragePath);
 
@@ -50,14 +52,19 @@ private Q_SLOTS:
 private:
     void createConnections();
     QByteArray calculateHash(const QByteArray & data) const;
-    bool checkIfResourceFileExistsAndIsActual(const QString & localUid, const QString & fileStoragePath,
-                                              const QByteArray & dataHash) const;
+    bool checkIfResourceFileExistsAndIsActual(const QString & noteLocalUid, const QString & resourceLocalUid,
+                                              const QString & fileStoragePath, const QByteArray & dataHash) const;
 
     bool updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash, int & errorCode, QString & errorDescription);
     void watchResourceFileForChanges(const QString & resourceLocalUid, const QString & fileStoragePath);
 
+    void removeStaleResourceFilesFromCurrentNote();
+
 private:
+    QString     m_imageResourceFileStorageLocation;
     QString     m_resourceFileStorageLocation;
+
+    QScopedPointer<Note>                m_pCurrentNote;
 
     QHash<QString, QString>             m_resourceLocalUidByFilePath;
     FileSystemWatcher                   m_fileSystemWatcher;

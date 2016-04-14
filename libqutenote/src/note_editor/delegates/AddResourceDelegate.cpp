@@ -148,7 +148,8 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
         return;
     }
 
-    if (m_resourceFileMimeType.name().startsWith("image/")) {
+    bool isImage = m_resourceFileMimeType.name().startsWith("image/");
+    if (isImage) {
         m_resourceFileStoragePath = m_noteEditor.imageResourcesStoragePath();
     }
     else {
@@ -158,31 +159,26 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
     m_resourceFileStoragePath += "/" + pNote->localUid() + "/" + resourceLocalUid;
 
     QString fileInfoSuffix = fileInfo.completeSuffix();
-    if (!fileInfoSuffix.isEmpty())
-    {
-        m_resourceFileStoragePath += "." + fileInfoSuffix;
-    }
-    else
+    if (fileInfoSuffix.isEmpty())
     {
         const QStringList suffixes = m_resourceFileMimeType.suffixes();
         if (!suffixes.isEmpty()) {
-            m_resourceFileStoragePath += "." + suffixes.front();
+            fileInfoSuffix = suffixes.front();
         }
     }
 
     m_saveResourceToStorageRequestId = QUuid::createUuid();
 
-    QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
-                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
+                     m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
-    emit saveResourceToStorage(resourceLocalUid, data, dataHash, m_resourceFileStoragePath,
-                               m_saveResourceToStorageRequestId);
-
-    QNTRACE("Emitted request to save the dropped resource to local file storage: generated local uid = "
+    QNTRACE("Emitting the request to save the dropped resource to local file storage: generated local uid = "
             << resourceLocalUid << ", data hash = " << dataHash << ", request id = "
             << m_saveResourceToStorageRequestId << ", mime type name = " << m_resourceFileMimeType.name());
+    emit saveResourceToStorage(pNote->localUid(), resourceLocalUid, data, dataHash, fileInfoSuffix,
+                               m_saveResourceToStorageRequestId, isImage);
 }
 
 void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
@@ -197,8 +193,8 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
             << ", file storage path = " << fileStoragePath << ", error description = "
             << errorDescription);
 
-    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
-                        m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
+    QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
+                        m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
     QObject::disconnect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                         this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
@@ -239,8 +235,8 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
 
     m_saveResourceImageRequestId = QUuid::createUuid();
 
-    QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveGenericResourceImageToFile,QString,QByteArray,QString,QByteArray,QString,QUuid),
-                     m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
+                     m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
     QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 

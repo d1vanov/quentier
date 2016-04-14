@@ -159,19 +159,15 @@ void ImageResourceRotationDelegate::rotateImageResource()
     m_rotatedResource.setRecognitionDataSize(0);
     m_rotatedResource.setRecognitionDataHash(QByteArray());
 
-    m_resourceFileStoragePathAfter = m_noteEditor.imageResourcesStoragePath() + "/" + m_pNote->localUid();
-    m_resourceFileStoragePathAfter += "/" + m_rotatedResource.localUid();
-    m_resourceFileStoragePathAfter += ".png";
-
     m_saveResourceRequestId = QUuid::createUuid();
 
-    QObject::connect(this, QNSIGNAL(ImageResourceRotationDelegate,saveResourceToStorage,QString,QByteArray,QByteArray,QString,QUuid),
-                     &m_resourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QByteArray,QByteArray,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(ImageResourceRotationDelegate,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
+                     &m_resourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
     QObject::connect(&m_resourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(ImageResourceRotationDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
-    emit saveResourceToStorage(m_rotatedResource.localUid(), m_rotatedResource.dataBody(), QByteArray(),
-                               m_resourceFileStoragePathAfter, m_saveResourceRequestId);
+    emit saveResourceToStorage(m_rotatedResource.noteLocalUid(), m_rotatedResource.localUid(), m_rotatedResource.dataBody(), QByteArray(),
+                               ".png", m_saveResourceRequestId, /* is image = */ true);
 }
 
 void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,

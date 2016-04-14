@@ -25,6 +25,7 @@
 #endif
 
 #include <QDesktopServices>
+#include <QFile>
 
 namespace qute_note {
 
@@ -217,6 +218,31 @@ void openUrl(const QUrl url)
 {
     QNDEBUG("openUrl: " << url);
     QDesktopServices::openUrl(url);
+}
+
+bool removeFile(const QString & filePath)
+{
+    QNDEBUG("removeFile: " << filePath);
+
+    QFile file(filePath);
+    file.close();   // NOTE: this line seems to be mandatory on Windows
+    bool res = file.remove();
+    if (res) {
+        QNTRACE("Successfully removed file " << filePath);
+        return true;
+    }
+
+#ifdef Q_OS_WIN
+    if (filePath.endsWith(".lnk")) {
+        // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
+        // for any *.lnk files even though the files are actually getting removed
+        QNTRACE("Skipping the reported failure at removing the .lnk file");
+        return true;
+    }
+#endif
+
+    QNWARNING("Cannot remove file " << filePath << ": " << file.errorString() << ", error code " << file.error());
+    return false;
 }
 
 } // namespace qute_note

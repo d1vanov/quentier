@@ -40,7 +40,8 @@ Q_SIGNALS:
 
 // private signals
 Q_SIGNALS:
-    void saveResourceToStorage(QString localUid, QByteArray data, QByteArray dataHash, QString manualFileStoragePath, QUuid requestId);
+    void saveResourceToStorage(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
+                               QString preferredFileSuffix, QUuid requestId, bool isImage);
     void saveResourceToFile(QString filePath, QByteArray data, QUuid requestId, QIODevice::OpenMode mode);
 
 private Q_SLOTS:
