@@ -2,13 +2,12 @@
 #define __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_MANAGER_H
 
 #include <qute_note/utility/Qt4Helper.h>
+#include <qute_note/types/Note.h>
 #include <QObject>
 #include <QUuid>
 #include <QScopedPointer>
 
 namespace qute_note {
-
-QT_FORWARD_DECLARE_CLASS(Note)
 
 /**
  * @brief The GenericResourceImageManager class is a worker for the I/O thread which
@@ -32,6 +31,10 @@ public Q_SLOTS:
     void onGenericResourceImageWriteRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray resourceImageData,
                                             QString resourceFileSuffix, QByteArray resourceActualHash,
                                             QString resourceDisplayName, QUuid requestId);
+    void onCurrentNoteChanged(Note note);
+
+private:
+    void removeStaleGenericResourceImageFilesFromCurrentNote();
 
 private:
     QString                 m_storageFolderPath;

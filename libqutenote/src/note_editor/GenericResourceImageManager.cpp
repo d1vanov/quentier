@@ -1,6 +1,7 @@
 #include "GenericResourceImageManager.h"
-#include <qute_note/types/Note.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <qute_note/utility/DesktopServices.h>
+#include <qute_note/types/ResourceAdapter.h>
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
@@ -176,6 +177,118 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
                        << " (error code = " << staleResourceImageFile.error() << ")");
             }
         }
+    }
+}
+
+void GenericResourceImageManager::onCurrentNoteChanged(Note note)
+{
+    QNDEBUG("GenericResourceImageManager::onCurrentNoteChanged: new note local uid = " << note.localUid()
+            << ", previous note local uid = " << (m_pCurrentNote.isNull() ? QStringLiteral("<null>") : m_pCurrentNote->localUid()));
+
+    if (!m_pCurrentNote.isNull() && (m_pCurrentNote->localUid() == note.localUid())) {
+        QNTRACE("The current note is the same, only the note object might have changed");
+        *m_pCurrentNote = note;
+        removeStaleGenericResourceImageFilesFromCurrentNote();
+        return;
+    }
+
+    removeStaleGenericResourceImageFilesFromCurrentNote();
+
+    if (m_pCurrentNote.isNull()) {
+        m_pCurrentNote.reset(new Note(note));
+    }
+    else {
+        *m_pCurrentNote = note;
+    }
+}
+
+void GenericResourceImageManager::removeStaleGenericResourceImageFilesFromCurrentNote()
+{
+    QNDEBUG("GenericResourceImageManager::removeStaleGenericResourceImageFilesFromCurrentNote");
+
+    if (m_pCurrentNote.isNull()) {
+        QNDEBUG("No current note, nothing to do");
+        return;
+    }
+
+    const QString & noteLocalUid = m_pCurrentNote->localUid();
+
+    QDir storageDir(m_storageFolderPath + "/" + noteLocalUid);
+    if (!storageDir.exists()) {
+        QNTRACE("Storage dir " << storageDir.absolutePath() << " does not exist, nothing to do");
+        return;
+    }
+
+    QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
+    const int numResources = resourceAdapters.size();
+
+    QFileInfoList fileInfoList = storageDir.entryInfoList(QDir::Files);
+    int numFiles = fileInfoList.size();
+
+    QNTRACE("Will check " << numFiles << " generic resource image files for staleness");
+
+    for(int i = 0; i < numFiles; ++i)
+    {
+        const QFileInfo & fileInfo = fileInfoList[i];
+        QString filePath = fileInfo.absoluteFilePath();
+
+        QString fullSuffix = fileInfo.completeSuffix();
+        if (fullSuffix == QStringLiteral("hash")) {
+            QNTRACE("Skipping .hash helper file " << filePath);
+            continue;
+        }
+
+        QString baseName = fileInfo.baseName();
+        QNTRACE("Checking file with base name " << baseName);
+
+        int resourceIndex = -1;
+        for(int j = 0; j < numResources; ++j)
+        {
+            QNTRACE("checking against resource with local uid " << resourceAdapters[j].localUid());
+            if (baseName.startsWith(resourceAdapters[j].localUid())) {
+                QNTRACE("File " << fileInfo.fileName() << " appears to correspond to resource "
+                        << resourceAdapters[j].localUid());
+                resourceIndex = j;
+                break;
+            }
+        }
+
+        if (resourceIndex >= 0)
+        {
+            const ResourceAdapter & resourceAdapter = resourceAdapters[resourceIndex];
+            if (resourceAdapter.hasDataHash())
+            {
+                QFileInfo helperHashFileInfo(fileInfo.absolutePath() + "/" + resourceAdapter.localUid() + ".hash");
+                if (helperHashFileInfo.exists())
+                {
+                    QFile helperHashFile(helperHashFileInfo.absoluteFilePath());
+                    Q_UNUSED(helperHashFile.open(QIODevice::ReadOnly))
+                    QByteArray storedHash = helperHashFile.readAll();
+                    if (storedHash == resourceAdapter.dataHash()) {
+                        QNTRACE("Resource file " << filePath << " appears to be still actual, will keep it");
+                        continue;
+                    }
+                    else {
+                        QNTRACE("The stored hash doesn't match the actual resource data hash: stored = "
+                                << storedHash << ", actual = " << resourceAdapter.dataHash());
+                    }
+                }
+                else
+                {
+                    QNTRACE("Helper hash file " << helperHashFileInfo.absoluteFilePath() << " does not exist");
+                }
+            }
+            else
+            {
+                QNTRACE("Resource at index " << resourceIndex << " doesn't have the data hash, will remove its resource file just in case");
+            }
+        }
+
+        QNTRACE("Found stale generic resource image file " << filePath << ", removing it");
+        Q_UNUSED(removeFile(filePath))
+
+        // Need to also remove the helper .hash file
+        Q_UNUSED(removeFile(fileInfo.absolutePath() + "/" + baseName + ".hash"));
     }
 }
 

@@ -274,8 +274,8 @@ void ResourceFileStorageManagerPrivate::onOpenResourceRequest(QString fileStorag
 
 void ResourceFileStorageManagerPrivate::onCurrentNoteChanged(Note note)
 {
-    QNDEBUG("ResourceFileStorageManagerPrivate::onCurrentNoteChanged; new note local uid = " << note
-            << ", previous note local uid = " << (m_pCurrentNote.isNull() ? QString("<null>") : m_pCurrentNote->localUid()));
+    QNDEBUG("ResourceFileStorageManagerPrivate::onCurrentNoteChanged; new note local uid = " << note.localUid()
+            << ", previous note local uid = " << (m_pCurrentNote.isNull() ? QStringLiteral("<null>") : m_pCurrentNote->localUid()));
 
     if (!m_pCurrentNote.isNull() && (m_pCurrentNote->localUid() == note.localUid())) {
         QNTRACE("The current note is the same, only the note object might have changed");
@@ -550,7 +550,7 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
         }
 
         QString fullSuffix = fileInfo.completeSuffix();
-        if (fullSuffix == "hash") {
+        if (fullSuffix == QStringLiteral("hash")) {
             QNTRACE("Skipping .hash helper file " << filePath);
             continue;
         }
@@ -588,7 +588,7 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
             }
         }
 
-        QNTRACE("Found stale image resource file " << filePath << ", removing it");
+        QNTRACE("Found stale resource file " << filePath << ", removing it");
         stopWatchingResourceFile(filePath);
         Q_UNUSED(removeFile(filePath))
 

@@ -3419,6 +3419,8 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(m_pGenericResourceImageManager,
                      QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note), m_pGenericResourceImageManager,
+                     QNSLOT(GenericResourceImageManager,onCurrentNoteChanged,Note));
 #endif
 }
 
@@ -4182,10 +4184,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     m_genericResourceLocalUidBySaveToStorageRequestIds.clear();
     m_imageResourceSaveToStorageRequestIds.clear();
     m_resourceFileStoragePathsByResourceLocalUid.clear();
-    if (m_genericResourceImageFilePathsByResourceHash.size() > 30) {
-        m_genericResourceImageFilePathsByResourceHash.clear();
-        QNTRACE("Cleared the cache of generic resource image files by resource hash");
-    }
+    m_genericResourceImageFilePathsByResourceHash.clear();
     m_saveGenericResourceImageToFileRequestIds.clear();
     rebuildRecognitionIndicesCache();
 
@@ -4283,7 +4282,13 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
             Q_UNUSED(m_recognitionIndicesByResourceHash.erase(it));
             highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
         }
+
+        auto imageIt = m_genericResourceImageFilePathsByResourceHash.find(resource.dataHash());
+        if (imageIt != m_genericResourceImageFilePathsByResourceHash.end()) {
+            Q_UNUSED(m_genericResourceImageFilePathsByResourceHash.erase(imageIt))
+        }
     }
+
 
     emit currentNoteChanged(*m_pNote);
 }
