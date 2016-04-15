@@ -196,7 +196,8 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
 
     int errorCode = 0;
     QString errorDescription;
-    bool res = updateResourceHash(resourceLocalUid, dataHash, errorCode, errorDescription);
+    bool res = updateResourceHash(resourceLocalUid, dataHash, fileStoragePathInfo.absolutePath(),
+                                  errorCode, errorDescription);
     if (Q_UNLIKELY(!res)) {
         emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, errorCode, errorDescription);
         QNWARNING(errorDescription << ", error code = " << errorCode << ", resource local uid = "
@@ -275,6 +276,13 @@ void ResourceFileStorageManagerPrivate::onCurrentNoteChanged(Note note)
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::onCurrentNoteChanged; new note local uid = " << note
             << ", previous note local uid = " << (m_pCurrentNote.isNull() ? QString("<null>") : m_pCurrentNote->localUid()));
+
+    if (!m_pCurrentNote.isNull() && (m_pCurrentNote->localUid() == note.localUid())) {
+        QNTRACE("The current note is the same, only the note object might have changed");
+        *m_pCurrentNote = note;
+        removeStaleResourceFilesFromCurrentNote();
+        return;
+    }
 
     for(auto it = m_resourceLocalUidByFilePath.begin(), end = m_resourceLocalUidByFilePath.end(); it != end; ++it) {
         m_fileSystemWatcher.removePath(it.key());
@@ -355,7 +363,7 @@ void ResourceFileStorageManagerPrivate::onFileChanged(const QString & path)
 
     int errorCode = 0;
     QString errorDescription;
-    bool res = updateResourceHash(it.value(), dataHash, errorCode, errorDescription);
+    bool res = updateResourceHash(it.value(), dataHash, resourceFileInfo.absolutePath(), errorCode, errorDescription);
     if (Q_UNLIKELY(!res)) {
         QNWARNING("Can't process resource local file change properly: can't update the hash for resource file: error code = "
                   << errorCode << ", error description: " << errorDescription);
@@ -415,7 +423,7 @@ bool ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual(con
         return false;
     }
 
-    QFileInfo resourceHashFileInfo(fileStoragePath + ".hash");
+    QFileInfo resourceHashFileInfo(resourceFileInfo.absolutePath() + "/" + resourceFileInfo.baseName() + ".hash");
     if (!resourceHashFileInfo.exists()) {
         QNTRACE("Resource hash file for note local uid " << noteLocalUid << " and resource local uid " << resourceLocalUid << " does not exist");
         return false;
@@ -440,12 +448,12 @@ bool ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual(con
 }
 
 bool ResourceFileStorageManagerPrivate::updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash,
-                                                           int & errorCode, QString & errorDescription)
+                                                           const QString & storageFolderPath, int & errorCode, QString & errorDescription)
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::updateResourceHash: resource local uid = " << resourceLocalUid
-            << ", data hash = " << dataHash);
+            << ", data hash = " << dataHash << ", storage folder path = " << storageFolderPath);
 
-    QFile file(m_resourceFileStorageLocation + "/" + resourceLocalUid + ".hash");
+    QFile file(storageFolderPath + "/" + resourceLocalUid + ".hash");
 
     bool open = file.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open)) {
@@ -474,6 +482,20 @@ void ResourceFileStorageManagerPrivate::watchResourceFileForChanges(const QStrin
 
     m_fileSystemWatcher.addPath(fileStoragePath);
     QNINFO("Start watching for resource file " << fileStoragePath);
+}
+
+void ResourceFileStorageManagerPrivate::stopWatchingResourceFile(const QString & filePath)
+{
+    QNDEBUG("ResourceFileStorageManagerPrivate::stopWatchingResourceFile: " << filePath);
+
+    auto it = m_resourceLocalUidByFilePath.find(filePath);
+    if (it == m_resourceLocalUidByFilePath.end()) {
+        QNTRACE("File is not being watched, nothing to do");
+        return;
+    }
+
+    m_fileSystemWatcher.removePath(filePath);
+    QNTRACE("Stopped watching for file");
 }
 
 void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote()
@@ -518,9 +540,19 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
     for(int i = 0; i < numFiles; ++i)
     {
         const QFileInfo & fileInfo = fileInfoList[i];
+        QString filePath = fileInfo.absoluteFilePath();
+
         if (fileInfo.isSymLink()) {
             QNTRACE("Removing symlink file without any checks");
-            Q_UNUSED(removeFile(fileInfo.absoluteFilePath()))
+            stopWatchingResourceFile(filePath);
+            Q_UNUSED(removeFile(filePath))
+            continue;
+        }
+
+        QString fullSuffix = fileInfo.completeSuffix();
+        if (fullSuffix == "hash") {
+            QNTRACE("Skipping .hash helper file " << filePath);
+            continue;
         }
 
         QString baseName = fileInfo.baseName();
@@ -538,14 +570,13 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
             }
         }
 
-        QString filePath = fileInfo.absoluteFilePath();
         if (resourceIndex >= 0)
         {
             const ResourceAdapter & resourceAdapter = resourceAdapters[resourceIndex];
             if (resourceAdapter.hasDataHash())
             {
                 bool actual = checkIfResourceFileExistsAndIsActual(noteLocalUid, resourceAdapter.localUid(),
-                                                                   filePath, resourceAdapter.dataHash());
+                                                                  filePath, resourceAdapter.dataHash());
                 if (actual) {
                     QNTRACE("The resource file " << filePath << " is still actual, will keep it");
                     continue;
@@ -558,7 +589,12 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
         }
 
         QNTRACE("Found stale image resource file " << filePath << ", removing it");
+        stopWatchingResourceFile(filePath);
         Q_UNUSED(removeFile(filePath))
+
+        // Need to also remove the helper .hash file
+        stopWatchingResourceFile(filePath);
+        Q_UNUSED(removeFile(fileInfo.absolutePath() + "/" + baseName + ".hash"));
     }
 }
 

@@ -167,7 +167,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
                      this, QNSLOT(ImageResourceRotationDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
     emit saveResourceToStorage(m_rotatedResource.noteLocalUid(), m_rotatedResource.localUid(), m_rotatedResource.dataBody(), QByteArray(),
-                               ".png", m_saveResourceRequestId, /* is image = */ true);
+                               "png", m_saveResourceRequestId, /* is image = */ true);
 }
 
 void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,

@@ -3040,6 +3040,8 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
         return;
     }
 
+    emit currentNoteChanged(*m_pNote);
+
     m_resourceInfo.removeResourceInfo(previousResourceHash);
 
     auto recoIt = m_recognitionIndicesByResourceHash.find(key);
@@ -4234,6 +4236,8 @@ void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
             QNDEBUG("Set recognition indices for new resource: " << recoIndices);
         }
     }
+
+    emit currentNoteChanged(*m_pNote);
 }
 
 void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
@@ -4258,6 +4262,8 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
             highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
         }
     }
+
+    emit currentNoteChanged(*m_pNote);
 }
 
 void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)

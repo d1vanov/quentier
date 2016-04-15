@@ -55,8 +55,10 @@ private:
     bool checkIfResourceFileExistsAndIsActual(const QString & noteLocalUid, const QString & resourceLocalUid,
                                               const QString & fileStoragePath, const QByteArray & dataHash) const;
 
-    bool updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash, int & errorCode, QString & errorDescription);
+    bool updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash, const QString & storageFolderPath,
+                            int & errorCode, QString & errorDescription);
     void watchResourceFileForChanges(const QString & resourceLocalUid, const QString & fileStoragePath);
+    void stopWatchingResourceFile(const QString & filePath);
 
     void removeStaleResourceFilesFromCurrentNote();
 
