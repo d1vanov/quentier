@@ -2368,10 +2368,6 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
             continue;
         }
 
-        const QByteArray & dataBody = (resourceAdapter.hasDataBody()
-                                       ? resourceAdapter.dataBody()
-                                       : resourceAdapter.alternateDataBody());
-
         const QByteArray & dataHash = (resourceAdapter.hasDataHash()
                                        ? resourceAdapter.dataHash()
                                        : resourceAdapter.alternateDataHash());
@@ -2383,19 +2379,10 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
 
         if (!m_resourceInfo.contains(dataHashStr))
         {
-            const QString resourceLocalUid = resourceAdapter.localUid();
-            QUuid saveResourceRequestId = QUuid::createUuid();
-            bool isImage = resourceAdapter.mime().startsWith("image/");
-            QString preferredFileSuffix = resourceAdapter.preferredFileSuffix();
-
-            m_genericResourceLocalUidBySaveToStorageRequestIds[saveResourceRequestId] = resourceLocalUid;
-
-            QNTRACE("Emitting request to save resource to file storage: request id = " << saveResourceRequestId
-                    << ", note local uid = " << m_pNote->localUid() << ", resource local uid = " << resourceLocalUid
-                    << ", data hash = " << dataHash << ", mime type = " << resourceAdapter.mime());
-            emit saveResourceToStorage(m_pNote->localUid(), resourceLocalUid, dataBody, dataHash,
-                                       preferredFileSuffix, saveResourceRequestId, isImage);
-            ++numPendingResourceWritesToLocalFiles;
+            bool res = saveResourceToLocalFile(resourceAdapter);
+            if (res) {
+                ++numPendingResourceWritesToLocalFiles;
+            }
         }
     }
 
@@ -2412,6 +2399,53 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
     QNTRACE("Scheduled writing of " << numPendingResourceWritesToLocalFiles
             << " to local files, will wait until they are written "
             "and add the src attributes to img resources when the files are ready");
+}
+
+bool NoteEditorPrivate::saveResourceToLocalFile(const IResource & resource)
+{
+    QNDEBUG("NoteEditorPrivate::saveResourceToLocalFile: " << resource);
+
+    if (Q_UNLIKELY(!resource.hasMime())) {
+        QString error = QT_TR_NOOP("Can't save the resource to local file: resource has no mime type");
+        QNWARNING(error << ", resource: " << resource);
+        emit notifyError(error);
+        return false;
+    }
+
+    if (Q_UNLIKELY(!resource.hasNoteLocalUid())) {
+        QString error = QT_TR_NOOP("Can't save the resource to local file: resource has no note local uid");
+        QNWARNING(error << ", resource: " << resource);
+        emit notifyError(error);
+        return false;
+    }
+
+    if (Q_UNLIKELY(!resource.hasDataBody() && !resource.hasAlternateDataBody())) {
+        QString error = QT_TR_NOOP("Can't save the resource to local file: resource has neither data body nor alternate data body");
+        QNWARNING(error << ", resource: " << resource);
+        emit notifyError(error);
+        return false;
+    }
+
+    QUuid saveResourceRequestId = QUuid::createUuid();
+    QString preferredFileSuffix = resource.preferredFileSuffix();
+
+    m_genericResourceLocalUidBySaveToStorageRequestIds[saveResourceRequestId] = resource.localUid();
+
+    bool isImage = resource.mime().startsWith("image");
+    if (isImage) {
+        Q_UNUSED(m_imageResourceSaveToStorageRequestIds.insert(saveResourceRequestId))
+    }
+
+    QByteArray dataBody = (resource.hasDataBody()
+                           ? resource.dataBody()
+                           : resource.alternateDataBody());
+
+    QNTRACE("Emitting the request to save the resource to file storage: note local uid = " << resource.noteLocalUid()
+            << ", resource local uid = " << resource.localUid() << ", preferred file suffix = " << preferredFileSuffix
+            << ", request id = " << saveResourceRequestId << ", resource is image = " << (isImage ? "true" : "false"));
+    emit saveResourceToStorage(resource.noteLocalUid(), resource.localUid(), dataBody,
+                               QByteArray(), preferredFileSuffix, saveResourceRequestId, isImage);
+    return true;
 }
 
 void NoteEditorPrivate::updateHashForResourceTag(const QString & oldResourceHash, const QString & newResourceHash)
@@ -3049,21 +3083,7 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
         Q_UNUSED(m_recognitionIndicesByResourceHash.erase(recoIt));
     }
 
-    QUuid saveResourceRequestId = QUuid::createUuid();
-    QString preferredFileSuffix = updatedResource.preferredFileSuffix();
-
-    m_genericResourceLocalUidBySaveToStorageRequestIds[saveResourceRequestId] = updatedResource.localUid();
-
-    bool isImage = updatedResource.mime().startsWith("image");
-    if (isImage) {
-        Q_UNUSED(m_imageResourceSaveToStorageRequestIds.insert(saveResourceRequestId))
-    }
-
-    QNTRACE("Emitting the request to save the resource to file storage: note local uid = " << updatedResource.noteLocalUid()
-            << ", resource local uid = " << updatedResource.localUid() << ", preferred file suffix = " << preferredFileSuffix
-            << ", request id = " << saveResourceRequestId << ", resource is image = " << (isImage ? "true" : "false"));
-    emit saveResourceToStorage(updatedResource.noteLocalUid(), updatedResource.localUid(), updatedResource.dataBody(),
-                               QByteArray(), preferredFileSuffix, saveResourceRequestId, isImage);
+    Q_UNUSED(saveResourceToLocalFile(updatedResource))
 }
 
 void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraData, const QString & selectedHtml, bool insideDecryptedTextFragment)
@@ -4238,6 +4258,8 @@ void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
     }
 
     emit currentNoteChanged(*m_pNote);
+
+    saveResourceToLocalFile(resource);
 }
 
 void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)

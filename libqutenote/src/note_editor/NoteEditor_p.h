@@ -407,6 +407,7 @@ private:
     bool htmlToNoteContent(QString & errorDescription);
 
     void saveNoteResourcesToLocalFiles();
+    bool saveResourceToLocalFile(const IResource & resource);
     void updateHashForResourceTag(const QString & oldResourceHash, const QString & newResourceHash);
     void provideSrcForResourceImgTags();
 
