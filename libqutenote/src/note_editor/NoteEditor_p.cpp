@@ -1,6 +1,6 @@
 #include "NoteEditor_p.h"
 #include "SpellChecker.h"
-#include "GenericResourceImageWriter.h"
+#include "GenericResourceImageManager.h"
 #include "dialogs/DecryptionDialog.h"
 #include "delegates/AddResourceDelegate.h"
 #include "delegates/RemoveResourceDelegate.h"
@@ -170,7 +170,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pSpellCheckerDynamicHandler(new SpellCheckerDynamicHelper(this)),
     m_pTableResizeJavaScriptHandler(new TableResizeJavaScriptHandler(this)),
     m_pResizableImageJavaScriptHandler(new ResizableImageJavaScriptHandler(this)),
-    m_pGenericResourceImageWriter(Q_NULLPTR),
+    m_pGenericResourceImageManager(Q_NULLPTR),
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
@@ -1323,7 +1323,7 @@ void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName
 
     if (!performingUndo) {
         RenameResourceUndoCommand * pCommand = new RenameResourceUndoCommand(resource, oldResourceName, *this,
-                                                                             m_pGenericResourceImageWriter,
+                                                                             m_pGenericResourceImageManager,
                                                                              m_genericResourceImageFilePathsByResourceHash);
         m_pUndoStack->push(pCommand);
     }
@@ -3407,17 +3407,17 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
-    m_pGenericResourceImageWriter = new GenericResourceImageWriter;
-    m_pGenericResourceImageWriter->setStorageFolderPath(m_genericResourceImageFileStoragePath);
-    m_pGenericResourceImageWriter->moveToThread(m_pIOThread);
+    m_pGenericResourceImageManager = new GenericResourceImageManager;
+    m_pGenericResourceImageManager->setStorageFolderPath(m_genericResourceImageFileStoragePath);
+    m_pGenericResourceImageManager->moveToThread(m_pIOThread);
 
 #ifdef USE_QT_WEB_ENGINE
     QObject::connect(this,
                      QNSIGNAL(NoteEditorPrivate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
-                     m_pGenericResourceImageWriter,
-                     QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
-    QObject::connect(m_pGenericResourceImageWriter,
-                     QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                     m_pGenericResourceImageManager,
+                     QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::connect(m_pGenericResourceImageManager,
+                     QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 #endif
 }
@@ -5650,7 +5650,7 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
         return;
     }
 
-    RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageWriter, m_genericResourceImageFilePathsByResourceHash);
+    RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageManager, m_genericResourceImageFilePathsByResourceHash);
 
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool,QString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool,QString));
@@ -6008,7 +6008,7 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
     QNDEBUG("NoteEditorPrivate::dropFile: " << filePath);
 
     AddResourceDelegate * delegate = new AddResourceDelegate(filePath, *this, m_pResourceFileStorageManager,
-                                                             m_pFileIOThreadWorker, m_pGenericResourceImageWriter,
+                                                             m_pFileIOThreadWorker, m_pGenericResourceImageManager,
                                                              m_genericResourceImageFilePathsByResourceHash);
 
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString),

@@ -51,7 +51,7 @@ QT_FORWARD_DECLARE_CLASS(ContextMenuEventJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(TableResizeJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(PageMutationHandler)
 QT_FORWARD_DECLARE_CLASS(ToDoCheckboxOnClickHandler)
-QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageManager)
 QT_FORWARD_DECLARE_CLASS(RenameResourceDelegate)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 QT_FORWARD_DECLARE_CLASS(SpellCheckerDynamicHelper)
@@ -669,7 +669,7 @@ private:
     SpellCheckerDynamicHelper *         m_pSpellCheckerDynamicHandler;
     TableResizeJavaScriptHandler *      m_pTableResizeJavaScriptHandler;
     ResizableImageJavaScriptHandler *   m_pResizableImageJavaScriptHandler;
-    GenericResourceImageWriter *        m_pGenericResourceImageWriter;
+    GenericResourceImageManager *       m_pGenericResourceImageManager;
     ToDoCheckboxOnClickHandler *        m_pToDoCheckboxClickHandler;
     PageMutationHandler *               m_pPageMutationHandler;
 

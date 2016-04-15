@@ -1,4 +1,5 @@
-#include "GenericResourceImageWriter.h"
+#include "GenericResourceImageManager.h"
+#include <qute_note/types/Note.h>
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QFile>
 #include <QFileInfo>
@@ -7,23 +8,24 @@
 
 namespace qute_note {
 
-GenericResourceImageWriter::GenericResourceImageWriter(QObject * parent) :
+GenericResourceImageManager::GenericResourceImageManager(QObject * parent) :
     QObject(parent),
-    m_storageFolderPath()
+    m_storageFolderPath(),
+    m_pCurrentNote()
 {}
 
-void GenericResourceImageWriter::setStorageFolderPath(const QString & storageFolderPath)
+void GenericResourceImageManager::setStorageFolderPath(const QString & storageFolderPath)
 {
-    QNDEBUG("GenericResourceImageWriter::setStorageFolderPath: " << storageFolderPath);
+    QNDEBUG("GenericResourceImageManager::setStorageFolderPath: " << storageFolderPath);
     m_storageFolderPath = storageFolderPath;
 }
 
-void GenericResourceImageWriter::onGenericResourceImageWriteRequest(QString noteLocalUid, QString resourceLocalUid,
-                                                                    QByteArray resourceImageData, QString resourceFileSuffix,
-                                                                    QByteArray resourceActualHash, QString resourceDisplayName,
-                                                                    QUuid requestId)
+void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString noteLocalUid, QString resourceLocalUid,
+                                                                     QByteArray resourceImageData, QString resourceFileSuffix,
+                                                                     QByteArray resourceActualHash, QString resourceDisplayName,
+                                                                     QUuid requestId)
 {
-    QNDEBUG("GenericResourceImageWriter::onGenericResourceImageWriteRequest: note local uid = " << noteLocalUid
+    QNDEBUG("GenericResourceImageManager::onGenericResourceImageWriteRequest: note local uid = " << noteLocalUid
             << ", resource local uid = " << resourceLocalUid << ", resource actual hash = " << resourceActualHash
             << ", request id = " << requestId);
 

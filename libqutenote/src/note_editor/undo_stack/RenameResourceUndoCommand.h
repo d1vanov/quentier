@@ -7,17 +7,17 @@
 
 namespace qute_note {
 
-QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageManager)
 
 class RenameResourceUndoCommand: public INoteEditorUndoCommand
 {
 public:
     RenameResourceUndoCommand(const ResourceWrapper & resource, const QString & previousResourceName,
-                              NoteEditorPrivate & noteEditor, GenericResourceImageWriter * pGenericResourceImageWriter,
+                              NoteEditorPrivate & noteEditor, GenericResourceImageManager * pGenericResourceImageManager,
                               QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                               QUndoCommand * parent = Q_NULLPTR);
     RenameResourceUndoCommand(const ResourceWrapper & resource, const QString & previousResourceName,
-                              NoteEditorPrivate & noteEditor, GenericResourceImageWriter * pGenericResourceImageWriter,
+                              NoteEditorPrivate & noteEditor, GenericResourceImageManager * pGenericResourceImageManager,
                               QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                               const QString & text,  QUndoCommand * parent = Q_NULLPTR);
     virtual ~RenameResourceUndoCommand();
@@ -29,7 +29,7 @@ private:
     ResourceWrapper                 m_resource;
     QString                         m_previousResourceName;
     QString                         m_newResourceName;
-    GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    GenericResourceImageManager *   m_pGenericResourceImageManager;
     QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
 };
 

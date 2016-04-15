@@ -179,7 +179,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
-    src/note_editor/GenericResourceImageWriter.h
+    src/note_editor/GenericResourceImageManager.h
     src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
@@ -281,7 +281,7 @@ endif()
 set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
-    src/note_editor/GenericResourceImageWriter.cpp
+    src/note_editor/GenericResourceImageManager.cpp
     src/note_editor/DecryptedTextManager.cpp
     src/note_editor/DecryptedTextManager_p.cpp
     src/note_editor/NoteEditorPage.cpp

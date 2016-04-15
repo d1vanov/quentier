@@ -1,22 +1,26 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_WRITER_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_WRITER_H
+#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_MANAGER_H
+#define __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_MANAGER_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
 #include <QUuid>
+#include <QScopedPointer>
 
 namespace qute_note {
 
+QT_FORWARD_DECLARE_CLASS(Note)
+
 /**
- * @brief The GenericResourceImageWriter class is simply the I/O thread worker which
+ * @brief The GenericResourceImageManager class is a worker for the I/O thread which
  * would write two files in a folder accessible for note editor's page: the composed image
- * of generic resource and the hash of that resource.
+ * for a generic resource and the hash of that resource. It would also listen to the current note
+ * changes and remove stale generic resource images as appropriate.
  */
-class GenericResourceImageWriter: public QObject
+class GenericResourceImageManager: public QObject
 {
     Q_OBJECT
 public:
-    explicit GenericResourceImageWriter(QObject * parent = Q_NULLPTR);
+    explicit GenericResourceImageManager(QObject * parent = Q_NULLPTR);
 
     void setStorageFolderPath(const QString & storageFolderPath);
 
@@ -30,9 +34,10 @@ public Q_SLOTS:
                                             QString resourceDisplayName, QUuid requestId);
 
 private:
-    QString     m_storageFolderPath;
+    QString                 m_storageFolderPath;
+    QScopedPointer<Note>    m_pCurrentNote;
 };
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_WRITER_H
+#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__GENERIC_RESOURCE_IMAGE_MANAGER_H

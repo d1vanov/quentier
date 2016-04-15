@@ -1,7 +1,7 @@
 #include "AddResourceDelegate.h"
 #include "../NoteEditor_p.h"
 #include "../NoteEditorPage.h"
-#include "../GenericResourceImageWriter.h"
+#include "../GenericResourceImageManager.h"
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/utility/FileIOThreadWorker.h>
 #include <qute_note/logging/QuteNoteLogger.h>
@@ -29,14 +29,14 @@ namespace qute_note {
 AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                          ResourceFileStorageManager * pResourceFileStorageManager,
                                          FileIOThreadWorker * pFileIOThreadWorker,
-                                         GenericResourceImageWriter * pGenericResourceImageWriter,
+                                         GenericResourceImageManager * pGenericResourceImageManager,
                                          QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash) :
     QObject(&noteEditor),
     m_noteEditor(noteEditor),
     m_pResourceFileStorageManager(pResourceFileStorageManager),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_genericResourceImageFilePathsByResourceHash(genericResourceImageFilePathsByResourceHash),
-    m_pGenericResourceImageWriter(pGenericResourceImageWriter),
+    m_pGenericResourceImageManager(pGenericResourceImageManager),
     m_saveResourceImageRequestId(),
     m_filePath(filePath),
     m_resourceFileMimeType(),
@@ -236,8 +236,8 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
     m_saveResourceImageRequestId = QUuid::createUuid();
 
     QObject::connect(this, QNSIGNAL(AddResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
-                     m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
-    QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                     m_pGenericResourceImageManager, QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 
     QNDEBUG("Emitting request to write generic resource image for new resource with local uid " << m_resource.localUid()
@@ -255,8 +255,8 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
     }
 
     QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QByteArray,QString,QUuid),
-                        m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QByteArray,QString,QUuid));
-    QObject::disconnect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                        m_pGenericResourceImageManager, QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QByteArray,QString,QUuid));
+    QObject::disconnect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                         this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
 
     QNDEBUG("AddResourceDelegate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")

@@ -17,7 +17,7 @@ namespace qute_note {
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageManager)
 
 class AddResourceDelegate: public QObject
 {
@@ -26,7 +26,7 @@ public:
     explicit AddResourceDelegate(const QString & filePath, NoteEditorPrivate & noteEditor,
                                  ResourceFileStorageManager * pResourceFileStorageManager,
                                  FileIOThreadWorker * pFileIOThreadWorker,
-                                 GenericResourceImageWriter * pGenericResourceImageWriter,
+                                 GenericResourceImageManager * pGenericResourceImageManager,
                                  QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash);
 
     void start();
@@ -72,7 +72,7 @@ private:
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 
     QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
-    GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    GenericResourceImageManager *   m_pGenericResourceImageManager;
     QUuid                           m_saveResourceImageRequestId;
 
     const QString                   m_filePath;

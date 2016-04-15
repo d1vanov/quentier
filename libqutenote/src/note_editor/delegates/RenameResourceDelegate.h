@@ -12,7 +12,7 @@
 namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
-QT_FORWARD_DECLARE_CLASS(GenericResourceImageWriter)
+QT_FORWARD_DECLARE_CLASS(GenericResourceImageManager)
 
 /**
  * @brief The RenameResourceDelegate class encapsulates a chain of callbacks required
@@ -24,7 +24,7 @@ class RenameResourceDelegate: public QObject
     Q_OBJECT
 public:
     explicit RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
-                                    GenericResourceImageWriter * pGenericResourceImageWriter,
+                                    GenericResourceImageManager * pGenericResourceImageManager,
                                     QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                                     const bool performingUndo = false);
     void start();
@@ -66,7 +66,7 @@ private:
 
 private:
     NoteEditorPrivate &             m_noteEditor;
-    GenericResourceImageWriter *    m_pGenericResourceImageWriter;
+    GenericResourceImageManager *   m_pGenericResourceImageManager;
     QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
     ResourceWrapper                 m_resource;
 

@@ -1,6 +1,6 @@
 #include "RenameResourceDelegate.h"
 #include "../NoteEditor_p.h"
-#include "../GenericResourceImageWriter.h"
+#include "../GenericResourceImageManager.h"
 #include "../dialogs/RenameResourceDialog.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <QScopedPointer>
@@ -19,11 +19,11 @@ namespace qute_note {
     }
 
 RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
-                                               GenericResourceImageWriter * pGenericResourceImageWriter,
+                                               GenericResourceImageManager * pGenericResourceImageManager,
                                                QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                                                const bool performingUndo) :
     m_noteEditor(noteEditor),
-    m_pGenericResourceImageWriter(pGenericResourceImageWriter),
+    m_pGenericResourceImageManager(pGenericResourceImageManager),
     m_genericResourceImageFilePathsByResourceHash(genericResourceImageFilePathsByResourceHash),
     m_resource(resource),
     m_oldResourceName(resource.displayName()),
@@ -176,8 +176,8 @@ void RenameResourceDelegate::buildAndSaveGenericResourceImage()
             << ", note local uid = " << m_pNote->localUid());
 
     QObject::connect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
-                     m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
-    QObject::connect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                     m_pGenericResourceImageManager, QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                      this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
 
     emit saveGenericResourceImageToFile(m_pNote->localUid(), m_resource.localUid(), imageData, "png", m_resource.dataHash(), m_resource.displayName(), m_genericResourceImageWriterRequestId);
@@ -195,8 +195,8 @@ void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, 
             << errorDescription << ", request id = " << requestId);
 
     QObject::disconnect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
-                        m_pGenericResourceImageWriter, QNSLOT(GenericResourceImageWriter,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
-    QObject::disconnect(m_pGenericResourceImageWriter, QNSIGNAL(GenericResourceImageWriter,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
+                        m_pGenericResourceImageManager, QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
+    QObject::disconnect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
                         this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
 
     if (Q_UNLIKELY(!success)) {
