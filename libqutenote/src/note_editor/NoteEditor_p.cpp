@@ -5662,8 +5662,8 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
 
     RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageManager, m_genericResourceImageFilePathsByResourceHash);
 
-    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool,QString));
+    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool));
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
     QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,cancelled),

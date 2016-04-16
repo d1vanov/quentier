@@ -81,13 +81,13 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
 
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,QString));
-    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QString,QUuid,bool),
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
 
     QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QString,QUuid));
-    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid,QIODevice::OpenMode),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,QIODevice::OpenMode));
+    QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid,bool),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
         QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);
@@ -243,7 +243,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     }
 
     m_saveResourceToFileRequestId = QUuid::createUuid();
-    emit saveResourceToFile(fileName, data, m_saveResourceToFileRequestId, QIODevice::WriteOnly);
+    emit saveResourceToFile(fileName, data, m_saveResourceToFileRequestId, /* append = */ false);
     QNDEBUG("Sent request to save resource to file, request id = " << m_saveResourceToFileRequestId);
 }
 
