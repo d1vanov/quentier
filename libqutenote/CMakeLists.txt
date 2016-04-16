@@ -141,6 +141,7 @@ set(EXCEPTION_HEADERS
     headers/qute_note/exception/IQuteNoteException.h
     headers/qute_note/exception/LocalStorageCacheManagerException.h
     headers/qute_note/exception/LoggerInitializationException.h
+    headers/qute_note/exception/NoteEditorInitializationException.h
     headers/qute_note/exception/NoteEditorPluginInitializationException.h
     headers/qute_note/exception/NullPtrException.h
     headers/qute_note/exception/ResourceAdapterAccessException.h
@@ -390,6 +391,7 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/EmptyDataElementException.cpp
     src/exception/DatabaseOpeningException.cpp
     src/exception/DatabaseSqlErrorException.cpp
+    src/exception/NoteEditorInitializationException.cpp
     src/exception/NoteEditorPluginInitializationException.cpp
     src/exception/NullPtrException.cpp
     src/exception/LocalStorageCacheManagerException.cpp

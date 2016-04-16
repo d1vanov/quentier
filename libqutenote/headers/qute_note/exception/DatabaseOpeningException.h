@@ -11,7 +11,7 @@ public:
     explicit DatabaseOpeningException(const QString & message);
 
 protected:
-    virtual const QString exceptionDisplayName() const;
+    virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
 };
 
 }

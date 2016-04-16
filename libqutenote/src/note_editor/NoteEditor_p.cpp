@@ -62,6 +62,7 @@ typedef QWebEngineSettings WebSettings;
 
 #include <qute_note/note_editor/ResourceFileStorageManager.h>
 #include <qute_note/exception/ResourceLocalFileStorageFolderNotFoundException.h>
+#include <qute_note/exception/NoteEditorInitializationException.h>
 #include <qute_note/exception/NoteEditorPluginInitializationException.h>
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Notebook.h>
@@ -2960,9 +2961,9 @@ void NoteEditorPrivate::setupWebSocketServer()
     QNDEBUG("NoteEditorPrivate::setupWebSocketServer");
 
     if (!m_pWebSocketServer->listen(QHostAddress::LocalHost, 0)) {
-        QNFATAL("Cannot open web socket server: " << m_pWebSocketServer->errorString());
-        // TODO: throw appropriate exception
-        return;
+        QString error = QT_TR_NOOP("Cannot open web socket server: ") + m_pWebSocketServer->errorString();
+        QNFATAL(error);
+        throw NoteEditorInitializationException(error);
     }
 
     m_webSocketServerPort = m_pWebSocketServer->serverPort();
@@ -4173,6 +4174,9 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
         }
         else
         {
+            // Remove the no longer needed html file with the note editor page
+            Q_UNUSED(removeFile(noteEditorPagePath()))
+
             *m_pNote = note;
 
             m_decryptedTextManager->clearNonRememberedForSessionEntries();
@@ -4181,6 +4185,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     }
 
     // Clear the caches from previous note
+    m_resourceInfo.clear();
     m_genericResourceLocalUidBySaveToStorageRequestIds.clear();
     m_imageResourceSaveToStorageRequestIds.clear();
     m_resourceFileStoragePathsByResourceLocalUid.clear();

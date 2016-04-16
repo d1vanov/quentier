@@ -10,8 +10,8 @@ class QUTE_NOTE_EXPORT SharedNotebookAdapterAccessException: public IQuteNoteExc
 public:
     explicit SharedNotebookAdapterAccessException(const QString & message);
 
-private:
-    virtual const QString exceptionDisplayName() const;
+protected:
+    virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
 };
 
 } // namespace qute_note

@@ -10,7 +10,8 @@ class QUTE_NOTE_EXPORT LocalStorageCacheManagerException: public IQuteNoteExcept
 public:
     explicit LocalStorageCacheManagerException(const QString & message);
 
-    virtual const QString exceptionDisplayName() const;
+protected:
+    virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
 };
 
 } // namespace qute_note

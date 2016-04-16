@@ -10,8 +10,8 @@ class QUTE_NOTE_EXPORT ResourceAdapterAccessException: public IQuteNoteException
 public:
     explicit ResourceAdapterAccessException(const QString & message);
 
-private:
-    virtual const QString exceptionDisplayName() const;
+protected:
+    virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
 };
 
 } // namespace qute_note

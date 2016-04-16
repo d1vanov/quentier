@@ -10,8 +10,8 @@ class QUTE_NOTE_EXPORT UserAdapterAccessException: public IQuteNoteException
 public:
     explicit UserAdapterAccessException(const QString & message);
 
-private:
-    const QString exceptionDisplayName() const;
+protected:
+    const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
 };
 
 } // namespace qute_note

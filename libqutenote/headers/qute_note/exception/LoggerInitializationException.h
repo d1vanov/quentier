@@ -10,8 +10,8 @@ class QUTE_NOTE_EXPORT LoggerInitializationException: public IQuteNoteException
 public:
     explicit LoggerInitializationException(const QString & message);
 
-private:
-    const QString exceptionDisplayName() const;
+protected:
+    const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
 };
 
 } // namespace qute_note
