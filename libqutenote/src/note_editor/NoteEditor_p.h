@@ -466,6 +466,9 @@ private:
     bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                 QString & cipher, QString & keyLength, QString & hint,
                                                 QString & id, QString & errorDescription) const;
+    void setupPasteGenericTextMenuActions();
+    void setupParagraphSubMenuForGenericTextMenu(const QString & selectedHtml);
+    void setupStyleSubMenuForGenericTextMenu();
 
     void rebuildRecognitionIndicesCache();
 

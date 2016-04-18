@@ -98,12 +98,31 @@ typedef QWebEngineSettings WebSettings;
 #include <QImage>
 #include <QTransform>
 
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/scope_exit.hpp>
+#endif
+
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(this->page()); \
     if (Q_UNLIKELY(!page)) { \
         QNFATAL("Can't get access to note editor's underlying page!"); \
         return; \
     }
+
+#define CHECK_NOTE_EDITABLE(message) \
+    if (Q_UNLIKELY(!isPageEditable())) { \
+        QString error = QT_TR_NOOP("Can't " message ", note is not editable"); \
+        QNINFO(error << ", note: " << (m_pNote.isNull() ? QStringLiteral("<null>") : m_pNote->toString()) \
+               << "\nNotebook: " << (m_pNotebook.isNull() ? QStringLiteral("<null>") : m_pNotebook->toString())); \
+        emit notifyError(error); \
+        return; \
+    }
+
+#define AUTO_SET_FOCUS() \
+    BOOST_SCOPE_EXIT(this_) { \
+        this_->setFocus(); \
+    } BOOST_SCOPE_EXIT_END
 
 namespace qute_note {
 
@@ -385,7 +404,38 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_imageAreasHilitorJs);
     page->executeJavaScript(m_spellCheckerJs);
 
-    setPageEditable(true);
+    bool readOnly = false;
+    if (m_pNote->hasActive() && !m_pNote->active()) {
+        QNDEBUG("Current note is not active, setting it to read-only state");
+        setPageEditable(false);
+        readOnly = true;
+    }
+    else if (m_pNotebook->hasRestrictions())
+    {
+        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
+        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
+            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
+#ifndef USE_QT_WEB_ENGINE
+            QWebPage * page = this->page();
+            if (Q_LIKELY(page)) {
+                page->setContentEditable(false);
+            }
+#else
+            setPageEditable(false);
+#endif
+            readOnly = true;
+        }
+    }
+
+    if (!readOnly) {
+        QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
+        setPageEditable(true);
+    }
+    else {
+        QNDEBUG("Marking the note page as read-only");
+        setPageEditable(false);
+    }
+
     updateColResizableTableBindings();
     saveNoteResourcesToLocalFiles();
 
@@ -2230,37 +2280,7 @@ void NoteEditorPrivate::noteToEditorContent()
     }
 
     m_htmlCachedMemory.insert(bodyClosingTagIndex + 7, "</html>");
-
     m_htmlCachedMemory.replace("<br></br>", "</br>");   // Webkit-specific fix
-
-    bool readOnly = false;
-    if (m_pNote->hasActive() && !m_pNote->active()) {
-        QNDEBUG("Current note is not active, setting it to read-only state");
-        setPageEditable(false);
-        readOnly = true;
-    }
-    else if (m_pNotebook->hasRestrictions())
-    {
-        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
-        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
-            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
-#ifndef USE_QT_WEB_ENGINE
-            QWebPage * page = this->page();
-            if (Q_LIKELY(page)) {
-                page->setContentEditable(false);
-            }
-#else
-            setPageEditable(false);
-#endif
-            readOnly = true;
-        }
-    }
-
-    if (!readOnly) {
-        QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
-        setPageEditable(true);
-    }
-
     writeNotePageFile(m_htmlCachedMemory);
 }
 
@@ -3097,13 +3117,16 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
     delete m_pGenericTextContextMenu;
     m_pGenericTextContextMenu = new QMenu(this);
 
-#define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, ...) \
+#define ADD_ACTION_WITH_SHORTCUT(key, name, menu, slot, enabled, ...) \
     { \
         QAction * action = new QAction(tr(name), menu); \
+        action->setEnabled(enabled); \
         setupActionShortcut(key, QString(#__VA_ARGS__), *action); \
         QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,slot)); \
         menu->addAction(action); \
     }
+
+    bool enabled = true;
 
     // See if extraData contains the misspelled word
     QString misSpelledWord;
@@ -3136,17 +3159,19 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
                 QAction * action = new QAction(correctionSuggestion, m_pGenericTextContextMenu);
                 action->setText(correctionSuggestion);
                 action->setToolTip(tr("Correct the misspelled word"));
+                action->setEnabled(m_isPageEditable);
                 QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorPrivate,onSpellCheckCorrectionAction));
                 m_pGenericTextContextMenu->addAction(action);
             }
 
             Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
-            ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckIgnoreWord, "Ignore word",
-                                     m_pGenericTextContextMenu, onSpellCheckIgnoreWordAction);
-            ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckAddWordToUserDictionary, "Add word to user dictionary",
-                                     m_pGenericTextContextMenu, onSpellCheckAddWordToUserDictionaryAction);
-            Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         }
+
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckIgnoreWord, "Ignore word",
+                                 m_pGenericTextContextMenu, onSpellCheckIgnoreWordAction, enabled);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SpellCheckAddWordToUserDictionary, "Add word to user dictionary",
+                                 m_pGenericTextContextMenu, onSpellCheckAddWordToUserDictionaryAction, enabled);
+        Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
     }
 
     if (insideDecryptedTextFragment)
@@ -3168,118 +3193,54 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
     }
 
     if (!selectedHtml.isEmpty()) {
-        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pGenericTextContextMenu, cut);
-        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pGenericTextContextMenu, copy);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pGenericTextContextMenu, cut, m_isPageEditable);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pGenericTextContextMenu, copy, enabled);
     }
 
-    bool clipboardHasHtml = false;
-    bool clipboardHasText = false;
-    bool clipboardHasImage = false;
-    bool clipboardHasUrls = false;
-
-    QClipboard * pClipboard = QApplication::clipboard();
-    const QMimeData * pClipboardMimeData = (pClipboard ? pClipboard->mimeData(QClipboard::Clipboard) : Q_NULLPTR);
-    if (pClipboardMimeData)
-    {
-        if (pClipboardMimeData->hasHtml()) {
-            clipboardHasHtml = !pClipboardMimeData->html().isEmpty();
-        }
-        else if (pClipboardMimeData->hasText()) {
-            clipboardHasText = !pClipboardMimeData->text().isEmpty();
-        }
-        else if (pClipboardMimeData->hasImage()) {
-            clipboardHasImage = true;
-        }
-        else if (pClipboardMimeData->hasUrls()) {
-            clipboardHasUrls = true;
-        }
-    }
-
-    if (clipboardHasHtml || clipboardHasText || clipboardHasImage || clipboardHasUrls) {
-        QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pGenericTextContextMenu, paste);
-    }
-
-    if (clipboardHasHtml) {
-        QNTRACE("Clipboard buffer has html, adding paste unformatted action");
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::PasteUnformatted, "Paste as unformatted text",
-                                 m_pGenericTextContextMenu, pasteUnformatted);
-    }
-
-    Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
-
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Font, "Font...", m_pGenericTextContextMenu, fontMenu);
-
-    QMenu * pParagraphSubMenu = m_pGenericTextContextMenu->addMenu(tr("Paragraph"));
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignLeft, "Align left", pParagraphSubMenu, alignLeft);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignCenter, "Center text", pParagraphSubMenu, alignCenter);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignRight, "Align right", pParagraphSubMenu, alignRight);
-    Q_UNUSED(pParagraphSubMenu->addSeparator());
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::IncreaseIndentation, "Increase indentation",
-                             pParagraphSubMenu, increaseIndentation);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::DecreaseIndentation, "Decrease indentation",
-                             pParagraphSubMenu, decreaseIndentation);
-    Q_UNUSED(pParagraphSubMenu->addSeparator());
-
-    if (!selectedHtml.isEmpty()) {
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::IncreaseFontSize, "Increase font size",
-                                 pParagraphSubMenu, increaseFontSize);
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::DecreaseFontSize, "Decrease font size",
-                                 pParagraphSubMenu, decreaseFontSize);
-        Q_UNUSED(pParagraphSubMenu->addSeparator());
-    }
-
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertNumberedList, "Numbered list",
-                             pParagraphSubMenu, insertNumberedList);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertBulletedList, "Bulleted list",
-                             pParagraphSubMenu, insertBulletedList);
-
-    QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(tr("Style"));
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Bold, "Bold", pStyleSubMenu, textBold);
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Italic, "Italic", pStyleSubMenu, textItalic);
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Underline, "Underline", pStyleSubMenu, textUnderline);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Strikethrough, "Strikethrough", pStyleSubMenu, textStrikethrough);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Highlight, "Highlight", pStyleSubMenu, textHighlight);
+    setupPasteGenericTextMenuActions();
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Font, "Font...", m_pGenericTextContextMenu, fontMenu, m_isPageEditable);
+    setupParagraphSubMenuForGenericTextMenu(selectedHtml);
+    setupStyleSubMenuForGenericTextMenu();
 
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
     if (extraData.contains("InsideTable")) {
         QMenu * pTableMenu = m_pGenericTextContextMenu->addMenu(tr("Table"));
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertRow, "Insert row", pTableMenu, insertTableRow);
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertColumn, "Insert column", pTableMenu, insertTableColumn);
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveRow, "Remove row", pTableMenu, removeTableRow);
-        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveColumn, "Remove column", pTableMenu, removeTableColumn);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertRow, "Insert row", pTableMenu, insertTableRow, m_isPageEditable);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertColumn, "Insert column", pTableMenu, insertTableColumn, m_isPageEditable);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveRow, "Remove row", pTableMenu, removeTableRow, m_isPageEditable);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveColumn, "Remove column", pTableMenu, removeTableColumn, m_isPageEditable);
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
     }
     else {
         ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertTable, "Insert table...",
-                                 m_pGenericTextContextMenu, insertTableDialog);
+                                 m_pGenericTextContextMenu, insertTableDialog, m_isPageEditable);
     }
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertHorizontalLine, "Insert horizontal line",
-                             m_pGenericTextContextMenu, insertHorizontalLine);
+                             m_pGenericTextContextMenu, insertHorizontalLine, m_isPageEditable);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AddAttachment, "Add attachment...",
-                             m_pGenericTextContextMenu, addAttachmentDialog);
+                             m_pGenericTextContextMenu, addAttachmentDialog, m_isPageEditable);
 
     Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertToDoTag, "Insert ToDo tag",
-                             m_pGenericTextContextMenu, insertToDoCheckbox);
+                             m_pGenericTextContextMenu, insertToDoCheckbox, m_isPageEditable);
 
     QMenu * pHyperlinkMenu = m_pGenericTextContextMenu->addMenu(tr("Hyperlink"));
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::EditHyperlink, "Add/edit...", pHyperlinkMenu, editHyperlinkDialog);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyHyperlink, "Copy", pHyperlinkMenu, copyHyperlink);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveHyperlink, "Remove", pHyperlinkMenu, removeHyperlink);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::EditHyperlink, "Add/edit...", pHyperlinkMenu, editHyperlinkDialog, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyHyperlink, "Copy", pHyperlinkMenu, copyHyperlink, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveHyperlink, "Remove", pHyperlinkMenu, removeHyperlink, m_isPageEditable);
 
     if (!insideDecryptedTextFragment && !selectedHtml.isEmpty()) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Encrypt, "Encrypt selected fragment...",
-                                 m_pGenericTextContextMenu, encryptSelectedText);
+                                 m_pGenericTextContextMenu, encryptSelectedText, m_isPageEditable);
     }
     else if (insideDecryptedTextFragment) {
         Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
         ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Encrypt, "Encrypt back",
-                                 m_pGenericTextContextMenu, hideDecryptedTextUnderCursor);
+                                 m_pGenericTextContextMenu, hideDecryptedTextUnderCursor, m_isPageEditable);
     }
 
     m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
@@ -3294,25 +3255,27 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
     delete m_pImageResourceContextMenu;
     m_pImageResourceContextMenu = new QMenu(this);
 
+    bool enabled = true;
+
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::CopyAttachment, "Copy", m_pImageResourceContextMenu,
-                             copyAttachmentUnderCursor);
+                             copyAttachmentUnderCursor, enabled);
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pImageResourceContextMenu,
-                             removeAttachmentUnderCursor);
+                             removeAttachmentUnderCursor, m_isPageEditable);
 
     Q_UNUSED(m_pImageResourceContextMenu->addSeparator());
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::ImageRotateClockwise, "Rotate clockwise", m_pImageResourceContextMenu,
-                             rotateImageAttachmentUnderCursorClockwise);
+                             rotateImageAttachmentUnderCursorClockwise, m_isPageEditable);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::ImageRotateCounterClockwise, "Rotate countercloskwise", m_pImageResourceContextMenu,
-                             rotateImageAttachmentUnderCursorCounterclockwise);
+                             rotateImageAttachmentUnderCursorCounterclockwise, m_isPageEditable);
 
     Q_UNUSED(m_pImageResourceContextMenu->addSeparator());
 
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::OpenAttachment, "Open", m_pImageResourceContextMenu,
-                             openAttachmentUnderCursor);
+                             openAttachmentUnderCursor, m_isPageEditable);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::SaveAttachment, "Save as...", m_pImageResourceContextMenu,
-                             saveAttachmentUnderCursor);
+                             saveAttachmentUnderCursor, enabled);
 
     m_pImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
@@ -3326,15 +3289,19 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu(const QString & resourc
     delete m_pNonImageResourceContextMenu;
     m_pNonImageResourceContextMenu = new QMenu(this);
 
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut);
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pNonImageResourceContextMenu, removeAttachmentUnderCursor);
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RenameAttachment, "Rename", m_pNonImageResourceContextMenu, renameAttachmentUnderCursor);
+    bool enabled = true;
+
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy, enabled);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pNonImageResourceContextMenu,
+                             removeAttachmentUnderCursor, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RenameAttachment, "Rename", m_pNonImageResourceContextMenu,
+                             renameAttachmentUnderCursor, m_isPageEditable);
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (pClipboard && pClipboard->mimeData(QClipboard::Clipboard)) {
         QNTRACE("Clipboard buffer has something, adding paste action");
-        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pNonImageResourceContextMenu, paste);
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pNonImageResourceContextMenu, paste, m_isPageEditable);
     }
 
     m_pNonImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
@@ -3356,7 +3323,8 @@ void NoteEditorPrivate::setupEncryptedTextContextMenu(const QString & cipher, co
     delete m_pEncryptedTextContextMenu;
     m_pEncryptedTextContextMenu = new QMenu(this);
 
-    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Decrypt, "Decrypt...", m_pEncryptedTextContextMenu, decryptEncryptedTextUnderCursor);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Decrypt, "Decrypt...", m_pEncryptedTextContextMenu,
+                             decryptEncryptedTextUnderCursor, m_isPageEditable);
 
     m_pEncryptedTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
@@ -3869,6 +3837,113 @@ bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList
     hint = extraData[3];
     id = extraData[4];
     return true;
+}
+
+void NoteEditorPrivate::setupPasteGenericTextMenuActions()
+{
+    QNDEBUG("NoteEditorPrivate::setupPasteGenericTextMenuActions");
+
+    if (Q_UNLIKELY(!m_pGenericTextContextMenu)) {
+        QNDEBUG("No generic text context menu, nothing to do");
+        return;
+    }
+
+    bool clipboardHasHtml = false;
+    bool clipboardHasText = false;
+    bool clipboardHasImage = false;
+    bool clipboardHasUrls = false;
+
+    QClipboard * pClipboard = QApplication::clipboard();
+    const QMimeData * pClipboardMimeData = (pClipboard ? pClipboard->mimeData(QClipboard::Clipboard) : Q_NULLPTR);
+    if (pClipboardMimeData)
+    {
+        if (pClipboardMimeData->hasHtml()) {
+            clipboardHasHtml = !pClipboardMimeData->html().isEmpty();
+        }
+        else if (pClipboardMimeData->hasText()) {
+            clipboardHasText = !pClipboardMimeData->text().isEmpty();
+        }
+        else if (pClipboardMimeData->hasImage()) {
+            clipboardHasImage = true;
+        }
+        else if (pClipboardMimeData->hasUrls()) {
+            clipboardHasUrls = true;
+        }
+    }
+
+    if (clipboardHasHtml || clipboardHasText || clipboardHasImage || clipboardHasUrls) {
+        QNTRACE("Clipboard buffer has something, adding paste action");
+        ADD_ACTION_WITH_SHORTCUT(QKeySequence::Paste, "Paste", m_pGenericTextContextMenu, paste, m_isPageEditable);
+    }
+
+    if (clipboardHasHtml) {
+        QNTRACE("Clipboard buffer has html, adding paste unformatted action");
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::PasteUnformatted, "Paste as unformatted text",
+                                 m_pGenericTextContextMenu, pasteUnformatted, m_isPageEditable);
+    }
+
+    Q_UNUSED(m_pGenericTextContextMenu->addSeparator());
+}
+
+void NoteEditorPrivate::setupParagraphSubMenuForGenericTextMenu(const QString & selectedHtml)
+{
+    QNDEBUG("NoteEditorPrivate::setupParagraphSubMenuForGenericTextMenu: selected html = " << selectedHtml);
+
+    if (Q_UNLIKELY(!m_pGenericTextContextMenu)) {
+        QNDEBUG("No generic text context menu, nothing to do");
+        return;
+    }
+
+    if (!isPageEditable()) {
+        QNDEBUG("Note is not editable, no paragraph sub-menu actions are allowed");
+        return;
+    }
+
+    QMenu * pParagraphSubMenu = m_pGenericTextContextMenu->addMenu(tr("Paragraph"));
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignLeft, "Align left", pParagraphSubMenu, alignLeft, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignCenter, "Center text", pParagraphSubMenu, alignCenter, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::AlignRight, "Align right", pParagraphSubMenu, alignRight, m_isPageEditable);
+    Q_UNUSED(pParagraphSubMenu->addSeparator());
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::IncreaseIndentation, "Increase indentation",
+                             pParagraphSubMenu, increaseIndentation, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::DecreaseIndentation, "Decrease indentation",
+                             pParagraphSubMenu, decreaseIndentation, m_isPageEditable);
+    Q_UNUSED(pParagraphSubMenu->addSeparator());
+
+    if (!selectedHtml.isEmpty()) {
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::IncreaseFontSize, "Increase font size",
+                                 pParagraphSubMenu, increaseFontSize, m_isPageEditable);
+        ADD_ACTION_WITH_SHORTCUT(ShortcutManager::DecreaseFontSize, "Decrease font size",
+                                 pParagraphSubMenu, decreaseFontSize, m_isPageEditable);
+        Q_UNUSED(pParagraphSubMenu->addSeparator());
+    }
+
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertNumberedList, "Numbered list",
+                             pParagraphSubMenu, insertNumberedList, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::InsertBulletedList, "Bulleted list",
+                             pParagraphSubMenu, insertBulletedList, m_isPageEditable);
+}
+
+void NoteEditorPrivate::setupStyleSubMenuForGenericTextMenu()
+{
+    QNDEBUG("NoteEditorPrivate::setupStyleSubMenuForGenericTextMenu");
+
+    if (Q_UNLIKELY(!m_pGenericTextContextMenu)) {
+        QNDEBUG("No generic text context menu, nothing to do");
+        return;
+    }
+
+    if (!isPageEditable()) {
+        QNDEBUG("Note is not editable, no style sub-menu actions are allowed");
+        return;
+    }
+
+    QMenu * pStyleSubMenu = m_pGenericTextContextMenu->addMenu(tr("Style"));
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Bold, "Bold", pStyleSubMenu, textBold, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Italic, "Italic", pStyleSubMenu, textItalic, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Underline, "Underline", pStyleSubMenu, textUnderline, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Strikethrough, "Strikethrough", pStyleSubMenu, textStrikethrough, m_isPageEditable);
+    ADD_ACTION_WITH_SHORTCUT(ShortcutManager::Highlight, "Highlight", pStyleSubMenu, textHighlight, m_isPageEditable);
 }
 
 void NoteEditorPrivate::rebuildRecognitionIndicesCache()
@@ -5028,6 +5103,7 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
     GET_PAGE()
+    CHECK_NOTE_EDITABLE("replace text")
 
     QString escapedTextToReplace = textToReplace;
     ENMLConverter::escapeString(escapedTextToReplace);
@@ -5051,6 +5127,7 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
             << replacementText << "; match case = " << (matchCase ? "true" : "false"));
 
     GET_PAGE()
+    CHECK_NOTE_EDITABLE("replace all occurrences")
 
     QString escapedTextToReplace = textToReplace;
     ENMLConverter::escapeString(escapedTextToReplace);
@@ -5079,19 +5156,24 @@ void NoteEditorPrivate::insertToDoCheckbox()
 {
     QNDEBUG("NoteEditorPrivate::insertToDoCheckbox");
 
+    AUTO_SET_FOCUS()
+
+    GET_PAGE()
+    CHECK_NOTE_EDITABLE("insert checkbox");
+
     QString html = ENMLConverter::toDoCheckboxHtml(/* checked = */ false, m_lastFreeEnToDoIdNumber++);
     QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
     javascript += m_setupEnToDoTagsJs;
 
-    GET_PAGE()
     page->executeJavaScript(javascript);
-    setFocus();
 }
 
 void NoteEditorPrivate::setSpellcheck(const bool enabled)
 {
     QNDEBUG("stub: NoteEditorPrivate::setSpellcheck: enabled = "
             << (enabled ? "true" : "false"));
+
+    AUTO_SET_FOCUS()
 
     if (m_spellCheckerEnabled == enabled) {
         QNTRACE("Spell checker enabled flag didn't change");
@@ -5105,8 +5187,6 @@ void NoteEditorPrivate::setSpellcheck(const bool enabled)
     else {
         disableSpellCheck();
     }
-
-    setFocus();
 }
 
 bool NoteEditorPrivate::spellCheckEnabled() const
@@ -5119,36 +5199,40 @@ void NoteEditorPrivate::setFont(const QFont & font)
     QNDEBUG("NoteEditorPrivate::setFont: " << font.family()
             << ", point size = " << font.pointSize());
 
+    AUTO_SET_FOCUS()
+
     if (m_font.family() == font.family()) {
         QNTRACE("Font family hasn't changed, nothing to to do");
-        setFocus();
         return;
     }
+
+    CHECK_NOTE_EDITABLE("change font")
 
     m_font = font;
     QString fontName = font.family();
     execJavascriptCommand("fontName", fontName);
     emit textFontFamilyChanged(font.family());
-    setFocus();
 }
 
 void NoteEditorPrivate::setFontHeight(const int height)
 {
     QNDEBUG("NoteEditorPrivate::setFontHeight: " << height);
 
-    if (height > 0) {
-        m_font.setPointSize(height);
-        GET_PAGE()
-        page->executeJavaScript("changeFontSizeForSelection(" + QString::number(height) + ");");
-        emit textFontSizeChanged(height);
-    }
-    else {
+    AUTO_SET_FOCUS()
+
+    if (height <= 0) {
         QString error = QT_TR_NOOP("Detected incorrect font size: " + QString::number(height));
         QNINFO(error);
         emit notifyError(error);
+        return;
     }
 
-    setFocus();
+    CHECK_NOTE_EDITABLE("change font height")
+
+    m_font.setPointSize(height);
+    GET_PAGE()
+    page->executeJavaScript("changeFontSizeForSelection(" + QString::number(height) + ");");
+    emit textFontSizeChanged(height);
 }
 
 void NoteEditorPrivate::setFontColor(const QColor & color)
@@ -5156,16 +5240,18 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
     QNDEBUG("NoteEditorPrivate::setFontColor: " << color.name()
             << ", rgb: " << QString::number(color.rgb(), 16));
 
-    if (color.isValid()) {
-        execJavascriptCommand("foreColor", color.name());
-    }
-    else {
+    AUTO_SET_FOCUS()
+
+    CHECK_NOTE_EDITABLE("set font color")
+
+    if (!color.isValid()) {
         QString error = QT_TR_NOOP("Detected invalid font color: " + color.name());
         QNINFO(error);
         emit notifyError(error);
+        return;
     }
 
-    setFocus();
+    execJavascriptCommand("foreColor", color.name());
 }
 
 void NoteEditorPrivate::setBackgroundColor(const QColor & color)
@@ -5173,24 +5259,27 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
     QNDEBUG("NoteEditorPrivate::setBackgroundColor: " << color.name()
             << ", rgb: " << QString::number(color.rgb(), 16));
 
-    if (color.isValid()) {
-        execJavascriptCommand("hiliteColor", color.name());
-    }
-    else {
+    AUTO_SET_FOCUS()
+
+    CHECK_NOTE_EDITABLE("set background color")
+
+    if (!color.isValid()) {
         QString error = QT_TR_NOOP("Detected invalid background color: " + color.name());
         QNINFO(error);
         emit notifyError(error);
+        return;
     }
 
-    setFocus();
+    execJavascriptCommand("hiliteColor", color.name());
 }
 
 void NoteEditorPrivate::insertHorizontalLine()
 {
     QNDEBUG("NoteEditorPrivate::insertHorizontalLine");
 
+    AUTO_SET_FOCUS()
+    CHECK_NOTE_EDITABLE("insert horizontal line")
     execJavascriptCommand("insertHorizontalRule");
-    setFocus();
 }
 
 void NoteEditorPrivate::increaseFontSize()
@@ -5217,21 +5306,26 @@ void NoteEditorPrivate::insertBulletedList()
 {
     QNDEBUG("NoteEditorPrivate::insertBulletedList");
 
+    AUTO_SET_FOCUS()
+    CHECK_NOTE_EDITABLE("insert unordered list")
     execJavascriptCommand("insertUnorderedList");
-    setFocus();
 }
 
 void NoteEditorPrivate::insertNumberedList()
 {
     QNDEBUG("NoteEditorPrivate::insertNumberedList");
 
+    AUTO_SET_FOCUS()
+    CHECK_NOTE_EDITABLE("insert numbered list")
     execJavascriptCommand("insertOrderedList");
-    setFocus();
 }
 
 void NoteEditorPrivate::insertTableDialog()
 {
     QNDEBUG("NoteEditorPrivate::insertTableDialog");
+
+    AUTO_SET_FOCUS()
+    CHECK_NOTE_EDITABLE("insert table")
     emit insertTableDialogRequested();
 }
 
@@ -5256,6 +5350,8 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
     QNDEBUG("NoteEditorPrivate::insertFixedWidthTable: rows = " << rows
             << ", columns = " << columns << ", width in pixels = "
             << widthInPixels);
+
+    CHECK_NOTE_EDITABLE("insert fixed width table")
 
     CHECK_NUM_COLUMNS();
     CHECK_NUM_ROWS();
@@ -5298,6 +5394,8 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
     QNDEBUG("NoteEditorPrivate::insertRelativeWidthTable: rows = " << rows
             << ", columns = " << columns << ", relative width = " << relativeWidth);
 
+    CHECK_NOTE_EDITABLE("insert relative width table")
+
     CHECK_NUM_COLUMNS();
     CHECK_NUM_ROWS();
 
@@ -5328,6 +5426,8 @@ void NoteEditorPrivate::insertTableRow()
 {
     QNDEBUG("NoteEditorPrivate::insertTableRow");
 
+    CHECK_NOTE_EDITABLE("insert table row")
+
     NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
 
     GET_PAGE()
@@ -5340,6 +5440,8 @@ void NoteEditorPrivate::insertTableRow()
 void NoteEditorPrivate::insertTableColumn()
 {
     QNDEBUG("NoteEditorPrivate::insertTableColumn");
+
+    CHECK_NOTE_EDITABLE("insert table column")
 
     NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
 
@@ -5354,6 +5456,8 @@ void NoteEditorPrivate::removeTableRow()
 {
     QNDEBUG("NoteEditorPrivate::removeTableRow");
 
+    CHECK_NOTE_EDITABLE("remove table row")
+
     NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
 
     GET_PAGE()
@@ -5367,6 +5471,8 @@ void NoteEditorPrivate::removeTableColumn()
 {
     QNDEBUG("NoteEditorPrivate::removeTableColumn");
 
+    CHECK_NOTE_EDITABLE("remove table column")
+
     NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onTableActionDone);
 
     GET_PAGE()
@@ -5379,6 +5485,8 @@ void NoteEditorPrivate::removeTableColumn()
 void NoteEditorPrivate::addAttachmentDialog()
 {
     QNDEBUG("NoteEditorPrivate::addAttachmentDialog");
+
+    CHECK_NOTE_EDITABLE("add attachment")
 
     QString addAttachmentInitialFolderPath;
 
@@ -5448,6 +5556,8 @@ void NoteEditorPrivate::saveAttachmentUnderCursor()
 void NoteEditorPrivate::openAttachment(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::openAttachment");
+
+    CHECK_NOTE_EDITABLE("open attachment")
     onOpenResourceRequest(resourceHash);
 }
 
@@ -5548,6 +5658,8 @@ void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
         return;
     }
 
+    CHECK_NOTE_EDITABLE("remove attachment")
+
     bool foundResourceToRemove = false;
     QList<ResourceWrapper> resources = m_pNote->resources();
     const int numResources = resources.size();
@@ -5615,6 +5727,8 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::renameAttachment: resource hash = " << resourceHash);
 
+    CHECK_NOTE_EDITABLE("rename attachment")
+
     QString errorPrefix = QT_TR_NOOP("Can't rename attachment:") + QString(" ");
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
@@ -5675,6 +5789,8 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
 void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection)
 {
     QNDEBUG("NoteEditorPrivate::rotateImageAttachment: resource hash = " << resourceHash << ", rotation: " << rotationDirection);
+
+    CHECK_NOTE_EDITABLE("rotate image attachment")
 
     QString errorPrefix = QT_TR_NOOP("Can't rotate image attachment:") + QString(" ");
 
@@ -5779,6 +5895,8 @@ void NoteEditorPrivate::encryptSelectedText()
 {
     QNDEBUG("NoteEditorPrivate::encryptSelectedText");
 
+    CHECK_NOTE_EDITABLE("encrypt selected text")
+
     EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(this, m_encryptionManager, m_decryptedTextManager);
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
@@ -5811,6 +5929,8 @@ void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString ciph
                                              QString length, QString hint, QString enCryptIndex)
 {
     QNDEBUG("NoteEditorPrivate::decryptEncryptedText");
+
+    CHECK_NOTE_EDITABLE("decrypt encrypted text")
 
     DecryptEncryptedTextDelegate * delegate = new DecryptEncryptedTextDelegate(enCryptIndex, encryptedText, cipher, length, hint, this,
                                                                                m_encryptionManager, m_decryptedTextManager);
@@ -5876,6 +5996,8 @@ void NoteEditorPrivate::editHyperlinkDialog()
 {
     QNDEBUG("NoteEditorPrivate::editHyperlinkDialog");
 
+    CHECK_NOTE_EDITABLE("edit hyperlink")
+
     // NOTE: when adding the new hyperlink, the selected html can be empty, it's ok
     m_lastSelectedHtmlForHyperlink = m_lastSelectedHtml;
 
@@ -5897,6 +6019,8 @@ void NoteEditorPrivate::copyHyperlink()
 void NoteEditorPrivate::removeHyperlink()
 {
     QNDEBUG("NoteEditorPrivate::removeHyperlink");
+
+    CHECK_NOTE_EDITABLE("remove hyperlink")
 
     RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this);
     QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished),
@@ -6016,6 +6140,8 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
 void NoteEditorPrivate::dropFile(const QString & filePath)
 {
     QNDEBUG("NoteEditorPrivate::dropFile: " << filePath);
+
+    CHECK_NOTE_EDITABLE("add attachment via drag'n'drop")
 
     AddResourceDelegate * delegate = new AddResourceDelegate(filePath, *this, m_pResourceFileStorageManager,
                                                              m_pFileIOThreadWorker, m_pGenericResourceImageManager,
