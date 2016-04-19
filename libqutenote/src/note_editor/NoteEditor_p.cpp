@@ -391,8 +391,6 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_updateResourceHashJs);
     page->executeJavaScript(m_updateImageResourceSrcJs);
     page->executeJavaScript(m_provideSrcForResourceImgTagsJs);
-    page->executeJavaScript(m_setupEnToDoTagsJs);
-    page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
     page->executeJavaScript(m_determineStatesForCurrentTextCursorPositionJs);
     page->executeJavaScript(m_determineContextMenuEventTargetJs);
     page->executeJavaScript(m_changeFontSizeForSelectionJs);
@@ -430,10 +428,8 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     if (!readOnly) {
         QNDEBUG("Nothing prevents user to modify the note, allowing it in the editor");
         setPageEditable(true);
-    }
-    else {
-        QNDEBUG("Marking the note page as read-only");
-        setPageEditable(false);
+        page->executeJavaScript(m_setupEnToDoTagsJs);
+        page->executeJavaScript(m_flipEnToDoCheckboxStateJs);
     }
 
     updateColResizableTableBindings();
@@ -888,6 +884,8 @@ void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
         emit notifyError(error);
         return;
     }
+
+    CHECK_NOTE_EDITABLE("open attachment")
 
     QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
     int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
@@ -4657,25 +4655,32 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
 
 #define HANDLE_ACTION(name, item) \
     QNDEBUG("NoteEditorPrivate::" #name); \
+    AUTO_SET_FOCUS() \
+    CHECK_NOTE_EDITABLE("perform " #name " action") \
     GET_PAGE() \
-    page->triggerAction(WebPage::item); \
-    setFocus()
+    page->triggerAction(WebPage::item)
 
 void NoteEditorPrivate::undo()
 {
     QNDEBUG("NoteEditorPrivate::undo");
+
+    CHECK_NOTE_EDITABLE("perform undo")
     m_pUndoStack->undo();
 }
 
 void NoteEditorPrivate::redo()
 {
     QNDEBUG("NoteEditorPrivate::redo");
+
+    CHECK_NOTE_EDITABLE("perform redo")
     m_pUndoStack->redo();
 }
 
 void NoteEditorPrivate::undoPageAction()
 {
     QNDEBUG("NoteEditorPrivate::undoPageAction");
+
+    CHECK_NOTE_EDITABLE("undo page action")
 
     GET_PAGE()
     page->executeJavaScript("textEditingUndoRedoManager.undo()");
@@ -4686,6 +4691,8 @@ void NoteEditorPrivate::redoPageAction()
 {
     QNDEBUG("NoteEditorPrivate::redoPageAction");
 
+    CHECK_NOTE_EDITABLE("redo page action")
+
     GET_PAGE()
     page->executeJavaScript("textEditingUndoRedoManager.redo()");
     setFocus();
@@ -4694,6 +4701,8 @@ void NoteEditorPrivate::redoPageAction()
 void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
 {
     QNDEBUG("NoteEditorPrivate::flipEnToDoCheckboxState: " << enToDoIdNumber);
+
+    CHECK_NOTE_EDITABLE("flip todo checkbox state")
 
     GET_PAGE()
     QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
@@ -4911,13 +4920,15 @@ void NoteEditorPrivate::paste()
 {
     QNDEBUG("NoteEditorPrivate::paste");
 
+    AUTO_SET_FOCUS()
+    CHECK_NOTE_EDITABLE("perform paste")
+
     GET_PAGE()
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (Q_UNLIKELY(!pClipboard)) {
         QNWARNING("Can't access the application clipboard to analyze the pasted content");
         page->triggerAction(WebPage::Paste);
-        setFocus();
         return;
     }
 
@@ -4927,11 +4938,9 @@ void NoteEditorPrivate::paste()
     bool shouldBeHyperlink = textToPaste.startsWith("http://") || textToPaste.startsWith("https://") || textToPaste.startsWith("mailto:") || textToPaste.startsWith("ftp://");
     bool shouldBeAttachment = textToPaste.startsWith("file://");
 
-    if (!shouldBeHyperlink && !shouldBeAttachment)
-    {
+    if (!shouldBeHyperlink && !shouldBeAttachment) {
         QNTRACE("The pasted text doesn't appear to be a url of hyperlink or attachment");
         page->triggerAction(WebPage::Paste);
-        setFocus();
         return;
     }
 
@@ -4941,11 +4950,11 @@ void NoteEditorPrivate::paste()
         if (!url.isValid()) {
             QNTRACE("The pasted text seemed like file url but the url isn't valid after all, fallback to simple paste");
             page->triggerAction(WebPage::Paste);
-            setFocus();
-            return;
+        }
+        else {
+            dropFile(url.toLocalFile());
         }
 
-        dropFile(url.toLocalFile());
         return;
     }
 
@@ -4956,7 +4965,6 @@ void NoteEditorPrivate::paste()
     if (!url.isValid()) {
         QNDEBUG("It appears we don't paste a url");
         page->triggerAction(WebPage::Paste);
-        setFocus();
         return;
     }
 
@@ -5021,13 +5029,16 @@ void NoteEditorPrivate::fontMenu()
 #ifndef USE_QT_WEB_ENGINE
 #define HANDLE_ACTION(method, item, command) \
     QNDEBUG("NoteEditorPrivate::" #method); \
+    AUTO_SET_FOCUS() \
+    CHECK_NOTE_EDITABLE("perform " #method " action") \
     GET_PAGE() \
-    page->triggerAction(QWebPage::item); \
-    setFocus()
+    page->triggerAction(QWebPage::item)
 #else
 #define HANDLE_ACTION(method, item, command) \
-    execJavascriptCommand(#command); \
-    setFocus()
+    QNDEBUG("NoteEditorPrivate::" #method); \
+    AUTO_SET_FOCUS() \
+    CHECK_NOTE_EDITABLE("perform " #method " action") \
+    execJavascriptCommand(#command)
 #endif
 
 void NoteEditorPrivate::textBold()
@@ -5053,6 +5064,10 @@ void NoteEditorPrivate::textStrikethrough()
 void NoteEditorPrivate::textHighlight()
 {
     QNDEBUG("NoteEditorPrivate::textHighlight");
+
+    AUTO_SET_FOCUS()
+    CHECK_NOTE_EDITABLE("highlight text")
+
     setBackgroundColor(QColor(255, 255, 127));
 }
 
@@ -5241,7 +5256,6 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
             << ", rgb: " << QString::number(color.rgb(), 16));
 
     AUTO_SET_FOCUS()
-
     CHECK_NOTE_EDITABLE("set font color")
 
     if (!color.isValid()) {
@@ -5260,7 +5274,6 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
             << ", rgb: " << QString::number(color.rgb(), 16));
 
     AUTO_SET_FOCUS()
-
     CHECK_NOTE_EDITABLE("set background color")
 
     if (!color.isValid()) {

@@ -1432,6 +1432,7 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionShowNoteSource"/>
     <addaction name="ActionSetTestNoteWithEncryptedData"/>
     <addaction name="ActionSetTestNoteWithResources"/>
+    <addaction name="ActionSetTestReadOnlyNote"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2689,6 +2690,11 @@ stop: 1 #0EB7FF);
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+K</string>
+   </property>
+  </action>
+  <action name="ActionSetTestReadOnlyNote">
+   <property name="text">
+    <string>Set test read only note</string>
    </property>
   </action>
  </widget>

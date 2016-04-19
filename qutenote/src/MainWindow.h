@@ -68,6 +68,7 @@ private Q_SLOTS:
     void onShowNoteSource();
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
+    void onSetTestReadOnlyNote();
 
     void onFindInsideNoteAction();
     void onFindPreviousInsideNoteAction();
@@ -117,6 +118,8 @@ private:
     void connectActionsToEditorSlots();
     void connectEditorSignalsToSlots();
     void addMenuActionsToMainWindow();
+
+    void prepareTestNoteWithResources();
 
 private:
     Ui::MainWindow * m_pUI;
