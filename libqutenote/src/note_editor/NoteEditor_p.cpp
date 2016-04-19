@@ -413,14 +413,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
         if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
             QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
-#ifndef USE_QT_WEB_ENGINE
-            QWebPage * page = this->page();
-            if (Q_LIKELY(page)) {
-                page->setContentEditable(false);
-            }
-#else
             setPageEditable(false);
-#endif
             readOnly = true;
         }
     }
