@@ -28,7 +28,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
     console.log("Element from point: " + element.outerHTML);
 
     if (element.hasChildNodes()) {
-        var deepest = findInnermostElement(element);
+        var deepest = findInnermostElement(element, x, y);
         if (deepest.deepestElem) {
             element = deepest.deepestElem;
         }
