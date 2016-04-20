@@ -28,7 +28,6 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(QWidget * parent) :
     m_saveResourceToFileRequestId(),
     m_saveResourceToStorageRequestId(),
     m_resourceHash(),
-    m_ownFilePath(),
     m_savedResourceToStorage(false),
     m_pendingSaveResourceToStorage(false)
 {
@@ -251,17 +250,14 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
                                                                            QString fileStoragePath, int errorCode,
                                                                            QString errorDescription)
 {
-    Q_UNUSED(dataHash);
-    Q_UNUSED(fileStoragePath);
-
     if (requestId == m_saveResourceToStorageRequestId)
     {
         if (errorCode == 0)
         {
             QNDEBUG("Successfully saved resource to storage, request id = " << requestId
-                    << ", file storage path = " << m_ownFilePath);
+                    << ", file storage path = " << fileStoragePath);
             m_savedResourceToStorage = true;
-            m_ownFilePath = fileStoragePath;
+            m_resourceHash = dataHash;
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
                 openResource();
@@ -284,8 +280,8 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
 }
 
 void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool success,
-                                                                         QString errorDescription,
-                                                                         QUuid requestId)
+                                                                        QString errorDescription,
+                                                                        QUuid requestId)
 {
     QNTRACE("GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed: success = "
             << (success ? "true" : "false") << ", error description = " << errorDescription
@@ -324,8 +320,8 @@ void GenericResourceDisplayWidget::setPendingMode(const bool pendingMode)
 
 void GenericResourceDisplayWidget::openResource()
 {
-    QNDEBUG("GenericResourceDisplayWidget::openResource: " << m_ownFilePath);
-    QDesktopServices::openUrl(QUrl("file://" + m_ownFilePath));
+    QNDEBUG("GenericResourceDisplayWidget::openResource: hash = " << m_resourceHash);
+    emit openResourceRequest(QString::fromLocal8Bit(m_resourceHash.constData(), m_resourceHash.size()));
 }
 
 void GenericResourceDisplayWidget::setupFilterString(const QString & defaultFilterString)

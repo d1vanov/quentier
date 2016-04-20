@@ -433,6 +433,8 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
 
     QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
     GenericResourceDisplayWidget * pGenericResourceDisplayWidget = new GenericResourceDisplayWidget(pParentWidget);
+    QObject::connect(pGenericResourceDisplayWidget, QNSIGNAL(GenericResourceDisplayWidget,openResourceRequest,const QString&),
+                     &m_noteEditor, QNSLOT(NoteEditorPrivate,openAttachment,const QString&));
 
     // NOTE: upon return this generic resource display widget would be reparented to the caller anyway,
     // the parent setting above is strictly for possible use within initialize method (for example, if

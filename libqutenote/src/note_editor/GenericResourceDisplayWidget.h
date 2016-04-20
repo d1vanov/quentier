@@ -37,6 +37,7 @@ public:
 
 Q_SIGNALS:
     void savedResourceToFile();
+    void openResourceRequest(const QString & resourceHash);
 
 // private signals
 Q_SIGNALS:
@@ -73,7 +74,6 @@ private:
     QUuid                               m_saveResourceToStorageRequestId;
 
     QByteArray                          m_resourceHash;
-    QString                             m_ownFilePath;
     bool                                m_savedResourceToStorage;
     bool                                m_pendingSaveResourceToStorage;
 };

@@ -21,10 +21,13 @@ EncryptedAreaPlugin::EncryptedAreaPlugin(NoteEditorPrivate & noteEditor, QWidget
 
     QAction * showEncryptedTextAction = new QAction(this);
     showEncryptedTextAction->setText(tr("Show encrypted text") + "...");
+    showEncryptedTextAction->setEnabled(m_noteEditor.isPageEditable());
     QObject::connect(showEncryptedTextAction, QNSIGNAL(QAction,triggered), this, QNSLOT(EncryptedAreaPlugin,decrypt));
     m_pUI->toolButton->addAction(showEncryptedTextAction);
 
-    QObject::connect(m_pUI->iconPushButton, QNSIGNAL(QPushButton,released), this, QNSLOT(EncryptedAreaPlugin,decrypt));
+    if (m_noteEditor.isPageEditable()) {
+        QObject::connect(m_pUI->iconPushButton, QNSIGNAL(QPushButton,released), this, QNSLOT(EncryptedAreaPlugin,decrypt));
+    }
 }
 
 EncryptedAreaPlugin::~EncryptedAreaPlugin()

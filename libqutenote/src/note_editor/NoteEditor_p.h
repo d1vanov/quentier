@@ -135,6 +135,8 @@ public:
     bool isModified() const;
     Note * notePtr() { return m_pNote.data(); }
 
+    bool isPageEditable() const { return m_isPageEditable; }
+
     QString noteEditorPagePath() const;
     const QString & imageResourcesStoragePath() const { return m_noteEditorImageResourcesStoragePath; }
     const QString & resourceLocalFileStoragePath() const { return m_resourceLocalFileStorageFolder; }
@@ -448,7 +450,6 @@ private:
     void determineStatesForCurrentTextCursorPosition();
     void determineContextMenuEventTarget();
 
-    bool isPageEditable() const { return m_isPageEditable; }
     void setPageEditable(const bool editable);
 
     bool checkContextMenuSequenceNumber(const quint64 sequenceNumber) const;
