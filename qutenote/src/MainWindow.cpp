@@ -248,7 +248,6 @@ void MainWindow::prepareTestNoteWithResources()
     QNDEBUG("MainWindow::prepareTestNoteWithResources");
 
     m_testNote = Note();
-    m_testNote.setLocalUid("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}");
 
     QString noteContent = test::ManualTestingHelper::noteContentWithResources();
     m_testNote.setContent(noteContent);
@@ -569,6 +568,9 @@ void MainWindow::onSetTestNoteWithResources()
 
     prepareTestNoteWithResources();
 
+    m_testNote.setLocalUid("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe6}");
+    m_testNotebook.setCanUpdateNotes(true);
+
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
 }
@@ -577,6 +579,7 @@ void MainWindow::onSetTestReadOnlyNote()
 {
     prepareTestNoteWithResources();
 
+    m_testNote.setLocalUid("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}");
     m_testNotebook.setCanUpdateNotes(false);
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
