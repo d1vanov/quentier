@@ -218,6 +218,7 @@ void MainWindow::connectEditorSignalsToSlots()
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,insertTableDialogRequested), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerNotReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerNotReady));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerReady));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,notifyError,QString), this, QNSLOT(MainWindow,onNoteEditorError,QString));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -740,8 +741,7 @@ void MainWindow::onNoteEditorHtmlUpdate(QString html)
 void MainWindow::onNoteEditorError(QString error)
 {
     QNINFO("MainWindow::onNoteEditorError: " << error);
-
-    onSetStatusBarText(error, 20);
+    onSetStatusBarText(error, 20000);
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
