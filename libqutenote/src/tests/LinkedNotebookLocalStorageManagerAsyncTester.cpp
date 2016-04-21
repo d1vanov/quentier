@@ -37,6 +37,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onInitTestCase()
     QString username = "LinkedNotebookLocalStorageManagerAsyncTester";
     qint32 userId = 1;
     bool startFromScratch = true;
+    bool overrideLock = false;
 
     if (m_pLocalStorageManagerThread) {
         delete m_pLocalStorageManagerThread;
@@ -51,7 +52,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onInitTestCase()
     m_state = STATE_UNINITIALIZED;
 
     m_pLocalStorageManagerThread = new QThread(this);
-    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch, overrideLock);
     m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
 
     createConnections();

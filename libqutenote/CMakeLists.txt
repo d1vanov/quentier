@@ -23,7 +23,7 @@ else()
 endif()
 
 set(PROJECT_VENDOR "Dmitry Ivanov")
-set(PROJECT_COPYRIGHT_YEAR "2015")
+set(PROJECT_COPYRIGHT_YEAR "2016")
 set(PROJECT_DOMAIN_FIRST "d1vanov")
 set(PROJECT_DOMAIN_SECOND "com")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
@@ -70,6 +70,7 @@ set(THIRDPARTY_LIBS ${QTKEYCHAIN_LIB})
 list(APPEND THIRDPARTY_LIBS ${SIMPLECRYPT_LIB})
 list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIB})
 list(APPEND THIRDPARTY_LIBS ${QSLOG_LIB})
+list(APPEND THIRDPARTY_LIBS ${QT_LOCKED_FILE_LIB})
 list(APPEND THIRDPARTY_LIBS ${TIDY_HTML5_LIB})
 list(APPEND THIRDPARTY_LIBS ${OPENSSL_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${LIBXML2_LIBRARIES})
@@ -135,6 +136,8 @@ set(LOGGING_HEADERS
 
 set(EXCEPTION_HEADERS
     headers/qute_note/exception/ApplicationSettingsInitializationException.h
+    headers/qute_note/exception/DatabaseLockedException.h
+    headers/qute_note/exception/DatabaseLockFailedException.h
     headers/qute_note/exception/DatabaseOpeningException.h
     headers/qute_note/exception/DatabaseSqlErrorException.h
     headers/qute_note/exception/EmptyDataElementException.h
@@ -389,6 +392,8 @@ set(${PROJECT_NAME}_SOURCES
     src/synchronization/SendLocalChangesManager.cpp
     src/exception/ApplicationSettingsInitializationException.cpp
     src/exception/EmptyDataElementException.cpp
+    src/exception/DatabaseLockedException.cpp
+    src/exception/DatabaseLockFailedException.cpp
     src/exception/DatabaseOpeningException.cpp
     src/exception/DatabaseSqlErrorException.cpp
     src/exception/NoteEditorInitializationException.cpp

@@ -378,7 +378,9 @@ void tst_ModelTest::testSavedSearchModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_saved_search_model_test_fake_user", 300, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_saved_search_model_test_fake_user", 300,
+                                                                               /* start from scratch = */ true, /* override lock = */ false,
+                                                                               this);
         m_pLocalStorageWorker->init();
 
         SavedSearchModelTestHelper savedSearchModelTestHelper(m_pLocalStorageWorker);
@@ -419,7 +421,9 @@ void tst_ModelTest::testTagModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_tag_model_test_fake_user", 400, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_tag_model_test_fake_user", 400,
+                                                                               /* start from scratch = */ true,
+                                                                               /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         TagModelTestHelper tagModelTestHelper(m_pLocalStorageWorker);
@@ -460,7 +464,9 @@ void tst_ModelTest::testNotebookModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_notebook_model_test_fake_user", 500, /* start from scratch = */ true, this);
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_notebook_model_test_fake_user", 500,
+                                                                               /* start from scratch = */ true,
+                                                                               /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         NotebookModelTestHelper notebookModelTestHelper(m_pLocalStorageWorker);

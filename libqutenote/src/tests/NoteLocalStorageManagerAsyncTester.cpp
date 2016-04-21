@@ -38,6 +38,7 @@ void NoteLocalStorageManagerAsyncTester::onInitTestCase()
     QString username = "NoteLocalStorageManagerAsyncTester";
     qint32 userId = 5;
     bool startFromScratch = true;
+    bool overrideLock = false;
 
     if (m_pLocalStorageManagerThread) {
         delete m_pLocalStorageManagerThread;
@@ -52,7 +53,7 @@ void NoteLocalStorageManagerAsyncTester::onInitTestCase()
     m_state = STATE_UNINITIALIZED;
 
     m_pLocalStorageManagerThread = new QThread(this);
-    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch, overrideLock);
     m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
 
     createConnections();

@@ -5,6 +5,7 @@
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
 #include <QString>
+#include <QScopedPointer>
 #include <QSharedPointer>
 #include <cstdint>
 
@@ -33,13 +34,16 @@ class QUTE_NOTE_EXPORT LocalStorageManager: public QObject
 public:
     /**
      * @brief LocalStorageManager - constructor. Accepts name and id of user
-     * for which the LocalStorageManager instance is created and boolean parameter
-     * defining whether any pre-existing database file for this user needs to be purged
+     * for which the LocalStorageManager instance is created and some parameters
+     * determining the startup behaviour
+     *
      * @param username
      * @param userId
-     * @param startFromScratch
+     * @param startFromScratch - if set to true, the existing database file for this user (if any) would be purged (mostly used in tests)
+     * @param overrideLock - if set to true, the constructor would ignore the existing advisory lock (if any) put on the database file;
+     * otherwise the presence of advisory lock on the database file would cause the constructor to throw DatabaseLockedException
      */
-    LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch);
+    LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch, const bool overrideLock);
     virtual ~LocalStorageManager();
 
 Q_SIGNALS:
@@ -74,13 +78,21 @@ public:
     /**
      * @brief switchUser - switches to another local database file associated with passed in
      * username and user id. If optional "startFromScratch" parameter is set to true (it is false
-     * by default), the database file would be erased and only then - opened
+     * by default), the database file would be erased and only then - opened. If optional "overrideLock" parameter
+     * is set to true, the advisory lock set on the database file (if any) would be forcefully removed;
+     * otherwise, if this parameter if set to false, the presence of advisory lock on the database file woud cause
+     * the method to throw DatabaseLockedException
+     *
      * @param username - name of user to which the local storage is switched
      * @param userId - id of user to which the local storage is switched
      * @param startFromScratch - optional, false by default; if true and database file
      * for this user existed previously, it is erased before open
+     * @param overrideLock - optional, false by default; if true and database file has advisory lock put on it,
+     * the lock would be forcefully removed; otherwise the presence of advisory lock on the database file
+     * would cause the method to throw DatabaseLockedException
      */
-    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
+    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false,
+                    const bool overrideLock = false);
 
     /**
      * @brief userCount - returns the number of non-deleted users currently stored in local storage database
@@ -887,7 +899,7 @@ private:
     LocalStorageManager() Q_DECL_DELETE;
     Q_DISABLE_COPY(LocalStorageManager)
 
-    LocalStorageManagerPrivate * const d_ptr;
+    QScopedPointer<LocalStorageManagerPrivate>  d_ptr;
     Q_DECLARE_PRIVATE(LocalStorageManager)
 };
 

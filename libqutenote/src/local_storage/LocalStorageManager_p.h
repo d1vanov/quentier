@@ -19,6 +19,7 @@
 #include <qute_note/types/SavedSearch.h>
 #include <qute_note/utility/StringUtils.h>
 #include <QtSql>
+#include <QtLockedFile>
 
 namespace qute_note {
 
@@ -30,14 +31,15 @@ class LocalStorageManagerPrivate: public QObject
     Q_OBJECT
 public:
     LocalStorageManagerPrivate(const QString & username, const UserID userId,
-                               const bool startFromScratch);
+                               const bool startFromScratch, const bool overrideLock);
     ~LocalStorageManagerPrivate();
 
 Q_SIGNALS:
     void upgradeProgress(double progress);
 
 public:
-    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false);
+    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false,
+                    const bool overrideLock = false);
     int userCount(QString & errorDescription) const;
     bool addUser(const IUser & user, QString & errorDescription);
     bool updateUser(const IUser & user, QString & errorDescription);
@@ -148,6 +150,8 @@ public Q_SLOTS:
 private:
     LocalStorageManagerPrivate() Q_DECL_DELETE;
     Q_DISABLE_COPY(LocalStorageManagerPrivate)
+
+    void unlockDatabaseFile();
 
     bool createTables(QString & errorDescription);
     bool insertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
@@ -322,6 +326,7 @@ private:
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;
     QString             m_applicationPersistenceStoragePath;
+    QScopedPointer<QtLockedFile>    m_pDatabaseFile;
     QSqlDatabase        m_sqlDatabase;
 
     QSqlQuery           m_insertOrReplaceSavedSearchQuery;

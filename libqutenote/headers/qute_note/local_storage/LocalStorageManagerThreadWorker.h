@@ -20,9 +20,8 @@ class QUTE_NOTE_EXPORT LocalStorageManagerThreadWorker: public QObject
 {
     Q_OBJECT
 public:
-    explicit LocalStorageManagerThreadWorker(const QString & username,
-                                             const qint32 userId,
-                                             const bool startFromScratch,
+    explicit LocalStorageManagerThreadWorker(const QString & username, const qint32 userId,
+                                             const bool startFromScratch, const bool overrideLock,
                                              QObject * parent = Q_NULLPTR);
     virtual ~LocalStorageManagerThreadWorker();
 
@@ -361,6 +360,7 @@ private:
     QString                     m_username;
     qint32                      m_userId;
     bool                        m_startFromScratch;
+    bool                        m_overrideLock;
     LocalStorageManager *       m_pLocalStorageManager;
     bool                        m_useCache;
     LocalStorageCacheManager *  m_pLocalStorageCacheManager;

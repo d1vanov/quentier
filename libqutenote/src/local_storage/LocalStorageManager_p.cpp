@@ -1,4 +1,6 @@
 #include "LocalStorageManager_p.h"
+#include <qute_note/exception/DatabaseLockedException.h>
+#include <qute_note/exception/DatabaseLockFailedException.h>
 #include <qute_note/exception/DatabaseOpeningException.h>
 #include <qute_note/exception/DatabaseSqlErrorException.h>
 #include "Transaction.h"
@@ -16,12 +18,13 @@ namespace qute_note {
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
 LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username, const UserID userId,
-                                                       const bool startFromScratch) :
+                                                       const bool startFromScratch, const bool overrideLock) :
     QObject(),
     // NOTE: don't initialize these! Otherwise SwitchUser won't work right
     m_currentUsername(),
     m_currentUserId(),
     m_applicationPersistenceStoragePath(),
+    m_pDatabaseFile(),
     m_sqlDatabase(),
     m_insertOrReplaceSavedSearchQuery(),
     m_insertOrReplaceSavedSearchQueryPrepared(false),
@@ -125,7 +128,7 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_preservedAsterisk.reserve(1);
     m_preservedAsterisk.push_back('*');
 
-    switchUser(username, userId, startFromScratch);
+    switchUser(username, userId, startFromScratch, overrideLock);
 }
 
 LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
@@ -133,6 +136,8 @@ LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
     if (m_sqlDatabase.isOpen()) {
         m_sqlDatabase.close();
     }
+
+    unlockDatabaseFile();
 }
 
 #define DATABASE_CHECK_AND_SET_ERROR(errorPrefix) \
@@ -351,13 +356,16 @@ int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
 }
 
 void LocalStorageManagerPrivate::switchUser(const QString & username, const UserID userId,
-                                            const bool startFromScratch)
+                                            const bool startFromScratch, const bool overrideLock)
 {
     if ( (username == m_currentUsername) &&
          (userId == m_currentUserId) )
     {
         return;
     }
+
+    // Unlocking the previous database file, if any
+    unlockDatabaseFile();
 
     m_currentUsername = username;
     m_currentUserId = userId;
@@ -393,30 +401,41 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         m_sqlDatabase = QSqlDatabase::database(sqlDatabaseConnectionName);
     }
 
-    QString databaseFileName = m_applicationPersistenceStoragePath + QString("/") +
-                               QString(QUTE_NOTE_DATABASE_NAME);
-    QNDEBUG("Attempting to open or create database file: " + databaseFileName);
+    QString databaseFilePath = m_applicationPersistenceStoragePath + "/" + QString(QUTE_NOTE_DATABASE_NAME);
+    QNDEBUG("Attempting to open or create database file: " + databaseFilePath);
 
-    QFile databaseFile(databaseFileName);
+    m_pDatabaseFile.reset(new QtLockedFile(databaseFilePath));
 
-    if (!databaseFile.exists())
+    if (!overrideLock && m_pDatabaseFile->isLocked())
     {
-        if (!databaseFile.open(QIODevice::ReadWrite)) {
-            throw DatabaseOpeningException(QT_TR_NOOP("Cannot create local storage database: ") +
-                                           databaseFile.errorString());
-        }
+        throw DatabaseLockedException("Local storage database file " + m_pDatabaseFile->fileName() + " is locked");
     }
-    else if (startFromScratch) {
+
+    if (overrideLock && m_pDatabaseFile->isLocked()) {
+        m_pDatabaseFile->unlock();
+        QNINFO("Local storage database file " << databaseFilePath << " was locked, forcefully unlocked it");
+    }
+
+    if (!m_pDatabaseFile->open(QIODevice::ReadWrite)) {
+        throw DatabaseOpeningException(QT_TR_NOOP("Cannot open local storage database for both reading and writing: ") +
+                                       m_pDatabaseFile->errorString());
+    }
+
+    if (!m_pDatabaseFile->lock(QtLockedFile::WriteLock)) {
+        throw DatabaseLockFailedException("Can't lock database file " + m_pDatabaseFile->fileName());
+    }
+
+    if (startFromScratch) {
         QNDEBUG("Cleaning up the whole database for user with name " << m_currentUsername
                 << " and id " << QString::number(m_currentUserId));
-        databaseFile.resize(0);
-        databaseFile.flush();
+        m_pDatabaseFile->resize(0);
+        m_pDatabaseFile->flush();
     }
 
     m_sqlDatabase.setHostName("localhost");
     m_sqlDatabase.setUserName(username);
     m_sqlDatabase.setPassword(username);
-    m_sqlDatabase.setDatabaseName(databaseFileName);
+    m_sqlDatabase.setDatabaseName(m_pDatabaseFile->fileName());
 
     if (!m_sqlDatabase.open())
     {
@@ -2824,6 +2843,27 @@ bool LocalStorageManagerPrivate::updateEnResource(const IResource & resource, co
     }
 
     return insertOrReplaceResource(resource, resourceLocalUid, note, QString(), errorDescription);
+}
+
+void LocalStorageManagerPrivate::unlockDatabaseFile()
+{
+    QNDEBUG("LocalStorageManagerPrivate::unlockDatabaseFile: " << (m_pDatabaseFile.isNull() ? QStringLiteral("<null>") : m_pDatabaseFile->fileName()));
+
+    if (m_pDatabaseFile.isNull()) {
+        QNDEBUG("No database file, nothing to do");
+        return;
+    }
+
+    if (!m_pDatabaseFile->isOpen()) {
+        QNDEBUG("Database file is not open, nothing to do");
+        return;
+    }
+
+    if (m_pDatabaseFile->isLocked()) {
+        m_pDatabaseFile->unlock();
+    }
+
+    m_pDatabaseFile->close();
 }
 
 bool LocalStorageManagerPrivate::createTables(QString & errorDescription)

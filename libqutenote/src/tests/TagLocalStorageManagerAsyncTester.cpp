@@ -36,6 +36,7 @@ void TagLocalStorageManagerAsyncTester::onInitTestCase()
     QString username = "TagLocalStorageManagerAsyncTester";
     qint32 userId = 2;
     bool startFromScratch = true;
+    bool overrideLock = false;
 
     if (m_pLocalStorageManagerThreadWorker != Q_NULLPTR) {
         delete m_pLocalStorageManagerThreadWorker;
@@ -45,7 +46,7 @@ void TagLocalStorageManagerAsyncTester::onInitTestCase()
     m_state = STATE_UNINITIALIZED;
 
     m_pLocalStorageManagerThread = new QThread(this);
-    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch);
+    m_pLocalStorageManagerThreadWorker = new LocalStorageManagerThreadWorker(username, userId, startFromScratch, overrideLock);
     m_pLocalStorageManagerThreadWorker->moveToThread(m_pLocalStorageManagerThread);
 
     createConnections();

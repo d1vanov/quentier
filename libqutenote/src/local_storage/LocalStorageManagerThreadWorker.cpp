@@ -4,13 +4,14 @@
 
 namespace qute_note {
 
-LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString & username,
-                                                                 const qint32 userId,
-                                                                 const bool startFromScratch, QObject * parent) :
+LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString & username, const qint32 userId,
+                                                                 const bool startFromScratch, const bool overrideLock,
+                                                                 QObject * parent) :
     QObject(parent),
     m_username(username),
     m_userId(userId),
     m_startFromScratch(startFromScratch),
+    m_overrideLock(overrideLock),
     m_pLocalStorageManager(Q_NULLPTR),
     m_useCache(true),
     m_pLocalStorageCacheManager(Q_NULLPTR)
@@ -53,7 +54,7 @@ void LocalStorageManagerThreadWorker::init()
         delete m_pLocalStorageManager;
     }
 
-    m_pLocalStorageManager = new LocalStorageManager(m_username, m_userId, m_startFromScratch);
+    m_pLocalStorageManager = new LocalStorageManager(m_username, m_userId, m_startFromScratch, m_overrideLock);
 
     if (m_pLocalStorageCacheManager) {
         delete m_pLocalStorageCacheManager;

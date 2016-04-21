@@ -539,8 +539,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     // 6) =========== Create local storage, add created notebooks, tags and notes there ===========
 
     const bool startFromScratch = true;
+    const bool overrideLock = false;
     LocalStorageManager localStorageManager("LocalStorageManagerNoteSearchQueryTestFakeUser",
-                                            0, startFromScratch);
+                                            0, startFromScratch, overrideLock);
 
     for(int i = 0; i < numNotebooks; ++i)
     {

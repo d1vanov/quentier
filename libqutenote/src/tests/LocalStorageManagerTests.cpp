@@ -1173,8 +1173,9 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     // 1) ========== Create LocalStorageManager =============
 
     const bool startFromScratch = true;
+    const bool overrideLock = false;
     LocalStorageManager localStorageManager("LocalStorageManagerSequentialUpdatesTestFakeUser",
-                                            0, startFromScratch);
+                                            0, startFromScratch, overrideLock);
 
     // 2) ========== Create User ============
     UserWrapper   user;

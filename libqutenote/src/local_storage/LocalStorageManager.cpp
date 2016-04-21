@@ -7,19 +7,15 @@ namespace qute_note {
 #define QUTE_NOTE_DATABASE_NAME "qn.storage.sqlite"
 
 LocalStorageManager::LocalStorageManager(const QString & username, const UserID userId,
-                                         const bool startFromScratch) :
-    d_ptr(new LocalStorageManagerPrivate(username, userId, startFromScratch))
+                                         const bool startFromScratch, const bool overrideLock) :
+    d_ptr(new LocalStorageManagerPrivate(username, userId, startFromScratch, overrideLock))
 {
-    QObject::connect(d_ptr, QNSIGNAL(LocalStorageManagerPrivate,upgradeProgress,double),
+    QObject::connect(d_ptr.data(), QNSIGNAL(LocalStorageManagerPrivate,upgradeProgress,double),
                      this, QNSIGNAL(LocalStorageManager,upgradeProgress,double));
 }
 
 LocalStorageManager::~LocalStorageManager()
-{
-    if (d_ptr) {
-        delete d_ptr;
-    }
-}
+{}
 
 bool LocalStorageManager::addUser(const IUser & user, QString & errorDescription)
 {
@@ -58,10 +54,10 @@ int LocalStorageManager::notebookCount(QString & errorDescription) const
 }
 
 void LocalStorageManager::switchUser(const QString & username, const UserID userId,
-                                     const bool startFromScratch)
+                                     const bool startFromScratch, const bool overrideLock)
 {
     Q_D(LocalStorageManager);
-    return d->switchUser(username, userId, startFromScratch);
+    return d->switchUser(username, userId, startFromScratch, overrideLock);
 }
 
 int LocalStorageManager::userCount(QString & errorDescription) const
