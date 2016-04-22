@@ -19,7 +19,11 @@
 #include <qute_note/types/SavedSearch.h>
 #include <qute_note/utility/StringUtils.h>
 #include <QtSql>
-#include <QtLockedFile>
+
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/interprocess/sync/file_lock.hpp>
+#endif
 
 namespace qute_note {
 
@@ -326,8 +330,9 @@ private:
     QString             m_currentUsername;
     qevercloud::UserID  m_currentUserId;
     QString             m_applicationPersistenceStoragePath;
-    QScopedPointer<QtLockedFile>    m_pDatabaseFile;
+    QString             m_databaseFilePath;
     QSqlDatabase        m_sqlDatabase;
+    boost::interprocess::file_lock  m_databaseFileLock;
 
     QSqlQuery           m_insertOrReplaceSavedSearchQuery;
     bool                m_insertOrReplaceSavedSearchQueryPrepared;

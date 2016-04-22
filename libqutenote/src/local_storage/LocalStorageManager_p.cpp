@@ -24,8 +24,9 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_currentUsername(),
     m_currentUserId(),
     m_applicationPersistenceStoragePath(),
-    m_pDatabaseFile(),
+    m_databaseFilePath(),
     m_sqlDatabase(),
+    m_databaseFileLock(),
     m_insertOrReplaceSavedSearchQuery(),
     m_insertOrReplaceSavedSearchQueryPrepared(false),
     m_getSavedSearchCountQuery(),
@@ -377,7 +378,7 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     if (!databaseFolder.exists())
     {
         if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
-            throw DatabaseOpeningException(QT_TR_NOOP("Cannot create folder to store local storage database."));
+            throw DatabaseOpeningException(QT_TR_NOOP("Can't create the folder to store the local storage database in"));
         }
     }
 
@@ -385,7 +386,8 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     bool isSqlDriverAvailable = QSqlDatabase::isDriverAvailable(sqlDriverName);
     if (!isSqlDriverAvailable)
     {
-        QString error = "SQL driver " + sqlDriverName + " is not available. Available drivers: ";
+        QString error = QT_TR_NOOP("SQL driver") + QStringLiteral(" ") + sqlDriverName + QStringLiteral(" ") +
+                        QT_TR_NOOP("is not available. Available SQL drivers") + QStringLiteral(": ");
         const QStringList drivers = QSqlDatabase::drivers();
         foreach(const QString & driver, drivers) {
             error += "{" + driver + "} ";
@@ -401,77 +403,100 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         m_sqlDatabase = QSqlDatabase::database(sqlDatabaseConnectionName);
     }
 
-    QString databaseFilePath = m_applicationPersistenceStoragePath + "/" + QString(QUTE_NOTE_DATABASE_NAME);
-    QNDEBUG("Attempting to open or create database file: " + databaseFilePath);
+    m_databaseFilePath = m_applicationPersistenceStoragePath + "/" + QString(QUTE_NOTE_DATABASE_NAME);
+    QNDEBUG("Attempting to open or create database file: " + m_databaseFilePath);
 
-    m_pDatabaseFile.reset(new QtLockedFile(databaseFilePath));
-
-    if (!overrideLock && m_pDatabaseFile->isLocked())
+    QFileInfo databaseFileInfo(m_databaseFilePath);
+    if (databaseFileInfo.exists())
     {
-        throw DatabaseLockedException("Local storage database file " + m_pDatabaseFile->fileName() + " is locked");
+        if (Q_UNLIKELY(!databaseFileInfo.isReadable())) {
+            throw DatabaseOpeningException(QT_TR_NOOP("Local storage database file") + QStringLiteral(" ") + m_databaseFilePath +
+                                           QStringLiteral(" ") + QT_TR_NOOP("is not readable"));
+        }
+
+        if (Q_UNLIKELY(!databaseFileInfo.isWritable())) {
+            throw DatabaseOpeningException(QT_TR_NOOP("Local storage database file") + QStringLiteral(" ") + m_databaseFilePath +
+                                           QStringLiteral(" ") + QT_TR_NOOP("is not writable"));
+        }
     }
 
-    if (overrideLock && m_pDatabaseFile->isLocked()) {
-        m_pDatabaseFile->unlock();
-        QNINFO("Local storage database file " << databaseFilePath << " was locked, forcefully unlocked it");
+    boost::interprocess::file_lock databaseLock(databaseFileInfo.canonicalFilePath().toUtf8().constData());
+    m_databaseFileLock.swap(databaseLock);
+
+    bool lockResult = false;
+
+    try {
+        lockResult = m_databaseFileLock.try_lock();
+    }
+    catch(boost::interprocess::interprocess_exception & exc) {
+        throw DatabaseLockFailedException(QT_TR_NOOP("Can't lock the database file: error code") + QStringLiteral(" = ") +
+                                          QString::number(exc.get_error_code()) + QStringLiteral(", ") + QT_TR_NOOP("error message") +
+                                          QStringLiteral(" = ") + QString::fromUtf8(exc.what()));
     }
 
-    if (!m_pDatabaseFile->open(QIODevice::ReadWrite)) {
-        throw DatabaseOpeningException(QT_TR_NOOP("Cannot open local storage database for both reading and writing: ") +
-                                       m_pDatabaseFile->errorString());
+    if (!lockResult)
+    {
+        if (!overrideLock) {
+            throw DatabaseLockedException(QT_TR_NOOP("Local storage database file") + QStringLiteral(" \"") + m_databaseFilePath +
+                                          QStringLiteral("\" ") + QT_TR_NOOP("is locked"));
+        }
+        else {
+            QNINFO("Local storage database file " << m_databaseFilePath << " is locked but nobody cares");
+        }
     }
 
-    if (!m_pDatabaseFile->lock(QtLockedFile::WriteLock)) {
-        throw DatabaseLockFailedException("Can't lock database file " + m_pDatabaseFile->fileName());
-    }
-
-    if (startFromScratch) {
+    if (startFromScratch)
+    {
         QNDEBUG("Cleaning up the whole database for user with name " << m_currentUsername
                 << " and id " << QString::number(m_currentUserId));
-        m_pDatabaseFile->resize(0);
-        m_pDatabaseFile->flush();
+
+        QFile databaseFile(m_databaseFilePath);
+        if (!databaseFile.open(QIODevice::ReadWrite)) {
+            throw DatabaseOpeningException(QT_TR_NOOP("Can't open local storage database for both reading and writing: ") +
+                                           databaseFile.errorString());
+        }
+
+        databaseFile.resize(0);
+        databaseFile.flush();
+        databaseFile.close();
     }
 
     m_sqlDatabase.setHostName("localhost");
     m_sqlDatabase.setUserName(username);
     m_sqlDatabase.setPassword(username);
-    m_sqlDatabase.setDatabaseName(m_pDatabaseFile->fileName());
+    m_sqlDatabase.setDatabaseName(m_databaseFilePath);
 
     if (!m_sqlDatabase.open())
     {
         QString lastErrorText = m_sqlDatabase.lastError().text();
-        throw DatabaseOpeningException(QT_TR_NOOP("Cannot open local storage database: ") +
-                                       lastErrorText);
+        throw DatabaseOpeningException(QT_TR_NOOP("Can't open local storage database") + QStringLiteral(": ") + lastErrorText);
     }
 
     QSqlQuery query(m_sqlDatabase);
     if (!query.exec("PRAGMA foreign_keys = ON")) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set foreign_keys = ON pragma "
-                                                   "for SQL local storage database"));
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't set foreign_keys = ON pragma for SQL local storage database"));
     }
 
     qint64 pageSize = SysInfo::GetSingleton().GetPageSize();
     QString pageSizeQuery = QString("PRAGMA page_size = %1").arg(QString::number(pageSize));
     if (!query.exec(pageSizeQuery)) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set page_size pragma "
-                                                   "for SQL local storage database"));
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't set page_size pragma for SQL local storage database"));
     }
 
     QString writeAheadLoggingQuery = QString("PRAGMA journal_mode=WAL");
     if (!query.exec(writeAheadLoggingQuery)) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot set journal_mode pragma to WAL for SQL local storage database"));
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't set journal_mode pragma to WAL for SQL local storage database"));
     }
 
     QString errorDescription;
     if (!createTables(errorDescription)) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot initialize tables in SQL database: ") +
-                                        errorDescription);
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't initialize tables in SQL database: ") + errorDescription);
     }
 
     // TODO: in future should check whether the upgrade from the previous database version is necessary
 
     if (!query.exec("INSERT INTO Auxiliary DEFAULT VALUES")) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Cannot initialize the auxiliary info table in SQL database: ") +
+        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't initialize the auxiliary info table in SQL database: ") +
                                         query.lastError().text());
     }
 }
@@ -2847,23 +2872,21 @@ bool LocalStorageManagerPrivate::updateEnResource(const IResource & resource, co
 
 void LocalStorageManagerPrivate::unlockDatabaseFile()
 {
-    QNDEBUG("LocalStorageManagerPrivate::unlockDatabaseFile: " << (m_pDatabaseFile.isNull() ? QStringLiteral("<null>") : m_pDatabaseFile->fileName()));
+    QNDEBUG("LocalStorageManagerPrivate::unlockDatabaseFile: " << m_databaseFilePath);
 
-    if (m_pDatabaseFile.isNull()) {
+    if (m_databaseFilePath.isEmpty()) {
         QNDEBUG("No database file, nothing to do");
         return;
     }
 
-    if (!m_pDatabaseFile->isOpen()) {
-        QNDEBUG("Database file is not open, nothing to do");
-        return;
+    try {
+        m_databaseFileLock.unlock();
     }
-
-    if (m_pDatabaseFile->isLocked()) {
-        m_pDatabaseFile->unlock();
+    catch(boost::interprocess::interprocess_exception & exc) {
+        QNWARNING("Caught exception trying to unlock the database file: error code = "
+                  << exc.get_error_code() << ", error message = " << exc.what()
+                  << "; native error = " << exc.get_native_error());
     }
-
-    m_pDatabaseFile->close();
 }
 
 bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
