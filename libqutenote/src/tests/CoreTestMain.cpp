@@ -19,6 +19,5 @@ int main(int argc, char *argv[])
     QsLogging::Logger & logger = QsLogging::Logger::instance();
     logger.addDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
 
-    QTest::qExec(new CoreTester);
-    return 0;
+    return QTest::qExec(new CoreTester);
 }
