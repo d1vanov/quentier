@@ -67,6 +67,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
+    src/models/NoteModelItem.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -94,6 +95,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
+    src/models/NoteModelItem.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
@@ -166,7 +168,8 @@ set(MODEL_TEST_HEADERS
     src/models/NotebookModel.h
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
-    src/models/NotebookStackItem.h)
+    src/models/NotebookStackItem.h
+    src/models/NoteModelItem.h)
 
 set(MODEL_TEST_SOURCES
     src/tests/model_test/modeltest.cpp
@@ -182,7 +185,8 @@ set(MODEL_TEST_SOURCES
     src/models/NotebookModel.cpp
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp
-    src/models/NotebookStackItem.cpp)
+    src/models/NotebookStackItem.cpp
+    src/models/NoteModelItem.cpp)
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)
