@@ -154,7 +154,7 @@ private:
 
 private:
     SavedSearchData         m_data;
-    size_t                  m_listSavedSearchesOffset;;
+    size_t                  m_listSavedSearchesOffset;
     QUuid                   m_listSavedSearchesRequestId;
     QSet<QUuid>             m_savedSearchItemsNotYetInLocalStorageUids;
 
