@@ -11,8 +11,7 @@ if(POLICY CMP0048)
 endif()
 
 if("${CMAKE_MAJOR_VERSION}" GREATER "2")
-  project(qutenote
-          VERSION 0.2.0)
+  project(qutenote VERSION 0.2.0)
 else()
   project(qutenote)
   set(PROJECT_VERSION_MAJOR "0")
@@ -23,7 +22,7 @@ else()
 endif()
 
 set(PROJECT_VENDOR "Dmitry Ivanov")
-set(PROJECT_COPYRIGHT_YEAR "2015")
+set(PROJECT_COPYRIGHT_YEAR "2016")
 set(PROJECT_DOMAIN_FIRST "d1vanov")
 set(PROJECT_DOMAIN_SECOND "com")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
@@ -68,6 +67,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
     src/models/NoteModelItem.h
+    src/models/NoteModel.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -96,6 +96,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
     src/models/NoteModelItem.cpp
+    src/models/NoteModel.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
@@ -169,7 +170,8 @@ set(MODEL_TEST_HEADERS
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
-    src/models/NoteModelItem.h)
+    src/models/NoteModelItem.h
+    src/models/NoteModel.h)
 
 set(MODEL_TEST_SOURCES
     src/tests/model_test/modeltest.cpp
@@ -186,7 +188,8 @@ set(MODEL_TEST_SOURCES
     src/models/NotebookModelItem.cpp
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
-    src/models/NoteModelItem.cpp)
+    src/models/NoteModelItem.cpp
+    src/models/NoteModel.cpp)
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)
