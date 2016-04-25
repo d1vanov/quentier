@@ -1,4 +1,13 @@
 #include "NoteModel.h"
+#include <qute_note/logging/QuteNoteLogger.h>
+#include <qute_note/utility/UidGenerator.h>
+
+// Limit for the queries to the local storage
+#define NOTE_LIST_LIMIT (100)
+
+#define NOTE_CACHE_LIMIT (20)
+
+#define NUM_NOTE_MODEL_COLUMNS (10)
 
 namespace qute_note {
 
@@ -9,7 +18,7 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_listNotesOffset(0),
     m_listNotesRequestId(),
     m_noteItemsNotYetInLocalStorageUids(),
-    m_cache(),
+    m_cache(NOTE_CACHE_LIMIT),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
     m_deleteNoteRequestIds(),
@@ -26,17 +35,63 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
 NoteModel::~NoteModel()
 {}
 
-QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
+const NoteModelItem * NoteModel::itemForIndex(const QModelIndex & index) const
 {
     // TODO: implement
-    Q_UNUSED(localUid)
+    Q_UNUSED(index)
+    return Q_NULLPTR;
+}
+
+QModelIndex NoteModel::indexForItem(const NoteModelItem * item) const
+{
+    // TODO: implement
+    Q_UNUSED(item)
     return QModelIndex();
+}
+
+QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
+{
+    const NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNDEBUG("Can't find the note item by local uid");
+        return QModelIndex();
+    }
+
+    const NoteDataByIndex & index = m_data.get<ByIndex>();
+    auto indexIt = m_data.project<ByIndex>(it);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QNWARNING("Can't find the indexed reference to the note item: " << *it);
+        return QModelIndex();
+    }
+
+    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
+    return createIndex(rowIndex, Columns::Title);
 }
 
 Qt::ItemFlags NoteModel::flags(const QModelIndex & index) const
 {
-    // TODO: implement
-    return QAbstractItemModel::flags(index);
+    Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
+    if (!index.isValid()) {
+        return indexFlags;
+    }
+
+    indexFlags |= Qt::ItemIsSelectable;
+    indexFlags |= Qt::ItemIsEnabled;
+
+    if ((index.column() == Columns::Dirty) ||
+        (index.column() == Columns::Size))
+    {
+        return indexFlags;
+    }
+
+    const NoteModelItem * item = itemForIndex(index);
+    if (Q_UNLIKELY(!item)) {
+        return indexFlags;
+    }
+
+    // TODO: continue from here
+    return indexFlags;
 }
 
 QVariant NoteModel::data(const QModelIndex & index, int role) const
@@ -232,6 +287,21 @@ void NoteModel::onExpungeNoteFailed(Note note, QString errorDescription, QUuid r
 {
     // TODO: implement
     Q_UNUSED(note)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(requestId)
+}
+
+void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(notebook)
+    Q_UNUSED(requestId)
+}
+
+void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(notebook)
     Q_UNUSED(errorDescription)
     Q_UNUSED(requestId)
 }

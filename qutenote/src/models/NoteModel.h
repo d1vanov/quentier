@@ -3,6 +3,7 @@
 
 #include "NoteModelItem.h"
 #include <qute_note/types/Note.h>
+#include <qute_note/types/Notebook.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -47,6 +48,8 @@ public:
     int sortingColumn() const { return m_sortedColumn; }
     Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
+    const NoteModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const NoteModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
 public:
@@ -81,6 +84,7 @@ Q_SIGNALS:
                    QUuid requestId);
     void deleteNote(Note note, QUuid requestId);
     void expungeNote(Note note, QUuid requestId);
+    void findNotebook(Notebook notebook, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -102,6 +106,9 @@ private Q_SLOTS:
     void onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
+
+    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
