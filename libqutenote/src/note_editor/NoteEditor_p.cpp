@@ -326,11 +326,37 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
+    if (Q_UNLIKELY(!m_pNote)) {
+        QNDEBUG("No note is set to the editor");
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNotebook)) {
+        QNDEBUG("No notebook is set to the editor");
+        return;
+    }
+
     m_pendingNotePageLoad = false;
     m_pendingJavaScriptExecution = true;
 
     GET_PAGE()
     page->stopJavaScriptAutoExecution();
+
+    bool editable = true;
+    if (m_pNote->hasActive() && !m_pNote->active()) {
+        QNDEBUG("Current note is not active, setting it to read-only state");
+        editable = false;
+    }
+    else if (m_pNotebook->hasRestrictions())
+    {
+        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
+        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
+            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
+            editable = false;
+        }
+    }
+
+    setPageEditable(editable);
 
     page->executeJavaScript(m_jQueryJs);
     page->executeJavaScript(m_jQueryUiJs);
@@ -4230,20 +4256,6 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
             m_decryptedTextManager->clearNonRememberedForSessionEntries();
             QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
-        }
-    }
-
-    setPageEditable(true);
-    if (m_pNote->hasActive() && !m_pNote->active()) {
-        QNDEBUG("Current note is not active, setting it to read-only state");
-        setPageEditable(false);
-    }
-    else if (m_pNotebook->hasRestrictions())
-    {
-        const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
-        if (restrictions.noUpdateNotes.isSet() && restrictions.noUpdateNotes.ref()) {
-            QNDEBUG("Notebook restrictions forbid the note modification, setting note's content to read-only state");
-            setPageEditable(false);
         }
     }
 
