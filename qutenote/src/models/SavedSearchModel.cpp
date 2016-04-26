@@ -104,16 +104,10 @@ QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
     switch(columnIndex)
     {
     case Columns::Name:
-        column = Columns::Name;
-        break;
     case Columns::Query:
-        column = Columns::Query;
-        break;
     case Columns::Synchronizable:
-        column = Columns::Synchronizable;
-        break;
     case Columns::Dirty:
-        column = Columns::Dirty;
+        column = static_cast<Columns::type>(columnIndex);
         break;
     default:
         return QVariant();
@@ -146,13 +140,13 @@ QVariant SavedSearchModel::headerData(int section, Qt::Orientation orientation, 
     switch(section)
     {
     case Columns::Name:
-        return QVariant(QT_TR_NOOP("Name"));
+        return QVariant(tr("Name"));
     case Columns::Query:
-        return QVariant(QT_TR_NOOP("Query"));
+        return QVariant(tr("Query"));
     case Columns::Synchronizable:
-        return QVariant(QT_TR_NOOP("Synchronizable"));
+        return QVariant(tr("Synchronizable"));
     case Columns::Dirty:
-        return QVariant(QT_TR_NOOP("Dirty"));
+        return QVariant(tr("Dirty"));
     default:
         return QVariant();
     }
@@ -182,12 +176,8 @@ QModelIndex SavedSearchModel::index(int row, int column, const QModelIndex & par
         return QModelIndex();
     }
 
-    if ((row < 0) || (column < 0)) {
-        return QModelIndex();
-    }
-
-    if ((row >= static_cast<int>(m_data.size())) ||
-        (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
+    if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
+        (column < 0) || (column >= NUM_SAVED_SEARCH_MODEL_COLUMNS))
     {
         return QModelIndex();
     }
@@ -270,11 +260,6 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
             item.m_isSynchronizable = value.toBool();
             break;
         }
-    case Columns::Dirty:
-        {
-            QNWARNING("The \"dirty\" flag can't be set manually in SavedSearchModel");
-            return false;
-        }
     default:
         return false;
     }
@@ -329,15 +314,30 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
 
 bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent)
 {
-    Q_UNUSED(parent)
+    if (Q_UNLIKELY(parent.isValid())) {
+        QNDEBUG("Ignoring the attempt to remove rows from saved search model for valid parent model index");
+        return false;
+    }
+
+    if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
+    {
+        QString error = QT_TR_NOOP("Detected attempt to remove more rows than the saved search model contains: row") +
+                        QStringLiteral(" = ") + QString::number(row) + QStringLiteral(", ") + QT_TR_NOOP("count") +
+                        QStringLiteral(" = ") + QString::number(count) + QStringLiteral(", ") + QT_TR_NOOP("number of saved search model items") +
+                        QStringLiteral(" = ") + QString::number(static_cast<int>(m_data.size()));
+        QNINFO(error);
+        emit notifyError(error);
+        return false;
+    }
+
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
 
     for(int i = 0; i < count; ++i)
     {
-        SavedSearchDataByIndex::iterator it = index.begin() + row;
+        SavedSearchDataByIndex::iterator it = index.begin() + row + i;
         if (it->m_isSynchronizable) {
             QString error = QT_TR_NOOP("Can't remove synchronizable saved search");
-            QNINFO(error);
+            QNINFO(error << ", synchronizable note item: " << *it);
             emit notifyError(error);
             return false;
         }
@@ -346,19 +346,18 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     beginRemoveRows(QModelIndex(), row, row + count - 1);
     for(int i = 0; i < count; ++i)
     {
-        SavedSearchDataByIndex::iterator it = index.begin() + row;
+        SavedSearchDataByIndex::iterator it = index.begin() + row + i;
 
         SavedSearch savedSearch;
         savedSearch.setLocalUid(it->m_localUid);
 
         QUuid requestId = QUuid::createUuid();
         Q_UNUSED(m_expungeSavedSearchRequestIds.insert(requestId))
-        emit expungeSavedSearch(savedSearch, requestId);
-        QNTRACE("Emitted the request to expunge the saved search from the local storage: request id = "
+        QNTRACE("Emitting the request to expunge the saved search from the local storage: request id = "
                 << requestId << ", saved search local uid: " << it->m_localUid);
-
-        Q_UNUSED(index.erase(it))
+        emit expungeSavedSearch(savedSearch, requestId);
     }
+    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
     endRemoveRows();
 
     return true;

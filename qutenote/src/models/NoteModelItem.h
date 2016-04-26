@@ -11,6 +11,7 @@ class NoteModelItem: public Printable
 public:
     explicit NoteModelItem(const QString & localUid = QString(),
                            const QString & guid = QString(),
+                           const QString & notebookLocalUid = QString(),
                            const QString & linkedNotebookGuid = QString(),
                            const QString & title = QString(),
                            const QString & previewText = QString(),
@@ -29,6 +30,9 @@ public:
 
     const QString & guid() const { return m_guid; }
     void setGuid(const QString & guid) { m_guid = guid; }
+
+    const QString & notebookLocalUid() const { return m_notebookLocalUid; }
+    void setNotebookLocalUid(const QString & notebookLocalUid) { m_notebookLocalUid = notebookLocalUid; }
 
     const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
     void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
@@ -72,6 +76,7 @@ public:
 private:
     QString     m_localUid;
     QString     m_guid;
+    QString     m_notebookLocalUid;
     QString     m_linkedNotebookGuid;
     QString     m_title;
     QString     m_previewText;

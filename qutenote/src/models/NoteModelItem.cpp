@@ -5,6 +5,7 @@ namespace qute_note {
 
 NoteModelItem::NoteModelItem(const QString & localUid,
                              const QString & guid,
+                             const QString & notebookLocalUid,
                              const QString & linkedNotebookGuid,
                              const QString & title,
                              const QString & previewText,
@@ -18,6 +19,7 @@ NoteModelItem::NoteModelItem(const QString & localUid,
                              const bool isDirty) :
     m_localUid(localUid),
     m_guid(guid),
+    m_notebookLocalUid(notebookLocalUid),
     m_linkedNotebookGuid(linkedNotebookGuid),
     m_title(title),
     m_previewText(previewText),
@@ -67,6 +69,7 @@ int NoteModelItem::numTagNames() const
 QTextStream & NoteModelItem::print(QTextStream & strm) const
 {
     strm << "NoteModelItem: local uid = " << m_localUid << ", guid = " << m_guid
+         << ", notebook local uid = " << m_notebookLocalUid
          << ", linked notebook guid = " << m_linkedNotebookGuid << ", title = " << m_title
          << ", preview text = " << m_previewText << ", thumbnail image file path = "
          << m_thumbnailImageFilePath << ", notebook name = " << m_notebookName

@@ -17,6 +17,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/bimap.hpp>
 #endif
 
 namespace qute_note {
@@ -48,8 +49,6 @@ public:
     int sortingColumn() const { return m_sortedColumn; }
     Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
-    const NoteModelItem * itemForIndex(const QModelIndex & index) const;
-    QModelIndex indexForItem(const NoteModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
 public:
@@ -114,8 +113,8 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNoteList();
 
-    QVariant dataText(const NoteModelItem & item, const Columns::type column) const;
-    QVariant dataAccessibleText(const NoteModelItem & item, const Columns::type column) const;
+    QVariant dataText(const int row, const Columns::type column) const;
+    QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
     void removeItemByLocalUid(const QString & localUid);
 
@@ -123,6 +122,9 @@ private:
     void updatePersistentModelIndices();
 
     void updateNoteInLocalStorage(const NoteModelItem & item);
+
+    bool canUpdateNoteItem(const NoteModelItem & item) const;
+    bool canCreateNoteItem(const QString & notebookLocalUid) const;
 
 private:
     struct ByLocalUid{};
@@ -146,6 +148,22 @@ private:
 
     typedef LRUCache<QString, Note>     Cache;
 
+    class NoteComparator
+    {
+    public:
+        NoteComparator(const Columns::type column,
+                       const Qt::SortOrder sortOrder) :
+            m_sortedColumn(column),
+            m_sortOrder(sortOrder)
+        {}
+
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+
+    private:
+        Columns::type   m_sortedColumn;
+        Qt::SortOrder   m_sortOrder;
+    };
+
 private:
     NoteData                m_data;
     size_t                  m_listNotesOffset;
@@ -164,6 +182,22 @@ private:
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
+
+    struct Restrictions
+    {
+        Restrictions() :
+            m_canCreateNotes(false),
+            m_canUpdateNotes(false)
+        {}
+
+        bool    m_canCreateNotes;
+        bool    m_canUpdateNotes;
+    };
+
+    QHash<QString, Restrictions>    m_noteRestrictionsByNotebookLocalUid;
+
+    typedef boost::bimap<QString, QUuid> NotebookLocalUidWithFindNotebookRequestIdBimap;
+    NotebookLocalUidWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookLocalUid;
 };
 
 } // namespace qute_note
