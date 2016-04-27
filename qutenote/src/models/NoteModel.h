@@ -73,9 +73,9 @@ Q_SIGNALS:
     void notifyError(QString errorDescription);
 
 // private signals
-    void addNote(Note note, QUuid requestId);
-    void updateNote(Note note, QUuid requestId);
-    void findNote(Note note, QUuid requestId);
+    void addNote(Note note, Notebook notebook, QUuid requestId);
+    void updateNote(Note note, Notebook notebook, QUuid requestId);
+    void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
     void listNotes(LocalStorageManager::ListObjectsOptions flag,
                    bool withResourceBinaryData, size_t limit, size_t offset,
                    LocalStorageManager::ListNotesOrder::type order,
