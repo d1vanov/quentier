@@ -726,9 +726,9 @@ void TagModel::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid reques
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.insert(requestId))
-    emit findTag(tag, requestId);
-    QNTRACE("Emitted the request to find the tag: local uid = " << tag.localUid()
+    QNTRACE("Emitting the request to find a tag: local uid = " << tag.localUid()
             << ", request id = " << requestId);
+    emit findTag(tag, requestId);
 }
 
 void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
@@ -881,7 +881,7 @@ void TagModel::onExpungeTagFailed(Tag tag, QString errorDescription, QUuid reque
     }
 
     QNDEBUG("TagModel::onExpungeTagFailed: tag = " << tag << "\nError description = " << errorDescription
-            << ", rwquest id = " << requestId);
+            << ", request id = " << requestId);
 
     Q_UNUSED(m_expungeTagRequestIds.erase(it))
 

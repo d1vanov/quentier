@@ -458,47 +458,114 @@ void NoteModel::sort(int column, Qt::SortOrder order)
 
 void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
+    QNDEBUG("NoteModel::onAddNoteComplete: " << note << "\nRequest id = " << requestId);
+
+    auto it = m_addNoteRequestIds.find(requestId);
+    if (it != m_addNoteRequestIds.end()) {
+        Q_UNUSED(m_addNoteRequestIds.erase(it))
+        return;
+    }
+
+    onNoteAddedOrUpdated(note);
 }
 
 void NoteModel::onAddNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_addNoteRequestIds.find(requestId);
+    if (it == m_addNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onAddNoteFailed: note = " << note << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_addNoteRequestIds.erase(it))
+
+    emit notifyError(errorDescription);
+
+    removeItemByLocalUid(note.localUid());
 }
 
 void NoteModel::onUpdateNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
+    QNDEBUG("NoteModel::onUpdateNoteComplete: note = " << note << "\nRequest id = " << requestId);
+
+    auto it = m_updateNoteRequestIds.find(requestId);
+    if (it != m_updateNoteRequestIds.end()) {
+        Q_UNUSED(m_updateNoteRequestIds.erase(it))
+        return;
+    }
+
+    onNoteAddedOrUpdated(note);
 }
 
 void NoteModel::onUpdateNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_updateNoteRequestIds.find(requestId);
+    if (it == m_updateNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onUpdateNoteFailed: note = " << note << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_updateNoteRequestIds.erase(it))
+
+    requestId = QUuid::createUuid();
+    Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.insert(requestId))
+    QNTRACE("Emitting the request to find a note: local uid = " << note.localUid()
+            << ", request id = " << requestId);
+    emit findNote(note, requestId);
 }
 
 void NoteModel::onFindNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
+    auto restoreUpdateIt = m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
+    auto performUpdateIt = m_findNoteToPerformUpdateRequestIds.find(requestId);
+    if ((restoreUpdateIt == m_findNoteToRestoreFailedUpdateRequestIds.end()) &&
+        (performUpdateIt == m_findNoteToPerformUpdateRequestIds.end()))
+    {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onFindNoteComplete: note = " << note << "\nRequest id = " << requestId);
+
+    if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end()) {
+        Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
+        onNoteAddedOrUpdated(note);
+    }
+    else if (performUpdateIt != m_findNoteToPerformUpdateRequestIds.end()) {
+        Q_UNUSED(m_findNoteToPerformUpdateRequestIds.erase(performUpdateIt))
+        m_cache.put(note.localUid(), note);
+        NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto it = localUidIndex.find(note.localUid());
+        if (it != localUidIndex.end()) {
+            updateNoteInLocalStorage(*it);
+        }
+    }
 }
 
 void NoteModel::onFindNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto restoreUpdateIt = m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
+    auto performUpdateIt = m_findNoteToPerformUpdateRequestIds.find(requestId);
+    if ((restoreUpdateIt == m_findNoteToRestoreFailedUpdateRequestIds.end()) &&
+        (performUpdateIt == m_findNoteToPerformUpdateRequestIds.end()))
+    {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onFindNoteFailed: note = " << note << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end()) {
+        Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
+    }
+    else if (performUpdateIt != m_findNoteToPerformUpdateRequestIds.end()) {
+        Q_UNUSED(m_findNoteToPerformUpdateRequestIds.erase(performUpdateIt))
+    }
+
+    emit notifyError(errorDescription);
 }
 
 void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -506,15 +573,26 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
                                     LocalStorageManager::OrderDirection::type orderDirection,
                                     QList<Note> foundNotes, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(foundNotes)
-    Q_UNUSED(requestId)
+    if (requestId != m_listNotesRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onListNotesComplete: flag = " << flag << ", with resource binary data = "
+            << (withResourceBinaryData ? "true" : "false") << ", limit = " << limit << ", offset = "
+            << offset << ", order = " << order << ", direction = " << orderDirection << ", num found notes = "
+            << foundNotes.size() << ", request id = " << requestId);
+
+    for(auto it = foundNotes.begin(), end = foundNotes.end(); it != end; ++it) {
+        onNoteAddedOrUpdated(*it);
+    }
+
+    m_listNotesRequestId = QUuid();
+
+    if (foundNotes.size() == static_cast<int>(limit)) {
+        QNTRACE("The number of found notes matches the limit, requesting more notes from the local storage");
+        m_listNotesOffset += limit;
+        requestNoteList();
+    }
 }
 
 void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -522,45 +600,75 @@ void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, 
                                   LocalStorageManager::OrderDirection::type orderDirection,
                                   QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(flag)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(limit)
-    Q_UNUSED(offset)
-    Q_UNUSED(order)
-    Q_UNUSED(orderDirection)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    if (requestId != m_listNotesRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onListNotesFailed: flag = " << flag << ", with resource binary data = "
+            << (withResourceBinaryData ? "true" : "false") << ", limit = " << limit
+            << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
+            << ", error description = " << errorDescription << ", request id = " << requestId);
+
+    m_listNotesRequestId = QUuid();
+
+    emit notifyError(errorDescription);
 }
 
 void NoteModel::onDeleteNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
+    QNDEBUG("NoteModel::onDeleteNoteComplete: note = " << note << "\nRequest id = " << requestId);
+
+    auto it = m_deleteNoteRequestIds.find(requestId);
+    if (it != m_deleteNoteRequestIds.end()) {
+        Q_UNUSED(m_deleteNoteRequestIds.erase(it))
+        return;
+    }
+
+    onNoteAddedOrUpdated(note);
 }
 
 void NoteModel::onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_deleteNoteRequestIds.find(requestId);
+    if (it == m_deleteNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onDeleteNoteFailed: note = " << note << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_deleteNoteRequestIds.erase(it))
+
+    note.setDeletionTimestamp(static_cast<qint64>(0));  // NOTE: it's a way to say setDeleted(false)
+    onNoteAddedOrUpdated(note);
 }
 
 void NoteModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
+    QNDEBUG("NoteModel::onExpungeNoteComplete: note = " << note << "\nRequest id = " << requestId);
+
+    auto it = m_expungeNoteRequestIds.find(requestId);
+    if (it != m_expungeNoteRequestIds.end()) {
+        Q_UNUSED(m_expungeNoteRequestIds.erase(it))
+        return;
+    }
+
+    removeItemByLocalUid(note.localUid());
 }
 
 void NoteModel::onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_expungeNoteRequestIds.find(requestId);
+    if (it == m_expungeNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onExpungeNoteFailed: note = " << note << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    Q_UNUSED(m_expungeNoteRequestIds.erase(it))
+
+    onNoteAddedOrUpdated(note);
 }
 
 void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
@@ -640,6 +748,12 @@ bool NoteModel::canCreateNoteItem(const QString & notebookLocalUid) const
     // TODO: implement
     Q_UNUSED(notebookLocalUid)
     return true;
+}
+
+void NoteModel::onNoteAddedOrUpdated(const Note & note)
+{
+    // TODO: implement
+    Q_UNUSED(note)
 }
 
 bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const

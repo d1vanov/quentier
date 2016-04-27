@@ -126,6 +126,8 @@ private:
     bool canUpdateNoteItem(const NoteModelItem & item) const;
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
 
+    void onNoteAddedOrUpdated(const Note & note);
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
