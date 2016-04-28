@@ -689,7 +689,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
 
     modifiedNote.unsetLocalUid();
 
-    res = localStorageManager.updateNote(modifiedNote, notebook, errorDescription);
+    res = localStorageManager.updateNote(modifiedNote, notebook, /* update resources = */ true,
+                                         /* update tags = */ true, errorDescription);
     if (!res) {
         return false;
     }
@@ -1453,7 +1454,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     updatedNote.setActive(true);
     updatedNote.setNotebookGuid(notebook.guid());
 
-    res = localStorageManager.updateNote(updatedNote, updatedNotebook, errorDescription);
+    res = localStorageManager.updateNote(updatedNote, updatedNotebook, /* update resources = */ true,
+                                         /* update tags = */ true, errorDescription);
     if (!res) {
         return false;
     }
@@ -1495,7 +1497,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     updatedNote.addResource(resource);
 
-    res = localStorageManager.updateNote(updatedNote, updatedNotebook, errorDescription);
+    res = localStorageManager.updateNote(updatedNote, updatedNotebook, /* update resources = */ true,
+                                         /* update tags = */ true, errorDescription);
     if (!res) {
         return res;
     }
@@ -1515,7 +1518,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     updatedNote.setResources(resources);
 
-    res = localStorageManager.updateNote(updatedNote, updatedNotebook, errorDescription);
+    res = localStorageManager.updateNote(updatedNote, updatedNotebook, /* update resources = */ true,
+                                         /* update tags = */ true, errorDescription);
     if (!res) {
         return false;
     }

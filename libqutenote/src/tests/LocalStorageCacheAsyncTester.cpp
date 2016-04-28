@@ -282,9 +282,12 @@ void LocalStorageCacheAsyncTester::onAddNoteFailed(Note note, Notebook notebook,
     emit failure(errorDescription);
 }
 
-void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
+void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook, bool updateResources,
+                                                         bool updateTags, QUuid requestId)
 {
     Q_UNUSED(requestId)
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
 
     QString errorDescription;
 
@@ -329,8 +332,12 @@ void LocalStorageCacheAsyncTester::onUpdateNoteCompleted(Note note, Notebook not
     HANDLE_WRONG_STATE()
 }
 
-void LocalStorageCacheAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
+void LocalStorageCacheAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+                                                      QString errorDescription, QUuid requestId)
 {
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
+
     QNWARNING(errorDescription << ", requestId = " << requestId << ", note: " << note << "\nnotebook: " << notebook);
     emit failure(errorDescription);
 }
@@ -685,8 +692,8 @@ void LocalStorageCacheAsyncTester::createConnections()
                      m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNotebookRequest(Notebook,QUuid)));
     QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook,QUuid)));
-    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook,bool,bool,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,bool,bool,QUuid)));
     QObject::connect(this, SIGNAL(addTagRequest(Tag,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onAddTagRequest(Tag,QUuid)));
     QObject::connect(this, SIGNAL(updateTagRequest(Tag,QUuid)),
@@ -713,10 +720,10 @@ void LocalStorageCacheAsyncTester::createConnections()
                      this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)),
                      this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)),
-                     this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)),
-                     this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,bool,bool,QUuid)),
+                     this, SLOT(onUpdateNoteCompleted(Note,Notebook,bool,bool,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,bool,bool,QString,QUuid)),
+                     this, SLOT(onUpdateNoteFailed(Note,Notebook,bool,bool,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagComplete(Tag,QUuid)),
                      this, SLOT(onAddTagCompleted(Tag,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addTagFailed(Tag,QString,QUuid)),
@@ -789,7 +796,7 @@ void LocalStorageCacheAsyncTester::updateNote()
     m_secondNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
 
     m_state = STATE_SENT_NOTE_UPDATE_REQUEST;
-    emit updateNoteRequest(m_secondNote, m_secondNotebook);
+    emit updateNoteRequest(m_secondNote, m_secondNotebook, /* update resources = */ true, /* update tags = */ true);
 }
 
 void LocalStorageCacheAsyncTester::addTag()

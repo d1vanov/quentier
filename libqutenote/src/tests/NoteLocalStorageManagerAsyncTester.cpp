@@ -324,10 +324,13 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteFailed(Note note, Notebook not
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
+void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebook notebook, bool updateResources,
+                                                               bool updateTags, QUuid requestId)
 {
     Q_UNUSED(requestId)
     Q_UNUSED(notebook)
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
 
     QString errorDescription;
 
@@ -349,8 +352,12 @@ void NoteLocalStorageManagerAsyncTester::onUpdateNoteCompleted(Note note, Notebo
     HANDLE_WRONG_STATE();
 }
 
-void NoteLocalStorageManagerAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
+void NoteLocalStorageManagerAsyncTester::onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources,
+                                                            bool updateTags, QString errorDescription, QUuid requestId)
 {
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
+
     QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note << ", Notebook: " << notebook);
     emit failure(errorDescription);
 }
@@ -380,7 +387,7 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteCompleted(Note note, bool wit
         m_modifiedNote.setTitle(m_initialNote.title() + "_modified");
 
         m_state = STATE_SENT_UPDATE_REQUEST;
-        emit updateNoteRequest(m_modifiedNote, m_notebook);
+        emit updateNoteRequest(m_modifiedNote, m_notebook, /* update resources = */ true, /* update tags = */ true);
     }
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
@@ -576,8 +583,8 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
                      SLOT(onGetNoteCountRequest(QUuid)));
     QObject::connect(this, SIGNAL(addNoteRequest(Note,Notebook,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onAddNoteRequest(Note,Notebook,QUuid)));
-    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,QUuid)));
+    QObject::connect(this, SIGNAL(updateNoteRequest(Note,Notebook,bool,bool,QUuid)),
+                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateNoteRequest(Note,Notebook,bool,bool,QUuid)));
     QObject::connect(this, SIGNAL(findNoteRequest(Note,bool,QUuid)),
                      m_pLocalStorageManagerThreadWorker, SLOT(onFindNoteRequest(Note,bool,QUuid)));
     QObject::connect(this, SIGNAL(listAllNotesPerNotebookRequest(Notebook,bool,LocalStorageManager::ListObjectsOptions,
@@ -604,10 +611,10 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
                      this, SLOT(onAddNoteCompleted(Note,Notebook,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addNoteFailed(Note,Notebook,QString,QUuid)),
                      this, SLOT(onAddNoteFailed(Note,Notebook,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,QUuid)),
-                     this, SLOT(onUpdateNoteCompleted(Note,Notebook,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,QString,QUuid)),
-                     this, SLOT(onUpdateNoteFailed(Note,Notebook,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteComplete(Note,Notebook,bool,bool,QUuid)),
+                     this, SLOT(onUpdateNoteCompleted(Note,Notebook,bool,bool,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateNoteFailed(Note,Notebook,bool,bool,QString,QUuid)),
+                     this, SLOT(onUpdateNoteFailed(Note,Notebook,bool,bool,QString,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findNoteComplete(Note,bool,QUuid)),
                      this, SLOT(onFindNoteCompleted(Note,bool,QUuid)));
     QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findNoteFailed(Note,bool,QString,QUuid)),

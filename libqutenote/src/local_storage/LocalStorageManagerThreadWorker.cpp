@@ -664,15 +664,16 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook noteb
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook notebook, QUuid requestId)
+void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook notebook, bool updateResources,
+                                                          bool updateTags, QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->updateNote(note, notebook, errorDescription);
+        bool res = m_pLocalStorageManager->updateNote(note, notebook, updateResources, updateTags, errorDescription);
         if (!res) {
-            emit updateNoteFailed(note, notebook, errorDescription, requestId);
+            emit updateNoteFailed(note, notebook, updateResources, updateTags, errorDescription, requestId);
             return;
         }
 
@@ -680,7 +681,7 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook no
             m_pLocalStorageCacheManager->cacheNote(note);
         }
 
-        emit updateNoteComplete(note, notebook, requestId);
+        emit updateNoteComplete(note, notebook, updateResources, updateTags, requestId);
     }
     CATCH_EXCEPTION
 }

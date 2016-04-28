@@ -71,7 +71,7 @@ Q_SIGNALS:
     void expungeNotebook(Notebook notebook, QUuid requestId);
 
     void addNote(Note note, Notebook notebook, QUuid requestId);
-    void updateNote(Note note, Notebook notebook, QUuid requestId);
+    void updateNote(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
     void deleteNote(Note note, QUuid requestId);
     void expungeNote(Note note, QUuid requestId);
@@ -154,8 +154,9 @@ private Q_SLOTS:
 
     void onAddNoteCompleted(Note note, Notebook notebook, QUuid requestId);
     void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
-    void onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId);
-    void onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNoteCompleted(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
+    void onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+                            QString errorDescription, QUuid requestId);
     void onExpungeNoteCompleted(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
