@@ -74,7 +74,7 @@ Q_SIGNALS:
 
 // private signals
     void addNote(Note note, Notebook notebook, QUuid requestId);
-    void updateNote(Note note, Notebook notebook, QUuid requestId);
+    void updateNote(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
     void listNotes(LocalStorageManager::ListObjectsOptions flag,
                    bool withResourceBinaryData, size_t limit, size_t offset,
@@ -87,10 +87,11 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     // Slots for response to events from local storage
-    void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QString errorDescription, QUuid requestId);
-    void onUpdateNoteComplete(Note note, QUuid requestId);
-    void onUpdateNoteFailed(Note note, QString errorDescription, QUuid requestId);
+    void onAddNoteComplete(Note note, Notebook notebook, QUuid requestId);
+    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNoteComplete(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
+    void onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+                            QString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, QUuid requestId);
     void onFindNoteFailed(Note note, QString errorDescription, QUuid requestId);
     void onListNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,

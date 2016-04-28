@@ -456,9 +456,11 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     emit layoutChanged();
 }
 
-void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
+void NoteModel::onAddNoteComplete(Note note, Notebook notebook, QUuid requestId)
 {
     QNDEBUG("NoteModel::onAddNoteComplete: " << note << "\nRequest id = " << requestId);
+
+    Q_UNUSED(notebook)
 
     auto it = m_addNoteRequestIds.find(requestId);
     if (it != m_addNoteRequestIds.end()) {
@@ -469,7 +471,7 @@ void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
     onNoteAddedOrUpdated(note);
 }
 
-void NoteModel::onAddNoteFailed(Note note, QString errorDescription, QUuid requestId)
+void NoteModel::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
 {
     auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
@@ -479,16 +481,20 @@ void NoteModel::onAddNoteFailed(Note note, QString errorDescription, QUuid reque
     QNDEBUG("NoteModel::onAddNoteFailed: note = " << note << "\nError description = " << errorDescription
             << ", request id = " << requestId);
 
+    Q_UNUSED(notebook)
     Q_UNUSED(m_addNoteRequestIds.erase(it))
 
     emit notifyError(errorDescription);
-
     removeItemByLocalUid(note.localUid());
 }
 
-void NoteModel::onUpdateNoteComplete(Note note, QUuid requestId)
+void NoteModel::onUpdateNoteComplete(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId)
 {
     QNDEBUG("NoteModel::onUpdateNoteComplete: note = " << note << "\nRequest id = " << requestId);
+
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
+    Q_UNUSED(notebook)
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
@@ -499,8 +505,13 @@ void NoteModel::onUpdateNoteComplete(Note note, QUuid requestId)
     onNoteAddedOrUpdated(note);
 }
 
-void NoteModel::onUpdateNoteFailed(Note note, QString errorDescription, QUuid requestId)
+void NoteModel::onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+                                   QString errorDescription, QUuid requestId)
 {
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
+    Q_UNUSED(notebook)
+
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
         return;
@@ -515,11 +526,7 @@ void NoteModel::onUpdateNoteFailed(Note note, QString errorDescription, QUuid re
     Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.insert(requestId))
     QNTRACE("Emitting the request to find a note: local uid = " << note.localUid()
             << ", request id = " << requestId);
-    emit findNote(note, /* with resource binary data = */ true, requestId);
-    // FIXME: think it through, should NoteModel attempt to load the resource binary data? I would say it shouldn't
-    // but it's currently impossible to properly update the note back in the local storage because the real resource
-    // binary data would be erased since it's missing within the note; need to change it once the more flexible
-    // way to update the note is implemented in the local storage
+    emit findNote(note, /* with resource binary data = */ false, requestId);
 }
 
 void NoteModel::onFindNoteComplete(Note note, QUuid requestId)
@@ -729,8 +736,8 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
 
     // Local signals to localStorageManagerThreadWorker's slots
     QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,Notebook,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,Notebook,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,Notebook,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,Notebook,bool,bool,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNote,Note,bool,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
