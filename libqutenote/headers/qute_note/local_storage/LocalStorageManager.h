@@ -454,10 +454,15 @@ public:
      * to create and update offline notebooks and notes from the local storage perspective.
      * Also, the notebook may prohibit the update of notes in which case the error
      * would be returned
+     * @param updateResources - flag indicating whether the note's resources should be updated
+     * along with the note; if not, the existing resource information stored in the local storage is not touched
+     * @param updateTags - flag indicating whether the note's tags should be updated along with the note;
+     * if not, the existing tags to note linkage information is not touched
      * @param errorDescription - error description if note could not be updated
      * @return true if note was updated successfully, false otherwise
      */
-    bool updateNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool updateNote(const Note & note, const Notebook & notebook, const bool updateResources,
+                    const bool updateTags, QString & errorDescription);
 
     /**
      * @brief findNote - attempts to find note in the local storage database

@@ -1301,7 +1301,8 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, const Notebook & not
         guid = localUid;
     }
 
-    if (shouldCheckNoteExistence && rowExists("Notes", column, QVariant(guid))) {
+    if (shouldCheckNoteExistence && rowExists("Notes", column, QVariant(guid)))
+    {
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("note with specified ");
         errorDescription += column;
@@ -1311,10 +1312,12 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, const Notebook & not
         return false;
     }
 
-    return insertOrReplaceNote(note, notebook, localUid, errorDescription);
+    return insertOrReplaceNote(note, notebook, localUid, /* update resources = */ true,
+                               /* update tags = */ true, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & notebook, const bool updateResources,
+                                            const bool updateTags, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't update note in local storage database: ");
     QString error;
@@ -1384,7 +1387,7 @@ bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & 
         return false;
     }
 
-    return insertOrReplaceNote(note, notebook, localUid, errorDescription);
+    return insertOrReplaceNote(note, notebook, localUid, updateResources, updateTags, errorDescription);
 }
 
 bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescription,
@@ -4603,7 +4606,8 @@ bool LocalStorageManagerPrivate::checkAndPrepareExpungeLinkedNotebookQuery()
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const Notebook & notebook,
-                                                     const QString & overrideLocalUid, QString & errorDescription)
+                                                     const QString & overrideLocalUid, const bool updateResources,
+                                                     const bool updateTags, QString & errorDescription)
 {
     // NOTE: this method expects to be called after the note is already checked
     // for sanity of its parameters!
@@ -4834,101 +4838,107 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
     }
 
-    // Clear note-to-tag binding first, update them second
+    if (updateTags)
     {
-        bool res = checkAndPrepareExpungeNoteFromNoteTagsQuery();
-        QSqlQuery & query = m_expungeNoteFromNoteTagsQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note: can't prepare SQL query");
-
-        query.bindValue(":localNote", localUid);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
-    }
-
-    if (note.hasTagGuids())
-    {
-        QString error;
-
-        QStringList tagGuids;
-        note.tagGuids(tagGuids);
-        int numTagGuids = tagGuids.size();
-
-        bool res = checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
-        QSqlQuery & query = m_insertOrReplaceNoteIntoNoteTagsQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: "
-                                     "can't prepare SQL query");
-
-        for(int i = 0; i < numTagGuids; ++i)
+        // Clear note-to-tag binding first, update them second
         {
-            // NOTE: the behavior expressed here is valid since tags are synchronized before notes
-            // so they must exist within local storage database; if they don't then something went really wrong
-
-            const QString & tagGuid = tagGuids[i];
-
-            Tag tag;
-            tag.setGuid(tagGuid);
-            bool res = findTag(tag, error);
-            if (!res) {
-                errorDescription += QT_TR_NOOP("failed to find one of note's tags: ");
-                errorDescription += error;
-                QNCRITICAL(errorDescription);
-                return false;
-            }
+            bool res = checkAndPrepareExpungeNoteFromNoteTagsQuery();
+            QSqlQuery & query = m_expungeNoteFromNoteTagsQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note: can't prepare SQL query");
 
             query.bindValue(":localNote", localUid);
-            query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
-            query.bindValue(":localTag", tag.localUid());
-            query.bindValue(":tag", tagGuid);
-            query.bindValue(":tagIndexInNote", i);
 
             res = query.exec();
-            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table in SQL database");
+            DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
         }
-    }
 
-    // NOTE: don't even attempt fo find tags by their names because qevercloud::Note.tagNames
-    // has the only purpose to provide tag names alternatively to guids to NoteStore::createNote method
-
-    // Clear note's resources first and insert new ones second
-    // FIXME: it can be inefficient; need to figure out some partial update approach
-    {
-        bool res = checkAndPrepareExpungeResourcesByNoteQuery();
-        QSqlQuery & query = m_expungeResourceByNoteQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note: "
-                                     "can't prepare SQL query");
-
-        query.bindValue(":noteLocalUid", localUid);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
-    }
-
-    if (note.hasResources())
-    {
-        QList<ResourceAdapter> resources = note.resourceAdapters();
-        int numResources = resources.size();
-        for(int i = 0; i < numResources; ++i)
+        if (note.hasTagGuids())
         {
-            const ResourceAdapter & resource = resources[i];
-
             QString error;
-            bool res = resource.checkParameters(error);
-            if (!res) {
-                errorDescription += QT_TR_NOOP("found invalid resource linked with note: ");
-                errorDescription += error;
-                QNWARNING(errorDescription);
-                return false;
-            }
 
-            error.resize(0);
-            res = insertOrReplaceResource(resource, QString(), note, localUid, error,
-                                          /* useSeparateTransaction = */ false);
-            if (!res) {
-                errorDescription += QT_TR_NOOP("can't add or update one of note's "
-                                               "attached resources: ");
-                errorDescription += error;
-                return false;
+            QStringList tagGuids;
+            note.tagGuids(tagGuids);
+            int numTagGuids = tagGuids.size();
+
+            bool res = checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
+            QSqlQuery & query = m_insertOrReplaceNoteIntoNoteTagsQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: "
+                                         "can't prepare SQL query");
+
+            for(int i = 0; i < numTagGuids; ++i)
+            {
+                // NOTE: the behavior expressed here is valid since tags are synchronized before notes
+                // so they must exist within local storage database; if they don't then something went really wrong
+
+                const QString & tagGuid = tagGuids[i];
+
+                Tag tag;
+                tag.setGuid(tagGuid);
+                bool res = findTag(tag, error);
+                if (!res) {
+                    errorDescription += QT_TR_NOOP("failed to find one of note's tags: ");
+                    errorDescription += error;
+                    QNCRITICAL(errorDescription);
+                    return false;
+                }
+
+                query.bindValue(":localNote", localUid);
+                query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
+                query.bindValue(":localTag", tag.localUid());
+                query.bindValue(":tag", tagGuid);
+                query.bindValue(":tagIndexInNote", i);
+
+                res = query.exec();
+                DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table in SQL database");
+            }
+        }
+
+        // NOTE: don't even attempt fo find tags by their names because qevercloud::Note.tagNames
+        // has the only purpose to provide tag names alternatively to guids to NoteStore::createNote method
+    }
+
+    if (updateResources)
+    {
+        // Clear note's resources first and insert new ones second
+        // TODO: it is not perfectly efficient... need to figure out some partial update approach for the future
+        {
+            bool res = checkAndPrepareExpungeResourcesByNoteQuery();
+            QSqlQuery & query = m_expungeResourceByNoteQuery;
+            DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note: "
+                                         "can't prepare SQL query");
+
+            query.bindValue(":noteLocalUid", localUid);
+
+            res = query.exec();
+            DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
+        }
+
+        if (note.hasResources())
+        {
+            QList<ResourceAdapter> resources = note.resourceAdapters();
+            int numResources = resources.size();
+            for(int i = 0; i < numResources; ++i)
+            {
+                const ResourceAdapter & resource = resources[i];
+
+                QString error;
+                bool res = resource.checkParameters(error);
+                if (!res) {
+                    errorDescription += QT_TR_NOOP("found invalid resource linked with note: ");
+                    errorDescription += error;
+                    QNWARNING(errorDescription);
+                    return false;
+                }
+
+                error.resize(0);
+                res = insertOrReplaceResource(resource, QString(), note, localUid, error,
+                                              /* useSeparateTransaction = */ false);
+                if (!res) {
+                    errorDescription += QT_TR_NOOP("can't add or update one of note's "
+                                                   "attached resources: ");
+                    errorDescription += error;
+                    return false;
+                }
             }
         }
     }

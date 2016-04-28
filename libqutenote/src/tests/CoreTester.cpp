@@ -629,7 +629,8 @@ void CoreTester::localStorageManagedIndividualNoteTest()
 
         note.addResource(resource);
 
-        res = localStorageManager.updateNote(note, notebook, error);
+        res = localStorageManager.updateNote(note, notebook, /* update resources = */ true,
+                                             /* update tags = */ true, error);
         QVERIFY2(res == true, qPrintable(error));
 
         res = TestNoteFindUpdateDeleteExpungeInLocalStorage(note, notebook, localStorageManager, error);

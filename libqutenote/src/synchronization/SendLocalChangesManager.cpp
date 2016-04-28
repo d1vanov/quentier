@@ -567,28 +567,33 @@ void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QString 
     emit failure(error);
 }
 
-void SendLocalChangesManager::onUpdateNoteCompleted(Note note, Notebook notebook, QUuid requestId)
+void SendLocalChangesManager::onUpdateNoteCompleted(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId)
 {
     CHECK_PAUSED();
 
-    Q_UNUSED(notebook);
+    Q_UNUSED(notebook)
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
         return;
     }
 
-    QNDEBUG("SendLocalChangesManager::onUpdateNoteCompleted: note = " << note << "\nrequest id = " << requestId);
+    QNDEBUG("SendLocalChangesManager::onUpdateNoteCompleted: note = " << note << "\nRequest id = " << requestId);
     Q_UNUSED(m_updateNoteRequestIds.erase(it));
 
     CHECK_STOPPED();
 }
 
-void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
+void SendLocalChangesManager::onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+                                                 QString errorDescription, QUuid requestId)
 {
-    Q_UNUSED(notebook);
-
     CHECK_PAUSED();
+
+    Q_UNUSED(notebook)
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -740,8 +745,8 @@ void SendLocalChangesManager::createConnections()
                      QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
     QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
                      QNSLOT(LocalStorageManagerThreadWorker,onUpdateNotebookRequest,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateNote,Note,Notebook,QUuid), &m_localStorageManagerThreadWorker,
-                     QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(SendLocalChangesManager,updateNote,Note,Notebook,bool,bool,QUuid), &m_localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,bool,bool,QUuid));
 
     QObject::connect(this, QNSIGNAL(SendLocalChangesManager,findNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
                      QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
@@ -829,10 +834,10 @@ void SendLocalChangesManager::createConnections()
                      this, QNSLOT(SendLocalChangesManager,onUpdateNotebookCompleted,Notebook,QUuid));
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,QString,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,QUuid),
-                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,Notebook,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,QString,QUuid),
-                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,Notebook,QString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,bool,bool,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,Notebook,bool,bool,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,bool,bool,QString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,Notebook,bool,bool,QString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onFindNotebookCompleted,Notebook,QUuid));
@@ -886,8 +891,8 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
                         QNSLOT(LocalStorageManagerThreadWorker,onUpdateSavedSearchRequest,SavedSearch,QUuid));
     QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
                         QNSLOT(LocalStorageManagerThreadWorker,onUpdateNotebookRequest,Notebook,QUuid));
-    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateNote,Note,Notebook,QUuid), &m_localStorageManagerThreadWorker,
-                        QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,QUuid));
+    QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,updateNote,Note,Notebook,bool,bool,QUuid), &m_localStorageManagerThreadWorker,
+                        QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,bool,bool,QUuid));
 
     QObject::disconnect(this, QNSIGNAL(SendLocalChangesManager,findNotebook,Notebook,QUuid), &m_localStorageManagerThreadWorker,
                         QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
@@ -975,10 +980,10 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
                         this, QNSLOT(SendLocalChangesManager,onUpdateNotebookCompleted,Notebook,QUuid));
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,QString,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,Notebook,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,QString,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,Notebook,QString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,bool,bool,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,Notebook,bool,bool,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,bool,bool,QString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,Notebook,bool,bool,QString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onFindNotebookCompleted,Notebook,QUuid));
