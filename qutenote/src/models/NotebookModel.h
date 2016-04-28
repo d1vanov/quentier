@@ -2,9 +2,8 @@
 #define __QUTE_NOTE__MODELS__NOTEBOOK_MODEL_H
 
 #include "NotebookModelItem.h"
-#include <qute_note/types/Notebook.h>
+#include "NotebookCache.h"
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
-#include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
@@ -27,7 +26,7 @@ class NotebookModel: public QAbstractItemModel
     Q_OBJECT
 public:
     explicit NotebookModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                           QObject * parent = Q_NULLPTR);
+                           NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
 
     struct Columns
@@ -198,8 +197,6 @@ private:
     typedef QMap<QString, NotebookModelItem> ModelItems;
     typedef QMap<QString, NotebookStackItem> StackItems;
 
-    typedef LRUCache<QString, Notebook> Cache;
-
 private:
     void onNotebookAddedOrUpdated(const Notebook & notebook);
     void onNotebookAdded(const Notebook & notebook);
@@ -216,7 +213,7 @@ private:
     ModelItems              m_modelItemsByStack;
     StackItems              m_stackItems;
 
-    Cache                   m_cache;
+    NotebookCache &         m_cache;
 
     size_t                  m_listNotebooksOffset;
     QUuid                   m_listNotebooksRequestId;

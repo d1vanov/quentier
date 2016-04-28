@@ -121,7 +121,9 @@ void NotebookModelTestHelper::test()
 
 #undef ADD_NOTEBOOK
 
-        NotebookModel * model = new NotebookModel(*m_pLocalStorageManagerThreadWorker, this);
+        NotebookCache cache(5);
+
+        NotebookModel * model = new NotebookModel(*m_pLocalStorageManagerThreadWorker, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

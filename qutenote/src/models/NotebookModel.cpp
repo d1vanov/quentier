@@ -8,12 +8,10 @@ namespace qute_note {
 // Limit for the queries to the local storage
 #define NOTEBOOK_LIST_LIMIT (40)
 
-#define NOTEBOOK_CACHE_LIMIT (5)
-
 #define NUM_NOTEBOOK_MODEL_COLUMNS (6)
 
 NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                             QObject * parent) :
+                             NotebookCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
@@ -21,7 +19,7 @@ NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManag
     m_modelItemsByLocalUid(),
     m_modelItemsByStack(),
     m_stackItems(),
-    m_cache(),
+    m_cache(cache),
     m_listNotebooksOffset(0),
     m_listNotebooksRequestId(),
     m_addNotebookRequestIds(),

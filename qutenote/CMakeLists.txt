@@ -62,6 +62,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h
     src/models/TagModelItem.h
+    src/models/NotebookCache.h
     src/models/NotebookModel.h
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
@@ -169,6 +170,7 @@ set(MODEL_TEST_HEADERS
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h
     src/models/TagModelItem.h
+    src/models/NotebookCache.h
     src/models/NotebookModel.h
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
