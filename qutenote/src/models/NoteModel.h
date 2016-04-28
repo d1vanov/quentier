@@ -2,8 +2,8 @@
 #define __QUTE_NOTE__MODELS__NOTE_MODEL_H
 
 #include "NoteModelItem.h"
+#include "NotebookCache.h"
 #include <qute_note/types/Note.h>
-#include <qute_note/types/Notebook.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -27,7 +27,7 @@ class NoteModel: public QAbstractItemModel
     Q_OBJECT
 public:
     explicit NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                       QObject * parent = Q_NULLPTR);
+                       NotebookCache & notebookCache, QObject * parent = Q_NULLPTR);
     virtual ~NoteModel();
 
     struct Columns
@@ -109,6 +109,8 @@ private Q_SLOTS:
 
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
@@ -126,6 +128,7 @@ private:
 
     bool canUpdateNoteItem(const NoteModelItem & item) const;
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
+    void updateRestrictionsFromNotebook(const Notebook & notebook);
 
     void onNoteAddedOrUpdated(const Note & note);
 
@@ -174,6 +177,7 @@ private:
     QSet<QUuid>             m_noteItemsNotYetInLocalStorageUids;
 
     Cache                   m_cache;
+    NotebookCache &         m_notebookCache;
 
     QSet<QUuid>             m_addNoteRequestIds;
     QSet<QUuid>             m_updateNoteRequestIds;

@@ -12,13 +12,14 @@
 namespace qute_note {
 
 NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                     QObject * parent) :
+                     NotebookCache & notebookCache, QObject * parent) :
     QAbstractItemModel(parent),
     m_data(),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
     m_noteItemsNotYetInLocalStorageUids(),
     m_cache(NOTE_CACHE_LIMIT),
+    m_notebookCache(notebookCache),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
     m_deleteNoteRequestIds(),
@@ -693,28 +694,8 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 
     Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(it))
 
-    Restrictions restrictions;
-
-    if (!notebook.hasRestrictions())
-    {
-        restrictions.m_canCreateNotes = true;
-        restrictions.m_canUpdateNotes = true;
-    }
-    else
-    {
-        const qevercloud::NotebookRestrictions & notebookRestrictions = notebook.restrictions();
-        restrictions.m_canCreateNotes = (notebookRestrictions.noCreateNotes.isSet()
-                                         ? (!notebookRestrictions.noCreateNotes.ref())
-                                         : true);
-        restrictions.m_canUpdateNotes = (notebookRestrictions.noUpdateNotes.isSet()
-                                         ? (!notebookRestrictions.noUpdateNotes.ref())
-                                         : true);
-    }
-
-    m_noteRestrictionsByNotebookLocalUid[notebook.localUid()] = restrictions;
-    QNDEBUG("Set restrictions for notes from notebook with local uid " << notebook.localUid()
-            << ": can create notes = " << (restrictions.m_canCreateNotes ? "true" : "false")
-            << ": can update notes = " << (restrictions.m_canUpdateNotes ? "true" : "false"));
+    m_notebookCache.put(notebook.localUid(), notebook);
+    updateRestrictionsFromNotebook(notebook);
 }
 
 void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -728,6 +709,34 @@ void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription
               << errorDescription << ", request id = " << requestId);
 
     Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(it))
+}
+
+void NoteModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
+{
+    QNDEBUG("NoteModel::onUpdateNotebookComplete: local uid = " << notebook.localUid());
+    Q_UNUSED(requestId)
+    m_notebookCache.put(notebook.localUid(), notebook);
+    updateRestrictionsFromNotebook(notebook);
+}
+
+void NoteModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
+{
+    QNDEBUG("NoteModel::onExpungeNotebookComplete: local uid = " << notebook.localUid());
+
+    Q_UNUSED(requestId)
+    Q_UNUSED(m_notebookCache.remove(notebook.localUid()))
+
+    auto it = m_noteRestrictionsByNotebookLocalUid.find(notebook.localUid());
+    if (it == m_noteRestrictionsByNotebookLocalUid.end()) {
+        Restrictions restrictions;
+        restrictions.m_canCreateNotes = false;
+        restrictions.m_canUpdateNotes = false;
+        m_noteRestrictionsByNotebookLocalUid[notebook.localUid()] = restrictions;
+        return;
+    }
+
+    it->m_canCreateNotes = false;
+    it->m_canUpdateNotes = false;
 }
 
 void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
@@ -813,6 +822,34 @@ bool NoteModel::canCreateNoteItem(const QString & notebookLocalUid) const
     // TODO: implement
     Q_UNUSED(notebookLocalUid)
     return true;
+}
+
+void NoteModel::updateRestrictionsFromNotebook(const Notebook & notebook)
+{
+    QNDEBUG("NoteModel::updateRestrictionsFromNotebook: local uid = " << notebook.localUid());
+
+    Restrictions restrictions;
+
+    if (!notebook.hasRestrictions())
+    {
+        restrictions.m_canCreateNotes = true;
+        restrictions.m_canUpdateNotes = true;
+    }
+    else
+    {
+        const qevercloud::NotebookRestrictions & notebookRestrictions = notebook.restrictions();
+        restrictions.m_canCreateNotes = (notebookRestrictions.noCreateNotes.isSet()
+                                         ? (!notebookRestrictions.noCreateNotes.ref())
+                                         : true);
+        restrictions.m_canUpdateNotes = (notebookRestrictions.noUpdateNotes.isSet()
+                                         ? (!notebookRestrictions.noUpdateNotes.ref())
+                                         : true);
+    }
+
+    m_noteRestrictionsByNotebookLocalUid[notebook.localUid()] = restrictions;
+    QNDEBUG("Set restrictions for notes from notebook with local uid " << notebook.localUid()
+            << ": can create notes = " << (restrictions.m_canCreateNotes ? "true" : "false")
+            << ": can update notes = " << (restrictions.m_canUpdateNotes ? "true" : "false"));
 }
 
 void NoteModel::onNoteAddedOrUpdated(const Note & note)
