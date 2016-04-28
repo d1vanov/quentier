@@ -899,33 +899,7 @@ void TagModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 
     Q_UNUSED(m_findNotebookRequestForLinkedNotebookGuid.right.erase(it))
 
-    if (!notebook.hasLinkedNotebookGuid()) {
-        QNWARNING("Unexpectedly received notebook in TagModel which doesn't have the linked notebook guid set: " << notebook);
-        return;
-    }
-
-    Restrictions restrictions;
-
-    if (!notebook.hasRestrictions())
-    {
-        restrictions.m_canCreateTags = true;
-        restrictions.m_canUpdateTags = true;
-    }
-    else
-    {
-        const qevercloud::NotebookRestrictions & notebookRestrictions = notebook.restrictions();
-        restrictions.m_canCreateTags = (notebookRestrictions.noCreateTags.isSet()
-                                        ? (!notebookRestrictions.noCreateTags.ref())
-                                        : true);
-        restrictions.m_canUpdateTags = (notebookRestrictions.noUpdateTags.isSet()
-                                        ? (!notebookRestrictions.noUpdateTags.ref())
-                                        : true);
-    }
-
-    m_tagRestrictionsByLinkedNotebookGuid[notebook.linkedNotebookGuid()] = restrictions;
-    QNDEBUG("Set restrictions for tags from linked notebook with guid " << notebook.linkedNotebookGuid()
-            << ": can create tags = " << (restrictions.m_canCreateTags ? "true" : "false")
-            << ", can update tags = " << (restrictions.m_canUpdateTags ? "true" : "false"));
+    updateRestrictionsFromNotebook(notebook);
 }
 
 void TagModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -939,6 +913,37 @@ void TagModel::onFindNotebookFailed(Notebook notebook, QString errorDescription,
               << errorDescription << ", request id = " << requestId);
 
     Q_UNUSED(m_findNotebookRequestForLinkedNotebookGuid.right.erase(it))
+}
+
+void TagModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
+{
+    QNDEBUG("TagModel::onUpdateNotebookComplete: local uid = " << notebook.localUid());
+    Q_UNUSED(requestId)
+    updateRestrictionsFromNotebook(notebook);
+}
+
+void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
+{
+    QNDEBUG("TagModel::onExpungeNotebookComplete: local uid = " << notebook.localUid()
+            << ", linked notebook guid = " << (notebook.hasLinkedNotebookGuid() ? notebook.linkedNotebookGuid() : QStringLiteral("<null>")));
+
+    Q_UNUSED(requestId)
+
+    if (!notebook.hasLinkedNotebookGuid()) {
+        return;
+    }
+
+    auto it = m_tagRestrictionsByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+    if (it == m_tagRestrictionsByLinkedNotebookGuid.end()) {
+        Restrictions restrictions;
+        restrictions.m_canCreateTags = false;
+        restrictions.m_canUpdateTags = false;
+        m_tagRestrictionsByLinkedNotebookGuid[notebook.linkedNotebookGuid()] = restrictions;
+        return;
+    }
+
+    it->m_canCreateTags = false;
+    it->m_canUpdateTags = false;
 }
 
 void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
@@ -999,6 +1004,10 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
                      this, QNSLOT(TagModel,onFindNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
                      this, QNSLOT(TagModel,onFindNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(TagModel,onUpdateNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(TagModel,onExpungeNotebookComplete,Notebook,QUuid));
 }
 
 void TagModel::requestTagsList()
@@ -1203,6 +1212,40 @@ bool TagModel::canCreateTagItem(const TagModelItem & parentItem) const
     }
 
     return true;
+}
+
+void TagModel::updateRestrictionsFromNotebook(const Notebook & notebook)
+{
+    QNDEBUG("TagModel::updateRestrictionsFromNotebook: local uid = " << notebook.localUid()
+            << ", linked notebook guid = " << (notebook.hasLinkedNotebookGuid() ? notebook.linkedNotebookGuid() : QStringLiteral("<null>")));
+
+    if (!notebook.hasLinkedNotebookGuid()) {
+        QNDEBUG("Not a linked notebook, ignoring it");
+        return;
+    }
+
+    Restrictions restrictions;
+
+    if (!notebook.hasRestrictions())
+    {
+        restrictions.m_canCreateTags = true;
+        restrictions.m_canUpdateTags = true;
+    }
+    else
+    {
+        const qevercloud::NotebookRestrictions & notebookRestrictions = notebook.restrictions();
+        restrictions.m_canCreateTags = (notebookRestrictions.noCreateTags.isSet()
+                                        ? (!notebookRestrictions.noCreateTags.ref())
+                                        : true);
+        restrictions.m_canUpdateTags = (notebookRestrictions.noUpdateTags.isSet()
+                                        ? (!notebookRestrictions.noUpdateTags.ref())
+                                        : true);
+    }
+
+    m_tagRestrictionsByLinkedNotebookGuid[notebook.linkedNotebookGuid()] = restrictions;
+    QNDEBUG("Set restrictions for tags from linked notebook with guid " << notebook.linkedNotebookGuid()
+            << ": can create tags = " << (restrictions.m_canCreateTags ? "true" : "false")
+            << ", can update tags = " << (restrictions.m_canUpdateTags ? "true" : "false"));
 }
 
 QVariant TagModel::dataText(const TagModelItem & item, const Columns::type column) const

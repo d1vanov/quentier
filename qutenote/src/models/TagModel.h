@@ -123,6 +123,8 @@ private Q_SLOTS:
 
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
+    void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
@@ -195,6 +197,7 @@ private:
     void tagToItem(const Tag & tag, TagModelItem & item);
     bool canUpdateTagItem(const TagModelItem & item) const;
     bool canCreateTagItem(const TagModelItem & parentItem) const;
+    void updateRestrictionsFromNotebook(const Notebook & notebook);
 
 private:
     TagData                 m_data;
