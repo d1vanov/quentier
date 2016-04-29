@@ -402,12 +402,12 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
     QString resourceDataSize;
     if (pCurrentResource->hasDataBody()) {
         const QByteArray & data = pCurrentResource->dataBody();
-        int bytes = data.size();
+        quint64 bytes = static_cast<quint64>(data.size());
         resourceDataSize = humanReadableSize(bytes);
     }
     else if (pCurrentResource->hasAlternateDataBody()) {
         const QByteArray & data = pCurrentResource->alternateDataBody();
-        int bytes = data.size();
+        quint64 bytes = static_cast<quint64>(data.size());
         resourceDataSize = humanReadableSize(bytes);
     }
 

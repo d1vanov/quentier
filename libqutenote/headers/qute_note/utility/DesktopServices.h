@@ -16,7 +16,7 @@ const QString QUTE_NOTE_EXPORT applicationTemporaryStoragePath();
 const QString QUTE_NOTE_EXPORT homePath();
 
 QUTE_NOTE_EXPORT QStyle * applicationStyle();
-const QString QUTE_NOTE_EXPORT humanReadableSize(const int bytes);
+const QString QUTE_NOTE_EXPORT humanReadableSize(const quint64 bytes);
 
 // Convenience functions for message boxes with proper modality on Mac OS X
 void QUTE_NOTE_EXPORT genericMessageBox(QWidget * parent, const QString & title,

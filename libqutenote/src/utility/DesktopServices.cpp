@@ -90,7 +90,7 @@ QStyle * applicationStyle()
     return QStyleFactory::create(firstStyle);
 }
 
-const QString humanReadableSize(const int bytes)
+const QString humanReadableSize(const quint64 bytes)
 {
     QStringList list;
     list << "Kb" << "Mb" << "Gb" << "Tb";

@@ -238,7 +238,7 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     resourceFileStoragePathIt.value() = linkFileName;
 
     QString resourceDisplayName = m_rotatedResource.displayName();
-    QString resourceDisplaySize = humanReadableSize(m_rotatedResource.dataSize());
+    QString resourceDisplaySize = humanReadableSize(static_cast<quint64>(m_rotatedResource.dataSize()));
 
     QString dataHashStr = QString::fromLocal8Bit(dataHash);
     m_rotatedResource.setDataHash(dataHash);

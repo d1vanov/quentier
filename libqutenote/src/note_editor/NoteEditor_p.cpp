@@ -568,7 +568,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
             resourceDisplayName = resource.displayName();
             if (resource.hasDataSize()) {
-                resourceDisplaySize = humanReadableSize(resource.dataSize());
+                resourceDisplaySize = humanReadableSize(static_cast<quint64>(resource.dataSize()));
             }
 
             break;
@@ -730,7 +730,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         }
 
         resourceDisplayName = resource.displayName();
-        resourceDisplaySize = humanReadableSize(resource.dataSize());
+        resourceDisplaySize = humanReadableSize(static_cast<quint64>(resource.dataSize()));
 
         targetResourceIndex = i;
         break;
@@ -1254,7 +1254,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
     m_resourceFileStoragePathsByResourceLocalUid[addedResource.localUid()] = resourceFileStoragePath;
 
     m_resourceInfo.cacheResourceInfo(addedResource.dataHash(), addedResource.displayName(),
-                                     humanReadableSize(addedResource.dataSize()), resourceFileStoragePath);
+                                     humanReadableSize(static_cast<quint64>(addedResource.dataSize())), resourceFileStoragePath);
 
 #ifdef USE_QT_WEB_ENGINE
     setupGenericResourceImages();
@@ -2753,7 +2753,9 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
 
     QString resourceHumanReadableSize;
     if (resource.hasDataSize() || resource.hasAlternateDataSize()) {
-        resourceHumanReadableSize = humanReadableSize(resource.hasDataSize() ? resource.dataSize() : resource.alternateDataSize());
+        resourceHumanReadableSize = humanReadableSize(resource.hasDataSize()
+                                                      ? static_cast<quint64>(resource.dataSize())
+                                                      : static_cast<quint64>(resource.alternateDataSize()));
     }
 
     QIcon resourceIcon;

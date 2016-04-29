@@ -1,6 +1,7 @@
 #include "NoteModel.h"
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/UidGenerator.h>
+#include <qute_note/utility/Utility.h>
 
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
@@ -530,8 +531,10 @@ void NoteModel::onUpdateNoteFailed(Note note, Notebook notebook, bool updateReso
     emit findNote(note, /* with resource binary data = */ false, requestId);
 }
 
-void NoteModel::onFindNoteComplete(Note note, QUuid requestId)
+void NoteModel::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
 {
+    Q_UNUSED(withResourceBinaryData)
+
     auto restoreUpdateIt = m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findNoteToPerformUpdateRequestIds.find(requestId);
     if ((restoreUpdateIt == m_findNoteToRestoreFailedUpdateRequestIds.end()) &&
@@ -557,8 +560,10 @@ void NoteModel::onFindNoteComplete(Note note, QUuid requestId)
     }
 }
 
-void NoteModel::onFindNoteFailed(Note note, QString errorDescription, QUuid requestId)
+void NoteModel::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
 {
+    Q_UNUSED(withResourceBinaryData)
+
     auto restoreUpdateIt = m_findNoteToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findNoteToPerformUpdateRequestIds.find(requestId);
     if ((restoreUpdateIt == m_findNoteToRestoreFailedUpdateRequestIds.end()) &&
@@ -762,35 +767,230 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
 
     // localStorageManagerThreadWorker's signals to local slots
-
-    // TODO: implement
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,Notebook,QUuid),
+                     this, QNSLOT(NoteModel,onAddNoteComplete,Note,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,Notebook,QString,QUuid),
+                     this, QNSLOT(NoteModel,onAddNoteFailed,Note,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,bool,bool,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteComplete,Note,Notebook,bool,bool,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,bool,bool,QString,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,Notebook,bool,bool,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
+                     this, QNSLOT(NoteModel,onFindNoteComplete,Note,bool,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QString,QUuid),
+                     this, QNSLOT(NoteModel,onFindNoteFailed,Note,bool,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                                                LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
+                                                                QList<Note>,QUuid),
+                     this, QNSLOT(NoteModel,onListNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                                                LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
+                     this, QNSLOT(NoteModel,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteModel,onDeleteNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteNoteFailed,Note,QString,QUuid),
+                     this, QNSLOT(NoteModel,onDeleteNoteFailed,Note,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteModel,onExpungeNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QString,QUuid),
+                     this, QNSLOT(NoteModel,onExpungeNoteFailed,Note,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(NoteModel,onFindNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
+                     this, QNSLOT(NoteModel,onFindNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(NoteModel,onExpungeNotebookComplete,Notebook,QUuid));
 }
 
 void NoteModel::requestNoteList()
 {
-    // TODO: implement
+    QNDEBUG("NoteModel::requestNoteList: offset = " << m_listNotesOffset);
+
+    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
+    LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;
+    LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
+
+    m_listNotesRequestId = QUuid::createUuid();
+    QNTRACE("Emitting the request to list notes: offset = " << m_listNotesOffset << ", request id = " << m_listNotesRequestId);
+    emit listNotes(flags, /* with resource binary data = */ false, NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, m_listNotesRequestId);
 }
 
 QVariant NoteModel::dataText(const int row, const Columns::type column) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
-    return QVariant();
+    if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
+        return QVariant();
+    }
+
+    const NoteDataByIndex & index = m_data.get<ByIndex>();
+    const NoteModelItem & item = index[static_cast<size_t>(row)];
+
+    switch(column)
+    {
+    case Columns::CreationTimestamp:
+        return item.creationTimestamp();
+    case Columns::ModificationTimestamp:
+        return item.modificationTimestamp();
+    case Columns::Title:
+        return item.title();
+    case Columns::PreviewText:
+        return item.previewText();
+    case Columns::ThumbnailImageFilePath:
+        return item.thumbnailImageFilePath();
+    case Columns::NotebookName:
+        return item.notebookName();
+    case Columns::TagNameList:
+        return item.tagNameList();
+    case Columns::Size:
+        return item.sizeInBytes();
+    case Columns::Synchronizable:
+        return item.isSynchronizable();
+    case Columns::Dirty:
+        return item.isDirty();
+    default:
+        return QVariant();
+    }
 }
 
 QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column) const
 {
-    // TODO: implement
-    Q_UNUSED(row)
-    Q_UNUSED(column)
-    return QVariant();
+    if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
+        return QVariant();
+    }
+
+    const NoteDataByIndex & index = m_data.get<ByIndex>();
+    const NoteModelItem & item = index[static_cast<size_t>(row)];
+
+    QString space(" ");
+    QString colon(":");
+    QString accessibleText = QT_TR_NOOP("Note") + colon + space;
+
+    switch(column)
+    {
+    case Columns::CreationTimestamp:
+        {
+            if (item.creationTimestamp() == 0) {
+                accessibleText += QT_TR_NOOP("creation time is not set");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("was created at") + space +
+                                  printableDateTimeFromTimestamp(item.creationTimestamp());
+            }
+            break;
+        }
+    case Columns::ModificationTimestamp:
+        {
+            if (item.modificationTimestamp() == 0) {
+                accessibleText += QT_TR_NOOP("last modification timestamp is not set");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("was last modified at") + space +
+                                  printableDateTimeFromTimestamp(item.modificationTimestamp());
+            }
+            break;
+        }
+    case Columns::Title:
+        {
+            const QString & title = item.title();
+            if (title.isEmpty()) {
+                accessibleText += QT_TR_NOOP("title is not set");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("title is") + space + title;
+            }
+            break;
+        }
+    case Columns::PreviewText:
+        {
+            const QString & previewText = item.previewText();
+            if (previewText.isEmpty()) {
+                accessibleText += QT_TR_NOOP("preview text is not available");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("preview text") + colon + space + previewText;
+            }
+            break;
+        }
+    case Columns::NotebookName:
+        {
+            const QString & notebookName = item.notebookName();
+            if (notebookName.isEmpty()) {
+                accessibleText += QT_TR_NOOP("notebook name is not available");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("notebook name is") + space + notebookName;
+            }
+            break;
+        }
+    case Columns::TagNameList:
+        {
+            const QStringList & tagNameList = item.tagNameList();
+            if (tagNameList.isEmpty()) {
+                accessibleText += QT_TR_NOOP("tag list is empty");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("has tags") + colon + space + tagNameList.join(", ");
+            }
+            break;
+        }
+    case Columns::Size:
+        {
+            const quint64 bytes = item.sizeInBytes();
+            if (bytes == 0) {
+                accessibleText += QT_TR_NOOP("size is not available");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("size is") + space + humanReadableSize(bytes);
+            }
+            break;
+        }
+    case Columns::Synchronizable:
+        accessibleText += (item.isSynchronizable() ? QT_TR_NOOP("synchronizable") : QT_TR_NOOP("not synchronizable"));
+        break;
+    case Columns::Dirty:
+        accessibleText += (item.isDirty() ? QT_TR_NOOP("dirty") : QT_TR_NOOP("not dirty"));
+        break;
+    case Columns::ThumbnailImageFilePath:
+    default:
+        return QVariant();
+    }
+
+    return accessibleText;
 }
 
 void NoteModel::removeItemByLocalUid(const QString & localUid)
 {
-    // TODO: implement
-    Q_UNUSED(localUid)
+    QNDEBUG("NoteModel::removeItemByLocalUid: " << localUid);
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        QNDEBUG("Can't find item to remove from the note model");
+        return;
+    }
+
+    const NoteModelItem & item = *itemIt;
+
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+    auto indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QNWARNING("Can't determine the row index for the note model item to remove: " << item);
+        return;
+    }
+
+    int row = static_cast<int>(std::distance(index.begin(), indexIt));
+    if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
+        QNWARNING("Invalid row index for the note model item to remove: index = " << row
+                  << ", item: " << item);
+        return;
+    }
+
+    beginRemoveRows(QModelIndex(), row, row);
+    Q_UNUSED(localUidIndex.erase(itemIt))
+    endRemoveRows();
 }
 
 void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
