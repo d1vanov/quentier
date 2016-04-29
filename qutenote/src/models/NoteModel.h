@@ -122,7 +122,6 @@ private:
     void removeItemByLocalUid(const QString & localUid);
 
     void updateItemRowWithRespectToSorting(const NoteModelItem & item);
-    void updatePersistentModelIndices();
 
     void updateNoteInLocalStorage(const NoteModelItem & item);
 

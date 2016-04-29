@@ -995,13 +995,32 @@ void NoteModel::removeItemByLocalUid(const QString & localUid)
 
 void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
 {
-    // TODO: implement
-    Q_UNUSED(item)
-}
+    NoteDataByIndex & index = m_data.get<ByIndex>();
 
-void NoteModel::updatePersistentModelIndices()
-{
-    // TODO: implement
+    auto it = index.iterator_to(item);
+    if (Q_UNLIKELY(it == index.end())) {
+        QNWARNING("Can't update item row with respect to sorting: can't find item's original row; item: " << item);
+        return;
+    }
+
+    int originalRow = static_cast<int>(std::distance(index.begin(), it));
+    if (Q_UNLIKELY((originalRow < 0) || (originalRow >= static_cast<int>(m_data.size())))) {
+        QNWARNING("Can't update item row with respect to sorting: item's original row is beyond the acceptable range: "
+                  << originalRow << ", item: " << item);
+        return;
+    }
+
+    NoteModelItem itemCopy(item);
+    Q_UNUSED(index.erase(it))
+
+    auto positionIter = std::lower_bound(index.begin(), index.end(), itemCopy,
+                                         NoteComparator(m_sortedColumn, m_sortOrder));
+    if (positionIter == index.end()) {
+        index.push_back(itemCopy);
+        return;
+    }
+
+    index.insert(positionIter, itemCopy);
 }
 
 void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
