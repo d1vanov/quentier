@@ -9,6 +9,7 @@
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
+#include <QMultiHash>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -204,6 +205,8 @@ private:
 
     typedef boost::bimap<QString, QUuid> NotebookLocalUidWithFindNotebookRequestIdBimap;
     NotebookLocalUidWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookLocalUid;
+
+    QMultiHash<QString, Note>   m_notesPendingUpdateInLocalStorageByNotebookLocalUid;
 };
 
 } // namespace qute_note

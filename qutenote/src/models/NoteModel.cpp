@@ -545,13 +545,16 @@ void NoteModel::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid
 
     QNDEBUG("NoteModel::onFindNoteComplete: note = " << note << "\nRequest id = " << requestId);
 
-    if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end()) {
+    if (restoreUpdateIt != m_findNoteToRestoreFailedUpdateRequestIds.end())
+    {
         Q_UNUSED(m_findNoteToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
         onNoteAddedOrUpdated(note);
     }
-    else if (performUpdateIt != m_findNoteToPerformUpdateRequestIds.end()) {
+    else if (performUpdateIt != m_findNoteToPerformUpdateRequestIds.end())
+    {
         Q_UNUSED(m_findNoteToPerformUpdateRequestIds.erase(performUpdateIt))
         m_cache.put(note.localUid(), note);
+
         NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
         auto it = localUidIndex.find(note.localUid());
         if (it != localUidIndex.end()) {
@@ -701,6 +704,36 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 
     m_notebookCache.put(notebook.localUid(), notebook);
     updateRestrictionsFromNotebook(notebook);
+
+    // See whether there are any notes pending this notebook object for the update in local storage
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto notePendingUpdateIt = m_notesPendingUpdateInLocalStorageByNotebookLocalUid.find(notebook.localUid());
+    while(notePendingUpdateIt != m_notesPendingUpdateInLocalStorageByNotebookLocalUid.end())
+    {
+        if (notePendingUpdateIt.key() != notebook.localUid()) {
+            break;
+        }
+
+        const Note & note = notePendingUpdateIt.value();
+        m_cache.put(note.localUid(), note);
+
+        auto itemIt = localUidIndex.find(note.localUid());
+        if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+            QNDEBUG("Can't find the model item corresponding to the note meant to be updated in local storage; "
+                    "it might have been deleted from the model. Cached note: " << note);
+            Q_UNUSED(m_cache.remove(note.localUid()))
+            Q_UNUSED(m_notesPendingUpdateInLocalStorageByNotebookLocalUid.erase(notePendingUpdateIt++));
+            continue;
+        }
+
+        // WARNING: the note currently pointed to by notePendingUpdateIt will be deleted from
+        // m_notesPendingUpdateInLocalStorageByNotebookLocalUid inside updateNoteInLocalStorage method
+        // so the iterator would be invalidated; incrementing the iterator before calling the method
+        // changing the container to overcome that
+        ++notePendingUpdateIt;
+        updateNoteInLocalStorage(*itemIt);
+    }
 }
 
 void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -1025,22 +1058,129 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
 
 void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
 {
-    // TODO: implement
-    Q_UNUSED(item)
+    QNDEBUG("NoteModel::updateNoteInLocalStorage: local uid = " << item.localUid());
+
+    Note note;
+    Notebook notebook;
+
+    auto notYetSavedItemIt = m_noteItemsNotYetInLocalStorageUids.find(item.localUid());
+    if (notYetSavedItemIt == m_noteItemsNotYetInLocalStorageUids.end())
+    {
+        QNDEBUG("Updating the note");
+
+        const Note * pCachedNote = m_cache.get(item.localUid());
+        if (Q_UNLIKELY(!pCachedNote))
+        {
+            QUuid requestId = QUuid::createUuid();
+            Q_UNUSED(m_findNoteToPerformUpdateRequestIds.insert(requestId))
+            Note dummy;
+            dummy.setLocalUid(item.localUid());
+            QNTRACE("Emitting the request to find note: local uid = " << item.localUid()
+                    << ", request id = " << requestId);
+            emit findNote(dummy, /* with resource binary data = */ false, requestId);
+            return;
+        }
+
+        note = *pCachedNote;
+    }
+
+    note.setLocalUid(item.localUid());
+    note.setGuid(item.guid());
+    note.setCreationTimestamp(item.creationTimestamp());
+    note.setModificationTimestamp(item.modificationTimestamp());
+    note.setTitle(item.title());
+    note.setLocal(!item.isSynchronizable());
+    note.setDirty(item.isDirty());
+
+    // TODO: think of whether it should be possible to set the ENML content of the new note here
+
+    m_cache.put(note.localUid(), note);
+
+    const Notebook * pCachedNotebook = m_notebookCache.get(item.notebookLocalUid());
+    if (Q_UNLIKELY(!pCachedNotebook))
+    {
+        QNTRACE("No notebook is present within the cache, need to get it from the local storage");
+
+        auto findNotebookRequestIter = m_findNotebookRequestForNotebookLocalUid.left.find(item.notebookLocalUid());
+        if (findNotebookRequestIter == m_findNotebookRequestForNotebookLocalUid.left.end())
+        {
+            QUuid requestId = QUuid::createUuid();
+            Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.insert(NotebookLocalUidWithFindNotebookRequestIdBimap::value_type(item.notebookLocalUid(), requestId)))
+            Notebook dummy;
+            dummy.setLocalUid(item.notebookLocalUid());
+            QNTRACE("Emitting the request to find notebook to update the note properly: notebook local uid = "
+                    << item.notebookLocalUid() << ", request id = " << requestId);
+            emit findNotebook(dummy, requestId);
+        }
+        else
+        {
+            QNTRACE("Already sent the request for the notebook: id = " << findNotebookRequestIter->second);
+        }
+
+        m_notesPendingUpdateInLocalStorageByNotebookLocalUid.insert(item.notebookLocalUid(), note);
+        return;
+    }
+
+    notebook = *pCachedNotebook;
+
+    QUuid requestId = QUuid::createUuid();
+
+    if (notYetSavedItemIt != m_noteItemsNotYetInLocalStorageUids.end())
+    {
+        Q_UNUSED(m_addNoteRequestIds.insert(requestId))
+
+        QNTRACE("Emitting the request to add the note to local storage: id = " << requestId
+                << ", note: " << note << "\nNotebook: " << notebook);
+        emit addNote(note, notebook, requestId);
+
+        Q_UNUSED(m_noteItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
+    }
+    else
+    {
+        Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
+
+        QNTRACE("Emitting the request to update the note in local storage: id = " << requestId
+                << ", note: " << note << "\nNotebook: " << notebook);
+        emit updateNote(note, notebook, /* update resources = */ false, /* update tags = */ false, requestId);
+    }
+
+    // Ensure the note just sent to local storage is not marked as pending the update anymore
+    auto notePendingUpdateIt = m_notesPendingUpdateInLocalStorageByNotebookLocalUid.find(item.notebookLocalUid());
+    while(notePendingUpdateIt != m_notesPendingUpdateInLocalStorageByNotebookLocalUid.end())
+    {
+        if (notePendingUpdateIt.key() != item.notebookLocalUid()) {
+            break;
+        }
+
+        if (notePendingUpdateIt.value().localUid() == item.localUid()) {
+            Q_UNUSED(m_notesPendingUpdateInLocalStorageByNotebookLocalUid.erase(notePendingUpdateIt))
+            break;
+        }
+
+        ++notePendingUpdateIt;
+    }
 }
 
 bool NoteModel::canUpdateNoteItem(const NoteModelItem & item) const
 {
-    // TODO: implement
-    Q_UNUSED(item)
-    return true;
+    auto it = m_noteRestrictionsByNotebookLocalUid.find(item.notebookLocalUid());
+    if (it == m_noteRestrictionsByNotebookLocalUid.end()) {
+        return false;
+    }
+
+    const Restrictions & restrictions = it.value();
+    return restrictions.m_canUpdateNotes;
 }
 
 bool NoteModel::canCreateNoteItem(const QString & notebookLocalUid) const
 {
-    // TODO: implement
-    Q_UNUSED(notebookLocalUid)
-    return true;
+    auto it = m_noteRestrictionsByNotebookLocalUid.find(notebookLocalUid);
+    if (it == m_noteRestrictionsByNotebookLocalUid.end()) {
+        return false;
+    }
+
+    const Restrictions & restrictions = it.value();
+    return restrictions.m_canCreateNotes;
 }
 
 void NoteModel::updateRestrictionsFromNotebook(const Notebook & notebook)
