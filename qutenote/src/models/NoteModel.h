@@ -130,8 +130,6 @@ private:
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
     void updateRestrictionsFromNotebook(const Notebook & notebook);
 
-    void onNoteAddedOrUpdated(const Note & note);
-
 private:
     struct ByLocalUid{};
     struct ByIndex{};
@@ -169,6 +167,12 @@ private:
         Columns::type   m_sortedColumn;
         Qt::SortOrder   m_sortOrder;
     };
+
+private:
+    void onNoteAddedOrUpdated(const Note & note, const Notebook * pNotebook = Q_NULLPTR);
+    void onNoteAdded(const Note & note, const Notebook * pNotebook);
+    void onNoteUpdated(const Note & note, const Notebook * pNotebook, NoteDataByLocalUid::iterator it);
+    void noteToItem(const Note & note, NoteModelItem & item);
 
 private:
     NoteData                m_data;

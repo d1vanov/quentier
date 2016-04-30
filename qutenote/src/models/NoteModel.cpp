@@ -470,7 +470,7 @@ void NoteModel::onAddNoteComplete(Note note, Notebook notebook, QUuid requestId)
         return;
     }
 
-    onNoteAddedOrUpdated(note);
+    onNoteAddedOrUpdated(note, &notebook);
 }
 
 void NoteModel::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
@@ -504,7 +504,7 @@ void NoteModel::onUpdateNoteComplete(Note note, Notebook notebook, bool updateRe
         return;
     }
 
-    onNoteAddedOrUpdated(note);
+    onNoteAddedOrUpdated(note, &notebook);
 }
 
 void NoteModel::onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
@@ -1211,10 +1211,47 @@ void NoteModel::updateRestrictionsFromNotebook(const Notebook & notebook)
             << ": can update notes = " << (restrictions.m_canUpdateNotes ? "true" : "false"));
 }
 
-void NoteModel::onNoteAddedOrUpdated(const Note & note)
+void NoteModel::onNoteAddedOrUpdated(const Note & note, const Notebook * pNotebook)
+{
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    m_cache.put(note.localUid(), note);
+
+    auto itemIt = localUidIndex.find(note.localUid());
+    bool newNote = (itemIt == localUidIndex.end());
+    if (newNote) {
+        onNoteAdded(note, pNotebook);
+    }
+    else {
+        onNoteUpdated(note, pNotebook, itemIt);
+    }
+}
+
+void NoteModel::onNoteAdded(const Note & note, const Notebook * pNotebook)
+{
+    QNDEBUG("NoteModel::onNoteAdded: note local uid = " << note.localUid());
+
+    NoteModelItem item;
+    noteToItem(note, item);
+
+    // TODO: implement
+    Q_UNUSED(note)
+    Q_UNUSED(pNotebook)
+}
+
+void NoteModel::onNoteUpdated(const Note & note, const Notebook * pNotebook, NoteDataByLocalUid::iterator it)
 {
     // TODO: implement
     Q_UNUSED(note)
+    Q_UNUSED(pNotebook)
+    Q_UNUSED(it)
+}
+
+void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
+{
+    // TODO: implement
+    Q_UNUSED(note)
+    Q_UNUSED(item)
 }
 
 bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
