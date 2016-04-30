@@ -1730,9 +1730,9 @@ void TagModel::updateTagInLocalStorage(const TagModelItem & item)
             Q_UNUSED(m_findTagToPerformUpdateRequestIds.insert(requestId))
             Tag dummy;
             dummy.setLocalUid(item.localUid());
-            emit findTag(dummy, requestId);
-            QNDEBUG("Emitted the request to find the tag: local uid = " << item.localUid()
+            QNDEBUG("Emitting the request to find tag: local uid = " << item.localUid()
                     << ", request id = " << requestId);
+            emit findTag(dummy, requestId);
             return;
         }
 
@@ -1753,20 +1753,20 @@ void TagModel::updateTagInLocalStorage(const TagModelItem & item)
     if (notYetSavedItemIt != m_tagItemsNotYetInLocalStorageUids.end())
     {
         Q_UNUSED(m_addTagRequestIds.insert(requestId));
-        emit addTag(tag, requestId);
 
-        QNTRACE("Emitted the request to add the tag to local storage: id = " << requestId
+        QNTRACE("Emitting the request to add the tag to local storage: id = " << requestId
                 << ", tag: " << tag);
+        emit addTag(tag, requestId);
 
         Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
     }
     else
     {
         Q_UNUSED(m_updateTagRequestIds.insert(requestId));
-        emit updateTag(tag, requestId);
 
-        QNTRACE("Emitted the request to update the tag in the local storage: id = " << requestId
+        QNTRACE("Emitting the request to update the tag in the local storage: id = " << requestId
                 << ", tag: " << tag);
+        emit updateTag(tag, requestId);
     }
 }
 
