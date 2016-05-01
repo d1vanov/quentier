@@ -208,8 +208,8 @@ private:
 
     bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
                              const bool updateResources, const bool updateTags, QString & errorDescription);
-    bool canAddNoteToNotebook(const QString & notebookLocalUid);
-    bool canUpdateNoteInNotebook(const QString & notebookLocalUid);
+    bool canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription);
+    bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription);
 
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();

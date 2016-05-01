@@ -4902,18 +4902,42 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QS
     return transaction.commit(errorDescription);
 }
 
-bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLocalUid)
+bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(notebookLocalUid)
-    return true;
+    bool res = checkAndPrepareCanAddNoteToNotebookQuery();
+    QSqlQuery & query = m_canAddNoteToNotebookQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't check whether the note can be added to the notebook: can't prepare SQL query");
+
+    query.bindValue(":notebookLocalUid", notebookLocalUid);
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't check whether the note can be added to the notebook");
+
+    if (!query.next()) {
+        QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
+                << ", assuming it's possible to add the note to this notebook");
+        return true;
+    }
+
+    return !(query.value(0).toBool());
 }
 
-bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid)
+bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription)
 {
-    // TODO: implement
-    Q_UNUSED(notebookLocalUid)
-    return true;
+    bool res = checkAndPrepareCanUpdateNoteInNotebookQuery();
+    QSqlQuery & query = m_canUpdateNoteInNotebookQuery;
+    DATABASE_CHECK_AND_SET_ERROR("can't check whether the note can be updated in the notebook: can't prepare SQL query");
+
+    query.bindValue(":notebookLocalUid", notebookLocalUid);
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR("can't check whether the note can be updated in the notebook");
+
+    if (!query.next()) {
+        QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
+                << ", assuming it's possible to update the note in this notebook");
+        return true;
+    }
+
+    return !(query.value(0).toBool());
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareNoteCountQuery() const
