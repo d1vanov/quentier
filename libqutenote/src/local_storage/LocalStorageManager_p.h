@@ -208,8 +208,13 @@ private:
 
     bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
                              const bool updateResources, const bool updateTags, QString & errorDescription);
+    bool canAddNoteToNotebook(const QString & notebookLocalUid);
+    bool canUpdateNoteInNotebook(const QString & notebookLocalUid);
+
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();
+    bool checkAndPrepareCanAddNoteToNotebookQuery() const;
+    bool checkAndPrepareCanUpdateNoteInNotebookQuery() const;
     bool checkAndPrepareExpungeNoteFromNoteTagsQuery();
     bool checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
     bool checkAndPrepareExpungeResourcesByNoteQuery();
@@ -395,6 +400,12 @@ private:
     QSqlQuery           m_insertOrReplaceNoteQuery;
     bool                m_insertOrReplaceNoteQueryPrepared;
 
+    mutable QSqlQuery   m_canAddNoteToNotebookQuery;
+    mutable bool        m_canAddNoteToNotebookQueryPrepared;
+
+    mutable QSqlQuery   m_canUpdateNoteInNotebookQuery;
+    mutable bool        m_canUpdateNoteInNotebookQueryPrepared;
+
     QSqlQuery           m_expungeNoteFromNoteTagsQuery;
     bool                m_expungeNoteFromNoteTagsQueryPrepared;
 
@@ -425,11 +436,11 @@ private:
     QSqlQuery           m_insertOrReplaceNotebookRestrictionsQuery;
     bool                m_insertOrReplaceNotebookRestrictionsQueryPrepared;
 
-    QSqlQuery		m_expungeSharedNotebooksQuery;
-    bool		m_expungeSharedNotebooksQueryPrepared;
+    QSqlQuery		    m_expungeSharedNotebooksQuery;
+    bool		        m_expungeSharedNotebooksQueryPrepared;
 
-    QSqlQuery		m_insertOrReplaceSharedNotebookQuery;
-    bool		m_insertOrReplaceSharedNotebookQueryPrepared;
+    QSqlQuery		    m_insertOrReplaceSharedNotebookQuery;
+    bool		        m_insertOrReplaceSharedNotebookQueryPrepared;
 
     mutable QSqlQuery   m_getUserCountQuery;
     mutable bool        m_getUserCountQueryPrepared;

@@ -67,6 +67,10 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getNoteCountQueryPrepared(false),
     m_insertOrReplaceNoteQuery(),
     m_insertOrReplaceNoteQueryPrepared(false),
+    m_canAddNoteToNotebookQuery(),
+    m_canAddNoteToNotebookQueryPrepared(false),
+    m_canUpdateNoteInNotebookQuery(),
+    m_canUpdateNoteInNotebookQueryPrepared(false),
     m_expungeNoteFromNoteTagsQuery(),
     m_expungeNoteFromNoteTagsQueryPrepared(false),
     m_insertOrReplaceNoteIntoNoteTagsQuery(),
@@ -3053,7 +3057,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create LinkedNotebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
-                     "  localUid                       TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                     "  localUid                        TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
                      "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
@@ -3142,7 +3146,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create SharedNotebooks table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
-                     "  localUid                       TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  localUid                        TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                            TEXT                 DEFAULT NULL UNIQUE, "
                      "  updateSequenceNumber            INTEGER              DEFAULT NULL, "
                      "  isDirty                         INTEGER              NOT NULL, "
@@ -3217,7 +3221,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger NoteFTS_AfterInsertTrigger");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
-                     "  resourceLocalUid               TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                     "  resourceLocalUid                TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  resourceGuid                    TEXT                 DEFAULT NULL UNIQUE, "
                      "  noteLocalUid REFERENCES Notes(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
                      "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
@@ -3389,7 +3393,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     // "The account may only contain one search with a given name (case-insensitive compare)"
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
-                     "  localUid                       TEXT PRIMARY KEY    NOT NULL UNIQUE, "
+                     "  localUid                        TEXT PRIMARY KEY    NOT NULL UNIQUE, "
                      "  guid                            TEXT                DEFAULT NULL UNIQUE, "
                      "  name                            TEXT                DEFAULT NULL, "
                      "  nameLower                       TEXT                DEFAULT NULL UNIQUE, "
@@ -3887,381 +3891,333 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
 
 bool LocalStorageManagerPrivate::checkAndPrepareUserCountQuery() const
 {
-    if (!m_getUserCountQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to get the count of users");
-
-        m_getUserCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
-        if (res) {
-            m_getUserCountQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getUserCountQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to get the count of users");
+
+    m_getUserCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
+    if (res) {
+        m_getUserCountQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserQuery()
 {
-    if (!m_insertOrReplaceUserQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace user");
-
-        m_insertOrReplaceUserQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceUserQuery.prepare("INSERT OR REPLACE INTO Users"
-                                                      "(id, username, email, name, timezone, "
-                                                      "privilege, userCreationTimestamp, "
-                                                      "userModificationTimestamp, userIsDirty, "
-                                                      "userIsLocal, userIsActive, userDeletionTimestamp)"
-                                                      "VALUES(:id, :username, :email, :name, :timezone, "
-                                                      ":privilege, :userCreationTimestamp, "
-                                                      ":userModificationTimestamp, :userIsDirty, "
-                                                      ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
-        if (res) {
-            m_insertOrReplaceUserQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceUserQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace user");
+
+    m_insertOrReplaceUserQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceUserQuery.prepare("INSERT OR REPLACE INTO Users"
+                                                  "(id, username, email, name, timezone, "
+                                                  "privilege, userCreationTimestamp, "
+                                                  "userModificationTimestamp, userIsDirty, "
+                                                  "userIsLocal, userIsActive, userDeletionTimestamp)"
+                                                  "VALUES(:id, :username, :email, :name, :timezone, "
+                                                  ":privilege, :userCreationTimestamp, "
+                                                  ":userModificationTimestamp, :userIsDirty, "
+                                                  ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
+    if (res) {
+        m_insertOrReplaceUserQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeAccountingQuery()
 {
-    if (!m_expungeAccountingQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge accounting");
-
-        m_expungeAccountingQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeAccountingQuery.prepare("DELETE FROM Accounting WHERE id = :id");
-        if (res) {
-            m_expungeAccountingQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeAccountingQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge accounting");
+
+    m_expungeAccountingQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeAccountingQuery.prepare("DELETE FROM Accounting WHERE id = :id");
+    if (res) {
+        m_expungeAccountingQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceAccountingQuery()
 {
-    if (!m_insertOrReplaceAccountingQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace accounting");
-
-        m_insertOrReplaceAccountingQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceAccountingQuery.prepare("INSERT OR REPLACE INTO Accounting"
-                                                            "(id, uploadLimit, uploadLimitEnd, uploadLimitNextMonth, "
-                                                            "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
-                                                            "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
-                                                            "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
-                                                            "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
-                                                            "unitPrice, unitDiscount, nextChargeDate, accountingBusinessId, "
-                                                            "accountingBusinessName, accountingBusinessRole) "
-                                                            "VALUES(:id, :uploadLimit, :uploadLimitEnd, :uploadLimitNextMonth, "
-                                                            ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
-                                                            ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
-                                                            ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
-                                                            ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
-                                                            ":unitPrice, :unitDiscount, :nextChargeDate, :accountingBusinessId, "
-                                                            ":accountingBusinessName, :accountingBusinessRole)");
-        if (res) {
-            m_insertOrReplaceAccountingQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceAccountingQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace accounting");
+
+    m_insertOrReplaceAccountingQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceAccountingQuery.prepare("INSERT OR REPLACE INTO Accounting"
+                                                        "(id, uploadLimit, uploadLimitEnd, uploadLimitNextMonth, "
+                                                        "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
+                                                        "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
+                                                        "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
+                                                        "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
+                                                        "unitPrice, unitDiscount, nextChargeDate, accountingBusinessId, "
+                                                        "accountingBusinessName, accountingBusinessRole) "
+                                                        "VALUES(:id, :uploadLimit, :uploadLimitEnd, :uploadLimitNextMonth, "
+                                                        ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
+                                                        ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
+                                                        ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
+                                                        ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
+                                                        ":unitPrice, :unitDiscount, :nextChargeDate, :accountingBusinessId, "
+                                                        ":accountingBusinessName, :accountingBusinessRole)");
+    if (res) {
+        m_insertOrReplaceAccountingQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungePremiumUserInfoQuery()
 {
-    if (!m_expungePremiumUserInfoQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge premium user info");
-
-        m_expungePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungePremiumUserInfoQuery.prepare("DELETE FROM PremiumInfo WHERE id = :id");
-        if (res) {
-            m_expungePremiumUserInfoQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungePremiumUserInfoQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge premium user info");
+
+    m_expungePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungePremiumUserInfoQuery.prepare("DELETE FROM PremiumInfo WHERE id = :id");
+    if (res) {
+        m_expungePremiumUserInfoQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplacePremiumUserInfoQuery()
 {
-    if (!m_insertOrReplacePremiumUserInfoQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace premium user info");
-
-        m_insertOrReplacePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplacePremiumUserInfoQuery.prepare("INSERT OR REPLACE INTO PremiumInfo"
-                                                                 "(id, currentTime, premium, premiumRecurring, premiumExtendable, "
-                                                                 "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance, "
-                                                                 "premiumExpirationDate, sponsoredGroupName, sponsoredGroupRole, premiumUpgradable) "
-                                                                 "VALUES(:id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
-                                                                 ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance, "
-                                                                 ":premiumExpirationDate, :sponsoredGroupName, :sponsoredGroupRole, :premiumUpgradable)");
-        if (res) {
-            m_insertOrReplacePremiumUserInfoQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplacePremiumUserInfoQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace premium user info");
+
+    m_insertOrReplacePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplacePremiumUserInfoQuery.prepare("INSERT OR REPLACE INTO PremiumInfo"
+                                                             "(id, currentTime, premium, premiumRecurring, premiumExtendable, "
+                                                             "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance, "
+                                                             "premiumExpirationDate, sponsoredGroupName, sponsoredGroupRole, premiumUpgradable) "
+                                                             "VALUES(:id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
+                                                             ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance, "
+                                                             ":premiumExpirationDate, :sponsoredGroupName, :sponsoredGroupRole, :premiumUpgradable)");
+    if (res) {
+        m_insertOrReplacePremiumUserInfoQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeBusinessUserInfoQuery()
 {
-    if (!m_expungeBusinessUserInfoQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge business user info");
-
-        m_expungeBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeBusinessUserInfoQuery.prepare("DELETE FROM BusinessUserInfo WHERE id = :id");
-        if (res) {
-            m_expungeBusinessUserInfoQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeBusinessUserInfoQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge business user info");
+
+    m_expungeBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeBusinessUserInfoQuery.prepare("DELETE FROM BusinessUserInfo WHERE id = :id");
+    if (res) {
+        m_expungeBusinessUserInfoQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceBusinessUserInfoQuery()
 {
-    if (!m_insertOrReplaceBusinessUserInfoQueryPrepared)
-    {
-        QNDEBUG("Preparing SQl query to insert or replace business user info");
-
-        m_insertOrReplaceBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceBusinessUserInfoQuery.prepare("INSERT OR REPLACE INTO BusinessUserInfo"
-                                                                  "(id, businessId, businessName, role, businessInfoEmail) "
-                                                                  "VALUES(:id, :businessId, :businessName, :role, :businessInfoEmail)");
-        if (res) {
-            m_insertOrReplaceBusinessUserInfoQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceBusinessUserInfoQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQl query to insert or replace business user info");
+
+    m_insertOrReplaceBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceBusinessUserInfoQuery.prepare("INSERT OR REPLACE INTO BusinessUserInfo"
+                                                              "(id, businessId, businessName, role, businessInfoEmail) "
+                                                              "VALUES(:id, :businessId, :businessName, :role, :businessInfoEmail)");
+    if (res) {
+        m_insertOrReplaceBusinessUserInfoQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserAttributesQuery()
 {
-    if (!m_expungeUserAttributesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge user attributes");
-
-        m_expungeUserAttributesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeUserAttributesQuery.prepare("DELETE FROM UserAttributes WHERE id = :id");
-        if (res) {
-            m_expungeUserAttributesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeUserAttributesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge user attributes");
+
+    m_expungeUserAttributesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeUserAttributesQuery.prepare("DELETE FROM UserAttributes WHERE id = :id");
+    if (res) {
+        m_expungeUserAttributesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesQuery()
 {
-    if (!m_insertOrReplaceUserAttributesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace user attributes");
-
-        m_insertOrReplaceUserAttributesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceUserAttributesQuery.prepare("INSERT OR REPLACE INTO UserAttributes"
-                                                                "(id, defaultLocationName, defaultLatitude, "
-                                                                "defaultLongitude, preactivation, "
-                                                                "incomingEmailAddress, comments, "
-                                                                "dateAgreedToTermsOfService, maxReferrals, "
-                                                                "referralCount, refererCode, sentEmailDate, "
-                                                                "sentEmailCount, dailyEmailLimit, "
-                                                                "emailOptOutDate, partnerEmailOptInDate, "
-                                                                "preferredLanguage, preferredCountry, "
-                                                                "clipFullPage, twitterUserName, twitterId, "
-                                                                "groupName, recognitionLanguage, "
-                                                                "referralProof, educationalDiscount, "
-                                                                "businessAddress, hideSponsorBilling, "
-                                                                "taxExempt, useEmailAutoFiling, reminderEmailConfig) "
-                                                                "VALUES(:id, :defaultLocationName, :defaultLatitude, "
-                                                                ":defaultLongitude, :preactivation, "
-                                                                ":incomingEmailAddress, :comments, "
-                                                                ":dateAgreedToTermsOfService, :maxReferrals, "
-                                                                ":referralCount, :refererCode, :sentEmailDate, "
-                                                                ":sentEmailCount, :dailyEmailLimit, "
-                                                                ":emailOptOutDate, :partnerEmailOptInDate, "
-                                                                ":preferredLanguage, :preferredCountry, "
-                                                                ":clipFullPage, :twitterUserName, :twitterId, "
-                                                                ":groupName, :recognitionLanguage, "
-                                                                ":referralProof, :educationalDiscount, "
-                                                                ":businessAddress, :hideSponsorBilling, "
-                                                                ":taxExempt, :useEmailAutoFiling, :reminderEmailConfig)");
-        if (res) {
-            m_insertOrReplaceUserAttributesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceUserAttributesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace user attributes");
+
+    m_insertOrReplaceUserAttributesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceUserAttributesQuery.prepare("INSERT OR REPLACE INTO UserAttributes"
+                                                            "(id, defaultLocationName, defaultLatitude, "
+                                                            "defaultLongitude, preactivation, "
+                                                            "incomingEmailAddress, comments, "
+                                                            "dateAgreedToTermsOfService, maxReferrals, "
+                                                            "referralCount, refererCode, sentEmailDate, "
+                                                            "sentEmailCount, dailyEmailLimit, "
+                                                            "emailOptOutDate, partnerEmailOptInDate, "
+                                                            "preferredLanguage, preferredCountry, "
+                                                            "clipFullPage, twitterUserName, twitterId, "
+                                                            "groupName, recognitionLanguage, "
+                                                            "referralProof, educationalDiscount, "
+                                                            "businessAddress, hideSponsorBilling, "
+                                                            "taxExempt, useEmailAutoFiling, reminderEmailConfig) "
+                                                            "VALUES(:id, :defaultLocationName, :defaultLatitude, "
+                                                            ":defaultLongitude, :preactivation, "
+                                                            ":incomingEmailAddress, :comments, "
+                                                            ":dateAgreedToTermsOfService, :maxReferrals, "
+                                                            ":referralCount, :refererCode, :sentEmailDate, "
+                                                            ":sentEmailCount, :dailyEmailLimit, "
+                                                            ":emailOptOutDate, :partnerEmailOptInDate, "
+                                                            ":preferredLanguage, :preferredCountry, "
+                                                            ":clipFullPage, :twitterUserName, :twitterId, "
+                                                            ":groupName, :recognitionLanguage, "
+                                                            ":referralProof, :educationalDiscount, "
+                                                            ":businessAddress, :hideSponsorBilling, "
+                                                            ":taxExempt, :useEmailAutoFiling, :reminderEmailConfig)");
+    if (res) {
+        m_insertOrReplaceUserAttributesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserAttributesViewedPromotionsQuery()
 {
-    if (!m_expungeUserAttributesViewedPromotionsQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge user attributes viewed promotions");
-
-        m_expungeUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeUserAttributesViewedPromotionsQuery.prepare("DELETE FROM UserAttributesViewedPromotions WHERE id = :id");
-        if (res) {
-            m_expungeUserAttributesViewedPromotionsQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeUserAttributesViewedPromotionsQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge user attributes viewed promotions");
+
+    m_expungeUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeUserAttributesViewedPromotionsQuery.prepare("DELETE FROM UserAttributesViewedPromotions WHERE id = :id");
+    if (res) {
+        m_expungeUserAttributesViewedPromotionsQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery()
 {
-    if (!m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace user attributes viewed promotions");
-
-        m_insertOrReplaceUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceUserAttributesViewedPromotionsQuery.prepare("INSERT OR REPLACE INTO UserAttributesViewedPromotions"
-                                                                                "(id, promotion) VALUES(:id, :promotion)");
-        if (res) {
-            m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace user attributes viewed promotions");
+
+    m_insertOrReplaceUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceUserAttributesViewedPromotionsQuery.prepare("INSERT OR REPLACE INTO UserAttributesViewedPromotions"
+                                                                            "(id, promotion) VALUES(:id, :promotion)");
+    if (res) {
+        m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserAttributesRecentMailedAddressesQuery()
 {
-    if (!m_expungeUserAttributesRecentMailedAddressesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge user attributes recent mailed addresses");
-
-        m_expungeUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeUserAttributesRecentMailedAddressesQuery.prepare("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = :id");
-        if (res) {
-            m_expungeUserAttributesRecentMailedAddressesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeUserAttributesRecentMailedAddressesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge user attributes recent mailed addresses");
+
+    m_expungeUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeUserAttributesRecentMailedAddressesQuery.prepare("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = :id");
+    if (res) {
+        m_expungeUserAttributesRecentMailedAddressesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesRecentMailedAddressesQuery()
 {
-    if (!m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace user attributes recent mailed addresses");
-
-        m_insertOrReplaceUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery.prepare("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses"
-                                                                                     "(id, address) VALUES(:id, :address)");
-        if (res) {
-            m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace user attributes recent mailed addresses");
+
+    m_insertOrReplaceUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery.prepare("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses"
+                                                                                 "(id, address) VALUES(:id, :address)");
+    if (res) {
+        m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareDeleteUserQuery()
 {
-    if (!m_deleteUserQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to mark user deleted");
-
-        m_deleteUserQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteUserQuery.prepare("UPDATE Users SET userDeletionTimestamp = :userDeletionTimestamp, "
-                                             "userIsLocal = :userIsLocal WHERE id = :id");
-        if (res) {
-            m_deleteUserQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_deleteUserQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to mark user deleted");
+
+    m_deleteUserQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_deleteUserQuery.prepare("UPDATE Users SET userDeletionTimestamp = :userDeletionTimestamp, "
+                                         "userIsLocal = :userIsLocal WHERE id = :id");
+    if (res) {
+        m_deleteUserQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserQuery()
 {
-    if (!m_expungeUserQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge user");
-
-        m_expungeUserQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeUserQuery.prepare("DELETE FROM Users WHERE id = :id");
-        if (res) {
-            m_expungeUserQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeUserQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge user");
+
+    m_expungeUserQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeUserQuery.prepare("DELETE FROM Users WHERE id = :id");
+    if (res) {
+        m_expungeUserQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebook,
@@ -4368,55 +4324,49 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
 
 bool LocalStorageManagerPrivate::checkAndPrepareNotebookCountQuery() const
 {
-    if (!m_getNotebookCountQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to get the count of notebooks");
-
-        m_getNotebookCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getNotebookCountQuery.prepare("SELECT COUNT(*) FROM Notebooks");
-        if (res) {
-            m_getNotebookCountQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getNotebookCountQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to get the count of notebooks");
+
+    m_getNotebookCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getNotebookCountQuery.prepare("SELECT COUNT(*) FROM Notebooks");
+    if (res) {
+        m_getNotebookCountQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookQuery()
 {
-    if (!m_insertOrReplaceNotebookQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace notebook");
-
-        m_insertOrReplaceNotebookQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceNotebookQuery.prepare("INSERT OR REPLACE INTO Notebooks"
-                                                          "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
-                                                          "notebookName, notebookNameUpper, creationTimestamp, "
-                                                          "modificationTimestamp, isDirty, isLocal, "
-                                                          "isDefault, isLastUsed, hasShortcut, publishingUri, "
-                                                          "publishingNoteSortOrder, publishingAscendingSort, "
-                                                          "publicDescription, isPublished, stack, businessNotebookDescription, "
-                                                          "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId) "
-                                                          "VALUES(:localUid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
-                                                          ":notebookName, :notebookNameUpper, :creationTimestamp, "
-                                                          ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
-                                                          ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
-                                                          ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
-                                                          ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
-        if (res) {
-            m_insertOrReplaceNotebookQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceNotebookQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace notebook");
+
+    m_insertOrReplaceNotebookQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceNotebookQuery.prepare("INSERT OR REPLACE INTO Notebooks"
+                                                      "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
+                                                      "notebookName, notebookNameUpper, creationTimestamp, "
+                                                      "modificationTimestamp, isDirty, isLocal, "
+                                                      "isDefault, isLastUsed, hasShortcut, publishingUri, "
+                                                      "publishingNoteSortOrder, publishingAscendingSort, "
+                                                      "publicDescription, isPublished, stack, businessNotebookDescription, "
+                                                      "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId) "
+                                                      "VALUES(:localUid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
+                                                      ":notebookName, :notebookNameUpper, :creationTimestamp, "
+                                                      ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
+                                                      ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
+                                                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
+                                                      ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
+    if (res) {
+        m_insertOrReplaceNotebookQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeNotebookFromNotebookRestrictionsQuery()
@@ -4441,85 +4391,76 @@ bool LocalStorageManagerPrivate::checkAndPrepareExpungeNotebookFromNotebookRestr
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookRestrictionsQuery()
 {
-    if (!m_insertOrReplaceNotebookRestrictionsQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace notebook restrictions");
-
-        m_insertOrReplaceNotebookRestrictionsQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceNotebookRestrictionsQuery.prepare("INSERT OR REPLACE INTO NotebookRestrictions"
-                                                                      "(localUid, noReadNotes, noCreateNotes, noUpdateNotes, "
-                                                                      "noExpungeNotes, noShareNotes, noEmailNotes, noSendMessageToRecipients, "
-                                                                      "noUpdateNotebook, noExpungeNotebook, noSetDefaultNotebook, "
-                                                                      "noSetNotebookStack, noPublishToPublic, noPublishToBusinessLibrary, "
-                                                                      "noCreateTags, noUpdateTags, noExpungeTags, noSetParentTag, "
-                                                                      "noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
-                                                                      "expungeWhichSharedNotebookRestrictions) "
-                                                                      "VALUES(:localUid, :noReadNotes, :noCreateNotes, :noUpdateNotes, "
-                                                                      ":noExpungeNotes, :noShareNotes, :noEmailNotes, :noSendMessageToRecipients, "
-                                                                      ":noUpdateNotebook, :noExpungeNotebook, :noSetDefaultNotebook, "
-                                                                      ":noSetNotebookStack, :noPublishToPublic, :noPublishToBusinessLibrary, "
-                                                                      ":noCreateTags, :noUpdateTags, :noExpungeTags, :noSetParentTag, "
-                                                                      ":noCreateSharedNotebooks, :updateWhichSharedNotebookRestrictions, "
-                                                                      ":expungeWhichSharedNotebookRestrictions)");
-        if (res) {
-            m_insertOrReplaceNotebookRestrictionsQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceNotebookRestrictionsQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace notebook restrictions");
+
+    m_insertOrReplaceNotebookRestrictionsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceNotebookRestrictionsQuery.prepare("INSERT OR REPLACE INTO NotebookRestrictions"
+                                                                  "(localUid, noReadNotes, noCreateNotes, noUpdateNotes, "
+                                                                  "noExpungeNotes, noShareNotes, noEmailNotes, noSendMessageToRecipients, "
+                                                                  "noUpdateNotebook, noExpungeNotebook, noSetDefaultNotebook, "
+                                                                  "noSetNotebookStack, noPublishToPublic, noPublishToBusinessLibrary, "
+                                                                  "noCreateTags, noUpdateTags, noExpungeTags, noSetParentTag, "
+                                                                  "noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
+                                                                  "expungeWhichSharedNotebookRestrictions) "
+                                                                  "VALUES(:localUid, :noReadNotes, :noCreateNotes, :noUpdateNotes, "
+                                                                  ":noExpungeNotes, :noShareNotes, :noEmailNotes, :noSendMessageToRecipients, "
+                                                                  ":noUpdateNotebook, :noExpungeNotebook, :noSetDefaultNotebook, "
+                                                                  ":noSetNotebookStack, :noPublishToPublic, :noPublishToBusinessLibrary, "
+                                                                  ":noCreateTags, :noUpdateTags, :noExpungeTags, :noSetParentTag, "
+                                                                  ":noCreateSharedNotebooks, :updateWhichSharedNotebookRestrictions, "
+                                                                  ":expungeWhichSharedNotebookRestrictions)");
+    if (res) {
+        m_insertOrReplaceNotebookRestrictionsQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeSharedNotebooksQuery()
 {
-    if (!m_expungeSharedNotebooksQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge shared notebooks per notebook guid");
-
-        m_expungeSharedNotebooksQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeSharedNotebooksQuery.prepare("DELETE FROM SharedNotebooks WHERE notebookGuid = :notebookGuid");
-        if (res) {
-            m_expungeSharedNotebooksQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeSharedNotebooksQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge shared notebooks per notebook guid");
+
+    m_expungeSharedNotebooksQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeSharedNotebooksQuery.prepare("DELETE FROM SharedNotebooks WHERE notebookGuid = :notebookGuid");
+    if (res) {
+        m_expungeSharedNotebooksQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNotebokQuery()
 {
-    if (!m_insertOrReplaceSharedNotebookQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace shared notebook");
-
-        m_insertOrReplaceSharedNotebookQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceSharedNotebookQuery.prepare("INSERT OR REPLACE INTO SharedNotebooks"
-                                                                "(shareId, userId, notebookGuid, sharedNotebookEmail, "
-                                                                "sharedNotebookCreationTimestamp, sharedNotebookModificationTimestamp, "
-                                                                "shareKey, sharedNotebookUsername, sharedNotebookPrivilegeLevel, "
-                                                                "allowPreview, recipientReminderNotifyEmail, "
-                                                                "recipientReminderNotifyInApp, indexInNotebook)"
-                                                                "VALUES(:shareId, :userId, :notebookGuid, :sharedNotebookEmail, "
-                                                                ":sharedNotebookCreationTimestamp, :sharedNotebookModificationTimestamp, "
-                                                                ":shareKey, :sharedNotebookUsername, :sharedNotebookPrivilegeLevel, :allowPreview, "
-                                                                ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, :indexInNotebook)");
-        if (res) {
-            m_insertOrReplaceSharedNotebookQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceSharedNotebookQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace shared notebook");
+
+    m_insertOrReplaceSharedNotebookQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceSharedNotebookQuery.prepare("INSERT OR REPLACE INTO SharedNotebooks"
+                                                            "(shareId, userId, notebookGuid, sharedNotebookEmail, "
+                                                            "sharedNotebookCreationTimestamp, sharedNotebookModificationTimestamp, "
+                                                            "shareKey, sharedNotebookUsername, sharedNotebookPrivilegeLevel, "
+                                                            "allowPreview, recipientReminderNotifyEmail, "
+                                                            "recipientReminderNotifyInApp, indexInNotebook)"
+                                                            "VALUES(:shareId, :userId, :notebookGuid, :sharedNotebookEmail, "
+                                                            ":sharedNotebookCreationTimestamp, :sharedNotebookModificationTimestamp, "
+                                                            ":shareKey, :sharedNotebookUsername, :sharedNotebookPrivilegeLevel, :allowPreview, "
+                                                            ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, :indexInNotebook)");
+    if (res) {
+        m_insertOrReplaceSharedNotebookQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
@@ -4559,74 +4500,65 @@ bool LocalStorageManagerPrivate::insertOrReplaceLinkedNotebook(const LinkedNoteb
 
 bool LocalStorageManagerPrivate::checkAndPrepareGetLinkedNotebookCountQuery() const
 {
-    if (!m_getLinkedNotebookCountQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to get the count of linked notebooks");
-
-        m_getLinkedNotebookCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getLinkedNotebookCountQuery.prepare("SELECT COUNT(*) FROM LinkedNotebooks");
-        if (res) {
-            m_getLinkedNotebookCountQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getLinkedNotebookCountQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to get the count of linked notebooks");
+
+    m_getLinkedNotebookCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getLinkedNotebookCountQuery.prepare("SELECT COUNT(*) FROM LinkedNotebooks");
+    if (res) {
+        m_getLinkedNotebookCountQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceLinkedNotebookQuery()
 {
-    if (!m_insertOrReplaceLinkedNotebookQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace linked notebook");
-
-        QString columns = "guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
-                          "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty";
-
-        QString values = ":guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
-                         ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty";
-
-        QSqlQuery query(m_sqlDatabase);
-
-        m_insertOrReplaceLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceLinkedNotebookQuery.prepare("INSERT OR REPLACE INTO LinkedNotebooks "
-                                                                "(guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
-                                                                "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty) "
-                                                                "VALUES(:guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
-                                                                ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty)");
-        if (res) {
-            m_insertOrReplaceLinkedNotebookQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceLinkedNotebookQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace linked notebook");
+
+    QString columns = "guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
+                      "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty";
+
+    QString values = ":guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
+                     ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty";
+
+    QSqlQuery query(m_sqlDatabase);
+
+    m_insertOrReplaceLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceLinkedNotebookQuery.prepare("INSERT OR REPLACE INTO LinkedNotebooks "
+                                                            "(guid, updateSequenceNumber, shareName, username, shardId, shareKey, "
+                                                            "uri, noteStoreUrl, webApiUrlPrefix, stack, businessId, isDirty) "
+                                                            "VALUES(:guid, :updateSequenceNumber, :shareName, :username, :shardId, :shareKey, "
+                                                            ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty)");
+    if (res) {
+        m_insertOrReplaceLinkedNotebookQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeLinkedNotebookQuery()
 {
-    if (!m_expungeLinkedNotebookQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge linked notebook");
-
-        m_expungeLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeLinkedNotebookQuery.prepare("DELETE FROM LinkedNotebooks WHERE guid = :guid");
-        if (res) {
-            m_expungeLinkedNotebookQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeLinkedNotebookQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge linked notebook");
+
+    m_expungeLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeLinkedNotebookQuery.prepare("DELETE FROM LinkedNotebooks WHERE guid = :guid");
+    if (res) {
+        m_expungeLinkedNotebookQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
@@ -4970,133 +4902,166 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QS
     return transaction.commit(errorDescription);
 }
 
+bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLocalUid)
+{
+    // TODO: implement
+    Q_UNUSED(notebookLocalUid)
+    return true;
+}
+
+bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid)
+{
+    // TODO: implement
+    Q_UNUSED(notebookLocalUid)
+    return true;
+}
+
 bool LocalStorageManagerPrivate::checkAndPrepareNoteCountQuery() const
 {
-    if (!m_getNoteCountQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to get the count of notes");
-
-        m_getNoteCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getNoteCountQuery.prepare("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL");
-        if (res) {
-            m_getNoteCountQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getNoteCountQueryPrepared)) {
         return true;
     }
+
+    QNTRACE("Preparing SQL query to get the count of notes");
+
+    m_getNoteCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getNoteCountQuery.prepare("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL");
+    if (res) {
+        m_getNoteCountQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
 {
-    if (!m_insertOrReplaceNoteQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace note");
-
-        m_insertOrReplaceNoteQuery = QSqlQuery(m_sqlDatabase);
-
-        QString columns = "localUid, guid, updateSequenceNumber, isDirty, isLocal, "
-                          "hasShortcut, title, titleNormalized, content, contentLength, contentHash, "
-                          "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
-                          "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
-                          "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
-                          "thumbnail, notebookLocalUid, notebookGuid, subjectDate, latitude, "
-                          "longitude, altitude, author, source, sourceURL, sourceApplication, "
-                          "shareDate, reminderOrder, reminderDoneTime, reminderTime, placeName, "
-                          "contentClass, lastEditedBy, creatorId, lastEditorId, "
-                          "applicationDataKeysOnly, applicationDataKeysMap, "
-                          "applicationDataValues, classificationKeys, classificationValues";
-
-        QString values = ":localUid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
-                         ":hasShortcut, :title, :titleNormalized, :content, :contentLength, :contentHash, "
-                         ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
-                         ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
-                         ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
-                         ":thumbnail, :notebookLocalUid, :notebookGuid, :subjectDate, :latitude, "
-                         ":longitude, :altitude, :author, :source, :sourceURL, :sourceApplication, "
-                         ":shareDate, :reminderOrder, :reminderDoneTime, :reminderTime, :placeName, "
-                         ":contentClass, :lastEditedBy, :creatorId, :lastEditorId, "
-                         ":applicationDataKeysOnly, :applicationDataKeysMap, "
-                         ":applicationDataValues, :classificationKeys, :classificationValues";
-
-        QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns,values);
-
-        bool res = m_insertOrReplaceNoteQuery.prepare(queryString);
-        if (res) {
-            m_insertOrReplaceNoteQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceNoteQueryPrepared)) {
         return true;
     }
+
+    QNTRACE("Preparing SQL query to insert or replace note");
+
+    m_insertOrReplaceNoteQuery = QSqlQuery(m_sqlDatabase);
+
+    QString columns = "localUid, guid, updateSequenceNumber, isDirty, isLocal, "
+                      "hasShortcut, title, titleNormalized, content, contentLength, contentHash, "
+                      "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
+                      "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
+                      "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
+                      "thumbnail, notebookLocalUid, notebookGuid, subjectDate, latitude, "
+                      "longitude, altitude, author, source, sourceURL, sourceApplication, "
+                      "shareDate, reminderOrder, reminderDoneTime, reminderTime, placeName, "
+                      "contentClass, lastEditedBy, creatorId, lastEditorId, "
+                      "applicationDataKeysOnly, applicationDataKeysMap, "
+                      "applicationDataValues, classificationKeys, classificationValues";
+
+    QString values = ":localUid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
+                     ":hasShortcut, :title, :titleNormalized, :content, :contentLength, :contentHash, "
+                     ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
+                     ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
+                     ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
+                     ":thumbnail, :notebookLocalUid, :notebookGuid, :subjectDate, :latitude, "
+                     ":longitude, :altitude, :author, :source, :sourceURL, :sourceApplication, "
+                     ":shareDate, :reminderOrder, :reminderDoneTime, :reminderTime, :placeName, "
+                     ":contentClass, :lastEditedBy, :creatorId, :lastEditorId, "
+                     ":applicationDataKeysOnly, :applicationDataKeysMap, "
+                     ":applicationDataValues, :classificationKeys, :classificationValues";
+
+    QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns,values);
+
+    bool res = m_insertOrReplaceNoteQuery.prepare(queryString);
+    if (res) {
+        m_insertOrReplaceNoteQueryPrepared = true;
+    }
+
+    return res;
+}
+
+bool LocalStorageManagerPrivate::checkAndPrepareCanAddNoteToNotebookQuery() const
+{
+    if (Q_LIKELY(m_canAddNoteToNotebookQueryPrepared)) {
+        return true;
+    }
+
+    QNTRACE("Preparing SQL query to get the noCreateNotes notebook restriction");
+
+    m_canAddNoteToNotebookQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_canAddNoteToNotebookQuery.prepare("SELECT noCreateNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid");
+    if (res) {
+        m_canAddNoteToNotebookQueryPrepared = true;
+    }
+
+    return res;
+}
+
+bool LocalStorageManagerPrivate::checkAndPrepareCanUpdateNoteInNotebookQuery() const
+{
+    if (Q_LIKELY(m_canUpdateNoteInNotebookQueryPrepared)) {
+        return true;
+    }
+
+    QNTRACE("Preparing SQL query to get the noUpdateNotes notebook restriction");
+
+    m_canUpdateNoteInNotebookQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_canUpdateNoteInNotebookQuery.prepare("SELECT noUpdateNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid");
+    if (res) {
+        m_canUpdateNoteInNotebookQueryPrepared = true;
+    }
+
+    return true;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeNoteFromNoteTagsQuery()
 {
-    if (!m_expungeNoteFromNoteTagsQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge note from NoteTags table");
-
-        m_expungeNoteFromNoteTagsQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeNoteFromNoteTagsQuery.prepare("DELETE From NoteTags WHERE localNote = :localNote");
-        if (res) {
-            m_expungeNoteFromNoteTagsQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeNoteFromNoteTagsQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge note from NoteTags table");
+
+    m_expungeNoteFromNoteTagsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeNoteFromNoteTagsQuery.prepare("DELETE From NoteTags WHERE localNote = :localNote");
+    if (res) {
+        m_expungeNoteFromNoteTagsQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery()
 {
-    if (!m_insertOrReplaceNoteIntoNoteTagsQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace note into NoteTags table");
-
-        m_insertOrReplaceNoteIntoNoteTagsQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceNoteIntoNoteTagsQuery.prepare("INSERT OR REPLACE INTO NoteTags"
-                                                                  "(localNote, note, localTag, tag, tagIndexInNote) "
-                                                                  "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)");
-        if (res) {
-            m_insertOrReplaceNoteIntoNoteTagsQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceNoteIntoNoteTagsQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace note into NoteTags table");
+
+    m_insertOrReplaceNoteIntoNoteTagsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceNoteIntoNoteTagsQuery.prepare("INSERT OR REPLACE INTO NoteTags"
+                                                              "(localNote, note, localTag, tag, tagIndexInNote) "
+                                                              "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)");
+    if (res) {
+        m_insertOrReplaceNoteIntoNoteTagsQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeResourcesByNoteQuery()
 {
-    if (!m_expungeResourceByNoteQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge resource by note");
-
-        m_expungeResourceByNoteQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeResourceByNoteQuery.prepare("DELETE FROM Resources WHERE noteLocalUid = :noteLocalUid");
-        if (res) {
-            m_expungeResourceByNoteQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeResourceByNoteQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge resource by note");
+
+    m_expungeResourceByNoteQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeResourceByNoteQuery.prepare("DELETE FROM Resources WHERE noteLocalUid = :noteLocalUid");
+    if (res) {
+        m_expungeResourceByNoteQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QString & overrideLocalUid,
@@ -5142,83 +5107,71 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QStri
 
 bool LocalStorageManagerPrivate::checkAndPrepareTagCountQuery() const
 {
-    if (!m_getTagCountQueryPrepared)
-    {
-        m_getTagCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getTagCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
-        if (res) {
-            m_getTagCountQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getTagCountQueryPrepared)) {
         return true;
     }
+
+    m_getTagCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getTagCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
+    if (res) {
+        m_getTagCountQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
 {
-    if (!m_insertOrReplaceTagQueryPrepared)
-    {
-        m_insertOrReplaceTagQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
-                                                     "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
-                                                     "name, nameLower, parentGuid, parentLocalUid, isDirty, "
-                                                     "isLocal, isDeleted, hasShortcut) "
-                                                     "VALUES(:localUid, :guid, :linkedNotebookGuid, "
-                                                     ":updateSequenceNumber, :name, :nameLower, "
-                                                     ":parentGuid, :parentLocalUid, :isDirty, :isLocal, "
-                                                     ":isDeleted, :hasShortcut)");
-        if (res) {
-            m_insertOrReplaceTagQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceTagQueryPrepared)) {
         return true;
     }
+
+    m_insertOrReplaceTagQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
+                                                 "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
+                                                 "name, nameLower, parentGuid, parentLocalUid, isDirty, "
+                                                 "isLocal, isDeleted, hasShortcut) "
+                                                 "VALUES(:localUid, :guid, :linkedNotebookGuid, "
+                                                 ":updateSequenceNumber, :name, :nameLower, "
+                                                 ":parentGuid, :parentLocalUid, :isDirty, :isLocal, "
+                                                 ":isDeleted, :hasShortcut)");
+    if (res) {
+        m_insertOrReplaceTagQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareDeleteTagQuery()
 {
-    if (!m_deleteTagQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to delete tag");
-
-        m_deleteTagQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteTagQuery.prepare("UPDATE Tags SET isDeleted = 1, isDirty = 1 WHERE localUid = :localUid");
-        if (res) {
-            m_deleteTagQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_deleteTagQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to delete tag");
+
+    m_deleteTagQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_deleteTagQuery.prepare("UPDATE Tags SET isDeleted = 1, isDirty = 1 WHERE localUid = :localUid");
+    if (res) {
+        m_deleteTagQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeTagQuery()
 {
-    if (!m_expungeTagQueryPrepared)
-    {
-        m_expungeTagQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeTagQuery.prepare("DELETE FROM Tags WHERE localUid = :localUid");
-        if (res) {
-            m_expungeTagQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeTagQueryPrepared)) {
         return true;
     }
+
+    m_expungeTagQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeTagQuery.prepare("DELETE FROM Tags WHERE localUid = :localUid");
+    if (res) {
+        m_expungeTagQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalUid,
@@ -5476,252 +5429,218 @@ bool LocalStorageManagerPrivate::insertOrReplaceResourceAttributes(const QString
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceResourceQuery()
 {
-    if (!m_insertOrReplaceResourceQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace the resource");
-
-        m_insertOrReplaceResourceQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceResourceQuery.prepare("INSERT OR REPLACE INTO Resources (resourceGuid, "
-                                                          "noteGuid, dataBody, dataSize, dataHash, mime, "
-                                                          "width, height, recognitionDataBody, recognitionDataSize, "
-                                                          "recognitionDataHash, alternateDataBody, alternateDataSize, "
-                                                          "alternateDataHash, resourceUpdateSequenceNumber, "
-                                                          "resourceIsDirty, resourceIndexInNote, resourceLocalUid) "
-                                                          "VALUES(:resourceGuid, :noteGuid, :dataBody, :dataSize, :dataHash, :mime, "
-                                                          ":width, :height, :recognitionDataBody, :recognitionDataSize, "
-                                                          ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
-                                                          ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "
-                                                          ":resourceIndexInNote, :resourceLocalUid)");
-        if (res) {
-            m_insertOrReplaceResourceQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceResourceQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace the resource");
+
+    m_insertOrReplaceResourceQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceResourceQuery.prepare("INSERT OR REPLACE INTO Resources (resourceGuid, "
+                                                      "noteGuid, dataBody, dataSize, dataHash, mime, "
+                                                      "width, height, recognitionDataBody, recognitionDataSize, "
+                                                      "recognitionDataHash, alternateDataBody, alternateDataSize, "
+                                                      "alternateDataHash, resourceUpdateSequenceNumber, "
+                                                      "resourceIsDirty, resourceIndexInNote, resourceLocalUid) "
+                                                      "VALUES(:resourceGuid, :noteGuid, :dataBody, :dataSize, :dataHash, :mime, "
+                                                      ":width, :height, :recognitionDataBody, :recognitionDataSize, "
+                                                      ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
+                                                      ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "
+                                                      ":resourceIndexInNote, :resourceLocalUid)");
+    if (res) {
+        m_insertOrReplaceResourceQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteResourceQuery()
 {
-    if (!m_insertOrReplaceNoteResourceQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace resource into NoteResources table");
-
-        m_insertOrReplaceNoteResourceQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceNoteResourceQuery.prepare("INSERT OR REPLACE INTO NoteResources "
-                                                              "(localNote, note, localResource, resource) "
-                                                              "VALUES(:localNote, :note, :localResource, :resource)");
-        if (res) {
-            m_insertOrReplaceNoteResourceQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceNoteResourceQueryPrepared)) {
         return true;
     }
 
+    QNDEBUG("Preparing SQL query to insert or replace resource into NoteResources table");
+
+    m_insertOrReplaceNoteResourceQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceNoteResourceQuery.prepare("INSERT OR REPLACE INTO NoteResources "
+                                                          "(localNote, note, localResource, resource) "
+                                                          "VALUES(:localNote, :note, :localResource, :resource)");
+    if (res) {
+        m_insertOrReplaceNoteResourceQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareDeleteResourceFromResourceRecognitionTypesQuery()
 {
-    if (!m_deleteResourceFromResourceRecognitionTypesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to delete resource from ResourceRecognitionData table");
-
-        m_deleteResourceFromResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteResourceFromResourceRecognitionTypesQuery.prepare("DELETE FROM ResourceRecognitionData "
-                                                                             "WHERE resourceLocalUid = :resourceLocalUid");
-        if (res) {
-            m_deleteResourceFromResourceRecognitionTypesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_deleteResourceFromResourceRecognitionTypesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to delete resource from ResourceRecognitionData table");
+
+    m_deleteResourceFromResourceRecognitionTypesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_deleteResourceFromResourceRecognitionTypesQuery.prepare("DELETE FROM ResourceRecognitionData "
+                                                                         "WHERE resourceLocalUid = :resourceLocalUid");
+    if (res) {
+        m_deleteResourceFromResourceRecognitionTypesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceIntoResourceRecognitionDataQuery()
 {
-    if (!m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace resource into ResourceRecognitionData table");
-
-        m_insertOrReplaceIntoResourceRecognitionDataQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceIntoResourceRecognitionDataQuery.prepare("INSERT OR REPLACE INTO ResourceRecognitionData"
-                                                                             "(resourceLocalUid, noteLocalUid, recognitionData) "
-                                                                             "VALUES(:resourceLocalUid, :noteLocalUid, :recognitionData)");
-
-        if (res) {
-            m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace resource into ResourceRecognitionData table");
+
+    m_insertOrReplaceIntoResourceRecognitionDataQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceIntoResourceRecognitionDataQuery.prepare("INSERT OR REPLACE INTO ResourceRecognitionData"
+                                                                         "(resourceLocalUid, noteLocalUid, recognitionData) "
+                                                                         "VALUES(:resourceLocalUid, :noteLocalUid, :recognitionData)");
+
+    if (res) {
+        m_insertOrReplaceIntoResourceRecognitionDataQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareDeleteResourceFromResourceAttributesQuery()
 {
-    if (!m_deleteResourceFromResourceAttributesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to delete resource from ResourceAttributes table");
-
-        m_deleteResourceFromResourceAttributesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteResourceFromResourceAttributesQuery.prepare("DELETE FROM ResourceAttributes WHERE resourceLocalUid = :resourceLocalUid");
-
-        if (res) {
-            m_deleteResourceFromResourceAttributesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_deleteResourceFromResourceAttributesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to delete resource from ResourceAttributes table");
+
+    m_deleteResourceFromResourceAttributesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_deleteResourceFromResourceAttributesQuery.prepare("DELETE FROM ResourceAttributes WHERE resourceLocalUid = :resourceLocalUid");
+
+    if (res) {
+        m_deleteResourceFromResourceAttributesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareDeleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery()
 {
-    if (!m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to delete Resource from ResourceAttributesApplicationDataKeysOnly table");
-
-        m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery.prepare("DELETE FROM ResourceAttributesApplicationDataKeysOnly "
-                                                                                              "WHERE resourceLocalUid = :resourceLocalUid");
-        if (res) {
-            m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to delete Resource from ResourceAttributesApplicationDataKeysOnly table");
+
+    m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQuery.prepare("DELETE FROM ResourceAttributesApplicationDataKeysOnly "
+                                                                                          "WHERE resourceLocalUid = :resourceLocalUid");
+    if (res) {
+        m_deleteResourceFromResourceAttributesApplicationDataKeysOnlyQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareDeleteResourceFromResourceAttributesApplicationDataFullMapQuery()
 {
-    if (!m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to delete Resource from ResourceAttributesApplicationDataFullMap table");
-
-        m_deleteResourceFromResourceAttributesApplicationDataFullMapQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_deleteResourceFromResourceAttributesApplicationDataFullMapQuery.prepare("DELETE FROM ResourceAttributesApplicationDataFullMap "
-                                                                                             "WHERE resourceLocalUid = :resourceLocalUid");
-        if (res) {
-            m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to delete Resource from ResourceAttributesApplicationDataFullMap table");
+
+    m_deleteResourceFromResourceAttributesApplicationDataFullMapQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_deleteResourceFromResourceAttributesApplicationDataFullMapQuery.prepare("DELETE FROM ResourceAttributesApplicationDataFullMap "
+                                                                                         "WHERE resourceLocalUid = :resourceLocalUid");
+    if (res) {
+        m_deleteResourceFromResourceAttributesApplicationDataFullMapQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceResourceAttributesQuery()
 {
-    if (!m_insertOrReplaceResourceAttributesQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace ResourceAttributes");
-
-        m_insertOrReplaceResourceAttributesQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceResourceAttributesQuery.prepare("INSERT OR REPLACE INTO ResourceAttributes"
-                                                                    "(resourceLocalUid, resourceSourceURL, timestamp, resourceLatitude, "
-                                                                    "resourceLongitude, resourceAltitude, cameraMake, cameraModel, "
-                                                                    "clientWillIndex, fileName, attachment) "
-                                                                    "VALUES(:resourceLocalUid, :resourceSourceURL, :timestamp, :resourceLatitude, "
-                                                                    ":resourceLongitude, :resourceAltitude, :cameraMake, :cameraModel, "
-                                                                    ":clientWillIndex, :fileName, :attachment)");
-        if (res) {
-            m_insertOrReplaceResourceAttributesQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceResourceAttributesQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace ResourceAttributes");
+
+    m_insertOrReplaceResourceAttributesQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceResourceAttributesQuery.prepare("INSERT OR REPLACE INTO ResourceAttributes"
+                                                                "(resourceLocalUid, resourceSourceURL, timestamp, resourceLatitude, "
+                                                                "resourceLongitude, resourceAltitude, cameraMake, cameraModel, "
+                                                                "clientWillIndex, fileName, attachment) "
+                                                                "VALUES(:resourceLocalUid, :resourceSourceURL, :timestamp, :resourceLatitude, "
+                                                                ":resourceLongitude, :resourceAltitude, :cameraMake, :cameraModel, "
+                                                                ":clientWillIndex, :fileName, :attachment)");
+    if (res) {
+        m_insertOrReplaceResourceAttributesQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceResourceAttributesApplicationDataKeysOnlyQuery()
 {
-    if (!m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace resource attribute application data (keys only)");
-
-        m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery.prepare("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
-                                                                                          "(resourceLocalUid, resourceKey) VALUES(:resourceLocalUid, :resourceKey)");
-        if (res) {
-            m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace resource attribute application data (keys only)");
+
+    m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQuery.prepare("INSERT OR REPLACE INTO ResourceAttributesApplicationDataKeysOnly"
+                                                                                      "(resourceLocalUid, resourceKey) VALUES(:resourceLocalUid, :resourceKey)");
+    if (res) {
+        m_insertOrReplaceResourceAttributeApplicationDataKeysOnlyQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceResourceAttributesApplicationDataFullMapQuery()
 {
-    if (!m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace resource attributes application data (full map)");
-
-        m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery.prepare("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
-                                                                                         "(resourceLocalUid, resourceMapKey, resourceValue) "
-                                                                                         "VALUES(:resourceLocalUid, :resourceMapKey, :resourceValue)");
-        if (res) {
-            m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace resource attributes application data (full map)");
+
+    m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceResourceAttributeApplicationDataFullMapQuery.prepare("INSERT OR REPLACE INTO ResourceAttributesApplicationDataFullMap"
+                                                                                     "(resourceLocalUid, resourceMapKey, resourceValue) "
+                                                                                     "VALUES(:resourceLocalUid, :resourceMapKey, :resourceValue)");
+    if (res) {
+        m_insertOrReplaceResourceAttributeApplicationDataFullMapQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareResourceCountQuery() const
 {
-    if (!m_getResourceCountQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to get the count of Resources");
-
-        m_getResourceCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getResourceCountQuery.prepare("SELECT COUNT(*) FROM Resources");
-
-        if (res) {
-            m_getResourceCountQueryPrepared = res;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getResourceCountQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to get the count of Resources");
+
+    m_getResourceCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getResourceCountQuery.prepare("SELECT COUNT(*) FROM Resources");
+
+    if (res) {
+        m_getResourceCountQueryPrepared = res;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & search,
@@ -5777,74 +5696,66 @@ bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & 
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSavedSearchQuery()
 {
-    if (!m_insertOrReplaceSavedSearchQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to insert or replace SavedSearch");
-
-        QString columns = "localUid, guid, name, nameLower, query, format, updateSequenceNumber, isDirty, "
-                          "isLocal, includeAccount, includePersonalLinkedNotebooks, "
-                          "includeBusinessLinkedNotebooks, hasShortcut";
-
-        QString valuesNames = ":localUid, :guid, :name, :nameLower, :query, :format, :updateSequenceNumber, :isDirty, "
-                              ":isLocal, :includeAccount, :includePersonalLinkedNotebooks, "
-                              ":includeBusinessLinkedNotebooks, :hasShortcut";
-
-        QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns,valuesNames);
-
-        m_insertOrReplaceSavedSearchQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_insertOrReplaceSavedSearchQuery.prepare(queryString);
-
-        if (res) {
-            m_insertOrReplaceSavedSearchQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else {
+    if (Q_LIKELY(m_insertOrReplaceSavedSearchQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to insert or replace SavedSearch");
+
+    QString columns = "localUid, guid, name, nameLower, query, format, updateSequenceNumber, isDirty, "
+                      "isLocal, includeAccount, includePersonalLinkedNotebooks, "
+                      "includeBusinessLinkedNotebooks, hasShortcut";
+
+    QString valuesNames = ":localUid, :guid, :name, :nameLower, :query, :format, :updateSequenceNumber, :isDirty, "
+                          ":isLocal, :includeAccount, :includePersonalLinkedNotebooks, "
+                          ":includeBusinessLinkedNotebooks, :hasShortcut";
+
+    QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns,valuesNames);
+
+    m_insertOrReplaceSavedSearchQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceSavedSearchQuery.prepare(queryString);
+
+    if (res) {
+        m_insertOrReplaceSavedSearchQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareGetSavedSearchCountQuery() const
 {
-    if (!m_getSavedSearchCountQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to get the count of SavedSearches");
-
-        m_getSavedSearchCountQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_getSavedSearchCountQuery.prepare("SELECT COUNT(*) FROM SavedSearches");
-
-        if (res) {
-            m_getSavedSearchCountQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_getSavedSearchCountQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to get the count of SavedSearches");
+
+    m_getSavedSearchCountQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_getSavedSearchCountQuery.prepare("SELECT COUNT(*) FROM SavedSearches");
+
+    if (res) {
+        m_getSavedSearchCountQueryPrepared = true;
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareExpungeSavedSearchQuery()
 {
-    if (!m_expungeSavedSearchQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge SavedSearch");
-
-        m_expungeSavedSearchQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeSavedSearchQuery.prepare("DELETE FROM SavedSearches WHERE localUid = :localUid");
-
-        if (res) {
-            m_expungeSavedSearchQueryPrepared = res;
-        }
-
-        return res;
-    }
-    else
-    {
+    if (Q_LIKELY(m_expungeSavedSearchQueryPrepared)) {
         return true;
     }
+
+    QNDEBUG("Preparing SQL query to expunge SavedSearch");
+
+    m_expungeSavedSearchQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_expungeSavedSearchQuery.prepare("DELETE FROM SavedSearches WHERE localUid = :localUid");
+
+    if (res) {
+        m_expungeSavedSearchQueryPrepared = res;
+    }
+
+    return res;
 }
 
 void LocalStorageManagerPrivate::fillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData,
