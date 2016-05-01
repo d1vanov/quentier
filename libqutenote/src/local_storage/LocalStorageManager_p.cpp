@@ -1304,7 +1304,8 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, const Notebook & not
         column = "guid";
         guid = note.guid();
 
-        if (localUid.isEmpty()) {
+        if (localUid.isEmpty())
+        {
             QString queryString = QString("SELECT localUid FROM Notes WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
@@ -1340,7 +1341,82 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, const Notebook & not
         return false;
     }
 
-    return insertOrReplaceNote(note, localUid, /* update resources = */ true,
+    return insertOrReplaceNote(note, localUid, /* override notebook local uid = */ QString(), /* update resources = */ true,
+                               /* update tags = */ true, errorDescription);
+}
+
+bool LocalStorageManagerPrivate::addNote(const Note & note, QString & errorDescription)
+{
+    errorDescription = QT_TR_NOOP("Can't add note to local storage database: ");
+    QString error;
+
+    QString notebookLocalUid;
+    bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        return false;
+    }
+
+    res = canAddNoteToNotebook(notebookLocalUid, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = note.checkParameters(error);
+    if (Q_UNLIKELY(!res)) {
+        errorDescription += error;
+        QNWARNING("Found invalid note: " << note);
+        return false;
+    }
+
+    QString localUid = note.localUid();
+
+    QString column, guid;
+    bool shouldCheckNoteExistence = true;
+
+    bool noteHasGuid = note.hasGuid();
+    if (noteHasGuid)
+    {
+        column = "guid";
+        guid = note.guid();
+
+        if (localUid.isEmpty())
+        {
+            QString queryString = QString("SELECT localUid FROM Notes WHERE guid = '%1'").arg(guid);
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local uid corresponding to Note's guid");
+
+            if (query.next()) {
+                localUid = query.record().value("localUid").toString();
+            }
+
+            if (!localUid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("found existing local uid corresponding to Note's guid");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
+                return false;
+            }
+
+            localUid = QUuid::createUuid().toString();
+            shouldCheckNoteExistence = false;
+        }
+    }
+    else {
+        column = "localUid";
+        guid = localUid;
+    }
+
+    if (shouldCheckNoteExistence && rowExists("Notes", column, QVariant(guid)))
+    {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("note with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "note with specified guid|localUid "
+        errorDescription += QT_TR_NOOP(" already exists in local storage");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
+        return false;
+    }
+
+    return insertOrReplaceNote(note, localUid, notebookLocalUid, /* update resources = */ true,
                                /* update tags = */ true, errorDescription);
 }
 
@@ -1411,10 +1487,84 @@ bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & 
         return false;
     }
 
-    return insertOrReplaceNote(note, localUid, updateResources, updateTags, errorDescription);
+    return insertOrReplaceNote(note, localUid, /* override notebook local uid = */ QString(),
+                               updateResources, updateTags, errorDescription);
 }
 
 #undef CHECK_NOTE_AND_NOTEBOOK_CONSISTENCY
+
+bool LocalStorageManagerPrivate::updateNote(const Note & note, const bool updateResources, const bool updateTags,
+                                            QString & errorDescription)
+{
+    errorDescription = QT_TR_NOOP("Can't update note in local storage database: ");
+    QString error;
+
+    QString notebookLocalUid;
+    bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        return false;
+    }
+
+    res = canUpdateNoteInNotebook(notebookLocalUid, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    res = note.checkParameters(error);
+    if (!res) {
+        errorDescription += error;
+        QNWARNING("Found invalid note: " << note);
+        return false;
+    }
+
+    QString localUid = note.localUid();
+
+    QString column, guid;
+    bool shouldCheckNoteExistence = true;
+
+    bool noteHasGuid = note.hasGuid();
+    if (noteHasGuid)
+    {
+        column = "guid";
+        guid = note.guid();
+
+        if (localUid.isEmpty())
+        {
+            QString queryString = QString("SELECT localUid FROM Notes WHERE guid = '%1'").arg(guid);
+            QSqlQuery query(m_sqlDatabase);
+            res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR("can't find local uid corresponding to Note's guid");
+
+            if (query.next()) {
+                localUid = query.record().value("localUid").toString();
+            }
+
+            if (localUid.isEmpty()) {
+                errorDescription += QT_TR_NOOP("no existing local uid corresponding to Note's guid was found in local storage");
+                QNCRITICAL(errorDescription << ", guid: " << guid);
+                return false;
+            }
+
+            shouldCheckNoteExistence = false;
+        }
+    }
+    else {
+        column = "localUid";
+        guid = localUid;
+    }
+
+    if (shouldCheckNoteExistence && !rowExists("Notes", column, QVariant(guid))) {
+        // TRANSLATOR explaining the reason of error
+        errorDescription += QT_TR_NOOP("note with specified ");
+        errorDescription += column;
+        // TRANSLATOR previous part of the phrase was "note with specified guid|localUid"
+        errorDescription += QT_TR_NOOP(" was not found in local storage");
+        QNWARNING(errorDescription << ", " << column << ": " << guid);
+        return false;
+    }
+
+    return insertOrReplaceNote(note, localUid, notebookLocalUid, updateResources, updateTags, errorDescription);
+}
 
 bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescription,
                                           const bool withResourceBinaryData) const
@@ -4561,7 +4711,37 @@ bool LocalStorageManagerPrivate::checkAndPrepareExpungeLinkedNotebookQuery()
     return res;
 }
 
+bool LocalStorageManagerPrivate::getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription)
+{
+    notebookLocalUid.resize(0);
+
+    if (note.hasNotebookLocalUid()) {
+        notebookLocalUid = note.notebookLocalUid();
+        return true;
+    }
+
+    QNTRACE("Note doesn't have the notebook local uid, trying to deduce it from guid");
+
+    if (!note.hasNotebookGuid()) {
+        errorDescription += QT_TR_NOOP("note has neither notebook local uid nor notebook guid");
+        QNWARNING(errorDescription << ", note: " << note);
+        return false;
+    }
+
+    QString queryString = QString("SELECT localUid FROM Notebooks WHERE guid = '%1'").arg(note.notebookGuid());
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't get notebook local uid for note using the known notebook guid");
+
+    res = query.next();
+    DATABASE_CHECK_AND_SET_ERROR("can't get notebook local uid for note using the known notebook guid: no data found");
+
+    notebookLocalUid = query.record().value("localUid").toString();
+    return true;
+}
+
 bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
+                                                     const QString & overrideNotebookLocalUid,
                                                      const bool updateResources, const bool updateTags,
                                                      QString & errorDescription)
 {
@@ -4574,6 +4754,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QS
 
     QVariant nullValue;
     QString localUid = (overrideLocalUid.isEmpty() ? note.localUid() : overrideLocalUid);
+    QString notebookLocalUid = (overrideNotebookLocalUid.isEmpty()
+                                ? (note.hasNotebookLocalUid() ? note.notebookLocalUid() : QString())
+                                : overrideNotebookLocalUid);
 
     // Update common table with Note properties
     {
@@ -4636,7 +4819,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QS
         bool thumbnailIsNull = thumbnail.isNull();
 
         query.bindValue(":thumbnail", (thumbnailIsNull ? nullValue : thumbnail));
-        query.bindValue(":notebookLocalUid", (note.hasNotebookLocalUid() ? note.notebookLocalUid() : nullValue));
+        query.bindValue(":notebookLocalUid", (notebookLocalUid.isEmpty() ? nullValue : notebookLocalUid));
         query.bindValue(":notebookGuid", (note.hasNotebookGuid() ? note.notebookGuid() : nullValue));
 
         if (note.hasNoteAttributes())
@@ -4918,7 +5101,12 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
         return true;
     }
 
-    return !(query.value(0).toBool());
+    res = !(query.value(0).toBool());
+    if (!res) {
+        errorDescription += QT_TR_NOOP("notebook restrictions forbid adding the note to it");
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription)
@@ -4937,7 +5125,12 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
         return true;
     }
 
-    return !(query.value(0).toBool());
+    res = !(query.value(0).toBool());
+    if (!res) {
+        errorDescription += QT_TR_NOOP("notebook restrictions forbid updating its notes");
+    }
+
+    return res;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareNoteCountQuery() const

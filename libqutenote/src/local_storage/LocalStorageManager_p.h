@@ -87,8 +87,10 @@ public:
 
     int noteCount(QString & errorDescription) const;
     bool addNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool addNote(const Note & note, QString & errorDescription);
     bool updateNote(const Note & note, const Notebook & notebook, const bool updateResources,
                     const bool updateTags, QString & errorDescription);
+    bool updateNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool findNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
     QList<Note> listAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
@@ -206,7 +208,8 @@ private:
     bool checkAndPrepareInsertOrReplaceLinkedNotebookQuery();
     bool checkAndPrepareExpungeLinkedNotebookQuery();
 
-    bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
+    bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription);
+    bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid, const QString & overrideNotebookLocalUid,
                              const bool updateResources, const bool updateTags, QString & errorDescription);
     bool canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription);
     bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription);
