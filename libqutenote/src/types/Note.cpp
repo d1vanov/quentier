@@ -58,6 +58,8 @@ Note::~Note()
 bool Note::operator==(const Note & other) const
 {
     return ( (d->m_qecNote == other.d->m_qecNote) &&
+             (d->m_notebookLocalUid.isEqual(other.d->m_notebookLocalUid)) &&
+             (d->m_resourcesAdditionalInfo == other.d->m_resourcesAdditionalInfo) &&
              (isDirty() == other.isDirty()) &&
              (isLocal() == other.isLocal()) &&
              (hasShortcut() == other.hasShortcut()) );
@@ -300,6 +302,26 @@ void Note::setNotebookGuid(const QString & guid)
     }
 }
 
+bool Note::hasNotebookLocalUid() const
+{
+    return d->m_notebookLocalUid.isSet();
+}
+
+const QString & Note::notebookLocalUid() const
+{
+    return d->m_notebookLocalUid.ref();
+}
+
+void Note::setNotebookLocalUid(const QString & notebookLocalUid)
+{
+    if (notebookLocalUid.isEmpty()) {
+        d->m_notebookLocalUid.clear();
+    }
+    else {
+        d->m_notebookLocalUid = notebookLocalUid;
+    }
+}
+
 bool Note::hasTagGuids() const
 {
     return d->m_qecNote.tagGuids.isSet();
@@ -408,6 +430,7 @@ QList<ResourceAdapter> Note::resourceAdapters() const
     int numResources = noteResources.size();
     int numResourceAdditionalInfoEntries = d->m_resourcesAdditionalInfo.size();
 
+    QString noteLocalUid = localUid();
     resources.reserve(std::max(numResources, 0));
     for(int i = 0; i < numResources; ++i)
     {
@@ -417,9 +440,7 @@ QList<ResourceAdapter> Note::resourceAdapters() const
         if (i < numResourceAdditionalInfoEntries) {
             const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
             resource.setLocalUid(info.localUid);
-            if (!info.noteLocalUid.isEmpty()) {
-                resource.setNoteLocalUid(info.noteLocalUid);
-            }
+            resource.setNoteLocalUid(noteLocalUid);
             resource.setDirty(info.isDirty);
         }
 
@@ -436,6 +457,7 @@ QList<ResourceWrapper> Note::resources() const
         return resources;
     }
 
+    QString noteLocalUid = localUid();
     const QList<qevercloud::Resource> & noteResources = d->m_qecNote.resources.ref();
     int numResources = noteResources.size();
     int numResourceAdditionalInfoEntries = d->m_resourcesAdditionalInfo.size();
@@ -449,9 +471,7 @@ QList<ResourceWrapper> Note::resources() const
         if (i < numResourceAdditionalInfoEntries) {
             const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
             resource.setLocalUid(info.localUid);
-            if (!info.noteLocalUid.isEmpty()) {
-                resource.setNoteLocalUid(info.noteLocalUid);
-            }
+            resource.setNoteLocalUid(noteLocalUid);
             resource.setDirty(info.isDirty);
         }
 
@@ -473,9 +493,6 @@ QList<ResourceWrapper> Note::resources() const
             { \
                 d->m_qecNote.resources.ref() << it->GetEnResource(); \
                 info.localUid = it->localUid(); \
-                if (it->hasNoteLocalUid()) { \
-                    info.noteLocalUid = it->noteLocalUid(); \
-                } \
                 info.isDirty = it->isDirty(); \
                 d->m_resourcesAdditionalInfo.push_back(info); \
             } \
@@ -506,9 +523,6 @@ void Note::addResource(const IResource & resource)
     d->m_qecNote.resources.ref() << resource.GetEnResource();
     NoteData::ResourceAdditionalInfo info;
     info.localUid = resource.localUid();
-    if (resource.hasNoteLocalUid()) {
-        info.noteLocalUid = resource.noteLocalUid();
-    }
     info.isDirty = resource.isDirty();
     d->m_resourcesAdditionalInfo.push_back(info);
 
@@ -559,10 +573,6 @@ bool Note::removeResource(const IResource & resource)
     QNDEBUG("Removed resource " << resource << " from note (" << removed << ") occurences");
     NoteData::ResourceAdditionalInfo info;
     info.localUid = resource.localUid();
-    if (resource.hasNoteLocalUid()) {
-        info.noteLocalUid = resource.noteLocalUid();
-    }
-
     info.isDirty = resource.isDirty();
     d->m_resourcesAdditionalInfo.removeAll(info);
 

@@ -1240,16 +1240,40 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
     return count;
 }
 
+#define CHECK_NOTE_AND_NOTEBOOK_CONSISTENCY(note, notebook) \
+    if (!notebook.hasGuid() && notebook.localUid().isEmpty()) { \
+        errorDescription += QT_TR_NOOP("both local and remote notebook's guids are empty"); \
+        QNWARNING(errorDescription << ", notebook: " << notebook); \
+        return false; \
+    } \
+    \
+    if (notebook.hasGuid() && note.hasNotebookGuid() && (notebook.guid() != note.notebookGuid())) { \
+        errorDescription += QT_TR_NOOP("notebook's guid doesn't match the notebook guid set for the note"); \
+        QNWARNING(errorDescription << ", notebook guid: " << notebook.guid() << "; note's notebook guid: " << note.notebookGuid()); \
+        return false; \
+    } \
+    \
+    QString notebookLocalUid = notebook.localUid(); \
+    if (!notebookLocalUid.isEmpty()) { \
+        if (!note.hasNotebookLocalUid()) { \
+            errorDescription += QT_TR_NOOP("note doesn't have notebook's local uid set"); \
+            QNWARNING(errorDescription << ", expected notebook local uid " << notebook.localUid()); \
+            return false; \
+        } \
+        \
+        if (notebookLocalUid != note.notebookLocalUid()) { \
+            errorDescription += QT_TR_NOOP("notebook's local uid doesn't match the notebook local uid set for the note"); \
+            QNWARNING(errorDescription << ", notebook local uid = " << notebookLocalUid << ", note's notebook local uid: " << note.notebookLocalUid()); \
+            return false; \
+        } \
+    }
+
 bool LocalStorageManagerPrivate::addNote(const Note & note, const Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add note to local storage database: ");
     QString error;
 
-    if (!notebook.hasGuid() && notebook.localUid().isEmpty()) {
-        errorDescription += QT_TR_NOOP("both local and remote notebook's guids are empty");
-        QNWARNING(errorDescription << ", notebook: " << notebook);
-        return false;
-    }
+    CHECK_NOTE_AND_NOTEBOOK_CONSISTENCY(note, notebook)
 
     if (!notebook.canCreateNotes()) {
         // TRANSLATOR explaining why note cannot be added to notebook
@@ -1312,7 +1336,7 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, const Notebook & not
         return false;
     }
 
-    return insertOrReplaceNote(note, notebook, localUid, /* update resources = */ true,
+    return insertOrReplaceNote(note, localUid, /* update resources = */ true,
                                /* update tags = */ true, errorDescription);
 }
 
@@ -1322,11 +1346,7 @@ bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & 
     errorDescription = QT_TR_NOOP("Can't update note in local storage database: ");
     QString error;
 
-    if (!notebook.hasGuid() && notebook.localUid().isEmpty()) {
-        errorDescription += QT_TR_NOOP("both local and remote notebook's guids are empty");
-        QNWARNING(errorDescription << ", notebook: " << notebook);
-        return false;
-    }
+    CHECK_NOTE_AND_NOTEBOOK_CONSISTENCY(note, notebook)
 
     if (!notebook.canUpdateNotes()) {
         // TRANSLATOR explaining why note cannot be updated
@@ -1387,8 +1407,10 @@ bool LocalStorageManagerPrivate::updateNote(const Note & note, const Notebook & 
         return false;
     }
 
-    return insertOrReplaceNote(note, notebook, localUid, updateResources, updateTags, errorDescription);
+    return insertOrReplaceNote(note, localUid, updateResources, updateTags, errorDescription);
 }
+
+#undef CHECK_NOTE_AND_NOTEBOOK_CONSISTENCY
 
 bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescription,
                                           const bool withResourceBinaryData) const
@@ -1399,7 +1421,8 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
 
     QString column, guid;
     bool noteHasGuid = note.hasGuid();
-    if (noteHasGuid) {
+    if (noteHasGuid)
+    {
         column = "guid";
         guid = note.guid();
 
@@ -1410,7 +1433,8 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
             return false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = note.localUid();
     }
@@ -4605,9 +4629,9 @@ bool LocalStorageManagerPrivate::checkAndPrepareExpungeLinkedNotebookQuery()
     }
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const Notebook & notebook,
-                                                     const QString & overrideLocalUid, const bool updateResources,
-                                                     const bool updateTags, QString & errorDescription)
+bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
+                                                     const bool updateResources, const bool updateTags,
+                                                     QString & errorDescription)
 {
     // NOTE: this method expects to be called after the note is already checked
     // for sanity of its parameters!
@@ -4680,7 +4704,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const No
         bool thumbnailIsNull = thumbnail.isNull();
 
         query.bindValue(":thumbnail", (thumbnailIsNull ? nullValue : thumbnail));
-        query.bindValue(":notebookLocalUid", (notebook.localUid().isEmpty() ? nullValue : notebook.localUid()));
+        query.bindValue(":notebookLocalUid", (note.hasNotebookLocalUid() ? note.notebookLocalUid() : nullValue));
         query.bindValue(":notebookGuid", (note.hasNotebookGuid() ? note.notebookGuid() : nullValue));
 
         if (note.hasNoteAttributes())
@@ -6498,6 +6522,7 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
     CHECK_AND_SET_NOTE_PROPERTY(updateSequenceNumber, setUpdateSequenceNumber, qint32, qint32);
 
     CHECK_AND_SET_NOTE_PROPERTY(notebookGuid, setNotebookGuid, QString, QString);
+    CHECK_AND_SET_NOTE_PROPERTY(notebookLocalUid, setNotebookLocalUid, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(title, setTitle, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(content, setContent, QString, QString);
     CHECK_AND_SET_NOTE_PROPERTY(contentLength, setContentLength, qint32, qint32);

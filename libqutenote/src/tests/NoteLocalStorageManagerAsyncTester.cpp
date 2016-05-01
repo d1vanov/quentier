@@ -126,6 +126,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook noteboo
         m_initialNote.setCreationTimestamp(1);
         m_initialNote.setModificationTimestamp(1);
         m_initialNote.setNotebookGuid(m_notebook.guid());
+        m_initialNote.setNotebookLocalUid(m_notebook.localUid());
         m_initialNote.setActive(true);
 
         m_state = STATE_SENT_ADD_REQUEST;
@@ -141,6 +142,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook noteboo
         extraNote.setCreationTimestamp(3);
         extraNote.setModificationTimestamp(3);
         extraNote.setNotebookGuid(m_extraNotebook.guid());
+        extraNote.setNotebookLocalUid(m_extraNotebook.localUid());
         extraNote.setTitle("Fake note title three");
 
         m_state = STATE_SENT_ADD_EXTRA_NOTE_THREE_REQUEST;
@@ -195,6 +197,7 @@ void NoteLocalStorageManagerAsyncTester::onGetNoteCountCompleted(int count, QUui
         extraNote.setCreationTimestamp(1);
         extraNote.setModificationTimestamp(1);
         extraNote.setNotebookGuid(m_notebook.guid());
+        extraNote.setNotebookLocalUid(m_notebook.localUid());
         extraNote.setTitle("Fake note title one");
 
         ResourceWrapper resource;
@@ -281,6 +284,7 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, Notebook 
         extraNote.setCreationTimestamp(2);
         extraNote.setModificationTimestamp(2);
         extraNote.setNotebookGuid(m_notebook.guid());
+        extraNote.setNotebookLocalUid(m_notebook.localUid());
         extraNote.setTitle("Fake note title two");
 
         m_state = STATE_SENT_ADD_EXTRA_NOTE_TWO_REQUEST;

@@ -784,6 +784,7 @@ void LocalStorageCacheAsyncTester::addNote()
     m_currentNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
     m_currentNote.setActive(true);
     m_currentNote.setContent("<en-note><h1>Hello, world</h1></en-note>");
+    m_currentNote.setNotebookLocalUid(m_secondNotebook.localUid());
 
     m_state = STATE_SENT_NOTE_ADD_REQUEST;
     emit addNoteRequest(m_currentNote, m_secondNotebook);

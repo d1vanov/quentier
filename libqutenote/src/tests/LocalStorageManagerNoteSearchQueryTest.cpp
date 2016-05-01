@@ -561,6 +561,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     for(int i = 0; i < numNotes; ++i)
     {
+        notes[i].setNotebookLocalUid(notebooks[notebookIndexForNoteIndex[i]].localUid());
         bool res = localStorageManager.addNote(notes[i], notebooks[notebookIndexForNoteIndex[i]], errorDescription);
         if (!res) {
             return false;

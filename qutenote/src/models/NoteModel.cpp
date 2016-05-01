@@ -28,7 +28,12 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_findNoteToRestoreFailedUpdateRequestIds(),
     m_findNoteToPerformUpdateRequestIds(),
     m_sortedColumn(Columns::ModificationTimestamp),
-    m_sortOrder(Qt::AscendingOrder)
+    m_sortOrder(Qt::AscendingOrder),
+    m_noteRestrictionsByNotebookLocalUid(),
+    m_findNotebookRequestForNotebookLocalUid(),
+    m_notesPendingUpdateInLocalStorageByNotebookLocalUid(),
+    m_notesPendingAdditionToModelByNotebookLocalUid(),
+    m_notesPendingUpdateInModelByNotebookLocalUid()
 {
     createConnections(localStorageManagerThreadWorker);
     requestNoteList();
@@ -470,7 +475,7 @@ void NoteModel::onAddNoteComplete(Note note, Notebook notebook, QUuid requestId)
         return;
     }
 
-    onNoteAddedOrUpdated(note, &notebook);
+    onNoteAdded(note, &notebook);
 }
 
 void NoteModel::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)

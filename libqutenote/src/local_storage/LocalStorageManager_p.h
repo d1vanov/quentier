@@ -206,7 +206,7 @@ private:
     bool checkAndPrepareInsertOrReplaceLinkedNotebookQuery();
     bool checkAndPrepareExpungeLinkedNotebookQuery();
 
-    bool insertOrReplaceNote(const Note & note, const Notebook & notebook, const QString & overrideLocalUid,
+    bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
                              const bool updateResources, const bool updateTags, QString & errorDescription);
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();

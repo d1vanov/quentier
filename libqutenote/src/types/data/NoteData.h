@@ -33,14 +33,14 @@ public:
     struct ResourceAdditionalInfo
     {
         QString  localUid;
-        QString  noteLocalUid;
         bool     isDirty;
 
         bool operator==(const ResourceAdditionalInfo & other) const;
     };
 
     QList<ResourceAdditionalInfo> m_resourcesAdditionalInfo;
-    QImage   m_thumbnail;
+    qevercloud::Optional<QString> m_notebookLocalUid;
+    QImage  m_thumbnail;
 
 private:
     NoteData & operator=(const NoteData & other) Q_DECL_DELETE;

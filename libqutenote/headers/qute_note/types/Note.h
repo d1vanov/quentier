@@ -87,6 +87,10 @@ public:
     const QString & notebookGuid() const;
     void setNotebookGuid(const QString & guid);
 
+    bool hasNotebookLocalUid() const;
+    const QString & notebookLocalUid() const;
+    void setNotebookLocalUid(const QString & notebookLocalUid);
+
     bool hasTagGuids() const;
     void tagGuids(QStringList & guids) const;
     void setTagGuids(const QStringList & guids);

@@ -211,6 +211,8 @@ private:
     NotebookLocalUidWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookLocalUid;
 
     QMultiHash<QString, Note>   m_notesPendingUpdateInLocalStorageByNotebookLocalUid;
+    QMultiHash<QString, Note>   m_notesPendingAdditionToModelByNotebookLocalUid;
+    QMultiHash<QString, Note>   m_notesPendingUpdateInModelByNotebookLocalUid;
 };
 
 } // namespace qute_note

@@ -461,6 +461,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         note.setModificationTimestamp(1);
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
+        note.setNotebookLocalUid(notebook.localUid());
 
         error.clear();
         res = localStorageManager.addNote(note, notebook, error);
@@ -552,6 +553,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         note.setModificationTimestamp(1);
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
+        note.setNotebookLocalUid(notebook.localUid());
 
         qevercloud::NoteAttributes & noteAttributes = note.noteAttributes();
         noteAttributes.subjectDate = 1;
@@ -735,6 +737,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         note.setModificationTimestamp(1);
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
+        note.setNotebookLocalUid(notebook.localUid());
 
         res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
@@ -1333,6 +1336,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         note.setModificationTimestamp(1);
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
+        note.setNotebookLocalUid(notebook.localUid());
 
         res = localStorageManager.addNote(note, notebook, error);
         QVERIFY2(res == true, qPrintable(error));
@@ -1501,6 +1505,7 @@ void CoreTester::localStorageManagerListNotesTest()
             note.setModificationTimestamp(i+1);
             note.setActive(true);
             note.setNotebookGuid(notebook.guid());
+            note.setNotebookLocalUid(notebook.localUid());
 
             res = localStorageManager.addNote(note, notebook, error);
             QVERIFY2(res == true, qPrintable(error));
@@ -1840,6 +1845,7 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
         note.setModificationTimestamp(1);
         note.setActive(true);
         note.setNotebookGuid(notebook.guid());
+        note.setNotebookLocalUid(notebook.localUid());
 
         QString error;
         bool res = localStorageManager.addLinkedNotebook(linkedNotebook, error);

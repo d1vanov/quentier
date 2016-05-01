@@ -122,6 +122,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         m_note.setCreationTimestamp(1);
         m_note.setModificationTimestamp(1);
         m_note.setNotebookGuid(m_notebook.guid());
+        m_note.setNotebookLocalUid(m_notebook.localUid());
         m_note.setActive(true);
 
         m_state = STATE_SENT_ADD_NOTE_REQUEST;
