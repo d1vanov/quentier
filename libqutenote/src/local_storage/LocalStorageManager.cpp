@@ -196,17 +196,17 @@ int LocalStorageManager::noteCount(QString & errorDescription) const
     return d->noteCount(errorDescription);
 }
 
-bool LocalStorageManager::addNote(const Note & note, const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::addNote(const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->addNote(note, notebook, errorDescription);
+    return d->addNote(note, errorDescription);
 }
 
-bool LocalStorageManager::updateNote(const Note & note, const Notebook & notebook, const bool updateResources,
+bool LocalStorageManager::updateNote(const Note & note, const bool updateResources,
                                      const bool updateTags, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->updateNote(note, notebook, updateResources, updateTags, errorDescription);
+    return d->updateNote(note, updateResources, updateTags, errorDescription);
 }
 
 bool LocalStorageManager::findNote(Note & note, QString & errorDescription,

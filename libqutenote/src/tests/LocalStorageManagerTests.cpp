@@ -690,7 +690,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     modifiedNote.unsetLocalUid();
     modifiedNote.setNotebookLocalUid(notebook.localUid());
 
-    res = localStorageManager.updateNote(modifiedNote, notebook, /* update resources = */ true,
+    res = localStorageManager.updateNote(modifiedNote, /* update resources = */ true,
                                          /* update tags = */ true, errorDescription);
     if (!res) {
         return false;
@@ -1439,7 +1439,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     note.addTagGuid(tag.guid());
     note.setNotebookLocalUid(updatedNotebook.localUid());
 
-    res = localStorageManager.addNote(note, updatedNotebook, errorDescription);
+    res = localStorageManager.addNote(note, errorDescription);
     if (!res) {
         return false;
     }
@@ -1457,7 +1457,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     updatedNote.setNotebookGuid(notebook.guid());
     updatedNote.setNotebookLocalUid(notebook.localUid());
 
-    res = localStorageManager.updateNote(updatedNote, updatedNotebook, /* update resources = */ true,
+    res = localStorageManager.updateNote(updatedNote, /* update resources = */ true,
                                          /* update tags = */ true, errorDescription);
     if (!res) {
         return false;
@@ -1500,7 +1500,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     updatedNote.addResource(resource);
 
-    res = localStorageManager.updateNote(updatedNote, updatedNotebook, /* update resources = */ true,
+    res = localStorageManager.updateNote(updatedNote, /* update resources = */ true,
                                          /* update tags = */ true, errorDescription);
     if (!res) {
         return res;
@@ -1521,7 +1521,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     updatedNote.setResources(resources);
 
-    res = localStorageManager.updateNote(updatedNote, updatedNotebook, /* update resources = */ true,
+    res = localStorageManager.updateNote(updatedNote, /* update resources = */ true,
                                          /* update tags = */ true, errorDescription);
     if (!res) {
         return false;

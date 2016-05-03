@@ -431,25 +431,17 @@ public:
 
     /**
      * @brief addNote - adds passed in Note to the local storage database.
-     * @param note - note to be passed to local storage database
-     * @param notebook - notebook for which the note must be added. It is needed
-     * because it may have active restrictions on adding new notes which local storage needs to check.
-     * If both note and notebook have either "remote" or local notebook uids set, they must match,
-     * otherwise the local storage qualifies their mismatch as the error. If the notebook has local uid
-     * (which it normally does), the note is required to have the notebook local uid set to the same value.
+     * @param note - note to be passed to local storage database; required to contain either "remote" notebook guid
+     * or local notebook uid
      * @param errorDescription - error description if note could not be added
      * @return true if note was added successfully, false otherwise
      */
-    bool addNote(const Note & note, const Notebook & notebook, QString & errorDescription);
+    bool addNote(const Note & note, QString & errorDescription);
 
     /**
      * @brief updateNote - updates passed in Note in the local storage database
-     * @param note - note to be updated in the local storage database
-     * @param notebook - notebook in which the note must be updated. It is needed
-     * because it may have active restrictions on updating the notes which local storage needs to check.
-     * If both note and notebook have either "remote" or local notebook uids set, they must match,
-     * otherwise the local storage qualifies their mismatch as the error. If the notebook has local uid
-     * (which it normally does), the note is required to have the notebook local uid set to the same value.
+     * @param note - note to be updated in the local storage database; required to contain either "remote" notebook guid
+     * or local notebook uid
      * @param updateResources - flag indicating whether the note's resources should be updated
      * along with the note; if not, the existing resource information stored in the local storage is not touched
      * @param updateTags - flag indicating whether the note's tags should be updated along with the note;
@@ -457,7 +449,7 @@ public:
      * @param errorDescription - error description if note could not be updated
      * @return true if note was updated successfully, false otherwise
      */
-    bool updateNote(const Note & note, const Notebook & notebook, const bool updateResources,
+    bool updateNote(const Note & note, const bool updateResources,
                     const bool updateTags, QString & errorDescription);
 
     /**

@@ -124,10 +124,10 @@ Q_SIGNALS:
     // Note-related signals:
     void getNoteCountComplete(int noteCount, QUuid requestId = QUuid());
     void getNoteCountFailed(QString errorDescription, QUuid requestId = QUuid());
-    void addNoteComplete(Note note, Notebook notebook, QUuid requestId = QUuid());
-    void addNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId = QUuid());
-    void updateNoteComplete(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId = QUuid());
-    void updateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+    void addNoteComplete(Note note, QUuid requestId = QUuid());
+    void addNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
+    void updateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId = QUuid());
+    void updateNoteFailed(Note note, bool updateResources, bool updateTags,
                           QString errorDescription, QUuid requestId = QUuid());
     void findNoteComplete(Note foundNote, bool withResourceBinaryData, QUuid requestId = QUuid());
     void findNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId = QUuid());
@@ -290,8 +290,8 @@ public Q_SLOTS:
 
     // Note-related slots:
     void onGetNoteCountRequest(QUuid requestId);
-    void onAddNoteRequest(Note note, Notebook notebook, QUuid requestId);
-    void onUpdateNoteRequest(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
+    void onAddNoteRequest(Note note, QUuid requestId);
+    void onUpdateNoteRequest(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onFindNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId);
     void onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
                                           LocalStorageManager::ListObjectsOptions flag,

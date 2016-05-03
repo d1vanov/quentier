@@ -464,7 +464,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         note.setNotebookLocalUid(notebook.localUid());
 
         error.clear();
-        res = localStorageManager.addNote(note, notebook, error);
+        res = localStorageManager.addNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         ResourceWrapper resource;
@@ -567,9 +567,8 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         noteAttributes.shareDate = 2;
 
         note.unsetLocalUid();
-        notebook.unsetLocalUid();
 
-        res = localStorageManager.addNote(note, notebook, error);
+        res = localStorageManager.addNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Tag tag;
@@ -631,7 +630,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
 
         note.addResource(resource);
 
-        res = localStorageManager.updateNote(note, notebook, /* update resources = */ true,
+        res = localStorageManager.updateNote(note, /* update resources = */ true,
                                              /* update tags = */ true, error);
         QVERIFY2(res == true, qPrintable(error));
 
@@ -739,7 +738,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         note.setNotebookGuid(notebook.guid());
         note.setNotebookLocalUid(notebook.localUid());
 
-        res = localStorageManager.addNote(note, notebook, error);
+        res = localStorageManager.addNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         Tag tag;
@@ -1338,7 +1337,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         note.setNotebookGuid(notebook.guid());
         note.setNotebookLocalUid(notebook.localUid());
 
-        res = localStorageManager.addNote(note, notebook, error);
+        res = localStorageManager.addNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         int numTags = 5;
@@ -1507,7 +1506,7 @@ void CoreTester::localStorageManagerListNotesTest()
             note.setNotebookGuid(notebook.guid());
             note.setNotebookLocalUid(notebook.localUid());
 
-            res = localStorageManager.addNote(note, notebook, error);
+            res = localStorageManager.addNote(note, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
@@ -1856,7 +1855,7 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
         QVERIFY2(res == true, qPrintable(error));
 
         error.clear();
-        res = localStorageManager.addNote(note, notebook, error);
+        res = localStorageManager.addNote(note, error);
         QVERIFY2(res == true, qPrintable(error));
 
         int nTags = 5;

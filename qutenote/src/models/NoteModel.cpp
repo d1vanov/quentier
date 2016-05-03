@@ -30,10 +30,7 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_sortedColumn(Columns::ModificationTimestamp),
     m_sortOrder(Qt::AscendingOrder),
     m_noteRestrictionsByNotebookLocalUid(),
-    m_findNotebookRequestForNotebookLocalUid(),
-    m_notesPendingUpdateInLocalStorageByNotebookLocalUid(),
-    m_notesPendingAdditionToModelByNotebookLocalUid(),
-    m_notesPendingUpdateInModelByNotebookLocalUid()
+    m_findNotebookRequestForNotebookLocalUid()
 {
     createConnections(localStorageManagerThreadWorker);
     requestNoteList();
@@ -463,11 +460,9 @@ void NoteModel::sort(int column, Qt::SortOrder order)
     emit layoutChanged();
 }
 
-void NoteModel::onAddNoteComplete(Note note, Notebook notebook, QUuid requestId)
+void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
 {
     QNDEBUG("NoteModel::onAddNoteComplete: " << note << "\nRequest id = " << requestId);
-
-    Q_UNUSED(notebook)
 
     auto it = m_addNoteRequestIds.find(requestId);
     if (it != m_addNoteRequestIds.end()) {
@@ -475,10 +470,10 @@ void NoteModel::onAddNoteComplete(Note note, Notebook notebook, QUuid requestId)
         return;
     }
 
-    onNoteAdded(note, &notebook);
+    onNoteAddedOrUpdated(note);
 }
 
-void NoteModel::onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId)
+void NoteModel::onAddNoteFailed(Note note, QString errorDescription, QUuid requestId)
 {
     auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
@@ -488,20 +483,18 @@ void NoteModel::onAddNoteFailed(Note note, Notebook notebook, QString errorDescr
     QNDEBUG("NoteModel::onAddNoteFailed: note = " << note << "\nError description = " << errorDescription
             << ", request id = " << requestId);
 
-    Q_UNUSED(notebook)
     Q_UNUSED(m_addNoteRequestIds.erase(it))
 
     emit notifyError(errorDescription);
     removeItemByLocalUid(note.localUid());
 }
 
-void NoteModel::onUpdateNoteComplete(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId)
+void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
     QNDEBUG("NoteModel::onUpdateNoteComplete: note = " << note << "\nRequest id = " << requestId);
 
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
-    Q_UNUSED(notebook)
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
@@ -509,15 +502,14 @@ void NoteModel::onUpdateNoteComplete(Note note, Notebook notebook, bool updateRe
         return;
     }
 
-    onNoteAddedOrUpdated(note, &notebook);
+    onNoteAddedOrUpdated(note);
 }
 
-void NoteModel::onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+void NoteModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                                    QString errorDescription, QUuid requestId)
 {
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
-    Q_UNUSED(notebook)
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -709,36 +701,6 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 
     m_notebookCache.put(notebook.localUid(), notebook);
     updateRestrictionsFromNotebook(notebook);
-
-    // See whether there are any notes pending this notebook object for the update in local storage
-    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-
-    auto notePendingUpdateIt = m_notesPendingUpdateInLocalStorageByNotebookLocalUid.find(notebook.localUid());
-    while(notePendingUpdateIt != m_notesPendingUpdateInLocalStorageByNotebookLocalUid.end())
-    {
-        if (notePendingUpdateIt.key() != notebook.localUid()) {
-            break;
-        }
-
-        const Note & note = notePendingUpdateIt.value();
-        m_cache.put(note.localUid(), note);
-
-        auto itemIt = localUidIndex.find(note.localUid());
-        if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-            QNDEBUG("Can't find the model item corresponding to the note meant to be updated in local storage; "
-                    "it might have been deleted from the model. Cached note: " << note);
-            Q_UNUSED(m_cache.remove(note.localUid()))
-            Q_UNUSED(m_notesPendingUpdateInLocalStorageByNotebookLocalUid.erase(notePendingUpdateIt++));
-            continue;
-        }
-
-        // WARNING: the note currently pointed to by notePendingUpdateIt will be deleted from
-        // m_notesPendingUpdateInLocalStorageByNotebookLocalUid inside updateNoteInLocalStorage method
-        // so the iterator would be invalidated; incrementing the iterator before calling the method
-        // changing the container to overcome that
-        ++notePendingUpdateIt;
-        updateNoteInLocalStorage(*itemIt);
-    }
 }
 
 void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -787,10 +749,10 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
     QNDEBUG("NoteModel::createConnections");
 
     // Local signals to localStorageManagerThreadWorker's slots
-    QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,Notebook,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,Notebook,bool,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,Notebook,bool,bool,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,bool,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,bool,bool,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNote,Note,bool,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
@@ -805,14 +767,14 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
 
     // localStorageManagerThreadWorker's signals to local slots
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,Notebook,QUuid),
-                     this, QNSLOT(NoteModel,onAddNoteComplete,Note,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,Notebook,QString,QUuid),
-                     this, QNSLOT(NoteModel,onAddNoteFailed,Note,Notebook,QString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,Notebook,bool,bool,QUuid),
-                     this, QNSLOT(NoteModel,onUpdateNoteComplete,Note,Notebook,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,Notebook,bool,bool,QString,QUuid),
-                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,Notebook,bool,bool,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteModel,onAddNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QString,QUuid),
+                     this, QNSLOT(NoteModel,onAddNoteFailed,Note,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QString,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,bool,bool,QString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(NoteModel,onFindNoteComplete,Note,bool,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QString,QUuid),
@@ -1066,7 +1028,6 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     QNDEBUG("NoteModel::updateNoteInLocalStorage: local uid = " << item.localUid());
 
     Note note;
-    Notebook notebook;
 
     auto notYetSavedItemIt = m_noteItemsNotYetInLocalStorageUids.find(item.localUid());
     if (notYetSavedItemIt == m_noteItemsNotYetInLocalStorageUids.end())
@@ -1091,6 +1052,8 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
 
     note.setLocalUid(item.localUid());
     note.setGuid(item.guid());
+    note.setNotebookLocalUid(item.notebookLocalUid());
+    note.setNotebookGuid(item.notebookGuid());
     note.setCreationTimestamp(item.creationTimestamp());
     note.setModificationTimestamp(item.modificationTimestamp());
     note.setTitle(item.title());
@@ -1101,33 +1064,6 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
 
     m_cache.put(note.localUid(), note);
 
-    const Notebook * pCachedNotebook = m_notebookCache.get(item.notebookLocalUid());
-    if (Q_UNLIKELY(!pCachedNotebook))
-    {
-        QNTRACE("No notebook is present within the cache, need to get it from the local storage");
-
-        auto findNotebookRequestIter = m_findNotebookRequestForNotebookLocalUid.left.find(item.notebookLocalUid());
-        if (findNotebookRequestIter == m_findNotebookRequestForNotebookLocalUid.left.end())
-        {
-            QUuid requestId = QUuid::createUuid();
-            Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.insert(NotebookLocalUidWithFindNotebookRequestIdBimap::value_type(item.notebookLocalUid(), requestId)))
-            Notebook dummy;
-            dummy.setLocalUid(item.notebookLocalUid());
-            QNTRACE("Emitting the request to find notebook to update the note properly: notebook local uid = "
-                    << item.notebookLocalUid() << ", request id = " << requestId);
-            emit findNotebook(dummy, requestId);
-        }
-        else
-        {
-            QNTRACE("Already sent the request for the notebook: id = " << findNotebookRequestIter->second);
-        }
-
-        m_notesPendingUpdateInLocalStorageByNotebookLocalUid.insert(item.notebookLocalUid(), note);
-        return;
-    }
-
-    notebook = *pCachedNotebook;
-
     QUuid requestId = QUuid::createUuid();
 
     if (notYetSavedItemIt != m_noteItemsNotYetInLocalStorageUids.end())
@@ -1135,8 +1071,8 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
         Q_UNUSED(m_addNoteRequestIds.insert(requestId))
 
         QNTRACE("Emitting the request to add the note to local storage: id = " << requestId
-                << ", note: " << note << "\nNotebook: " << notebook);
-        emit addNote(note, notebook, requestId);
+                << ", note: " << note);
+        emit addNote(note, requestId);
 
         Q_UNUSED(m_noteItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
     }
@@ -1145,24 +1081,8 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
         Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
 
         QNTRACE("Emitting the request to update the note in local storage: id = " << requestId
-                << ", note: " << note << "\nNotebook: " << notebook);
-        emit updateNote(note, notebook, /* update resources = */ false, /* update tags = */ false, requestId);
-    }
-
-    // Ensure the note just sent to local storage is not marked as pending the update anymore
-    auto notePendingUpdateIt = m_notesPendingUpdateInLocalStorageByNotebookLocalUid.find(item.notebookLocalUid());
-    while(notePendingUpdateIt != m_notesPendingUpdateInLocalStorageByNotebookLocalUid.end())
-    {
-        if (notePendingUpdateIt.key() != item.notebookLocalUid()) {
-            break;
-        }
-
-        if (notePendingUpdateIt.value().localUid() == item.localUid()) {
-            Q_UNUSED(m_notesPendingUpdateInLocalStorageByNotebookLocalUid.erase(notePendingUpdateIt))
-            break;
-        }
-
-        ++notePendingUpdateIt;
+                << ", note: " << note);
+        emit updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
     }
 }
 

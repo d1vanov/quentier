@@ -74,8 +74,8 @@ Q_SIGNALS:
     void notifyError(QString errorDescription);
 
 // private signals
-    void addNote(Note note, Notebook notebook, QUuid requestId);
-    void updateNote(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
+    void addNote(Note note, QUuid requestId);
+    void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
     void listNotes(LocalStorageManager::ListObjectsOptions flag,
                    bool withResourceBinaryData, size_t limit, size_t offset,
@@ -88,10 +88,10 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     // Slots for response to events from local storage
-    void onAddNoteComplete(Note note, Notebook notebook, QUuid requestId);
-    void onAddNoteFailed(Note note, Notebook notebook, QString errorDescription, QUuid requestId);
-    void onUpdateNoteComplete(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
-    void onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteFailed(Note note, QString errorDescription, QUuid requestId);
+    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                             QString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
@@ -209,10 +209,6 @@ private:
 
     typedef boost::bimap<QString, QUuid> NotebookLocalUidWithFindNotebookRequestIdBimap;
     NotebookLocalUidWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookLocalUid;
-
-    QMultiHash<QString, Note>   m_notesPendingUpdateInLocalStorageByNotebookLocalUid;
-    QMultiHash<QString, Note>   m_notesPendingAdditionToModelByNotebookLocalUid;
-    QMultiHash<QString, Note>   m_notesPendingUpdateInModelByNotebookLocalUid;
 };
 
 } // namespace qute_note

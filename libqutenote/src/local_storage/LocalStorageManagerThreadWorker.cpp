@@ -643,15 +643,15 @@ void LocalStorageManagerThreadWorker::onGetNoteCountRequest(QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook notebook, QUuid requestId)
+void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->addNote(note, notebook, errorDescription);
+        bool res = m_pLocalStorageManager->addNote(note, errorDescription);
         if (!res) {
-            emit addNoteFailed(note, notebook, errorDescription, requestId);
+            emit addNoteFailed(note, errorDescription, requestId);
             return;
         }
 
@@ -659,21 +659,21 @@ void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, Notebook noteb
             m_pLocalStorageCacheManager->cacheNote(note);
         }
 
-        emit addNoteComplete(note, notebook, requestId);
+        emit addNoteComplete(note, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook notebook, bool updateResources,
+void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, bool updateResources,
                                                           bool updateTags, QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->updateNote(note, notebook, updateResources, updateTags, errorDescription);
+        bool res = m_pLocalStorageManager->updateNote(note, updateResources, updateTags, errorDescription);
         if (!res) {
-            emit updateNoteFailed(note, notebook, updateResources, updateTags, errorDescription, requestId);
+            emit updateNoteFailed(note, updateResources, updateTags, errorDescription, requestId);
             return;
         }
 
@@ -681,7 +681,7 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, Notebook no
             m_pLocalStorageCacheManager->cacheNote(note);
         }
 
-        emit updateNoteComplete(note, notebook, updateResources, updateTags, requestId);
+        emit updateNoteComplete(note, updateResources, updateTags, requestId);
     }
     CATCH_EXCEPTION
 }

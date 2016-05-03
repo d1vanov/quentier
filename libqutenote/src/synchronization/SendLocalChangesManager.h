@@ -87,7 +87,7 @@ Q_SIGNALS:
     void updateTag(Tag tag, QUuid requestId);
     void updateSavedSearch(SavedSearch savedSearch, QUuid requestId);
     void updateNotebook(Notebook notebook, QUuid requestId);
-    void updateNote(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
+    void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
 
     void findNotebook(Notebook notebook, QUuid requestId);
 
@@ -157,8 +157,8 @@ private Q_SLOTS:
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
     void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
-    void onUpdateNoteCompleted(Note note, Notebook notebook, bool updateResources, bool updateTags, QUuid requestId);
-    void onUpdateNoteFailed(Note note, Notebook notebook, bool updateResources, bool updateTags,
+    void onUpdateNoteCompleted(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                             QString errorDescription, QUuid requestId);
 
     void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
