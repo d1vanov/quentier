@@ -20,6 +20,9 @@
 #include <qute_note/utility/StringUtils.h>
 #include <QtSql>
 
+// Prevent boost::interprocess from automatic linkage to boost::datetime
+#define BOOST_DATE_TIME_NO_LIB
+
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
 #include <boost/interprocess/sync/file_lock.hpp>

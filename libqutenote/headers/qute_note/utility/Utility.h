@@ -1,6 +1,7 @@
 #ifndef __LIB_QUTE_NOTE__UTILITY__UTILITY_H
 #define __LIB_QUTE_NOTE__UTILITY__UTILITY_H
 
+#include <qute_note/utility/Linkage.h>
 #include <QEverCloud.h>
 #include <QString>
 #include <QFlags>
@@ -27,9 +28,9 @@ bool checkGuid(const T & guid)
     return true;
 }
 
-bool checkUpdateSequenceNumber(const int32_t updateSequenceNumber);
+bool QUTE_NOTE_EXPORT checkUpdateSequenceNumber(const int32_t updateSequenceNumber);
 
-const QString printableDateTimeFromTimestamp(const qint64 timestamp);
+const QString QUTE_NOTE_EXPORT printableDateTimeFromTimestamp(const qint64 timestamp);
 
 } // namespace qute_note
 

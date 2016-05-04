@@ -576,7 +576,7 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,started),
                      m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,init));
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
-                     m_pLocalStorageManagerThread, QNSLOT(LocalStorageManagerThreadWorker,deleteLater));
+                     m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
 
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,initialized),
                      this, QNSLOT(NoteLocalStorageManagerAsyncTester,onWorkerInitialized));
