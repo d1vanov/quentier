@@ -7,10 +7,9 @@ NoteModelItem::NoteModelItem(const QString & localUid,
                              const QString & guid,
                              const QString & notebookLocalUid,
                              const QString & notebookGuid,
-                             const QString & linkedNotebookGuid,
                              const QString & title,
                              const QString & previewText,
-                             const QString & thumbnailImageFilePath,
+                             const QImage & thumbnail,
                              const QString & notebookName,
                              const QStringList & tagNameList,
                              const qint64 creationTimestamp,
@@ -22,10 +21,9 @@ NoteModelItem::NoteModelItem(const QString & localUid,
     m_guid(guid),
     m_notebookLocalUid(notebookLocalUid),
     m_notebookGuid(notebookGuid),
-    m_linkedNotebookGuid(linkedNotebookGuid),
     m_title(title),
     m_previewText(previewText),
-    m_thumbnailImageFilePath(thumbnailImageFilePath),
+    m_thumbnail(thumbnail),
     m_notebookName(notebookName),
     m_tagNameList(tagNameList),
     m_creationTimestamp(creationTimestamp),
@@ -72,11 +70,9 @@ QTextStream & NoteModelItem::print(QTextStream & strm) const
 {
     strm << "NoteModelItem: local uid = " << m_localUid << ", guid = " << m_guid
          << ", notebook local uid = " << m_notebookLocalUid << ", notebook guid = " << m_notebookGuid
-         << ", linked notebook guid = " << m_linkedNotebookGuid << ", title = " << m_title
-         << ", preview text = " << m_previewText << ", thumbnail image file path = "
-         << m_thumbnailImageFilePath << ", notebook name = " << m_notebookName
-         << ", tag name list = " << m_tagNameList.join(", ") << ", creation timestamp = "
-         << m_creationTimestamp << " (" << printableDateTimeFromTimestamp(m_creationTimestamp) << ")"
+         << ", title = " << m_title << ", preview text = " << m_previewText << ", thumbnail "
+         << (m_thumbnail.isNull() ? "null" : "not null") << ", notebook name = " << m_notebookName << ", tag name list = " << m_tagNameList.join(", ")
+         << ", creation timestamp = " << m_creationTimestamp << " (" << printableDateTimeFromTimestamp(m_creationTimestamp) << ")"
          << ", modification timestamp = " << m_modificationTimestamp << " (" << printableDateTimeFromTimestamp(m_modificationTimestamp) << ")"
          << ", size in bytes = " << m_sizeInBytes << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false");

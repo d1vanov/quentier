@@ -3,6 +3,7 @@
 
 #include <qute_note/utility/Printable.h>
 #include <QStringList>
+#include <QImage>
 
 namespace qute_note {
 
@@ -13,10 +14,9 @@ public:
                            const QString & guid = QString(),
                            const QString & notebookLocalUid = QString(),
                            const QString & notebookGuid = QString(),
-                           const QString & linkedNotebookGuid = QString(),
                            const QString & title = QString(),
                            const QString & previewText = QString(),
-                           const QString & thumbnailImageFilePath = QString(),
+                           const QImage & thumbnail = QImage(),
                            const QString & notebookName = QString(),
                            const QStringList & tagNameList = QStringList(),
                            const qint64 creationTimestamp = 0,
@@ -38,17 +38,14 @@ public:
     const QString & notebookGuid() const { return m_notebookGuid; }
     void setNotebookGuid(const QString & notebookGuid) { m_notebookGuid = notebookGuid; }
 
-    const QString & linkedNotebookGuid() const { return m_linkedNotebookGuid; }
-    void setLinkedNotebookGuid(const QString & linkedNotebookGuid) { m_linkedNotebookGuid = linkedNotebookGuid; }
-
     const QString & title() const { return m_title; }
     void setTitle(const QString & title) { m_title = title; }
 
     const QString & previewText() const { return m_previewText; }
     void setPreviewText(const QString & previewText) { m_previewText = previewText; }
 
-    const QString & thumbnailImageFilePath() const { return m_thumbnailImageFilePath; }
-    void setThumbnailImageFilePath(const QString & thumbnailImageFilePath) { m_thumbnailImageFilePath = thumbnailImageFilePath; }
+    const QImage & thumbnail() const { return m_thumbnail; }
+    void setThumbnail(const QImage & thumbnail) { m_thumbnail = thumbnail; }
 
     const QString & notebookName() const { return m_notebookName; }
     void setNotebookName(const QString & notebookName) { m_notebookName = notebookName; }
@@ -82,10 +79,9 @@ private:
     QString     m_guid;
     QString     m_notebookLocalUid;
     QString     m_notebookGuid;
-    QString     m_linkedNotebookGuid;
     QString     m_title;
     QString     m_previewText;
-    QString     m_thumbnailImageFilePath;
+    QImage      m_thumbnail;
     QString     m_notebookName;
     QStringList m_tagNameList;
     qint64      m_creationTimestamp;

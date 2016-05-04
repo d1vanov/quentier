@@ -128,7 +128,9 @@ private:
 
     bool canUpdateNoteItem(const NoteModelItem & item) const;
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
-    void updateRestrictionsFromNotebook(const Notebook & notebook);
+    void updateNotebookData(const Notebook & notebook);
+
+    bool findNotebookDataForDNote(const Note & note);
 
 private:
     struct ByLocalUid{};
@@ -168,11 +170,49 @@ private:
         Qt::SortOrder   m_sortOrder;
     };
 
+    struct NotebookData
+    {
+        NotebookData() :
+            m_localUid(),
+            m_guid(),
+            m_name(),
+            m_canCreateNotes(false),
+            m_canUpdateNotes(false)
+        {}
+
+        QString m_localUid;
+        QString m_guid;
+        QString m_name;
+        bool    m_canCreateNotes;
+        bool    m_canUpdateNotes;
+    };
+
+    struct ByNotebookLocalUid{};
+    struct ByNotebookGuid{};
+
+    typedef boost::multi_index_container<
+        NotebookData,
+        boost::multi_index::indexed_by<
+            boost::multi_index::ordered_unique<
+                boost::multi_index::tag<ByNotebookLocalUid>,
+                boost::multi_index::member<NotebookData,QString,&NotebookData::m_localUid>
+            >,
+            boost::multi_index::ordered_non_unique<
+                boost::multi_index::tag<ByNotebookGuid>,
+                boost::multi_index::member<NotebookData,QString,&NotebookData::m_guid>
+            >
+        >
+    > NotebookDataContainer;
+
+    typedef NotebookDataContainer::index<ByNotebookLocalUid>::type NotebookDataByLocalUid;
+    typedef NotebookDataContainer::index<ByNotebookGuid>::type NotebookDataByGuid;
+
 private:
-    void onNoteAddedOrUpdated(const Note & note, const Notebook * pNotebook = Q_NULLPTR);
-    void onNoteAdded(const Note & note, const Notebook * pNotebook);
-    void onNoteUpdated(const Note & note, const Notebook * pNotebook, NoteDataByLocalUid::iterator it);
+    void onNoteAddedOrUpdated(const Note & note);
+    void onNoteAdded(const Note & note);
+    void onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it);
     void noteToItem(const Note & note, NoteModelItem & item);
+    const NotebookData * notebookDataForItem(const NoteModelItem & item) const;
 
 private:
     NoteData                m_data;
@@ -194,21 +234,10 @@ private:
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
 
-    struct Restrictions
-    {
-        Restrictions() :
-            m_canCreateNotes(false),
-            m_canUpdateNotes(false)
-        {}
+    NotebookDataContainer           m_notebookData;
 
-        bool    m_canCreateNotes;
-        bool    m_canUpdateNotes;
-    };
-
-    QHash<QString, Restrictions>    m_noteRestrictionsByNotebookLocalUid;
-
-    typedef boost::bimap<QString, QUuid> NotebookLocalUidWithFindNotebookRequestIdBimap;
-    NotebookLocalUidWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookLocalUid;
+    typedef boost::bimap<QString, QUuid> NotebookIdWithFindNotebookRequestIdBimap;
+    NotebookIdWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookId;
 };
 
 } // namespace qute_note

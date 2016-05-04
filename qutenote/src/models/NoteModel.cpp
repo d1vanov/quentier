@@ -2,6 +2,7 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/UidGenerator.h>
 #include <qute_note/utility/Utility.h>
+#include <qute_note/types/ResourceAdapter.h>
 
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
@@ -29,8 +30,8 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_findNoteToPerformUpdateRequestIds(),
     m_sortedColumn(Columns::ModificationTimestamp),
     m_sortOrder(Qt::AscendingOrder),
-    m_noteRestrictionsByNotebookLocalUid(),
-    m_findNotebookRequestForNotebookLocalUid()
+    m_notebookData(),
+    m_findNotebookRequestForNotebookId()
 {
     createConnections(localStorageManagerThreadWorker);
     requestNoteList();
@@ -690,30 +691,30 @@ void NoteModel::onExpungeNoteFailed(Note note, QString errorDescription, QUuid r
 
 void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    auto it = m_findNotebookRequestForNotebookLocalUid.right.find(requestId);
-    if (it == m_findNotebookRequestForNotebookLocalUid.right.end()) {
+    auto it = m_findNotebookRequestForNotebookId.right.find(requestId);
+    if (it == m_findNotebookRequestForNotebookId.right.end()) {
         return;
     }
 
     QNDEBUG("NoteModel::onFindNotebookComplete: notebook: " << notebook << "\nRequest id = " << requestId);
 
-    Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(it))
+    Q_UNUSED(m_findNotebookRequestForNotebookId.right.erase(it))
 
     m_notebookCache.put(notebook.localUid(), notebook);
-    updateRestrictionsFromNotebook(notebook);
+    updateNotebookData(notebook);
 }
 
 void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
-    auto it = m_findNotebookRequestForNotebookLocalUid.right.find(requestId);
-    if (it == m_findNotebookRequestForNotebookLocalUid.right.end()) {
+    auto it = m_findNotebookRequestForNotebookId.right.find(requestId);
+    if (it == m_findNotebookRequestForNotebookId.right.end()) {
         return;
     }
 
     QNWARNING("NoteModel::onFindNotebookFailed: notebook = " << notebook << "\nError description = "
               << errorDescription << ", request id = " << requestId);
 
-    Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(it))
+    Q_UNUSED(m_findNotebookRequestForNotebookId.right.erase(it))
 }
 
 void NoteModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
@@ -721,7 +722,7 @@ void NoteModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
     QNDEBUG("NoteModel::onUpdateNotebookComplete: local uid = " << notebook.localUid());
     Q_UNUSED(requestId)
     m_notebookCache.put(notebook.localUid(), notebook);
-    updateRestrictionsFromNotebook(notebook);
+    updateNotebookData(notebook);
 }
 
 void NoteModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
@@ -731,17 +732,28 @@ void NoteModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
     Q_UNUSED(requestId)
     Q_UNUSED(m_notebookCache.remove(notebook.localUid()))
 
-    auto it = m_noteRestrictionsByNotebookLocalUid.find(notebook.localUid());
-    if (it == m_noteRestrictionsByNotebookLocalUid.end()) {
-        Restrictions restrictions;
-        restrictions.m_canCreateNotes = false;
-        restrictions.m_canUpdateNotes = false;
-        m_noteRestrictionsByNotebookLocalUid[notebook.localUid()] = restrictions;
-        return;
+    NotebookData notebookData;
+    notebookData.m_localUid = notebook.localUid();
+
+    if (notebook.hasGuid()) {
+        notebookData.m_guid = notebook.guid();
     }
 
-    it->m_canCreateNotes = false;
-    it->m_canUpdateNotes = false;
+    if (notebook.hasName()) {
+        notebookData.m_name = notebook.name();
+    }
+
+    notebookData.m_canCreateNotes = false;
+    notebookData.m_canUpdateNotes = false;
+
+    NotebookDataByLocalUid & notebookDataByLocalUid = m_notebookData.get<ByNotebookLocalUid>();
+    auto it = notebookDataByLocalUid.find(notebook.localUid());
+    if (it == notebookDataByLocalUid.end()) {
+        Q_UNUSED(notebookDataByLocalUid.insert(notebookData))
+    }
+    else {
+        Q_UNUSED(notebookDataByLocalUid.replace(it, notebookData))
+    }
 }
 
 void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
@@ -839,7 +851,7 @@ QVariant NoteModel::dataText(const int row, const Columns::type column) const
     case Columns::PreviewText:
         return item.previewText();
     case Columns::ThumbnailImageFilePath:
-        return item.thumbnailImageFilePath();
+        return item.thumbnail();
     case Columns::NotebookName:
         return item.notebookName();
     case Columns::TagNameList:
@@ -1020,7 +1032,7 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
         return;
     }
 
-    index.insert(positionIter, itemCopy);
+    Q_UNUSED(index.insert(positionIter, itemCopy))
 }
 
 void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
@@ -1088,55 +1100,73 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
 
 bool NoteModel::canUpdateNoteItem(const NoteModelItem & item) const
 {
-    auto it = m_noteRestrictionsByNotebookLocalUid.find(item.notebookLocalUid());
-    if (it == m_noteRestrictionsByNotebookLocalUid.end()) {
+    const NotebookData * pNotebookData = notebookDataForItem(item);
+    if (!pNotebookData) {
+        QNDEBUG("Can't find the notebook data for note with local uid " << item.localUid());
         return false;
     }
 
-    const Restrictions & restrictions = it.value();
-    return restrictions.m_canUpdateNotes;
+    return pNotebookData->m_canUpdateNotes;
 }
 
 bool NoteModel::canCreateNoteItem(const QString & notebookLocalUid) const
 {
-    auto it = m_noteRestrictionsByNotebookLocalUid.find(notebookLocalUid);
-    if (it == m_noteRestrictionsByNotebookLocalUid.end()) {
+    if (notebookLocalUid.isEmpty()) {
+        QNDEBUG("NoteModel::canCreateNoteItem: empty notebook local uid");
         return false;
     }
 
-    const Restrictions & restrictions = it.value();
-    return restrictions.m_canCreateNotes;
+    const NotebookDataByLocalUid & notebookDataByLocalUid = m_notebookData.get<ByNotebookLocalUid>();
+    auto it = notebookDataByLocalUid.find(notebookLocalUid);
+    if (it != notebookDataByLocalUid.end()) {
+        return it->m_canCreateNotes;
+    }
+
+    QNDEBUG("Can't find the notebook data for notebook local uid " << notebookLocalUid);
+    return false;
 }
 
-void NoteModel::updateRestrictionsFromNotebook(const Notebook & notebook)
+void NoteModel::updateNotebookData(const Notebook & notebook)
 {
-    QNDEBUG("NoteModel::updateRestrictionsFromNotebook: local uid = " << notebook.localUid());
+    QNDEBUG("NoteModel::updateNotebookData: local uid = " << notebook.localUid());
 
-    Restrictions restrictions;
+    NotebookData notebookData;
+    notebookData.m_localUid = notebook.localUid();
 
     if (!notebook.hasRestrictions())
     {
-        restrictions.m_canCreateNotes = true;
-        restrictions.m_canUpdateNotes = true;
+        notebookData.m_canCreateNotes = true;
+        notebookData.m_canUpdateNotes = true;
     }
     else
     {
         const qevercloud::NotebookRestrictions & notebookRestrictions = notebook.restrictions();
-        restrictions.m_canCreateNotes = (notebookRestrictions.noCreateNotes.isSet()
+        notebookData.m_canCreateNotes = (notebookRestrictions.noCreateNotes.isSet()
                                          ? (!notebookRestrictions.noCreateNotes.ref())
                                          : true);
-        restrictions.m_canUpdateNotes = (notebookRestrictions.noUpdateNotes.isSet()
+        notebookData.m_canUpdateNotes = (notebookRestrictions.noUpdateNotes.isSet()
                                          ? (!notebookRestrictions.noUpdateNotes.ref())
                                          : true);
     }
 
-    m_noteRestrictionsByNotebookLocalUid[notebook.localUid()] = restrictions;
-    QNDEBUG("Set restrictions for notes from notebook with local uid " << notebook.localUid()
-            << ": can create notes = " << (restrictions.m_canCreateNotes ? "true" : "false")
-            << ": can update notes = " << (restrictions.m_canUpdateNotes ? "true" : "false"));
+    if (notebook.hasName()) {
+        notebookData.m_name = notebook.name();
+    }
+
+    if (notebook.hasGuid()) {
+        notebookData.m_guid = notebook.guid();
+    }
+
+    NotebookDataByLocalUid & notebookDataByLocalUid = m_notebookData.get<ByNotebookLocalUid>();
+    Q_UNUSED(notebookDataByLocalUid.insert(notebookData))
+
+    QNDEBUG("Collected notebook data from notebook with local uid " << notebook.localUid()
+            << ": guid = " << notebookData.m_guid << "; name = " << notebookData.m_name
+            << ": can create notes = " << (notebookData.m_canCreateNotes ? "true" : "false")
+            << ": can update notes = " << (notebookData.m_canUpdateNotes ? "true" : "false"));
 }
 
-void NoteModel::onNoteAddedOrUpdated(const Note & note, const Notebook * pNotebook)
+void NoteModel::onNoteAddedOrUpdated(const Note & note)
 {
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -1145,38 +1175,173 @@ void NoteModel::onNoteAddedOrUpdated(const Note & note, const Notebook * pNotebo
     auto itemIt = localUidIndex.find(note.localUid());
     bool newNote = (itemIt == localUidIndex.end());
     if (newNote) {
-        onNoteAdded(note, pNotebook);
+        onNoteAdded(note);
     }
     else {
-        onNoteUpdated(note, pNotebook, itemIt);
+        onNoteUpdated(note, itemIt);
     }
 }
 
-void NoteModel::onNoteAdded(const Note & note, const Notebook * pNotebook)
+void NoteModel::onNoteAdded(const Note & note)
 {
     QNDEBUG("NoteModel::onNoteAdded: note local uid = " << note.localUid());
+
+    if (!note.hasNotebookGuid() && !note.hasNotebookLocalUid()) {
+        QNWARNING("Skipping the note which has neither notebook guid nor notebook local uid: " << note);
+        return;
+    }
 
     NoteModelItem item;
     noteToItem(note, item);
 
-    // TODO: implement
+    const NotebookData * notebookData = notebookDataForItem(item);
+    if (!notebookData)
+    {
+        bool findNotebookRequestSent = false;
+
+        QString notebookId;
+        if (note.hasNotebookLocalUid()) {
+            notebookId = note.notebookLocalUid();
+        }
+        else {
+            notebookId = note.notebookGuid();
+        }
+
+        auto it = m_findNotebookRequestForNotebookId.left.find(notebookId);
+        if (it != m_findNotebookRequestForNotebookId.left.end()) {
+            findNotebookRequestSent = true;
+        }
+
+        if (!findNotebookRequestSent)
+        {
+            Notebook notebook;
+            if (note.hasNotebookLocalUid()) {
+                notebook.setLocalUid(note.notebookLocalUid());
+            }
+            else {
+                notebook.setLocalUid(QString());
+                notebook.setGuid(note.notebookGuid());
+            }
+
+            // TODO: need to somehow mark the note item as pending the update when the notebook data is fetched for it
+
+            QUuid requestId = QUuid::createUuid();
+            Q_UNUSED(m_findNotebookRequestForNotebookId.insert(NotebookIdWithFindNotebookRequestIdBimap::value_type(notebookId, requestId)))
+            QNTRACE("Emitting the request to find notebook: " << (note.hasNotebookLocalUid() ? "local uid" : "guid")
+                    << " = " << notebookId << ", request id = " << requestId);
+            emit findNotebook(notebook, requestId);
+        }
+    }
+
+    // TODO: implement further
     Q_UNUSED(note)
-    Q_UNUSED(pNotebook)
 }
 
-void NoteModel::onNoteUpdated(const Note & note, const Notebook * pNotebook, NoteDataByLocalUid::iterator it)
+void NoteModel::onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it)
 {
     // TODO: implement
     Q_UNUSED(note)
-    Q_UNUSED(pNotebook)
     Q_UNUSED(it)
 }
 
 void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(item)
+    item.setLocalUid(note.localUid());
+
+    if (note.hasGuid()) {
+        item.setGuid(note.guid());
+    }
+
+    if (note.hasNotebookGuid()) {
+        item.setNotebookGuid(note.notebookGuid());
+    }
+
+    if (note.hasNotebookLocalUid()) {
+        item.setNotebookLocalUid(note.notebookLocalUid());
+    }
+
+    if (note.hasTitle()) {
+        item.setTitle(note.title());
+    }
+
+    if (note.hasContent()) {
+        QString previewText = note.content();
+        previewText.truncate(140);
+        item.setPreviewText(previewText);
+    }
+
+    item.setThumbnail(note.thumbnail());
+
+    // TODO: deal with the notebook name - should keep it in some local cache
+
+    if (note.hasTagGuids()) {
+        // TODO: deal with it: send requests for these tags or find their names in the local cache
+    }
+
+    if (note.hasCreationTimestamp()) {
+        item.setCreationTimestamp(note.creationTimestamp());
+    }
+
+    if (note.hasModificationTimestamp()) {
+        item.setModificationTimestamp(note.modificationTimestamp());
+    }
+
+    item.setSynchronizable(!note.isLocal());
+    item.setDirty(note.isDirty());
+
+    qint64 sizeInBytes = 0;
+    if (note.hasContent()) {
+        sizeInBytes += note.content().size();
+    }
+
+    if (note.hasResources())
+    {
+        QList<ResourceAdapter> resourceAdapters = note.resourceAdapters();
+        for(auto it = resourceAdapters.begin(), end = resourceAdapters.end(); it != end; ++it)
+        {
+            const ResourceAdapter & resourceAdapter = *it;
+
+            if (resourceAdapter.hasDataBody()) {
+                sizeInBytes += resourceAdapter.dataBody().size();
+            }
+
+            if (resourceAdapter.hasRecognitionDataBody()) {
+                sizeInBytes += resourceAdapter.recognitionDataBody().size();
+            }
+
+            if (resourceAdapter.hasAlternateDataBody()) {
+                sizeInBytes += resourceAdapter.alternateDataBody().size();
+            }
+        }
+    }
+
+    sizeInBytes = std::max(qint64(0), sizeInBytes);
+    item.setSizeInBytes(static_cast<quint64>(sizeInBytes));
+}
+
+const NoteModel::NotebookData * NoteModel::notebookDataForItem(const NoteModelItem & item) const
+{
+    QString notebookLocalUid = item.notebookLocalUid();
+    if (!notebookLocalUid.isEmpty())
+    {
+        const NotebookDataByLocalUid & notebookDataByLocalUid = m_notebookData.get<ByNotebookLocalUid>();
+        auto it = notebookDataByLocalUid.find(notebookLocalUid);
+        if (it != notebookDataByLocalUid.end()) {
+            return &(*it);
+        }
+    }
+
+    QString notebookGuid = item.notebookGuid();
+    if (!notebookGuid.isEmpty())
+    {
+        const NotebookDataByGuid & notebookDataByGuid = m_notebookData.get<ByNotebookGuid>();
+        auto it = notebookDataByGuid.find(notebookGuid);
+        if (it != notebookDataByGuid.end()) {
+            return &(*it);
+        }
+    }
+
+    return Q_NULLPTR;
 }
 
 bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
