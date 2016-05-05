@@ -629,6 +629,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     }
 
     modifiedNote.addTagGuid(newTag.guid());
+    modifiedNote.addTagLocalUid(newTag.localUid());
 
     ResourceWrapper newResource;
     newResource.setGuid("00000000-0000-0000-c000-000000000051");

@@ -31,7 +31,8 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_sortedColumn(Columns::ModificationTimestamp),
     m_sortOrder(Qt::AscendingOrder),
     m_notebookData(),
-    m_findNotebookRequestForNotebookId()
+    m_findNotebookRequestForNotebookId(),
+    m_addedNoteItemsPendingNotebookDataUpdate()
 {
     createConnections(localStorageManagerThreadWorker);
     requestNoteList();
@@ -1164,6 +1165,28 @@ void NoteModel::updateNotebookData(const Notebook & notebook)
             << ": guid = " << notebookData.m_guid << "; name = " << notebookData.m_name
             << ": can create notes = " << (notebookData.m_canCreateNotes ? "true" : "false")
             << ": can update notes = " << (notebookData.m_canUpdateNotes ? "true" : "false"));
+
+    checkAddedNoteItemsPendingNotebookData(notebookData);
+}
+
+void NoteModel::checkAddedNoteItemsPendingNotebookData(const NotebookData & notebookData)
+{
+    auto it = m_addedNoteItemsPendingNotebookDataUpdate.find(notebookData.m_localUid);
+    if ((it == m_addedNoteItemsPendingNotebookDataUpdate.end()) && !notebookData.m_guid.isEmpty()) {
+        it = m_addedNoteItemsPendingNotebookDataUpdate.find(notebookData.m_guid);
+    }
+
+    while(it != m_addedNoteItemsPendingNotebookDataUpdate.end())
+    {
+        if ((it.key() != notebookData.m_localUid) &&
+            (!notebookData.m_guid.isEmpty() || (it.key() != notebookData.m_guid)))
+        {
+            break;
+        }
+
+        addNoteItem(it.value(), notebookData);
+        Q_UNUSED(m_addedNoteItemsPendingNotebookDataUpdate.erase(it++))
+    }
 }
 
 void NoteModel::onNoteAddedOrUpdated(const Note & note)
@@ -1207,6 +1230,8 @@ void NoteModel::onNoteAdded(const Note & note)
             notebookId = note.notebookGuid();
         }
 
+        Q_UNUSED(m_addedNoteItemsPendingNotebookDataUpdate.insert(notebookId, item))
+
         auto it = m_findNotebookRequestForNotebookId.left.find(notebookId);
         if (it != m_findNotebookRequestForNotebookId.left.end()) {
             findNotebookRequestSent = true;
@@ -1223,18 +1248,24 @@ void NoteModel::onNoteAdded(const Note & note)
                 notebook.setGuid(note.notebookGuid());
             }
 
-            // TODO: need to somehow mark the note item as pending the update when the notebook data is fetched for it
-
             QUuid requestId = QUuid::createUuid();
             Q_UNUSED(m_findNotebookRequestForNotebookId.insert(NotebookIdWithFindNotebookRequestIdBimap::value_type(notebookId, requestId)))
             QNTRACE("Emitting the request to find notebook: " << (note.hasNotebookLocalUid() ? "local uid" : "guid")
                     << " = " << notebookId << ", request id = " << requestId);
             emit findNotebook(notebook, requestId);
         }
+
+        return;
     }
 
-    // TODO: implement further
-    Q_UNUSED(note)
+    addNoteItem(item, *notebookData);
+}
+
+void NoteModel::addNoteItem(const NoteModelItem & item, const NotebookData & notebookData)
+{
+    // TODO: implement
+    Q_UNUSED(item)
+    Q_UNUSED(notebookData)
 }
 
 void NoteModel::onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it)

@@ -261,6 +261,8 @@ private:
     void fillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     bool fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QString &errorDescription) const;
     void fillNoteFromSqlRecord(const QSqlRecord & record, Note & note) const;
+    bool fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column, QList<QPair<QString, int> > & tagIdsAndIndices,
+                                    QHash<QString, int> & tagIndexPerId, QString & errorDescription) const;
     bool fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
     bool fillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
                                          QString & errorDescription) const;
@@ -272,7 +274,7 @@ private:
                               QString & errorDescription) const;
     QList<Tag> fillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const;
 
-    bool findAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const;
+    bool findAndSetTagIdsPerNote(Note & note, QString & errorDescription) const;
     bool findAndSetResourcesPerNote(Note & note, QString & errorDescription,
                                     const bool withBinaryData = true) const;
     void sortSharedNotebooks(Notebook & notebook) const;

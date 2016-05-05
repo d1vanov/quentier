@@ -59,6 +59,7 @@ bool Note::operator==(const Note & other) const
 {
     return ( (d->m_qecNote == other.d->m_qecNote) &&
              (d->m_notebookLocalUid.isEqual(other.d->m_notebookLocalUid)) &&
+             (d->m_tagLocalUids == other.d->m_tagLocalUids) &&
              (d->m_resourcesAdditionalInfo == other.d->m_resourcesAdditionalInfo) &&
              (isDirty() == other.isDirty()) &&
              (isLocal() == other.isLocal()) &&
@@ -387,7 +388,7 @@ void Note::addTagGuid(const QString & guid)
 
     if (!d->m_qecNote.tagGuids->contains(guid)) {
         d->m_qecNote.tagGuids.ref() << guid;
-        QNDEBUG("Added tag with guid " << guid << " to note");
+        QNDEBUG("Added tag guid " << guid << " to the note");
     }
 }
 
@@ -409,7 +410,62 @@ void Note::removeTagGuid(const QString & guid)
         QNDEBUG("Removed tag guid " << guid << " (" << removed << ") occurences");
     }
     else {
-        QNDEBUG("Haven't removed tag guid " << guid << " because there was no such guid within note's tag guids");
+        QNDEBUG("Haven't removed tag guid " << guid << " because there was no such guid within the note's tag guids");
+    }
+}
+
+bool Note::hasTagLocalUids() const
+{
+    return !d->m_tagLocalUids.isEmpty();
+}
+
+void Note::tagLocalUids(QStringList & tagLocalUids) const
+{
+    tagLocalUids.clear();
+
+    if (d->m_tagLocalUids.isEmpty()) {
+        QNDEBUG("Note::tagLocalUids: no tag local uids set");
+        return;
+    }
+
+    tagLocalUids = d->m_tagLocalUids;
+}
+
+void Note::setTagLocalUids(const QStringList & tagLocalUids)
+{
+    d->m_tagLocalUids = tagLocalUids;
+}
+
+void Note::addTagLocalUid(const QString & tagLocalUid)
+{
+    if (tagLocalUid.isEmpty()) {
+        return;
+    }
+
+    if (!d->m_tagLocalUids.contains(tagLocalUid)) {
+        d->m_tagLocalUids << tagLocalUid;
+        QNDEBUG("Added tag local uid " << tagLocalUid << " to the note");
+    }
+}
+
+void Note::removeTagLocalUid(const QString & tagLocalUid)
+{
+    if (tagLocalUid.isEmpty()) {
+        QNDEBUG("Cannot remove empty tag local uid");
+        return;
+    }
+
+    if (d->m_tagLocalUids.isEmpty()) {
+        QNDEBUG("No tag local uids are set, cannot remove one");
+        return;
+    }
+
+    int removed = d->m_tagLocalUids.removeAll(tagLocalUid);
+    if (removed > 0) {
+        QNDEBUG("Removed tag local uid " << tagLocalUid << " (" << removed << ") occurrences");
+    }
+    else {
+        QNDEBUG("Haven't removed tag local uid " << tagLocalUid << " because there was no such uid within the note's tag local uids");
     }
 }
 
@@ -762,6 +818,19 @@ QTextStream & Note::print(QTextStream & strm) const
         strm << "tagGuids are not set";
     }
     INSERT_DELIMITER;
+
+    if (!d->m_tagLocalUids.isEmpty())
+    {
+        strm << "tagLocalUids: {";
+        foreach(const QString & tagLocalUid, d->m_tagLocalUids) {
+            strm << "'" << tagLocalUid << "';";
+        }
+        strm << "}";
+    }
+    else {
+        strm << "tagLocalUids are not set";
+    }
+    INSERT_DELIMITER
 
     if (d->m_qecNote.resources.isSet())
     {

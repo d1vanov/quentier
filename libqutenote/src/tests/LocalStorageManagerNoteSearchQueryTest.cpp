@@ -514,6 +514,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
             int k = 0;
             while( ((i+k) < numTags) && (k < 3) ) {
                 note.addTagGuid(tags[i+k].guid());
+                note.addTagLocalUid(tags[i+k].localUid());
                 ++k;
             }
         }

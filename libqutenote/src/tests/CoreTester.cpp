@@ -583,6 +583,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         QVERIFY2(res == true, qPrintable(error));
 
         note.addTagGuid(tag.guid());
+        note.addTagLocalUid(tag.localUid());
 
         ResourceWrapper resource;
         resource.setGuid("00000000-0000-0000-c000-000000000049");

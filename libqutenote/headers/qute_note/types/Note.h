@@ -97,6 +97,12 @@ public:
     void addTagGuid(const QString & guid);
     void removeTagGuid(const QString & guid);
 
+    bool hasTagLocalUids() const;
+    void tagLocalUids(QStringList & tagLocalUids) const;
+    void setTagLocalUids(const QStringList & localUids);
+    void addTagLocalUid(const QString & localUid);
+    void removeTagLocalUid(const QString & localUid);
+
     bool hasResources() const;
     QList<ResourceAdapter> resourceAdapters() const;
     QList<ResourceWrapper> resources() const;

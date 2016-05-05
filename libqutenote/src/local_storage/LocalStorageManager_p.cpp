@@ -1449,6 +1449,9 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
     QList<QPair<QString, int> > tagGuidsAndIndices;
     QHash<QString, int> tagGuidIndexPerGuid;
 
+    QList<QPair<QString, int> > tagLocalUidsAndIndices;
+    QHash<QString, int> tagLocalUidIndexPerUid;
+
     size_t counter = 0;
     while(query.next())
     {
@@ -1478,39 +1481,14 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
             }
         }
 
-        int tagGuidIndex = rec.indexOf("tag");
-        if (tagGuidIndex >= 0)
-        {
-            QVariant value = rec.value(tagGuidIndex);
-            if (!value.isNull())
-            {
-                QVariant tagGuidIndexInNoteValue = rec.value("tagIndexInNote");
-                if (tagGuidIndexInNoteValue.isNull()) {
-                    QNWARNING("tag index in note was not found in the result of SQL query");
-                    continue;
-                }
+        bool res = fillNoteTagIdFromSqlRecord(rec, "tag", tagGuidsAndIndices, tagGuidIndexPerGuid, errorDescription);
+        if (!res) {
+            return false;
+        }
 
-                bool conversionResult = false;
-                int tagGuidIndexInNote = tagGuidIndexInNoteValue.toInt(&conversionResult);
-                if (!conversionResult) {
-                    errorDescription += QT_TR_NOOP("Internal error: can't convert tag guid's index in note to int");
-                    return false;
-                }
-
-                QString tagGuid = value.toString();
-                auto it = tagGuidIndexPerGuid.find(tagGuid);
-                bool tagGuidIndexNotFound = (it == tagGuidIndexPerGuid.end());
-                if (tagGuidIndexNotFound) {
-                    int tagGuidIndexInList = tagGuidsAndIndices.size();
-                    tagGuidIndexPerGuid[tagGuid] = tagGuidIndexInList;
-                    tagGuidsAndIndices << QPair<QString, int>(tagGuid, tagGuidIndexInNote);
-                    continue;
-                }
-
-                QPair<QString, int> & tagGuidAndIndexInNote = tagGuidsAndIndices[it.value()];
-                tagGuidAndIndexInNote.first = tagGuid;
-                tagGuidAndIndexInNote.second = tagGuidIndexInNote;
-            }
+        res = fillNoteTagIdFromSqlRecord(rec, "localTag", tagLocalUidsAndIndices, tagLocalUidIndexPerUid, errorDescription);
+        if (!res) {
+            return false;
         }
     }
 
@@ -1526,16 +1504,36 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
         note.setResources(resources);
     }
 
-    int numTags = tagGuidsAndIndices.size();
-    if (numTags > 0) {
+    int numTagGuids = tagGuidsAndIndices.size();
+    if (numTagGuids > 0)
+    {
         qSort(tagGuidsAndIndices.begin(), tagGuidsAndIndices.end(), QStringIntPairCompareByInt());
         QStringList tagGuids;
-        tagGuids.reserve(numTags);
-        for(int i = 0; i < numTags; ++i) {
-            tagGuids << tagGuidsAndIndices[i].first;
+        tagGuids.reserve(numTagGuids);
+        for(int i = 0; i < numTagGuids; ++i)
+        {
+            const QString & guid = tagGuidsAndIndices[i].first;
+            if (guid.isEmpty()) {
+                continue;
+            }
+
+            tagGuids << guid;
         }
 
         note.setTagGuids(tagGuids);
+    }
+
+    int numTagLocalUids = tagLocalUidsAndIndices.size();
+    if (numTagLocalUids > 0)
+    {
+        qSort(tagLocalUidsAndIndices.begin(), tagLocalUidsAndIndices.end(), QStringIntPairCompareByInt());
+        QStringList tagLocalUids;
+        tagLocalUids.reserve(numTagLocalUids);
+        for(int i = 0; i < numTagLocalUids; ++i) {
+            tagLocalUids << tagLocalUidsAndIndices[i].first;
+        }
+
+        note.setTagLocalUids(tagLocalUids);
     }
 
     QString error;
@@ -1603,7 +1601,7 @@ QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook &
         Note & note = notes[i];
 
         error.resize(0);
-        bool res = findAndSetTagGuidsPerNote(note, error);
+        bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix + error;
             QNWARNING(errorDescription);
@@ -1658,7 +1656,7 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
     {
         Note & note = notes[i];
 
-        bool res = findAndSetTagGuidsPerNote(note, error);
+        bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription += error;
             QNWARNING(errorDescription);
@@ -1857,7 +1855,7 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         QSqlRecord rec = query.record();
         fillNoteFromSqlRecord(rec, note);
 
-        res = findAndSetTagGuidsPerNote(note, error);
+        res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription += error;
             QNWARNING(errorDescription);
@@ -4817,28 +4815,43 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QS
             DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
         }
 
-        if (note.hasTagGuids())
+        bool hasTagLocalUids = note.hasTagLocalUids();
+        bool hasTagGuids = note.hasTagGuids();
+
+        if (hasTagLocalUids || hasTagGuids)
         {
             QString error;
 
-            QStringList tagGuids;
-            note.tagGuids(tagGuids);
-            int numTagGuids = tagGuids.size();
+            QStringList tagIds;
+            if (hasTagLocalUids) {
+                note.tagLocalUids(tagIds);
+            }
+            else {
+                note.tagGuids(tagIds);
+            }
+
+            int numTagIds = tagIds.size();
 
             bool res = checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
             QSqlQuery & query = m_insertOrReplaceNoteIntoNoteTagsQuery;
             DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table: "
                                          "can't prepare SQL query");
 
-            for(int i = 0; i < numTagGuids; ++i)
+            for(int i = 0; i < numTagIds; ++i)
             {
                 // NOTE: the behavior expressed here is valid since tags are synchronized before notes
                 // so they must exist within local storage database; if they don't then something went really wrong
 
-                const QString & tagGuid = tagGuids[i];
+                const QString & tagId = tagIds[i];
 
                 Tag tag;
-                tag.setGuid(tagGuid);
+                if (hasTagLocalUids) {
+                    tag.setLocalUid(tagId);
+                }
+                else {
+                    tag.setGuid(tagId);
+                }
+
                 bool res = findTag(tag, error);
                 if (!res) {
                     errorDescription += QT_TR_NOOP("failed to find one of note's tags: ");
@@ -4850,7 +4863,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QS
                 query.bindValue(":localNote", localUid);
                 query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
                 query.bindValue(":localTag", tag.localUid());
-                query.bindValue(":tag", tagGuid);
+                query.bindValue(":tag", (tag.hasGuid() ? tag.guid() : nullValue));
                 query.bindValue(":tagIndexInNote", i);
 
                 res = query.exec();
@@ -6518,6 +6531,49 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
     }
 }
 
+bool LocalStorageManagerPrivate::fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column,
+                                                            QList<QPair<QString, int> > & tagIdsAndIndices,
+                                                            QHash<QString, int> & tagIndexPerId, QString & errorDescription) const
+{
+    int tagIdIndex = record.indexOf(column);
+    if (tagIdIndex < 0) {
+        return true;
+    }
+
+    QVariant value = record.value(tagIdIndex);
+    if (value.isNull()) {
+        return true;
+    }
+
+    QVariant tagGuidIndexInNoteValue = record.value("tagIndexInNote");
+    if (tagGuidIndexInNoteValue.isNull()) {
+        QNWARNING("tag index in note was not found in the result of SQL query");
+        return true;
+    }
+
+    bool conversionResult = false;
+    int tagIndexInNote = tagGuidIndexInNoteValue.toInt(&conversionResult);
+    if (!conversionResult) {
+        errorDescription += QT_TR_NOOP("Internal error: can't convert tag's index in note to int");
+        return false;
+    }
+
+    QString tagId = value.toString();
+    auto it = tagIndexPerId.find(tagId);
+    bool tagIndexNotFound = (it == tagIndexPerId.end());
+    if (tagIndexNotFound) {
+        int tagIndexInList = tagIdsAndIndices.size();
+        tagIndexPerId[tagId] = tagIndexInList;
+        tagIdsAndIndices << QPair<QString, int>(tagId, tagIndexInNote);
+        return true;
+    }
+
+    QPair<QString, int> & tagIdAndIndexInNote = tagIdsAndIndices[it.value()];
+    tagIdAndIndexInNote.first = tagId;
+    tagIdAndIndexInNote.second = tagIndexInNote;
+    return true;
+}
+
 bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook,
                                                            QString & errorDescription) const
 {
@@ -6891,46 +6947,65 @@ QList<Tag> LocalStorageManagerPrivate::fillTagsFromSqlQuery(QSqlQuery & query, Q
     return tags;
 }
 
-bool LocalStorageManagerPrivate::findAndSetTagGuidsPerNote(Note & note, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findAndSetTagIdsPerNote(Note & note, QString & errorDescription) const
 {
-    errorDescription += QT_TR_NOOP("can't find tag guids per note: ");
+    errorDescription += QT_TR_NOOP("can't find tag guids/local uids per note: ");
 
     const QString noteLocalUid = note.localUid();
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT tag, tagIndexInNote FROM NoteTags WHERE localNote = ?");
+    query.prepare("SELECT tag, localTag, tagIndexInNote FROM NoteTags WHERE localNote = ?");
     query.addBindValue(noteLocalUid);
 
     bool res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't select note tags from \"NoteTags\" table in SQL database");
 
     QMultiHash<int, QString> tagGuidsAndIndices;
+    QMultiHash<int, QString> tagLocalUidsAndIndices;
+
     while (query.next())
     {
         QSqlRecord rec = query.record();
 
+        QString tagLocalUid;
         QString tagGuid;
-        bool tagFound = false;
-        int tagIndex = rec.indexOf("tag");
-        if (tagIndex >= 0) {
-            QVariant value = rec.value(tagIndex);
+
+        bool tagLocalUidFound = false;
+        bool tagGuidFound = false;
+
+        int tagGuidIndex = rec.indexOf("tag");
+        if (tagGuidIndex >= 0) {
+            QVariant value = rec.value(tagGuidIndex);
+            tagGuid = value.toString();
+            tagGuidFound = true;
+        }
+
+        int tagLocalUidIndex = rec.indexOf("localTag");
+        if (tagLocalUidIndex >= 0)
+        {
+            QVariant value = rec.value(tagLocalUidIndex);
             if (!value.isNull()) {
-                tagGuid = value.toString();
-                tagFound = true;
+                tagLocalUid = value.toString();
+                tagLocalUidFound = true;
             }
         }
 
-        if (!tagFound) {
+        if (!tagLocalUidFound) {
+            errorDescription += QT_TR_NOOP("Internal error: can't find tag local uid in the result of SQL query");
+            return false;
+        }
+
+        if (!tagGuidFound) {
             errorDescription += QT_TR_NOOP("Internal error: can't find tag guid in the result of SQL query");
             return false;
         }
 
-        if (!checkGuid(tagGuid)) {
+        if (!tagGuid.isEmpty() && !checkGuid(tagGuid)) {
             errorDescription += QT_TR_NOOP("found invalid tag guid for requested note");
             return false;
         }
 
-        QNDEBUG("Found tag guid " << tagGuid << " for note with local uid " << noteLocalUid);
+        QNDEBUG("Found tag local uid " << tagLocalUid << " and tag guid " << tagGuid << " for note with local uid " << noteLocalUid);
 
         int indexInNote = -1;
         int recordIndex = rec.indexOf("tagIndexInNote");
@@ -6949,23 +7024,51 @@ bool LocalStorageManagerPrivate::findAndSetTagGuidsPerNote(Note & note, QString 
             }
         }
 
-        tagGuidsAndIndices.insertMulti(indexInNote, tagGuid);
+        tagLocalUidsAndIndices.insert(indexInNote, tagLocalUid);
+
+        if (!tagGuid.isEmpty()) {
+            tagGuidsAndIndices.insert(indexInNote, tagGuid);
+        }
     }
+
+    // Setting tag local uids
+
+    int numTagLocalUids = tagLocalUidsAndIndices.size();
+    QList<QPair<QString, int> > tagLocalUidIndexPairs;
+    tagLocalUidIndexPairs.reserve(std::max(numTagLocalUids, 0));
+    for(auto it = tagLocalUidsAndIndices.begin(), end = tagLocalUidsAndIndices.end(); it != end; ++it) {
+        tagLocalUidIndexPairs << QPair<QString, int>(it.value(), it.key());
+    }
+
+    qSort(tagLocalUidIndexPairs.begin(), tagLocalUidIndexPairs.end(), QStringIntPairCompareByInt());
+    QStringList tagLocalUids;
+    tagLocalUids.reserve(std::max(numTagLocalUids, 0));
+    for(int i = 0; i < numTagLocalUids; ++i) {
+        tagLocalUids << tagLocalUidIndexPairs[i].first;
+    }
+
+    note.setTagLocalUids(tagLocalUids);
+
+    // Setting tag guids
 
     int numTagGuids = tagGuidsAndIndices.size();
     QList<QPair<QString, int> > tagGuidIndexPairs;
     tagGuidIndexPairs.reserve(std::max(numTagGuids, 0));
-    for(QMultiHash<int, QString>::ConstIterator it = tagGuidsAndIndices.constBegin();
-        it != tagGuidsAndIndices.constEnd(); ++it)
-    {
+    for(auto it = tagGuidsAndIndices.begin(), end = tagGuidsAndIndices.end(); it != end; ++it) {
         tagGuidIndexPairs << QPair<QString, int>(it.value(), it.key());
     }
 
     qSort(tagGuidIndexPairs.begin(), tagGuidIndexPairs.end(), QStringIntPairCompareByInt());
     QStringList tagGuids;
     tagGuids.reserve(std::max(numTagGuids, 0));
-    for(int i = 0; i < numTagGuids; ++i) {
-        tagGuids << tagGuidIndexPairs[i].first;
+    for(int i = 0; i < numTagGuids; ++i)
+    {
+        const QString & guid = tagGuidIndexPairs[i].first;
+        if (guid.isEmpty()) {
+            continue;
+        }
+
+        tagGuids << guid;
     }
 
     note.setTagGuids(tagGuids);

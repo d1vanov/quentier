@@ -38,9 +38,10 @@ public:
         bool operator==(const ResourceAdditionalInfo & other) const;
     };
 
-    QList<ResourceAdditionalInfo> m_resourcesAdditionalInfo;
-    qevercloud::Optional<QString> m_notebookLocalUid;
-    QImage  m_thumbnail;
+    QList<ResourceAdditionalInfo>   m_resourcesAdditionalInfo;
+    qevercloud::Optional<QString>   m_notebookLocalUid;
+    QStringList                     m_tagLocalUids;
+    QImage                          m_thumbnail;
 
 private:
     NoteData & operator=(const NoteData & other) Q_DECL_DELETE;

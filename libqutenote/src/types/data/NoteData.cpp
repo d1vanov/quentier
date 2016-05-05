@@ -12,6 +12,7 @@ NoteData::NoteData() :
     m_qecNote(),
     m_resourcesAdditionalInfo(),
     m_notebookLocalUid(),
+    m_tagLocalUids(),
     m_thumbnail()
 {}
 
@@ -20,6 +21,7 @@ NoteData::NoteData(const NoteData & other) :
     m_qecNote(other.m_qecNote),
     m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
     m_notebookLocalUid(other.m_notebookLocalUid),
+    m_tagLocalUids(other.m_tagLocalUids),
     m_thumbnail(other.m_thumbnail)
 {}
 
@@ -28,6 +30,7 @@ NoteData::NoteData(NoteData && other) :
     m_qecNote(std::move(other.m_qecNote)),
     m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
     m_notebookLocalUid(std::move(other.m_notebookLocalUid)),
+    m_tagLocalUids(std::move(other.m_tagLocalUids)),
     m_thumbnail(std::move(other.m_thumbnail))
 {}
 
@@ -39,6 +42,7 @@ NoteData::NoteData(const qevercloud::Note & other) :
     m_qecNote(other),
     m_resourcesAdditionalInfo(),
     m_notebookLocalUid(),
+    m_tagLocalUids(),
     m_thumbnail()
 {}
 

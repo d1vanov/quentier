@@ -211,8 +211,11 @@ private:
     void onNoteAddedOrUpdated(const Note & note);
     void onNoteAdded(const Note & note);
     void onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it);
+
     void noteToItem(const Note & note, NoteModelItem & item);
     const NotebookData * notebookDataForItem(const NoteModelItem & item) const;
+    void checkAddedNoteItemsPendingNotebookData(const NotebookData & notebookData);
+    void addNoteItem(const NoteModelItem & item, const NotebookData & notebookData);
 
 private:
     NoteData                m_data;
@@ -234,10 +237,12 @@ private:
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
 
-    NotebookDataContainer           m_notebookData;
+    NotebookDataContainer   m_notebookData;
 
     typedef boost::bimap<QString, QUuid> NotebookIdWithFindNotebookRequestIdBimap;
     NotebookIdWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookId;
+
+    QMultiHash<QString, NoteModelItem>   m_addedNoteItemsPendingNotebookDataUpdate;   // The key is either notebook local uid (if available) or notebook guid
 };
 
 } // namespace qute_note
