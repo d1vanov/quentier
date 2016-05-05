@@ -1929,16 +1929,16 @@ void CoreTester::localStorageManagerAsyncSavedSearchesTest()
         SavedSearchLocalStorageManagerAsyncTester savedSearchAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&savedSearchAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&savedSearchAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&savedSearchAsyncTester, QNSIGNAL(SavedSearchLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&savedSearchAsyncTester, QNSIGNAL(SavedSearchLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &savedSearchAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &savedSearchAsyncTester, QNSLOT(SavedSearchLocalStorageManagerAsyncTester,onInitTestCase));
         savedSeachAsyncTestsResult = loop.exec();
     }
 
@@ -1964,16 +1964,16 @@ void CoreTester::localStorageManagerAsyncLinkedNotebooksTest()
         LinkedNotebookLocalStorageManagerAsyncTester linkedNotebookAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&linkedNotebookAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&linkedNotebookAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&linkedNotebookAsyncTester, QNSIGNAL(LinkedNotebookLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&linkedNotebookAsyncTester, QNSIGNAL(LinkedNotebookLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &linkedNotebookAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &linkedNotebookAsyncTester, QNSLOT(LinkedNotebookLocalStorageManagerAsyncTester,onInitTestCase));
         linkedNotebookAsyncTestResult = loop.exec();
     }
 
@@ -1999,16 +1999,16 @@ void CoreTester::localStorageManagerAsyncTagsTest()
         TagLocalStorageManagerAsyncTester tagAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&tagAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&tagAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&tagAsyncTester, QNSIGNAL(TagLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&tagAsyncTester, QNSIGNAL(TagLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &tagAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &tagAsyncTester, QNSLOT(TagLocalStorageManagerAsyncTester,onInitTestCase));
         tagAsyncTestResult = loop.exec();
     }
 
@@ -2034,16 +2034,16 @@ void CoreTester::localStorageManagerAsyncUsersTest()
         UserLocalStorageManagerAsyncTester userAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&userAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&userAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&userAsyncTester, QNSIGNAL(UserLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&userAsyncTester, QNSIGNAL(UserLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &userAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &userAsyncTester, QNSLOT(UserLocalStorageManagerAsyncTester,onInitTestCase));
         userAsyncTestResult = loop.exec();
     }
 
@@ -2069,16 +2069,16 @@ void CoreTester::localStorageManagerAsyncNotebooksTest()
         NotebookLocalStorageManagerAsyncTester notebookAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&notebookAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&notebookAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&notebookAsyncTester, QNSIGNAL(NotebookLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&notebookAsyncTester, QNSIGNAL(NotebookLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &notebookAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &notebookAsyncTester, QNSLOT(NotebookLocalStorageManagerAsyncTester,onInitTestCase));
         notebookAsyncTestResult = loop.exec();
     }
 
@@ -2104,16 +2104,16 @@ void CoreTester::localStorageManagerAsyncNotesTest()
         NoteLocalStorageManagerAsyncTester noteAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&noteAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&noteAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&noteAsyncTester, QNSIGNAL(NoteLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&noteAsyncTester, QNSIGNAL(NoteLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &noteAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &noteAsyncTester, QNSLOT(NoteLocalStorageManagerAsyncTester,onInitTestCase));
         noteAsyncTestResult = loop.exec();
     }
 
@@ -2139,16 +2139,16 @@ void CoreTester::localStorageManagerAsyncResourceTest()
         ResourceLocalStorageManagerAsyncTester resourceAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&resourceAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&resourceAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&resourceAsyncTester, QNSIGNAL(ResourceLocalStorageManagerAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&resourceAsyncTester, QNSIGNAL(ResourceLocalStorageManagerAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &resourceAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &resourceAsyncTester, QNSLOT(ResourceLocalStorageManagerAsyncTester,onInitTestCase));
         resourceAsyncTestResult = loop.exec();
     }
 
@@ -2174,16 +2174,16 @@ void CoreTester::localStorageCacheManagerTest()
         LocalStorageCacheAsyncTester localStorageCacheAsyncTester;
 
         EventLoopWithExitStatus loop;
-        loop.connect(&timer, SIGNAL(timeout()), SLOT(exitAsTimeout()));
-        loop.connect(&localStorageCacheAsyncTester, SIGNAL(success()), SLOT(exitAsSuccess()));
-        loop.connect(&localStorageCacheAsyncTester, SIGNAL(failure(QString)), SLOT(exitAsFailure()));
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&localStorageCacheAsyncTester, QNSIGNAL(LocalStorageCacheAsyncTester,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&localStorageCacheAsyncTester, QNSIGNAL(LocalStorageCacheAsyncTester,failure,QString), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailureWithError,QString));
 
         QTimer slotInvokingTimer;
         slotInvokingTimer.setInterval(500);
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &localStorageCacheAsyncTester, SLOT(onInitTestCase()));
+        slotInvokingTimer.singleShot(0, &localStorageCacheAsyncTester, QNSLOT(LocalStorageCacheAsyncTester,onInitTestCase));
         localStorageCacheAsyncTestResult = loop.exec();
     }
 
