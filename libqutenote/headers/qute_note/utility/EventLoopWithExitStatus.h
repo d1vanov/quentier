@@ -24,6 +24,7 @@ public:
 public Q_SLOTS:
     void exitAsSuccess();
     void exitAsFailure();
+    void exitAsFailureWithError(QString errorDescription);
     void exitAsTimeout();
 };
 

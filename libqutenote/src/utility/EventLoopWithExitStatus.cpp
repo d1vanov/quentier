@@ -22,4 +22,10 @@ void EventLoopWithExitStatus::exitAsTimeout()
     QEventLoop::exit(ExitStatus::Timeout);
 }
 
+void EventLoopWithExitStatus::exitAsFailureWithError(QString errorDescription)
+{
+    Q_UNUSED(errorDescription)
+    QEventLoop::exit(ExitStatus::Failure);
+}
+
 } // namespace qute_note

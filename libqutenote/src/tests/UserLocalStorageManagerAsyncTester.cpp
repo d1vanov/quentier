@@ -300,58 +300,60 @@ void UserLocalStorageManagerAsyncTester::onExpungeUserFailed(UserWrapper user, Q
 
 void UserLocalStorageManagerAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(failure(QString)),
-                     this, SIGNAL(failure(QString)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,failure,QString),
+                     this, QNSIGNAL(UserLocalStorageManagerAsyncTester,failure,QString));
 
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(started()), m_pLocalStorageManagerThreadWorker, SLOT(init()));
-    QObject::connect(m_pLocalStorageManagerThread, SIGNAL(finished()), m_pLocalStorageManagerThread, SLOT(deleteLater()));
+    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,started),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,init));
+    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                     m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
 
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(initialized()), this, SLOT(onWorkerInitialized()));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,initialized),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onWorkerInitialized));
 
     // Request --> slot connections
-    QObject::connect(this, SIGNAL(getUserCountRequest(QUuid)), m_pLocalStorageManagerThreadWorker,
-                     SLOT(onGetUserCountRequest(QUuid)));
-    QObject::connect(this, SIGNAL(addUserRequest(UserWrapper,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onAddUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(updateUserRequest(UserWrapper,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onUpdateUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(findUserRequest(UserWrapper,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onFindUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(deleteUserRequest(UserWrapper,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onDeleteUserRequest(UserWrapper,QUuid)));
-    QObject::connect(this, SIGNAL(expungeUserRequest(UserWrapper,QUuid)),
-                     m_pLocalStorageManagerThreadWorker, SLOT(onExpungeUserRequest(UserWrapper,QUuid)));
+    QObject::connect(this, QNSIGNAL(UserLocalStorageManagerAsyncTester,getUserCountRequest,QUuid),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onGetUserCountRequest,QUuid));
+    QObject::connect(this, QNSIGNAL(UserLocalStorageManagerAsyncTester,addUserRequest,UserWrapper,QUuid),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddUserRequest,UserWrapper,QUuid));
+    QObject::connect(this, QNSIGNAL(UserLocalStorageManagerAsyncTester,updateUserRequest,UserWrapper,QUuid),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateUserRequest,UserWrapper,QUuid));
+    QObject::connect(this, QNSIGNAL(UserLocalStorageManagerAsyncTester,findUserRequest,UserWrapper,QUuid),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindUserRequest,UserWrapper,QUuid));
+    QObject::connect(this, QNSIGNAL(UserLocalStorageManagerAsyncTester,deleteUserRequest,UserWrapper,QUuid),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onDeleteUserRequest,UserWrapper,QUuid));
+    QObject::connect(this, QNSIGNAL(UserLocalStorageManagerAsyncTester,expungeUserRequest,UserWrapper,QUuid),
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeUserRequest,UserWrapper,QUuid));
 
     // Slot <-- result connections
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getUserCountComplete(int,QUuid)),
-                     this, SLOT(onGetUserCountCompleted(int,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(getUserCountFailed(QString,QUuid)),
-                     this, SLOT(onGetUserCountFailed(QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addUserComplete(UserWrapper,QUuid)),
-                     this, SLOT(onAddUserCompleted(UserWrapper,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(addUserFailed(UserWrapper,QString,QUuid)),
-                     this, SLOT(onAddUserFailed(UserWrapper,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateUserComplete(UserWrapper,QUuid)),
-                     this, SLOT(onUpdateUserCompleted(UserWrapper,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(updateUserFailed(UserWrapper,QString,QUuid)),
-                     this, SLOT(onUpdateUserFailed(UserWrapper,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findUserComplete(UserWrapper,QUuid)),
-                     this, SLOT(onFindUserCompleted(UserWrapper,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(findUserFailed(UserWrapper,QString,QUuid)),
-                     this, SLOT(onFindUserFailed(UserWrapper,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteUserComplete(UserWrapper,QUuid)),
-                     this, SLOT(onDeleteUserCompleted(UserWrapper,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(deleteUserFailed(UserWrapper,QString,QUuid)),
-                     this, SLOT(onDeleteUserFailed(UserWrapper,QString,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeUserComplete(UserWrapper,QUuid)),
-                     this, SLOT(onExpungeUserCompleted(UserWrapper,QUuid)));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, SIGNAL(expungeUserFailed(UserWrapper,QString,QUuid)),
-                     this, SLOT(onExpungeUserFailed(UserWrapper,QString,QUuid)));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,getUserCountComplete,int,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onGetUserCountCompleted,int,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,getUserCountFailed,QString,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onGetUserCountFailed,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addUserComplete,UserWrapper,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onAddUserCompleted,UserWrapper,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addUserFailed,UserWrapper,QString,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onAddUserFailed,UserWrapper,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateUserComplete,UserWrapper,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onUpdateUserCompleted,UserWrapper,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateUserFailed,UserWrapper,QString,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onUpdateUserFailed,UserWrapper,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findUserComplete,UserWrapper,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onFindUserCompleted,UserWrapper,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findUserFailed,UserWrapper,QString,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onFindUserFailed,UserWrapper,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteUserComplete,UserWrapper,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onDeleteUserCompleted,UserWrapper,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteUserFailed,UserWrapper,QString,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onDeleteUserFailed,UserWrapper,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeUserComplete,UserWrapper,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onExpungeUserCompleted,UserWrapper,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeUserFailed,UserWrapper,QString,QUuid),
+                     this, QNSLOT(UserLocalStorageManagerAsyncTester,onExpungeUserFailed,UserWrapper,QString,QUuid));
 }
 
 #undef HANDLE_WRONG_STATE
 
 } // namespace test
 } // namespace qute_note
-
 
