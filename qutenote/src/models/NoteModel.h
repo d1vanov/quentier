@@ -4,6 +4,7 @@
 #include "NoteModelItem.h"
 #include "NotebookCache.h"
 #include <qute_note/types/Note.h>
+#include <qute_note/types/Tag.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -84,7 +85,9 @@ Q_SIGNALS:
                    QUuid requestId);
     void deleteNote(Note note, QUuid requestId);
     void expungeNote(Note note, QUuid requestId);
+
     void findNotebook(Notebook notebook, QUuid requestId);
+    void findTag(Tag tag, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -113,6 +116,11 @@ private Q_SLOTS:
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
+    void onFindTagComplete(Tag tag, QUuid requestId);
+    void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onUpdateTagComplete(Tag tag, QUuid requestId);
+    void onExpungeTagComplete(Tag tag, QUuid requestId);
+
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNoteList();
@@ -130,7 +138,7 @@ private:
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
     void updateNotebookData(const Notebook & notebook);
 
-    bool findNotebookDataForDNote(const Note & note);
+    void updateTagData(const Tag & tag);
 
 private:
     struct ByLocalUid{};
@@ -200,7 +208,7 @@ private:
 
     void noteToItem(const Note & note, NoteModelItem & item);
     void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData);
-    void addNoteItem(const NoteModelItem & item, const NotebookData & notebookData);
+    void addNoteItem(NoteModelItem & item, const NotebookData & notebookData);
 
 private:
     NoteData                m_data;

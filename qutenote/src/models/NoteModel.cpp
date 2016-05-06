@@ -742,6 +742,105 @@ void NoteModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
     }
 }
 
+void NoteModel::onFindTagComplete(Tag tag, QUuid requestId)
+{
+    auto it = m_findTagRequestForTagLocalUid.right.find(requestId);
+    if (it == m_findTagRequestForTagLocalUid.right.end()) {
+        return;
+    }
+
+    QNDEBUG("NoteModel::onFindTagComplete: tag: " << tag << "\nRequest id = " << requestId);
+
+    Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
+
+    updateTagData(tag);
+}
+
+void NoteModel::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+{
+    auto it = m_findTagRequestForTagLocalUid.right.find(requestId);
+    if (it == m_findTagRequestForTagLocalUid.right.end()) {
+        return;
+    }
+
+    QNWARNING("NoteModel::onFindTagFailed: tag: " << tag << "\nError description = "
+              << errorDescription << ", request id = " << requestId);
+
+    Q_UNUSED(m_findTagRequestForTagLocalUid.right.erase(it))
+
+    emit notifyError(errorDescription);
+}
+
+void NoteModel::onUpdateTagComplete(Tag tag, QUuid requestId)
+{
+    QNDEBUG("NoteModel::onUpdateTagComplete: tag = " << tag << ", request id = " << requestId);
+    updateTagData(tag);
+}
+
+void NoteModel::onExpungeTagComplete(Tag tag, QUuid requestId)
+{
+    QNDEBUG("NoteModel::onExpungeTagComplete: tag = " << tag << ", request id = " << requestId);
+
+    auto it = m_tagDataByTagLocalUid.find(tag.localUid());
+    if (it == m_tagDataByTagLocalUid.end()) {
+        QNTRACE("Tag data corresponding to the expunged tag was not found within the note model");
+        return;
+    }
+
+    QString tagGuid = it->m_guid;
+    QString tagName = it->m_name;
+
+    Q_UNUSED(m_tagDataByTagLocalUid.erase(it))
+
+    auto noteIt = m_tagLocalUidToNoteLocalUid.find(tag.localUid());
+    if (noteIt == m_tagLocalUidToNoteLocalUid.end()) {
+        return;
+    }
+
+    bool sortingByTagNames = (m_sortedColumn == Columns::TagNameList);
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    if (sortingByTagNames) {
+        emit layoutAboutToBeChanged();
+    }
+
+    while(noteIt != m_tagLocalUidToNoteLocalUid.end())
+    {
+        if (noteIt.key() != tag.localUid()) {
+            break;
+        }
+
+        auto noteItemIt = localUidIndex.find(noteIt.value());
+        if (Q_UNLIKELY(noteItemIt == localUidIndex.end())) {
+            QNDEBUG("Can't find the note pointed to by the expunged tag by local uid: note local uid = " << noteIt.value());
+            Q_UNUSED(m_tagLocalUidToNoteLocalUid.erase(noteIt++))
+            continue;
+        }
+
+        NoteModelItem item = *noteItemIt;
+
+        item.removeTagGuid(tagGuid);
+        item.removeTagName(tagName);
+
+        Q_UNUSED(localUidIndex.replace(noteItemIt, item))
+        ++noteIt;
+
+        if (!sortingByTagNames) {
+            QModelIndex modelIndex = indexForLocalUid(item.localUid());
+            modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
+            emit dataChanged(modelIndex, modelIndex);
+        }
+        else {
+            updateItemRowWithRespectToSorting(item);
+        }
+    }
+
+    if (sortingByTagNames) {
+        emit layoutChanged();
+    }
+}
+
 void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
 {
     QNDEBUG("NoteModel::createConnections");
@@ -802,6 +901,14 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      this, QNSLOT(NoteModel,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteModel,onExpungeNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
+                     this, QNSLOT(NoteModel,onFindTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QString,QUuid),
+                     this, QNSLOT(NoteModel,onFindTagFailed,Tag,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
+                     this, QNSLOT(NoteModel,onExpungeTagComplete,Tag,QUuid));
 }
 
 void NoteModel::requestNoteList()
@@ -1152,6 +1259,99 @@ void NoteModel::updateNotebookData(const Notebook & notebook)
     checkAddedNoteItemsPendingNotebookData(notebook.localUid(), notebookData);
 }
 
+void NoteModel::updateTagData(const Tag & tag)
+{
+    QNDEBUG("NoteModel::updateTagData: tag local uid = " << tag.localUid());
+
+    bool hasName = tag.hasName();
+    bool hasGuid = tag.hasGuid();
+
+    TagData & tagData = m_tagDataByTagLocalUid[tag.localUid()];
+
+    if (hasName) {
+        tagData.m_name = tag.name();
+    }
+    else {
+        tagData.m_name.resize(0);
+    }
+
+    if (hasGuid) {
+        tagData.m_guid = tag.guid();
+    }
+    else {
+        tagData.m_guid.resize(0);
+    }
+
+    auto noteIt = m_tagLocalUidToNoteLocalUid.find(tag.localUid());
+    if (noteIt == m_tagLocalUidToNoteLocalUid.end()) {
+        return;
+    }
+
+    bool sortingByTagNames = (m_sortedColumn == Columns::TagNameList);
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    if (sortingByTagNames) {
+        emit layoutAboutToBeChanged();
+    }
+
+    while(noteIt != m_tagLocalUidToNoteLocalUid.end())
+    {
+        if (noteIt.key() != tag.localUid()) {
+            break;
+        }
+
+        auto noteItemIt = localUidIndex.find(noteIt.value());
+        if (Q_UNLIKELY(noteItemIt == localUidIndex.end())) {
+            QNDEBUG("Can't find the note pointed to by a tag by local uid: note local uid = " << noteIt.value());
+            Q_UNUSED(m_tagLocalUidToNoteLocalUid.erase(noteIt++))
+            continue;
+        }
+
+        NoteModelItem item = *noteItemIt;
+        QStringList tagLocalUids = item.tagLocalUids();
+
+        // Need to refresh all the tag names and guids because it is generally unknown which particular tag was updated
+        item.setTagNameList(QStringList());
+        item.setTagGuids(QStringList());
+
+        for(auto tagLocalUidIt = tagLocalUids.begin(), tagLocalUidEnd = tagLocalUids.end(); tagLocalUidIt != tagLocalUidEnd; ++tagLocalUidIt)
+        {
+            auto tagDataIt = m_tagDataByTagLocalUid.find(*tagLocalUidIt);
+            if (tagDataIt == m_tagDataByTagLocalUid.end()) {
+                QNTRACE("Still no tag data for tag with local uid " << *tagLocalUidIt);
+                continue;
+            }
+
+            const TagData & tagData = tagDataIt.value();
+
+            if (!tagData.m_name.isEmpty()) {
+                item.addTagName(tagData.m_name);
+            }
+
+            if (!tagData.m_guid.isEmpty()) {
+                item.addTagGuid(tagData.m_guid);
+            }
+        }
+
+        Q_UNUSED(localUidIndex.replace(noteItemIt, item))
+        ++noteIt;
+
+        if (!sortingByTagNames) {
+            QModelIndex modelIndex = indexForLocalUid(item.localUid());
+            modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
+            emit dataChanged(modelIndex, modelIndex);
+        }
+        else {
+            updateItemRowWithRespectToSorting(item);
+        }
+    }
+
+    if (sortingByTagNames) {
+        emit layoutChanged();
+    }
+}
+
 void NoteModel::checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData)
 {
     auto it = m_addedNoteItemsPendingNotebookDataUpdate.find(notebookLocalUid);
@@ -1230,11 +1430,60 @@ void NoteModel::onNoteAdded(const Note & note)
     addNoteItem(item, notebookData);
 }
 
-void NoteModel::addNoteItem(const NoteModelItem & item, const NotebookData & notebookData)
+void NoteModel::addNoteItem(NoteModelItem & item, const NotebookData & notebookData)
 {
-    // TODO: implement
-    Q_UNUSED(item)
-    Q_UNUSED(notebookData)
+    QNDEBUG("NoteModel::addNoteItem: note local uid = " << item.localUid() << ", notebook local uid = "
+            << item.notebookLocalUid() << ", notebook name = " << notebookData.m_name);
+
+    if (!notebookData.m_canCreateNotes)
+    {
+        QString error = QT_TR_NOOP("Can't create a new note in the notebook") + QStringLiteral(" ") + notebookData.m_name +
+                        QStringLiteral(": ") + QT_TR_NOOP("notebook restrictions apply");
+        QNINFO(error);
+        emit notifyError(error);
+        return;
+    }
+
+    item.setNotebookName(notebookData.m_name);
+
+    const QStringList & tagLocalUids = item.tagLocalUids();
+    if (!tagLocalUids.isEmpty())
+    {
+        for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it)
+        {
+            const QString & tagLocalUid = *it;
+
+            Q_UNUSED(m_tagLocalUidToNoteLocalUid.insert(tagLocalUid, item.localUid()))
+
+            auto tagDataIt = m_tagDataByTagLocalUid.find(tagLocalUid);
+            if (tagDataIt != m_tagDataByTagLocalUid.end()) {
+                QNTRACE("Found tag data for tag local uid " << tagLocalUid
+                        << ": tag name = " << tagDataIt->m_name);
+                item.addTagName(tagDataIt->m_name);
+                continue;
+            }
+
+            QNTRACE("Tag data for tag local uid " << tagLocalUid << " was not found");
+
+            auto requestIt = m_findTagRequestForTagLocalUid.left.find(tagLocalUid);
+            if (requestIt != m_findTagRequestForTagLocalUid.left.end()) {
+                QNTRACE("The request to find tag corresponding to local uid " << tagLocalUid
+                        << " has already been sent: request id = " << requestIt->second);
+                continue;
+            }
+
+            QUuid requestId = QUuid::createUuid();
+            Q_UNUSED(m_findTagRequestForTagLocalUid.insert(LocalUidToRequestIdBimap::value_type(tagLocalUid, requestId)))
+
+            Tag tag;
+            tag.setLocalUid(tagLocalUid);
+            QNTRACE("Emitting the request to find tag: tag local uid = " << tagLocalUid << ", request id = " << requestId);
+            emit findTag(tag, requestId);
+        }
+    }
+
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    localUidIndex.insert(item);
 }
 
 void NoteModel::onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it)
