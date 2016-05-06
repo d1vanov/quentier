@@ -10,6 +10,7 @@
 #include <qute_note/logging/QuteNoteLogger.h>
 #include <qute_note/utility/DesktopServices.h>
 #include <qute_note/utility/SysInfo.h>
+#include <qute_note/utility/UidGenerator.h>
 #include <qute_note/types/ResourceRecognitionIndices.h>
 #include <algorithm>
 
@@ -564,7 +565,8 @@ bool LocalStorageManagerPrivate::addNotebook(const Notebook & notebook, QString 
         column = "guid";
         guid = notebook.guid();
 
-        if (localUid.isEmpty()) {
+        if (localUid.isEmpty())
+        {
             QString queryString = QString("SELECT localUid FROM Notebooks WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
@@ -580,11 +582,12 @@ bool LocalStorageManagerPrivate::addNotebook(const Notebook & notebook, QString 
                 return false;
             }
 
-            localUid = QUuid::createUuid().toString();
+            localUid = UidGenerator::Generate();
             shouldCheckRowExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = localUid;
     }
@@ -625,7 +628,8 @@ bool LocalStorageManagerPrivate::updateNotebook(const Notebook & notebook, QStri
         column = "guid";
         guid = notebook.guid();
 
-        if (localUid.isEmpty()) {
+        if (localUid.isEmpty())
+        {
             QString queryString = QString("SELECT localUid FROM Notebooks WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
@@ -644,7 +648,8 @@ bool LocalStorageManagerPrivate::updateNotebook(const Notebook & notebook, QStri
             shouldCheckRowExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = localUid;
     }
@@ -1056,7 +1061,7 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) 
 }
 
 bool LocalStorageManagerPrivate::addLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                            QString & errorDescription)
+                                                   QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add linked notebook to local storage database: ");
     QString error;
@@ -1080,7 +1085,7 @@ bool LocalStorageManagerPrivate::addLinkedNotebook(const LinkedNotebook & linked
 }
 
 bool LocalStorageManagerPrivate::updateLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                               QString & errorDescription)
+                                                      QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't update linked notebook in local storage database: ");
     QString error;
@@ -1295,11 +1300,12 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, QString & errorDescr
                 return false;
             }
 
-            localUid = QUuid::createUuid().toString();
+            localUid = UidGenerator::Generate();
             shouldCheckNoteExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = localUid;
     }
@@ -1374,7 +1380,8 @@ bool LocalStorageManagerPrivate::updateNote(const Note & note, const bool update
             shouldCheckNoteExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = localUid;
     }
@@ -1937,11 +1944,13 @@ bool LocalStorageManagerPrivate::addTag(const Tag & tag, QString & errorDescript
     bool shouldCheckTagExistence = true;
 
     bool tagHasGuid = tag.hasGuid();
-    if (tagHasGuid) {
+    if (tagHasGuid)
+    {
         column = "guid";
         guid = tag.guid();
 
-        if (localUid.isEmpty()) {
+        if (localUid.isEmpty())
+        {
             QString queryString = QString("SELECT localUid FROM Tags WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
@@ -1957,11 +1966,12 @@ bool LocalStorageManagerPrivate::addTag(const Tag & tag, QString & errorDescript
                 return false;
             }
 
-            localUid = QUuid::createUuid().toString();
+            localUid = UidGenerator::Generate();
             shouldCheckTagExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = tag.localUid();
     }
@@ -1997,11 +2007,13 @@ bool LocalStorageManagerPrivate::updateTag(const Tag & tag, QString & errorDescr
     bool shouldCheckTagExistence = true;
 
     bool tagHasGuid = tag.hasGuid();
-    if (tagHasGuid) {
+    if (tagHasGuid)
+    {
         column = "guid";
         guid = tag.guid();
 
-        if (localUid.isEmpty()) {
+        if (localUid.isEmpty())
+        {
             QString queryString = QString("SELECT localUid FROM Tags WHERE guid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             res = query.exec(queryString);
@@ -2021,7 +2033,8 @@ bool LocalStorageManagerPrivate::updateTag(const Tag & tag, QString & errorDescr
             shouldCheckTagExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "localUid";
         guid = tag.localUid();
     }
@@ -2557,7 +2570,7 @@ bool LocalStorageManagerPrivate::addSavedSearch(const SavedSearch & search, QStr
                 return false;
             }
 
-            localUid = QUuid::createUuid().toString();
+            localUid = UidGenerator::Generate();
             shouldCheckSearchExistence = false;
         }
     }
@@ -2790,7 +2803,7 @@ bool LocalStorageManagerPrivate::addEnResource(const IResource & resource, const
                 QNCRITICAL(errorDescription << ", guid: " << guid);
             }
 
-            resourceLocalUid = QUuid::createUuid().toString();
+            resourceLocalUid = UidGenerator::Generate();
             shouldCheckResourceExistence = false;
         }
     }
