@@ -18,6 +18,8 @@ public:
                            const QString & previewText = QString(),
                            const QImage & thumbnail = QImage(),
                            const QString & notebookName = QString(),
+                           const QStringList & tagLocalUids = QStringList(),
+                           const QStringList & tagGuids = QStringList(),
                            const QStringList & tagNameList = QStringList(),
                            const qint64 creationTimestamp = 0,
                            const qint64 modificationTimestamp = 0,
@@ -49,6 +51,20 @@ public:
 
     const QString & notebookName() const { return m_notebookName; }
     void setNotebookName(const QString & notebookName) { m_notebookName = notebookName; }
+
+    const QStringList & tagLocalUids() const { return m_tagLocalUids; }
+    void setTagLocalUids(const QStringList & tagLocalUids) { m_tagLocalUids = tagLocalUids; }
+    void addTagLocalUid(const QString & tagLocalUid);
+    void removeTagLocalUid(const QString & tagLocalUid);
+    bool hasTagLocalUid(const QString & tagLocalUid) const;
+    int numTagLocalUids() const;
+
+    const QStringList & tagGuids() const { return m_tagGuids; }
+    void setTagGuids(const QStringList & tagGuids) { m_tagGuids = tagGuids; }
+    void addTagGuid(const QString & tagGuid);
+    void removeTagGuid(const QString & tagGuid);
+    bool hasTagGuid(const QString & tagGuid) const;
+    int numTagGuids() const;
 
     const QStringList & tagNameList() const { return m_tagNameList; }
     void setTagNameList(const QStringList & tagNameList) { m_tagNameList = tagNameList; }
@@ -83,6 +99,8 @@ private:
     QString     m_previewText;
     QImage      m_thumbnail;
     QString     m_notebookName;
+    QStringList m_tagLocalUids;
+    QStringList m_tagGuids;
     QStringList m_tagNameList;
     qint64      m_creationTimestamp;
     qint64      m_modificationTimestamp;

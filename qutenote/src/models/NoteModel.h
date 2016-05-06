@@ -173,39 +173,25 @@ private:
     struct NotebookData
     {
         NotebookData() :
-            m_localUid(),
-            m_guid(),
             m_name(),
+            m_guid(),
             m_canCreateNotes(false),
             m_canUpdateNotes(false)
         {}
 
-        QString m_localUid;
-        QString m_guid;
         QString m_name;
+        QString m_guid;
         bool    m_canCreateNotes;
         bool    m_canUpdateNotes;
     };
 
-    struct ByNotebookLocalUid{};
-    struct ByNotebookGuid{};
+    struct TagData
+    {
+        QString m_name;
+        QString m_guid;
+    };
 
-    typedef boost::multi_index_container<
-        NotebookData,
-        boost::multi_index::indexed_by<
-            boost::multi_index::ordered_unique<
-                boost::multi_index::tag<ByNotebookLocalUid>,
-                boost::multi_index::member<NotebookData,QString,&NotebookData::m_localUid>
-            >,
-            boost::multi_index::ordered_non_unique<
-                boost::multi_index::tag<ByNotebookGuid>,
-                boost::multi_index::member<NotebookData,QString,&NotebookData::m_guid>
-            >
-        >
-    > NotebookDataContainer;
-
-    typedef NotebookDataContainer::index<ByNotebookLocalUid>::type NotebookDataByLocalUid;
-    typedef NotebookDataContainer::index<ByNotebookGuid>::type NotebookDataByGuid;
+    typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
 
 private:
     void onNoteAddedOrUpdated(const Note & note);
@@ -213,8 +199,7 @@ private:
     void onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it);
 
     void noteToItem(const Note & note, NoteModelItem & item);
-    const NotebookData * notebookDataForItem(const NoteModelItem & item) const;
-    void checkAddedNoteItemsPendingNotebookData(const NotebookData & notebookData);
+    void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData);
     void addNoteItem(const NoteModelItem & item, const NotebookData & notebookData);
 
 private:
@@ -237,12 +222,13 @@ private:
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
 
-    NotebookDataContainer   m_notebookData;
+    QHash<QString, NotebookData>        m_notebookDataByNotebookLocalUid;
+    LocalUidToRequestIdBimap            m_findNotebookRequestForNotebookLocalUid;
+    QMultiHash<QString, NoteModelItem>  m_addedNoteItemsPendingNotebookDataUpdate;   // The key is either notebook local uid (if available) or notebook guid
 
-    typedef boost::bimap<QString, QUuid> NotebookIdWithFindNotebookRequestIdBimap;
-    NotebookIdWithFindNotebookRequestIdBimap  m_findNotebookRequestForNotebookId;
-
-    QMultiHash<QString, NoteModelItem>   m_addedNoteItemsPendingNotebookDataUpdate;   // The key is either notebook local uid (if available) or notebook guid
+    QHash<QString, TagData>             m_tagDataByTagLocalUid;
+    LocalUidToRequestIdBimap            m_findTagRequestForTagLocalUid;
+    QMultiHash<QString, QString>        m_tagLocalUidToNoteLocalUid;
 };
 
 } // namespace qute_note
