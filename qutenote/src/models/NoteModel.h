@@ -37,6 +37,7 @@ public:
         enum type {
             CreationTimestamp = 0,
             ModificationTimestamp,
+            DeletionTimestamp,
             Title,
             PreviewText,
             ThumbnailImageFilePath,

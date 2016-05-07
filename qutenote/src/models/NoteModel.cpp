@@ -164,6 +164,7 @@ QVariant NoteModel::data(const QModelIndex & index, int role) const
     {
     case Columns::CreationTimestamp:
     case Columns::ModificationTimestamp:
+    case Columns::DeletionTimestamp:
     case Columns::Title:
     case Columns::PreviewText:
     case Columns::ThumbnailImageFilePath:
@@ -210,6 +211,9 @@ QVariant NoteModel::headerData(int section, Qt::Orientation orientation, int rol
     case Columns::ModificationTimestamp:
         // TRANSLATOR: note's modification timestamp
         return QVariant(tr("Modified"));
+    case Columns::DeletionTimestamp:
+        // TRANSLATOR: note's deletion timestamp
+        return QVariant(tr("Deleted"));
     case Columns::Title:
         return QVariant(tr("Title"));
     case Columns::PreviewText:
@@ -985,6 +989,8 @@ QVariant NoteModel::dataText(const int row, const Columns::type column) const
         return item.creationTimestamp();
     case Columns::ModificationTimestamp:
         return item.modificationTimestamp();
+    case Columns::DeletionTimestamp:
+        return item.deletionTimestamp();
     case Columns::Title:
         return item.title();
     case Columns::PreviewText:
@@ -1040,6 +1046,17 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
             else {
                 accessibleText += QT_TR_NOOP("was last modified at") + space +
                                   printableDateTimeFromTimestamp(item.modificationTimestamp());
+            }
+            break;
+        }
+    case Columns::DeletionTimestamp:
+        {
+            if (item.deletionTimestamp() == 0) {
+                accessibleText += QT_TR_NOOP("deletion timestamp is not set");
+            }
+            else {
+                accessibleText += QT_TR_NOOP("deleted at") + space +
+                                  printableDateTimeFromTimestamp(item.deletionTimestamp());
             }
             break;
         }
@@ -1207,6 +1224,7 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     note.setNotebookGuid(item.notebookGuid());
     note.setCreationTimestamp(item.creationTimestamp());
     note.setModificationTimestamp(item.modificationTimestamp());
+    note.setDeletionTimestamp(item.deletionTimestamp());
     note.setTagLocalUids(item.tagLocalUids());
     note.setTagGuids(item.tagGuids());
     note.setTitle(item.title());
@@ -1567,6 +1585,10 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
         item.setModificationTimestamp(note.modificationTimestamp());
     }
 
+    if (note.hasDeletionTimestamp()) {
+        item.setDeletionTimestamp(note.deletionTimestamp());
+    }
+
     item.setSynchronizable(!note.isLocal());
     item.setDirty(note.isDirty());
 
@@ -1614,6 +1636,10 @@ bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const Note
     case Columns::ModificationTimestamp:
         less = (lhs.modificationTimestamp() < rhs.modificationTimestamp());
         greater = (lhs.modificationTimestamp() > rhs.modificationTimestamp());
+        break;
+    case Columns::DeletionTimestamp:
+        less = (lhs.deletionTimestamp() < rhs.deletionTimestamp());
+        greater = (lhs.deletionTimestamp() > rhs.deletionTimestamp());
         break;
     case Columns::Title:
         {

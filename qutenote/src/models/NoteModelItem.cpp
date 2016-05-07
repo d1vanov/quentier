@@ -16,6 +16,7 @@ NoteModelItem::NoteModelItem(const QString & localUid,
                              const QStringList & tagNameList,
                              const qint64 creationTimestamp,
                              const qint64 modificationTimestamp,
+                             const qint64 deletionTimestamp,
                              const quint64 sizeInBytes,
                              const bool isSynchronizable,
                              const bool isDirty) :
@@ -32,6 +33,7 @@ NoteModelItem::NoteModelItem(const QString & localUid,
     m_tagNameList(tagNameList),
     m_creationTimestamp(creationTimestamp),
     m_modificationTimestamp(modificationTimestamp),
+    m_deletionTimestamp(deletionTimestamp),
     m_sizeInBytes(sizeInBytes),
     m_isSynchronizable(isSynchronizable),
     m_isDirty(isDirty)
@@ -140,6 +142,7 @@ QTextStream & NoteModelItem::print(QTextStream & strm) const
          << ", tag name list = " << m_tagNameList.join(", ") << ", creation timestamp = " << m_creationTimestamp
          << " (" << printableDateTimeFromTimestamp(m_creationTimestamp) << ")"
          << ", modification timestamp = " << m_modificationTimestamp << " (" << printableDateTimeFromTimestamp(m_modificationTimestamp) << ")"
+         << ", deletion timestamp = " << m_deletionTimestamp << " (" << printableDateTimeFromTimestamp(m_deletionTimestamp) << ")"
          << ", size in bytes = " << m_sizeInBytes << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
          << ", is dirty = " << (m_isDirty ? "true" : "false");
 

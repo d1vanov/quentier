@@ -23,6 +23,7 @@ public:
                            const QStringList & tagNameList = QStringList(),
                            const qint64 creationTimestamp = 0,
                            const qint64 modificationTimestamp = 0,
+                           const qint64 deletionTimestamp = 0,
                            const quint64 sizeInBytes = 0,
                            const bool isSynchronizable = false,
                            const bool isDirty = false);
@@ -79,6 +80,9 @@ public:
     qint64 modificationTimestamp() const { return m_modificationTimestamp; }
     void setModificationTimestamp(const qint64 modificationTimestamp) { m_modificationTimestamp = modificationTimestamp; }
 
+    qint64 deletionTimestamp() const { return m_deletionTimestamp; }
+    void setDeletionTimestamp(const qint64 deletionTimestamp) { m_deletionTimestamp = deletionTimestamp; }
+
     quint64 sizeInBytes() const { return m_sizeInBytes; }
     void setSizeInBytes(const quint64 sizeInBytes) { m_sizeInBytes = sizeInBytes; }
 
@@ -104,6 +108,7 @@ private:
     QStringList m_tagNameList;
     qint64      m_creationTimestamp;
     qint64      m_modificationTimestamp;
+    qint64      m_deletionTimestamp;
     quint64     m_sizeInBytes;
     bool        m_isSynchronizable;
     bool        m_isDirty;
