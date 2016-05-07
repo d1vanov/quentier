@@ -53,6 +53,8 @@ public:
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
 
+    QModelIndex createNoteItem(const QString & notebookLocalUid);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -113,11 +115,13 @@ private Q_SLOTS:
 
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onAddNotebookComplete(Notebook notebook, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     void onFindTagComplete(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onAddTagComplete(Tag tag, QUuid requestId);
     void onUpdateTagComplete(Tag tag, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QUuid requestId);
 
@@ -129,10 +133,11 @@ private:
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
     void removeItemByLocalUid(const QString & localUid);
-
     void updateItemRowWithRespectToSorting(const NoteModelItem & item);
-
     void updateNoteInLocalStorage(const NoteModelItem & item);
+
+    // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
+    int rowForNewItem(const NoteModelItem & newItem) const;
 
     bool canUpdateNoteItem(const NoteModelItem & item) const;
     bool canCreateNoteItem(const QString & notebookLocalUid) const;
@@ -203,12 +208,9 @@ private:
 
 private:
     void onNoteAddedOrUpdated(const Note & note);
-    void onNoteAdded(const Note & note);
-    void onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it);
-
     void noteToItem(const Note & note, NoteModelItem & item);
     void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData);
-    void addNoteItem(NoteModelItem & item, const NotebookData & notebookData);
+    void addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData);
 
 private:
     NoteData                m_data;
@@ -232,7 +234,7 @@ private:
 
     QHash<QString, NotebookData>        m_notebookDataByNotebookLocalUid;
     LocalUidToRequestIdBimap            m_findNotebookRequestForNotebookLocalUid;
-    QMultiHash<QString, NoteModelItem>  m_addedNoteItemsPendingNotebookDataUpdate;   // The key is either notebook local uid (if available) or notebook guid
+    QMultiHash<QString, NoteModelItem>  m_noteItemsPendingNotebookDataUpdate;   // The key is notebook local uid
 
     QHash<QString, TagData>             m_tagDataByTagLocalUid;
     LocalUidToRequestIdBimap            m_findTagRequestForTagLocalUid;

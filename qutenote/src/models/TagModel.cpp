@@ -1114,7 +1114,7 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
     TagModelItem itemCopy;
     tagToItem(tag, itemCopy);
 
-    localUidIndex.replace(it, itemCopy);
+    Q_UNUSED(localUidIndex.replace(it, itemCopy))
 
     const TagModelItem * item = &(*it);
 

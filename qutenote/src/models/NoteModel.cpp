@@ -32,7 +32,7 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_sortOrder(Qt::AscendingOrder),
     m_notebookDataByNotebookLocalUid(),
     m_findNotebookRequestForNotebookLocalUid(),
-    m_addedNoteItemsPendingNotebookDataUpdate(),
+    m_noteItemsPendingNotebookDataUpdate(),
     m_tagDataByTagLocalUid(),
     m_findTagRequestForTagLocalUid(),
     m_tagLocalUidToNoteLocalUid()
@@ -62,6 +62,49 @@ QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
 
     int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
     return createIndex(rowIndex, Columns::Title);
+}
+
+QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
+{
+    auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
+    if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
+        QString error = QT_TR_NOOP("Can't create new note: can't identify the notebook");
+        QNWARNING(error << ", notebook local uid = " << notebookLocalUid);
+        emit notifyError(error);
+        return QModelIndex();
+    }
+
+    const NotebookData & notebookData = notebookIt.value();
+    if (!notebookData.m_canCreateNotes) {
+        QString error = QT_TR_NOOP("Can't create new note: notebook restrictions apply");
+        QNWARNING(error << ", notebook local uid = " << notebookLocalUid << ", notebook name = "
+                  << notebookData.m_name);
+        emit notifyError(error);
+        return QModelIndex();
+    }
+
+    NoteModelItem item;
+    item.setLocalUid(UidGenerator::Generate());
+    item.setNotebookLocalUid(notebookLocalUid);
+    item.setNotebookGuid(notebookData.m_guid);
+    item.setNotebookName(notebookData.m_name);
+    item.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+    item.setModificationTimestamp(item.creationTimestamp());
+    item.setDirty(true);
+
+    int row = rowForNewItem(item);
+    beginInsertRows(QModelIndex(), row, row);
+
+    NoteDataByIndex & index = m_data.get<ByIndex>();
+    NoteDataByIndex::iterator indexIt = index.begin() + row;
+    Q_UNUSED(index.insert(indexIt, item))
+
+    endInsertRows();
+
+    Q_UNUSED(m_noteItemsNotYetInLocalStorageUids.insert(item.localUid()))
+    updateNoteInLocalStorage(item);
+
+    return createIndex(row, Columns::Title);
 }
 
 Qt::ItemFlags NoteModel::flags(const QModelIndex & modelIndex) const
@@ -721,6 +764,14 @@ void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription
     Q_UNUSED(m_findNotebookRequestForNotebookLocalUid.right.erase(it))
 }
 
+void NoteModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
+{
+    QNDEBUG("NoteModel::onAddNotebookComplete: local uid = " << notebook.localUid());
+    Q_UNUSED(requestId)
+    m_notebookCache.put(notebook.localUid(), notebook);
+    updateNotebookData(notebook);
+}
+
 void NoteModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
     QNDEBUG("NoteModel::onUpdateNotebookComplete: local uid = " << notebook.localUid());
@@ -771,6 +822,12 @@ void NoteModel::onFindTagFailed(Tag tag, QString errorDescription, QUuid request
     emit notifyError(errorDescription);
 }
 
+void NoteModel::onAddTagComplete(Tag tag, QUuid requestId)
+{
+    QNDEBUG("NoteModel::onAddTagComplete: tag = " << tag << ", request id = " << requestId);
+    updateTagData(tag);
+}
+
 void NoteModel::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
     QNDEBUG("NoteModel::onUpdateTagComplete: tag = " << tag << ", request id = " << requestId);
@@ -797,13 +854,7 @@ void NoteModel::onExpungeTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    bool sortingByTagNames = (m_sortedColumn == Columns::TagNameList);
-
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-
-    if (sortingByTagNames) {
-        emit layoutAboutToBeChanged();
-    }
 
     while(noteIt != m_tagLocalUidToNoteLocalUid.end())
     {
@@ -826,18 +877,9 @@ void NoteModel::onExpungeTagComplete(Tag tag, QUuid requestId)
         Q_UNUSED(localUidIndex.replace(noteItemIt, item))
         ++noteIt;
 
-        if (!sortingByTagNames) {
-            QModelIndex modelIndex = indexForLocalUid(item.localUid());
-            modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
-            emit dataChanged(modelIndex, modelIndex);
-        }
-        else {
-            updateItemRowWithRespectToSorting(item);
-        }
-    }
-
-    if (sortingByTagNames) {
-        emit layoutChanged();
+        QModelIndex modelIndex = indexForLocalUid(item.localUid());
+        modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
+        emit dataChanged(modelIndex, modelIndex);
     }
 }
 
@@ -897,6 +939,8 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      this, QNSLOT(NoteModel,onFindNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
                      this, QNSLOT(NoteModel,onFindNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(NoteModel,onAddNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteModel,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
@@ -905,6 +949,8 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      this, QNSLOT(NoteModel,onFindTagComplete,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QString,QUuid),
                      this, QNSLOT(NoteModel,onFindTagFailed,Tag,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
+                     this, QNSLOT(NoteModel,onAddTagComplete,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteModel,onUpdateTagComplete,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
@@ -1167,8 +1213,6 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     note.setLocal(!item.isSynchronizable());
     note.setDirty(item.isDirty());
 
-    // TODO: think of whether it should be possible to set the ENML content of the new note here
-
     m_cache.put(note.localUid(), note);
 
     QUuid requestId = QUuid::createUuid();
@@ -1191,6 +1235,18 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
                 << ", note: " << note);
         emit updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
     }
+}
+
+int NoteModel::rowForNewItem(const NoteModelItem & item) const
+{
+    const NoteDataByIndex & index = m_data.get<ByIndex>();
+
+    auto it = std::lower_bound(index.begin(), index.end(), item, NoteComparator(m_sortedColumn, m_sortOrder));
+    if (it == index.end()) {
+        return static_cast<int>(index.size());
+    }
+
+    return static_cast<int>(std::distance(index.begin(), it));
 }
 
 bool NoteModel::canUpdateNoteItem(const NoteModelItem & item) const
@@ -1287,13 +1343,7 @@ void NoteModel::updateTagData(const Tag & tag)
         return;
     }
 
-    bool sortingByTagNames = (m_sortedColumn == Columns::TagNameList);
-
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-
-    if (sortingByTagNames) {
-        emit layoutAboutToBeChanged();
-    }
 
     while(noteIt != m_tagLocalUidToNoteLocalUid.end())
     {
@@ -1337,54 +1387,31 @@ void NoteModel::updateTagData(const Tag & tag)
         Q_UNUSED(localUidIndex.replace(noteItemIt, item))
         ++noteIt;
 
-        if (!sortingByTagNames) {
-            QModelIndex modelIndex = indexForLocalUid(item.localUid());
-            modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
-            emit dataChanged(modelIndex, modelIndex);
-        }
-        else {
-            updateItemRowWithRespectToSorting(item);
-        }
-    }
-
-    if (sortingByTagNames) {
-        emit layoutChanged();
+        QModelIndex modelIndex = indexForLocalUid(item.localUid());
+        modelIndex = createIndex(modelIndex.row(), Columns::TagNameList);
+        emit dataChanged(modelIndex, modelIndex);
     }
 }
 
 void NoteModel::checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData)
 {
-    auto it = m_addedNoteItemsPendingNotebookDataUpdate.find(notebookLocalUid);
-    while(it != m_addedNoteItemsPendingNotebookDataUpdate.end())
+    auto it = m_noteItemsPendingNotebookDataUpdate.find(notebookLocalUid);
+    while(it != m_noteItemsPendingNotebookDataUpdate.end())
     {
         if (it.key() != notebookLocalUid) {
             break;
         }
 
-        addNoteItem(it.value(), notebookData);
-        Q_UNUSED(m_addedNoteItemsPendingNotebookDataUpdate.erase(it++))
+        addOrUpdateNoteItem(it.value(), notebookData);
+        Q_UNUSED(m_noteItemsPendingNotebookDataUpdate.erase(it++))
     }
 }
 
 void NoteModel::onNoteAddedOrUpdated(const Note & note)
 {
-    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-
     m_cache.put(note.localUid(), note);
 
-    auto itemIt = localUidIndex.find(note.localUid());
-    bool newNote = (itemIt == localUidIndex.end());
-    if (newNote) {
-        onNoteAdded(note);
-    }
-    else {
-        onNoteUpdated(note, itemIt);
-    }
-}
-
-void NoteModel::onNoteAdded(const Note & note)
-{
-    QNDEBUG("NoteModel::onNoteAdded: note local uid = " << note.localUid());
+    QNDEBUG("NoteModel::onNoteAddedOrUpdated: note local uid = " << note.localUid());
 
     if (!note.hasNotebookLocalUid()) {
         QNWARNING("Skipping the note not having the notebook local uid: " << note);
@@ -1399,7 +1426,7 @@ void NoteModel::onNoteAdded(const Note & note)
     {
         bool findNotebookRequestSent = false;
 
-        Q_UNUSED(m_addedNoteItemsPendingNotebookDataUpdate.insert(item.notebookLocalUid(), item))
+        Q_UNUSED(m_noteItemsPendingNotebookDataUpdate.insert(item.notebookLocalUid(), item))
 
         auto it = m_findNotebookRequestForNotebookLocalUid.left.find(item.notebookLocalUid());
         if (it != m_findNotebookRequestForNotebookLocalUid.left.end()) {
@@ -1427,12 +1454,12 @@ void NoteModel::onNoteAdded(const Note & note)
     }
 
     const NotebookData & notebookData = notebookIt.value();
-    addNoteItem(item, notebookData);
+    addOrUpdateNoteItem(item, notebookData);
 }
 
-void NoteModel::addNoteItem(NoteModelItem & item, const NotebookData & notebookData)
+void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData)
 {
-    QNDEBUG("NoteModel::addNoteItem: note local uid = " << item.localUid() << ", notebook local uid = "
+    QNDEBUG("NoteModel::addOrUpdateNoteItem: note local uid = " << item.localUid() << ", notebook local uid = "
             << item.notebookLocalUid() << ", notebook name = " << notebookData.m_name);
 
     if (!notebookData.m_canCreateNotes)
@@ -1483,14 +1510,13 @@ void NoteModel::addNoteItem(NoteModelItem & item, const NotebookData & notebookD
     }
 
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    localUidIndex.insert(item);
-}
-
-void NoteModel::onNoteUpdated(const Note & note, NoteDataByLocalUid::iterator it)
-{
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(it)
+    auto it = localUidIndex.find(item.localUid());
+    if (it == localUidIndex.end()) {
+        Q_UNUSED(localUidIndex.insert(item))
+    }
+    else {
+        Q_UNUSED(localUidIndex.replace(it, item))
+    }
 }
 
 void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
