@@ -166,6 +166,7 @@ set(MODEL_TEST_HEADERS
     src/tests/model_test/SavedSearchModelTestHelper.h
     src/tests/model_test/TagModelTestHelper.h
     src/tests/model_test/NotebookModelTestHelper.h
+    src/tests/model_test/NoteModelTestHelper.h
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
     src/models/TagModel.h
@@ -184,6 +185,7 @@ set(MODEL_TEST_SOURCES
     src/tests/model_test/SavedSearchModelTestHelper.cpp
     src/tests/model_test/TagModelTestHelper.cpp
     src/tests/model_test/NotebookModelTestHelper.cpp
+    src/tests/model_test/NoteModelTestHelper.cpp
     src/tests/model_test/tst_modeltest.cpp
     src/models/SavedSearchModel.cpp
     src/models/SavedSearchModelItem.cpp
