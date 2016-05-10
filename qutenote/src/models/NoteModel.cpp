@@ -1558,7 +1558,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
     }
 
     if (note.hasContent()) {
-        QString previewText = note.content();
+        QString previewText = note.plainText();
         previewText.truncate(140);
         item.setPreviewText(previewText);
     }
