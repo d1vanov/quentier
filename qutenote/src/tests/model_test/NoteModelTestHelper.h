@@ -35,6 +35,12 @@ private Q_SLOTS:
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
+    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+
+    void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+
 private:
     void testAfterNewNoteAddition();
     void testAfterNoteUpdate();
