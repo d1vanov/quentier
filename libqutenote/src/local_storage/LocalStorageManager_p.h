@@ -323,6 +323,8 @@ private:
     template <class T>
     bool fillObjectFromSqlRecord(const QSqlRecord & record, T & object, QString & errorDescription) const;
 
+    void clearDatabaseFile();
+
     struct SharedNotebookAdapterCompareByIndex
     {
         bool operator()(const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs) const;

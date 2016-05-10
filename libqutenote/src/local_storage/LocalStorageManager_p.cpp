@@ -424,6 +424,11 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
                                            QStringLiteral(" ") + QT_TR_NOOP("is not writable"));
         }
     }
+    else
+    {
+        // The file needs to exist in order to lock it
+        clearDatabaseFile();
+    }
 
     boost::interprocess::file_lock databaseLock(databaseFileInfo.canonicalFilePath().toUtf8().constData());
     m_databaseFileLock.swap(databaseLock);
@@ -450,20 +455,10 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         }
     }
 
-    if (startFromScratch)
-    {
+    if (startFromScratch) {
         QNDEBUG("Cleaning up the whole database for user with name " << m_currentUsername
                 << " and id " << QString::number(m_currentUserId));
-
-        QFile databaseFile(m_databaseFilePath);
-        if (!databaseFile.open(QIODevice::ReadWrite)) {
-            throw DatabaseOpeningException(QT_TR_NOOP("Can't open local storage database for both reading and writing: ") +
-                                           databaseFile.errorString());
-        }
-
-        databaseFile.resize(0);
-        databaseFile.flush();
-        databaseFile.close();
+        clearDatabaseFile();
     }
 
     m_sqlDatabase.setHostName("localhost");
@@ -8043,6 +8038,19 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     }
 
     return true;
+}
+
+void LocalStorageManagerPrivate::clearDatabaseFile()
+{
+    QFile databaseFile(m_databaseFilePath);
+    if (!databaseFile.open(QIODevice::ReadWrite)) {
+        throw DatabaseOpeningException(QT_TR_NOOP("Can't open local storage database for both reading and writing: ") +
+                                       databaseFile.errorString());
+    }
+
+    databaseFile.resize(0);
+    databaseFile.flush();
+    databaseFile.close();
 }
 
 template <class T>
