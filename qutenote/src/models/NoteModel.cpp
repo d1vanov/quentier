@@ -9,7 +9,7 @@
 
 #define NOTE_CACHE_LIMIT (20)
 
-#define NUM_NOTE_MODEL_COLUMNS (10)
+#define NUM_NOTE_MODEL_COLUMNS (11)
 
 namespace qute_note {
 
