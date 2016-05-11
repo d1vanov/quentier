@@ -136,7 +136,6 @@ void NoteModelTestHelper::launchTest()
         secondNote.setNotebookLocalUid(firstNotebook.localUid());
         secondNote.setLocal(true);
         secondNote.setTagLocalUids(QStringList() << firstTag.localUid());
-        secondNote.setLocal(true);
         secondNote.setDirty(true);
 
         Note thirdNote;
@@ -201,6 +200,139 @@ void NoteModelTestHelper::launchTest()
         NoteModel * model = new NoteModel(*m_pLocalStorageManagerThreadWorker, notebookCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
+
+        // Should not be able to change the dirty flag manually
+        QModelIndex firstIndex = model->indexForLocalUid(firstNote.localUid());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for local uid");
+        }
+
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty, QModelIndex());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for dirty column");
+        }
+
+        bool res = model->setData(firstIndex, QVariant(true), Qt::EditRole);
+        if (res) {
+            FAIL("Was able to change the dirty flag in the note model manually which is not intended");
+        }
+
+        QVariant data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the state of dirty flag");
+        }
+
+        if (data.toBool()) {
+            FAIL("The dirty state appears to have changed after setData in note model even though the method returned false");
+        }
+
+        // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Synchronizable, QModelIndex());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model index for synchronizable column");
+        }
+
+        res = model->setData(firstIndex, QVariant(true), Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the synchronizable flag from false to true for note model item");
+        }
+
+        data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the state of synchronizable flag");
+        }
+
+        if (!data.toBool()) {
+            FAIL("The synchronizable flag appears to have not changed after setData in note model even though the method returned true");
+        }
+
+        // Verify the dirty flag has changed as a result of making the item synchronizable
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty, QModelIndex());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for dirty column");
+        }
+
+        data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the state of dirty flag");
+        }
+
+        if (!data.toBool()) {
+            FAIL("The dirty state hasn't changed after making the note model item synchronizable while it was expected to have changed");
+        }
+
+        // Should not be able to make the synchronizable (non-local) item non-synchronizable (local)
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Synchronizable, QModelIndex());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for synchronizable column");
+        }
+
+        res = model->setData(firstIndex, QVariant(false), Qt::EditRole);
+        if (res) {
+            FAIL("Was able to change the synchronizable flag in note model from true to false which is not intended");
+        }
+
+        data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the state of synchronizable flag");
+        }
+
+        if (!data.toBool()) {
+            FAIL("The synchronizable state appears to have changed after setData in note model even though the method returned false");
+        }
+
+        // Should be able to change the title
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Title, QModelIndex());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for title column");
+        }
+
+        QString newTitle = "First note (modified)";
+        res = model->setData(firstIndex, newTitle, Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the title of note model item");
+        }
+
+        data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the note item's title");
+        }
+
+        if (data.toString() != newTitle) {
+            FAIL("The title of the note item returned by the model does not match the title just set to this item: "
+                 "received " << data.toString() << ", expected " << newTitle);
+        }
+
+        // Should not be able to remove the row with a synchronizable (non-local) notebook
+        res = model->removeRow(firstIndex.row(), QModelIndex());
+        if (res) {
+            FAIL("Was able to remove the row with a synchronizable note which is not intended");
+        }
+
+        QModelIndex firstIndexAfterFailedRemoval = model->indexForLocalUid(firstNote.localUid());
+        if (!firstIndexAfterFailedRemoval.isValid()) {
+            FAIL("Can't get the valid note model item index after the failed row removal attempt");
+        }
+
+        if (firstIndexAfterFailedRemoval.row() != firstIndex.row()) {
+            FAIL("Note model returned item index with a different row after the failed row removal attempt");
+        }
+
+        // Should be able to remove the row with a non-synchronizable (local) note
+        QModelIndex secondIndex = model->indexForLocalUid(secondNote.localUid());
+        if (!secondIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for local uid");
+        }
+
+        res = model->removeRow(secondIndex.row(), QModelIndex());
+        if (!res) {
+            FAIL("Can't remove the row with a non-synchronizable note item from the model");
+        }
+
+        QModelIndex secondIndexAfterRemoval = model->indexForLocalUid(secondNote.localUid());
+        if (secondIndexAfterRemoval.isValid()) {
+            FAIL("Was able to get the valid model index for the removed note item by local uid which is not intended");
+        }
 
         emit success();
         return;

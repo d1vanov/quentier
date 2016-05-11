@@ -227,7 +227,7 @@ void NotebookModelTestHelper::test()
 
         if (data.toString() != newName) {
             FAIL("The name of the notebook item returned by the model does not match the name just set to this item: "
-                      "received " << data.toString() << ", expected " << newName);
+                 "received " << data.toString() << ", expected " << newName);
         }
 
         // Should not be able to remove the row with a synchronizable (non-local) notebook
