@@ -925,15 +925,17 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
 
     // Local signals to localStorageManagerThreadWorker's slots
     QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,bool,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,bool,bool,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNote,Note,bool,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                     LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListNotesRequest,bool,size_t,size_t,
-                                                              LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QUuid));
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListNotesRequest,
+                                                              LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
+                                                              LocalStorageManager::ListNotesOrder::type,
+                                                              LocalStorageManager::OrderDirection::type,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,deleteNote,Note,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onDeleteNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,expungeNote,Note,QUuid),
