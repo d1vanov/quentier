@@ -335,6 +335,26 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
             item.setSynchronizable(value.toBool());
             break;
         }
+    case Columns::DeletionTimestamp:
+        {
+            qint64 timestamp = 0;
+
+            if (!value.isNull())
+            {
+                bool conversionResult = false;
+                timestamp = value.toLongLong(&conversionResult);
+                if (!conversionResult) {
+                    QString error = QT_TR_NOOP("Can't change the deleted state of the note: wrong deletion timestamp value");
+                    QNINFO(error);
+                    emit notifyError(error);
+                    return false;
+                }
+            }
+
+            dirty |= (timestamp != item.deletionTimestamp());
+            item.setDeletionTimestamp(timestamp);
+            break;
+        }
     default:
         return false;
     }
