@@ -53,6 +53,7 @@ public:
     Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
+    const NoteModelItem * itemForLocalUid(const QString & localUid) const;
 
     QModelIndex createNoteItem(const QString & notebookLocalUid);
 

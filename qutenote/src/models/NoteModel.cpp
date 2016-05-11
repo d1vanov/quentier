@@ -64,6 +64,18 @@ QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
     return createIndex(rowIndex, Columns::Title);
 }
 
+const NoteModelItem * NoteModel::itemForLocalUid(const QString & localUid) const
+{
+    const NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNDEBUG("Can't find the note item by local uid");
+        return Q_NULLPTR;
+    }
+
+    return &(*it);
+}
+
 QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 {
     auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
