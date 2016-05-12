@@ -54,6 +54,7 @@ public:
 
     QModelIndex indexForLocalUid(const QString & localUid) const;
     const NoteModelItem * itemForLocalUid(const QString & localUid) const;
+    const NoteModelItem * itemAtRow(const int row) const;
 
     QModelIndex createNoteItem(const QString & notebookLocalUid);
 

@@ -334,6 +334,31 @@ void NoteModelTestHelper::launchTest()
             FAIL("Was able to get the valid model index for the removed note item by local uid which is not intended");
         }
 
+        // Check sorting
+        QVector<NoteModel::Columns::type> columns;
+        columns.reserve(model->columnCount(QModelIndex()));
+        columns << NoteModel::Columns::CreationTimestamp
+                << NoteModel::Columns::ModificationTimestamp
+                << NoteModel::Columns::DeletionTimestamp
+                << NoteModel::Columns::Title
+                << NoteModel::Columns::PreviewText
+                << NoteModel::Columns::NotebookName
+                << NoteModel::Columns::Size
+                << NoteModel::Columns::Synchronizable
+                << NoteModel::Columns::Dirty;
+
+        int numColumns = columns.size();
+        for(int i = 0; i < numColumns; ++i)
+        {
+            // Test the ascending case
+            model->sort(columns[i], Qt::AscendingOrder);
+            checkSorting(*model);
+
+            // Test the descending case
+            model->sort(columns[i], Qt::DescendingOrder);
+            checkSorting(*model);
+        }
+
         emit success();
         return;
     }
@@ -471,6 +496,213 @@ void NoteModelTestHelper::testAfterNoteUpdate()
     QNDEBUG("NoteModelTestHelper::testAfterNoteUpdate");
 
     // TODO: imlement
+}
+
+void NoteModelTestHelper::checkSorting(const NoteModel & model)
+{
+    int numRows = model.rowCount(QModelIndex());
+
+    QVector<NoteModelItem> items;
+    items.reserve(numRows);
+    for(int i = 0; i < numRows; ++i)
+    {
+        const NoteModelItem * item = model.itemAtRow(i);
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Unexpected null pointer to the note model item");
+        }
+
+        items << *item;
+    }
+
+    bool ascending = (model.sortOrder() == Qt::AscendingOrder);
+    switch(model.sortingColumn())
+    {
+    case NoteModel::Columns::CreationTimestamp:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByCreationTimestamp());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByCreationTimestamp());
+            }
+            break;
+        }
+    case NoteModel::Columns::ModificationTimestamp:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByModificationTimestamp());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByModificationTimestamp());
+            }
+            break;
+        }
+    case NoteModel::Columns::DeletionTimestamp:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByDeletionTimestamp());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByDeletionTimestamp());
+            }
+            break;
+        }
+    case NoteModel::Columns::Title:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByTitle());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByTitle());
+            }
+            break;
+        }
+    case NoteModel::Columns::PreviewText:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByPreviewText());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByPreviewText());
+            }
+            break;
+        }
+    case NoteModel::Columns::NotebookName:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByNotebookName());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByNotebookName());
+            }
+            break;
+        }
+    case NoteModel::Columns::Size:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessBySize());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterBySize());
+            }
+            break;
+        }
+    case NoteModel::Columns::Synchronizable:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessBySynchronizable());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterBySynchronizable());
+            }
+            break;
+        }
+    case NoteModel::Columns::ThumbnailImageFilePath:
+    case NoteModel::Columns::TagNameList:
+        break;
+    }
+
+    for(int i = 0; i < numRows; ++i)
+    {
+        const NoteModelItem * item = model.itemAtRow(i);
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Unexpected null pointer to the note model item");
+        }
+
+        if (item->localUid() != items[i].localUid()) {
+            FAIL("Found mismatched note model items when checking the sorting");
+        }
+    }
+}
+
+bool NoteModelTestHelper::LessByCreationTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.creationTimestamp() < rhs.creationTimestamp();
+}
+
+bool NoteModelTestHelper::GreaterByCreationTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.creationTimestamp() > rhs.creationTimestamp();
+}
+
+bool NoteModelTestHelper::LessByModificationTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.modificationTimestamp() < rhs.modificationTimestamp();
+}
+
+bool NoteModelTestHelper::GreaterByModificationTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.modificationTimestamp() > rhs.modificationTimestamp();
+}
+
+bool NoteModelTestHelper::LessByDeletionTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.deletionTimestamp() < rhs.deletionTimestamp();
+}
+
+bool NoteModelTestHelper::GreaterByDeletionTimestamp::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.deletionTimestamp() > rhs.deletionTimestamp();
+}
+
+bool NoteModelTestHelper::LessByTitle::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.title().localeAwareCompare(rhs.title()) < 0;
+}
+
+bool NoteModelTestHelper::GreaterByTitle::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.title().localeAwareCompare(rhs.title()) > 0;
+}
+
+bool NoteModelTestHelper::LessByPreviewText::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.previewText().localeAwareCompare(rhs.previewText()) < 0;
+}
+
+bool NoteModelTestHelper::GreaterByPreviewText::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.previewText().localeAwareCompare(rhs.previewText()) > 0;
+}
+
+bool NoteModelTestHelper::LessByNotebookName::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.notebookName().localeAwareCompare(rhs.notebookName()) < 0;
+}
+
+bool NoteModelTestHelper::GreaterByNotebookName::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.notebookName().localeAwareCompare(rhs.notebookName()) > 0;
+}
+
+bool NoteModelTestHelper::LessBySize::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.sizeInBytes() < rhs.sizeInBytes();
+}
+
+bool NoteModelTestHelper::GreaterBySize::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.sizeInBytes() > rhs.sizeInBytes();
+}
+
+bool NoteModelTestHelper::LessBySynchronizable::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return !lhs.isSynchronizable() && rhs.isSynchronizable();
+}
+
+bool NoteModelTestHelper::GreaterBySynchronizable::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.isSynchronizable() && !rhs.isSynchronizable();
+}
+
+bool NoteModelTestHelper::LessByDirty::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return !lhs.isDirty() && rhs.isDirty();
+}
+
+bool NoteModelTestHelper::GreaterByDirty::operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const
+{
+    return lhs.isDirty() && !rhs.isDirty();
 }
 
 } // namespace qute_note

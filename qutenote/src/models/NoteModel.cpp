@@ -76,6 +76,17 @@ const NoteModelItem * NoteModel::itemForLocalUid(const QString & localUid) const
     return &(*it);
 }
 
+const NoteModelItem *NoteModel::itemAtRow(const int row) const
+{
+    const NoteDataByIndex & index = m_data.get<ByIndex>();
+    if (Q_UNLIKELY((row < 0) || (index.size() <= static_cast<size_t>(row)))) {
+        QNDEBUG("Detected attempt to get the note model item for non-existing row");
+        return Q_NULLPTR;
+    }
+
+    return &(index[static_cast<size_t>(row)]);
+}
+
 QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 {
     auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
@@ -1708,7 +1719,8 @@ bool NoteModel::NoteComparator::operator()(const NoteModelItem & lhs, const Note
         less = (!lhs.isDirty() && rhs.isDirty());
         greater = (lhs.isDirty() && !rhs.isDirty());
         break;
-    default:
+    case Columns::ThumbnailImageFilePath:
+    case Columns::TagNameList:
         less = false;
         greater = false;
         break;

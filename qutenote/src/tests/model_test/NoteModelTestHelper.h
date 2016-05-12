@@ -1,9 +1,12 @@
-#ifndef __QUTE_NOTE__TESTS__MODEL_TEST__NOTE_MODEL_TEST_HELPER_H
-#define __QUTE_NOTE__TESTS__MODEL_TEST__NOTE_MODEL_TEST_HELPER_H
+#ifndef QUTE_NOTE_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
+#define QUTE_NOTE_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
 
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 
 namespace qute_note {
+
+QT_FORWARD_DECLARE_CLASS(NoteModel)
+QT_FORWARD_DECLARE_CLASS(NoteModelItem)
 
 class NoteModelTestHelper: public QObject
 {
@@ -45,10 +48,103 @@ private:
     void testAfterNewNoteAddition();
     void testAfterNoteUpdate();
 
+    void checkSorting(const NoteModel & model);
+
+private:
+    struct LessByCreationTimestamp
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByCreationTimestamp
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessByModificationTimestamp
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByModificationTimestamp
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessByDeletionTimestamp
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByDeletionTimestamp
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessByTitle
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByTitle
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessByPreviewText
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByPreviewText
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessByNotebookName
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByNotebookName
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessBySize
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterBySize
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessBySynchronizable
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterBySynchronizable
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct LessByDirty
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
+    struct GreaterByDirty
+    {
+        bool operator()(const NoteModelItem & lhs, const NoteModelItem & rhs) const;
+    };
+
 private:
     LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
 };
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__TESTS__MODEL_TEST__NOTE_MODEL_TEST_HELPER_H
+#endif // QUTE_NOTE_TESTS_MODEL_TEST_NOTE_MODEL_TEST_HELPER_H
