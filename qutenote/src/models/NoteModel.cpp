@@ -392,7 +392,13 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     updateItemRowWithRespectToSorting(item);
     emit layoutChanged();
 
-    updateNoteInLocalStorage(item);
+    if (column == Columns::DeletionTimestamp) {
+        deleteNoteInLocalStorage(item);
+    }
+    else {
+        updateNoteInLocalStorage(item);
+    }
+
     return true;
 }
 
@@ -735,8 +741,6 @@ void NoteModel::onDeleteNoteComplete(Note note, QUuid requestId)
         Q_UNUSED(m_deleteNoteRequestIds.erase(it))
         return;
     }
-
-    onNoteAddedOrUpdated(note);
 }
 
 void NoteModel::onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId)
@@ -1283,12 +1287,11 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     if (notYetSavedItemIt != m_noteItemsNotYetInLocalStorageUids.end())
     {
         Q_UNUSED(m_addNoteRequestIds.insert(requestId))
+        Q_UNUSED(m_noteItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
 
         QNTRACE("Emitting the request to add the note to local storage: id = " << requestId
                 << ", note: " << note);
         emit addNote(note, requestId);
-
-        Q_UNUSED(m_noteItemsNotYetInLocalStorageUids.erase(notYetSavedItemIt))
     }
     else
     {
@@ -1298,6 +1301,27 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
                 << ", note: " << note);
         emit updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
     }
+}
+
+void NoteModel::deleteNoteInLocalStorage(const NoteModelItem & item)
+{
+    QNDEBUG("NoteModel::deleteNoteInLocalStorage: local uid = " << item.localUid());
+
+    if (Q_UNLIKELY(item.deletionTimestamp() == 0)) {
+        QNDEBUG("No deletion timestamp on the item, nothing to delete: " << item);
+        return;
+    }
+
+    Note note;
+    note.setLocalUid(item.localUid());
+    note.setDirty(item.isDirty());
+    note.setDeletionTimestamp(item.deletionTimestamp());
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_deleteNoteRequestIds.insert(requestId))
+    QNTRACE("Emitting the request to delete note: request id = " << requestId
+            << ", note: " << note);
+    emit deleteNote(note, requestId);
 }
 
 int NoteModel::rowForNewItem(const NoteModelItem & item) const

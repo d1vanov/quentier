@@ -138,6 +138,7 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const NoteModelItem & item);
     void updateNoteInLocalStorage(const NoteModelItem & item);
+    void deleteNoteInLocalStorage(const NoteModelItem & item);
 
     // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
     int rowForNewItem(const NoteModelItem & newItem) const;

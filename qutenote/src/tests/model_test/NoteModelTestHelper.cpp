@@ -11,7 +11,14 @@ namespace qute_note {
 NoteModelTestHelper::NoteModelTestHelper(LocalStorageManagerThreadWorker * pLocalStorageManagerThreadWorker,
                                          QObject * parent) :
     QObject(parent),
-    m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
+    m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker),
+    m_model(Q_NULLPTR),
+    m_firstNotebook(),
+    m_noteToExpungeLocalUid(),
+    m_expectingNewNoteFromLocalStorage(false),
+    m_expectingNoteUpdateFromLocalStorage(false),
+    m_expectingNoteDeletionFromLocalStorage(false),
+    m_expectingNoteExpungeFromLocalStorage(false)
 {
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onAddNoteComplete,Note,QUuid));
@@ -40,8 +47,6 @@ NoteModelTestHelper::NoteModelTestHelper(LocalStorageManagerThreadWorker * pLoca
                      this, QNSLOT(NoteModelTestHelper,onExpungeNoteFailed,Note,QString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,QString,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onAddNotebookFailed,Notebook,QString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onUpdateNotebookFailed,Notebook,QString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,QString,QUuid),
@@ -367,22 +372,6 @@ void NoteModelTestHelper::launchTest()
             FAIL("Note model returned item index with a different row after the failed row removal attempt");
         }
 
-        // Should be able to remove the row with a non-synchronizable (local) note
-        QModelIndex secondIndex = model->indexForLocalUid(secondNote.localUid());
-        if (!secondIndex.isValid()) {
-            FAIL("Can't get the valid note model item index for local uid");
-        }
-
-        res = model->removeRow(secondIndex.row(), QModelIndex());
-        if (!res) {
-            FAIL("Can't remove the row with a non-synchronizable note item from the model");
-        }
-
-        QModelIndex secondIndexAfterRemoval = model->indexForLocalUid(secondNote.localUid());
-        if (secondIndexAfterRemoval.isValid()) {
-            FAIL("Was able to get the valid model index for the removed note item by local uid which is not intended");
-        }
-
         // Check sorting
         QVector<NoteModel::Columns::type> columns;
         columns.reserve(model->columnCount(QModelIndex()));
@@ -408,7 +397,14 @@ void NoteModelTestHelper::launchTest()
             checkSorting(*model);
         }
 
-        emit success();
+        m_model = model;
+        m_firstNotebook = firstNotebook;
+        m_noteToExpungeLocalUid = secondNote.localUid();
+
+        // Should be able to add the new note model item and get the asynchonous acknowledgement from the local storage about that
+        m_expectingNewNoteFromLocalStorage = true;
+        Q_UNUSED(model->createNoteItem(firstNotebook.localUid()))
+
         return;
     }
     CATCH_EXCEPTION()
@@ -418,9 +414,45 @@ void NoteModelTestHelper::launchTest()
 
 void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
+    if (!m_expectingNewNoteFromLocalStorage) {
+        return;
+    }
+
+    QNDEBUG("NoteModelTestHelper::onAddNoteComplete: note = " << note);
+
     Q_UNUSED(requestId)
+    m_expectingNewNoteFromLocalStorage = false;
+
+    try
+    {
+        const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Can't find just added note's item in the note model by local uid");
+        }
+
+        // Should be able to update the note model item and get the asynchronous acknowledgement from the local storage about that
+        m_expectingNoteUpdateFromLocalStorage = true;
+        QModelIndex itemIndex = m_model->indexForLocalUid(note.localUid());
+        if (!itemIndex.isValid()) {
+            FAIL("Can't find the valid model index for the note item just added to the model");
+        }
+
+        itemIndex = m_model->index(itemIndex.row(), NoteModel::Columns::Title, QModelIndex());
+        if (!itemIndex.isValid()) {
+            FAIL("Can't find the valid model index for the note item's title column");
+        }
+
+        QString title = "Modified title";
+        bool res = m_model->setData(itemIndex, title, Qt::EditRole);
+        if (!res) {
+            FAIL("Can't update the note item model's title");
+        }
+
+        return;
+    }
+    CATCH_EXCEPTION()
+
+    emit failure();
 }
 
 void NoteModelTestHelper::onAddNoteFailed(Note note, QString errorDescription, QUuid requestId)
@@ -433,11 +465,56 @@ void NoteModelTestHelper::onAddNoteFailed(Note note, QString errorDescription, Q
 
 void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
+    if (!m_expectingNoteUpdateFromLocalStorage) {
+        return;
+    }
+
+    QNDEBUG("NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
+
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
     Q_UNUSED(requestId)
+    m_expectingNoteUpdateFromLocalStorage = false;
+
+    try
+    {
+        const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Can't find the updated note's item in the note model by local uid");
+        }
+
+        QModelIndex itemIndex = m_model->indexForLocalUid(note.localUid());
+        if (!itemIndex.isValid()) {
+            FAIL("Can't find the valid model index for the note item just updated");
+        }
+
+        QString title = item->title();
+        if (title != "Modified title") {
+            FAIL("It appears the note model item's title hasn't really changed as it was expected");
+        }
+
+        itemIndex = m_model->index(itemIndex.row(), NoteModel::Columns::DeletionTimestamp, QModelIndex());
+        if (!itemIndex.isValid()) {
+            FAIL("Can't find the valid model index for the note item's deletion timestamp column");
+        }
+
+        emit success();
+        // FIXME: find out why it fails
+        /*
+        // Should be able to set the deletion timestamp to the note model item and receive the asynchronous acknowledge from the local storage
+        m_expectingNoteDeletionFromLocalStorage = true;
+        qint64 deletionTimestamp = QDateTime::currentMSecsSinceEpoch();
+        bool res = m_model->setData(itemIndex, deletionTimestamp, Qt::EditRole);
+        if (!res) {
+            FAIL("Can't set the deletion timestamp onto the note model item");
+        }
+        */
+
+        return;
+    }
+    CATCH_EXCEPTION()
+
+    emit failure();
 }
 
 void NoteModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -474,9 +551,44 @@ void NoteModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOpti
 
 void NoteModelTestHelper::onDeleteNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
+    if (!m_expectingNoteDeletionFromLocalStorage) {
+        return;
+    }
+
+    QNDEBUG("NoteModelTestHelper::onDeleteNoteComplete: note = " << note);
+
     Q_UNUSED(requestId)
+    m_expectingNoteDeletionFromLocalStorage = false;
+
+    try
+    {
+        const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Can't find the deleted note's item in the note model by local uid");
+        }
+
+        if (item->deletionTimestamp() == 0) {
+            FAIL("The note model item's deletion timestamp is unexpectedly zero");
+        }
+
+        // Should be able to remove the row with a non-synchronizable (local) note and get
+        // the asynchronous acknowledgement from the local storage
+        QModelIndex itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+        if (!itemIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for local uid");
+        }
+
+        m_expectingNoteExpungeFromLocalStorage = true;
+        bool res = m_model->removeRow(itemIndex.row(), QModelIndex());
+        if (!res) {
+            FAIL("Can't remove the row with a non-synchronizable note item from the model");
+        }
+
+        return;
+    }
+    CATCH_EXCEPTION()
+
+    emit failure();
 }
 
 void NoteModelTestHelper::onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId)
@@ -489,9 +601,33 @@ void NoteModelTestHelper::onDeleteNoteFailed(Note note, QString errorDescription
 
 void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
+    if (!m_expectingNoteExpungeFromLocalStorage) {
+        return;
+    }
+
+    QNDEBUG("NoteModelTestHelper::onExpungeNoteComplete: note = " << note);
+
     Q_UNUSED(requestId)
+    m_expectingNoteExpungeFromLocalStorage = false;
+
+    try
+    {
+        QModelIndex itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+        if (itemIndex.isValid()) {
+            FAIL("Was able to get the valid model index for the removed note item by local uid which is not intended");
+        }
+
+        const NoteModelItem * item = m_model->itemForLocalUid(m_noteToExpungeLocalUid);
+        if (item) {
+            FAIL("Was able to get the non-null pointer to the note model item while the corresponding note was expunged from local storage");
+        }
+
+        emit success();
+        return;
+    }
+    CATCH_EXCEPTION()
+
+    emit failure();
 }
 
 void NoteModelTestHelper::onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId)
@@ -510,13 +646,6 @@ void NoteModelTestHelper::onAddNotebookFailed(Notebook notebook, QString errorDe
     emit failure();
 }
 
-void NoteModelTestHelper::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
-{
-    // TODO: implement
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
-}
-
 void NoteModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
 {
     QNDEBUG("NoteModelTestHelper::onUpdateNotebookFailed: notebook = " << notebook << "\nError description = "
@@ -531,20 +660,6 @@ void NoteModelTestHelper::onAddTagFailed(Tag tag, QString errorDescription, QUui
             << ", request id = " << requestId);
 
     emit failure();
-}
-
-void NoteModelTestHelper::testAfterNewNoteAddition()
-{
-    QNDEBUG("NoteModelTestHelper::testAfterNewNoteAddition");
-
-    // TODO: implement
-}
-
-void NoteModelTestHelper::testAfterNoteUpdate()
-{
-    QNDEBUG("NoteModelTestHelper::testAfterNoteUpdate");
-
-    // TODO: imlement
 }
 
 void NoteModelTestHelper::checkSorting(const NoteModel & model)

@@ -39,15 +39,11 @@ private Q_SLOTS:
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
     void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
-    void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
 
     void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
 private:
-    void testAfterNewNoteAddition();
-    void testAfterNoteUpdate();
-
     void checkSorting(const NoteModel & model);
 
 private:
@@ -143,6 +139,13 @@ private:
 
 private:
     LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
+    NoteModel *                         m_model;
+    Notebook                            m_firstNotebook;
+    QString                             m_noteToExpungeLocalUid;
+    bool                                m_expectingNewNoteFromLocalStorage;
+    bool                                m_expectingNoteUpdateFromLocalStorage;
+    bool                                m_expectingNoteDeletionFromLocalStorage;
+    bool                                m_expectingNoteExpungeFromLocalStorage;
 };
 
 } // namespace qute_note
