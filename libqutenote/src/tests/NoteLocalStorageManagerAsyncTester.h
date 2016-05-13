@@ -38,7 +38,6 @@ Q_SIGNALS:
                                         size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                         LocalStorageManager::OrderDirection::type orderDirection,
                                         QUuid requestId = QUuid());
-    void deleteNoteRequest(Note note, QUuid requestId = QUuid());
     void expungeNoteRequest(Note note, QUuid requestId = QUuid());
 
 private Q_SLOTS:
@@ -66,8 +65,6 @@ private Q_SLOTS:
                                          LocalStorageManager::ListNotesOrder::type order,
                                          LocalStorageManager::OrderDirection::type orderDirection,
                                          QString errorDescription, QUuid requestId);
-    void onDeleteNoteCompleted(Note note, QUuid requestId);
-    void onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId);
     void onExpungeNoteCompleted(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 

@@ -1688,52 +1688,6 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
     return notes;
 }
 
-bool LocalStorageManagerPrivate::deleteNote(const Note & note, QString & errorDescription)
-{
-    errorDescription = QT_TR_NOOP("Can't delete note from local storage database: ");
-
-    QString column, guid;
-    bool noteHasGuid = note.hasGuid();
-    if(noteHasGuid) {
-        column = "guid";
-        guid = note.guid();
-
-        if (!checkGuid(guid)) {
-            // TRANSLATOR explaining why note cannot be marked as deleted in local storage
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
-            QNWARNING(errorDescription);
-            return false;
-        }
-    }
-    else {
-        column = "localUid";
-        guid = note.localUid();
-    }
-
-    if (!note.hasActive() || note.active()) {
-        errorDescription += QT_TR_NOOP("note to be marked as deleted in local storage "
-                                       "does not have corresponding \"active\" mark set to false, "
-                                       "rejecting to mark it deleted");
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    if (!note.hasDeletionTimestamp()) {
-        errorDescription += QT_TR_NOOP("note to be marked as deleted in local storage "
-                                       "does not have deletion timestamp set, rejecting to mark it deleted");
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    QString queryString = QString("UPDATE Notes SET isActive=0, isDirty=1, deletionTimestamp=%1 WHERE %2 = '%3'")
-                                  .arg(QString::number(note.deletionTimestamp()),column,guid);
-    QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
-
-    return true;
-}
-
 bool LocalStorageManagerPrivate::expungeNote(const Note & note, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge note from local storage database: ");

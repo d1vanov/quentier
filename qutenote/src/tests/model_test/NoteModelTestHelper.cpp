@@ -37,10 +37,6 @@ NoteModelTestHelper::NoteModelTestHelper(LocalStorageManagerThreadWorker * pLoca
                      this, QNSLOT(NoteModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
                                   QString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteNoteComplete,Note,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onDeleteNoteComplete,Note,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteNoteFailed,Note,QString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onDeleteNoteFailed,Note,QString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QString,QUuid),
@@ -465,56 +461,89 @@ void NoteModelTestHelper::onAddNoteFailed(Note note, QString errorDescription, Q
 
 void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
-    if (!m_expectingNoteUpdateFromLocalStorage) {
-        return;
-    }
-
-    QNDEBUG("NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
-
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
     Q_UNUSED(requestId)
-    m_expectingNoteUpdateFromLocalStorage = false;
 
-    try
+    if (m_expectingNoteUpdateFromLocalStorage)
     {
-        const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
-        if (Q_UNLIKELY(!item)) {
-            FAIL("Can't find the updated note's item in the note model by local uid");
-        }
+        QNDEBUG("NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
 
-        QModelIndex itemIndex = m_model->indexForLocalUid(note.localUid());
-        if (!itemIndex.isValid()) {
-            FAIL("Can't find the valid model index for the note item just updated");
-        }
+        m_expectingNoteUpdateFromLocalStorage = false;
 
-        QString title = item->title();
-        if (title != "Modified title") {
-            FAIL("It appears the note model item's title hasn't really changed as it was expected");
-        }
+        try
+        {
+            const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
+            if (Q_UNLIKELY(!item)) {
+                FAIL("Can't find the updated note's item in the note model by local uid");
+            }
 
-        itemIndex = m_model->index(itemIndex.row(), NoteModel::Columns::DeletionTimestamp, QModelIndex());
-        if (!itemIndex.isValid()) {
-            FAIL("Can't find the valid model index for the note item's deletion timestamp column");
-        }
+            QModelIndex itemIndex = m_model->indexForLocalUid(note.localUid());
+            if (!itemIndex.isValid()) {
+                FAIL("Can't find the valid model index for the note item just updated");
+            }
 
-        emit success();
-        // FIXME: find out why it fails
-        /*
-        // Should be able to set the deletion timestamp to the note model item and receive the asynchronous acknowledge from the local storage
-        m_expectingNoteDeletionFromLocalStorage = true;
-        qint64 deletionTimestamp = QDateTime::currentMSecsSinceEpoch();
-        bool res = m_model->setData(itemIndex, deletionTimestamp, Qt::EditRole);
-        if (!res) {
-            FAIL("Can't set the deletion timestamp onto the note model item");
-        }
-        */
+            QString title = item->title();
+            if (title != "Modified title") {
+                FAIL("It appears the note model item's title hasn't really changed as it was expected");
+            }
 
-        return;
+            itemIndex = m_model->index(itemIndex.row(), NoteModel::Columns::DeletionTimestamp, QModelIndex());
+            if (!itemIndex.isValid()) {
+                FAIL("Can't find the valid model index for the note item's deletion timestamp column");
+            }
+
+            // Should be able to set the deletion timestamp to the note model item and receive the asynchronous acknowledge from the local storage
+            m_expectingNoteDeletionFromLocalStorage = true;
+            qint64 deletionTimestamp = QDateTime::currentMSecsSinceEpoch();
+            bool res = m_model->setData(itemIndex, deletionTimestamp, Qt::EditRole);
+            if (!res) {
+                FAIL("Can't set the deletion timestamp onto the note model item");
+            }
+
+            return;
+        }
+        CATCH_EXCEPTION()
+
+        emit failure();
     }
-    CATCH_EXCEPTION()
+    else if (m_expectingNoteDeletionFromLocalStorage)
+    {
+        QNDEBUG("NoteModelTestHelper::onUpdateNoteComplete: note = " << note);
 
-    emit failure();
+        Q_UNUSED(requestId)
+        m_expectingNoteDeletionFromLocalStorage = false;
+
+        try
+        {
+            const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
+            if (Q_UNLIKELY(!item)) {
+                FAIL("Can't find the deleted note's item in the note model by local uid");
+            }
+
+            if (item->deletionTimestamp() == 0) {
+                FAIL("The note model item's deletion timestamp is unexpectedly zero");
+            }
+
+            // Should be able to remove the row with a non-synchronizable (local) note and get
+            // the asynchronous acknowledgement from the local storage
+            QModelIndex itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
+            if (!itemIndex.isValid()) {
+                FAIL("Can't get the valid note model item index for local uid");
+            }
+
+            m_expectingNoteExpungeFromLocalStorage = true;
+            bool res = m_model->removeRow(itemIndex.row(), QModelIndex());
+            if (!res) {
+                FAIL("Can't remove the row with a non-synchronizable note item from the model");
+            }
+
+            return;
+        }
+        CATCH_EXCEPTION()
+
+        emit failure();
+    }
 }
 
 void NoteModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -544,56 +573,6 @@ void NoteModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOpti
     QNDEBUG("NoteModelTestHelper::onListNotesFailed: flag = " << flag << ", with resource binary data = "
             << (withResourceBinaryData ? "true" : "false") << ", limit = " << limit << ", offset = " << offset
             << ", order = " << order << ", direction = " << orderDirection << ", error description = "
-            << errorDescription << ", request id = " << requestId);
-
-    emit failure();
-}
-
-void NoteModelTestHelper::onDeleteNoteComplete(Note note, QUuid requestId)
-{
-    if (!m_expectingNoteDeletionFromLocalStorage) {
-        return;
-    }
-
-    QNDEBUG("NoteModelTestHelper::onDeleteNoteComplete: note = " << note);
-
-    Q_UNUSED(requestId)
-    m_expectingNoteDeletionFromLocalStorage = false;
-
-    try
-    {
-        const NoteModelItem * item = m_model->itemForLocalUid(note.localUid());
-        if (Q_UNLIKELY(!item)) {
-            FAIL("Can't find the deleted note's item in the note model by local uid");
-        }
-
-        if (item->deletionTimestamp() == 0) {
-            FAIL("The note model item's deletion timestamp is unexpectedly zero");
-        }
-
-        // Should be able to remove the row with a non-synchronizable (local) note and get
-        // the asynchronous acknowledgement from the local storage
-        QModelIndex itemIndex = m_model->indexForLocalUid(m_noteToExpungeLocalUid);
-        if (!itemIndex.isValid()) {
-            FAIL("Can't get the valid note model item index for local uid");
-        }
-
-        m_expectingNoteExpungeFromLocalStorage = true;
-        bool res = m_model->removeRow(itemIndex.row(), QModelIndex());
-        if (!res) {
-            FAIL("Can't remove the row with a non-synchronizable note item from the model");
-        }
-
-        return;
-    }
-    CATCH_EXCEPTION()
-
-    emit failure();
-}
-
-void NoteModelTestHelper::onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId)
-{
-    QNDEBUG("NoteModelTestHelper::onDeleteNoteFailed: note = " << note << "\nError description = "
             << errorDescription << ", request id = " << requestId);
 
     emit failure();

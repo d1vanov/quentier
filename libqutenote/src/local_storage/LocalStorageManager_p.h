@@ -103,7 +103,6 @@ public:
                           const bool withResourceBinaryData, const size_t limit,
                           const size_t offset, const LocalStorageManager::ListNotesOrder::type & order,
                           const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    bool deleteNote(const Note & note, QString & errorDescription);
     bool expungeNote(const Note & note, QString & errorDescription);
 
     NoteList findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,

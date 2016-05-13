@@ -88,7 +88,6 @@ Q_SIGNALS:
                    LocalStorageManager::ListNotesOrder::type order,
                    LocalStorageManager::OrderDirection::type orderDirection,
                    QUuid requestId);
-    void deleteNote(Note note, QUuid requestId);
     void expungeNote(Note note, QUuid requestId);
 
     void findNotebook(Notebook notebook, QUuid requestId);
@@ -111,8 +110,6 @@ private Q_SLOTS:
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
                            QString errorDescription, QUuid requestId);
-    void onDeleteNoteComplete(Note note, QUuid requestId);
-    void onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
@@ -138,7 +135,6 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const NoteModelItem & item);
     void updateNoteInLocalStorage(const NoteModelItem & item);
-    void deleteNoteInLocalStorage(const NoteModelItem & item);
 
     // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
     int rowForNewItem(const NoteModelItem & newItem) const;
@@ -227,7 +223,6 @@ private:
 
     QSet<QUuid>             m_addNoteRequestIds;
     QSet<QUuid>             m_updateNoteRequestIds;
-    QSet<QUuid>             m_deleteNoteRequestIds;
     QSet<QUuid>             m_expungeNoteRequestIds;
 
     QSet<QUuid>             m_findNoteToRestoreFailedUpdateRequestIds;

@@ -751,7 +751,8 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     modifiedNote.setActive(false);
     modifiedNote.setDeletionTimestamp(1);
     foundNote.setActive(true);
-    res = localStorageManager.deleteNote(modifiedNote, errorDescription);
+    res = localStorageManager.updateNote(modifiedNote, /* update resources = */ false,
+                                         /* update tags = */ false, errorDescription);
     if (!res) {
         return false;
     }

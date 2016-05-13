@@ -73,7 +73,6 @@ Q_SIGNALS:
     void addNote(Note note, QUuid requestId);
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
-    void deleteNote(Note note, QUuid requestId);
     void expungeNote(Note note, QUuid requestId);
 
     void addTag(Tag tag, QUuid requestId);

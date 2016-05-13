@@ -246,12 +246,6 @@ NoteList LocalStorageManager::findNotesWithSearchQuery(const NoteSearchQuery & n
     return d->findNotesWithSearchQuery(noteSearchQuery, errorDescription, withResourceBinaryData);
 }
 
-bool LocalStorageManager::deleteNote(const Note & note, QString & errorDescription)
-{
-    Q_D(LocalStorageManager);
-    return d->deleteNote(note, errorDescription);
-}
-
 bool LocalStorageManager::expungeNote(const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);

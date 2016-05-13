@@ -24,7 +24,6 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_notebookCache(notebookCache),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
-    m_deleteNoteRequestIds(),
     m_expungeNoteRequestIds(),
     m_findNoteToRestoreFailedUpdateRequestIds(),
     m_findNoteToPerformUpdateRequestIds(),
@@ -392,13 +391,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     updateItemRowWithRespectToSorting(item);
     emit layoutChanged();
 
-    if (column == Columns::DeletionTimestamp) {
-        deleteNoteInLocalStorage(item);
-    }
-    else {
-        updateNoteInLocalStorage(item);
-    }
-
+    updateNoteInLocalStorage(item);
     return true;
 }
 
@@ -443,20 +436,27 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     }
 
     beginRemoveRows(QModelIndex(), row, row + count - 1);
-    for(int i = 0; i < count; ++i)
-    {
-        auto it = index.begin() + row + i;
 
+    QStringList localUidsToRemove;
+    localUidsToRemove.reserve(count);
+    for(int i = 0; i < count; ++i) {
+        auto it = index.begin() + row + i;
+        localUidsToRemove << it->localUid();
+    }
+    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
+
+    for(auto it = localUidsToRemove.begin(), end = localUidsToRemove.end(); it != end; ++it)
+    {
         Note note;
-        note.setLocalUid(it->localUid());
+        note.setLocalUid(*it);
 
         QUuid requestId = QUuid::createUuid();
         Q_UNUSED(m_expungeNoteRequestIds.insert(requestId))
         QNTRACE("Emitting the request to expunge the note from the local storage: request id = "
-                << requestId << ", note local uid: " << it->localUid());
+                << requestId << ", note local uid: " << *it);
         emit expungeNote(note, requestId);
     }
-    Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
+
     emit endRemoveRows();
 
     return true;
@@ -732,33 +732,6 @@ void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, 
     emit notifyError(errorDescription);
 }
 
-void NoteModel::onDeleteNoteComplete(Note note, QUuid requestId)
-{
-    QNDEBUG("NoteModel::onDeleteNoteComplete: note = " << note << "\nRequest id = " << requestId);
-
-    auto it = m_deleteNoteRequestIds.find(requestId);
-    if (it != m_deleteNoteRequestIds.end()) {
-        Q_UNUSED(m_deleteNoteRequestIds.erase(it))
-        return;
-    }
-}
-
-void NoteModel::onDeleteNoteFailed(Note note, QString errorDescription, QUuid requestId)
-{
-    auto it = m_deleteNoteRequestIds.find(requestId);
-    if (it == m_deleteNoteRequestIds.end()) {
-        return;
-    }
-
-    QNDEBUG("NoteModel::onDeleteNoteFailed: note = " << note << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    Q_UNUSED(m_deleteNoteRequestIds.erase(it))
-
-    note.setDeletionTimestamp(static_cast<qint64>(0));  // NOTE: it's a way to say setDeleted(false)
-    onNoteAddedOrUpdated(note);
-}
-
 void NoteModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
     QNDEBUG("NoteModel::onExpungeNoteComplete: note = " << note << "\nRequest id = " << requestId);
@@ -941,8 +914,8 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
     // Local signals to localStorageManagerThreadWorker's slots
     QObject::connect(this, QNSIGNAL(NoteModel,addNote,Note,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,QUuid));
+    QObject::connect(this, QNSIGNAL(NoteModel,updateNote,Note,bool,bool,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNote,Note,bool,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,listNotes,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
@@ -951,8 +924,6 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                                                               LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                               LocalStorageManager::ListNotesOrder::type,
                                                               LocalStorageManager::OrderDirection::type,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteModel,deleteNote,Note,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onDeleteNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,expungeNote,Note,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNoteRequest,Note,QUuid));
     QObject::connect(this, QNSIGNAL(NoteModel,findNotebook,Notebook,QUuid),
@@ -980,10 +951,6 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                                                                 LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
                      this, QNSLOT(NoteModel,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                   LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteNoteComplete,Note,QUuid),
-                     this, QNSLOT(NoteModel,onDeleteNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,deleteNoteFailed,Note,QString,QUuid),
-                     this, QNSLOT(NoteModel,onDeleteNoteFailed,Note,QString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModel,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QString,QUuid),
@@ -1301,27 +1268,6 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
                 << ", note: " << note);
         emit updateNote(note, /* update resources = */ false, /* update tags = */ false, requestId);
     }
-}
-
-void NoteModel::deleteNoteInLocalStorage(const NoteModelItem & item)
-{
-    QNDEBUG("NoteModel::deleteNoteInLocalStorage: local uid = " << item.localUid());
-
-    if (Q_UNLIKELY(item.deletionTimestamp() == 0)) {
-        QNDEBUG("No deletion timestamp on the item, nothing to delete: " << item);
-        return;
-    }
-
-    Note note;
-    note.setLocalUid(item.localUid());
-    note.setDirty(item.isDirty());
-    note.setDeletionTimestamp(item.deletionTimestamp());
-
-    QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_deleteNoteRequestIds.insert(requestId))
-    QNTRACE("Emitting the request to delete note: request id = " << requestId
-            << ", note: " << note);
-    emit deleteNote(note, requestId);
 }
 
 int NoteModel::rowForNewItem(const NoteModelItem & item) const

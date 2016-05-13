@@ -556,14 +556,6 @@ public:
                                       const bool withResourceBinaryData = true) const;
 
     /**
-     * @brief deleteNote - marks the note as deleted in local storage.
-     * @param note - note to be deleted
-     * @param errorDescription - error description if note could not be deleted
-     * @return true if note was deleted successfully, false otherwise
-     */
-    bool deleteNote(const Note & note, QString & errorDescription);
-
-    /**
      * @brief expungeNote - permanently deletes note from local storage.
      * Evernote API doesn't allow to delete notes from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called

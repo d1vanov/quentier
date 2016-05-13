@@ -782,27 +782,6 @@ void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::Li
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onDeleteNoteRequest(Note note, QUuid requestId)
-{
-    try
-    {
-        QString errorDescription;
-
-        bool res = m_pLocalStorageManager->deleteNote(note, errorDescription);
-        if (!res) {
-            emit deleteNoteFailed(note, errorDescription, requestId);
-            return;
-        }
-
-        if (m_useCache) {
-            m_pLocalStorageCacheManager->cacheNote(note);
-        }
-
-        emit deleteNoteComplete(note, requestId);
-    }
-    CATCH_EXCEPTION
-}
-
 void LocalStorageManagerThreadWorker::onExpungeNoteRequest(Note note, QUuid requestId)
 {
     try
