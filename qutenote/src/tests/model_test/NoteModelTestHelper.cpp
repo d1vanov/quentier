@@ -303,6 +303,55 @@ void NoteModelTestHelper::launchTest()
                  "received " << data.toString() << ", expected " << newTitle);
         }
 
+        // Should be able to mark the note as deleted
+        firstIndex = model->index(firstIndex.row(), NoteModel::Columns::DeletionTimestamp, QModelIndex());
+        if (!firstIndex.isValid()) {
+            FAIL("Can't get the valid note model item index for deletion timestamp column");
+        }
+
+        qint64 deletionTimestamp = QDateTime::currentMSecsSinceEpoch();
+        res = model->setData(firstIndex, deletionTimestamp, Qt::EditRole);
+        if (!res) {
+            FAIL("Can't set the deletion timestamp onto the note model item");
+        }
+
+        data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the note item's deletion timestamp");
+        }
+
+        bool conversionResult = false;
+        qint64 itemDeletionTimestamp = data.toLongLong(&conversionResult);
+        if (!conversionResult) {
+            FAIL("Can't convert the note model item's deletion timestamp data to the actual timestamp");
+        }
+
+        if (deletionTimestamp != itemDeletionTimestamp) {
+            FAIL("The note model item's deletion timestamp doesn't match the timestamp originally set");
+        }
+
+        // Should be able to remove the deletion timestamp from the note
+        deletionTimestamp = 0;
+        res = model->setData(firstIndex, deletionTimestamp, Qt::EditRole);
+        if (!res) {
+            FAIL("Can't set zero deletion timestamp onto the note model item");
+        }
+
+        data = model->data(firstIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the note model while expected to get the note item's deletion timestamp");
+        }
+
+        conversionResult = false;
+        itemDeletionTimestamp = data.toLongLong(&conversionResult);
+        if (!conversionResult) {
+            FAIL("Can't convert the note model item's deletion timestamp data to the actual timestamp");
+        }
+
+        if (deletionTimestamp != itemDeletionTimestamp) {
+            FAIL("The note model item's deletion timestamp doesn't match the expected value of 0");
+        }
+
         // Should not be able to remove the row with a synchronizable (non-local) notebook
         res = model->removeRow(firstIndex.row(), QModelIndex());
         if (res) {
