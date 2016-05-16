@@ -14,8 +14,9 @@
 namespace qute_note {
 
 NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                     NotebookCache & notebookCache, QObject * parent) :
+                     NotebookCache & notebookCache, QObject * parent, const IncludedNotes::type includedNotes) :
     QAbstractItemModel(parent),
+    m_includedNotes(includedNotes),
     m_data(),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
@@ -365,6 +366,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
             {
                 bool conversionResult = false;
                 timestamp = value.toLongLong(&conversionResult);
+
                 if (!conversionResult) {
                     QString error = QT_TR_NOOP("Can't change the deleted state of the note: wrong deletion timestamp value");
                     QNINFO(error);
@@ -1544,11 +1546,86 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
 
     NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(item.localUid());
-    if (it == localUidIndex.end()) {
+    if (it == localUidIndex.end())
+    {
+        switch(m_includedNotes)
+        {
+        case IncludedNotes::All:
+                break;
+        case IncludedNotes::Deleted:
+            {
+                if (item.deletionTimestamp() == 0) {
+                    QNDEBUG("Won't add note as it's not deleted and the model instance only considers the deleted notes");
+                    return;
+                }
+                break;
+            }
+        case IncludedNotes::NonDeleted:
+            {
+                if (item.deletionTimestamp() != 0) {
+                    QNDEBUG("Won't add note as it's deleted and the model instance only considers the non-deleted notes");
+                    return;
+                }
+                break;
+            }
+        }
+
         Q_UNUSED(localUidIndex.insert(item))
     }
-    else {
-        Q_UNUSED(localUidIndex.replace(it, item))
+    else
+    {
+        bool shouldRemoveItem = false;
+
+        switch(m_includedNotes)
+        {
+        case IncludedNotes::All:
+            break;
+        case IncludedNotes::Deleted:
+            {
+                if (item.deletionTimestamp() == 0)
+                {
+                    QNDEBUG("Removing the updated note item from the model as the item is not deleted "
+                            "and the model instance only considers the deleted notes");
+                    shouldRemoveItem = true;
+                }
+                break;
+            }
+        case IncludedNotes::NonDeleted:
+            {
+                if (item.deletionTimestamp() != 0)
+                {
+                    QNDEBUG("Removing the updated note item from the model as the item is deleted "
+                            "and the model instance only considers the non-deleted notes");
+                    shouldRemoveItem = true;
+                }
+                break;
+            }
+        }
+
+        NoteDataByIndex & index = m_data.get<ByIndex>();
+        auto indexIt = m_data.project<ByIndex>(it);
+        if (Q_UNLIKELY(indexIt == index.end())) {
+            QString error = QT_TR_NOOP("Can't project the local uid index to the note item to the random access index iterator");
+            QNWARNING(error << ", note model item: " << item);
+            emit notifyError(error);
+            return;
+        }
+
+        int row = static_cast<int>(std::distance(index.begin(), indexIt));
+
+        if (shouldRemoveItem)
+        {
+            beginRemoveRows(QModelIndex(), row, row);
+            Q_UNUSED(localUidIndex.erase(it))
+            endRemoveRows();
+        }
+        else
+        {
+            QModelIndex modelIndexFrom = createIndex(row, Columns::CreationTimestamp);
+            QModelIndex modelIndexTo = createIndex(row, Columns::Dirty);
+            Q_UNUSED(localUidIndex.replace(it, item))
+            emit dataChanged(modelIndexFrom, modelIndexTo);
+        }
     }
 }
 

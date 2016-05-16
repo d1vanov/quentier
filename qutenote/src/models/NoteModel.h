@@ -28,8 +28,19 @@ class NoteModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
+    struct IncludedNotes
+    {
+        enum type
+        {
+            All = 0,
+            NonDeleted,
+            Deleted
+        };
+    };
+
     explicit NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                       NotebookCache & notebookCache, QObject * parent = Q_NULLPTR);
+                       NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
+                       const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();
 
     struct Columns
@@ -213,6 +224,7 @@ private:
     void addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData);
 
 private:
+    IncludedNotes::type     m_includedNotes;
     NoteData                m_data;
     size_t                  m_listNotesOffset;
     QUuid                   m_listNotesRequestId;
