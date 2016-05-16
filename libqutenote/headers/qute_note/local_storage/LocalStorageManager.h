@@ -700,14 +700,6 @@ public:
                         const QString & linkedNotebookGuid = QString()) const;
 
     /**
-     * @brief deleteTag - marks tag as deleted in local storage.
-     * @param tag - tag to be deleted
-     * @param errorDescription - error description if tag could not be deleted
-     * @return true if tag was deleted successfully, false otherwise
-     */
-    bool deleteTag(const Tag & tag, QString & errorDescription);
-
-    /**
      * @brief expungeTag - permanently deletes tag from local storage.
      * Evernote API doesn't allow to delete tags from remote storage, it can
      * only be done by official desktop client or web GUI. So this method should be called

@@ -127,7 +127,6 @@ public:
                         const size_t limit, const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
                         const LocalStorageManager::OrderDirection::type & orderDirection,
                         const QString & linkedNotebookGuid) const;
-    bool deleteTag(const Tag & tag, QString & errorDescription);
     bool expungeTag(const Tag & tag, QString & errorDescription);
     bool expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
 
@@ -393,9 +392,6 @@ private:
 
     QSqlQuery           m_insertOrReplaceTagQuery;
     bool                m_insertOrReplaceTagQueryPrepared;
-
-    QSqlQuery           m_deleteTagQuery;
-    bool                m_deleteTagQueryPrepared;
 
     QSqlQuery           m_expungeTagQuery;
     bool                m_expungeTagQueryPrepared;

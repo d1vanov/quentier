@@ -94,7 +94,6 @@ Q_SIGNALS:
                   LocalStorageManager::ListTagsOrder::type order,
                   LocalStorageManager::OrderDirection::type orderDirection,
                   QString linkedNotebookGuid, QUuid requestId);
-    void deleteTag(Tag tag, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
 
@@ -116,8 +115,6 @@ private Q_SLOTS:
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
                           QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
-    void onDeleteTagComplete(Tag tag, QUuid requestId);
-    void onDeleteTagFailed(Tag tag, QString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QUuid requestId);
     void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
 
@@ -211,7 +208,6 @@ private:
 
     QSet<QUuid>             m_addTagRequestIds;
     QSet<QUuid>             m_updateTagRequestIds;
-    QSet<QUuid>             m_deleteTagRequestIds;
     QSet<QUuid>             m_expungeTagRequestIds;
 
     QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;

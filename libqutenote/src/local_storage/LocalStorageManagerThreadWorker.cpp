@@ -1017,27 +1017,6 @@ void LocalStorageManagerThreadWorker::onListTagsRequest(LocalStorageManager::Lis
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onDeleteTagRequest(Tag tag, QUuid requestId)
-{
-    try
-    {
-        QString errorDescription;
-
-        bool res = m_pLocalStorageManager->deleteTag(tag, errorDescription);
-        if (!res) {
-            emit deleteTagFailed(tag, errorDescription, requestId);
-            return;
-        }
-
-        if (m_useCache) {
-            m_pLocalStorageCacheManager->cacheTag(tag);
-        }
-
-        emit deleteTagComplete(tag, requestId);
-    }
-    CATCH_EXCEPTION
-}
-
 void LocalStorageManagerThreadWorker::onExpungeTagRequest(Tag tag, QUuid requestId)
 {
     try

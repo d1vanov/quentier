@@ -6,7 +6,6 @@ namespace qute_note {
 TagData::TagData() :
     DataElementWithShortcutData(),
     m_qecTag(),
-    m_isDeleted(false),
     m_linkedNotebookGuid(),
     m_parentLocalUid()
 {}
@@ -14,7 +13,6 @@ TagData::TagData() :
 TagData::TagData(const TagData & other) :
     DataElementWithShortcutData(other),
     m_qecTag(other.m_qecTag),
-    m_isDeleted(other.m_isDeleted),
     m_linkedNotebookGuid(other.m_linkedNotebookGuid),
     m_parentLocalUid(other.m_parentLocalUid)
 {}
@@ -22,7 +20,6 @@ TagData::TagData(const TagData & other) :
 TagData::TagData(TagData && other) :
     DataElementWithShortcutData(std::move(other)),
     m_qecTag(std::move(other.m_qecTag)),
-    m_isDeleted(std::move(other.m_isDeleted)),
     m_linkedNotebookGuid(std::move(other.m_linkedNotebookGuid)),
     m_parentLocalUid(std::move(other.m_parentLocalUid))
 {}
@@ -30,7 +27,6 @@ TagData::TagData(TagData && other) :
 TagData::TagData(const qevercloud::Tag & other) :
     DataElementWithShortcutData(),
     m_qecTag(other),
-    m_isDeleted(false),
     m_linkedNotebookGuid(),
     m_parentLocalUid()
 {}
@@ -41,7 +37,6 @@ TagData::~TagData()
 void TagData::clear()
 {
     m_qecTag = qevercloud::Tag();
-    m_isDeleted = false;
     m_linkedNotebookGuid.clear();
 }
 
@@ -102,7 +97,6 @@ bool TagData::operator==(const TagData & other) const
            (m_isDirty == other.m_isDirty) &&
            (m_isLocal == other.m_isLocal) &&
            (m_hasShortcut == other.m_hasShortcut) &&
-           (m_isDeleted == other.m_isDeleted) &&
            m_linkedNotebookGuid.isEqual(other.m_linkedNotebookGuid) &&
            m_parentLocalUid.isEqual(other.m_parentLocalUid);
 }

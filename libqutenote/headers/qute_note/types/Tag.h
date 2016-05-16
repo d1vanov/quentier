@@ -47,9 +47,6 @@ public:
 
     virtual bool checkParameters(QString & errorDescription) const Q_DECL_OVERRIDE;
 
-    bool isDeleted() const;
-    void setDeleted(const bool deleted);
-
     bool hasName() const;
     const QString & name() const;
     void setName(const QString & name);

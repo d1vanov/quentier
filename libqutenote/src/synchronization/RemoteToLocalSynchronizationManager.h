@@ -78,7 +78,6 @@ Q_SIGNALS:
     void addTag(Tag tag, QUuid requestId);
     void updateTag(Tag tag, QUuid requestId);
     void findTag(Tag tag, QUuid requestId);
-    void deleteTag(Tag tag, QUuid requestId);
     void expungeTag(Tag tag, QUuid requestId);
 
     void expungeNotelessTagsFromLinkedNotebooks(QUuid requestId);

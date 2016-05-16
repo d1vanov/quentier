@@ -60,8 +60,6 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getTagCountQueryPrepared(false),
     m_insertOrReplaceTagQuery(),
     m_insertOrReplaceTagQueryPrepared(false),
-    m_deleteTagQuery(),
-    m_deleteTagQueryPrepared(false),
     m_expungeTagQuery(),
     m_expungeTagQueryPrepared(false),
     m_getNoteCountQuery(),
@@ -2120,7 +2118,7 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
     }
 
     QString queryString = QString("SELECT localUid, guid, linkedNotebookGuid, updateSequenceNumber, name, parentGuid, "
-                                  "parentLocalUid, isDirty, isLocal, isLocal, isDeleted, hasShortcut "
+                                  "parentLocalUid, isDirty, isLocal, isLocal, hasShortcut "
                                   "FROM Tags WHERE (%1 = '%2'").arg(column,value);
 
     if (tag.hasLinkedNotebookGuid()) {
@@ -2252,29 +2250,6 @@ QList<Tag> LocalStorageManagerPrivate::listTags(const LocalStorageManager::ListO
 
     return listObjects<Tag, LocalStorageManager::ListTagsOrder::type>(flag, errorDescription, limit, offset, order, orderDirection,
                                                                       linkedNotebookGuidSqlQueryCondition);
-}
-
-bool LocalStorageManagerPrivate::deleteTag(const Tag & tag, QString & errorDescription)
-{
-    errorDescription = QT_TR_NOOP("Can't delete tag from local storage database: ");
-
-    if (!tag.isDeleted()) {
-        // TRANSLATOR explaining why tag cannot be marked as deleted in local storage
-        errorDescription += QT_TR_NOOP("tag to be deleted is not marked correspondingly");
-        QNWARNING(errorDescription);
-        return false;
-    }
-
-    bool res = checkAndPrepareDeleteTagQuery();
-    QSqlQuery & query = m_deleteTagQuery;
-    DATABASE_CHECK_AND_SET_ERROR("can't mark tag deleted in \"Tags\" table: "
-                                 "can't prepare SQL query");
-
-    query.bindValue(":localUid", tag.localUid());
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't mark tag deleted in \"Tags\" table in SQL database");
-
-    return true;
 }
 
 bool LocalStorageManagerPrivate::expungeTag(const Tag & tag, QString & errorDescription)
@@ -3274,7 +3249,6 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  parentLocalUid REFERENCES Tags(localUid) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  isDeleted             INTEGER              NOT NULL, "
                      "  hasShortcut           INTEGER              NOT NULL, "
                      "  UNIQUE(linkedNotebookGuid, nameLower) "
                      ")");
@@ -5114,7 +5088,6 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, const QStri
     query.bindValue(":parentLocalUid", (tag.hasParentLocalUid() ? tag.parentLocalUid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
-    query.bindValue(":isDeleted", (tag.isDeleted() ? 1 : 0));
     query.bindValue(":hasShortcut", (tag.hasShortcut() ? 1 : 0));
 
     res = query.exec();
@@ -5130,7 +5103,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareTagCountQuery() const
     }
 
     m_getTagCountQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_getTagCountQuery.prepare("SELECT COUNT(*) FROM Tags WHERE isDeleted = 0");
+    bool res = m_getTagCountQuery.prepare("SELECT COUNT(*) FROM Tags");
     if (res) {
         m_getTagCountQueryPrepared = true;
     }
@@ -5148,30 +5121,13 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
     bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
                                                  "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                                  "name, nameLower, parentGuid, parentLocalUid, isDirty, "
-                                                 "isLocal, isDeleted, hasShortcut) "
+                                                 "isLocal, hasShortcut) "
                                                  "VALUES(:localUid, :guid, :linkedNotebookGuid, "
                                                  ":updateSequenceNumber, :name, :nameLower, "
                                                  ":parentGuid, :parentLocalUid, :isDirty, :isLocal, "
-                                                 ":isDeleted, :hasShortcut)");
+                                                 ":hasShortcut)");
     if (res) {
         m_insertOrReplaceTagQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareDeleteTagQuery()
-{
-    if (Q_LIKELY(m_deleteTagQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to delete tag");
-
-    m_deleteTagQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_deleteTagQuery.prepare("UPDATE Tags SET isDeleted = 1, isDirty = 1 WHERE localUid = :localUid");
-    if (res) {
-        m_deleteTagQueryPrepared = true;
     }
 
     return res;
@@ -6872,7 +6828,6 @@ bool LocalStorageManagerPrivate::fillTagFromSqlRecord(const QSqlRecord & rec, Ta
     CHECK_AND_SET_TAG_PROPERTY(localUid, QString, QString, setLocalUid, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(isDeleted, int, bool, setDeleted, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
 
 #undef CHECK_AND_SET_TAG_PROPERTY

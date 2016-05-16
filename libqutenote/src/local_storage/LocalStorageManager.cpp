@@ -311,12 +311,6 @@ QList<Tag> LocalStorageManager::listTags(const ListObjectsOptions flag, QString 
     return d->listTags(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
-bool LocalStorageManager::deleteTag(const Tag & tag, QString & errorDescription)
-{
-    Q_D(LocalStorageManager);
-    return d->deleteTag(tag, errorDescription);
-}
-
 bool LocalStorageManager::expungeTag(const Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);

@@ -322,38 +322,6 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
         return false;
     }
 
-    // ========== Check Delete + Find ==========
-    modifiedTag.setDeleted(true);
-    res = localStorageManager.deleteTag(modifiedTag, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    res = localStorageManager.findTag(foundTag, errorDescription);
-    if (!res) {
-        return false;
-    }
-
-    if (!foundTag.isDeleted()) {
-        errorDescription = "Tag which should have been marked as deleted one "
-                           "is not marked so in the result of FindTag";
-        QNWARNING(errorDescription << ": deleted Tag which should have been found in LocalStorageManager: "
-                  << modifiedTag << "\nTag which should have actually been found: "
-                  << foundTag);
-        return false;
-    }
-
-    // ========== GetTagCount to return 0 ============
-    count = localStorageManager.tagCount(errorDescription);
-    if (count < 0) {
-        return false;
-    }
-    else if (count != 0) {
-        errorDescription = "GetTagCount returned result different from the expected one (0): ";
-        errorDescription += QString::number(count);
-        return false;
-    }
-
     // ========== Add another tag referencing the first tag as its parent =========
     Tag newTag;
     newTag.setName("New tag");

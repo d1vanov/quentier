@@ -133,16 +133,6 @@ bool Tag::checkParameters(QString & errorDescription) const
     return d->checkParameters(errorDescription);
 }
 
-bool Tag::isDeleted() const
-{
-    return d->m_isDeleted;
-}
-
-void Tag::setDeleted(const bool deleted)
-{
-    d->m_isDeleted = deleted;
-}
-
 bool Tag::hasName() const
 {
     return d->m_qecTag.name.isSet();
@@ -264,7 +254,6 @@ QTextStream & Tag::print(QTextStream & strm) const
 
     strm << "isDirty: " << (isDirty() ? "true" : "false") << "; \n";
     strm << "isLocal: " << (d->m_isLocal ? "true" : "false") << "; \n";
-    strm << "isDeleted: " << (d->m_isDeleted ? "true" : "false") << "; \n";
     strm << "hasShortcut = " << (hasShortcut() ? "true" : "false") << "; \n";
     strm << "}; \n";
 
