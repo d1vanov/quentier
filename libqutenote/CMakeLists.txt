@@ -581,7 +581,17 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "BUILDING_QUTE_NOTE_DLL=1")
 endif()
 
-# modifying sources list with absolute paths for cppcheck
+# set Doxygen documentation properties
+set(DOCUMENTABLE_SOURCE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/headers ${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(DOXY_INPUT ${DOCUMENTABLE_SOURCE_DIRS})
+set(DOXY_RECURSIVE "YES")
+set(DOXY_PROJECT_NAME ${PROJECT_NAME})
+set(DOXY_PROJECT_NUMBER "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+set(DOXY_PROJECT_BRIEF "\"The library for rich desktop clients of Evernote service\"")
+set(DOXY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc")
+ADD_DOCUMENTATION(doc Doxyfile)
+
+# modifying sources list with absolute paths for the static analyzer
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 prepend_path(TEST_SOURCES "${TEST_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 

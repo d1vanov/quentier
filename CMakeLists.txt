@@ -18,6 +18,7 @@ include(QuteNoteFindLibXml2)
 include(QuteNoteFindOpenSSL)
 include(QuteNoteFindBoost)
 include(QuteNoteFindHunspell)
+include(QuteNoteDoxygen)
 include(PrependPath)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
