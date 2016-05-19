@@ -322,7 +322,6 @@ public Q_SLOTS:
                            LocalStorageManager::ListTagsOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
                            QString linkedNotebookGuid, QUuid requestId);
-    void onDeleteTagRequest(Tag tag, QUuid requestId);
     void onExpungeTagRequest(Tag tag, QUuid requestId);
     void onExpungeNotelessTagsFromLinkedNotebooksRequest(QUuid requestId);
 
