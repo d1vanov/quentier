@@ -77,7 +77,7 @@ void DecryptEncryptedTextDelegate::start()
     }
 
     if (m_pNoteEditor->isModified()) {
-        QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+        QObject::connect(m_pNoteEditor.data(), QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                          this, QNSLOT(DecryptEncryptedTextDelegate,onOriginalPageConvertedToNote,Note));
         m_pNoteEditor->convertToNote();
     }
@@ -94,7 +94,7 @@ void DecryptEncryptedTextDelegate::onOriginalPageConvertedToNote(Note note)
 
     Q_UNUSED(note)
 
-    QObject::disconnect(m_pNoteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+    QObject::disconnect(m_pNoteEditor.data(), QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(DecryptEncryptedTextDelegate,onOriginalPageConvertedToNote,Note));
 
     raiseDecryptionDialog();

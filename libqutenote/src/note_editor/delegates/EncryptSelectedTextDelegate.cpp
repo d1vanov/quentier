@@ -104,7 +104,7 @@ void EncryptSelectedTextDelegate::onSelectedTextEncrypted(QString selectedText, 
     }
 
     if (m_pNoteEditor->isModified()) {
-        QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+        QObject::connect(m_pNoteEditor.data(), QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                          this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
         m_pNoteEditor->convertToNote();
     }
@@ -121,7 +121,7 @@ void EncryptSelectedTextDelegate::onOriginalPageConvertedToNote(Note note)
 
     Q_UNUSED(note)
 
-    QObject::disconnect(m_pNoteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+    QObject::disconnect(m_pNoteEditor.data(), QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
                         this, QNSLOT(EncryptSelectedTextDelegate,onOriginalPageConvertedToNote,Note));
 
     encryptSelectedText();
