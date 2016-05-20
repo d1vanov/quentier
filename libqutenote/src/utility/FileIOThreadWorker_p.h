@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_P_H
-#define __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_P_H
+#ifndef LIB_QUTE_NOTE_UTILITY_FILE_IO_THREAD_WORKER_P_H
+#define LIB_QUTE_NOTE_UTILITY_FILE_IO_THREAD_WORKER_P_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
@@ -38,4 +38,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__FILE_IO_THREAD_WORKER_P_H
+#endif // LIB_QUTE_NOTE_UTILITY_FILE_IO_THREAD_WORKER_P_H

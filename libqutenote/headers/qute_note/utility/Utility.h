@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__UTILITY_H
-#define __LIB_QUTE_NOTE__UTILITY__UTILITY_H
+#ifndef LIB_QUTE_NOTE_UTILITY_UTILITY_H
+#define LIB_QUTE_NOTE_UTILITY_UTILITY_H
 
 #include <qute_note/utility/Linkage.h>
 #include <QEverCloud.h>
@@ -34,4 +34,4 @@ const QString QUTE_NOTE_EXPORT printableDateTimeFromTimestamp(const qint64 times
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__UTILITY_H
+#endif // LIB_QUTE_NOTE_UTILITY_UTILITY_H

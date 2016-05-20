@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__LISTS_H
-#define __LIB_QUTE_NOTE__LOCAL_STORAGE__LISTS_H
+#ifndef LIB_QUTE_NOTE_LOCAL_STORAGE_LISTS_H
+#define LIB_QUTE_NOTE_LOCAL_STORAGE_LISTS_H
 
 #include <QVector>
 #include <QSharedPointer>
@@ -32,4 +32,4 @@ typedef QList<SavedSearch>            SavedSearchList;
 
 }
 
-#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__LISTS_H
+#endif // LIB_QUTE_NOTE_LOCAL_STORAGE_LISTS_H

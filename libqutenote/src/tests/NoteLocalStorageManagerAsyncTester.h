@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
-#define __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#ifndef LIB_QUTE_NOTE_TESTS_NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#define LIB_QUTE_NOTE_TESTS_NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/local_storage/LocalStorageManager.h>
@@ -94,8 +94,8 @@ private:
 
     State m_state;
 
-    LocalStorageManagerThreadWorker * m_pLocalStorageManagerThreadWorker;
-    QThread *                   m_pLocalStorageManagerThread;
+    LocalStorageManagerThreadWorker *   m_pLocalStorageManagerThreadWorker;
+    QThread *                           m_pLocalStorageManagerThread;
 
     Notebook                    m_notebook;
     Notebook                    m_extraNotebook;
@@ -109,4 +109,4 @@ private:
 } // namespace qute_note
 } // namespace test
 
-#endif // __LIB_QUTE_NOTE__TESTS__NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
+#endif // LIB_QUTE_NOTE_TESTS_NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H

@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__STRING_UTILS_H
-#define __LIB_QUTE_NOTE__UTILITY__STRING_UTILS_H
+#ifndef LIB_QUTE_NOTE_UTILITY_STRING_UTILS_H
+#define LIB_QUTE_NOTE_UTILITY_STRING_UTILS_H
 
 #include <qute_note/utility/Linkage.h>
 #include <QString>
@@ -25,4 +25,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__STRING_UTILS_H
+#endif // LIB_QUTE_NOTE_UTILITY_STRING_UTILS_H

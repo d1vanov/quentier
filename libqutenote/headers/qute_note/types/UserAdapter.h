@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__USER_ADAPTER_H
-#define __LIB_QUTE_NOTE__TYPES__USER_ADAPTER_H
+#ifndef LIB_QUTE_NOTE_TYPES_USER_ADAPTER_H
+#define LIB_QUTE_NOTE_TYPES_USER_ADAPTER_H
 
 #include "IUser.h"
 
@@ -39,4 +39,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TYPES__USER_ADAPTER_H
+#endif // LIB_QUTE_NOTE_TYPES_USER_ADAPTER_H

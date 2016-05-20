@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__SHORTCUT_MANAGER_H
-#define __LIB_QUTE_NOTE__UTILITY__SHORTCUT_MANAGER_H
+#ifndef LIB_QUTE_NOTE_UTILITY_SHORTCUT_MANAGER_H
+#define LIB_QUTE_NOTE_UTILITY_SHORTCUT_MANAGER_H
 
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -112,5 +112,5 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__SHORTCUT_MANAGER_H
+#endif // LIB_QUTE_NOTE_UTILITY_SHORTCUT_MANAGER_H
 

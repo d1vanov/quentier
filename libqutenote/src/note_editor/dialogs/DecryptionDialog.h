@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTION_DIALOG_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTION_DIALOG_H
+#ifndef LIB_QUTE_NOTE_NOTE_EDITOR_DECRYPTION_DIALOG_H
+#define LIB_QUTE_NOTE_NOTE_EDITOR_DECRYPTION_DIALOG_H
 
 #include <qute_note/utility/EncryptionManager.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -64,4 +64,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__DECRYPTION_DIALOG_H
+#endif // LIB_QUTE_NOTE_NOTE_EDITOR_DECRYPTION_DIALOG_H

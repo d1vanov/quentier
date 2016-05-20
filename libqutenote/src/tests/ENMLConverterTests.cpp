@@ -5,7 +5,7 @@
 #include <QXmlStreamReader>
 #include <QFile>
 
-void __initENMLConversionTestResources();
+void initENMLConversionTestResources();
 
 namespace qute_note {
 namespace test {
@@ -164,7 +164,7 @@ bool convertNoteWithResourcesToHtmlAndBack(QString & error)
 
 bool convertComplexNoteToHtmlAndBack(QString & error)
 {
-    __initENMLConversionTestResources();
+    initENMLConversionTestResources();
 
     QFile file(":/tests/complexNote1.txt");
     if (!file.open(QIODevice::ReadOnly)) {
@@ -179,7 +179,7 @@ bool convertComplexNoteToHtmlAndBack(QString & error)
 
 bool convertComplexNote2ToHtmlAndBack(QString & error)
 {
-    __initENMLConversionTestResources();
+    initENMLConversionTestResources();
 
     QFile file(":/tests/complexNote2.txt");
     if (!file.open(QIODevice::ReadOnly)) {
@@ -194,7 +194,7 @@ bool convertComplexNote2ToHtmlAndBack(QString & error)
 
 bool convertComplexNote3ToHtmlAndBack(QString & error)
 {
-    __initENMLConversionTestResources();
+    initENMLConversionTestResources();
 
     QFile file(":/tests/complexNote3.txt");
     if (!file.open(QIODevice::ReadOnly)) {
@@ -209,7 +209,7 @@ bool convertComplexNote3ToHtmlAndBack(QString & error)
 
 bool convertComplexNote4ToHtmlAndBack(QString &error)
 {
-    __initENMLConversionTestResources();
+    initENMLConversionTestResources();
 
     QFile file(":/tests/complexNote4.txt");
     if (!file.open(QIODevice::ReadOnly)) {
@@ -715,7 +715,7 @@ bool convertHtmlWithTableAndHilitorHelperTagsToEnml(QString & error)
 } // namespace test
 } // namespace qute_note
 
-void __initENMLConversionTestResources()
+void initENMLConversionTestResources()
 {
     Q_INIT_RESOURCE(test_resources);
 }

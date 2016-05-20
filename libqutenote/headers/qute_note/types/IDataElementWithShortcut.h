@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__I_DATA_ELEMENT_WITH_SHORTCUT_H
-#define __LIB_QUTE_NOTE__TYPES__I_DATA_ELEMENT_WITH_SHORTCUT_H
+#ifndef LIB_QUTE_NOTE_TYPES_I_DATA_ELEMENT_WITH_SHORTCUT_H
+#define LIB_QUTE_NOTE_TYPES_I_DATA_ELEMENT_WITH_SHORTCUT_H
 
 #include "INoteStoreDataElement.h"
 
@@ -19,30 +19,30 @@ public:
     virtual ~IDataElementWithShortcut() {}
 };
 
-#define _DECLARE_HAS_SHORTCUT \
+#define DECLARE_HAS_SHORTCUT \
     virtual bool hasShortcut() const Q_DECL_OVERRIDE;
 
-#define _DECLARE_SET_SHORTCUT \
+#define DECLARE_SET_SHORTCUT \
     virtual void setShortcut(const bool shortcut) Q_DECL_OVERRIDE;
 
 #define QN_DECLARE_SHORTCUT \
-    _DECLARE_HAS_SHORTCUT \
-    _DECLARE_SET_SHORTCUT
+    DECLARE_HAS_SHORTCUT \
+    DECLARE_SET_SHORTCUT
 
-#define _DEFINE_HAS_SHORTCUT(type) \
+#define DEFINE_HAS_SHORTCUT(type) \
     bool type::hasShortcut() const { \
         return d->m_hasShortcut; \
     }
 
-#define _DEFINE_SET_SHORTCUT(type) \
+#define DEFINE_SET_SHORTCUT(type) \
     void type::setShortcut(const bool shortcut) { \
         d->m_hasShortcut = shortcut; \
     }
 
 #define QN_DEFINE_SHORTCUT(type) \
-    _DEFINE_HAS_SHORTCUT(type) \
-    _DEFINE_SET_SHORTCUT(type)
+    DEFINE_HAS_SHORTCUT(type) \
+    DEFINE_SET_SHORTCUT(type)
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TYPES__I_DATA_ELEMENT_WITH_SHORTCUT_H
+#endif // LIB_QUTE_NOTE_TYPES_I_DATA_ELEMENT_WITH_SHORTCUT_H

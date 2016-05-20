@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__PRINTABLE_H
-#define __LIB_QUTE_NOTE__UTILITY__PRINTABLE_H
+#ifndef LIB_QUTE_NOTE_UTILITY_PRINTABLE_H
+#define LIB_QUTE_NOTE_UTILITY_PRINTABLE_H
 
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -77,7 +77,7 @@ const QString ToString(const QSet<T> & object)
     return str;
 }
 
-#define __QUTE_NOTE_DECLARE_PRINTABLE(type, ...) \
+#define QUTE_NOTE_DECLARE_PRINTABLE(type, ...) \
     QTextStream & operator << (QTextStream & strm, const type & obj); \
     inline QDebug & operator << (QDebug & debug, const type & obj) \
     { \
@@ -85,35 +85,35 @@ const QString ToString(const QSet<T> & object)
         return debug; \
     }
 
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserInfo)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumInfo)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Accounting)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::UserAttributes)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteAttributes)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PrivilegeLevel::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::QueryFormat::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookPrivilegeLevel::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteSortOrder::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NotebookRestrictions)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookInstanceRestrictions::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ResourceAttributes)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Resource)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SyncChunk)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Tag)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SavedSearch)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::LinkedNotebook)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Notebook)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Publishing)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebook)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessNotebook)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::User)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookRecipientSettings)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ReminderEmailConfig::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumOrderStatus::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserRole::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SponsoredGroupRole::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Note)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EDAMErrorCode::type)
-__QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EvernoteOAuthWebView::OAuthResult)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserInfo)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumInfo)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Accounting)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::UserAttributes)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteAttributes)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PrivilegeLevel::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::QueryFormat::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookPrivilegeLevel::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NoteSortOrder::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::NotebookRestrictions)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookInstanceRestrictions::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ResourceAttributes)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Resource)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SyncChunk)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Tag)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SavedSearch)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::LinkedNotebook)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Notebook)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Publishing)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebook)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessNotebook)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::User)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SharedNotebookRecipientSettings)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::ReminderEmailConfig::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::PremiumOrderStatus::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::BusinessUserRole::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::SponsoredGroupRole::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::Note)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EDAMErrorCode::type)
+QUTE_NOTE_DECLARE_PRINTABLE(qevercloud::EvernoteOAuthWebView::OAuthResult)
 
-#endif // __LIB_QUTE_NOTE__UTILITY__PRINTABLE_H
+#endif // LIB_QUTE_NOTE_UTILITY_PRINTABLE_H

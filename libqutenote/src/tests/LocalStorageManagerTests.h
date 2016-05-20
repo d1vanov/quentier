@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TESTS__LOCAL_STORAGE_MANAGER_TESTS_H
-#define __LIB_QUTE_NOTE__TESTS__LOCAL_STORAGE_MANAGER_TESTS_H
+#ifndef LIB_QUTE_NOTE_TESTS_LOCAL_STORAGE_MANAGER_TESTS_H
+#define LIB_QUTE_NOTE_TESTS_LOCAL_STORAGE_MANAGER_TESTS_H
 
 #include <QtGlobal>
 
@@ -46,7 +46,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user,
 
 bool TestSequentialUpdatesInLocalStorage(QString & errorDescription);
 
-}
-}
+} // namespace test
+} // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TESTS__LOCAL_STORAGE_MANAGER_TESTS_H
+#endif // LIB_QUTE_NOTE_TESTS_LOCAL_STORAGE_MANAGER_TESTS_H

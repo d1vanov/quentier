@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_UNDO_COMMAND_H
-#define __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_UNDO_COMMAND_H
+#ifndef LIB_QUTE_NOTE_UTILITY_QUTE_NOTE_UNDO_COMMAND_H
+#define LIB_QUTE_NOTE_UTILITY_QUTE_NOTE_UNDO_COMMAND_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <QUndoCommand>
@@ -48,5 +48,5 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__QUTE_NOTE_UNDO_COMMAND_H
+#endif // LIB_QUTE_NOTE_UTILITY_QUTE_NOTE_UNDO_COMMAND_H
 

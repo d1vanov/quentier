@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
-#define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
+#ifndef LIB_QUTE_NOTE_ENML_ENML_CONVERTER_P_H
+#define LIB_QUTE_NOTE_ENML_ENML_CONVERTER_P_H
 
 #include <qute_note/enml/ENMLConverter.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -116,7 +116,7 @@ private:
 
 } // namespace qute_note
 
-__QUTE_NOTE_DECLARE_PRINTABLE(QXmlStreamAttributes)
-__QUTE_NOTE_DECLARE_PRINTABLE(QVector<qute_note::ENMLConverter::SkipHtmlElementRule>)
+QUTE_NOTE_DECLARE_PRINTABLE(QXmlStreamAttributes)
+QUTE_NOTE_DECLARE_PRINTABLE(QVector<qute_note::ENMLConverter::SkipHtmlElementRule>)
 
-#endif // __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_P_H
+#endif // LIB_QUTE_NOTE_ENML_ENML_CONVERTER_P_H

@@ -251,9 +251,9 @@ QTextStream & SavedSearch::print(QTextStream & strm) const
 {
     strm << "Saved search: { \n" ;
 
-    const QString _localUid = localUid();
-    if (!_localUid.isEmpty()) {
-        strm << "localUid: " << _localUid << "; \n";
+    const QString localUid_ = localUid();
+    if (!localUid_.isEmpty()) {
+        strm << "localUid: " << localUid_ << "; \n";
     }
     else {
         strm << "localUid is not set; \n";

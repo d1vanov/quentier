@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__I_NOTE_STORE_DATA_ELEMENT_H
-#define __LIB_QUTE_NOTE__TYPES__I_NOTE_STORE_DATA_ELEMENT_H
+#ifndef LIB_QUTE_NOTE_TYPES_I_NOTE_STORE_DATA_ELEMENT_H
+#define LIB_QUTE_NOTE_TYPES_I_NOTE_STORE_DATA_ELEMENT_H
 
 #include "ILocalStorageDataElement.h"
 #include <qute_note/utility/Printable.h>
@@ -33,54 +33,54 @@ public:
     virtual ~INoteStoreDataElement() {}
 };
 
-#define _DECLARE_IS_DIRTY \
+#define DECLARE_IS_DIRTY \
     virtual bool isDirty() const Q_DECL_OVERRIDE;
 
-#define _DECLARE_SET_DIRTY \
+#define DECLARE_SET_DIRTY \
     virtual void setDirty(const bool isDirty) Q_DECL_OVERRIDE;
 
 #define QN_DECLARE_DIRTY \
-    _DECLARE_IS_DIRTY \
-    _DECLARE_SET_DIRTY
+    DECLARE_IS_DIRTY \
+    DECLARE_SET_DIRTY
 
-#define _DEFINE_IS_DIRTY(type) \
+#define DEFINE_IS_DIRTY(type) \
     bool type::isDirty() const { \
         return d->m_isDirty; \
     }
 
-#define _DEFINE_SET_DIRTY(type) \
+#define DEFINE_SET_DIRTY(type) \
     void type::setDirty(const bool dirty) { \
         d->m_isDirty = dirty; \
     }
 
 #define QN_DEFINE_DIRTY(type) \
-    _DEFINE_IS_DIRTY(type) \
-    _DEFINE_SET_DIRTY(type)
+    DEFINE_IS_DIRTY(type) \
+    DEFINE_SET_DIRTY(type)
 
-#define _DECLARE_IS_LOCAL \
+#define DECLARE_IS_LOCAL \
     virtual bool isLocal() const Q_DECL_OVERRIDE;
 
-#define _DECLARE_SET_LOCAL \
+#define DECLARE_SET_LOCAL \
     virtual void setLocal(const bool isLocal) Q_DECL_OVERRIDE;
 
 #define QN_DECLARE_LOCAL \
-    _DECLARE_IS_LOCAL \
-    _DECLARE_SET_LOCAL
+    DECLARE_IS_LOCAL \
+    DECLARE_SET_LOCAL
 
-#define _DEFINE_IS_LOCAL(type) \
+#define DEFINE_IS_LOCAL(type) \
     bool type::isLocal() const { \
         return d->m_isLocal; \
     }
 
-#define _DEFINE_SET_LOCAL(type) \
+#define DEFINE_SET_LOCAL(type) \
     void type::setLocal(const bool local) { \
         d->m_isLocal = local; \
     }
 
 #define QN_DEFINE_LOCAL(type) \
-    _DEFINE_IS_LOCAL(type) \
-    _DEFINE_SET_LOCAL(type)
+    DEFINE_IS_LOCAL(type) \
+    DEFINE_SET_LOCAL(type)
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TYPES__I_NOTE_STORE_DATA_ELEMENT_H
+#endif // LIB_QUTE_NOTE_TYPES_I_NOTE_STORE_DATA_ELEMENT_H

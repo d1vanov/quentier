@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__NOTEBOOK_H
-#define __LIB_QUTE_NOTE__TYPES__NOTEBOOK_H
+#ifndef LIB_QUTE_NOTE_TYPES_NOTEBOOK_H
+#define LIB_QUTE_NOTE_TYPES_NOTEBOOK_H
 
 #include "IDataElementWithShortcut.h"
 #include <QEverCloud.h>
@@ -200,4 +200,4 @@ private:
 
 Q_DECLARE_METATYPE(qute_note::Notebook)
 
-#endif // __LIB_QUTE_NOTE__TYPES__NOTEBOOK_H
+#endif // LIB_QUTE_NOTE_TYPES_NOTEBOOK_H

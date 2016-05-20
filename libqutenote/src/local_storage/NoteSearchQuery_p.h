@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__LOCAL_STORAGE__NOTE_SEARCH_QUERY_P_H
-#define __LIB_QUTE_NOTE__LOCAL_STORAGE__NOTE_SEARCH_QUERY_P_H
+#ifndef LIB_QUTE_NOTE_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
+#define LIB_QUTE_NOTE_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
 
 #include <qute_note/utility/Printable.h>
 #include <QStringList>
@@ -123,4 +123,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__LOCAL_STORAGE__NOTE_SEARCH_QUERY_P_H
+#endif // LIB_QUTE_NOTE_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H

@@ -637,18 +637,18 @@ bool ENMLConverterPrivate::noteContentToListOfWords(const QString & noteContent,
                                                     QStringList & listOfWords,
                                                     QString & errorMessage, QString * plainText)
 {
-    QString _plainText;
-    bool res = noteContentToPlainText(noteContent, _plainText, errorMessage);
+    QString localPlainText;
+    bool res = noteContentToPlainText(noteContent, localPlainText, errorMessage);
     if (!res) {
         listOfWords.clear();
         return false;
     }
 
     if (plainText) {
-        *plainText = _plainText;
+        *plainText = localPlainText;
     }
 
-    listOfWords = plainTextToListOfWords(_plainText);
+    listOfWords = plainTextToListOfWords(localPlainText);
     return true;
 }
 

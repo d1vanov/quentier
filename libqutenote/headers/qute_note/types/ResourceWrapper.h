@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__RESOURCE_WRAPPER_H
-#define __LIB_QUTE_NOTE__TYPES__RESOURCE_WRAPPER_H
+#ifndef LIB_QUTE_NOTE_TYPES_RESOURCE_WRAPPER_H
+#define LIB_QUTE_NOTE_TYPES_RESOURCE_WRAPPER_H
 
 #include "IResource.h"
 #include <QSharedDataPointer>
@@ -40,4 +40,4 @@ private:
 
 Q_DECLARE_METATYPE(qute_note::ResourceWrapper)
 
-#endif // __LIB_QUTE_NOTE__TYPES__RESOURCE_WRAPPER_H
+#endif // LIB_QUTE_NOTE_TYPES_RESOURCE_WRAPPER_H

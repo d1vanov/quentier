@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__REGISTER_METATYPES_H
-#define __LIB_QUTE_NOTE__TYPES__REGISTER_METATYPES_H
+#ifndef LIB_QUTE_NOTE_TYPES_REGISTER_METATYPES_H
+#define LIB_QUTE_NOTE_TYPES_REGISTER_METATYPES_H
 
 #include <qute_note/utility/Linkage.h>
 
@@ -9,4 +9,4 @@ void QUTE_NOTE_EXPORT registerMetatypes();
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TYPES__REGISTER_METATYPES_H
+#endif // LIB_QUTE_NOTE_TYPES_REGISTER_METATYPES_H

@@ -1,11 +1,16 @@
-#ifndef __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
-#define __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
+#ifndef LIB_QUTE_NOTE_LOGGING_QUTE_NOTE_LOGGER_H
+#define LIB_QUTE_NOTE_LOGGING_QUTE_NOTE_LOGGER_H
 
 #include <qute_note/exception/LoggerInitializationException.h>
 #include <qute_note/utility/DesktopServices.h>
 
+#ifndef QS_LOG_LINE_NUMBERS
 #define QS_LOG_LINE_NUMBERS
+#endif
+
+#ifndef QS_LOG_SEPARATE_THREAD
 #define QS_LOG_SEPARATE_THREAD
+#endif
 
 #include <QsLog.h>
 #include <QsLogLevel.h>
@@ -55,4 +60,4 @@
     logger.addDestination(fileDest); \
 }
 
-#endif // __LIB_QUTE_NOTE__LOGGING__QUTE_NOTE_LOGGER_H
+#endif // LIB_QUTE_NOTE_LOGGING_QUTE_NOTE_LOGGER_H

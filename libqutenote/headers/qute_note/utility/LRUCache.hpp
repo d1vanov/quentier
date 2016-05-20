@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__LRU_CACHE_HPP
-#define __LIB_QUTE_NOTE__UTILITY__LRU_CACHE_HPP
+#ifndef LIB_QUTE_NOTE_UTILITY_LRU_CACHE_HPP
+#define LIB_QUTE_NOTE_UTILITY_LRU_CACHE_HPP
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <list>
@@ -120,4 +120,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__LRU_CACHE_HPP
+#endif // LIB_QUTE_NOTE_UTILITY_LRU_CACHE_HPP

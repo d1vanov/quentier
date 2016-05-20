@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__SAVED_SEARCH_H
-#define __LIB_QUTE_NOTE__TYPES__SAVED_SEARCH_H
+#ifndef LIB_QUTE_NOTE_TYPES_SAVED_SEARCH_H
+#define LIB_QUTE_NOTE_TYPES_SAVED_SEARCH_H
 
 #include "IDataElementWithShortcut.h"
 #include <QEverCloud.h>
@@ -85,4 +85,4 @@ private:
 
 Q_DECLARE_METATYPE(qute_note::SavedSearch)
 
-#endif // __LIB_QUTE_NOTE__TYPES__SAVED_SEARCH_H
+#endif // LIB_QUTE_NOTE_TYPES_SAVED_SEARCH_H

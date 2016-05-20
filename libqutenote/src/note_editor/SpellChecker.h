@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__SPELL_CHECKER_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__SPELL_CHECKER_H
+#ifndef LIB_QUTE_NOTE_NOTE_EDITOR_SPELL_CHECKER_H
+#define LIB_QUTE_NOTE_NOTE_EDITOR_SPELL_CHECKER_H
 
 #include "SpellCheckerDictionariesFinder.h"
 #include <qute_note/utility/Qt4Helper.h>
@@ -99,4 +99,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__SPELL_CHECKER_H
+#endif // LIB_QUTE_NOTE_NOTE_EDITOR_SPELL_CHECKER_H

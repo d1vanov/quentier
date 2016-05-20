@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
+#ifndef LIB_QUTE_NOTE_NOTE_EDITOR_NOTE_EDITOR_P_H
+#define LIB_QUTE_NOTE_NOTE_EDITOR_NOTE_EDITOR_P_H
 
 #include "ResourceInfo.h"
 #include "NoteEditorPage.h"
@@ -807,6 +807,6 @@ private:
 
 } // namespace qute_note
 
-void __initNoteEditorResources();
+void initNoteEditorResources();
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_P_H
+#endif // LIB_QUTE_NOTE_NOTE_EDITOR_NOTE_EDITOR_P_H

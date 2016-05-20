@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__FILE_SYSTEM_WATCHER_H
-#define __LIB_QUTE_NOTE__UTILITY__FILE_SYSTEM_WATCHER_H
+#ifndef LIB_QUTE_NOTE_UTILITY_FILE_SYSTEM_WATCHER_H
+#define LIB_QUTE_NOTE_UTILITY_FILE_SYSTEM_WATCHER_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
@@ -48,4 +48,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__FILE_SYSTEM_WATCHER_H
+#endif // LIB_QUTE_NOTE_UTILITY_FILE_SYSTEM_WATCHER_H

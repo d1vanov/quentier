@@ -3408,7 +3408,7 @@ void NoteEditorPrivate::setupScripts()
 {
     QNDEBUG("NoteEditorPrivate::setupScripts");
 
-    __initNoteEditorResources();
+    initNoteEditorResources();
 
     QFile file;
 
@@ -6174,7 +6174,7 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 
 } // namespace qute_note
 
-void __initNoteEditorResources()
+void initNoteEditorResources()
 {
     Q_INIT_RESOURCE(underline);
     Q_INIT_RESOURCE(css);

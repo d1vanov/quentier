@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__I_LOCAL_STORAGE_DATA_ELEMENT_H
-#define __LIB_QUTE_NOTE__TYPES__I_LOCAL_STORAGE_DATA_ELEMENT_H
+#ifndef LIB_QUTE_NOTE_TYPES_I_LOCAL_STORAGE_DATA_ELEMENT_H
+#define LIB_QUTE_NOTE_TYPES_I_LOCAL_STORAGE_DATA_ELEMENT_H
 
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -19,17 +19,17 @@ public:
     virtual ~ILocalStorageDataElement() {}
 };
 
-#define _DEFINE_LOCAL_UID_GETTER(type) \
+#define DEFINE_LOCAL_UID_GETTER(type) \
     const QString type::localUid() const { \
         return UidGenerator::UidToString(d->m_localUid); \
     }
 
-#define _DEFINE_LOCAL_UID_SETTER(type) \
+#define DEFINE_LOCAL_UID_SETTER(type) \
     void type::setLocalUid(const QString & uid) { \
         d->m_localUid = uid; \
     }
 
-#define _DEFINE_LOCAL_UID_UNSETTER(type) \
+#define DEFINE_LOCAL_UID_UNSETTER(type) \
     void type::unsetLocalUid() { \
         d->m_localUid = QUuid(); \
     }
@@ -40,10 +40,10 @@ public:
     virtual void unsetLocalUid() Q_DECL_OVERRIDE;
 
 #define QN_DEFINE_LOCAL_UID(type) \
-    _DEFINE_LOCAL_UID_GETTER(type) \
-    _DEFINE_LOCAL_UID_SETTER(type) \
-    _DEFINE_LOCAL_UID_UNSETTER(type)
+    DEFINE_LOCAL_UID_GETTER(type) \
+    DEFINE_LOCAL_UID_SETTER(type) \
+    DEFINE_LOCAL_UID_UNSETTER(type)
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TYPES__I_LOCAL_STORAGE_DATA_ELEMENT_H
+#endif // LIB_QUTE_NOTE_TYPES_I_LOCAL_STORAGE_DATA_ELEMENT_H

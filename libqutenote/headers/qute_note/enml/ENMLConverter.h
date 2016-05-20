@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
-#define __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
+#ifndef LIB_QUTE_NOTE_ENML_ENML_CONVERTER_H
+#define LIB_QUTE_NOTE_ENML_ENML_CONVERTER_H
 
 #include <qute_note/utility/Printable.h>
 #include <qute_note/utility/Linkage.h>
@@ -123,4 +123,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__ENML__ENML_CONVERTER_H
+#endif // LIB_QUTE_NOTE_ENML_ENML_CONVERTER_H

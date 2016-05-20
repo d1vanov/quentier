@@ -683,9 +683,9 @@ QTextStream & IResource::print(QTextStream & strm) const
 
     QString indent = "  ";
 
-    const QString _localUid = localUid();
-    if (!_localUid.isEmpty()) {
-        strm << indent << "local uid = " << _localUid << "; \n";
+    const QString localUid_ = localUid();
+    if (!localUid_.isEmpty()) {
+        strm << indent << "local uid = " << localUid_ << "; \n";
     }
     else {
         strm << indent << "localUid is empty; \n";

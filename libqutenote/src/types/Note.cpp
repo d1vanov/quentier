@@ -706,9 +706,9 @@ QTextStream & Note::print(QTextStream & strm) const
 #define INSERT_DELIMITER \
     strm << "; \n";
 
-    const QString _localUid = localUid();
-    if (!_localUid.isEmpty()) {
-        strm << "localUid: " << _localUid;
+    const QString localUid_ = localUid();
+    if (!localUid_.isEmpty()) {
+        strm << "localUid: " << localUid_;
     }
     else {
         strm << "localUid is not set";

@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
-#define __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
+#ifndef LIB_QUTE_NOTE_UTILITY_DESKTOP_SERVICES_H
+#define LIB_QUTE_NOTE_UTILITY_DESKTOP_SERVICES_H
 
 #include <qute_note/utility/Linkage.h>
 #include <QString>
@@ -51,4 +51,4 @@ bool QUTE_NOTE_EXPORT removeFile(const QString & filePath);
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__DESKTOP_SERVICES_H
+#endif // LIB_QUTE_NOTE_UTILITY_DESKTOP_SERVICES_H

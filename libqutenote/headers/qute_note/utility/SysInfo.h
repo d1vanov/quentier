@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__SYS_INFO_H
-#define __LIB_QUTE_NOTE__UTILITY__SYS_INFO_H
+#ifndef LIB_QUTE_NOTE_UTILITY_SYS_INFO_H
+#define LIB_QUTE_NOTE_UTILITY_SYS_INFO_H
 
 #include <qute_note/utility/Linkage.h>
 #include <qute_note/utility/Qt4Helper.h>
@@ -29,4 +29,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__SYS_INFO_H
+#endif // LIB_QUTE_NOTE_UTILITY_SYS_INFO_H

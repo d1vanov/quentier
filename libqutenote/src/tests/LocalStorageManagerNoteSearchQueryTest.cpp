@@ -6,6 +6,7 @@
 #include <qute_note/types/Tag.h>
 #include <qute_note/types/ResourceWrapper.h>
 #include <qute_note/logging/QuteNoteLogger.h>
+#include <QCryptographicHash>
 
 namespace qute_note {
 namespace test {
@@ -167,7 +168,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res0.setMime("image/gif");
     res0.setDataBody(QByteArray("fake image/gif byte array"));
     res0.setDataSize(res0.dataBody().size());
-    res0.setDataHash("Fake_hash______1");
+    res0.setDataHash(QCryptographicHash::hash(res0.dataBody(), QCryptographicHash::Md5));
     QString recognitionBodyStr = QString::fromUtf8("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
                                                    "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
                                                    "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
@@ -186,13 +187,13 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                                                    "</recoIndex>");
     res0.setRecognitionDataBody(recognitionBodyStr.toUtf8());
     res0.setRecognitionDataSize(res0.recognitionDataBody().size());
-    res0.setRecognitionDataHash("Fake_hash______2");
+    res0.setRecognitionDataHash(QCryptographicHash::hash(res0.recognitionDataBody(), QCryptographicHash::Md5));
 
     ResourceWrapper & res1 = resources[1];
     res1.setMime("audio/*");
     res1.setDataBody(QByteArray("fake audio/* byte array"));
     res1.setDataSize(res1.dataBody().size());
-    res1.setDataHash("Fake_hash______3");
+    res1.setDataHash(QCryptographicHash::hash(res1.dataBody(), QCryptographicHash::Md5));
     res1.setRecognitionDataBody(QByteArray("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
@@ -210,13 +211,13 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
                                            "</item>"
                                            "</recoIndex>"));
     res1.setRecognitionDataSize(res1.recognitionDataBody().size());
-    res1.setRecognitionDataHash("Fake_hash______4");
+    res1.setRecognitionDataHash(QCryptographicHash::hash(res1.recognitionDataBody(), QCryptographicHash::Md5));
 
     ResourceWrapper & res2 = resources[2];
     res2.setMime("application/vnd.evernote.ink");
     res2.setDataBody(QByteArray("fake application/vnd.evernote.ink byte array"));
     res2.setDataSize(res2.dataBody().size());
-    res2.setDataHash("Fake_hash______5");
+    res2.setDataHash(QCryptographicHash::hash(res2.dataBody(), QCryptographicHash::Md5));
 
     // 4) ============= Create some ranges for note's properties ==============
     int numTitles = 3;

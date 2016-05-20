@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TESTS__ENML_CONVERTER_TESTS_H
-#define __LIB_QUTE_NOTE__TESTS__ENML_CONVERTER_TESTS_H
+#ifndef LIB_QUTE_NOTE_TESTS_ENML_CONVERTER_TESTS_H
+#define LIB_QUTE_NOTE_TESTS_ENML_CONVERTER_TESTS_H
 
 #include <QString>
 
@@ -21,4 +21,4 @@ bool convertHtmlWithTableAndHilitorHelperTagsToEnml(QString & error);
 } // namespace test
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TESTS__ENML_CONVERTER_TESTS_H
+#endif // LIB_QUTE_NOTE_TESTS_ENML_CONVERTER_TESTS_H

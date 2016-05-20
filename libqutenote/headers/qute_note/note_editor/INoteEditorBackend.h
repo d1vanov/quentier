@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_BACKEND_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_BACKEND_H
+#ifndef LIB_QUTE_NOTE_NOTE_EDITOR_I_NOTE_EDITOR_BACKEND_H
+#define LIB_QUTE_NOTE_NOTE_EDITOR_I_NOTE_EDITOR_BACKEND_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <qute_note/utility/Linkage.h>
@@ -129,4 +129,4 @@ protected:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__I_NOTE_EDITOR_BACKEND_H
+#endif // LIB_QUTE_NOTE_NOTE_EDITOR_I_NOTE_EDITOR_BACKEND_H

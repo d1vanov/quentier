@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TESTS__CORE_TESTER_H
-#define __LIB_QUTE_NOTE__TESTS__CORE_TESTER_H
+#ifndef LIB_QUTE_NOTE_TESTS_CORE_TESTER_H
+#define LIB_QUTE_NOTE_TESTS_CORE_TESTER_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <QObject>
@@ -80,4 +80,4 @@ private:
 } // namespace test
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TESTS__CORE_TESTER_H
+#endif // LIB_QUTE_NOTE_TESTS_CORE_TESTER_H

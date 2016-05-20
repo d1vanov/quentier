@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__TAG_H
-#define __LIB_QUTE_NOTE__TYPES__TAG_H
+#ifndef LIB_QUTE_NOTE_TYPES_TAG_H
+#define LIB_QUTE_NOTE_TYPES_TAG_H
 
 #include "IDataElementWithShortcut.h"
 #include <QEverCloud.h>
@@ -73,4 +73,4 @@ private:
 
 Q_DECLARE_METATYPE(qute_note::Tag)
 
-#endif // __LIB_QUTE_NOTE__TYPES__TAG_H
+#endif // LIB_QUTE_NOTE_TYPES_TAG_H

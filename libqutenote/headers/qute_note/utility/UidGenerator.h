@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__UID_GENERATOR_H
-#define __LIB_QUTE_NOTE__UTILITY__UID_GENERATOR_H
+#ifndef LIB_QUTE_NOTE_UTILITY_UID_GENERATOR_H
+#define LIB_QUTE_NOTE_UTILITY_UID_GENERATOR_H
 
 #include <qute_note/utility/Linkage.h>
 #include <QString>
@@ -16,4 +16,4 @@ public:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__UID_GENERATOR_H
+#endif // LIB_QUTE_NOTE_UTILITY_UID_GENERATOR_H

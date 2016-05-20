@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__TYPES__IRESOURCE_H
-#define __LIB_QUTE_NOTE__TYPES__IRESOURCE_H
+#ifndef LIB_QUTE_NOTE_TYPES_I_RESOURCE_H
+#define LIB_QUTE_NOTE_TYPES_I_RESOURCE_H
 
 #include "INoteStoreDataElement.h"
 #include "Note.h"
@@ -140,4 +140,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__TYPES__IRESOURCE_H
+#endif // LIB_QUTE_NOTE_TYPES_I_RESOURCE_H

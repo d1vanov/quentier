@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__UTILITY__LIMITED_STACK_H
-#define __LIB_QUTE_NOTE__UTILITY__LIMITED_STACK_H
+#ifndef LIB_QUTE_NOTE_UTILITY_LIMITED_STACK_H
+#define LIB_QUTE_NOTE_UTILITY_LIMITED_STACK_H
 
 #include <qute_note/utility/Qt4Helper.h>
 #include <QStack>
@@ -87,4 +87,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__UTILITY__LIMITED_STACK_H
+#endif // LIB_QUTE_NOTE_UTILITY_LIMITED_STACK_H

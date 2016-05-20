@@ -1,5 +1,5 @@
-#ifndef __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
-#define __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
+#ifndef LIB_QUTE_NOTE_NOTE_EDITOR_NOTE_EDITOR_PAGE_H
+#define LIB_QUTE_NOTE_NOTE_EDITOR_NOTE_EDITOR_PAGE_H
 
 #include "JavaScriptInOrderExecutor.h"
 #include <qute_note/utility/Qt4Helper.h>
@@ -81,4 +81,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __LIB_QUTE_NOTE__NOTE_EDITOR__NOTE_EDITOR_PAGE_H
+#endif // LIB_QUTE_NOTE_NOTE_EDITOR_NOTE_EDITOR_PAGE_H
