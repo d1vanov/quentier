@@ -87,7 +87,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest: note local uid = " << noteLocalUid
             << ", resource local uid = " << resourceLocalUid << ", request id = " << requestId
-            << ", preferred file suffix = " << preferredFileSuffix << ", data hash = " << dataHash
+            << ", preferred file suffix = " << preferredFileSuffix << ", data hash = " << dataHash.toHex()
             << ", is image = " << (isImage ? "true" : "false"));
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
@@ -155,7 +155,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
 
     if (dataHash.isEmpty()) {
         dataHash = calculateHash(data);
-        QNTRACE("Resource data hash was empty, calculated hash: " << dataHash);
+        QNTRACE("Resource data hash was empty, calculated hash: " << dataHash.toHex());
     }
 
     bool actual = checkIfResourceFileExistsAndIsActual(noteLocalUid, resourceLocalUid, fileStoragePath, dataHash);
@@ -403,14 +403,14 @@ void ResourceFileStorageManagerPrivate::createConnections()
 
 QByteArray ResourceFileStorageManagerPrivate::calculateHash(const QByteArray & data) const
 {
-    return QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
+    return QCryptographicHash::hash(data, QCryptographicHash::Md5);
 }
 
 bool ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual(const QString & noteLocalUid, const QString & resourceLocalUid,
                                                                              const QString & fileStoragePath, const QByteArray & dataHash) const
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual: note local uid = "
-            << noteLocalUid << ", resource local uid = " << resourceLocalUid << ", data hash = " << dataHash);
+            << noteLocalUid << ", resource local uid = " << resourceLocalUid << ", data hash = " << dataHash.toHex());
 
     if (Q_UNLIKELY(fileStoragePath.isEmpty())) {
         QNWARNING("Resource file storage location is empty");
@@ -438,8 +438,8 @@ bool ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual(con
 
     QByteArray storedHash = resourceHashFile.readAll();
     if (storedHash != dataHash) {
-        QNTRACE("Resource must be stale, the stored hash " << storedHash
-                << " does not match the actual hash " << dataHash);
+        QNTRACE("Resource must be stale, the stored hash " << storedHash.toHex()
+                << " does not match the actual hash " << dataHash.toHex());
         return false;
     }
 
@@ -451,7 +451,7 @@ bool ResourceFileStorageManagerPrivate::updateResourceHash(const QString & resou
                                                            const QString & storageFolderPath, int & errorCode, QString & errorDescription)
 {
     QNDEBUG("ResourceFileStorageManagerPrivate::updateResourceHash: resource local uid = " << resourceLocalUid
-            << ", data hash = " << dataHash << ", storage folder path = " << storageFolderPath);
+            << ", data hash = " << dataHash.toHex() << ", storage folder path = " << storageFolderPath);
 
     QFile file(storageFolderPath + "/" + resourceLocalUid + ".hash");
 

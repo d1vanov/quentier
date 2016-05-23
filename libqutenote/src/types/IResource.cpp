@@ -358,6 +358,9 @@ const QByteArray & IResource::dataHash() const
 
 void IResource::setDataHash(const QByteArray & hash)
 {
+    QNDEBUG("IResource::setDataHash: local uid = " << localUid() << ", hash = " << hash << "; converted to hex = "
+            << hash.toHex());
+
     qevercloud::Resource & enResource = GetEnResource();
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), data, bodyHash, body, size);
     enResource.data->bodyHash = hash;

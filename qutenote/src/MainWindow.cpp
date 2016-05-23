@@ -35,6 +35,7 @@ using qute_note::NoteEditor;
 #include <QFontDatabase>
 #include <QKeySequence>
 #include <QUndoStack>
+#include <QCryptographicHash>
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -263,9 +264,9 @@ void MainWindow::prepareTestNoteWithResources()
     qute_note::ResourceWrapper resource;
     resource.setLocalUid("{e2f201df-8718-499b-ac92-4c9970170cba}");
     resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setDataHash("84f9f1159d922e8c977d9a1539351ccf");
     resource.setDataBody(resourceData);
     resource.setDataSize(resourceData.size());
+    resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setMime("image/png");
 
@@ -297,9 +298,9 @@ void MainWindow::prepareTestNoteWithResources()
     resource = qute_note::ResourceWrapper();
     resource.setLocalUid("{c3acdcba-d6a4-407d-a85f-5fc3c15126df}");
     resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setDataHash("377ce54f92b5f12e83d8eb3867fc1d9a");
     resource.setDataBody(resourceData);
     resource.setDataSize(resourceData.size());
+    resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
     resource.setMime("application/zip");
 
     resourceAttributes = qevercloud::ResourceAttributes();
@@ -320,9 +321,9 @@ void MainWindow::prepareTestNoteWithResources()
     resource = qute_note::ResourceWrapper();
     resource.setLocalUid("{d44d85f4-d4e2-4788-a172-4d477741b233}");
     resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setDataHash("2e0f79af4ca47b473e5105156a18c7cb");
     resource.setDataBody(resourceData);
     resource.setDataSize(resourceData.size());
+    resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
     resource.setMime("application/octet-stream");
 
     resourceAttributes = qevercloud::ResourceAttributes();

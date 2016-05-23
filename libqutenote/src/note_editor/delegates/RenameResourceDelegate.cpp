@@ -191,7 +191,7 @@ void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, 
     }
 
     QNDEBUG("RenameResourceDelegate::onGenericResourceImageWriterFinished: success = " << (success ? "true" : "false")
-            << ", resource hash = " << resourceHash << ", file path = " << filePath << ", error description = "
+            << ", resource hash = " << resourceHash.toHex() << ", file path = " << filePath << ", error description = "
             << errorDescription << ", request id = " << requestId);
 
     QObject::disconnect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
@@ -208,7 +208,7 @@ void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, 
 
     m_genericResourceImageFilePathsByResourceHash[resourceHash] = filePath;
 
-    QString javascript = "updateImageResourceSrc('" + QString::fromLocal8Bit(resourceHash) + "', '" + filePath + "');";
+    QString javascript = "updateImageResourceSrc('" + QString::fromLocal8Bit(resourceHash.toHex()) + "', '" + filePath + "');";
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &RenameResourceDelegate::onGenericResourceImageUpdated));

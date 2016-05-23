@@ -850,7 +850,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resou
         }
 
         if (resource.data->bodyHash.isSet()) {
-            strm << indent << indent << "hash = " << resource.data->bodyHash << "; \n";
+            strm << indent << indent << "hash = " << resource.data->bodyHash->toHex() << "; \n";
         }
         else {
             strm << indent << indent << "hash is not set; \n";
@@ -899,7 +899,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resou
         }
 
         if (resource.recognition->bodyHash.isSet()) {
-            strm << indent << indent << "hash = " << resource.recognition->bodyHash << "; \n";
+            strm << indent << indent << "hash = " << resource.recognition->bodyHash->toHex() << "; \n";
         }
         else {
             strm << indent << indent << "hash is not set; \n";
@@ -927,7 +927,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resou
         }
 
         if (resource.alternateData->bodyHash.isSet()) {
-            strm << indent << indent << "hash = " << resource.alternateData->bodyHash << "; \n";
+            strm << indent << indent << "hash = " << resource.alternateData->bodyHash->toHex() << "; \n";
         }
         else {
             strm << indent << indent << "hash is not set; \n";

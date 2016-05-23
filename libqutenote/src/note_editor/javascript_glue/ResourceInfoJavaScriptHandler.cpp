@@ -15,8 +15,8 @@ void ResourceInfoJavaScriptHandler::findResourceInfo(const QString & resourceHas
     QString resourceDisplaySize;
     QString resourceLocalFilePath;
 
-    bool found = m_resourceInfo.findResourceInfo(resourceHash, resourceDisplayName,
-                                                 resourceDisplaySize, resourceLocalFilePath);
+    bool found = m_resourceInfo.findResourceInfo(QByteArray::fromHex(resourceHash.toLocal8Bit()),
+                                                 resourceDisplayName, resourceDisplaySize, resourceLocalFilePath);
     if (found) {
         emit notifyResourceInfo(resourceHash, resourceLocalFilePath, resourceDisplayName, resourceDisplaySize);
     }

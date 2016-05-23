@@ -27,7 +27,7 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
                                                                      QUuid requestId)
 {
     QNDEBUG("GenericResourceImageManager::onGenericResourceImageWriteRequest: note local uid = " << noteLocalUid
-            << ", resource local uid = " << resourceLocalUid << ", resource actual hash = " << resourceActualHash
+            << ", resource local uid = " << resourceLocalUid << ", resource actual hash = " << resourceActualHash.toHex()
             << ", request id = " << requestId);
 
 #define RETURN_WITH_ERROR(message) \
@@ -270,7 +270,7 @@ void GenericResourceImageManager::removeStaleGenericResourceImageFilesFromCurren
                     }
                     else {
                         QNTRACE("The stored hash doesn't match the actual resource data hash: stored = "
-                                << storedHash << ", actual = " << resourceAdapter.dataHash());
+                                << storedHash.toHex() << ", actual = " << resourceAdapter.dataHash().toHex());
                     }
                 }
                 else

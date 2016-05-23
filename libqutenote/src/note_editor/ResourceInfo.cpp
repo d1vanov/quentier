@@ -8,7 +8,8 @@ void ResourceInfo::cacheResourceInfo(const QString & resourceHash,
                                      const QString & resourceDisplaySize,
                                      const QString & resourceLocalFilePath)
 {
-    QNDEBUG("ResourceInfo::cacheResourceInfo: resource hash = " << resourceHash
+    QNDEBUG("ResourceInfo::cacheResourceInfo: resource hash = "
+            << resourceHash.toLocal8Bit().toHex()
             << ", resource display name = " << resourceDisplayName
             << ", resource display size = " << resourceDisplaySize
             << ", resource local file path = " << resourceLocalFilePath);
@@ -30,7 +31,7 @@ bool ResourceInfo::findResourceInfo(const QString & resourceHash,
                                     QString & resourceDisplaySize,
                                     QString & resourceLocalFilePath) const
 {
-    QNDEBUG("ResourceInfo::findResourceInfo: resource hash = " << resourceHash);
+    QNDEBUG("ResourceInfo::findResourceInfo: resource hash = " << resourceHash.toLocal8Bit().toHex());
 
     auto it = m_resourceInfoHash.find(resourceHash);
     if (it == m_resourceInfoHash.end()) {
@@ -51,7 +52,7 @@ bool ResourceInfo::findResourceInfo(const QString & resourceHash,
 
 bool ResourceInfo::removeResourceInfo(const QString & resourceHash)
 {
-    QNDEBUG("ResourceInfo::removeResourceInfo: resource hash = " << resourceHash);
+    QNDEBUG("ResourceInfo::removeResourceInfo: resource hash = " << resourceHash.toLocal8Bit().toHex());
 
     auto it = m_resourceInfoHash.find(resourceHash);
     if (it == m_resourceInfoHash.end()) {

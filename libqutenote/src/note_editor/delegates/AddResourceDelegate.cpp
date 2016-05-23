@@ -175,7 +175,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
                      this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
 
     QNTRACE("Emitting the request to save the dropped resource to local file storage: generated local uid = "
-            << resourceLocalUid << ", data hash = " << dataHash << ", request id = "
+            << resourceLocalUid << ", data hash = " << dataHash.toHex() << ", request id = "
             << m_saveResourceToStorageRequestId << ", mime type name = " << m_resourceFileMimeType.name());
     emit saveResourceToStorage(pNote->localUid(), resourceLocalUid, data, dataHash, fileInfoSuffix,
                                m_saveResourceToStorageRequestId, isImage);
@@ -263,7 +263,7 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
             << ", file path = " << filePath);
 
     m_genericResourceImageFilePathsByResourceHash[m_resource.dataHash()] = filePath;
-    QNDEBUG("Cached generic resource image file path " << filePath << " for resource hash " << m_resource.dataHash());
+    QNDEBUG("Cached generic resource image file path " << filePath << " for resource hash " << m_resource.dataHash().toHex());
 
     Q_UNUSED(resourceImageDataHash);
 

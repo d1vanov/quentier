@@ -743,7 +743,7 @@ QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString &
     }
 
     QXmlStreamAttributes attributes;
-    attributes.append("hash", resource.dataHash());
+    attributes.append("hash", resource.dataHash().toHex());
     attributes.append("type", resource.mime());
 
     QString html;

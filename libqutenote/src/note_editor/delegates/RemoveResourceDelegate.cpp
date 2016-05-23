@@ -55,7 +55,7 @@ void RemoveResourceDelegate::doStart()
         return;
     }
 
-    QString javascript = "resourceManager.removeResource('" + m_resource.dataHash() + "');";
+    QString javascript = "resourceManager.removeResource('" + m_resource.dataHash().toHex() + "');";
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));

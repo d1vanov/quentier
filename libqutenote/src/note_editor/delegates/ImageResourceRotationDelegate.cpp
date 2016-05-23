@@ -68,7 +68,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
 {
     QNDEBUG("ImageResourceRotationDelegate::rotateImageResource");
 
-    QString errorPrefix = QT_TR_NOOP("Can't rotate image attachment by hash:") + QString(" ");
+    QString errorPrefix = QT_TR_NOOP("Can't rotate image attachment by hash:") + QStringLiteral(" ");
 
     m_pNote = m_noteEditor.notePtr();
     if (Q_UNLIKELY(!m_pNote)) {
@@ -177,8 +177,9 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
         return;
     }
 
-    QNDEBUG("ImageResourceRotationDelegate::onResourceSavedToStorage: hash = " << dataHash << ", file storage path = " << fileStoragePath
-            << ", error code = " << errorCode << ", error description = " << errorDescription);
+    QNDEBUG("ImageResourceRotationDelegate::onResourceSavedToStorage: hash = " << dataHash.toHex()
+            << ", file storage path = " << fileStoragePath << ", error code = " << errorCode
+            << ", error description = " << errorDescription);
 
     if (Q_UNLIKELY(errorCode != 0)) {
         errorDescription.prepend(QT_TR_NOOP("Can't rotate image resource: can't write modified resource data to local file: "));
@@ -271,7 +272,8 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
         }
     }
 
-    QString javascript = "updateResourceHash('" + m_resourceHashBefore + "', '" + dataHashStr + "');";
+    QString javascript = "updateResourceHash('" + QString::fromLocal8Bit(m_resourceHashBefore.toLocal8Bit().toHex()) +
+                         "', '" + QString::fromLocal8Bit(dataHashStr.toLocal8Bit().toHex()) + "');";
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &ImageResourceRotationDelegate::onResourceTagHashUpdated));
@@ -283,7 +285,7 @@ void ImageResourceRotationDelegate::onResourceTagHashUpdated(const QVariant & da
 
     Q_UNUSED(data)
 
-    QString javascript = "updateImageResourceSrc('" + m_rotatedResource.dataHash() + "', '" + m_resourceFileStoragePathAfter + "');";
+    QString javascript = "updateImageResourceSrc('" + m_rotatedResource.dataHash().toHex() + "', '" + m_resourceFileStoragePathAfter + "');";
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &ImageResourceRotationDelegate::onResourceTagSrcUpdated));
