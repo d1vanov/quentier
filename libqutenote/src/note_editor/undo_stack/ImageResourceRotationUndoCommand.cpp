@@ -4,7 +4,7 @@
 
 namespace qute_note {
 
-ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QString & resourceHashBefore,
+ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                                                    const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
                                                                    const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                                                    NoteEditorPrivate & noteEditor, QUndoCommand * parent) :
@@ -21,7 +21,7 @@ ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteAr
                                                       : QObject::tr("counterclockwise")));
 }
 
-ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QString & resourceHashBefore,
+ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                                                    const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
                                                                    const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                                                    NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent) :

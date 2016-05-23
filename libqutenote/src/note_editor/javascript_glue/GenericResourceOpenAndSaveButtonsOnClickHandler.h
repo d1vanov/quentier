@@ -13,8 +13,8 @@ public:
     explicit GenericResourceOpenAndSaveButtonsOnClickHandler(QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void openResourceRequest(const QString & resourceHash);
-    void saveResourceRequest(const QString & resourceHash);
+    void openResourceRequest(const QByteArray & resourceHash);
+    void saveResourceRequest(const QByteArray & resourceHash);
 
 public Q_SLOTS:
     void onOpenResourceButtonPressed(const QString & resourceHash);

@@ -37,7 +37,7 @@ public:
 
 Q_SIGNALS:
     void savedResourceToFile();
-    void openResourceRequest(const QString & resourceHash);
+    void openResourceRequest(const QByteArray & resourceHash);
 
 // private signals
 Q_SIGNALS:

@@ -129,7 +129,7 @@ public:
     void provideSrcForGenericResourceImages();
     void setupGenericResourceOnClickHandler();
 
-    void updateResource(const QString & resourceLocalUid, const QString & previousResourceHash,
+    void updateResource(const QString & resourceLocalUid, const QByteArray & previousResourceHash,
                         ResourceWrapper updatedResource);
 
     bool isModified() const;
@@ -218,17 +218,17 @@ public Q_SLOTS:
     virtual void removeTableRow() Q_DECL_OVERRIDE;
     virtual void removeTableColumn() Q_DECL_OVERRIDE;
     virtual void addAttachmentDialog() Q_DECL_OVERRIDE;
-    virtual void saveAttachmentDialog(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void saveAttachmentDialog(const QByteArray & resourceHash) Q_DECL_OVERRIDE;
     virtual void saveAttachmentUnderCursor() Q_DECL_OVERRIDE;
-    virtual void openAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void openAttachment(const QByteArray & resourceHash) Q_DECL_OVERRIDE;
     virtual void openAttachmentUnderCursor() Q_DECL_OVERRIDE;
-    virtual void copyAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void copyAttachment(const QByteArray & resourceHash) Q_DECL_OVERRIDE;
     virtual void copyAttachmentUnderCursor() Q_DECL_OVERRIDE;
-    virtual void removeAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void removeAttachment(const QByteArray & resourceHash) Q_DECL_OVERRIDE;
     virtual void removeAttachmentUnderCursor() Q_DECL_OVERRIDE;
-    virtual void renameAttachment(const QString & resourceHash) Q_DECL_OVERRIDE;
+    virtual void renameAttachment(const QByteArray & resourceHash) Q_DECL_OVERRIDE;
     virtual void renameAttachmentUnderCursor() Q_DECL_OVERRIDE;
-    virtual void rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
+    virtual void rotateImageAttachment(const QByteArray & resourceHash, const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
     virtual void rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection) Q_DECL_OVERRIDE;
 
     void rotateImageAttachmentUnderCursorClockwise();
@@ -300,8 +300,8 @@ private Q_SLOTS:
 
     void onJavaScriptLoaded();
 
-    void onOpenResourceRequest(const QString & resourceHash);
-    void onSaveResourceRequest(const QString & resourceHash);
+    void onOpenResourceRequest(const QByteArray & resourceHash);
+    void onSaveResourceRequest(const QByteArray & resourceHash);
 
     void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
     void onContextMenuEventReply(QString contentType, QString selectedHtml, bool insideDecryptedTextFragment,
@@ -320,8 +320,8 @@ private Q_SLOTS:
     void onTextCursorInsideUnorderedListStateChanged(bool state);
     void onTextCursorInsideTableStateChanged(bool state);
 
-    void onTextCursorOnImageResourceStateChanged(bool state, QString resourceHash);
-    void onTextCursorOnNonImageResourceStateChanged(bool state, QString resourceHash);
+    void onTextCursorOnImageResourceStateChanged(bool state, QByteArray resourceHash);
+    void onTextCursorOnNonImageResourceStateChanged(bool state, QByteArray resourceHash);
     void onTextCursorOnEnCryptTagStateChanged(bool state, QString encryptedText, QString cipher, QString length);
 
     void onTextCursorFontNameChanged(QString fontName);
@@ -355,7 +355,7 @@ private Q_SLOTS:
     void onRenameResourceDelegateCancelled();
     void onRenameResourceDelegateError(QString error);
 
-    void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore,
+    void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                                                  QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
                                                  ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
     void onImageResourceRotationDelegateError(QString error);
@@ -410,7 +410,7 @@ private:
 
     void saveNoteResourcesToLocalFiles();
     bool saveResourceToLocalFile(const IResource & resource);
-    void updateHashForResourceTag(const QString & oldResourceHash, const QString & newResourceHash);
+    void updateHashForResourceTag(const QByteArray & oldResourceHash, const QByteArray & newResourceHash);
     void provideSrcForResourceImgTags();
 
     void manualSaveResourceToFile(const IResource & resource);
@@ -430,8 +430,8 @@ private:
 #endif
 
     void setupGenericTextContextMenu(const QStringList & extraData, const QString & selectedHtml, bool insideDecryptedTextFragment);
-    void setupImageResourceContextMenu(const QString & resourceHash);
-    void setupNonImageResourceContextMenu(const QString & resourceHash);
+    void setupImageResourceContextMenu(const QByteArray & resourceHash);
+    void setupNonImageResourceContextMenu(const QByteArray & resourceHash);
     void setupEncryptedTextContextMenu(const QString & cipher, const QString & keyLength,
                                        const QString & encryptedText, const QString & hint,
                                        const QString & id);
@@ -460,7 +460,7 @@ private:
     void onTableActionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 
     int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
-                            const QString & resourceHash) const;
+                            const QByteArray & resourceHash) const;
 
     void writeNotePageFile(const QString & html);
 
@@ -602,7 +602,7 @@ private:
         QString     m_id;
 
         // Resource extra data
-        QString     m_resourceHash;
+        QByteArray  m_resourceHash;
     };
 
 private:

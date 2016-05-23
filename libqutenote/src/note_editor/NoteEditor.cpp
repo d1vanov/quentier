@@ -269,7 +269,7 @@ void NoteEditor::addAttachmentDialog()
     m_backend->addAttachmentDialog();
 }
 
-void NoteEditor::saveAttachmentDialog(const QString & resourceHash)
+void NoteEditor::saveAttachmentDialog(const QByteArray & resourceHash)
 {
     m_backend->saveAttachmentDialog(resourceHash);
 }
@@ -279,7 +279,7 @@ void NoteEditor::saveAttachmentUnderCursor()
     m_backend->saveAttachmentUnderCursor();
 }
 
-void NoteEditor::openAttachment(const QString & resourceHash)
+void NoteEditor::openAttachment(const QByteArray & resourceHash)
 {
     m_backend->openAttachment(resourceHash);
 }
@@ -289,7 +289,7 @@ void NoteEditor::openAttachmentUnderCursor()
     m_backend->openAttachmentUnderCursor();
 }
 
-void NoteEditor::copyAttachment(const QString & resourceHash)
+void NoteEditor::copyAttachment(const QByteArray & resourceHash)
 {
     m_backend->copyAttachment(resourceHash);
 }

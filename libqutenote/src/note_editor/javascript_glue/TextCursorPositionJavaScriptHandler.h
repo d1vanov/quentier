@@ -15,8 +15,8 @@ public:
 Q_SIGNALS:
     void textCursorPositionChanged();
 
-    void textCursorPositionOnImageResourceState(bool state, QString resourceHash);
-    void textCursorPositionOnNonImageResourceState(bool state, QString resourceHash);
+    void textCursorPositionOnImageResourceState(bool state, QByteArray resourceHash);
+    void textCursorPositionOnNonImageResourceState(bool state, QByteArray resourceHash);
     void textCursorPositionOnEnCryptTagState(bool state, QString encryptedText, QString cipher, QString length);
 
     void textCursorPositionBoldState(bool bold);

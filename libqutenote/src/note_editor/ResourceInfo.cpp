@@ -3,13 +3,13 @@
 
 namespace qute_note {
 
-void ResourceInfo::cacheResourceInfo(const QString & resourceHash,
+void ResourceInfo::cacheResourceInfo(const QByteArray & resourceHash,
                                      const QString & resourceDisplayName,
                                      const QString & resourceDisplaySize,
                                      const QString & resourceLocalFilePath)
 {
     QNDEBUG("ResourceInfo::cacheResourceInfo: resource hash = "
-            << resourceHash.toLocal8Bit().toHex()
+            << resourceHash.toHex()
             << ", resource display name = " << resourceDisplayName
             << ", resource display size = " << resourceDisplaySize
             << ", resource local file path = " << resourceLocalFilePath);
@@ -20,18 +20,18 @@ void ResourceInfo::cacheResourceInfo(const QString & resourceHash,
     info.m_resourceLocalFilePath = resourceLocalFilePath;
 }
 
-bool ResourceInfo::contains(const QString & resourceHash) const
+bool ResourceInfo::contains(const QByteArray & resourceHash) const
 {
     auto it = m_resourceInfoHash.find(resourceHash);
     return (it != m_resourceInfoHash.end());
 }
 
-bool ResourceInfo::findResourceInfo(const QString & resourceHash,
+bool ResourceInfo::findResourceInfo(const QByteArray & resourceHash,
                                     QString & resourceDisplayName,
                                     QString & resourceDisplaySize,
                                     QString & resourceLocalFilePath) const
 {
-    QNDEBUG("ResourceInfo::findResourceInfo: resource hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("ResourceInfo::findResourceInfo: resource hash = " << resourceHash.toHex());
 
     auto it = m_resourceInfoHash.find(resourceHash);
     if (it == m_resourceInfoHash.end()) {
@@ -50,9 +50,9 @@ bool ResourceInfo::findResourceInfo(const QString & resourceHash,
     return true;
 }
 
-bool ResourceInfo::removeResourceInfo(const QString & resourceHash)
+bool ResourceInfo::removeResourceInfo(const QByteArray & resourceHash)
 {
-    QNDEBUG("ResourceInfo::removeResourceInfo: resource hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("ResourceInfo::removeResourceInfo: resource hash = " << resourceHash.toHex());
 
     auto it = m_resourceInfoHash.find(resourceHash);
     if (it == m_resourceInfoHash.end()) {

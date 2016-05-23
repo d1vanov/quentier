@@ -11,14 +11,14 @@ class ImageResourceRotationDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit ImageResourceRotationDelegate(const QString & resourceHashBefore, const INoteEditorBackend::Rotation::type rotationDirection,
+    explicit ImageResourceRotationDelegate(const QByteArray & resourceHashBefore, const INoteEditorBackend::Rotation::type rotationDirection,
                                            NoteEditorPrivate & noteEditor, ResourceInfo & resourceInfo,
                                            ResourceFileStorageManager & resourceFileStorageManager,
                                            QHash<QString, QString> & resourceFileStoragePathsByLocalUid);
     void start();
 
 Q_SIGNALS:
-    void finished(QByteArray resourceDataBefore, QString resourceHashBefore,
+    void finished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                   QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
                   ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
     void notifyError(QString error);
@@ -51,7 +51,7 @@ private:
     Note *                          m_pNote;
 
     QByteArray                      m_resourceDataBefore;
-    QString                         m_resourceHashBefore;
+    QByteArray                      m_resourceHashBefore;
 
     QByteArray                      m_resourceRecognitionDataBefore;
     QByteArray                      m_resourceRecognitionDataHashBefore;

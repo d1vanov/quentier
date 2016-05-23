@@ -81,15 +81,15 @@ public:
     virtual void removeTableColumn() = 0;
 
     virtual void addAttachmentDialog() = 0;
-    virtual void saveAttachmentDialog(const QString & resourceHash) = 0;
+    virtual void saveAttachmentDialog(const QByteArray & resourceHash) = 0;
     virtual void saveAttachmentUnderCursor() = 0;
-    virtual void openAttachment(const QString & resourceHash) = 0;
+    virtual void openAttachment(const QByteArray & resourceHash) = 0;
     virtual void openAttachmentUnderCursor() = 0;
-    virtual void copyAttachment(const QString & resourceHash) = 0;
+    virtual void copyAttachment(const QByteArray & resourceHash) = 0;
     virtual void copyAttachmentUnderCursor() = 0;
-    virtual void removeAttachment(const QString & resourceHash) = 0;
+    virtual void removeAttachment(const QByteArray & resourceHash) = 0;
     virtual void removeAttachmentUnderCursor() = 0;
-    virtual void renameAttachment(const QString & resourceHash) = 0;
+    virtual void renameAttachment(const QByteArray & resourceHash) = 0;
     virtual void renameAttachmentUnderCursor() = 0;
 
     struct Rotation
@@ -103,7 +103,7 @@ public:
         friend std::ostream & operator<<(const type rotation, std::ostream & strm);
     };
 
-    virtual void rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection) = 0;
+    virtual void rotateImageAttachment(const QByteArray & resourceHash, const Rotation::type rotationDirection) = 0;
     virtual void rotateImageAttachmentUnderCursor(const Rotation::type rotationDirection) = 0;
 
     virtual void encryptSelectedText() = 0;

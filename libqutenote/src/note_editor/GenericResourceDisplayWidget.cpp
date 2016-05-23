@@ -320,8 +320,8 @@ void GenericResourceDisplayWidget::setPendingMode(const bool pendingMode)
 
 void GenericResourceDisplayWidget::openResource()
 {
-    QNDEBUG("GenericResourceDisplayWidget::openResource: hash = " << m_resourceHash);
-    emit openResourceRequest(QString::fromLocal8Bit(m_resourceHash.constData(), m_resourceHash.size()));
+    QNDEBUG("GenericResourceDisplayWidget::openResource: hash = " << m_resourceHash.toHex());
+    emit openResourceRequest(m_resourceHash);
 }
 
 void GenericResourceDisplayWidget::setupFilterString(const QString & defaultFilterString)

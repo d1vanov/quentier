@@ -318,7 +318,7 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
         return Q_NULLPTR;
     }
 
-    QString resourceHash = argumentValues.at(resourceHashIndex);
+    QByteArray resourceHash = QByteArray::fromHex(argumentValues.at(resourceHashIndex).toLocal8Bit());
     QString resourceMimeType = argumentValues.at(resourceMimeTypeIndex);
 
     QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
@@ -340,7 +340,7 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
     }
 
     if (!pCurrentResource) {
-        QNFATAL("Can't find resource in note by data hash: " << resourceHash
+        QNFATAL("Can't find resource in note by data hash: " << resourceHash.toHex()
                 << ", note: " << *m_pCurrentNote);
         return Q_NULLPTR;
     }
@@ -433,8 +433,8 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
 
     QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
     GenericResourceDisplayWidget * pGenericResourceDisplayWidget = new GenericResourceDisplayWidget(pParentWidget);
-    QObject::connect(pGenericResourceDisplayWidget, QNSIGNAL(GenericResourceDisplayWidget,openResourceRequest,const QString&),
-                     &m_noteEditor, QNSLOT(NoteEditorPrivate,openAttachment,const QString&));
+    QObject::connect(pGenericResourceDisplayWidget, QNSIGNAL(GenericResourceDisplayWidget,openResourceRequest,const QByteArray&),
+                     &m_noteEditor, QNSLOT(NoteEditorPrivate,openAttachment,const QByteArray&));
 
     // NOTE: upon return this generic resource display widget would be reparented to the caller anyway,
     // the parent setting above is strictly for possible use within initialize method (for example, if

@@ -141,7 +141,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
     }
 
     QFileInfo fileInfo(m_filePath);
-    QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5).toHex();
+    QByteArray dataHash = QCryptographicHash::hash(data, QCryptographicHash::Md5);
     m_resource = m_noteEditor.attachResourceToNote(data, dataHash, m_resourceFileMimeType, fileInfo.fileName());
     QString resourceLocalUid = m_resource.localUid();
     if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {

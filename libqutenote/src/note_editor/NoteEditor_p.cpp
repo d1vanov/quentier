@@ -536,7 +536,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     QString resourceDisplayName;
     QString resourceDisplaySize;
 
-    QString oldResourceHash;
+    QByteArray oldResourceHash;
     if (!m_pNote.isNull())
     {
         bool shouldUpdateNoteResources = false;
@@ -552,9 +552,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
 
             shouldUpdateNoteResources = true;
             if (resource.hasDataHash()) {
-                oldResourceHash = QString::fromLocal8Bit(resource.dataHash());
-                QNDEBUG("Original old resource hash = " << resource.dataHash() << "; converted to string = "
-                        << oldResourceHash << "; converted to hex = " << oldResourceHash.toLocal8Bit().toHex());
+                oldResourceHash = resource.dataHash();
             }
 
             resource.setDataHash(dataHash);
@@ -581,17 +579,13 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         }
     }
 
-    QString dataHashStr = QString::fromLocal8Bit(dataHash);
-    QNDEBUG("Original data hash = " << dataHash << "; converted to string: " << dataHashStr
-            << "; converted to hash = " << dataHashStr.toLocal8Bit().toHex());
-
-    m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+    m_resourceInfo.cacheResourceInfo(dataHash, resourceDisplayName,
                                      resourceDisplaySize, fileStoragePath);
 
     Q_UNUSED(m_genericResourceLocalUidBySaveToStorageRequestIds.erase(it));
 
-    if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHashStr)) {
-        updateHashForResourceTag(oldResourceHash, dataHashStr);
+    if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHash)) {
+        updateHashForResourceTag(oldResourceHash, dataHash);
         highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
     }
 
@@ -707,7 +701,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         return;
     }
 
-    QString oldResourceHash;
+    QByteArray oldResourceHash;
     QString resourceDisplayName;
     QString resourceDisplaySize;
     QString resourceMimeTypeName;
@@ -723,7 +717,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         }
 
         if (resource.hasDataHash()) {
-            oldResourceHash = QString::fromLocal8Bit(resource.dataHash());
+            oldResourceHash = resource.dataHash();
         }
 
         resource.setDataBody(data);
@@ -755,15 +749,12 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         return;
     }
 
-    QString dataHashStr = QString::fromLocal8Bit(dataHash);
-    if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHashStr))
+    if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHash))
     {
         m_resourceInfo.removeResourceInfo(oldResourceHash);
-
-        m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+        m_resourceInfo.cacheResourceInfo(dataHash, resourceDisplayName,
                                          resourceDisplaySize, fileStoragePath);
-
-        updateHashForResourceTag(oldResourceHash, dataHashStr);
+        updateHashForResourceTag(oldResourceHash, dataHash);
     }
 
     if (resourceMimeTypeName.startsWith("image/"))
@@ -777,13 +768,12 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
 
         m_resourceFileStoragePathsByResourceLocalUid[resourceLocalUid] = linkFileName;
 
-        m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+        m_resourceInfo.cacheResourceInfo(dataHash, resourceDisplayName,
                                          resourceDisplaySize, linkFileName);
 
         if (!m_pendingNotePageLoad) {
             GET_PAGE()
-            page->executeJavaScript("updateImageResourceSrc('" + QString::fromLocal8Bit(dataHashStr.toLocal8Bit().toHex()) +
-                                    "', '" + linkFileName + "');");
+            page->executeJavaScript("updateImageResourceSrc('" + dataHash.toHex() + "', '" + linkFileName + "');");
         }
     }
     else
@@ -882,13 +872,13 @@ void NoteEditorPrivate::onJavaScriptLoaded()
     }
 }
 
-void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
+void NoteEditorPrivate::onOpenResourceRequest(const QByteArray & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::onOpenResourceRequest: " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::onOpenResourceRequest: " << resourceHash.toHex());
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't open resource: no note is set to the editor");
-        QNWARNING(error << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+        QNWARNING(error << ", resource hash = " << resourceHash.toHex());
         emit notifyError(error);
         return;
     }
@@ -919,13 +909,13 @@ void NoteEditorPrivate::onOpenResourceRequest(const QString & resourceHash)
     openResource(it.value());
 }
 
-void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
+void NoteEditorPrivate::onSaveResourceRequest(const QByteArray & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::onSaveResourceRequest: " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::onSaveResourceRequest: " << resourceHash.toHex());
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't save resource: no note is set to the editor");
-        QNINFO(error << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+        QNINFO(error << ", resource hash = " << resourceHash.toHex());
         emit notifyError(error);
         return;
     }
@@ -934,7 +924,7 @@ void NoteEditorPrivate::onSaveResourceRequest(const QString & resourceHash)
     int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QString error = QT_TR_NOOP("Resource to be saved was not found in the note");
-        QNINFO(error << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+        QNINFO(error << ", resource hash = " << resourceHash.toHex());
         return;
     }
 
@@ -1019,7 +1009,7 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
             return;
         }
 
-        QString resourceHash = QString::fromLocal8Bit(QByteArray::fromHex(extraData[0].toLocal8Bit()));
+        QByteArray resourceHash = QByteArray::fromHex(extraData[0].toLocal8Bit());
 
         if (contentType == "ImageResource") {
             setupImageResourceContextMenu(resourceHash);
@@ -1143,10 +1133,10 @@ void NoteEditorPrivate::onTextCursorInsideTableStateChanged(bool state)
     emit textInsideTableState(state);
 }
 
-void NoteEditorPrivate::onTextCursorOnImageResourceStateChanged(bool state, QString resourceHash)
+void NoteEditorPrivate::onTextCursorOnImageResourceStateChanged(bool state, QByteArray resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::onTextCursorOnImageResourceStateChanged: " << (state ? "yes" : "no")
-            << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+            << ", resource hash = " << resourceHash.toHex());
 
     m_currentTextFormattingState.m_onImageResource = state;
     if (state) {
@@ -1154,10 +1144,10 @@ void NoteEditorPrivate::onTextCursorOnImageResourceStateChanged(bool state, QStr
     }
 }
 
-void NoteEditorPrivate::onTextCursorOnNonImageResourceStateChanged(bool state, QString resourceHash)
+void NoteEditorPrivate::onTextCursorOnNonImageResourceStateChanged(bool state, QByteArray resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::onTextCursorOnNonImageResourceStateChanged: " << (state ? "yes" : "no")
-            << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+            << ", resource hash = " << resourceHash.toHex());
 
     m_currentTextFormattingState.m_onNonImageResource = state;
     if (state) {
@@ -1412,12 +1402,12 @@ void NoteEditorPrivate::onRenameResourceDelegateError(QString error)
     }
 }
 
-void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QString resourceHashBefore,
+void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                                                                 QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
                                                                 ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection)
 {
     QNDEBUG("NoteEditorPrivate::onImageResourceRotationDelegateFinished: previous resource hash = "
-            << resourceHashBefore.toLocal8Bit().toHex() << ", resource local uid = " << resourceAfter.localUid()
+            << resourceHashBefore.toHex() << ", resource local uid = " << resourceAfter.localUid()
             << ", rotation direction = " << rotationDirection);
 
     ImageResourceRotationUndoCommand * pCommand = new ImageResourceRotationUndoCommand(resourceDataBefore, resourceHashBefore,
@@ -2400,12 +2390,10 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
                                        ? resourceAdapter.dataHash()
                                        : resourceAdapter.alternateDataHash());
 
-        QString dataHashStr = QString::fromLocal8Bit(dataHash);
-
         QNTRACE("Found current note's resource corresponding to the data hash "
                 << dataHash.toHex() << ": " << resourceAdapter);
 
-        if (!m_resourceInfo.contains(dataHashStr))
+        if (!m_resourceInfo.contains(dataHash))
         {
             bool res = saveResourceToLocalFile(resourceAdapter);
             if (res) {
@@ -2476,14 +2464,13 @@ bool NoteEditorPrivate::saveResourceToLocalFile(const IResource & resource)
     return true;
 }
 
-void NoteEditorPrivate::updateHashForResourceTag(const QString & oldResourceHash, const QString & newResourceHash)
+void NoteEditorPrivate::updateHashForResourceTag(const QByteArray & oldResourceHash, const QByteArray & newResourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::updateHashForResourceTag: old hash = " << oldResourceHash.toLocal8Bit().toHex()
-            << ", new hash = " << newResourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::updateHashForResourceTag: old hash = " << oldResourceHash.toHex()
+            << ", new hash = " << newResourceHash.toHex());
 
     GET_PAGE()
-    page->executeJavaScript("updateResourceHash('" + QString::fromLocal8Bit(oldResourceHash.toLocal8Bit().toHex()) +
-                            "', '" + QString::fromLocal8Bit(newResourceHash.toLocal8Bit().toHex()) + "');");
+    page->executeJavaScript("updateResourceHash('" + oldResourceHash.toHex() + "', '" + newResourceHash.toHex() + "');");
 }
 
 void NoteEditorPrivate::provideSrcForResourceImgTags()
@@ -3058,11 +3045,11 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 
 #endif
 
-void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const QString & previousResourceHash,
+void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const QByteArray & previousResourceHash,
                                        ResourceWrapper updatedResource)
 {
     QNDEBUG("NoteEditorPrivate::updateResource: resource local uid = " << resourceLocalUid << ", previous hash = "
-            << previousResourceHash.toLocal8Bit().toHex() << ", updated resource: " << updatedResource);
+            << previousResourceHash.toHex() << ", updated resource: " << updatedResource);
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't update resource: no note is set to the editor");
@@ -3092,11 +3079,9 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
         return;
     }
 
-    QByteArray key = previousResourceHash.toLocal8Bit();
-
     // NOTE: intentionally set the "wrong", "stale" hash value here, it is required for proper update procedure
     // once the resource is saved in the local file storage; it's kinda hacky but it seems the simplest option
-    updatedResource.setDataHash(key);
+    updatedResource.setDataHash(previousResourceHash);
 
     bool res = m_pNote->updateResource(updatedResource);
     if (Q_UNLIKELY(!res)) {
@@ -3110,7 +3095,7 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
 
     m_resourceInfo.removeResourceInfo(previousResourceHash);
 
-    auto recoIt = m_recognitionIndicesByResourceHash.find(key);
+    auto recoIt = m_recognitionIndicesByResourceHash.find(previousResourceHash);
     if (recoIt != m_recognitionIndicesByResourceHash.end()) {
         Q_UNUSED(m_recognitionIndicesByResourceHash.erase(recoIt));
     }
@@ -3257,9 +3242,9 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
     m_pGenericTextContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHash)
+void NoteEditorPrivate::setupImageResourceContextMenu(const QByteArray & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu: resource hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::setupImageResourceContextMenu: resource hash = " << resourceHash.toHex());
 
     m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
@@ -3291,9 +3276,9 @@ void NoteEditorPrivate::setupImageResourceContextMenu(const QString & resourceHa
     m_pImageResourceContextMenu->exec(m_lastContextMenuEventGlobalPos);
 }
 
-void NoteEditorPrivate::setupNonImageResourceContextMenu(const QString & resourceHash)
+void NoteEditorPrivate::setupNonImageResourceContextMenu(const QByteArray & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::setupNonImageResourceContextMenu: resource hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::setupNonImageResourceContextMenu: resource hash = " << resourceHash.toHex());
 
     m_currentContextMenuExtraData.m_resourceHash = resourceHash;
 
@@ -3604,10 +3589,10 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideTableState,bool),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorInsideTableStateChanged,bool));
 
-    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnImageResourceState,bool,QString),
-                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnImageResourceStateChanged,bool,QString));
-    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnNonImageResourceState,bool,QString),
-                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnNonImageResourceStateChanged,bool,QString));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnImageResourceState,bool,QByteArray),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnImageResourceStateChanged,bool,QByteArray));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnNonImageResourceState,bool,QByteArray),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorOnNonImageResourceStateChanged,bool,QByteArray));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionOnEnCryptTagState,bool,QString,QString,QString),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorOnEnCryptTagStateChanged,bool,QString,QString,QString));
 
@@ -3802,9 +3787,9 @@ void NoteEditorPrivate::onTableActionDone(const QVariant & dummy, const QVector<
 }
 
 int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
-                                           const QString & resourceHash) const
+                                           const QByteArray & resourceHash) const
 {
-    QNDEBUG("NoteEditorPrivate::resourceIndexByHash: hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::resourceIndexByHash: hash = " << resourceHash.toHex());
 
     const int numResources = resourceAdapters.size();
     for(int i = 0; i < numResources; ++i)
@@ -5555,7 +5540,7 @@ void NoteEditorPrivate::addAttachmentDialog()
     dropFile(absoluteFilePath);
 }
 
-void NoteEditorPrivate::saveAttachmentDialog(const QString & resourceHash)
+void NoteEditorPrivate::saveAttachmentDialog(const QByteArray & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::saveAttachmentDialog");
     onSaveResourceRequest(resourceHash);
@@ -5579,7 +5564,7 @@ void NoteEditorPrivate::saveAttachmentUnderCursor()
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
-void NoteEditorPrivate::openAttachment(const QString & resourceHash)
+void NoteEditorPrivate::openAttachment(const QByteArray & resourceHash)
 {
     QNDEBUG("NoteEditorPrivate::openAttachment");
 
@@ -5605,7 +5590,7 @@ void NoteEditorPrivate::openAttachmentUnderCursor()
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
-void NoteEditorPrivate::copyAttachment(const QString & resourceHash)
+void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
 {
     if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't copy attachment: no note is set to the editor");
@@ -5618,7 +5603,7 @@ void NoteEditorPrivate::copyAttachment(const QString & resourceHash)
     int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QString error = QT_TR_NOOP("Attachment to be copied was not found in the note");
-        QNWARNING(error << ", resource hash = " << resourceHash);
+        QNWARNING(error << ", resource hash = " << resourceHash.toHex());
         emit notifyError(error);
         return;
     }
@@ -5627,14 +5612,14 @@ void NoteEditorPrivate::copyAttachment(const QString & resourceHash)
 
     if (Q_UNLIKELY(!resource.hasDataBody() && !resource.hasAlternateDataBody())) {
         QString error = QT_TR_NOOP("Can't copy attachment as it has neither data body nor alternate data body");
-        QNWARNING(error << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+        QNWARNING(error << ", resource hash = " << resourceHash.toHex());
         emit notifyError(error);
         return;
     }
 
     if (Q_UNLIKELY(!resource.hasMime())) {
         QString error = QT_TR_NOOP("Can't copy attachment as it has no mime type");
-        QNWARNING(error << ", resource hash = " << resourceHash.toLocal8Bit().toHex());
+        QNWARNING(error << ", resource hash = " << resourceHash.toHex());
         emit notifyError(error);
         return;
     }
@@ -5673,9 +5658,9 @@ void NoteEditorPrivate::copyAttachmentUnderCursor()
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
-void NoteEditorPrivate::removeAttachment(const QString & resourceHash)
+void NoteEditorPrivate::removeAttachment(const QByteArray & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::removeAttachment: hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::removeAttachment: hash = " << resourceHash.toHex());
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
         QString error = QT_TR_NOOP("Can't remove resource by hash: no note is set to the editor");
@@ -5749,9 +5734,9 @@ void NoteEditorPrivate::renameAttachmentUnderCursor()
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
-void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
+void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
 {
-    QNDEBUG("NoteEditorPrivate::renameAttachment: resource hash = " << resourceHash.toLocal8Bit().toHex());
+    QNDEBUG("NoteEditorPrivate::renameAttachment: resource hash = " << resourceHash.toHex());
 
     CHECK_NOTE_EDITABLE("rename attachment")
 
@@ -5812,9 +5797,9 @@ void NoteEditorPrivate::renameAttachment(const QString & resourceHash)
     delegate->start();
 }
 
-void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, const Rotation::type rotationDirection)
+void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, const Rotation::type rotationDirection)
 {
-    QNDEBUG("NoteEditorPrivate::rotateImageAttachment: resource hash = " << resourceHash.toLocal8Bit().toHex()
+    QNDEBUG("NoteEditorPrivate::rotateImageAttachment: resource hash = " << resourceHash.toHex()
             << ", rotation: " << rotationDirection);
 
     CHECK_NOTE_EDITABLE("rotate image attachment")
@@ -5882,8 +5867,8 @@ void NoteEditorPrivate::rotateImageAttachment(const QString & resourceHash, cons
                                                                                  *this, m_resourceInfo, *m_pResourceFileStorageManager,
                                                                                  m_resourceFileStoragePathsByResourceLocalUid);
 
-    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QString,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type),
-                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QString,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type));
+    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QByteArray,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QByteArray,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type));
     QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,QString),
                      this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,QString));
 

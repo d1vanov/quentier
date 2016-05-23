@@ -18,7 +18,7 @@ namespace qute_note {
         return; \
     }
 
-ImageResourceRotationDelegate::ImageResourceRotationDelegate(const QString & resourceHashBefore, const INoteEditorBackend::Rotation::type rotationDirection,
+ImageResourceRotationDelegate::ImageResourceRotationDelegate(const QByteArray & resourceHashBefore, const INoteEditorBackend::Rotation::type rotationDirection,
                                                              NoteEditorPrivate & noteEditor, ResourceInfo & resourceInfo,
                                                              ResourceFileStorageManager & resourceFileStorageManager,
                                                              QHash<QString, QString> & resourceFileStoragePathsByLocalUid) :
@@ -241,13 +241,12 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
     QString resourceDisplayName = m_rotatedResource.displayName();
     QString resourceDisplaySize = humanReadableSize(static_cast<quint64>(m_rotatedResource.dataSize()));
 
-    QString dataHashStr = QString::fromLocal8Bit(dataHash);
     m_rotatedResource.setDataHash(dataHash);
 
     m_pNote->updateResource(m_rotatedResource);
 
     m_resourceInfo.removeResourceInfo(m_resourceHashBefore);
-    m_resourceInfo.cacheResourceInfo(dataHashStr, resourceDisplayName,
+    m_resourceInfo.cacheResourceInfo(dataHash, resourceDisplayName,
                                      resourceDisplaySize, linkFileName);
 
     if (m_resourceFileStoragePathBefore != fileStoragePath)
@@ -272,8 +271,8 @@ void ImageResourceRotationDelegate::onResourceSavedToStorage(QUuid requestId, QB
         }
     }
 
-    QString javascript = "updateResourceHash('" + QString::fromLocal8Bit(m_resourceHashBefore.toLocal8Bit().toHex()) +
-                         "', '" + QString::fromLocal8Bit(dataHashStr.toLocal8Bit().toHex()) + "');";
+    QString javascript = "updateResourceHash('" + QString::fromLocal8Bit(m_resourceHashBefore.toHex()) +
+                         "', '" + QString::fromLocal8Bit(dataHash.toHex()) + "');";
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &ImageResourceRotationDelegate::onResourceTagHashUpdated));

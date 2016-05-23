@@ -13,12 +13,12 @@ void TextCursorPositionJavaScriptHandler::onTextCursorPositionChange()
 
 void TextCursorPositionJavaScriptHandler::setOnImageResourceState(bool state, QString resourceHash)
 {
-    emit textCursorPositionOnImageResourceState(state, QString::fromLocal8Bit(QByteArray::fromHex(resourceHash.toLocal8Bit())));
+    emit textCursorPositionOnImageResourceState(state, QByteArray::fromHex(resourceHash.toLocal8Bit()));
 }
 
 void TextCursorPositionJavaScriptHandler::setOnNonImageResourceState(bool state, QString resourceHash)
 {
-    emit textCursorPositionOnNonImageResourceState(state, QString::fromLocal8Bit(QByteArray::fromHex(resourceHash.toLocal8Bit())));
+    emit textCursorPositionOnNonImageResourceState(state, QByteArray::fromHex(resourceHash.toLocal8Bit()));
 }
 
 void TextCursorPositionJavaScriptHandler::setOnEnCryptTagState(bool state, QString encryptedText, QString cipher, QString length)

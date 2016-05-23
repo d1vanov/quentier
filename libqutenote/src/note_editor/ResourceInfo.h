@@ -9,19 +9,19 @@ namespace qute_note {
 class ResourceInfo
 {
 public:
-    void cacheResourceInfo(const QString & resourceHash,
+    void cacheResourceInfo(const QByteArray & resourceHash,
                            const QString & resourceDisplayName,
                            const QString & resourceDisplaySize,
                            const QString & resourceLocalFilePath);
 
-    bool contains(const QString & resourceHash) const;
+    bool contains(const QByteArray & resourceHash) const;
 
-    bool findResourceInfo(const QString & resourceHash,
+    bool findResourceInfo(const QByteArray & resourceHash,
                           QString & resourceDisplayName,
                           QString & resourceDisplaySize,
                           QString & resourceLocalFilePath) const;
 
-    bool removeResourceInfo(const QString & resourceHash);
+    bool removeResourceInfo(const QByteArray & resourceHash);
 
     void clear();
 
@@ -33,7 +33,7 @@ private:
         QString m_resourceLocalFilePath;
     };
 
-    typedef QHash<QString, Info> ResourceInfoHash;
+    typedef QHash<QByteArray, Info> ResourceInfoHash;
     ResourceInfoHash m_resourceInfoHash;
 };
 

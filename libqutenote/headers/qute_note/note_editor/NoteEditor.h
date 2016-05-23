@@ -117,11 +117,11 @@ public Q_SLOTS:
     void removeTableColumn();
 
     void addAttachmentDialog();
-    void saveAttachmentDialog(const QString & resourceHash);
+    void saveAttachmentDialog(const QByteArray & resourceHash);
     void saveAttachmentUnderCursor();
-    void openAttachment(const QString & resourceHash);
+    void openAttachment(const QByteArray & resourceHash);
     void openAttachmentUnderCursor();
-    void copyAttachment(const QString & resourceHash);
+    void copyAttachment(const QByteArray & resourceHash);
     void copyAttachmentUnderCursor();
 
     void encryptSelectedText();
