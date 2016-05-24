@@ -69,6 +69,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NotebookStackItem.h
     src/models/NoteModelItem.h
     src/models/NoteModel.h
+    src/models/FavoritesModelItem.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -98,6 +99,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookStackItem.cpp
     src/models/NoteModelItem.cpp
     src/models/NoteModel.cpp
+    src/models/FavoritesModelItem.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
