@@ -22,8 +22,8 @@
 * THE SOFTWARE.
 */
 
-#ifndef __INSERT_TABLE_TOOL_BUTTON_H__
-#define __INSERT_TABLE_TOOL_BUTTON_H__
+#ifndef INSERT_TABLE_TOOL_BUTTON_H
+#define INSERT_TABLE_TOOL_BUTTON_H
 
 #include <QToolButton>
 
@@ -47,4 +47,4 @@ private:
     QMenu *     m_menu;
 };
 
-#endif // __INSERT_TABLE_TOOL_BUTTON_H__
+#endif // INSERT_TABLE_TOOL_BUTTON_H

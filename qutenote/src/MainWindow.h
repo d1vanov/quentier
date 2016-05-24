@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MAINWINDOW_H
-#define __QUTE_NOTE__MAINWINDOW_H
+#ifndef QUTE_NOTE_MAINWINDOW_H
+#define QUTE_NOTE_MAINWINDOW_H
 
 #include <qute_note/types/Notebook.h>
 #include <qute_note/types/Note.h>
@@ -138,4 +138,4 @@ private:
     qute_note::ShortcutManager  m_shortcutManager;
 };
 
-#endif // __QUTE_NOTE__MAINWINDOW_H
+#endif // QUTE_NOTE_MAINWINDOW_H

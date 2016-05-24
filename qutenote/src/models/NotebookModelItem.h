@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__NOTEBOOK_MODEL_ITEM_H
-#define __QUTE_NOTE__MODELS__NOTEBOOK_MODEL_ITEM_H
+#ifndef QUTE_NOTE_MODELS_NOTEBOOK_MODEL_ITEM_H
+#define QUTE_NOTE_MODELS_NOTEBOOK_MODEL_ITEM_H
 
 #include "NotebookItem.h"
 #include "NotebookStackItem.h"
@@ -71,4 +71,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__NOTEBOOK_MODEL_ITEM_H
+#endif // QUTE_NOTE_MODELS_NOTEBOOK_MODEL_ITEM_H

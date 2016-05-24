@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__TESTS__MODEL_TEST__TAG_MODEL_TEST_HELPER_H
-#define __QUTE_NOTE__TESTS__MODEL_TEST__TAG_MODEL_TEST_HELPER_H
+#ifndef QUTE_NOTE_TESTS_MODEL_TEST_TAG_MODEL_TEST_HELPER_H
+#define QUTE_NOTE_TESTS_MODEL_TEST_TAG_MODEL_TEST_HELPER_H
 
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 
@@ -53,4 +53,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__TESTS__MODEL_TEST__TAG_MODEL_TEST_HELPER_H
+#endif // QUTE_NOTE_TESTS_MODEL_TEST_TAG_MODEL_TEST_HELPER_H

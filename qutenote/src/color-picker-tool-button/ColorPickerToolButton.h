@@ -22,8 +22,8 @@
 * THE SOFTWARE.
 */
 
-#ifndef __COLOR_PICKER_TOOL_BUTTON_H
-#define __COLOR_PICKER_TOOL_BUTTON_H
+#ifndef COLOR_PICKER_TOOL_BUTTON_H
+#define COLOR_PICKER_TOOL_BUTTON_H
 
 #include <QToolButton>
 #include <QColor>
@@ -47,4 +47,4 @@ private:
     QMenu * m_menu;
 };
 
-#endif // __COLOR_PICKER_TOOL_BUTTON_H
+#endif // COLOR_PICKER_TOOL_BUTTON_H

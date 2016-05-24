@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__TAG_MODEL_ITEM_H
-#define __QUTE_NOTE__MODELS__TAG_MODEL_ITEM_H
+#ifndef QUTE_NOTE_MODELS_TAG_MODEL_ITEM_H
+#define QUTE_NOTE_MODELS_TAG_MODEL_ITEM_H
 
 #include <qute_note/utility/Printable.h>
 #include <QDataStream>
@@ -87,4 +87,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__TAG_MODEL_ITEM_H
+#endif // QUTE_NOTE_MODELS_TAG_MODEL_ITEM_H

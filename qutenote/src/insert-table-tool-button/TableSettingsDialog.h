@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__GUI__TABLE_SETTINGS_DIALOG_H
-#define __QUTE_NOTE__GUI__TABLE_SETTINGS_DIALOG_H
+#ifndef QUTE_NOTE_TABLE_SETTINGS_DIALOG_H
+#define QUTE_NOTE_TABLE_SETTINGS_DIALOG_H
 
 #include <QDialog>
 #include <qute_note/utility/Qt4Helper.h>
@@ -38,4 +38,4 @@ private:
     bool    m_relativeWidth;
 };
 
-#endif // __QUTE_NOTE__GUI__TABLE_SETTINGS_DIALOG_H
+#endif // QUTE_NOTE_TABLE_SETTINGS_DIALOG_H

@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__NOTE_MODEL_H
-#define __QUTE_NOTE__MODELS__NOTE_MODEL_H
+#ifndef QUTE_NOTE_MODELS_NOTE_MODEL_H
+#define QUTE_NOTE_MODELS_NOTE_MODEL_H
 
 #include "NoteModelItem.h"
 #include "NotebookCache.h"
@@ -254,4 +254,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__NOTE_MODEL_H
+#endif // QUTE_NOTE_MODELS_NOTE_MODEL_H

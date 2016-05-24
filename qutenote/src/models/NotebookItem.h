@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__NOTEBOOK_ITEM_H
-#define __QUTE_NOTE__MODELS__NOTEBOOK_ITEM_H
+#ifndef QUTE_NOTE_MODELS_NOTEBOOK_ITEM_H
+#define QUTE_NOTE_MODELS_NOTEBOOK_ITEM_H
 
 #include <qute_note/utility/Printable.h>
 
@@ -69,4 +69,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__NOTEBOOK_ITEM_H
+#endif // QUTE_NOTE_MODELS_NOTEBOOK_ITEM_H

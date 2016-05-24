@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__TAG_MODEL_H
-#define __QUTE_NOTE__MODELS__TAG_MODEL_H
+#ifndef QUTE_NOTE_MODELS_TAG_MODEL_H
+#define QUTE_NOTE_MODELS_TAG_MODEL_H
 
 #include "TagModelItem.h"
 #include <qute_note/types/Tag.h>
@@ -237,4 +237,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__TAG_MODEL_H
+#endif // QUTE_NOTE_MODELS_TAG_MODEL_H

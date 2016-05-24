@@ -1,5 +1,5 @@
-#ifndef __TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
-#define __TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
+#ifndef TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
+#define TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
 
 #include <QWidgetAction>
 
@@ -18,4 +18,4 @@ private:
     TableSizeSelector *     m_selector;
 };
 
-#endif // __TABLE_SIZE_SELECTOR_ACTION_WIDGET_H
+#endif // TABLE_SIZE_SELECTOR_ACTION_WIDGET_H

@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__TESTS__MANUAL_TESTING_HELPER_H
-#define __QUTE_NOTE__TESTS__MANUAL_TESTING_HELPER_H
+#ifndef QUTE_NOTE_TESTS_MANUAL_TESTING_HELPER_H
+#define QUTE_NOTE_TESTS_MANUAL_TESTING_HELPER_H
 
 #include <QString>
 
@@ -17,5 +17,5 @@ public:
 } // namespace test
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__TESTS__MANUAL_TESTING_HELPER_H
+#endif // QUTE_NOTE_TESTS_MANUAL_TESTING_HELPER_H
 

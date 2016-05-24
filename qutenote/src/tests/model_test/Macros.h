@@ -1,9 +1,9 @@
-#ifndef __QUTE_NOTE__TESTS__MODEL_TEST__MACROS_H
-#define __QUTE_NOTE__TESTS__MODEL_TEST__MACROS_H
+#ifndef QUTE_NOTE_TESTS_MODEL_TEST_MACROS_H
+#define QUTE_NOTE_TESTS_MODEL_TEST_MACROS_H
 
 #define FAIL(text) \
     QNWARNING(text); \
     emit failure(); \
     return
 
-#endif // __QUTE_NOTE__TESTS__MODEL_TEST__MACROS_H
+#endif // QUTE_NOTE_TESTS_MODEL_TEST_MACROS_H

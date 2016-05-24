@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__NEW_ITEM_NAME_GENERATOR_HPP
-#define __QUTE_NOTE__MODELS__NEW_ITEM_NAME_GENERATOR_HPP
+#ifndef QUTE_NOTE_MODELS_NEW_ITEM_NAME_GENERATOR_HPP
+#define QUTE_NOTE_MODELS_NEW_ITEM_NAME_GENERATOR_HPP
 
 #include <QString>
 
@@ -31,4 +31,4 @@ QString newItemName(const NameIndexType & nameIndex, int & newItemCounter, QStri
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__NEW_ITEM_NAME_GENERATOR_HPP
+#endif // QUTE_NOTE_MODELS_NEW_ITEM_NAME_GENERATOR_HPP

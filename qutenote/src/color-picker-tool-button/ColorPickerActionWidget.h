@@ -22,8 +22,8 @@
 * THE SOFTWARE.
 */
 
-#ifndef __COLOR_PICKER_ACTION_WIDGET_H
-#define __COLOR_PICKER_ACTION_WIDGET_H
+#ifndef COLOR_PICKER_ACTION_WIDGET_H
+#define COLOR_PICKER_ACTION_WIDGET_H
 
 #include <QWidgetAction>
 
@@ -47,4 +47,4 @@ private:
     QColorDialog * m_colorDialog;
 };
 
-#endif // __COLOR_PICKER_ACTION_WIDGET_H
+#endif // COLOR_PICKER_ACTION_WIDGET_H

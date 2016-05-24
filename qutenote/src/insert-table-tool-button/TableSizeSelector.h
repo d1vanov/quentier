@@ -1,5 +1,5 @@
-#ifndef __TABLE_SIZE_SELECTOR_H
-#define __TABLE_SIZE_SELECTOR_H
+#ifndef TABLE_SIZE_SELECTOR_H
+#define TABLE_SIZE_SELECTOR_H
 
 #include <QFrame>
 
@@ -31,4 +31,4 @@ private:
     QRectF      m_rect;
 };
 
-#endif // __TABLE_SIZE_SELECTOR_H
+#endif // TABLE_SIZE_SELECTOR_H

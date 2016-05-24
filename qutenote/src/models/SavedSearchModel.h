@@ -1,5 +1,5 @@
-#ifndef __QUTE_NOTE__MODELS__SAVED_SEARCH_MODEL_H
-#define __QUTE_NOTE__MODELS__SAVED_SEARCH_MODEL_H
+#ifndef QUTE_NOTE_MODELS_SAVED_SEARCH_MODEL_H
+#define QUTE_NOTE_MODELS_SAVED_SEARCH_MODEL_H
 
 #include "SavedSearchModelItem.h"
 #include <qute_note/types/SavedSearch.h>
@@ -175,4 +175,4 @@ private:
 
 } // namespace qute_note
 
-#endif // __QUTE_NOTE__MODELS__SAVED_SEARCH_MODEL_H
+#endif // QUTE_NOTE_MODELS_SAVED_SEARCH_MODEL_H
