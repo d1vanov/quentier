@@ -193,6 +193,8 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
             << ", file storage path = " << fileStoragePath << ", error description = "
             << errorDescription);
 
+    m_resourceFileStoragePath = fileStoragePath;
+
     QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
                         m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
     QObject::disconnect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
