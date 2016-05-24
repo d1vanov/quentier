@@ -3287,7 +3287,6 @@ void NoteEditorPrivate::setupNonImageResourceContextMenu(const QByteArray & reso
 
     bool enabled = true;
 
-    ADD_ACTION_WITH_SHORTCUT(QKeySequence::Cut, "Cut", m_pNonImageResourceContextMenu, cut, m_isPageEditable);
     ADD_ACTION_WITH_SHORTCUT(QKeySequence::Copy, "Copy", m_pNonImageResourceContextMenu, copy, enabled);
     ADD_ACTION_WITH_SHORTCUT(ShortcutManager::RemoveAttachment, "Remove", m_pNonImageResourceContextMenu,
                              removeAttachmentUnderCursor, m_isPageEditable);
