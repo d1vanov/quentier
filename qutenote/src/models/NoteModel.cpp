@@ -36,7 +36,7 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_tagLocalUidToNoteLocalUid()
 {
     createConnections(localStorageManagerThreadWorker);
-    requestNoteList();
+    requestNotesList();
 }
 
 NoteModel::~NoteModel()
@@ -709,7 +709,7 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
     if (foundNotes.size() == static_cast<int>(limit)) {
         QNTRACE("The number of found notes matches the limit, requesting more notes from the local storage");
         m_listNotesOffset += limit;
-        requestNoteList();
+        requestNotesList();
     }
 }
 
@@ -977,9 +977,9 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      this, QNSLOT(NoteModel,onExpungeTagComplete,Tag,QUuid));
 }
 
-void NoteModel::requestNoteList()
+void NoteModel::requestNotesList()
 {
-    QNDEBUG("NoteModel::requestNoteList: offset = " << m_listNotesOffset);
+    QNDEBUG("NoteModel::requestNotesList: offset = " << m_listNotesOffset);
 
     LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
     LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;

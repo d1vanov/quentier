@@ -139,7 +139,7 @@ private Q_SLOTS:
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
-    void requestNoteList();
+    void requestNotesList();
 
     QVariant dataText(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
