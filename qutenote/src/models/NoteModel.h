@@ -2,6 +2,7 @@
 #define QUTE_NOTE_MODELS_NOTE_MODEL_H
 
 #include "NoteModelItem.h"
+#include "NoteCache.h"
 #include "NotebookCache.h"
 #include <qute_note/types/Note.h>
 #include <qute_note/types/Tag.h>
@@ -39,7 +40,7 @@ public:
     };
 
     explicit NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                       NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
+                       NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
                        const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();
 
@@ -176,8 +177,6 @@ private:
     typedef NoteData::index<ByLocalUid>::type NoteDataByLocalUid;
     typedef NoteData::index<ByIndex>::type NoteDataByIndex;
 
-    typedef LRUCache<QString, Note>     Cache;
-
     class NoteComparator
     {
     public:
@@ -230,7 +229,7 @@ private:
     QUuid                   m_listNotesRequestId;
     QSet<QUuid>             m_noteItemsNotYetInLocalStorageUids;
 
-    Cache                   m_cache;
+    NoteCache &             m_cache;
     NotebookCache &         m_notebookCache;
 
     QSet<QUuid>             m_addNoteRequestIds;

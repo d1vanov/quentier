@@ -8,18 +8,16 @@
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT (100)
 
-#define TAG_CACHE_LIMIT (20)
-
 #define NUM_TAG_MODEL_COLUMNS (4)
 
 namespace qute_note {
 
 TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                   QObject * parent) :
+                   TagCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
-    m_cache(TAG_CACHE_LIMIT),
+    m_cache(cache),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
     m_tagItemsNotYetInLocalStorageUids(),

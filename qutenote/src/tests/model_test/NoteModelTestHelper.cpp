@@ -196,9 +196,10 @@ void NoteModelTestHelper::launchTest()
         m_pLocalStorageManagerThreadWorker->onAddNoteRequest(fifthNote, QUuid());
         m_pLocalStorageManagerThreadWorker->onAddNoteRequest(sixthNote, QUuid());
 
+        NoteCache noteCache(20);
         NotebookCache notebookCache(3);
 
-        NoteModel * model = new NoteModel(*m_pLocalStorageManagerThreadWorker, notebookCache, this);
+        NoteModel * model = new NoteModel(*m_pLocalStorageManagerThreadWorker, noteCache, notebookCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

@@ -65,7 +65,9 @@ void SavedSearchModelTestHelper::test()
         m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(third, QUuid());
         m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(fourth, QUuid());
 
-        SavedSearchModel * model = new SavedSearchModel(*m_pLocalStorageManagerThreadWorker, this);
+        SavedSearchCache cache(20);
+
+        SavedSearchModel * model = new SavedSearchModel(*m_pLocalStorageManagerThreadWorker, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

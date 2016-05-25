@@ -7,13 +7,11 @@
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
 
-#define NOTE_CACHE_LIMIT (20)
-
 #define NUM_NOTE_MODEL_COLUMNS (11)
 
 namespace qute_note {
 
-NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker, NoteCache & noteCache,
                      NotebookCache & notebookCache, QObject * parent, const IncludedNotes::type includedNotes) :
     QAbstractItemModel(parent),
     m_includedNotes(includedNotes),
@@ -21,7 +19,7 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_listNotesOffset(0),
     m_listNotesRequestId(),
     m_noteItemsNotYetInLocalStorageUids(),
-    m_cache(NOTE_CACHE_LIMIT),
+    m_cache(noteCache),
     m_notebookCache(notebookCache),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),

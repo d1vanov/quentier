@@ -2,6 +2,7 @@
 #define QUTE_NOTE_MODELS_TAG_MODEL_H
 
 #include "TagModelItem.h"
+#include "TagCache.h"
 #include <qute_note/types/Tag.h>
 #include <qute_note/types/Notebook.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
@@ -28,7 +29,7 @@ class TagModel: public QAbstractItemModel
     Q_OBJECT
 public:
     explicit TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                      QObject * parent = Q_NULLPTR);
+                      TagCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~TagModel();
 
     struct Columns
@@ -185,8 +186,6 @@ private:
         bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
     };
 
-    typedef LRUCache<QString, Tag> Cache;
-
 private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onTagAdded(const Tag & tag);
@@ -200,7 +199,7 @@ private:
     TagData                 m_data;
     TagModelItem *          m_fakeRootItem;
 
-    Cache                   m_cache;
+    TagCache &              m_cache;
 
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;

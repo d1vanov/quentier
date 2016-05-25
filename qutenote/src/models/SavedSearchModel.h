@@ -2,6 +2,7 @@
 #define QUTE_NOTE_MODELS_SAVED_SEARCH_MODEL_H
 
 #include "SavedSearchModelItem.h"
+#include "SavedSearchCache.h"
 #include <qute_note/types/SavedSearch.h>
 #include <qute_note/local_storage/LocalStorageManagerThreadWorker.h>
 #include <qute_note/utility/LRUCache.hpp>
@@ -25,7 +26,7 @@ class SavedSearchModel: public QAbstractItemModel
     Q_OBJECT
 public:
     explicit SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                              QObject * parent = Q_NULLPTR);
+                              SavedSearchCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~SavedSearchModel();
 
     struct Columns
@@ -150,15 +151,13 @@ private:
         bool operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const;
     };
 
-    typedef LRUCache<QString, SavedSearch>  Cache;
-
 private:
     SavedSearchData         m_data;
     size_t                  m_listSavedSearchesOffset;
     QUuid                   m_listSavedSearchesRequestId;
     QSet<QUuid>             m_savedSearchItemsNotYetInLocalStorageUids;
 
-    Cache                   m_cache;
+    SavedSearchCache &      m_cache;
 
     QSet<QUuid>             m_addSavedSearchRequestIds;
     QSet<QUuid>             m_updateSavedSearchRequestIds;

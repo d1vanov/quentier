@@ -8,20 +8,18 @@
 // Limit for the queries to the local storage
 #define SAVED_SEARCH_LIST_LIMIT (100)
 
-#define SAVED_SEARCH_CACHE_LIMIT (20)
-
 #define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
 
 namespace qute_note {
 
 SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                                   QObject * parent) :
+                                   SavedSearchCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
     m_data(),
     m_listSavedSearchesOffset(0),
     m_listSavedSearchesRequestId(),
     m_savedSearchItemsNotYetInLocalStorageUids(),
-    m_cache(SAVED_SEARCH_CACHE_LIMIT),
+    m_cache(cache),
     m_addSavedSearchRequestIds(),
     m_updateSavedSearchRequestIds(),
     m_expungeSavedSearchRequestIds(),

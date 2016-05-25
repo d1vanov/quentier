@@ -60,15 +60,18 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NewItemNameGenerator.hpp
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
+    src/models/SavedSearchCache.h
     src/models/TagModel.h
     src/models/TagModelItem.h
-    src/models/NotebookCache.h
+    src/models/TagCache.h
     src/models/NotebookModel.h
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
+    src/models/NotebookCache.h
     src/models/NoteModelItem.h
     src/models/NoteModel.h
+    src/models/NoteCache.h
     src/models/FavoritesModelItem.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
@@ -171,15 +174,18 @@ set(MODEL_TEST_HEADERS
     src/tests/model_test/NoteModelTestHelper.h
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
+    src/models/SavedSearchCache.h
     src/models/TagModel.h
     src/models/TagModelItem.h
-    src/models/NotebookCache.h
+    src/models/TagCache.h
     src/models/NotebookModel.h
     src/models/NotebookModelItem.h
     src/models/NotebookItem.h
     src/models/NotebookStackItem.h
+    src/models/NotebookCache.h
     src/models/NoteModelItem.h
-    src/models/NoteModel.h)
+    src/models/NoteModel.h
+    src/models/NoteCache.h)
 
 set(MODEL_TEST_SOURCES
     src/tests/model_test/modeltest.cpp
