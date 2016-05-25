@@ -47,7 +47,7 @@ QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
     const NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto it = localUidIndex.find(localUid);
     if (Q_UNLIKELY(it == localUidIndex.end())) {
-        QNDEBUG("Can't find the note item by local uid");
+        QNDEBUG("Can't find the note item by local uid: " << localUid);
         return QModelIndex();
     }
 
