@@ -141,7 +141,7 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNotesList();
 
-    QVariant dataText(const int row, const Columns::type column) const;
+    QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
     void removeItemByLocalUid(const QString & localUid);

@@ -103,7 +103,7 @@ private:
 
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
-    QVariant dataText(const int row, const Columns::type column) const;
+    QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
     QString nameForNewSavedSearch() const;

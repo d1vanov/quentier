@@ -205,7 +205,7 @@ QVariant NoteModel::data(const QModelIndex & index, int role) const
     case Qt::DisplayRole:
     case Qt::EditRole:
     case Qt::ToolTipRole:
-        return dataText(rowIndex, column);
+        return dataImpl(rowIndex, column);
     case Qt::AccessibleTextRole:
     case Qt::AccessibleDescriptionRole:
         return dataAccessibleText(rowIndex, column);
@@ -990,7 +990,7 @@ void NoteModel::requestNotesList()
     emit listNotes(flags, /* with resource binary data = */ false, NOTE_LIST_LIMIT, m_listNotesOffset, order, direction, m_listNotesRequestId);
 }
 
-QVariant NoteModel::dataText(const int row, const Columns::type column) const
+QVariant NoteModel::dataImpl(const int row, const Columns::type column) const
 {
     if (Q_UNLIKELY((row < 0) || (row >= static_cast<int>(m_data.size())))) {
         return QVariant();

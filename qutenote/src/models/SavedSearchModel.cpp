@@ -73,7 +73,7 @@ Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 
     if (index.column() == Columns::Synchronizable)
     {
-        QVariant synchronizable = dataText(index.row(), Columns::Synchronizable);
+        QVariant synchronizable = dataImpl(index.row(), Columns::Synchronizable);
         if (!synchronizable.isNull() && synchronizable.toBool()) {
             return indexFlags;
         }
@@ -116,7 +116,7 @@ QVariant SavedSearchModel::data(const QModelIndex & index, int role) const
     case Qt::DisplayRole:
     case Qt::EditRole:
     case Qt::ToolTipRole:
-        return dataText(rowIndex, column);
+        return dataImpl(rowIndex, column);
     case Qt::AccessibleTextRole:
     case Qt::AccessibleDescriptionRole:
         return dataAccessibleText(rowIndex, column);
@@ -789,9 +789,9 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     emit layoutChanged();
 }
 
-QVariant SavedSearchModel::dataText(const int row, const Columns::type column) const
+QVariant SavedSearchModel::dataImpl(const int row, const Columns::type column) const
 {
-    QNTRACE("SavedSearchModel::dataText: row = " << row << ", column = " << column);
+    QNTRACE("SavedSearchModel::dataImpl: row = " << row << ", column = " << column);
 
     if (Q_UNLIKELY((row < 0) || (row > static_cast<int>(m_data.size())))) {
         QNTRACE("Invalid row " << row << ", data size is " << m_data.size());
@@ -818,7 +818,7 @@ QVariant SavedSearchModel::dataAccessibleText(const int row, const Columns::type
 {
     QNTRACE("SavedSearchModel::dataAccessibleText: row = " << row << ", column = " << column);
 
-    QVariant textData = dataText(row, column);
+    QVariant textData = dataImpl(row, column);
     if (textData.isNull()) {
         return QVariant();
     }

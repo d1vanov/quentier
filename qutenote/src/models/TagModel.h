@@ -128,7 +128,7 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestTagsList();
 
-    QVariant dataText(const TagModelItem & item, const Columns::type column) const;
+    QVariant dataImpl(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
 
     bool hasSynchronizableChildren(const TagModelItem * item) const;

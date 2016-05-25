@@ -361,7 +361,7 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
     case Qt::DisplayRole:
     case Qt::EditRole:
     case Qt::ToolTipRole:
-        return dataText(*item, column);
+        return dataImpl(*item, column);
     case Qt::AccessibleTextRole:
     case Qt::AccessibleDescriptionRole:
         return dataAccessibleText(*item, column);
@@ -1369,7 +1369,7 @@ void NotebookModel::requestNotebooksList()
     QNTRACE("Emitted the request to list notebooks: offset = " << m_listNotebooksOffset << ", request id = " << m_listNotebooksRequestId);
 }
 
-QVariant NotebookModel::dataText(const NotebookModelItem & item, const Columns::type column) const
+QVariant NotebookModel::dataImpl(const NotebookModelItem & item, const Columns::type column) const
 {
     bool isNotebookItem = (item.type() == NotebookModelItem::Type::Notebook);
     if (Q_UNLIKELY((isNotebookItem && !item.notebookItem()) || (!isNotebookItem && !item.notebookStackItem()))) {
@@ -1446,7 +1446,7 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
         return QVariant();
     }
 
-    QVariant textData = dataText(item, column);
+    QVariant textData = dataImpl(item, column);
     if (textData.isNull()) {
         return QVariant();
     }

@@ -141,7 +141,7 @@ QVariant TagModel::data(const QModelIndex & index, int role) const
     case Qt::DisplayRole:
     case Qt::EditRole:
     case Qt::ToolTipRole:
-        return dataText(*item, column);
+        return dataImpl(*item, column);
     case Qt::AccessibleTextRole:
     case Qt::AccessibleDescriptionRole:
         return dataAccessibleText(*item, column);
@@ -1210,7 +1210,7 @@ void TagModel::updateRestrictionsFromNotebook(const Notebook & notebook)
             << ", can update tags = " << (restrictions.m_canUpdateTags ? "true" : "false"));
 }
 
-QVariant TagModel::dataText(const TagModelItem & item, const Columns::type column) const
+QVariant TagModel::dataImpl(const TagModelItem & item, const Columns::type column) const
 {
     switch(column)
     {
@@ -1229,7 +1229,7 @@ QVariant TagModel::dataText(const TagModelItem & item, const Columns::type colum
 
 QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::type column) const
 {
-    QVariant textData = dataText(item, column);
+    QVariant textData = dataImpl(item, column);
     if (textData.isNull()) {
         return QVariant();
     }
