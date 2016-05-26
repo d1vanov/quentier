@@ -284,18 +284,22 @@ private:
     QSet<QUuid>             m_updateNoteRequestIds;
     QSet<QUuid>             m_findNoteToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findNoteToPerformUpdateRequestIds;
+    QSet<QUuid>             m_findNoteToUnfavoriteRequestIds;
 
     QSet<QUuid>             m_updateNotebookRequestIds;
     QSet<QUuid>             m_findNotebookToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findNotebookToPerformUpdateRequestIds;
+    QSet<QUuid>             m_findNotebookToUnfavoriteRequestIds;
 
     QSet<QUuid>             m_updateTagRequestIds;
     QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findTagToPerformUpdateRequestIds;
+    QSet<QUuid>             m_findTagToUnfavoriteRequestIds;
 
     QSet<QUuid>             m_updateSavedSearchRequestIds;
     QSet<QUuid>             m_findSavedSearchToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findSavedSearchToPerformUpdateRequestIds;
+    QSet<QUuid>             m_findSavedSearchToUnfavoriteRequestIds;
 
     QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
     QHash<QString, QString> m_notebookLocalUidToGuid;

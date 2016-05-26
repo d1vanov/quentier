@@ -503,9 +503,9 @@ void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QString err
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findSavedSearchToRestoreFailedUpdateRequestIds.insert(requestId))
-    emit findSavedSearch(search, requestId);
-    QNTRACE("Emitted the request to find the saved search: local uid = " << search.localUid()
+    QNTRACE("Emitting the request to find the saved search: local uid = " << search.localUid()
             << ", request id = " << requestId);
+    emit findSavedSearch(search, requestId);
 }
 
 void SavedSearchModel::onFindSavedSearchComplete(SavedSearch search, QUuid requestId)
@@ -719,10 +719,10 @@ void SavedSearchModel::requestSavedSearchesList()
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
     m_listSavedSearchesRequestId = QUuid::createUuid();
+    QNTRACE("Emitting the request to list saved searches: offset = " << m_listSavedSearchesOffset
+            << ", request id = " << m_listSavedSearchesRequestId);
     emit listSavedSearches(flags, SAVED_SEARCH_LIST_LIMIT, m_listSavedSearchesOffset,
                            order, direction, m_listSavedSearchesRequestId);
-    QNTRACE("Emitted the request to list saved searches: offset = " << m_listSavedSearchesOffset
-            << ", request id = " << m_listSavedSearchesRequestId);
 }
 
 void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)

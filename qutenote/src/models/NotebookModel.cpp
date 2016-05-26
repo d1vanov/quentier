@@ -1365,8 +1365,8 @@ void NotebookModel::requestNotebooksList()
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
     m_listNotebooksRequestId = QUuid::createUuid();
+    QNTRACE("Emitting the request to list notebooks: offset = " << m_listNotebooksOffset << ", request id = " << m_listNotebooksRequestId);
     emit listNotebooks(flags, NOTEBOOK_LIST_LIMIT, m_listNotebooksOffset, order, direction, QString(), m_listNotebooksRequestId);
-    QNTRACE("Emitted the request to list notebooks: offset = " << m_listNotebooksOffset << ", request id = " << m_listNotebooksRequestId);
 }
 
 QVariant NotebookModel::dataImpl(const NotebookModelItem & item, const Columns::type column) const
