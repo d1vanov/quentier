@@ -43,7 +43,7 @@ public:
         {
             Type = 0,
             DisplayName,
-            NumTargetedItems
+            NumNotesTargeted
         };
     };
 
@@ -201,6 +201,16 @@ private:
     bool canUpdateNotebook(const QString & localUid) const;
     bool canUpdateTag(const QString & localUid) const;
 
+    void unfavoriteNote(const QString & localUid);
+    void unfavoriteNotebook(const QString & localUid);
+    void unfavoriteTag(const QString & localUid);
+    void unfavoriteSavedSearch(const QString & localUid);
+
+    void onNoteAddedOrUpdated(const Note & note);
+    void onNotebookAddedOrUpdated(const Notebook & notebook);
+    void onTagAddedOrUpdated(const Tag & tag);
+    void onSavedSearchAddedOrUpdated(const SavedSearch & search);
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
@@ -236,9 +246,21 @@ private:
         bool    m_canUpdateTags;
     };
 
-    QHash<QString, QString>     m_tagLocalUidToLinkedNotebookGuid;
-    QHash<QString, QString>     m_notebookLocalUidToGuid;
-    QHash<QString, QString>     m_noteLocalUidToNotebookGuid;
+    class Comparator
+    {
+    public:
+        Comparator(const Columns::type column,
+                   const Qt::SortOrder sortOrder) :
+            m_sortedColumn(column),
+            m_sortOrder(sortOrder)
+        {}
+
+        bool operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const;
+
+    private:
+        Columns::type   m_sortedColumn;
+        Qt::SortOrder   m_sortOrder;
+    };
 
 private:
     FavoritesData           m_data;
@@ -275,7 +297,11 @@ private:
     QSet<QUuid>             m_findSavedSearchToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findSavedSearchToPerformUpdateRequestIds;
 
-    int                     m_sortedColumn;
+    QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
+    QHash<QString, QString> m_notebookLocalUidToGuid;
+    QHash<QString, QString> m_noteLocalUidToNotebookGuid;
+
+    Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
 };
 

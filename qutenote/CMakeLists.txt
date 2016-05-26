@@ -72,6 +72,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NoteModelItem.h
     src/models/NoteModel.h
     src/models/NoteCache.h
+    src/models/FavoritesModel.h
     src/models/FavoritesModelItem.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
@@ -102,6 +103,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookStackItem.cpp
     src/models/NoteModelItem.cpp
     src/models/NoteModel.cpp
+    src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
@@ -185,7 +187,9 @@ set(MODEL_TEST_HEADERS
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
     src/models/NoteModel.h
-    src/models/NoteCache.h)
+    src/models/NoteCache.h
+    src/models/FavoritesModel.h
+    src/models/FavoritesModelItem.h)
 
 set(MODEL_TEST_SOURCES
     src/tests/model_test/modeltest.cpp
@@ -204,7 +208,9 @@ set(MODEL_TEST_SOURCES
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
     src/models/NoteModelItem.cpp
-    src/models/NoteModel.cpp)
+    src/models/NoteModel.cpp
+    src/models/FavoritesModel.cpp
+    src/models/FavoritesModelItem.cpp)
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)

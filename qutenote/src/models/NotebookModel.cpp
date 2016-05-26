@@ -1166,9 +1166,9 @@ void NotebookModel::onUpdateNotebookFailed(Notebook notebook, QString errorDescr
 
     requestId = QUuid::createUuid();
     Q_UNUSED(m_findNotebookToRestoreFailedUpdateRequestIds.insert(requestId))
-    emit findNotebook(notebook, requestId);
-    QNTRACE("Emitted the request to find the notebook: local uid = " << notebook.localUid()
+    QNTRACE("Emitting the request to find the notebook: local uid = " << notebook.localUid()
             << ", request id = " << requestId);
+    emit findNotebook(notebook, requestId);
 }
 
 void NotebookModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)

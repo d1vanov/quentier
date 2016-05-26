@@ -317,8 +317,8 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
         return false;
     }
 
-    int row= modelIndex.row();
-    int column= modelIndex.column();
+    int row = modelIndex.row();
+    int column = modelIndex.column();
 
     if ((row < 0) || (row >= static_cast<int>(m_data.size())) ||
         (column < 0) || (column >= NUM_NOTE_MODEL_COLUMNS))
@@ -457,7 +457,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
         emit expungeNote(note, requestId);
     }
 
-    emit endRemoveRows();
+    endRemoveRows();
 
     return true;
 }
