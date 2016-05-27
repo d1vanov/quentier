@@ -1708,8 +1708,6 @@ void TagModel::updateTagInLocalStorage(const TagModelItem & item)
     tag.setLocal(!item.isSynchronizable());
     tag.setDirty(item.isDirty());
 
-    m_cache.put(tag.localUid(), tag);
-
     QUuid requestId = QUuid::createUuid();
 
     if (notYetSavedItemIt != m_tagItemsNotYetInLocalStorageUids.end())

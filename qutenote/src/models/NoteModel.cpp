@@ -1247,8 +1247,6 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     note.setLocal(!item.isSynchronizable());
     note.setDirty(item.isDirty());
 
-    m_cache.put(note.localUid(), note);
-
     QUuid requestId = QUuid::createUuid();
 
     if (notYetSavedItemIt != m_noteItemsNotYetInLocalStorageUids.end())

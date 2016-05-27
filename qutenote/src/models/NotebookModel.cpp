@@ -1554,8 +1554,6 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     // NOTE: deliberately not setting the updatable property from the item as it can't be changed by the model
     // and only serves the utilitary purpose inside it
 
-    m_cache.put(notebook.localUid(), notebook);
-
     QUuid requestId = QUuid::createUuid();
 
     if (notYetSavedItemIt != m_notebookItemsNotYetInLocalStorageUids.end())

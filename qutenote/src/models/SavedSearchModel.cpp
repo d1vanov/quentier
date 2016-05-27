@@ -941,8 +941,6 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
     savedSearch.setLocal(!item.m_isSynchronizable);
     savedSearch.setDirty(item.m_isDirty);
 
-    m_cache.put(item.m_localUid, savedSearch);
-
     QUuid requestId = QUuid::createUuid();
 
     if (notYetSavedItemIt != m_savedSearchItemsNotYetInLocalStorageUids.end())

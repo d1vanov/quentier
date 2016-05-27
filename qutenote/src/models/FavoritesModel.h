@@ -196,6 +196,10 @@ private:
     void removeItemByLocalUid(const QString & localUid);
     void updateItemRowWithRespectToSorting(const FavoritesModelItem & item);
     void updateItemInLocalStorage(const FavoritesModelItem & item);
+    void updateNoteInLocalStorage(const FavoritesModelItem & item);
+    void updateNotebookInLocalStorage(const FavoritesModelItem & item);
+    void updateTagInLocalStorage(const FavoritesModelItem & item);
+    void updateSavedSearchInLocalStorage(const FavoritesModelItem & item);
 
     bool canUpdateNote(const QString & localUid) const;
     bool canUpdateNotebook(const QString & localUid) const;
@@ -234,13 +238,11 @@ private:
     struct NotebookRestrictionsData
     {
         NotebookRestrictionsData() :
-            m_guid(),
             m_canUpdateNotes(false),
             m_canUpdateNotebook(false),
             m_canUpdateTags(false)
         {}
 
-        QString m_guid;
         bool    m_canUpdateNotes;
         bool    m_canUpdateNotebook;
         bool    m_canUpdateTags;
@@ -303,7 +305,9 @@ private:
 
     QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
     QHash<QString, QString> m_notebookLocalUidToGuid;
-    QHash<QString, QString> m_noteLocalUidToNotebookGuid;
+    QHash<QString, QString> m_noteLocalUidToNotebookLocalUid;
+
+    QHash<QString, NotebookRestrictionsData>    m_notebookRestrictionsData;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
