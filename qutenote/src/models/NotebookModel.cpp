@@ -561,8 +561,16 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         {
         case Columns::Name:
             {
-                QString newName = value.toString();
-                dirty |= (newName != notebookItemCopy.name());
+                QString newName = value.toString().trimmed();
+                bool changed = (newName != notebookItemCopy.name());
+                if (!changed) {
+                    return true;
+                }
+
+                // FIXME: must check whether the notebook with the same name already exists
+                // TODO: validate the notebook name properly
+
+                dirty = true;
                 notebookItemCopy.setName(newName);
                 break;
             }

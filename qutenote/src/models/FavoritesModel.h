@@ -271,6 +271,10 @@ private:
     TagCache &              m_tagCache;
     SavedSearchCache &      m_savedSearchCache;
 
+    QSet<QString>           m_lowerCaseNotebookNames;
+    QSet<QString>           m_lowerCaseTagNames;
+    QSet<QString>           m_lowerCaseSavedSearchNames;
+
     size_t                  m_listNotesOffset;
     QUuid                   m_listNotesRequestId;
 

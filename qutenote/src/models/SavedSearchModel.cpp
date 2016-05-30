@@ -225,12 +225,16 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     {
     case Columns::Name:
         {
-            QString name = value.toString();
-            if (name.isEmpty()) {
-                return false;
+            QString name = value.toString().trimmed();
+            bool changed = (name != item.m_name);
+            if (!changed) {
+                return true;
             }
 
-            item.m_isDirty |= (name != item.m_name);
+            // FIXME: must check whether the saved search with the same name already exists
+            // TODO: validate the saved search name properly
+
+            item.m_isDirty = true;
             item.m_name = name;
             break;
         }

@@ -302,8 +302,16 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     {
     case Columns::Name:
         {
-            QString newName = value.toString();
-            dirty |= (newName != itemCopy.name());
+            QString newName = value.toString().trimmed();
+            bool changed = (newName != itemCopy.name());
+            if (!changed) {
+                return true;
+            }
+
+            // FIXME: must check whether the tag with the same name already exists
+            // TODO: validate the tag name properly
+
+            dirty = true;
             itemCopy.setName(newName);
             break;
         }

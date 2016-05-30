@@ -20,6 +20,9 @@ FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageMan
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
     m_savedSearchCache(savedSearchCache),
+    m_lowerCaseNotebookNames(),
+    m_lowerCaseTagNames(),
+    m_lowerCaseSavedSearchNames(),
     m_listNotesOffset(0),
     m_listNotesRequestId(),
     m_listNotebooksOffset(0),
@@ -308,28 +311,76 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
         break;
     }
 
-    bool changed = false;
-
     switch(column)
     {
     case Columns::DisplayName:
         {
-            QString newDisplayName = value.toString();
-            changed = (item.displayName() != newDisplayName);
+            QString newDisplayName = value.toString().trimmed();
+            bool changed = (item.displayName() != newDisplayName);
+            if (!changed) {
+                return true;
+            }
+
+            switch(item.type())
+            {
+            case FavoritesModelItem::Type::Notebook:
+                {
+                    auto it = m_lowerCaseNotebookNames.find(newDisplayName.toLower());
+                    if (it != m_lowerCaseNotebookNames.end()) {
+                        QString error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed to have the same name in the case-insensitive manner");
+                        QNINFO(error);
+                        emit notifyError(error);
+                        return false;
+                    }
+
+                    // TODO: validate the notebook's name
+
+                    break;
+                }
+            case FavoritesModelItem::Type::Tag:
+                {
+                    auto it = m_lowerCaseTagNames.find(newDisplayName.toLower());
+                    if (it != m_lowerCaseTagNames.end()) {
+                        QString error = QT_TR_NOOP("Can't rename tag: no two tags within the account are allowed to have the same name in the case-insensitive manner");
+                        QNINFO(error);
+                        emit notifyError(error);
+                        return false;
+                    }
+
+                    // TODO: validate the tag's name properly
+
+                    if (newDisplayName.contains(QChar(','))) {
+                        QString error = QT_TR_NOOP("Can't rename tag: the tag name is not allowed to contain the comma");
+                        QNINFO(error);
+                        emit notifyError(error);
+                        return false;
+                    }
+
+                    break;
+                }
+            case FavoritesModelItem::Type::SavedSearch:
+                {
+                    auto it = m_lowerCaseSavedSearchNames.find(newDisplayName.toLower());
+                    if (it != m_lowerCaseSavedSearchNames.end()) {
+                        QString error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account are allowed to have the same name in the case-insensitive manner");
+                        QNINFO(error);
+                        emit notifyError(error);
+                        return false;
+                    }
+
+                    // TODO: validate the saved search's name properly
+
+                    break;
+                }
+            default:
+                break;
+            }
+
             item.setDisplayName(newDisplayName);
-
-            // FIXME: must find some way to impose the restrictions required by the Evernote service:
-            // case-insensitively unique names for saved searches, tags and notebooks + no comma in tag names
-
             break;
         }
     default:
         return false;
-    }
-
-    if (!changed) {
-        // Nothing has really changed but ok, return true
-        return true;
     }
 
     index.replace(index.begin() + row, item);
@@ -1332,7 +1383,9 @@ void FavoritesModel::requestNotebooksList()
 {
     QNDEBUG("FavoritesModel::requestNotebooksList: offset = " << m_listNotebooksOffset);
 
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;   // NOTE: the subscription to all notebooks is necessary in order to receive the information about the restrictions for various notebooks
+    // NOTE: the subscription to all notebooks is necessary in order to receive the information about the restrictions for various notebooks +
+    // for the collection of notebook names to forbid any two notebooks within the account to have the same name in a case-insensitive manner
+    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
     LocalStorageManager::ListNotebooksOrder::type order = LocalStorageManager::ListNotebooksOrder::NoOrder;
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
@@ -1345,7 +1398,9 @@ void FavoritesModel::requestTagsList()
 {
     QNDEBUG("FavoritesModel::requestTagsList: offset = " << m_listTagsOffset);
 
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListElementsWithShortcuts;
+    // NOTE: the subscription to all tags is necessary for the collection of tag names to forbid any two tags
+    // within the account to have the same name in a case-insensitive manner
+    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
     LocalStorageManager::ListTagsOrder::type order = LocalStorageManager::ListTagsOrder::NoOrder;
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
@@ -1358,6 +1413,8 @@ void FavoritesModel::requestSavedSearchesList()
 {
     QNDEBUG("FavoritesModel::requestSavedSearchesList: offset = " << m_listSavedSearchesOffset);
 
+    // NOTE: the subscription to all saved searches is necessary for the collection of saved search names to forbid any two saved searches
+    // within the account to have the same name in a case-insensitive manner
     LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListAll;
     LocalStorageManager::ListSavedSearchesOrder::type order = LocalStorageManager::ListSavedSearchesOrder::NoOrder;
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
@@ -1941,6 +1998,14 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
                 << (notebookRestrictionsData.m_canUpdateNotes ? "true" : "false") << ", can update tags = "
                 << (notebookRestrictionsData.m_canUpdateTags ? "true" : "false"));
     }
+
+    if (!notebook.hasName()) {
+        QNTRACE("Removing/skipping the notebook without a name");
+        removeItemByLocalUid(notebook.localUid());
+        return;
+    }
+
+    Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
 
     if (!notebook.hasShortcut()) {
         QNTRACE("Removing/skipping non-favorited notebook")
