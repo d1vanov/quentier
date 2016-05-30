@@ -1,4 +1,5 @@
 #include "NotebookData.h"
+#include <qute_note/types/Notebook.h>
 #include <qute_note/utility/Utility.h>
 
 namespace qute_note {
@@ -59,15 +60,8 @@ bool NotebookData::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (m_qecNotebook.name.isSet())
-    {
-        int nameSize = m_qecNotebook.name->size();
-        if ( (nameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) ||
-             (nameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) )
-        {
-            errorDescription = QT_TR_NOOP("Notebook's name has invalid size");
-            return false;
-        }
+    if (m_qecNotebook.name.isSet() && !Notebook::validateName(m_qecNotebook.name, &errorDescription)) {
+        return false;
     }
 
     if (m_qecNotebook.sharedNotebooks.isSet())

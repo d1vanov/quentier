@@ -1,4 +1,5 @@
 #include "TagData.h"
+#include <qute_note/types/Tag.h>
 #include <qute_note/utility/Utility.h>
 
 namespace qute_note {
@@ -52,29 +53,8 @@ bool TagData::checkParameters(QString & errorDescription) const
         return false;
     }
 
-    if (m_qecTag.name.isSet())
-    {
-        int nameSize = m_qecTag.name->size();
-        if ( (nameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) ||
-             (nameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) )
-        {
-            errorDescription = QT_TR_NOOP("Tag's name exceeds allowed size: ") + m_qecTag.name;
-            return false;
-        }
-
-        if (m_qecTag.name->startsWith(' ')) {
-            errorDescription = QT_TR_NOOP("Tag's name can't begin from space: ") + m_qecTag.name;
-            return false;
-        }
-        else if (m_qecTag.name->endsWith(' ')) {
-            errorDescription = QT_TR_NOOP("Tag's name can't end with space: ") + m_qecTag.name;
-            return false;
-        }
-
-        if (m_qecTag.name->contains(',')) {
-            errorDescription = QT_TR_NOOP("Tag's name can't contain comma: ") + m_qecTag.name;
-            return false;
-        }
+    if (m_qecTag.name.isSet() && !Tag::validateName(m_qecTag.name.ref(), &errorDescription)) {
+        return false;
     }
 
     if (m_qecTag.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecTag.updateSequenceNum)) {

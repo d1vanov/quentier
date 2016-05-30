@@ -1,4 +1,5 @@
 #include "SavedSearchData.h"
+#include <qute_note/types/SavedSearch.h>
 #include <qute_note/utility/Utility.h>
 
 namespace qute_note {
@@ -44,26 +45,8 @@ bool SavedSearchData::checkParameters(QString &errorDescription) const
         return false;
     }
 
-    if (m_qecSearch.name.isSet())
-    {
-        const QString & name = m_qecSearch.name;
-        int nameSize = name.size();
-
-        if ( (nameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) ||
-             (nameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) )
-        {
-            errorDescription = QT_TR_NOOP("Saved search's name exceeds allowed size: ") + name;
-            return false;
-        }
-
-        if (name.at(0) == ' ') {
-            errorDescription = QT_TR_NOOP("Saved search's name can't begin from space: ") + name;
-            return false;
-        }
-        else if (name.at(nameSize - 1) == ' ') {
-            errorDescription = QT_TR_NOOP("Saved search's name can't end with space: ") + name;
-            return false;
-        }
+    if (m_qecSearch.name.isSet() && !SavedSearch::validateName(m_qecSearch.name, &errorDescription)) {
+        return false;
     }
 
     if (m_qecSearch.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {

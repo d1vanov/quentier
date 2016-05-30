@@ -89,6 +89,39 @@ void SavedSearch::clear()
     d->clear();
 }
 
+bool SavedSearch::validateName(const QString & name, QString * pErrorDescription)
+{
+    if (name != name.trimmed())
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("saved search name cannot start or end with whitespace");
+        }
+
+        return false;
+    }
+
+    int len = name.length();
+    if (len < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("saved search name's length is too small");
+        }
+
+        return false;
+    }
+
+    if (len > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("saved search's name length is too large");
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
 bool SavedSearch::hasGuid() const
 {
     return d->m_qecSearch.guid.isSet();

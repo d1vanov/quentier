@@ -88,6 +88,39 @@ void Tag::clear()
     d->clear();
 }
 
+bool Tag::validateName(const QString & name, QString * pErrorDescription)
+{
+    if (name != name.trimmed())
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("tag name cannot start or end with whitespace");
+        }
+
+        return false;
+    }
+
+    int len = name.length();
+    if (len < qevercloud::EDAM_TAG_NAME_LEN_MIN)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("tag name's length is too small");
+        }
+
+        return false;
+    }
+
+    if (len > qevercloud::EDAM_TAG_NAME_LEN_MAX)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("tag name's length is too large");
+        }
+
+        return false;
+    }
+
+    return !name.contains(QChar(','));
+}
+
 bool Tag::hasGuid() const
 {
     return d->m_qecTag.guid.isSet();

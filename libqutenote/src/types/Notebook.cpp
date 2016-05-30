@@ -105,6 +105,39 @@ void Notebook::clear()
     d->m_qecNotebook = qevercloud::Notebook();
 }
 
+bool Notebook::validateName(const QString & name, QString * pErrorDescription)
+{
+    if (name != name.trimmed())
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("notebook name cannot start or end with whitespace");
+        }
+
+        return false;
+    }
+
+    int len = name.length();
+    if (len < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("notebook name's length is too small");
+        }
+
+        return false;
+    }
+
+    if (len > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("notebook name's length is too large");
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Notebook::hasGuid() const
 {
     return d->m_qecNotebook.guid.isSet();

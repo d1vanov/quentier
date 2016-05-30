@@ -37,6 +37,8 @@ public:
 
     virtual void clear() Q_DECL_OVERRIDE;
 
+    static bool validateName(const QString & name, QString * pErrorDescription = Q_NULLPTR);
+
     virtual bool hasGuid() const Q_DECL_OVERRIDE;
     virtual const QString & guid() const Q_DECL_OVERRIDE;
     virtual void setGuid(const QString & guid) Q_DECL_OVERRIDE;
