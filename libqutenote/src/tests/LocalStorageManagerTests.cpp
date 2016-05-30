@@ -715,6 +715,17 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
+    // ========== GetNoteCountPerNotebook to return 1 ===========
+    count = localStorageManager.noteCountPerNotebook(notebook, errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = "GetNoteCountPerNotebook returned result different from the expected one (1): ";
+        errorDescription += QString::number(count);
+        return false;
+    }
+
     // ========== Check Delete + Find and check deleted flag ============
     modifiedNote.setActive(false);
     modifiedNote.setDeletionTimestamp(1);

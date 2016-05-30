@@ -430,6 +430,15 @@ public:
     int noteCount(QString & errorDescription) const;
 
     /**
+     * @brief noteCountPerNotebook returns the number of non-deleted notes currently stored in local storage database per given notebook
+     * @param notebook - notebook for which the number of notes is requested. If its guid is set, it is used to identify the notebook,
+     * otherwise its local uid is used
+     * @param errorDescription - error description if the number of notes per given notebook could not be returned
+     * @return either non-negative value with the number of notes per given notebook or -1 which means some error occured
+     */
+    int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
+
+    /**
      * @brief addNote - adds passed in Note to the local storage database.
      * @param note - note to be passed to local storage database; required to contain either "remote" notebook guid
      * or local notebook uid

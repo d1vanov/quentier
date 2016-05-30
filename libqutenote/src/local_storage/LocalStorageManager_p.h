@@ -89,6 +89,7 @@ public:
     bool expungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
 
     int noteCount(QString & errorDescription) const;
+    int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
     bool addNote(const Note & note, QString & errorDescription);
     bool updateNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool findNote(Note & note, QString & errorDescription,

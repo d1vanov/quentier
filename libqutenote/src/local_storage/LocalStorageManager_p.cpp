@@ -1242,6 +1242,53 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
     return count;
 }
 
+int LocalStorageManagerPrivate::noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const
+{
+    QString error;
+    bool res = notebook.checkParameters(error);
+    if (!res) {
+        errorDescription += error;
+        QNWARNING("Found invalid notebook: " << notebook << "\nError: " << error);
+        return -1;
+    }
+
+    QString column, value;
+    if (notebook.hasGuid()) {
+        column = "notebookGuid";
+        value = notebook.guid();
+    }
+    else {
+        column = "notebookLocalUid";
+        value = notebook.localUid();
+    }
+
+    QString queryString = QString("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL AND %1 = '%2'").arg(column, value);
+    QSqlQuery query(m_sqlDatabase);
+    res = query.exec(queryString);
+
+    if (!res) {
+        errorDescription = QT_TR_NOOP("Internal error: can't get number of notes per notebook in local storage database: ");
+        QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
+        errorDescription += query.lastError().text();
+        return -1;
+    }
+
+    if (!query.next()) {
+        QNDEBUG("Found no notes per given notebook in local storage database");
+        return 0;
+    }
+
+    bool conversionResult = false;
+    int count = query.value(0).toInt(&conversionResult);
+    if (!conversionResult) {
+        errorDescription = QT_TR_NOOP("Internal error: can't convert number of notes per given notebook to int");
+        QNCRITICAL(errorDescription << ": " << query.value(0));
+        return -1;
+    }
+
+    return count;
+}
+
 bool LocalStorageManagerPrivate::addNote(const Note & note, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add note to local storage database: ");

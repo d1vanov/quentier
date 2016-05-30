@@ -643,6 +643,22 @@ void LocalStorageManagerThreadWorker::onGetNoteCountRequest(QUuid requestId)
     CATCH_EXCEPTION
 }
 
+void LocalStorageManagerThreadWorker::onGetNoteCountPerNotebookRequest(Notebook notebook, QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        int count = m_pLocalStorageManager->noteCountPerNotebook(notebook, errorDescription);
+        if (count < 0) {
+            emit getNoteCountPerNotebookFailed(errorDescription, notebook, requestId);
+        }
+        else {
+            emit getNoteCountPerNotebookComplete(count, notebook, requestId);
+        }
+    }
+    CATCH_EXCEPTION
+}
+
 void LocalStorageManagerThreadWorker::onAddNoteRequest(Note note, QUuid requestId)
 {
     try
