@@ -18,6 +18,7 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
     m_cache(cache),
+    m_lowerCaseTagNames(),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
     m_tagItemsNotYetInLocalStorageUids(),
@@ -308,8 +309,22 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
                 return true;
             }
 
-            // FIXME: must check whether the tag with the same name already exists
-            // TODO: validate the tag name properly
+            auto it = m_lowerCaseTagNames.find(newName.toLower());
+            if (it != m_lowerCaseTagNames.end()) {
+                QString error = QT_TR_NOOP("Can't change tag name: no two tags within the account are allowed "
+                                           "to have the same name in a case-insensitive manner");
+                QNINFO(error << ", suggested name = " << newName);
+                emit notifyError(error);
+                return false;
+            }
+
+            QString error;
+            if (!Tag::validateName(newName, &error)) {
+                error = QT_TR_NOOP("Can't change tag name") + QStringLiteral(": ") + error;
+                QNINFO(error << ", suggested name = " << newName);
+                emit notifyError(error);
+                return false;
+            }
 
             dirty = true;
             itemCopy.setName(newName);
@@ -1013,6 +1028,10 @@ void TagModel::onTagAdded(const Tag & tag)
 {
     QNDEBUG("TagModel::onTagAdded: tag local uid = " << tag.localUid());
 
+    if (tag.hasName()) {
+        Q_UNUSED(m_lowerCaseTagNames.insert(tag.name().toLower()))
+    }
+
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     const TagModelItem * parentItem = Q_NULLPTR;
@@ -1078,6 +1097,16 @@ void TagModel::onTagAdded(const Tag & tag)
 void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
 {
     QNDEBUG("TagModel::onTagUpdated: tag local uid = " << tag.localUid());
+
+    const TagModelItem & originalItem = *it;
+    auto nameIt = m_lowerCaseTagNames.find(originalItem.name().toLower());
+    if (nameIt != m_lowerCaseTagNames.end()) {
+        Q_UNUSED(m_lowerCaseTagNames.erase(nameIt))
+    }
+
+    if (tag.hasName()) {
+        Q_UNUSED(m_lowerCaseTagNames.insert(tag.name().toLower()))
+    }
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -1590,6 +1619,11 @@ void TagModel::removeItemByLocalUid(const QString & localUid)
     }
 
     const TagModelItem & item = *itemIt;
+
+    auto nameIt = m_lowerCaseTagNames.find(item.name().toLower());
+    if (nameIt != m_lowerCaseTagNames.end()) {
+        Q_UNUSED(m_lowerCaseTagNames.erase(nameIt))
+    }
 
     const TagModelItem * parentItem = item.parent();
     if (!parentItem) {

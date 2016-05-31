@@ -201,6 +201,8 @@ private:
 
     TagCache &              m_cache;
 
+    QSet<QString>           m_lowerCaseTagNames;
+
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;
     QSet<QUuid>             m_tagItemsNotYetInLocalStorageUids;

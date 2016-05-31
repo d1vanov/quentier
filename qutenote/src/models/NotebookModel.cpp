@@ -20,6 +20,7 @@ NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManag
     m_modelItemsByStack(),
     m_stackItems(),
     m_cache(cache),
+    m_lowerCaseNotebookNames(),
     m_listNotebooksOffset(0),
     m_listNotebooksRequestId(),
     m_addNotebookRequestIds(),
@@ -567,8 +568,22 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     return true;
                 }
 
-                // FIXME: must check whether the notebook with the same name already exists
-                // TODO: validate the notebook name properly
+                auto nameIt = m_lowerCaseNotebookNames.find(newName.toLower());
+                if (nameIt != m_lowerCaseNotebookNames.end()) {
+                    QString error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
+                                               "to have the same name in a case-insensitive manner");
+                    QNINFO(error << ", suggested new name = " << newName);
+                    emit notifyError(error);
+                    return false;
+                }
+
+                QString error;
+                if (!Notebook::validateName(newName, &error)) {
+                    error = QT_TR_NOOP("Can't rename notebook") + QStringLiteral(": ") + error;
+                    QNINFO(error << ", suggested new name = " << newName);
+                    emit notifyError(error);
+                    return false;
+                }
 
                 dirty = true;
                 notebookItemCopy.setName(newName);
@@ -1611,6 +1626,10 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
 {
     QNDEBUG("NotebookModel::onNotebookAdded: notebook local uid = " << notebook.localUid());
 
+    if (notebook.hasName()) {
+        Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
+    }
+
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     const NotebookModelItem * parentItem = Q_NULLPTR;
@@ -1659,6 +1678,16 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
 void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it)
 {
     QNDEBUG("NotebookModel::onNotebookUpdated: notebook local uid = " << notebook.localUid());
+
+    const NotebookItem & originalItem = *it;
+    auto nameIt = m_lowerCaseNotebookNames.find(originalItem.name().toLower());
+    if (nameIt != m_lowerCaseNotebookNames.end()) {
+        Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
+    }
+
+    if (notebook.hasName()) {
+        Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
+    }
 
     NotebookItem notebookItemCopy;
     notebookToItem(notebook, notebookItemCopy);
@@ -1795,6 +1824,10 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     }
 
     const NotebookItem & item = *itemIt;
+    auto nameIt = m_lowerCaseNotebookNames.find(item.name().toLower());
+    if (nameIt != m_lowerCaseNotebookNames.end()) {
+        Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
+    }
 
     auto notebookModelItemIt = m_modelItemsByLocalUid.find(item.localUid());
     if (Q_UNLIKELY(notebookModelItemIt == m_modelItemsByLocalUid.end())) {

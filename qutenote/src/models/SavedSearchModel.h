@@ -159,6 +159,8 @@ private:
 
     SavedSearchCache &      m_cache;
 
+    QSet<QString>           m_lowerCaseSavedSearchNames;
+
     QSet<QUuid>             m_addSavedSearchRequestIds;
     QSet<QUuid>             m_updateSavedSearchRequestIds;
     QSet<QUuid>             m_expungeSavedSearchRequestIds;

@@ -215,6 +215,8 @@ private:
 
     NotebookCache &         m_cache;
 
+    QSet<QString>           m_lowerCaseNotebookNames;
+
     size_t                  m_listNotebooksOffset;
     QUuid                   m_listNotebooksRequestId;
     QSet<QUuid>             m_notebookItemsNotYetInLocalStorageUids;

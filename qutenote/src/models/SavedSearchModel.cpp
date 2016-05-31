@@ -20,6 +20,7 @@ SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorag
     m_listSavedSearchesRequestId(),
     m_savedSearchItemsNotYetInLocalStorageUids(),
     m_cache(cache),
+    m_lowerCaseSavedSearchNames(),
     m_addSavedSearchRequestIds(),
     m_updateSavedSearchRequestIds(),
     m_expungeSavedSearchRequestIds(),
@@ -231,8 +232,22 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
                 return true;
             }
 
-            // FIXME: must check whether the saved search with the same name already exists
-            // TODO: validate the saved search name properly
+            auto it = m_lowerCaseSavedSearchNames.find(name.toLower());
+            if (it != m_lowerCaseSavedSearchNames.end()) {
+                QString error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account "
+                                           "are allowed to have the same name in a case-insensitive manner");
+                QNINFO(error << ", suggested new name = " << name);
+                emit notifyError(error);
+                return false;
+            }
+
+            QString error;
+            if (!SavedSearch::validateName(name, &error)) {
+                error = QT_TR_NOOP("Can't rename saved search") + QStringLiteral(": ") + error;
+                QNINFO(error << ", suggested new name = " << name);
+                emit notifyError(error);
+                return false;
+            }
 
             item.m_isDirty = true;
             item.m_name = name;
@@ -618,6 +633,14 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
 {
     QNDEBUG("SavedSearchModel::onExpungeSavedSearchComplete: search = " << search << "\nRequest id = " << requestId);
 
+    if (search.hasName())
+    {
+        auto nameIt = m_lowerCaseSavedSearchNames.find(search.name().toLower());
+        if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+            Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
+        }
+    }
+
     auto it = m_expungeSavedSearchRequestIds.find(requestId);
     if (it != m_expungeSavedSearchRequestIds.end()) {
         Q_UNUSED(m_expungeSavedSearchRequestIds.erase(it))
@@ -753,6 +776,10 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     bool newSavedSearch = (itemIt == localUidIndex.end());
     if (newSavedSearch)
     {
+        if (search.hasName()) {
+            Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
+        }
+
         int row = rowForNewItem(item);
         beginInsertRows(QModelIndex(), row, row);
         auto insertionResult = localUidIndex.insert(item);
@@ -764,6 +791,16 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         emit layoutChanged();
 
         return;
+    }
+
+    const SavedSearchModelItem & originalItem = *itemIt;
+    auto nameIt = m_lowerCaseSavedSearchNames.find(originalItem.m_name.toLower());
+    if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+        Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
+    }
+
+    if (search.hasName()) {
+        Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
     }
 
     localUidIndex.replace(itemIt, item);

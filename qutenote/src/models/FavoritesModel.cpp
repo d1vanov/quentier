@@ -327,13 +327,20 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
                 {
                     auto it = m_lowerCaseNotebookNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseNotebookNames.end()) {
-                        QString error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed to have the same name in the case-insensitive manner");
-                        QNINFO(error);
+                        QString error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
+                                                   "to have the same name in the case-insensitive manner");
+                        QNINFO(error << ", suggested new name = " << newDisplayName);
                         emit notifyError(error);
                         return false;
                     }
 
-                    // TODO: validate the notebook's name
+                    QString error;
+                    if (!Notebook::validateName(newDisplayName, &error)) {
+                        error = QT_TR_NOOP("Can't rename notebook") + QStringLiteral(": ") + error;
+                        QNINFO(error << ", suggested new name = " << newDisplayName);
+                        emit notifyError(error);
+                        return false;
+                    }
 
                     break;
                 }
@@ -341,17 +348,17 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
                 {
                     auto it = m_lowerCaseTagNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseTagNames.end()) {
-                        QString error = QT_TR_NOOP("Can't rename tag: no two tags within the account are allowed to have the same name in the case-insensitive manner");
+                        QString error = QT_TR_NOOP("Can't rename tag: no two tags within the account are allowed "
+                                                   "to have the same name in the case-insensitive manner");
                         QNINFO(error);
                         emit notifyError(error);
                         return false;
                     }
 
-                    // TODO: validate the tag's name properly
-
-                    if (newDisplayName.contains(QChar(','))) {
-                        QString error = QT_TR_NOOP("Can't rename tag: the tag name is not allowed to contain the comma");
-                        QNINFO(error);
+                    QString error;
+                    if (!Tag::validateName(newDisplayName, &error)) {
+                        error = QT_TR_NOOP("Can't rename tag") + QStringLiteral(": ") + error;
+                        QNINFO(error << ", suggested new name = " << newDisplayName);
                         emit notifyError(error);
                         return false;
                     }
@@ -368,7 +375,13 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
                         return false;
                     }
 
-                    // TODO: validate the saved search's name properly
+                    QString error;
+                    if (!SavedSearch::validateName(newDisplayName, &error)) {
+                        error = QT_TR_NOOP("Can't rename saved search") + QStringLiteral(": ") + error;
+                        QNINFO(error << ", suggested new name = " << newDisplayName);
+                        emit notifyError(error);
+                        return false;
+                    }
 
                     break;
                 }
@@ -1507,6 +1520,39 @@ void FavoritesModel::removeItemByLocalUid(const QString & localUid)
 
     const FavoritesModelItem & item = *itemIt;
 
+    switch(item.type())
+    {
+    case FavoritesModelItem::Type::Notebook:
+        {
+            auto nameIt = m_lowerCaseNotebookNames.find(item.displayName().toLower());
+            if (nameIt != m_lowerCaseNotebookNames.end()) {
+                Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
+            }
+
+            break;
+        }
+    case FavoritesModelItem::Type::Tag:
+        {
+            auto nameIt = m_lowerCaseTagNames.find(item.displayName().toLower());
+            if (nameIt != m_lowerCaseTagNames.end()) {
+                Q_UNUSED(m_lowerCaseTagNames.erase(nameIt))
+            }
+
+            break;
+        }
+    case FavoritesModelItem::Type::SavedSearch:
+        {
+            auto nameIt = m_lowerCaseSavedSearchNames.find(item.displayName().toLower());
+            if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+                Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
+            }
+
+            break;
+        }
+    default:
+        break;
+    }
+
     FavoritesDataByIndex & index = m_data.get<ByIndex>();
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
@@ -1972,6 +2018,22 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
     m_notebookCache.put(notebook.localUid(), notebook);
 
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(notebook.localUid());
+
+    if (itemIt != localUidIndex.end())
+    {
+        const FavoritesModelItem & originalItem = *itemIt;
+        auto nameIt = m_lowerCaseNotebookNames.find(originalItem.displayName().toLower());
+        if (nameIt != m_lowerCaseNotebookNames.end()) {
+            Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
+        }
+    }
+
+    if (notebook.hasName()) {
+        Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
+    }
+
     if (notebook.hasGuid())
     {
         NotebookRestrictionsData & notebookRestrictionsData = m_notebookRestrictionsData[notebook.guid()];
@@ -2005,8 +2067,6 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
         return;
     }
 
-    Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
-
     if (!notebook.hasShortcut()) {
         QNTRACE("Removing/skipping non-favorited notebook")
         removeItemByLocalUid(notebook.localUid());
@@ -2017,14 +2077,8 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
     item.setType(FavoritesModelItem::Type::Notebook);
     item.setLocalUid(notebook.localUid());
     item.setNumNotesTargeted(-1);   // That means, not known yet
+    item.setDisplayName(notebook.name());
 
-    if (notebook.hasName()) {
-        item.setDisplayName(notebook.name());
-    }
-
-    FavoritesDataByIndex & index = m_data.get<ByIndex>();
-    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    auto itemIt = localUidIndex.find(notebook.localUid());
     if (itemIt == localUidIndex.end())
     {
         QNDEBUG("Detected newly favorited notebook");
@@ -2036,8 +2090,9 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
     }
     else
     {
-        QNDEBUG("Updating the already favorited item");
+        QNDEBUG("Updating the already favorited notebook item");
 
+        FavoritesDataByIndex & index = m_data.get<ByIndex>();
         auto indexIt = m_data.project<ByIndex>(itemIt);
         if (Q_UNLIKELY(indexIt == index.end())) {
             QString error = QT_TR_NOOP("Can't project the local uid index to the favorited notebook item to the random access index iterator");
@@ -2060,14 +2115,148 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
 void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
+    QNDEBUG("FavoritesModel::onTagAddedOrUpdated: local uid = " << tag.localUid());
+
+    m_tagCache.put(tag.localUid(), tag);
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(tag.localUid());
+
+    if (itemIt != localUidIndex.end())
+    {
+        const FavoritesModelItem & originalItem = *itemIt;
+        auto nameIt = m_lowerCaseTagNames.find(originalItem.displayName().toLower());
+        if (nameIt != m_lowerCaseTagNames.end()) {
+            Q_UNUSED(m_lowerCaseTagNames.erase(nameIt))
+        }
+    }
+
+    if (tag.hasName()) {
+        Q_UNUSED(m_lowerCaseTagNames.insert(tag.name().toLower()))
+    }
+    else {
+        QNTRACE("Removing/skipping the tag without a name");
+        removeItemByLocalUid(tag.localUid());
+        return;
+    }
+
+    if (!tag.hasShortcut()) {
+        QNTRACE("Removing/skipping non-favorited tag");
+        removeItemByLocalUid(tag.localUid());
+        return;
+    }
+
+    FavoritesModelItem item;
+    item.setType(FavoritesModelItem::Type::Tag);
+    item.setLocalUid(tag.localUid());
+    item.setNumNotesTargeted(-1);   // That means, not known yet
+    item.setDisplayName(tag.name());
+
+    if (itemIt == localUidIndex.end())
+    {
+        QNDEBUG("Detected newly favorited tag");
+
+        emit layoutAboutToBeChanged();
+        Q_UNUSED(localUidIndex.insert(item))
+        updateItemRowWithRespectToSorting(item);
+        emit layoutChanged();
+    }
+    else
+    {
+        QNDEBUG("Updating the already favorited tag item");
+
+        FavoritesDataByIndex & index = m_data.get<ByIndex>();
+        auto indexIt = m_data.project<ByIndex>(itemIt);
+        if (Q_UNLIKELY(indexIt == index.end())) {
+            QString error = QT_TR_NOOP("Can't project the local uid index to the favorited tag item to the random access index iterator");
+            QNWARNING(error << ", favorites model item: " << item);
+            emit notifyError(error);
+            return;
+        }
+
+        int row = static_cast<int>(std::distance(index.begin(), indexIt));
+
+        localUidIndex.replace(itemIt, item);
+        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
+        emit dataChanged(modelIndex, modelIndex);
+
+        emit layoutAboutToBeChanged();
+        updateItemRowWithRespectToSorting(item);
+        emit layoutChanged();
+    }
 }
 
 void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 {
-    // TODO: implement
-    Q_UNUSED(search)
+    QNDEBUG("FavoritesModel::onSavedSearchAddedOrUpdated: local uid = " << search.localUid());
+
+    m_savedSearchCache.put(search.localUid(), search);
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(search.localUid());
+
+    if (itemIt != localUidIndex.end())
+    {
+        const FavoritesModelItem & originalItem = *itemIt;
+        auto nameIt = m_lowerCaseSavedSearchNames.find(originalItem.displayName().toLower());
+        if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+            Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
+        }
+    }
+
+    if (search.hasName()) {
+        Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
+    }
+    else {
+        QNTRACE("Removing/skipping the search without a name");
+        removeItemByLocalUid(search.localUid());
+        return;
+    }
+
+    if (!search.hasShortcut()) {
+        QNTRACE("Removing/skipping non-favorited search");
+        removeItemByLocalUid(search.localUid());
+        return;
+    }
+
+    FavoritesModelItem item;
+    item.setType(FavoritesModelItem::Type::SavedSearch);
+    item.setLocalUid(search.localUid());
+    item.setNumNotesTargeted(-1);
+    item.setDisplayName(search.name());
+
+    if (itemIt == localUidIndex.end())
+    {
+        QNDEBUG("Detected newly favorited saved search");
+
+        emit layoutAboutToBeChanged();
+        Q_UNUSED(localUidIndex.insert(item))
+        updateItemRowWithRespectToSorting(item);
+        emit layoutChanged();
+    }
+    else
+    {
+        QNDEBUG("Updating the already favorited saved search item");
+
+        FavoritesDataByIndex & index = m_data.get<ByIndex>();
+        auto indexIt = m_data.project<ByIndex>(itemIt);
+        if (Q_UNLIKELY(indexIt == index.end())) {
+            QString error = QT_TR_NOOP("Can't project the local uid index to the favorited tag item to the random access index iterator");
+            QNWARNING(error << ", favorites model item: " << item);
+            emit notifyError(error);
+            return;
+        }
+
+        int row = static_cast<int>(std::distance(index.begin(), indexIt));
+
+        localUidIndex.replace(itemIt, item);
+        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
+        emit dataChanged(modelIndex, modelIndex);
+
+        emit layoutAboutToBeChanged();
+        updateItemRowWithRespectToSorting(item);
+        emit layoutChanged();
+    }
 }
 
 bool FavoritesModel::Comparator::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
