@@ -1233,6 +1233,38 @@ void FavoritesModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid requ
     removeItemByLocalUid(search.localUid());
 }
 
+void FavoritesModel::onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(noteCount)
+    Q_UNUSED(notebook)
+    Q_UNUSED(requestId)
+}
+
+void FavoritesModel::onNoteCountPerNotebookFailed(QString errorDescription, Notebook notebook, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(notebook)
+    Q_UNUSED(requestId)
+}
+
+void FavoritesModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(noteCount)
+    Q_UNUSED(tag)
+    Q_UNUSED(requestId)
+}
+
+void FavoritesModel::onNoteCountPerTagFailed(QString errorDescription, Tag tag, QUuid requestId)
+{
+    // TODO: implement
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(tag)
+    Q_UNUSED(requestId)
+}
+
 void FavoritesModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
 {
     QNDEBUG("FavoritesModel::createConnections");
@@ -1279,6 +1311,10 @@ void FavoritesModel::createConnections(LocalStorageManagerThreadWorker & localSt
                                                               LocalStorageManager::ListObjectsOptions,
                                                               size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                               LocalStorageManager::OrderDirection::type,QUuid));
+    QObject::connect(this, QNSIGNAL(FavoritesModel,noteCountPerNotebook,Notebook,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerNotebookRequest,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(FavoritesModel,noteCountPerTag,Tag,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerTagRequest,Tag,QUuid));
 
     // localStorageManagerThreadWorker's signals to local slots
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
@@ -1377,6 +1413,14 @@ void FavoritesModel::createConnections(LocalStorageManagerThreadWorker & localSt
                                   QString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModel,onExpungeSavedSearchComplete,SavedSearch,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerNotebookComplete,int,Notebook,QUuid),
+                     this, QNSLOT(FavoritesModel,onNoteCountPerNotebookComplete,int,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerNotebookFailed,QString,Notebook,QUuid),
+                     this, QNSLOT(FavoritesModel,onNoteCountPerNotebookFailed,QString,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagComplete,int,Tag,QUuid),
+                     this, QNSLOT(FavoritesModel,onNoteCountPerTagComplete,int,Tag,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagFailed,QString,Tag,QUuid),
+                     this, QNSLOT(FavoritesModel,onNoteCountPerTagFailed,QString,Tag,QUuid));
 }
 
 void FavoritesModel::requestNotesList()

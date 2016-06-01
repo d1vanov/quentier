@@ -108,6 +108,9 @@ Q_SIGNALS:
                            LocalStorageManager::OrderDirection::type orderDirection,
                            QUuid requestId);
 
+    void noteCountPerNotebook(Notebook notebook, QUuid requestId);
+    void noteCountPerTag(Tag tag, QUuid requestId);
+
 private Q_SLOTS:
     // Slots for response to events from local storage
 
@@ -182,6 +185,12 @@ private Q_SLOTS:
                                    LocalStorageManager::OrderDirection::type orderDirection,
                                    QString errorDescription, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
+
+    // For note counts:
+    void onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
+    void onNoteCountPerNotebookFailed(QString errorDescription, Notebook notebook, QUuid requestId);
+    void onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
+    void onNoteCountPerTagFailed(QString errorDescription, Tag tag, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
