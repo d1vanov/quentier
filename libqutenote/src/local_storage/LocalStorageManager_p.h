@@ -90,6 +90,7 @@ public:
 
     int noteCount(QString & errorDescription) const;
     int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
+    int noteCountPerTag(const Tag & tag, QString & errorDescription) const;
     bool addNote(const Note & note, QString & errorDescription);
     bool updateNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool findNote(Note & note, QString & errorDescription,

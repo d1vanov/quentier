@@ -202,6 +202,12 @@ int LocalStorageManager::noteCountPerNotebook(const Notebook & notebook, QString
     return d->noteCountPerNotebook(notebook, errorDescription);
 }
 
+int LocalStorageManager::noteCountPerTag(const Tag & tag, QString & errorDescription) const
+{
+    Q_D(const LocalStorageManager);
+    return d->noteCountPerTag(tag, errorDescription);
+}
+
 bool LocalStorageManager::addNote(const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);

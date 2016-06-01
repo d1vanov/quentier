@@ -44,8 +44,8 @@ private Q_SLOTS:
     void onWorkerInitialized();
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
     void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
-    void onGetNoteCountCompleted(int count, QUuid requestId);
-    void onGetNoteCountFailed(QString errorDescription, QUuid requestId);
+    void onNoteCountCompleted(int count, QUuid requestId);
+    void onNoteCountFailed(QString errorDescription, QUuid requestId);
     void onAddNoteCompleted(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, QString errorDescription, QUuid requestId);
     void onUpdateNoteCompleted(Note note, bool updateResources, bool updateTags, QUuid requestId);

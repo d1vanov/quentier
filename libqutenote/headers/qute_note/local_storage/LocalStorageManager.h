@@ -439,6 +439,15 @@ public:
     int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
 
     /**
+     * @brief noteCountPerTag returns the number of non-deleted notes currently stored in local storage database labeled with given tag
+     * @param tag - tag for which the number of notes labeled with it is requested. If its guid is set, it is used to identify the tag,
+     * otherwise its local uid is used
+     * @param errorDescription - error description if the number of notes per given tag could not be returned
+     * @return either non-negative value with the number of notes per given tag or -1 which means some error occured
+     */
+    int noteCountPerTag(const Tag & tag, QString & errorDescription) const;
+
+    /**
      * @brief addNote - adds passed in Note to the local storage database.
      * @param note - note to be passed to local storage database; required to contain either "remote" notebook guid
      * or local notebook uid

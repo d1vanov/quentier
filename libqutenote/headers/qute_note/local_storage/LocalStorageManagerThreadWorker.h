@@ -122,10 +122,12 @@ Q_SIGNALS:
     void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QString errorDescription, QUuid requestId = QUuid());
 
     // Note-related signals:
-    void getNoteCountComplete(int noteCount, QUuid requestId = QUuid());
-    void getNoteCountFailed(QString errorDescription, QUuid requestId = QUuid());
-    void getNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId = QUuid());
-    void getNoteCountPerNotebookFailed(QString errorDescription, Notebook notebook, QUuid requestId = QUuid());
+    void noteCountComplete(int noteCount, QUuid requestId = QUuid());
+    void noteCountFailed(QString errorDescription, QUuid requestId = QUuid());
+    void noteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId = QUuid());
+    void noteCountPerNotebookFailed(QString errorDescription, Notebook notebook, QUuid requestId = QUuid());
+    void noteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId = QUuid());
+    void noteCountPerTagFailed(QString errorDescription, Tag tag, QUuid requestId = QUuid());
     void addNoteComplete(Note note, QUuid requestId = QUuid());
     void addNoteFailed(Note note, QString errorDescription, QUuid requestId = QUuid());
     void updateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId = QUuid());
@@ -297,8 +299,9 @@ public Q_SLOTS:
     void onExpungeLinkedNotebookRequest(LinkedNotebook linkedNotebook, QUuid requestId);
 
     // Note-related slots:
-    void onGetNoteCountRequest(QUuid requestId);
-    void onGetNoteCountPerNotebookRequest(Notebook notebook, QUuid requestId);
+    void onNoteCountRequest(QUuid requestId);
+    void onNoteCountPerNotebookRequest(Notebook notebook, QUuid requestId);
+    void onNoteCountPerTagRequest(Tag tag, QUuid requestId);
     void onAddNoteRequest(Note note, QUuid requestId);
     void onUpdateNoteRequest(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onFindNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId);

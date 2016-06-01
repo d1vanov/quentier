@@ -704,24 +704,35 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
         return false;
     }
 
-    // ========== GetNoteCount to return 1 ============
+    // ========== noteCount to return 1 ============
     int count = localStorageManager.noteCount(errorDescription);
     if (count < 0) {
         return false;
     }
     else if (count != 1) {
-        errorDescription = "GetNoteCount returned result different from the expected one (1): ";
+        errorDescription = "noteCount returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }
 
-    // ========== GetNoteCountPerNotebook to return 1 ===========
+    // ========== noteCountPerNotebook to return 1 ===========
     count = localStorageManager.noteCountPerNotebook(notebook, errorDescription);
     if (count < 0) {
         return false;
     }
     else if (count != 1) {
-        errorDescription = "GetNoteCountPerNotebook returned result different from the expected one (1): ";
+        errorDescription = "noteCountPerNotebook returned result different from the expected one (1): ";
+        errorDescription += QString::number(count);
+        return false;
+    }
+
+    // ========== noteCountPerTag to return 1 ==========
+    count = localStorageManager.noteCountPerTag(newTag, errorDescription);
+    if (count < 0) {
+        return false;
+    }
+    else if (count != 1) {
+        errorDescription = "noteCountPerTag returned result different from the expected one (1): ";
         errorDescription += QString::number(count);
         return false;
     }

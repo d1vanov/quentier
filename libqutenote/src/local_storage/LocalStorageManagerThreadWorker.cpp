@@ -627,33 +627,49 @@ void LocalStorageManagerThreadWorker::onExpungeLinkedNotebookRequest(LinkedNoteb
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetNoteCountRequest(QUuid requestId)
+void LocalStorageManagerThreadWorker::onNoteCountRequest(QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->noteCount(errorDescription);
         if (count < 0) {
-            emit getNoteCountFailed(errorDescription, requestId);
+            emit noteCountFailed(errorDescription, requestId);
         }
         else {
-            emit getNoteCountComplete(count, requestId);
+            emit noteCountComplete(count, requestId);
         }
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onGetNoteCountPerNotebookRequest(Notebook notebook, QUuid requestId)
+void LocalStorageManagerThreadWorker::onNoteCountPerNotebookRequest(Notebook notebook, QUuid requestId)
 {
     try
     {
         QString errorDescription;
         int count = m_pLocalStorageManager->noteCountPerNotebook(notebook, errorDescription);
         if (count < 0) {
-            emit getNoteCountPerNotebookFailed(errorDescription, notebook, requestId);
+            emit noteCountPerNotebookFailed(errorDescription, notebook, requestId);
         }
         else {
-            emit getNoteCountPerNotebookComplete(count, notebook, requestId);
+            emit noteCountPerNotebookComplete(count, notebook, requestId);
+        }
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onNoteCountPerTagRequest(Tag tag, QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+        int count = m_pLocalStorageManager->noteCountPerTag(tag, errorDescription);
+        if (count < 0) {
+            emit noteCountPerTagFailed(errorDescription, tag, requestId);
+        }
+        else {
+            emit noteCountPerTagComplete(count, tag, requestId);
         }
     }
     CATCH_EXCEPTION
