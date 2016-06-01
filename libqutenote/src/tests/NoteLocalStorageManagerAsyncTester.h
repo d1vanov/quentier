@@ -33,11 +33,11 @@ Q_SIGNALS:
     void addNoteRequest(Note note, QUuid requestId = QUuid());
     void updateNoteRequest(Note note, bool updateResources, bool updateTags, QUuid requestId = QUuid());
     void findNoteRequest(Note note, bool withResourceBinaryData, QUuid requestId = QUuid());
-    void listAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
-                                        LocalStorageManager::ListObjectsOptions flag,
-                                        size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
-                                        LocalStorageManager::OrderDirection::type orderDirection,
-                                        QUuid requestId = QUuid());
+    void listNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
+                                     LocalStorageManager::ListObjectsOptions flag,
+                                     size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+                                     LocalStorageManager::OrderDirection::type orderDirection,
+                                     QUuid requestId = QUuid());
     void expungeNoteRequest(Note note, QUuid requestId = QUuid());
 
 private Q_SLOTS:
@@ -53,18 +53,18 @@ private Q_SLOTS:
                             QString errorDescription, QUuid requestId);
     void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
     void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
-    void onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData,
-                                            LocalStorageManager::ListObjectsOptions flag,
-                                            size_t limit, size_t offset,
-                                            LocalStorageManager::ListNotesOrder::type order,
-                                            LocalStorageManager::OrderDirection::type orderDirection,
-                                            QList<Note> notes, QUuid requestId);
-    void onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData,
+    void onListNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData,
                                          LocalStorageManager::ListObjectsOptions flag,
                                          size_t limit, size_t offset,
                                          LocalStorageManager::ListNotesOrder::type order,
                                          LocalStorageManager::OrderDirection::type orderDirection,
-                                         QString errorDescription, QUuid requestId);
+                                         QList<Note> notes, QUuid requestId);
+    void onListNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData,
+                                      LocalStorageManager::ListObjectsOptions flag,
+                                      size_t limit, size_t offset,
+                                      LocalStorageManager::ListNotesOrder::type order,
+                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                      QString errorDescription, QUuid requestId);
     void onExpungeNoteCompleted(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
@@ -88,8 +88,8 @@ private:
         STATE_SENT_ADD_EXTRA_NOTE_ONE_REQUEST,
         STATE_SENT_ADD_EXTRA_NOTE_TWO_REQUEST,
         STATE_SENT_ADD_EXTRA_NOTE_THREE_REQUEST,
-        STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_ONE_REQUEST,
-        STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_TWO_REQUEST
+        STATE_SENT_LIST_NOTES_PER_NOTEBOOK_ONE_REQUEST,
+        STATE_SENT_LIST_NOTES_PER_NOTEBOOK_TWO_REQUEST
     };
 
     State m_state;

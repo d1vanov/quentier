@@ -222,17 +222,17 @@ bool LocalStorageManager::findNote(Note & note, QString & errorDescription,
     return d->findNote(note, errorDescription, withResourceBinaryData);
 }
 
-QList<Note> LocalStorageManager::listAllNotesPerNotebook(const Notebook & notebook,
-                                                         QString & errorDescription,
-                                                         const bool withResourceBinaryData,
-                                                         const LocalStorageManager::ListObjectsOptions & flag,
-                                                         const size_t limit, const size_t offset,
-                                                         const LocalStorageManager::ListNotesOrder::type & order,
-                                                         const LocalStorageManager::OrderDirection::type & orderDirection) const
+QList<Note> LocalStorageManager::listNotesPerNotebook(const Notebook & notebook,
+                                                      QString & errorDescription,
+                                                      const bool withResourceBinaryData,
+                                                      const LocalStorageManager::ListObjectsOptions & flag,
+                                                      const size_t limit, const size_t offset,
+                                                      const LocalStorageManager::ListNotesOrder::type & order,
+                                                      const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
     Q_D(const LocalStorageManager);
-    return d->listAllNotesPerNotebook(notebook, errorDescription, withResourceBinaryData,
-                                      flag, limit, offset, order, orderDirection);
+    return d->listNotesPerNotebook(notebook, errorDescription, withResourceBinaryData,
+                                   flag, limit, offset, order, orderDirection);
 }
 
 QList<Note> LocalStorageManager::listNotesPerTag(const Tag & tag, QString & errorDescription,

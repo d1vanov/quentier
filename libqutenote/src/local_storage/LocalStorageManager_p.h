@@ -94,12 +94,12 @@ public:
     bool updateNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool findNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
-    QList<Note> listAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
-                                        const bool withResourceBinaryData,
-                                        const LocalStorageManager::ListObjectsOptions & flag,
-                                        const size_t limit, const size_t offset,
-                                        const LocalStorageManager::ListNotesOrder::type & order,
-                                        const LocalStorageManager::OrderDirection::type & orderDirection) const;
+    QList<Note> listNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
+                                     const bool withResourceBinaryData,
+                                     const LocalStorageManager::ListObjectsOptions & flag,
+                                     const size_t limit, const size_t offset,
+                                     const LocalStorageManager::ListNotesOrder::type & order,
+                                     const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<Note> listNotesPerTag(const Tag & tag, QString & errorDescription,
                                 const bool withResourceBinaryData,
                                 const LocalStorageManager::ListObjectsOptions & flag,

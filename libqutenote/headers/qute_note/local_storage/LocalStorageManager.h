@@ -499,9 +499,9 @@ public:
     };
 
     /**
-     * @brief listAllNotesPerNotebook - attempts to list all notes per given notebook
-     * @param notebook - notebook for which list of notes is requested. If it has
-     * "remote" Evernote service's guid set, it would be used to identify the notebook
+     * @brief listNotesPerNotebook - attempts to list notes per given notebook
+     * @param notebook - notebook for which the list of notes is requested. If it has
+     * the "remote" Evernote service's guid set, it would be used to identify the notebook
      * in the local storage database, otherwise its local uid would be used
      * @param errorDescription - error description in case notes could not be listed
      * @param withResourceBinaryData - optional boolean parameter defining whether found notes
@@ -517,7 +517,7 @@ public:
      * @return either list of notes per notebook or empty list in case of error or
      * no notes presence in the given notebook
      */
-    QList<Note> listAllNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
+    QList<Note> listNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
                                         const bool withResourceBinaryData = true,
                                         const ListObjectsOptions & flag = ListAll,
                                         const size_t limit = 0, const size_t offset = 0,

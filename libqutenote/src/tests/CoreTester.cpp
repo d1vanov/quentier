@@ -1523,12 +1523,12 @@ void CoreTester::localStorageManagerListNotesTest()
         // 1) Test method listing all notes per notebook
 
         error.clear();
-        QList<Note> foundNotes = localStorageManager.listAllNotesPerNotebook(notebook, error);
+        QList<Note> foundNotes = localStorageManager.listNotesPerNotebook(notebook, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         int numFoundNotes = foundNotes.size();
         if (numFoundNotes != numNotes) {
-            QFAIL(qPrintable("Error: number of notes in the result of LocalStorageManager::ListAllNotesPerNotebook (" +
+            QFAIL(qPrintable("Error: number of notes in the result of LocalStorageManager::ListNotesPerNotebook (" +
                              QString::number(numFoundNotes) + ") does not match the original number of added notes (" +
                              QString::number(numNotes) + ")"));
         }
@@ -1537,7 +1537,7 @@ void CoreTester::localStorageManagerListNotesTest()
         {
             const Note & foundNote = foundNotes.at(i);
             if (!notes.contains(foundNote)) {
-                QFAIL("One of notes from the result of LocalStorageManager::ListAllNotesPerNotebook "
+                QFAIL("One of notes from the result of LocalStorageManager::ListNotesPerNotebook "
                       "was not found in the list of original notes");
             }
         }
@@ -1545,11 +1545,11 @@ void CoreTester::localStorageManagerListNotesTest()
         // 2) Ensure the method listing notes per notebook actually checks the notebook
 
         error.clear();
-        foundNotes = localStorageManager.listAllNotesPerNotebook(notebookNotLinkedWithNotes, error);
+        foundNotes = localStorageManager.listNotesPerNotebook(notebookNotLinkedWithNotes, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
 
         if (foundNotes.size() != 0) {
-            QFAIL(qPrintable("Found non-zero number of notes in the result of LocalStorageManager::ListAllNotesPerNotebook "
+            QFAIL(qPrintable("Found non-zero number of notes in the result of LocalStorageManager::ListNotesPerNotebook "
                              "called with guid of notebook not containing any notes (found " +
                              QString::number(foundNotes.size()) + " notes)"));
         }
@@ -1562,9 +1562,9 @@ void CoreTester::localStorageManagerListNotesTest()
         size_t offset = 1;
         LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::ByUpdateSequenceNumber;
         LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
-        foundNotes = localStorageManager.listAllNotesPerNotebook(notebook, error, /* with resource binary data = */ true,
-                                                                 LocalStorageManager::ListElementsWithGuid, limit, offset,
-                                                                 order, orderDirection);
+        foundNotes = localStorageManager.listNotesPerNotebook(notebook, error, /* with resource binary data = */ true,
+                                                              LocalStorageManager::ListElementsWithGuid, limit, offset,
+                                                              order, orderDirection);
         if (foundNotes.size() != static_cast<int>(limit)) {
             QFAIL(qPrintable("Found unexpected amount of notes: expected to find " + QString::number(limit) +
                              " notes, found " + QString::number(foundNotes.size()) + " notes"));

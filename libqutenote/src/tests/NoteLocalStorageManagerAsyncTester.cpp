@@ -309,14 +309,14 @@ void NoteLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, QUuid req
     {
         m_initialNotes << note;
 
-        m_state = STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_ONE_REQUEST;
+        m_state = STATE_SENT_LIST_NOTES_PER_NOTEBOOK_ONE_REQUEST;
         bool withResourceBinaryData = true;
         LocalStorageManager::ListObjectsOptions flag = LocalStorageManager::ListAll;
         size_t limit = 0, offset = 0;
         LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;
         LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Ascending;
-        emit listAllNotesPerNotebookRequest(m_notebook, withResourceBinaryData, flag,
-                                            limit, offset, order, orderDirection);
+        emit listNotesPerNotebookRequest(m_notebook, withResourceBinaryData, flag,
+                                         limit, offset, order, orderDirection);
     }
     HANDLE_WRONG_STATE();
 }
@@ -448,12 +448,12 @@ void NoteLocalStorageManagerAsyncTester::onFindNoteFailed(Note note, bool withRe
     emit failure(errorDescription);
 }
 
-void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData,
-                                                                            LocalStorageManager::ListObjectsOptions flag,
-                                                                            size_t limit, size_t offset,
-                                                                            LocalStorageManager::ListNotesOrder::type order,
-                                                                            LocalStorageManager::OrderDirection::type orderDirection,
-                                                                            QList<Note> notes, QUuid requestId)
+void NoteLocalStorageManagerAsyncTester::onListNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData,
+                                                                         LocalStorageManager::ListObjectsOptions flag,
+                                                                         size_t limit, size_t offset,
+                                                                         LocalStorageManager::ListNotesOrder::type order,
+                                                                         LocalStorageManager::OrderDirection::type orderDirection,
+                                                                         QList<Note> notes, QUuid requestId)
 {
     Q_UNUSED(notebook)
     Q_UNUSED(withResourceBinaryData)
@@ -466,7 +466,7 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Note
 
     QString errorDescription;
 
-    if (m_state == STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_ONE_REQUEST)
+    if (m_state == STATE_SENT_LIST_NOTES_PER_NOTEBOOK_ONE_REQUEST)
     {
         foreach(const Note & note, notes)
         {
@@ -488,7 +488,7 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Note
             }
         }
     }
-    else if (m_state == STATE_SENT_LIST_ALL_NOTES_PER_NOTEBOOK_TWO_REQUEST)
+    else if (m_state == STATE_SENT_LIST_NOTES_PER_NOTEBOOK_TWO_REQUEST)
     {
         foreach(const Note & note, notes)
         {
@@ -515,12 +515,12 @@ void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookCompleted(Note
     emit success();
 }
 
-void NoteLocalStorageManagerAsyncTester::onListAllNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData,
-                                                                         LocalStorageManager::ListObjectsOptions flag,
-                                                                         size_t limit, size_t offset,
-                                                                         LocalStorageManager::ListNotesOrder::type order,
-                                                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                                                         QString errorDescription, QUuid requestId)
+void NoteLocalStorageManagerAsyncTester::onListNotesPerNotebookFailed(Notebook notebook, bool withResourceBinaryData,
+                                                                      LocalStorageManager::ListObjectsOptions flag,
+                                                                      size_t limit, size_t offset,
+                                                                      LocalStorageManager::ListNotesOrder::type order,
+                                                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                                                      QString errorDescription, QUuid requestId)
 {
     Q_UNUSED(flag)
     Q_UNUSED(limit)
@@ -583,10 +583,10 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
                      m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteLocalStorageManagerAsyncTester,findNoteRequest,Note,bool,QUuid),
                      m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteLocalStorageManagerAsyncTester,listAllNotesPerNotebookRequest,Notebook,bool,
+    QObject::connect(this, QNSIGNAL(NoteLocalStorageManagerAsyncTester,listNotesPerNotebookRequest,Notebook,bool,
                                     LocalStorageManager::ListObjectsOptions,size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                                     LocalStorageManager::OrderDirection::type,QUuid),
-                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListAllNotesPerNotebookRequest,
+                     m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onListNotesPerNotebookRequest,
                                                                 Notebook,bool,LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,QUuid));
@@ -615,17 +615,17 @@ void NoteLocalStorageManagerAsyncTester::createConnections()
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QString,QUuid),
                      this, QNSLOT(NoteLocalStorageManagerAsyncTester,onFindNoteFailed,Note,bool,QString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker,
-                     QNSIGNAL(LocalStorageManagerThreadWorker,listAllNotesPerNotebookComplete,Notebook,bool,
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listNotesPerNotebookComplete,Notebook,bool,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                               LocalStorageManager::OrderDirection::type,QList<Note>,QUuid),
-                     this, QNSLOT(NoteLocalStorageManagerAsyncTester,onListAllNotesPerNotebookCompleted,Notebook,bool,
+                     this, QNSLOT(NoteLocalStorageManagerAsyncTester,onListNotesPerNotebookCompleted,Notebook,bool,
                                   LocalStorageManager::ListObjectsOptions,size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                                   LocalStorageManager::OrderDirection::type,QList<Note>,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker,
-                     QNSIGNAL(LocalStorageManagerThreadWorker,listAllNotesPerNotebookFailed,Notebook,bool,
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listNotesPerNotebookFailed,Notebook,bool,
                               LocalStorageManager::ListObjectsOptions,size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                               LocalStorageManager::OrderDirection::type,QString,QUuid),
-                     this, QNSLOT(NoteLocalStorageManagerAsyncTester,onListAllNotesPerNotebookFailed,Notebook,bool,
+                     this, QNSLOT(NoteLocalStorageManagerAsyncTester,onListNotesPerNotebookFailed,Notebook,bool,
                                   LocalStorageManager::ListObjectsOptions,size_t,size_t,LocalStorageManager::ListNotesOrder::type,
                                   LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),

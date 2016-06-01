@@ -1595,20 +1595,20 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
     return true;
 }
 
-QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook & notebook,
-                                                                QString & errorDescription,
-                                                                const bool withResourceBinaryData,
-                                                                const LocalStorageManager::ListObjectsOptions & flag,
-                                                                const size_t limit, const size_t offset,
-                                                                const LocalStorageManager::ListNotesOrder::type & order,
-                                                                const LocalStorageManager::OrderDirection::type & orderDirection) const
+QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & notebook,
+                                                             QString & errorDescription,
+                                                             const bool withResourceBinaryData,
+                                                             const LocalStorageManager::ListObjectsOptions & flag,
+                                                             const size_t limit, const size_t offset,
+                                                             const LocalStorageManager::ListNotesOrder::type & order,
+                                                             const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listAllNotesPerNotebook: notebook = " << notebook
+    QNDEBUG("LocalStorageManagerPrivate::listNotesPerNotebook: notebook = " << notebook
             << "\nWith resource binary data = " << (withResourceBinaryData ? "true" : "false")
             << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
             << ", order = " << order << ", order direction = " << orderDirection);
 
-    QString errorPrefix = QT_TR_NOOP("Can't list all notes per notebook: ");
+    QString errorPrefix = QT_TR_NOOP("Can't list notes per notebook: ");
 
     QList<Note> notes;
 

@@ -736,23 +736,23 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
-                                                                       LocalStorageManager::ListObjectsOptions flag,
-                                                                       size_t limit, size_t offset,
-                                                                       LocalStorageManager::ListNotesOrder::type order,
-                                                                       LocalStorageManager::OrderDirection::type orderDirection,
-                                                                       QUuid requestId)
+void LocalStorageManagerThreadWorker::onListNotesPerNotebookRequest(Notebook notebook, bool withResourceBinaryData,
+                                                                    LocalStorageManager::ListObjectsOptions flag,
+                                                                    size_t limit, size_t offset,
+                                                                    LocalStorageManager::ListNotesOrder::type order,
+                                                                    LocalStorageManager::OrderDirection::type orderDirection,
+                                                                    QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        QList<Note> notes = m_pLocalStorageManager->listAllNotesPerNotebook(notebook, errorDescription,
-                                                                            withResourceBinaryData, flag,
-                                                                            limit, offset, order, orderDirection);
+        QList<Note> notes = m_pLocalStorageManager->listNotesPerNotebook(notebook, errorDescription,
+                                                                         withResourceBinaryData, flag,
+                                                                         limit, offset, order, orderDirection);
         if (notes.isEmpty() && !errorDescription.isEmpty()) {
-            emit listAllNotesPerNotebookFailed(notebook, withResourceBinaryData, flag, limit, offset,
-                                               order, orderDirection, errorDescription, requestId);
+            emit listNotesPerNotebookFailed(notebook, withResourceBinaryData, flag, limit, offset,
+                                            order, orderDirection, errorDescription, requestId);
             return;
         }
 
@@ -765,8 +765,8 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
             }
         }
 
-        emit listAllNotesPerNotebookComplete(notebook, withResourceBinaryData, flag, limit,
-                                             offset, order, orderDirection, notes, requestId);
+        emit listNotesPerNotebookComplete(notebook, withResourceBinaryData, flag, limit,
+                                          offset, order, orderDirection, notes, requestId);
     }
     CATCH_EXCEPTION
 }
