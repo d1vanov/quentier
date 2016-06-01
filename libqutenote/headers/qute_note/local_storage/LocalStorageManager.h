@@ -525,6 +525,31 @@ public:
                                         const OrderDirection::type & orderDirection = OrderDirection::Ascending) const;
 
     /**
+     * @brief listNotesPerTag - attempts to list notes labeled with a given tag
+     * @param tag - tag for which the list of notes labeled with it is requested. If it has
+     * the "remote" Evernote service's guid set, it would be used to identify the tag
+     * in the local storage database, otherwise its local uid would be used
+     * @param errorDescription - error description in case notes could not be listed
+     * @param withResourceBinaryData - optional boolean parameter defining whether found notes
+     * should be filled with all the contents of their respective attached resources.
+     * By default this parameter is true which means the whole contents of all resources
+     * would be filled. If it's false, dataBody, recognitionBody or alternateDataBody
+     * won't be present within each found note's resources
+     * @param flag - input parameter used to set the filter for the desired notes to be listed
+     * @param limit - limit for the max number of notes in the result, zero by default which means no limit is set
+     * @param offset - number of notes to skip in the beginning of the result, zero by default
+     * @param order - allows to specify particular ordering of notes in the result, NoOrder by default
+     * @param orderDirection - specifies the direction of ordering, by default ascending direction is used;
+     * @return either list of notes per tag or empty list in case of error or no notes labeled with the given tag presence
+     */
+    QList<Note> listNotesPerTag(const Tag & tag, QString & errorDescription,
+                                const bool withResourceBinaryData,
+                                const LocalStorageManager::ListObjectsOptions & flag,
+                                const size_t limit, const size_t offset,
+                                const LocalStorageManager::ListNotesOrder::type & order,
+                                const LocalStorageManager::OrderDirection::type & orderDirection) const;
+
+    /**
      * @brief listNotes - attempts to list notes within the account according to the specified input flag
      * @param flag - input parameter used to set the filter for the desired notes to be listed
      * @param errorDescription - error description if notes within the account could not be listed;

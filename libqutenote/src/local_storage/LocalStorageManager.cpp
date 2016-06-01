@@ -235,6 +235,17 @@ QList<Note> LocalStorageManager::listAllNotesPerNotebook(const Notebook & notebo
                                       flag, limit, offset, order, orderDirection);
 }
 
+QList<Note> LocalStorageManager::listNotesPerTag(const Tag & tag, QString & errorDescription,
+                                                 const bool withResourceBinaryData,
+                                                 const LocalStorageManager::ListObjectsOptions & flag,
+                                                 const size_t limit, const size_t offset,
+                                                 const LocalStorageManager::ListNotesOrder::type & order,
+                                                 const LocalStorageManager::OrderDirection::type & orderDirection) const
+{
+    Q_D(const LocalStorageManager);
+    return d->listNotesPerTag(tag, errorDescription, withResourceBinaryData, flag, limit, offset, order, orderDirection);
+}
+
 QList<Note> LocalStorageManager::listNotes(const ListObjectsOptions flag, QString & errorDescription,
                                            const bool withResourceBinaryData, const size_t limit,
                                            const size_t offset, const ListNotesOrder::type order,

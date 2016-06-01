@@ -771,6 +771,41 @@ void LocalStorageManagerThreadWorker::onListAllNotesPerNotebookRequest(Notebook 
     CATCH_EXCEPTION
 }
 
+void LocalStorageManagerThreadWorker::onListNotesPerTagRequest(Tag tag, bool withResourceBinaryData,
+                                                               LocalStorageManager::ListObjectsOptions flag,
+                                                               size_t limit, size_t offset,
+                                                               LocalStorageManager::ListNotesOrder::type order,
+                                                               LocalStorageManager::OrderDirection::type orderDirection,
+                                                               QUuid requestId)
+{
+    try
+    {
+        QString errorDescription;
+
+        QList<Note> notes = m_pLocalStorageManager->listNotesPerTag(tag, errorDescription,
+                                                                    withResourceBinaryData, flag,
+                                                                    limit, offset, order, orderDirection);
+        if (notes.isEmpty() && !errorDescription.isEmpty()) {
+            emit listNotesPerTagFailed(tag, withResourceBinaryData, flag, limit, offset,
+                                       order, orderDirection, errorDescription, requestId);
+            return;
+        }
+
+        if (m_useCache)
+        {
+            const int numNotes = notes.size();
+            for(int i = 0; i < numNotes; ++i) {
+                const Note & note = notes[i];
+                m_pLocalStorageCacheManager->cacheNote(note);
+            }
+        }
+
+        emit listNotesPerTagComplete(tag, withResourceBinaryData, flag, limit,
+                                     offset, order, orderDirection, notes, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
 void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData, size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order, LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId)
 {
     try

@@ -1603,19 +1603,22 @@ QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook &
                                                                 const LocalStorageManager::ListNotesOrder::type & order,
                                                                 const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listAllNotesPerNotebook: notebookGuid = " << notebook);
+    QNDEBUG("LocalStorageManagerPrivate::listAllNotesPerNotebook: notebook = " << notebook
+            << "\nWith resource binary data = " << (withResourceBinaryData ? "true" : "false")
+            << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
+            << ", order = " << order << ", order direction = " << orderDirection);
 
-    QString errorPrefix = QT_TR_NOOP("Can't find all notes per notebook: ");
+    QString errorPrefix = QT_TR_NOOP("Can't list all notes per notebook: ");
 
     QList<Note> notes;
 
-    QString column, guid;
+    QString column, uid;
     bool notebookHasGuid = notebook.hasGuid();
     if (notebookHasGuid) {
         column = "notebookGuid";
-        guid = notebook.guid();
+        uid = notebook.guid();
 
-        if (!checkGuid(guid)) {
+        if (!checkGuid(uid)) {
             // TRANSLATOR explaining why notes per notebook cannot be listed
             errorDescription = errorPrefix + QT_TR_NOOP("notebook guid is invalid");
             QNWARNING(errorDescription);
@@ -1624,7 +1627,7 @@ QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook &
     }
     else {
         column = "notebookLocalUid";
-        guid = notebook.localUid();
+        uid = notebook.localUid();
     }
 
     // Will run all the queries from this method and its sub-methods within a single transaction
@@ -1633,10 +1636,96 @@ QList<Note> LocalStorageManagerPrivate::listAllNotesPerNotebook(const Notebook &
     Q_UNUSED(transaction)
 
     QString error;
-    QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column,guid);
+    QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column,uid);
     notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
                                                                          orderDirection, notebookGuidSqlQueryCondition);
     const int numNotes = notes.size();
+    if ((numNotes == 0) && !error.isEmpty()) {
+        errorDescription = errorPrefix + error;
+        QNWARNING(errorDescription);
+        return notes;
+    }
+
+    for(int i = 0; i < numNotes; ++i)
+    {
+        Note & note = notes[i];
+
+        error.resize(0);
+        bool res = findAndSetTagIdsPerNote(note, error);
+        if (!res) {
+            errorDescription = errorPrefix + error;
+            QNWARNING(errorDescription);
+            notes.clear();
+            return notes;
+        }
+
+        error.resize(0);
+        res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
+        if (!res) {
+            errorDescription = errorPrefix + error;
+            QNWARNING(errorDescription);
+            notes.clear();
+            return notes;
+        }
+
+        res = note.checkParameters(error);
+        if (!res) {
+            errorDescription = errorPrefix + QT_TR_NOOP("found note is invalid: ");
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            notes.clear();
+            return notes;
+        }
+    }
+
+    return notes;
+}
+
+QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString & errorDescription,
+                                                        const bool withResourceBinaryData,
+                                                        const LocalStorageManager::ListObjectsOptions & flag,
+                                                        const size_t limit, const size_t offset,
+                                                        const LocalStorageManager::ListNotesOrder::type & order,
+                                                        const LocalStorageManager::OrderDirection::type & orderDirection) const
+{
+    QNDEBUG("LocalStorageManagerPrivate::listNotesPerTag: tag = " << tag
+            << "\nWith resource binary data = " << (withResourceBinaryData ? "true" : "false")
+            << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
+            << ", order = " << order << ", order direction = " << orderDirection);
+
+    QString errorPrefix = QT_TR_NOOP("Can't list all notes with tag: ");
+
+    QList<Note> notes;
+
+    QString column, uid;
+    bool tagHasGuid = tag.hasGuid();
+    if (tagHasGuid) {
+        column = "tag";
+        uid = tag.guid();
+
+        if (!checkGuid(uid)) {
+            // TRANSLATOR explaining why notes per notebook cannot be listed
+            errorDescription = errorPrefix + QT_TR_NOOP("tag guid is invalid");
+            QNWARNING(errorDescription);
+            return notes;
+        }
+    }
+    else {
+        column = "localTag";
+        uid = tag.localUid();
+    }
+
+    // Will run all the queries from this method and its sub-methods within a single transaction
+    // to prevent multiple drops and re-obtainings of shared lock
+    Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
+    Q_UNUSED(transaction)
+
+    QString error;
+    QString queryCondition = QString("localUid IN (SELECT DISTINCT localNote FROM NoteTags WHERE %1 = '%2')").arg(column, uid);
+
+    notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
+                                                                         orderDirection, queryCondition);
+    int numNotes = notes.size();
     if ((numNotes == 0) && !error.isEmpty()) {
         errorDescription = errorPrefix + error;
         QNWARNING(errorDescription);

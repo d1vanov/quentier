@@ -1465,6 +1465,11 @@ void CoreTester::localStorageManagerListNotesTest()
         res = localStorageManager.addNotebook(notebookNotLinkedWithNotes, error);
         QVERIFY2(res == true, qPrintable(error));
 
+        Tag testTag;
+        testTag.setName("My test tag");
+        res = localStorageManager.addTag(testTag, error);
+        QVERIFY2(res == true, qPrintable(error));
+
         int numNotes = 5;
         QList<Note> notes;
         notes.reserve(numNotes);
@@ -1496,6 +1501,10 @@ void CoreTester::localStorageManagerListNotesTest()
             }
             else {
                 note.setShortcut(false);
+            }
+
+            if ((i == 1) || (i == 2) || (i == 4)) {
+                note.addTagLocalUid(testTag.localUid());
             }
 
             note.setUpdateSequenceNumber(i+1);
@@ -1545,14 +1554,14 @@ void CoreTester::localStorageManagerListNotesTest()
                              QString::number(foundNotes.size()) + " notes)"));
         }
 
-        // 3) Test method listing all notes per notebook considering only the notes with guid + with limit, offset,
+        // 3) Test method listing notes per notebook considering only the notes with guid + with limit, offset,
         // specific order and order direction
 
         error.clear();
-        const size_t limit = 2;
-        const size_t offset = 1;
-        const LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::ByUpdateSequenceNumber;
-        const LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
+        size_t limit = 2;
+        size_t offset = 1;
+        LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::ByUpdateSequenceNumber;
+        LocalStorageManager::OrderDirection::type orderDirection = LocalStorageManager::OrderDirection::Descending;
         foundNotes = localStorageManager.listAllNotesPerNotebook(notebook, error, /* with resource binary data = */ true,
                                                                  LocalStorageManager::ListElementsWithGuid, limit, offset,
                                                                  order, orderDirection);
@@ -1577,7 +1586,41 @@ void CoreTester::localStorageManagerListNotesTest()
                              firstNote.toString() + "\nSecond note: " + secondNote.toString()));
         }
 
-        // 4) Test method listing all notes
+        // 4) Test method listing notes per tag considering only the notes with guid + with limit, offset,
+        // specific order and order direction
+
+        error.clear();
+        limit = 2;
+        offset = 0;
+
+        foundNotes = localStorageManager.listNotesPerTag(testTag, error, /* with resource binary data = */ true,
+                                                         LocalStorageManager::ListElementsWithGuid, limit, offset,
+                                                         order, orderDirection);
+        if (foundNotes.size() != static_cast<int>(limit)) {
+            QFAIL(qPrintable("Found unexpected amount of notes: expected to find " + QString::number(limit) +
+                             " notes, found " + QString::number(foundNotes.size()) + " notes"));
+        }
+
+        const Note & firstNotePerTag = foundNotes[0];
+        const Note & secondNotePerTag = foundNotes[1];
+
+        if (!firstNotePerTag.hasUpdateSequenceNumber()) {
+            QFAIL("First of found notes doesn't have the update sequence number set");
+        }
+
+        if (!secondNotePerTag.hasUpdateSequenceNumber()) {
+            QFAIL("Second of found notes doesn't have the update sequence number set");
+        }
+
+        if (firstNotePerTag.updateSequenceNumber() < secondNotePerTag.updateSequenceNumber()) {
+            QFAIL("Incorrect sorting of found notes, expected descending sorting by update sequence number");
+        }
+
+        if ((firstNotePerTag != notes[4]) && (secondNotePerTag != notes[2])) {
+            QFAIL("Found unexpected notes per tag");
+        }
+
+        // 5) Test method listing all notes
         error.clear();
         foundNotes = localStorageManager.listNotes(LocalStorageManager::ListAll, error);
         QVERIFY2(error.isEmpty(), qPrintable(error));
@@ -1617,23 +1660,23 @@ void CoreTester::localStorageManagerListNotesTest()
             } \
         }
 
-        // 5) Test method listing only dirty notes
+        // 6) Test method listing only dirty notes
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListDirty, "dirty", i > 2, i <= 2);
 
-        // 6) Test method listing only local notes
+        // 7) Test method listing only local notes
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListLocal, "local", i < 3, i >= 3);
 
-        // 7) Test method listing only notes without guid
+        // 8) Test method listing only notes without guid
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 8) Test method listing only notes with shortcut
+        // 9) Test method listing only notes with shortcut
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 9) Test method listing dirty notes with guid and with shortcut
+        // 10) Test method listing dirty notes with guid and with shortcut
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
                                  "dirty, having guid, having shortcut", i == 4, i != 4);
 
-        // 10) Test method listing local notes having shortcut
+        // 11) Test method listing local notes having shortcut
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
                                  "local, having shortcut", i == 0, i != 0);
     }

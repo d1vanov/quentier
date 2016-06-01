@@ -143,6 +143,16 @@ Q_SIGNALS:
                                        size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                        LocalStorageManager::OrderDirection::type orderDirection,
                                        QString errorDescription, QUuid requestId = QUuid());
+    void listNotesPerTagComplete(Tag tag, bool withResourceBinaryData,
+                                 LocalStorageManager::ListObjectsOptions flag,
+                                 size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+                                 LocalStorageManager::OrderDirection::type orderDirection,
+                                 QList<Note> foundNotes, QUuid requestId = QUuid());
+    void listNotesPerTagFailed(Tag tag, bool withResourceBinaryData,
+                               LocalStorageManager::ListObjectsOptions flag,
+                               size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+                               LocalStorageManager::OrderDirection::type orderDirection,
+                               QString errorDescription, QUuid requestId = QUuid());
     void listNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
@@ -298,6 +308,12 @@ public Q_SLOTS:
                                           LocalStorageManager::ListNotesOrder::type order,
                                           LocalStorageManager::OrderDirection::type orderDirection,
                                           QUuid requestId);
+    void onListNotesPerTagRequest(Tag tag, bool withResourceBinaryData,
+                                  LocalStorageManager::ListObjectsOptions flag,
+                                  size_t limit, size_t offset,
+                                  LocalStorageManager::ListNotesOrder::type order,
+                                  LocalStorageManager::OrderDirection::type orderDirection,
+                                  QUuid requestId);
     void onListNotesRequest(LocalStorageManager::ListObjectsOptions flag,
                             bool withResourceBinaryData, size_t limit, size_t offset,
                             LocalStorageManager::ListNotesOrder::type order,
