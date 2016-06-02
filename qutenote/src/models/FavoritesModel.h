@@ -24,6 +24,7 @@
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/bimap.hpp>
 #endif
 
 namespace qute_note {
@@ -225,6 +226,8 @@ private:
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
     void checkNotebookUpdateForNote(const QString & noteLocalUid, const QString & notebookLocalUid);
+    void checkTagsUpdateForNote(const Note & note);
+
     void updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column);
 
 private:
@@ -276,6 +279,8 @@ private:
         Qt::SortOrder   m_sortOrder;
     };
 
+    typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
+
 private:
     FavoritesData           m_data;
     NoteCache &             m_noteCache;
@@ -324,6 +329,9 @@ private:
     QHash<QString, QString> m_noteLocalUidToNotebookLocalUid;
 
     QHash<QString, QStringList>     m_noteLocalUidToTagLocalUids;
+
+    LocalUidToRequestIdBimap        m_notebookLocalUidToNoteCountRequestIdBimap;
+    LocalUidToRequestIdBimap        m_tagLocalUidToNoteCountRequestIdBimap;
 
     QHash<QString, NotebookRestrictionsData>    m_notebookRestrictionsData;
 

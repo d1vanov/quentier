@@ -51,6 +51,8 @@ FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageMan
     m_notebookLocalUidToGuid(),
     m_noteLocalUidToNotebookLocalUid(),
     m_noteLocalUidToTagLocalUids(),
+    m_notebookLocalUidToNoteCountRequestIdBimap(),
+    m_tagLocalUidToNoteCountRequestIdBimap(),
     m_sortedColumn(Columns::DisplayName),
     m_sortOrder(Qt::AscendingOrder)
 {
@@ -1992,6 +1994,8 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note)
 
     m_noteCache.put(note.localUid(), note);
 
+    checkTagsUpdateForNote(note);
+
     if (!note.hasNotebookLocalUid()) {
         QNWARNING("Skipping the note not having the notebook local uid: " << note);
         return;
@@ -2134,27 +2138,23 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
         Q_UNUSED(localUidIndex.insert(item))
         updateItemRowWithRespectToSorting(item);
         emit layoutChanged();
+
+        // Need to figure out how many notes this notebook targets
+        QUuid requestId = QUuid::createUuid();
+        m_notebookLocalUidToNoteCountRequestIdBimap.insert(LocalUidToRequestIdBimap::value_type(notebook.localUid(), requestId));
+        QNTRACE("Emitting the request to get the note count per notebook: notebook local uid = "
+                << notebook.localUid() << ", request id = " << requestId);
+        emit noteCountPerNotebook(notebook, requestId);
     }
     else
     {
         QNDEBUG("Updating the already favorited notebook item");
 
-        FavoritesDataByIndex & index = m_data.get<ByIndex>();
-        auto indexIt = m_data.project<ByIndex>(itemIt);
-        if (Q_UNLIKELY(indexIt == index.end())) {
-            QString error = QT_TR_NOOP("Can't project the local uid index to the favorited notebook item to the random access index iterator");
-            QNWARNING(error << ", favorites model item: " << item);
-            emit notifyError(error);
-            return;
-        }
-
-        int row = static_cast<int>(std::distance(index.begin(), indexIt));
-
-        localUidIndex.replace(itemIt, item);
-        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
-        emit dataChanged(modelIndex, modelIndex);
+        const FavoritesModelItem & originalItem = *itemIt;
+        item.setNumNotesTargeted(originalItem.numNotesTargeted());
 
         emit layoutAboutToBeChanged();
+        Q_UNUSED(localUidIndex.replace(itemIt, item))
         updateItemRowWithRespectToSorting(item);
         emit layoutChanged();
     }
@@ -2207,27 +2207,23 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
         Q_UNUSED(localUidIndex.insert(item))
         updateItemRowWithRespectToSorting(item);
         emit layoutChanged();
+
+        // Need to figure out how many notes this tag targets
+        QUuid requestId = QUuid::createUuid();
+        m_tagLocalUidToNoteCountRequestIdBimap.insert(LocalUidToRequestIdBimap::value_type(tag.localUid(), requestId));
+        QNTRACE("Emitting the request to get the note count per tag: tag local uid = " << tag.localUid()
+                << ", request id = " << requestId);
+        emit noteCountPerTag(tag, requestId);
     }
     else
     {
         QNDEBUG("Updating the already favorited tag item");
 
-        FavoritesDataByIndex & index = m_data.get<ByIndex>();
-        auto indexIt = m_data.project<ByIndex>(itemIt);
-        if (Q_UNLIKELY(indexIt == index.end())) {
-            QString error = QT_TR_NOOP("Can't project the local uid index to the favorited tag item to the random access index iterator");
-            QNWARNING(error << ", favorites model item: " << item);
-            emit notifyError(error);
-            return;
-        }
-
-        int row = static_cast<int>(std::distance(index.begin(), indexIt));
-
-        localUidIndex.replace(itemIt, item);
-        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
-        emit dataChanged(modelIndex, modelIndex);
+        const FavoritesModelItem & originalItem = *itemIt;
+        item.setNumNotesTargeted(originalItem.numNotesTargeted());
 
         emit layoutAboutToBeChanged();
+        Q_UNUSED(localUidIndex.replace(itemIt, item))
         updateItemRowWithRespectToSorting(item);
         emit layoutChanged();
     }
@@ -2313,7 +2309,7 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
 
     auto notebookLocalUidIt = m_noteLocalUidToNotebookLocalUid.find(noteLocalUid);
     if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end()) {
-        QNDEBUG("haven't found the previous notebook local uid for this note");
+        QNDEBUG("Haven't found the previous notebook local uid for this note");
         m_noteLocalUidToNotebookLocalUid[noteLocalUid] = notebookLocalUid;
         return;
     }
@@ -2335,13 +2331,22 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
     {
         QNDEBUG("Previous notebook is present within the favorites model, need to update the note count for it");
 
-        FavoritesModelItem item = *notebookItemIt;
-        int numNotesTargeted = item.numNotesTargeted();
-        --numNotesTargeted;
-        item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
-        Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
+        auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(previousNotebookLocalUid);
+        if (requestIt == m_notebookLocalUidToNoteCountRequestIdBimap.left.end())
+        {
+            FavoritesModelItem item = *notebookItemIt;
+            int numNotesTargeted = item.numNotesTargeted();
+            --numNotesTargeted;
+            item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+            Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
 
-        updateItemColumnInView(item, Columns::NumNotesTargeted);
+            updateItemColumnInView(item, Columns::NumNotesTargeted);
+        }
+        else
+        {
+            QNDEBUG("There's an active request to fetch the note count for the updated note's previous notebook: " << requestIt->second
+                    << ", won't adjust the note count for it on the model side");
+        }
     }
     else
     {
@@ -2356,6 +2361,13 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
 
     QNDEBUG("New notebook of the note is present within the favorites model, need to update the note count for it");
 
+    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
+    if (requestIt != m_notebookLocalUidToNoteCountRequestIdBimap.left.end()) {
+        QNDEBUG("There's an active request to fetch the note count for the updated note's new notebook: " << requestIt->second
+                << ", won't adjust the note count for it on the model side");
+        return;
+    }
+
     FavoritesModelItem item = *notebookItemIt;
     int numNotesTargeted = item.numNotesTargeted();
     ++numNotesTargeted;
@@ -2363,6 +2375,122 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
     Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
 
     updateItemColumnInView(item, Columns::NumNotesTargeted);
+}
+
+void FavoritesModel::checkTagsUpdateForNote(const Note & note)
+{
+    QNDEBUG("FavoritesModel::checkTagsUpdateForNote: note local uid = " << note.localUid());
+
+    QStringList tagLocalUids;
+    if (note.hasTagLocalUids()) {
+        note.tagLocalUids(tagLocalUids);
+    }
+
+    auto tagLocalUidsIt = m_noteLocalUidToTagLocalUids.find(note.localUid());
+    if (tagLocalUidsIt == m_noteLocalUidToTagLocalUids.end())
+    {
+        QNDEBUG("Haven't found any previous tag local uids for this note");
+
+        if (!tagLocalUids.isEmpty()) {
+            m_noteLocalUidToTagLocalUids[note.localUid()] = tagLocalUids;
+        }
+
+        return;
+    }
+
+    QStringList previousTagLocalUids = tagLocalUidsIt.value();
+    if (previousTagLocalUids == tagLocalUids) {
+        QNDEBUG("The note's mapping to tags hasn't changed");
+        return;
+    }
+
+    QNDEBUG("Detected the update of note's tags for note " << note.localUid()
+            << ": previous tags' local uids: " << previousTagLocalUids.join(", ")
+            << "; new tags' local uids: " << tagLocalUids.join(", "));
+
+    QStringList removedTagLocalUids;
+    for(auto it = previousTagLocalUids.begin(), end = previousTagLocalUids.end(); it != end; ++it)
+    {
+        const QString & previousTagLocalUid = *it;
+        if (!tagLocalUids.contains(previousTagLocalUid)) {
+            removedTagLocalUids << previousTagLocalUid;
+        }
+    }
+
+    QStringList newTagLocalUids;
+    for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it)
+    {
+        const QString & tagLocalUid = *it;
+        if (!previousTagLocalUids.contains(tagLocalUid)) {
+            newTagLocalUids << tagLocalUid;
+        }
+    }
+
+    m_noteLocalUidToTagLocalUids[note.localUid()] = tagLocalUids;
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    if (!removedTagLocalUids.isEmpty())
+    {
+        for(auto it = removedTagLocalUids.begin(), end = removedTagLocalUids.end(); it != end; ++it)
+        {
+            const QString & removedTagLocalUid = *it;
+
+            auto tagItemIt = localUidIndex.find(removedTagLocalUid);
+            if (tagItemIt == localUidIndex.end()) {
+                QNDEBUG("Removed tag local uid " << removedTagLocalUid << " doesn't correspond to any item of favorites model");
+                continue;
+            }
+
+            QNDEBUG("Removed tag local uid " << removedTagLocalUid << " is present within the favorites model's items, need to update the note count for it");
+
+            auto requestIt = m_tagLocalUidToNoteCountRequestIdBimap.left.find(removedTagLocalUid);
+            if (requestIt != m_tagLocalUidToNoteCountRequestIdBimap.left.end()) {
+                QNDEBUG("There's an active request to fetch the note count for the removed tag local uid: " << requestIt->second
+                        << ", won't adjust the note count for the removed tag local uid on the model side");
+                continue;
+            }
+
+            FavoritesModelItem item = *tagItemIt;
+            int numNotesTargeted = item.numNotesTargeted();
+            --numNotesTargeted;
+            item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+            Q_UNUSED(localUidIndex.replace(tagItemIt, item))
+
+            updateItemColumnInView(item, Columns::NumNotesTargeted);
+        }
+    }
+
+    if (!newTagLocalUids.isEmpty())
+    {
+        for(auto it = newTagLocalUids.begin(), end = newTagLocalUids.end(); it != end; ++it)
+        {
+            const QString & tagLocalUid = *it;
+
+            auto tagItemIt = localUidIndex.find(tagLocalUid);
+            if (tagItemIt == localUidIndex.end()) {
+                QNDEBUG("Added tag local uid " << tagLocalUid << " doesn't correspond to any item of favorites model");
+                continue;
+            }
+
+            QNDEBUG("Added tag local uid " << tagLocalUid << " is present within the favorites model's items, need to update the note count for it");
+
+            auto requestIt = m_tagLocalUidToNoteCountRequestIdBimap.left.find(tagLocalUid);
+            if (requestIt != m_tagLocalUidToNoteCountRequestIdBimap.left.end()) {
+                QNDEBUG("There's an active request to fetch the note count for the added tag local uid: " << requestIt->second
+                        << ", won't adjust the note count for the added tag local uid on the model side");
+                continue;
+            }
+
+            FavoritesModelItem item = *tagItemIt;
+            int numNotesTargeted = item.numNotesTargeted();
+            ++numNotesTargeted;
+            item.setNumNotesTargeted(numNotesTargeted);
+            Q_UNUSED(localUidIndex.replace(tagItemIt, item))
+
+            updateItemColumnInView(item, Columns::NumNotesTargeted);
+        }
+    }
 }
 
 void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column)
