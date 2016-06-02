@@ -50,6 +50,7 @@ FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageMan
     m_tagLocalUidToLinkedNotebookGuid(),
     m_notebookLocalUidToGuid(),
     m_noteLocalUidToNotebookLocalUid(),
+    m_noteLocalUidToTagLocalUids(),
     m_sortedColumn(Columns::DisplayName),
     m_sortOrder(Qt::AscendingOrder)
 {
@@ -1996,6 +1997,8 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note)
         return;
     }
 
+    checkNotebookUpdateForNote(note.localUid(), note.notebookLocalUid());
+
     if (!note.hasShortcut()) {
         removeItemByLocalUid(note.localUid());
         return;
@@ -2046,7 +2049,7 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note)
 
         int row = static_cast<int>(std::distance(index.begin(), indexIt));
 
-        localUidIndex.replace(itemIt, item);
+        Q_UNUSED(localUidIndex.replace(itemIt, item));
         QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
         emit dataChanged(modelIndex, modelIndex);
 
@@ -2301,6 +2304,98 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         updateItemRowWithRespectToSorting(item);
         emit layoutChanged();
     }
+}
+
+void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, const QString & notebookLocalUid)
+{
+    QNDEBUG("FavoritesModel::checkNotebookUpdateForNote: note local uid = " << noteLocalUid
+            << ", notebook local uid = " << notebookLocalUid);
+
+    auto notebookLocalUidIt = m_noteLocalUidToNotebookLocalUid.find(noteLocalUid);
+    if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end()) {
+        QNDEBUG("haven't found the previous notebook local uid for this note");
+        m_noteLocalUidToNotebookLocalUid[noteLocalUid] = notebookLocalUid;
+        return;
+    }
+
+    QString previousNotebookLocalUid = notebookLocalUidIt.value();
+    if (previousNotebookLocalUid == notebookLocalUid) {
+        QNDEBUG("The notebook hasn't changed for this note");
+        return;
+    }
+
+    QNDEBUG("Detected the update of notebook local uid for note " << noteLocalUid
+            << ": was " << previousNotebookLocalUid << ", became " << notebookLocalUid);
+
+    m_noteLocalUidToNotebookLocalUid[noteLocalUid] = notebookLocalUid;
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto notebookItemIt = localUidIndex.find(previousNotebookLocalUid);
+    if (notebookItemIt != localUidIndex.end())
+    {
+        QNDEBUG("Previous notebook is present within the favorites model, need to update the note count for it");
+
+        FavoritesModelItem item = *notebookItemIt;
+        int numNotesTargeted = item.numNotesTargeted();
+        --numNotesTargeted;
+        item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+        Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
+
+        updateItemColumnInView(item, Columns::NumNotesTargeted);
+    }
+    else
+    {
+        QNDEBUG("Previos notebook is not present within the favorites model");
+    }
+
+    notebookItemIt = localUidIndex.find(notebookLocalUid);
+    if (notebookItemIt == localUidIndex.end()) {
+        QNDEBUG("New notebook of the note is not present within the favorites model");
+        return;
+    }
+
+    QNDEBUG("New notebook of the note is present within the favorites model, need to update the note count for it");
+
+    FavoritesModelItem item = *notebookItemIt;
+    int numNotesTargeted = item.numNotesTargeted();
+    ++numNotesTargeted;
+    item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+    Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
+
+    updateItemColumnInView(item, Columns::NumNotesTargeted);
+}
+
+void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column)
+{
+    QNDEBUG("FavoritesModel::updateItemColumnInView: item = " << item << "\nColumn = " << column);
+
+    const FavoritesDataByIndex & index = m_data.get<ByIndex>();
+    const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto itemIt = localUidIndex.find(item.localUid());
+    if (itemIt == localUidIndex.end()) {
+        QNDEBUG("Can't find item by local uid");
+        return;
+    }
+
+    if (m_sortedColumn != column)
+    {
+        auto itemIndexIt = m_data.project<ByIndex>(itemIt);
+        if (Q_LIKELY(itemIndexIt != index.end())) {
+            int row = static_cast<int>(std::distance(index.begin(), itemIndexIt));
+            QModelIndex modelIndex = createIndex(row, column);
+            emit dataChanged(modelIndex, modelIndex);
+            return;
+        }
+
+        QString error = QT_TR_NOOP("Can't project the local uid index to the favorites model item to the random access index iterator");
+        QNWARNING(error << ", favorites model item: " << item);
+        emit notifyError(error);
+    }
+
+    emit layoutAboutToBeChanged();
+    updateItemRowWithRespectToSorting(item);
+    emit layoutChanged();
 }
 
 bool FavoritesModel::Comparator::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const

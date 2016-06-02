@@ -224,6 +224,9 @@ private:
     void onTagAddedOrUpdated(const Tag & tag);
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
+    void checkNotebookUpdateForNote(const QString & noteLocalUid, const QString & notebookLocalUid);
+    void updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column);
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
@@ -319,6 +322,8 @@ private:
     QHash<QString, QString> m_tagLocalUidToLinkedNotebookGuid;
     QHash<QString, QString> m_notebookLocalUidToGuid;
     QHash<QString, QString> m_noteLocalUidToNotebookLocalUid;
+
+    QHash<QString, QStringList>     m_noteLocalUidToTagLocalUids;
 
     QHash<QString, NotebookRestrictionsData>    m_notebookRestrictionsData;
 
