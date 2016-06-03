@@ -1238,34 +1238,84 @@ void FavoritesModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid requ
 
 void FavoritesModel::onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(noteCount)
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
+    auto it = m_notebookLocalUidToNoteCountRequestIdBimap.right.find(requestId);
+    if (it == m_notebookLocalUidToNoteCountRequestIdBimap.right.end()) {
+        return;
+    }
+
+    QNDEBUG("FavoritesModel::onNoteCountPerNotebookComplete: note count = " << noteCount
+            << ", notebook local uid = " << notebook.localUid() << ", request id = " << requestId);
+
+    Q_UNUSED(m_notebookLocalUidToNoteCountRequestIdBimap.right.erase(it))
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(notebook.localUid());
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        QNDEBUG("Can't find the notebook item within the favorites model for which the note count was received");
+        return;
+    }
+
+    FavoritesModelItem item = *itemIt;
+    item.setNumNotesTargeted(noteCount);
+    Q_UNUSED(localUidIndex.replace(itemIt, item))
+    updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
 void FavoritesModel::onNoteCountPerNotebookFailed(QString errorDescription, Notebook notebook, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
+    auto it = m_notebookLocalUidToNoteCountRequestIdBimap.right.find(requestId);
+    if (it == m_notebookLocalUidToNoteCountRequestIdBimap.right.end()) {
+        return;
+    }
+
+    QNDEBUG("FavoritesModel::onNoteCountPerNotebookFailed: error description = " << errorDescription
+            << "\nNotebook local uid = " << notebook.localUid() << ", requets id = " << requestId);
+
+    Q_UNUSED(m_notebookLocalUidToNoteCountRequestIdBimap.right.erase(it))
+
+    QNWARNING(errorDescription << ", notebook: " << notebook);
+    emit notifyError(errorDescription);
 }
 
 void FavoritesModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(noteCount)
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    auto it = m_tagLocalUidToNoteCountRequestIdBimap.right.find(requestId);
+    if (it == m_tagLocalUidToNoteCountRequestIdBimap.right.end()) {
+        return;
+    }
+
+    QNDEBUG("FavoritesModel::onNoteCountPerTagComplete: note count = " << noteCount
+            << ", tag local uid = " << tag.localUid() << ", request id = " << requestId);
+
+    Q_UNUSED(m_tagLocalUidToNoteCountRequestIdBimap.right.erase(it))
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto itemIt = localUidIndex.find(tag.localUid());
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        QNDEBUG("Can't find the tag item within the favorites model for which the note count was received");
+        return;
+    }
+
+    FavoritesModelItem item = *itemIt;
+    item.setNumNotesTargeted(noteCount);
+    Q_UNUSED(localUidIndex.replace(itemIt, item))
+    updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
 void FavoritesModel::onNoteCountPerTagFailed(QString errorDescription, Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
+    auto it = m_tagLocalUidToNoteCountRequestIdBimap.right.find(requestId);
+    if (it == m_tagLocalUidToNoteCountRequestIdBimap.right.end()) {
+        return;
+    }
+
+    QNDEBUG("FavoritesModel::onNoteCountPerTagFailed: error description = " << errorDescription
+            << "\nTag local uid = " << tag.localUid() << ", request id = " << requestId);
+
+    Q_UNUSED(m_tagLocalUidToNoteCountRequestIdBimap.right.erase(it))
+
+    QNWARNING(errorDescription << ", tag: " << tag);
+    emit notifyError(errorDescription);
 }
 
 void FavoritesModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
