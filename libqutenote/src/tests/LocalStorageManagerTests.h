@@ -16,7 +16,7 @@ QT_FORWARD_DECLARE_CLASS(IUser)
 
 namespace test {
 
-bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & search,
+bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription);
 
@@ -24,19 +24,19 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
                                                           LocalStorageManager & localStorageManager,
                                                           QString & errorDescription);
 
-bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag, LocalStorageManager & localStorageManager,
+bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag, LocalStorageManager & localStorageManager,
                                                QString & errorDescription);
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource,
                                                     const Note & note,
                                                     LocalStorageManager & localStorageManager,
                                                     QString & errorDescription);
 
-bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Notebook & notebook,
+bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook & notebook,
                                                    LocalStorageManager & localStorageManager,
                                                    QString & errorDescription);
 
-bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
+bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription);
 

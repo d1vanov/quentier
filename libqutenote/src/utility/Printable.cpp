@@ -939,6 +939,8 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resou
         else {
             strm << indent << indent << "body is not set; \n";
         }
+
+        strm << "}; \n";
     }
 
     if (resource.attributes.isSet()) {

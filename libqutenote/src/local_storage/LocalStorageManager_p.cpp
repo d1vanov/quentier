@@ -535,7 +535,7 @@ int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
     return count;
 }
 
-bool LocalStorageManagerPrivate::addNotebook(const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add notebook to local storage database: ");
     QString error;
@@ -576,6 +576,7 @@ bool LocalStorageManagerPrivate::addNotebook(const Notebook & notebook, QString 
             }
 
             localUid = UidGenerator::Generate();
+            notebook.setLocalUid(localUid);
             shouldCheckRowExistence = false;
         }
     }
@@ -1337,7 +1338,7 @@ int LocalStorageManagerPrivate::noteCountPerTag(const Tag & tag, QString & error
     return count;
 }
 
-bool LocalStorageManagerPrivate::addNote(const Note & note, QString & errorDescription)
+bool LocalStorageManagerPrivate::addNote(Note & note, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add note to local storage database: ");
     QString error;
@@ -1352,6 +1353,16 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, QString & errorDescr
     if (!res) {
         return false;
     }
+
+    note.setNotebookLocalUid(notebookLocalUid);
+
+    QString notebookGuid;
+    res = getNotebookGuidForNote(note, notebookGuid, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        return false;
+    }
+
+    note.setNotebookGuid(notebookGuid);
 
     res = note.checkParameters(error);
     if (Q_UNLIKELY(!res)) {
@@ -1389,6 +1400,7 @@ bool LocalStorageManagerPrivate::addNote(const Note & note, QString & errorDescr
             }
 
             localUid = UidGenerator::Generate();
+            note.setLocalUid(localUid);
             shouldCheckNoteExistence = false;
         }
     }
@@ -2057,7 +2069,7 @@ int LocalStorageManagerPrivate::tagCount(QString & errorDescription) const
     return count;
 }
 
-bool LocalStorageManagerPrivate::addTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManagerPrivate::addTag(Tag & tag, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add tag to local storage database: ");
     QString error;
@@ -2098,6 +2110,7 @@ bool LocalStorageManagerPrivate::addTag(const Tag & tag, QString & errorDescript
             }
 
             localUid = UidGenerator::Generate();
+            tag.setLocalUid(localUid);
             shouldCheckTagExistence = false;
         }
     }
@@ -2640,7 +2653,7 @@ int LocalStorageManagerPrivate::savedSearchCount(QString & errorDescription) con
     return count;
 }
 
-bool LocalStorageManagerPrivate::addSavedSearch(const SavedSearch & search, QString & errorDescription)
+bool LocalStorageManagerPrivate::addSavedSearch(SavedSearch & search, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add saved search to local storage database: ");
     QString error;
@@ -2679,6 +2692,7 @@ bool LocalStorageManagerPrivate::addSavedSearch(const SavedSearch & search, QStr
             }
 
             localUid = UidGenerator::Generate();
+            search.setLocalUid(localUid);
             shouldCheckSearchExistence = false;
         }
     }
@@ -2870,7 +2884,7 @@ void LocalStorageManagerPrivate::processPostTransactionException(QString message
     throw DatabaseSqlErrorException(message);
 }
 
-bool LocalStorageManagerPrivate::addEnResource(const IResource & resource, const Note & note, QString & errorDescription)
+bool LocalStorageManagerPrivate::addEnResource(IResource & resource, const Note & note, QString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add resource to local storage database: ");
 
@@ -2884,7 +2898,59 @@ bool LocalStorageManagerPrivate::addEnResource(const IResource & resource, const
     if (!note.hasGuid() && note.localUid().isEmpty()) {
         errorDescription += QT_TR_NOOP("both local and remote note's guids are empty");
         QNWARNING(errorDescription << ", note: " << note);
+        return false;
     }
+
+    if (!note.localUid().isEmpty() && (!resource.hasNoteLocalUid() || (resource.noteLocalUid() != note.localUid())))
+    {
+        resource.setNoteLocalUid(note.localUid());
+    }
+    else if (note.localUid().isEmpty())
+    {
+        QString queryString = QString("SELECT localUid FROM Notes WHERE guid = '%1'").arg(note.guid());
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't find note's local uid corresponding to its guid");
+
+        res = query.next();
+        if (Q_UNLIKELY(!res)) {
+            errorDescription += QT_TR_NOOP("can't find note's local uid corresponding to its guid");
+            QNWARNING(errorDescription << ", note: " << note);
+            return false;
+        }
+
+        QString noteLocalUid = query.record().value("localUid").toString();
+        if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+            errorDescription += QT_TR_NOOP("found note's local uid corresponding to its guid is empty");
+            QNWARNING(errorDescription << ", note: " << note);
+            return false;
+        }
+
+        resource.setNoteLocalUid(noteLocalUid);
+    }
+
+    if (note.hasGuid() && (!resource.hasNoteGuid() || (resource.noteGuid() != note.guid())))
+    {
+        resource.setNoteGuid(note.guid());
+    }
+    else if (!note.hasGuid())
+    {
+        QString queryString = QString("SELECT guid FROM Note WHERE localUid = '%1'").arg(resource.noteLocalUid());
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't find note's guid corresponding to its local uid");
+
+        QString noteGuid;
+        res = query.next();
+        if (res) {
+            noteGuid = query.record().value("guid").toString();
+        }
+
+        resource.setNoteGuid(noteGuid);   // NOTE: it's ok if note guid is empty, no need to check it
+    }
+
+    int resourceIndexInNote = note.resourceAdapters().size();
+    resource.setIndexInNote(resourceIndexInNote);
 
     QString resourceLocalUid = resource.localUid();
 
@@ -2892,11 +2958,13 @@ bool LocalStorageManagerPrivate::addEnResource(const IResource & resource, const
     bool shouldCheckResourceExistence = true;
 
     bool resourceHasGuid = resource.hasGuid();
-    if (resourceHasGuid) {
+    if (resourceHasGuid)
+    {
         column = "resourceGuid";
         guid = resource.guid();
 
-        if (resourceLocalUid.isEmpty()) {
+        if (resourceLocalUid.isEmpty())
+        {
             QString queryString = QString("SELECT resourceLocalUid FROM Resources WHERE resourceGuid = '%1'").arg(guid);
             QSqlQuery query(m_sqlDatabase);
             bool res = query.exec(queryString);
@@ -2912,10 +2980,12 @@ bool LocalStorageManagerPrivate::addEnResource(const IResource & resource, const
             }
 
             resourceLocalUid = UidGenerator::Generate();
+            resource.setLocalUid(resourceLocalUid);
             shouldCheckResourceExistence = false;
         }
     }
-    else {
+    else
+    {
         column = "resourceLocalUid";
         guid = resource.localUid();
     }
@@ -4684,6 +4754,35 @@ bool LocalStorageManagerPrivate::getNotebookLocalUidFromNote(const Note & note, 
     return true;
 }
 
+bool LocalStorageManagerPrivate::getNotebookGuidForNote(const Note & note, QString & notebookGuid, QString & errorDescription)
+{
+    notebookGuid.resize(0);
+
+    if (note.hasNotebookGuid()) {
+        notebookGuid = note.notebookGuid();
+        return true;
+    }
+
+    QNTRACE("Note doesn't have the notebook guid, trying to deduce it from notebook local uid");
+
+    if (!note.hasNotebookLocalUid()) {
+        errorDescription += QT_TR_NOOP("note has neither notebook local uid nor notebook guid");
+        QNWARNING(errorDescription << ", note: " << note);
+        return false;
+    }
+
+    QString queryString = QString("SELECT guid FROM Notebooks where localUid = '%1'").arg(note.notebookLocalUid());
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't get notebook guid for note using the known notebook local uid");
+
+    res = query.next();
+    DATABASE_CHECK_AND_SET_ERROR("can't get notebook guid for note using the known notebook local uid: no data found");
+
+    notebookGuid = query.record().value("guid").toString();
+    return true;
+}
+
 bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const QString & overrideLocalUid,
                                                      const QString & overrideNotebookLocalUid,
                                                      const bool updateResources, const bool updateTags,
@@ -5352,7 +5451,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
                                  : overrideResourceLocalUid);
 
     QString noteLocalUid = (overrideNoteLocalUid.isEmpty()
-                             ? note.localUid() : overrideNoteLocalUid);
+                             ? (resource.hasNoteLocalUid() ? resource.noteLocalUid() : note.localUid())
+                             : overrideNoteLocalUid);
 
     // Updating common resource information in Resources table
     {
@@ -5363,6 +5463,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         query.bindValue(":resourceGuid", (resource.hasGuid() ? resource.guid() : nullValue));
         query.bindValue(":noteGuid", (resource.hasNoteGuid() ? resource.noteGuid() : nullValue));
+        query.bindValue(":noteLocalUid", noteLocalUid);
         query.bindValue(":dataBody", (resource.hasDataBody() ? resource.dataBody() : nullValue));
         query.bindValue(":dataSize", (resource.hasDataSize() ? resource.dataSize() : nullValue));
         query.bindValue(":dataHash", (resource.hasDataHash() ? resource.dataHash() : nullValue));
@@ -5391,7 +5492,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database, "
                                      "can't prepare SQL query");
 
-        query.bindValue(":localNote", (noteLocalUid.isEmpty() ? nullValue : noteLocalUid));
+        query.bindValue(":localNote", noteLocalUid);
         query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
         query.bindValue(":localResource", resourceLocalUid);
         query.bindValue(":resource", (resource.hasGuid() ? resource.guid() : nullValue));
@@ -5448,7 +5549,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
                                              "can't prepare SQL query");
 
                 query.bindValue(":resourceLocalUid", resourceLocalUid);
-                query.bindValue(":noteLocalUid", (noteLocalUid.isEmpty() ? nullValue : noteLocalUid));
+                query.bindValue(":noteLocalUid", noteLocalUid);
                 query.bindValue(":recognitionData", recognitionData);
 
                 res = query.exec();
@@ -5595,12 +5696,12 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceResourceQuery()
 
     m_insertOrReplaceResourceQuery = QSqlQuery(m_sqlDatabase);
     bool res = m_insertOrReplaceResourceQuery.prepare("INSERT OR REPLACE INTO Resources (resourceGuid, "
-                                                      "noteGuid, dataBody, dataSize, dataHash, mime, "
+                                                      "noteGuid, noteLocalUid, dataBody, dataSize, dataHash, mime, "
                                                       "width, height, recognitionDataBody, recognitionDataSize, "
                                                       "recognitionDataHash, alternateDataBody, alternateDataSize, "
                                                       "alternateDataHash, resourceUpdateSequenceNumber, "
                                                       "resourceIsDirty, resourceIndexInNote, resourceLocalUid) "
-                                                      "VALUES(:resourceGuid, :noteGuid, :dataBody, :dataSize, :dataHash, :mime, "
+                                                      "VALUES(:resourceGuid, :noteGuid, :noteLocalUid, :dataBody, :dataSize, :dataHash, :mime, "
                                                       ":width, :height, :recognitionDataBody, :recognitionDataSize, "
                                                       ":recognitionDataHash, :alternateDataBody, :alternateDataSize, "
                                                       ":alternateDataHash, :resourceUpdateSequenceNumber, :resourceIsDirty, "

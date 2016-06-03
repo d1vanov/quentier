@@ -694,6 +694,7 @@ QTextStream & IResource::print(QTextStream & strm) const
     strm << indent << "isDirty = " << (isDirty() ? "true" : "false") << "; \n";
     strm << indent << "isFreeAccount = " << (m_isFreeAccount ? "true" : "false") << "; \n";
     strm << indent << "indexInNote = " << QString::number(m_indexInNote) << "; \n";
+    strm << indent << "note local uid = " << (m_noteLocalUid.isSet() ? m_noteLocalUid.ref() : QStringLiteral("<not set>")) << "; \n";
 
     strm << indent << enResource;
 

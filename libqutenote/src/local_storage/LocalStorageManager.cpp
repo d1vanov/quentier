@@ -66,7 +66,7 @@ int LocalStorageManager::userCount(QString & errorDescription) const
     return d->userCount(errorDescription);
 }
 
-bool LocalStorageManager::addNotebook(const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::addNotebook(Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addNotebook(notebook, errorDescription);
@@ -208,7 +208,7 @@ int LocalStorageManager::noteCountPerTag(const Tag & tag, QString & errorDescrip
     return d->noteCountPerTag(tag, errorDescription);
 }
 
-bool LocalStorageManager::addNote(const Note & note, QString & errorDescription)
+bool LocalStorageManager::addNote(Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addNote(note, errorDescription);
@@ -281,7 +281,7 @@ int LocalStorageManager::tagCount(QString & errorDescription) const
     return d->tagCount(errorDescription);
 }
 
-bool LocalStorageManager::addTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManager::addTag(Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addTag(tag, errorDescription);
@@ -352,7 +352,7 @@ int LocalStorageManager::enResourceCount(QString & errorDescription) const
     return d->enResourceCount(errorDescription);
 }
 
-bool LocalStorageManager::addEnResource(const IResource & resource, const Note & note, QString & errorDescription)
+bool LocalStorageManager::addEnResource(IResource & resource, const Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addEnResource(resource, note, errorDescription);
@@ -383,7 +383,7 @@ int LocalStorageManager::savedSearchCount(QString & errorDescription) const
     return d->savedSearchCount(errorDescription);
 }
 
-bool LocalStorageManager::addSavedSearch(const SavedSearch & search, QString & errorDescription)
+bool LocalStorageManager::addSavedSearch(SavedSearch & search, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addSavedSearch(search, errorDescription);

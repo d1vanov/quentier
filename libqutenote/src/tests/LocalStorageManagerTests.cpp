@@ -15,7 +15,7 @@
 namespace qute_note {
 namespace test {
 
-bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(const SavedSearch & search,
+bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription)
 {
@@ -228,7 +228,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     return true;
 }
 
-bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
+bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
                                                LocalStorageManager & localStorageManager,
                                                QString & errorDescription)
 {
@@ -364,7 +364,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(const Tag & tag,
     return true;
 }
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, const Note & note,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, const Note & note,
                                                     LocalStorageManager & localStorageManager,
                                                     QString & errorDescription)
 {
@@ -522,7 +522,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(const IResource & resource, 
     return true;
 }
 
-bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Notebook & notebook,
+bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook & notebook,
                                                    LocalStorageManager & localStorageManager,
                                                    QString & errorDescription)
 {
@@ -803,7 +803,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(const Note & note, const Note
     return true;
 }
 
-bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(const Notebook & notebook,
+bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription)
 {

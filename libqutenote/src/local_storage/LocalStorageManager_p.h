@@ -55,7 +55,7 @@ public:
     bool expungeUser(const IUser & user, QString & errorDescription);
 
     int notebookCount(QString & errorDescription) const;
-    bool addNotebook(const Notebook & notebook, QString & errorDescription);
+    bool addNotebook(Notebook & notebook, QString & errorDescription);
     bool updateNotebook(const Notebook & notebook, QString & errorDescription);
     bool findNotebook(Notebook & notebook, QString & errorDescription) const;
     bool findDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
@@ -91,7 +91,7 @@ public:
     int noteCount(QString & errorDescription) const;
     int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
     int noteCountPerTag(const Tag & tag, QString & errorDescription) const;
-    bool addNote(const Note & note, QString & errorDescription);
+    bool addNote(Note & note, QString & errorDescription);
     bool updateNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool findNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
@@ -118,7 +118,7 @@ public:
                                       const bool withResourceBinaryData = true) const;
 
     int tagCount(QString & errorDescription) const;
-    bool addTag(const Tag & tag, QString & errorDescription);
+    bool addTag(Tag & tag, QString & errorDescription);
     bool updateTag(const Tag & tag, QString & errorDescription);
     bool linkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
     bool findTag(Tag & tag, QString & errorDescription) const;
@@ -139,13 +139,13 @@ public:
     bool expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
 
     int enResourceCount(QString & errorDescription) const;
-    bool addEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool addEnResource(IResource & resource, const Note & note, QString & errorDescription);
     bool updateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
     bool findEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
     bool expungeEnResource(const IResource & resource, QString & errorDescription);
 
     int savedSearchCount(QString & errorDescription) const;
-    bool addSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool addSavedSearch(SavedSearch & search, QString & errorDescription);
     bool updateSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool findSavedSearch(SavedSearch & search, QString & errorDescription) const;
     QList<SavedSearch> listAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
@@ -215,6 +215,8 @@ private:
     bool checkAndPrepareExpungeLinkedNotebookQuery();
 
     bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription);
+    bool getNotebookGuidForNote(const Note & note, QString & notebookGuid, QString & errorDescription);
+
     bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid, const QString & overrideNotebookLocalUid,
                              const bool updateResources, const bool updateTags, QString & errorDescription);
     bool canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription);
