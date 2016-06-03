@@ -226,7 +226,9 @@ private:
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
 
     void checkNotebookUpdateForNote(const QString & noteLocalUid, const QString & notebookLocalUid);
+    void checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const Note & note);
     void checkTagsUpdateForNote(const Note & note);
+    void checkAndUpdateNoteCountPerTagAfterNoteExpunge(const Note & note);
 
     void updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column);
 

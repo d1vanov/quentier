@@ -750,6 +750,9 @@ void FavoritesModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
     QNDEBUG("FavoritesModel::onExpungeNoteComplete: note = " << note << "\nRequest id = " << requestId);
     removeItemByLocalUid(note.localUid());
+
+    checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(note);
+    checkAndUpdateNoteCountPerTagAfterNoteExpunge(note);
 }
 
 void FavoritesModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
@@ -2427,6 +2430,44 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
     updateItemColumnInView(item, Columns::NumNotesTargeted);
 }
 
+void FavoritesModel::checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const Note & note)
+{
+    QNDEBUG("FavoritesModel::checkAndUpdateNoteCountPerNotebookAfterNoteExpunge: note local uid = " << note.localUid());
+
+    auto notebookLocalUidIt = m_noteLocalUidToNotebookLocalUid.find(note.localUid());
+    if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end()) {
+        QNDEBUG("Haven't found the notebook local uid for the expunged note");
+        return;
+    }
+
+    const QString & notebookLocalUid = notebookLocalUidIt.value();
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto notebookItemIt = localUidIndex.find(notebookLocalUid);
+    if (notebookItemIt == localUidIndex.end()) {
+        QNDEBUG("The notebook for the expunged note wasn't present within the favorites model's items");
+        return;
+    }
+
+    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
+    if (requestIt == m_notebookLocalUidToNoteCountRequestIdBimap.left.end())
+    {
+        FavoritesModelItem item = *notebookItemIt;
+        int numNotesTargeted = item.numNotesTargeted();
+        --numNotesTargeted;
+        item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+        Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
+
+        updateItemColumnInView(item, Columns::NumNotesTargeted);
+    }
+    else
+    {
+        QNDEBUG("There's an active request to fetch the note count for the expunged note's notebook: " << requestIt->second
+                << ", won't adjust the note count for it on the model side");
+    }
+
+}
+
 void FavoritesModel::checkTagsUpdateForNote(const Note & note)
 {
     QNDEBUG("FavoritesModel::checkTagsUpdateForNote: note local uid = " << note.localUid());
@@ -2540,6 +2581,53 @@ void FavoritesModel::checkTagsUpdateForNote(const Note & note)
 
             updateItemColumnInView(item, Columns::NumNotesTargeted);
         }
+    }
+}
+
+void FavoritesModel::checkAndUpdateNoteCountPerTagAfterNoteExpunge(const Note & note)
+{
+    QNDEBUG("FavoritesModel::checkAndUpdateNoteCountPerTagAfterNoteExpunge: note local uid = " << note.localUid());
+
+    auto tagLocalUidsIt = m_noteLocalUidToTagLocalUids.find(note.localUid());
+    if (tagLocalUidsIt == m_noteLocalUidToTagLocalUids.end()) {
+        QNDEBUG("Haven't found any tag local uids for the expunged note");
+        return;
+    }
+
+    const QStringList & tagLocalUids = tagLocalUidsIt.value();
+    if (tagLocalUids.isEmpty()) {
+        QNDEBUG("The expunged note had no tags");
+        return;
+    }
+
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it)
+    {
+        const QString & removedTagLocalUid = *it;
+
+        auto tagItemIt = localUidIndex.find(removedTagLocalUid);
+        if (tagItemIt == localUidIndex.end()) {
+            QNDEBUG("Tag local uid " << removedTagLocalUid << " doesn't correspond to any item of favorites model");
+            continue;
+        }
+
+        QNDEBUG("Tag local uid " << removedTagLocalUid << " is present within the favorites model's items, "
+                "need to update the note count for it");
+
+        auto requestIt = m_tagLocalUidToNoteCountRequestIdBimap.left.find(removedTagLocalUid);
+        if (requestIt != m_tagLocalUidToNoteCountRequestIdBimap.left.end()) {
+            QNDEBUG("There's an active request to fetch the note count for tag local uid " << requestIt->second
+                    << ", won't adjust the note count for the removed tag local uid on the model side");
+            continue;
+        }
+
+        FavoritesModelItem item = *tagItemIt;
+        int numNotesTargeted = item.numNotesTargeted();
+        --numNotesTargeted;
+        item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+        Q_UNUSED(localUidIndex.replace(tagItemIt, item))
+
+        updateItemColumnInView(item, Columns::NumNotesTargeted);
     }
 }
 
