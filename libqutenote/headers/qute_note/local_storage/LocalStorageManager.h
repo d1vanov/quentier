@@ -170,11 +170,12 @@ public:
      * @brief updateNotebook - updates passed in Notebook in the local storage database;
      * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
      * in local storage database. Otherwise it is identified by its local uid.
-     * @param notebook - notebook to be updated in the local storage database
+     * @param notebook - notebook to be updated in the local storage database; may be changed as a result of the call,
+     * filled with local uid if it was empty before the call
      * @param errorDescription - error description if notebook could not be updated
      * @return true if notebook was updated successfully, false otherwise
      */
-    bool updateNotebook(const Notebook & notebook, QString & errorDescription);
+    bool updateNotebook(Notebook & notebook, QString & errorDescription);
 
     /**
      * @brief findNotebook - attempts to find and set all found fields for passed in
@@ -461,7 +462,9 @@ public:
     /**
      * @brief updateNote - updates passed in Note in the local storage database
      * @param note - note to be updated in the local storage database; required to contain either "remote" notebook guid
-     * or local notebook uid
+     * or local notebook uid; may be changed as a result of the call, filled with fields like local uid or notebook guid or local uid
+     * if any of these were empty before the call; bear in mind that after the call the note may not have the representative resources
+     * if "updateResources" input parameter was false as well as it may not have the representative tags if "updateTags" input parameter was false
      * @param updateResources - flag indicating whether the note's resources should be updated
      * along with the note; if not, the existing resource information stored in the local storage is not touched
      * @param updateTags - flag indicating whether the note's tags should be updated along with the note;
@@ -469,7 +472,7 @@ public:
      * @param errorDescription - error description if note could not be updated
      * @return true if note was updated successfully, false otherwise
      */
-    bool updateNote(const Note & note, const bool updateResources,
+    bool updateNote(Note & note, const bool updateResources,
                     const bool updateTags, QString & errorDescription);
 
     /**
@@ -633,28 +636,13 @@ public:
     /**
      * @brief updateTag - updates passed in Tag in the local storage database. If tag has
      * "remote" Evernote service's guid set, it is identified in the database by this guid.
-     * Otherwise it is identified by local uid.
+     * Otherwise it is identified by local uid; may be changed as a result of the call,
+     * automatically filled with local uid if it was empty before the call
      * @param tag - Tag filled with values to be updated in the local storage database
      * @param errorDescription - error description if Tag could not be updated
      * @return true if Tag was updated successfully, false otherwise
      */
-    bool updateTag(const Tag & tag, QString & errorDescription);
-
-    /**
-     * @brief linkTagWithNote - attempts to link the given tag to the given note
-     * in the local storage database. Note that "note" parameter is not altered
-     * as a result of this method. Both note and tag can have or not have "remote"
-     * Evernote service's guid set, in case they are not set only their local uids
-     * would be linked. This way makes it possible to create both offline notes and tags
-     * and link tags to notes. During the synchronization procedure one needs to
-     * carefully review the linkage of tags and notes via local uids to ensure
-     * no such any connection is forgotten to be re-expressed in terms of "remote" guids.
-     * @param tag - tag to be linked with note
-     * @param note - note to be linked with tag
-     * @param errorDescription - error description if tag could not be linked with note
-     * @return true if tag was linked to note successfully, false otherwise
-     */
-    bool linkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
+    bool updateTag(Tag & tag, QString & errorDescription);
 
     /**
      * @brief findTag - attempts to find and fill the fields of passed in tag object.
@@ -663,7 +651,7 @@ public:
      * guid nor local uid are set, tag's name would be used.
      * If tag has linked notebook guid set, the search for tag would consider only tags
      * from that linked notebook; otherwise, if it's not set, the search for tag would consider
-     * only the tags from user's own account
+     * both the tags from user's own account and those from linked notebooks
      * @param tag - tag to be found in the local storage database; must have either guid, local uid or name set
      * @param errorDescription - error description in case tag could not be found
      * @return true if tag was found, false otherwise
@@ -775,26 +763,22 @@ public:
 
     /**
      * @brief addEnResource - adds passed in resource to the local storage database
-     * @param resource - resource to be added to the database; may be changed as a result of the call,
+     * @param resource - resource to be added to the database, must have either note's local uid set
+     * or note's "remote" Evernote service's guid set; may be changed as a result of the call,
      * filled with autogenerated fields like local uid if it was empty before the call
-     * @param note - note for which the resource is added. If note doesn't have
-     * "remote" Evernote service's guid set, the resource can be linked to note
-     * by its local uid (but only in the database, not in IResource subclass object).
      * @param errorDescription - error description if resource could not be added
      * @return true if resource was added successfully, false otherwise
      */
-    bool addEnResource(IResource & resource, const Note & note, QString & errorDescription);
+    bool addEnResource(IResource & resource, QString & errorDescription);
 
     /**
      * @brief updateEnResource - updates passed in resource in the local storage database
-     * @param resource - resource to be updated
-     * @param note - note for which the resource is updated. If note doesn't have
-     * "remote" Evernote service's guid set, the resource can be linked to note
-     * by its local uid (but only in the database, not in IResource subclass object).
+     * @param resource - resource to be updated; may be changed as a result of the call,
+     * automatically filled with local uid and note local uid and/or guid if these were empty before the call
      * @param errorDescription - error description if resource could not be updated
      * @return true if resource was updated successfully, false otherwise
      */
-    bool updateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool updateEnResource(IResource & resource, QString & errorDescription);
 
     /**
      * @brief findEnResource - attempts to find resource in the local storage database
@@ -842,12 +826,13 @@ public:
     /**
      * @brief updateSavedSearch - updates passed in SavedSearch in th local storage database.
      * If search has "remote" Evernote service's guid set, it is identified in the database
-     * by this guid. Otherwise it is identified by local uid.
+     * by this guid. Otherwise it is identified by local uid; may be changed as a result of the call,
+     * filled local uid if it was empty before the call
      * @param search - SavedSearch filled with values to be updated in the local storage database
      * @param errorDescription - error description if SavedSearch could not be updated
      * @return true if SavedSearch was updated successfully, false otherwise
      */
-    bool updateSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool updateSavedSearch(SavedSearch & search, QString & errorDescription);
 
     /**
      * @brief findSavedSearch - attempts to find SavedSearch in the local storage database

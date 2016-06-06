@@ -72,7 +72,7 @@ bool LocalStorageManager::addNotebook(Notebook & notebook, QString & errorDescri
     return d->addNotebook(notebook, errorDescription);
 }
 
-bool LocalStorageManager::updateNotebook(const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::updateNotebook(Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->updateNotebook(notebook, errorDescription);
@@ -214,7 +214,7 @@ bool LocalStorageManager::addNote(Note & note, QString & errorDescription)
     return d->addNote(note, errorDescription);
 }
 
-bool LocalStorageManager::updateNote(const Note & note, const bool updateResources,
+bool LocalStorageManager::updateNote(Note & note, const bool updateResources,
                                      const bool updateTags, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
@@ -287,17 +287,10 @@ bool LocalStorageManager::addTag(Tag & tag, QString & errorDescription)
     return d->addTag(tag, errorDescription);
 }
 
-bool LocalStorageManager::updateTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManager::updateTag(Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->updateTag(tag, errorDescription);
-}
-
-bool LocalStorageManager::linkTagWithNote(const Tag & tag, const Note & note,
-                                          QString & errorDescription)
-{
-    Q_D(LocalStorageManager);
-    return d->linkTagWithNote(tag, note, errorDescription);
 }
 
 bool LocalStorageManager::findTag(Tag & tag, QString & errorDescription) const
@@ -352,16 +345,16 @@ int LocalStorageManager::enResourceCount(QString & errorDescription) const
     return d->enResourceCount(errorDescription);
 }
 
-bool LocalStorageManager::addEnResource(IResource & resource, const Note & note, QString & errorDescription)
+bool LocalStorageManager::addEnResource(IResource & resource, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->addEnResource(resource, note, errorDescription);
+    return d->addEnResource(resource, errorDescription);
 }
 
-bool LocalStorageManager::updateEnResource(const IResource & resource, const Note &note, QString & errorDescription)
+bool LocalStorageManager::updateEnResource(IResource & resource, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
-    return d->updateEnResource(resource, note, errorDescription);
+    return d->updateEnResource(resource, errorDescription);
 }
 
 bool LocalStorageManager::findEnResource(IResource & resource, QString & errorDescription,
@@ -389,8 +382,7 @@ bool LocalStorageManager::addSavedSearch(SavedSearch & search, QString & errorDe
     return d->addSavedSearch(search, errorDescription);
 }
 
-bool LocalStorageManager::updateSavedSearch(const SavedSearch & search,
-                                            QString & errorDescription)
+bool LocalStorageManager::updateSavedSearch(SavedSearch & search, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->updateSavedSearch(search, errorDescription);

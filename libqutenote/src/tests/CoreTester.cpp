@@ -519,7 +519,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         note.unsetLocalUid();
 
         error.clear();
-        res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, note, localStorageManager, error);
+        res = TestResourceAddFindUpdateExpungeInLocalStorage(resource, localStorageManager, error);
         QVERIFY2(res == true, error.toStdString().c_str());
     }
     CATCH_EXCEPTION();
@@ -579,11 +579,11 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         res = localStorageManager.addTag(tag, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        res = localStorageManager.linkTagWithNote(tag, note, error);
-        QVERIFY2(res == true, qPrintable(error));
-
         note.addTagGuid(tag.guid());
         note.addTagLocalUid(tag.localUid());
+
+        res = localStorageManager.updateNote(note, /* updateResources = */ false, /* updateTags = */ true, error);
+        QVERIFY2(res == true, qPrintable(error));
 
         ResourceWrapper resource;
         resource.setGuid("00000000-0000-0000-c000-000000000049");
@@ -750,10 +750,11 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         res = localStorageManager.addTag(tag, error);
         QVERIFY2(res == true, qPrintable(error));
 
-        res = localStorageManager.linkTagWithNote(tag, note, error);
-        QVERIFY2(res == true, qPrintable(error));
-
         note.addTagGuid(tag.guid());
+        note.addTagLocalUid(tag.localUid());
+
+        res = localStorageManager.updateNote(note, /* updateResources = */ false, /* update tags = */ true, error);
+        QVERIFY2(res == true, qPrintable(error));
 
         res = TestNotebookFindUpdateDeleteExpungeInLocalStorage(notebook, localStorageManager, error);
         QVERIFY2(res == true, qPrintable(error));
@@ -1363,7 +1364,10 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
             res = localStorageManager.addTag(tag, error);
             QVERIFY2(res == true, qPrintable(error));
 
-            res = localStorageManager.linkTagWithNote(tag, note, error);
+            note.addTagGuid(tag.guid());
+            note.addTagLocalUid(tag.localUid());
+
+            res = localStorageManager.updateNote(note, /* update resources = */ false, /* update tags = */ true, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 
@@ -1923,7 +1927,11 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
             QVERIFY2(res == true, qPrintable(error));
 
             error.clear();
-            res = localStorageManager.linkTagWithNote(tag, note, error);
+
+            note.addTagGuid(tag.guid());
+            note.addTagLocalUid(tag.localUid());
+
+            res = localStorageManager.updateNote(note, /* update resources = */ false, /* update tags = */ true, error);
             QVERIFY2(res == true, qPrintable(error));
         }
 

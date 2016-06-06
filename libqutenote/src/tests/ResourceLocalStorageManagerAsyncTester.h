@@ -30,8 +30,8 @@ Q_SIGNALS:
     void addNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
     void addNoteRequest(Note note, QUuid requestId = QUuid());
     void getResourceCountRequest(QUuid requestId = QUuid());
-    void addResourceRequest(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
-    void updateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
+    void addResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
+    void updateResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
     void findResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
     void expungeResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
 
@@ -43,10 +43,10 @@ private Q_SLOTS:
     void onAddNoteFailed(Note note, QString errorDescription, QUuid requestId);
     void onGetResourceCountCompleted(int count, QUuid requestId);
     void onGetResourceCountFailed(QString errorDescription, QUuid requestId);
-    void onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
-    void onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
-    void onUpdateResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
-    void onUpdateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
+    void onAddResourceCompleted(ResourceWrapper resource, QUuid requestId);
+    void onAddResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
+    void onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId);
+    void onUpdateResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
     void onFindResourceCompleted(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
     void onFindResourceFailed(ResourceWrapper resource, bool withBinaryData,
                               QString errorDescription, QUuid requestId);

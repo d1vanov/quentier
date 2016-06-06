@@ -56,7 +56,7 @@ public:
 
     int notebookCount(QString & errorDescription) const;
     bool addNotebook(Notebook & notebook, QString & errorDescription);
-    bool updateNotebook(const Notebook & notebook, QString & errorDescription);
+    bool updateNotebook(Notebook & notebook, QString & errorDescription);
     bool findNotebook(Notebook & notebook, QString & errorDescription) const;
     bool findDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
     bool findLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
@@ -92,7 +92,7 @@ public:
     int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
     int noteCountPerTag(const Tag & tag, QString & errorDescription) const;
     bool addNote(Note & note, QString & errorDescription);
-    bool updateNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
+    bool updateNote(Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool findNote(Note & note, QString & errorDescription,
                   const bool withResourceBinaryData = true) const;
     QList<Note> listNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
@@ -119,8 +119,7 @@ public:
 
     int tagCount(QString & errorDescription) const;
     bool addTag(Tag & tag, QString & errorDescription);
-    bool updateTag(const Tag & tag, QString & errorDescription);
-    bool linkTagWithNote(const Tag & tag, const Note & note, QString & errorDescription);
+    bool updateTag(Tag & tag, QString & errorDescription);
     bool findTag(Tag & tag, QString & errorDescription) const;
     QList<Tag> listAllTagsPerNote(const Note & note, QString & errorDescription,
                                   const LocalStorageManager::ListObjectsOptions & flag,
@@ -139,14 +138,14 @@ public:
     bool expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
 
     int enResourceCount(QString & errorDescription) const;
-    bool addEnResource(IResource & resource, const Note & note, QString & errorDescription);
-    bool updateEnResource(const IResource & resource, const Note & note, QString & errorDescription);
+    bool addEnResource(IResource & resource, QString & errorDescription);
+    bool updateEnResource(IResource & resource, QString & errorDescription);
     bool findEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
     bool expungeEnResource(const IResource & resource, QString & errorDescription);
 
     int savedSearchCount(QString & errorDescription) const;
     bool addSavedSearch(SavedSearch & search, QString & errorDescription);
-    bool updateSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool updateSavedSearch(SavedSearch & search, QString & errorDescription);
     bool findSavedSearch(SavedSearch & search, QString & errorDescription) const;
     QList<SavedSearch> listAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
                                             const LocalStorageManager::ListSavedSearchesOrder::type & order,
@@ -201,7 +200,7 @@ private:
     bool checkAndPrepareDeleteUserQuery();
     bool checkAndPrepareExpungeUserQuery();
 
-    bool insertOrReplaceNotebook(const Notebook & notebook, const QString & overrideLocalUid, QString & errorDescription);
+    bool insertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool checkAndPrepareNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNotebookQuery();
     bool checkAndPrepareExpungeNotebookFromNotebookRestrictionsQuery();
@@ -217,8 +216,7 @@ private:
     bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription);
     bool getNotebookGuidForNote(const Note & note, QString & notebookGuid, QString & errorDescription);
 
-    bool insertOrReplaceNote(const Note & note, const QString & overrideLocalUid, const QString & overrideNotebookLocalUid,
-                             const bool updateResources, const bool updateTags, QString & errorDescription);
+    bool insertOrReplaceNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
     bool canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription);
     bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription);
 
@@ -230,15 +228,14 @@ private:
     bool checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
     bool checkAndPrepareExpungeResourcesByNoteQuery();
 
-    bool insertOrReplaceTag(const Tag & tag, const QString & overrideLocalUid, QString & errorDescription);
+    bool insertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool checkAndPrepareTagCountQuery() const;
     bool checkAndPrepareInsertOrReplaceTagQuery();
     bool checkAndPrepareDeleteTagQuery();
     bool checkAndPrepareExpungeTagQuery();
 
-    bool insertOrReplaceResource(const IResource & resource, const QString overrideResourceLocalUid,
-                                 const Note & note, const QString & overrideNoteLocalUid,
-                                 QString & errorDescription, const bool useSeparateTransaction = true);
+    bool insertOrReplaceResource(const IResource & resource, QString & errorDescription,
+                                 const bool useSeparateTransaction = true);
     bool insertOrReplaceResourceAttributes(const QString & localUid,
                                            const qevercloud::ResourceAttributes & attributes,
                                            QString & errorDescription);
@@ -254,7 +251,7 @@ private:
     bool checkAndPrepareInsertOrReplaceResourceAttributesApplicationDataFullMapQuery();
     bool checkAndPrepareResourceCountQuery() const;
 
-    bool insertOrReplaceSavedSearch(const SavedSearch & search, const QString & overrideLocalUid, QString & errorDescription);
+    bool insertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
     bool checkAndPrepareInsertOrReplaceSavedSearchQuery();
     bool checkAndPrepareGetSavedSearchCountQuery() const;
     bool checkAndPrepareExpungeSavedSearchQuery();
@@ -304,9 +301,8 @@ private:
     bool resourceMimeTypesToResourceLocalUids(const QStringList & resourceMimeTypes,
                                               QStringList & resourceLocalUids,
                                               QString & errorDescription) const;
-    bool resourceRecognitionTypesToResourceLocalUids(const QStringList & resourceRecognitionTypes,
-                                                     QStringList & resourceLocalUids,
-                                                     QString & errorDescription) const;
+
+    bool complementResourceNoteIds(IResource & resource, QString & errorDescription) const;
 
     template <class T>
     QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,

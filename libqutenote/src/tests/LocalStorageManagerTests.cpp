@@ -364,8 +364,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     return true;
 }
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, const Note & note,
-                                                    LocalStorageManager & localStorageManager,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalStorageManager & localStorageManager,
                                                     QString & errorDescription)
 {
     if (!resource.checkParameters(errorDescription)) {
@@ -374,7 +373,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, const 
     }
 
     // ========== Check Add + Find ==========
-    bool res = localStorageManager.addEnResource(resource, note, errorDescription);
+    bool res = localStorageManager.addEnResource(resource, errorDescription);
     if (!res) {
         return false;
     }
@@ -443,7 +442,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, const 
     QString resourceLocalUid = modifiedResource.localUid();
     modifiedResource.unsetLocalUid();
 
-    res = localStorageManager.updateEnResource(modifiedResource, note, errorDescription);
+    res = localStorageManager.updateEnResource(modifiedResource, errorDescription);
     if (!res) {
         return false;
     }
@@ -454,7 +453,6 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, const 
         return false;
     }
 
-    modifiedResource.setLocalUid(resourceLocalUid);
     if (modifiedResource != foundResource) {
         errorDescription = "Updated and found in local storage resources don't match";
         QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource

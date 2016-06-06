@@ -27,9 +27,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag, LocalStorageManager & localStorageManager,
                                                QString & errorDescription);
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource,
-                                                    const Note & note,
-                                                    LocalStorageManager & localStorageManager,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalStorageManager & localStorageManager,
                                                     QString & errorDescription);
 
 bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook & notebook,

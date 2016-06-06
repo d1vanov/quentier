@@ -928,27 +928,6 @@ void LocalStorageManagerThreadWorker::onUpdateTagRequest(Tag tag, QUuid requestI
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onLinkTagWithNoteRequest(Tag tag, Note note, QUuid requestId)
-{
-    try
-    {
-        QString errorDescription;
-
-        bool res = m_pLocalStorageManager->linkTagWithNote(tag, note, errorDescription);
-        if (!res) {
-            emit linkTagWithNoteFailed(tag, note, errorDescription, requestId);
-            return;
-        }
-
-        if (m_useCache) {
-            m_pLocalStorageCacheManager->cacheTag(tag);
-        }
-
-        emit linkTagWithNoteComplete(tag, note, requestId);
-    }
-    CATCH_EXCEPTION
-}
-
 void LocalStorageManagerThreadWorker::onFindTagRequest(Tag tag, QUuid requestId)
 {
     try
@@ -1137,36 +1116,36 @@ void LocalStorageManagerThreadWorker::onGetResourceCountRequest(QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resource, Note note, QUuid requestId)
+void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resource, QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->addEnResource(resource, note, errorDescription);
+        bool res = m_pLocalStorageManager->addEnResource(resource, errorDescription);
         if (!res) {
-            emit addResourceFailed(resource, note, errorDescription, requestId);
+            emit addResourceFailed(resource, errorDescription, requestId);
             return;
         }
 
-        emit addResourceComplete(resource, note, requestId);
+        emit addResourceComplete(resource, requestId);
     }
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId)
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper resource, QUuid requestId)
 {
     try
     {
         QString errorDescription;
 
-        bool res = m_pLocalStorageManager->updateEnResource(resource, note, errorDescription);
+        bool res = m_pLocalStorageManager->updateEnResource(resource, errorDescription);
         if (!res) {
-            emit updateResourceFailed(resource, note, errorDescription, requestId);
+            emit updateResourceFailed(resource, errorDescription, requestId);
             return;
         }
 
-        emit updateResourceComplete(resource, note, requestId);
+        emit updateResourceComplete(resource, requestId);
     }
     CATCH_EXCEPTION
 }

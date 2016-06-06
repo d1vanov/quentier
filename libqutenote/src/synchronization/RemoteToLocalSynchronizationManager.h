@@ -82,8 +82,8 @@ Q_SIGNALS:
 
     void expungeNotelessTagsFromLinkedNotebooks(QUuid requestId);
 
-    void addResource(ResourceWrapper resource, Note note, QUuid requestId);
-    void updateResource(ResourceWrapper resource, Note note, QUuid requestId);
+    void addResource(ResourceWrapper resource, QUuid requestId);
+    void updateResource(ResourceWrapper resource, QUuid requestId);
     void findResource(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
 
     void addLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
@@ -158,10 +158,10 @@ private Q_SLOTS:
     void onExpungeNoteCompleted(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId);
 
-    void onAddResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
-    void onAddResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
-    void onUpdateResourceCompleted(ResourceWrapper resource, Note note, QUuid requestId);
-    void onUpdateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId);
+    void onAddResourceCompleted(ResourceWrapper resource, QUuid requestId);
+    void onAddResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
+    void onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId);
+    void onUpdateResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
 
 private:
     void createConnections();
@@ -521,8 +521,6 @@ private:
     ResourceDataPerFindNoteRequestId        m_resourcesWithFindRequestIdsPerFindNoteRequestId;
 
     QSet<QUuid>                             m_resourceFoundFlagPerFindResourceRequestId;
-
-    QHash<QPair<QString,QString>,Note>      m_notesPerResourceGuids;
 
     QHash<QString,QPair<Note,Note> >        m_resourceConflictedAndRemoteNotesPerNotebookGuid;
     QSet<QUuid>                             m_findNotebookForNotesWithConflictedResourcesRequestIds;

@@ -210,10 +210,10 @@ Q_SIGNALS:
     // Resource-related signals:
     void getResourceCountComplete(int resourceCount, QUuid requestId = QUuid());
     void getResourceCountFailed(QString errorDescription, QUuid requestId = QUuid());
-    void addResourceComplete(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
-    void addResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId = QUuid());
-    void updateResourceComplete(ResourceWrapper resource, Note note, QUuid requestId = QUuid());
-    void updateResourceFailed(ResourceWrapper resource, Note note, QString errorDescription, QUuid requestId = QUuid());
+    void addResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
+    void addResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId = QUuid());
+    void updateResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
+    void updateResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId = QUuid());
     void findResourceComplete(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
     void findResourceFailed(ResourceWrapper resource, bool withBinaryData, QString errorDescription, QUuid requestId = QUuid());
     void expungeResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
@@ -328,7 +328,6 @@ public Q_SLOTS:
     void onGetTagCountRequest(QUuid requestId);
     void onAddTagRequest(Tag tag, QUuid requestId);
     void onUpdateTagRequest(Tag tag, QUuid requestId);
-    void onLinkTagWithNoteRequest(Tag tag, Note note, QUuid requestId);
     void onFindTagRequest(Tag tag, QUuid requestId);
     void onListAllTagsPerNoteRequest(Note note, LocalStorageManager::ListObjectsOptions flag,
                                      size_t limit, size_t offset,
@@ -349,8 +348,8 @@ public Q_SLOTS:
 
     // Resource-related slots:
     void onGetResourceCountRequest(QUuid requestId);
-    void onAddResourceRequest(ResourceWrapper resource, Note note, QUuid requestId);
-    void onUpdateResourceRequest(ResourceWrapper resource, Note note, QUuid requestId);
+    void onAddResourceRequest(ResourceWrapper resource, QUuid requestId);
+    void onUpdateResourceRequest(ResourceWrapper resource, QUuid requestId);
     void onFindResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
     void onExpungeResourceRequest(ResourceWrapper resource, QUuid requestId);
 
