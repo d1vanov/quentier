@@ -21,9 +21,6 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerThreadWork
     m_fourthNote(),
     m_fifthNote(),
     m_sixthNote(),
-    m_seventhNote(),
-    m_eighthNote(),
-    m_ninethNote(),
     m_firstTag(),
     m_secondTag(),
     m_thirdTag(),
@@ -95,7 +92,163 @@ void FavoritesModelTestHelper::launchTest()
 
     try
     {
-        // TODO: implement
+        m_firstNotebook.setName("First notebook");
+        m_firstNotebook.setLocal(true);
+        m_firstNotebook.setDirty(false);
+
+        m_secondNotebook.setName("Second notebook");
+        m_secondNotebook.setLocal(false);
+        m_secondNotebook.setGuid(UidGenerator::Generate());
+        m_secondNotebook.setDirty(false);
+        m_secondNotebook.setShortcut(true);
+
+        m_thirdNotebook.setName("Third notebook");
+        m_thirdNotebook.setLocal(true);
+        m_thirdNotebook.setDirty(true);
+        m_thirdNotebook.setShortcut(true);
+
+        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(m_firstNotebook, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(m_secondNotebook, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNotebookRequest(m_thirdNotebook, QUuid());
+
+        m_firstSavedSearch.setName("First saved search");
+        m_firstSavedSearch.setLocal(false);
+        m_firstSavedSearch.setGuid(UidGenerator::Generate());
+        m_firstSavedSearch.setDirty(false);
+        m_firstSavedSearch.setShortcut(true);
+
+        m_secondSavedSearch.setName("Second saved search");
+        m_secondSavedSearch.setLocal(true);
+        m_secondSavedSearch.setDirty(true);
+
+        m_thirdSavedSearch.setName("Third saved search");
+        m_thirdSavedSearch.setLocal(true);
+        m_thirdSavedSearch.setDirty(false);
+        m_thirdSavedSearch.setShortcut(true);
+
+        m_fourthSavedSearch.setName("Fourth saved search");
+        m_fourthSavedSearch.setLocal(false);
+        m_fourthSavedSearch.setGuid(UidGenerator::Generate());
+        m_fourthSavedSearch.setDirty(true);
+        m_fourthSavedSearch.setShortcut(true);
+
+        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_firstSavedSearch, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_secondSavedSearch, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_thirdSavedSearch, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddSavedSearchRequest(m_fourthSavedSearch, QUuid());
+
+        m_firstTag.setName("First tag");
+        m_firstTag.setLocal(true);
+        m_firstTag.setDirty(false);
+
+        m_secondTag.setName("Second tag");
+        m_secondTag.setLocal(false);
+        m_secondTag.setGuid(UidGenerator::Generate());
+        m_secondTag.setDirty(true);
+        m_secondTag.setShortcut(true);
+
+        m_thirdTag.setName("Third tag");
+        m_thirdTag.setLocal(false);
+        m_thirdTag.setGuid(UidGenerator::Generate());
+        m_thirdTag.setDirty(false);
+        m_thirdTag.setParentLocalUid(m_secondTag.localUid());
+        m_thirdTag.setParentGuid(m_secondTag.guid());
+
+        m_fourthTag.setName("Fourth tag");
+        m_fourthTag.setLocal(true);
+        m_fourthTag.setDirty(true);
+        m_fourthTag.setShortcut(true);
+
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_firstTag, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_secondTag, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_thirdTag, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_fourthTag, QUuid());
+
+        m_firstNote.setTitle("First note");
+        m_firstNote.setContent("<en-note><h1>First note</h1></en-note>");
+        m_firstNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_firstNote.setModificationTimestamp(m_firstNote.creationTimestamp());
+        m_firstNote.setNotebookLocalUid(m_firstNotebook.localUid());
+        m_firstNote.setLocal(true);
+        m_firstNote.setTagLocalUids(QStringList() << m_firstTag.localUid() << m_secondTag.localUid());
+        m_firstNote.setDirty(false);
+        m_firstNote.setShortcut(true);
+
+        m_secondNote.setTitle("Second note");
+        m_secondNote.setContent("<en-note><h1>Second note</h1></en-note>");
+        m_secondNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_secondNote.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_secondNote.setNotebookLocalUid(m_firstNotebook.localUid());
+        m_secondNote.setLocal(true);
+        m_secondNote.setTagLocalUids(QStringList() << m_firstTag.localUid() << m_fourthTag.localUid());
+        m_secondNote.setDirty(true);
+        m_secondNote.setShortcut(true);
+
+        m_thirdNote.setGuid(UidGenerator::Generate());
+        m_thirdNote.setTitle("Third note");
+        m_thirdNote.setContent("<en-note><h1>Third note</h1></en-note>");
+        m_thirdNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_thirdNote.setModificationTimestamp(m_thirdNote.creationTimestamp());
+        m_thirdNote.setNotebookLocalUid(m_secondNotebook.localUid());
+        m_thirdNote.setNotebookGuid(m_secondNotebook.guid());
+        m_thirdNote.setLocal(false);
+        m_thirdNote.setTagLocalUids(QStringList() << m_thirdTag.localUid());
+        m_thirdNote.setTagGuids(QStringList() << m_thirdTag.guid());
+        m_thirdNote.setShortcut(true);
+
+        m_fourthNote.setGuid(UidGenerator::Generate());
+        m_fourthNote.setTitle("Fourth note");
+        m_fourthNote.setContent("<en-note><h1>Fourth note</h1></en-note>");
+        m_fourthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_fourthNote.setModificationTimestamp(m_fourthNote.creationTimestamp());
+        m_fourthNote.setNotebookLocalUid(m_secondNotebook.localUid());
+        m_fourthNote.setNotebookGuid(m_secondNotebook.guid());
+        m_fourthNote.setLocal(false);
+        m_fourthNote.setDirty(true);
+        m_fourthNote.setTagLocalUids(QStringList() << m_secondTag.localUid() << m_thirdTag.localUid());
+        m_fourthNote.setTagGuids(QStringList() << m_secondTag.guid() << m_thirdTag.guid());
+
+        m_fifthNote.setGuid(UidGenerator::Generate());
+        m_fifthNote.setTitle("Fifth note");
+        m_fifthNote.setContent("<en-note><h1>Fifth note</h1></en-note>");
+        m_fifthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_fifthNote.setModificationTimestamp(m_fifthNote.creationTimestamp());
+        m_fifthNote.setNotebookLocalUid(m_secondNotebook.localUid());
+        m_fifthNote.setNotebookGuid(m_secondNotebook.guid());
+        m_fifthNote.setDeletionTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_fifthNote.setLocal(false);
+        m_fifthNote.setDirty(true);
+
+        m_sixthNote.setTitle("Sixth note");
+        m_sixthNote.setContent("<en-note><h1>Sixth note</h1></en-note>");
+        m_sixthNote.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
+        m_sixthNote.setModificationTimestamp(m_sixthNote.creationTimestamp());
+        m_sixthNote.setNotebookLocalUid(m_thirdNotebook.localUid());
+        m_sixthNote.setLocal(true);
+        m_sixthNote.setDirty(true);
+        m_sixthNote.setTagLocalUids(QStringList() << m_fourthTag.localUid());
+        m_sixthNote.setShortcut(true);
+
+        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_firstNote, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_secondNote, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_thirdNote, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_fourthNote, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_fifthNote, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddNoteRequest(m_sixthNote, QUuid());
+
+        NoteCache noteCache(10);
+        NotebookCache notebookCache(3);
+        TagCache tagCache(5);
+        SavedSearchCache savedSearchCache(5);
+
+        FavoritesModel * model = new FavoritesModel(*m_pLocalStorageManagerThreadWorker, noteCache,
+                                                    notebookCache, tagCache, savedSearchCache, this);
+        ModelTest t1(model);
+        Q_UNUSED(t1)
+
+        // TODO: implement model-specific tests here
+
+        emit success();
         return;
     }
     CATCH_EXCEPTION()

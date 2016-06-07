@@ -67,6 +67,7 @@
 #include "TagModelTestHelper.h"
 #include "NotebookModelTestHelper.h"
 #include "NoteModelTestHelper.h"
+#include "FavoritesModelTestHelper.h"
 
 // 10 minutes should be enough
 #define MAX_ALLOWED_MILLISECONDS 600000
@@ -96,6 +97,7 @@ private Q_SLOTS:
     void testTagModel();
     void testNotebookModel();
     void testNoteModel();
+    void testFavoritesModel();
     void testTagModelItemSerialization();
 
 private:
@@ -527,6 +529,49 @@ void tst_ModelTest::testNoteModel()
 
         timer.start();
         slotInvokingTimer.singleShot(0, &noteModelTestHelper, QNSLOT(NoteModelTestHelper,launchTest));
+        res = loop.exec();
+    }
+
+    if (res == -1) {
+        QFAIL("Internal error: incorrect return status from note model async tester");
+    }
+    else if (res == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QFAIL("Detected failure during the asynchronous loop processing in note model async tester");
+    }
+    else if (res == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QFAIL("Note model async tester failed to finish in time");
+    }
+}
+
+void tst_ModelTest::testFavoritesModel()
+{
+    using namespace qute_note;
+
+    int res = -1;
+    {
+        QTimer timer;
+        timer.setInterval(MAX_ALLOWED_MILLISECONDS);
+        timer.setSingleShot(true);
+
+        delete m_pLocalStorageWorker;
+        m_pLocalStorageWorker = new qute_note::LocalStorageManagerThreadWorker("tst_ModelTest_favorites_model_test_fake_user", 800,
+                                                                               /* start from scratch = */ true,
+                                                                               /* override lock = */ false, this);
+        m_pLocalStorageWorker->init();
+
+        FavoritesModelTestHelper favoritesModelTestHelper(m_pLocalStorageWorker);
+
+        EventLoopWithExitStatus loop;
+        QObject::connect(&timer, QNSIGNAL(QTimer,timeout), &loop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(&favoritesModelTestHelper, QNSIGNAL(FavoritesModelTestHelper,success), &loop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(&favoritesModelTestHelper, QNSIGNAL(FavoritesModelTestHelper,failure), &loop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+
+        QTimer slotInvokingTimer;
+        slotInvokingTimer.setInterval(500);
+        slotInvokingTimer.setSingleShot(true);
+
+        timer.start();
+        slotInvokingTimer.singleShot(0, &favoritesModelTestHelper, QNSLOT(FavoritesModelTestHelper,launchTest));
         res = loop.exec();
     }
 

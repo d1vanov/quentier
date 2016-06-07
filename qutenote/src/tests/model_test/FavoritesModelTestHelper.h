@@ -107,9 +107,6 @@ private:
     Note                                m_fourthNote;
     Note                                m_fifthNote;
     Note                                m_sixthNote;
-    Note                                m_seventhNote;
-    Note                                m_eighthNote;
-    Note                                m_ninethNote;
 
     Tag                                 m_firstTag;
     Tag                                 m_secondTag;
