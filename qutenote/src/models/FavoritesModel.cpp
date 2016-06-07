@@ -606,7 +606,7 @@ void FavoritesModel::onUpdateNoteComplete(Note note, bool updateResources, bool 
         return;
     }
 
-    onNoteAddedOrUpdated(note);
+    onNoteAddedOrUpdated(note, updateTags);
 }
 
 void FavoritesModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -2041,13 +2041,16 @@ void FavoritesModel::unfavoriteSavedSearch(const QString & localUid)
     emit updateSavedSearch(search, requestId);
 }
 
-void FavoritesModel::onNoteAddedOrUpdated(const Note & note)
+void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpdated)
 {
-    QNDEBUG("FavoritesModel::onNoteAddedOrUpdated: note local uid = " << note.localUid());
+    QNDEBUG("FavoritesModel::onNoteAddedOrUpdated: note local uid = " << note.localUid()
+            << ", tags updated = " << (tagsUpdated ? "true" : "false"));
 
     m_noteCache.put(note.localUid(), note);
 
-    checkTagsUpdateForNote(note);
+    if (tagsUpdated) {
+        checkTagsUpdateForNote(note);
+    }
 
     if (!note.hasNotebookLocalUid()) {
         QNWARNING("Skipping the note not having the notebook local uid: " << note);

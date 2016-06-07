@@ -220,7 +220,7 @@ private:
     void unfavoriteTag(const QString & localUid);
     void unfavoriteSavedSearch(const QString & localUid);
 
-    void onNoteAddedOrUpdated(const Note & note);
+    void onNoteAddedOrUpdated(const Note & note, const bool tagsUpdated = true);
     void onNotebookAddedOrUpdated(const Notebook & notebook);
     void onTagAddedOrUpdated(const Tag & tag);
     void onSavedSearchAddedOrUpdated(const SavedSearch & search);
