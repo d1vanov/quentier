@@ -246,7 +246,158 @@ void FavoritesModelTestHelper::launchTest()
         ModelTest t1(model);
         Q_UNUSED(t1)
 
-        // TODO: implement model-specific tests here
+        // The favorites model shouldn't have items corresponding to non-favorited notebooks, notes, tags and saved searches
+        QModelIndex firstNotebookIndex = model->indexForLocalUid(m_firstNotebook.localUid());
+        if (firstNotebookIndex.isValid()) {
+            FAIL("The favorites model unexpectedly contains the item corresponding to non-favorited notebook");
+        }
+
+        QModelIndex secondSavedSearchIndex = model->indexForLocalUid(m_secondSavedSearch.localUid());
+        if (secondSavedSearchIndex.isValid()) {
+            FAIL("The favorites model unexpectedly contains the item corresponding to non-favorited saved search");
+        }
+
+        QModelIndex firstTagIndex = model->indexForLocalUid(m_firstTag.localUid());
+        if (firstTagIndex.isValid()) {
+            FAIL("The favorites model unexpectedly contains the item corresponding to non-favorited tag");
+        }
+
+        QModelIndex fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
+        if (fourthNoteIndex.isValid()) {
+            FAIL("The favorites model unexpectedly contains the item corresponding to non-favorited note");
+        }
+
+        // The favorites model should have items corresponding to favorited notebooks, notes, tags and saved searches
+        QModelIndex secondNotebookIndex = model->indexForLocalUid(m_secondNotebook.localUid());
+        if (!secondNotebookIndex.isValid()) {
+            FAIL("The favorites model unexpectedly doesn't contain the item corresponding to favorited notebook");
+        }
+
+        QModelIndex firstSavedSearchIndex = model->indexForLocalUid(m_firstSavedSearch.localUid());
+        if (!firstSavedSearchIndex.isValid()) {
+            FAIL("The favorites model unexpectedly doesn't contain the item corresponding to favorited saved search");
+        }
+
+        QModelIndex secondTagIndex = model->indexForLocalUid(m_secondTag.localUid());
+        if (!secondTagIndex.isValid()) {
+            FAIL("The favorites model unexpectedly doesn't contain the item corresponding to favorited tag");
+        }
+
+        QModelIndex firstNoteIndex = model->indexForLocalUid(m_firstNote.localUid());
+        if (!firstNoteIndex.isValid()) {
+            FAIL("The favorites model unexpectedly doesn't contain the item corresponding to favorited note");
+        }
+
+        // Shouldn't be able to change the type of the item manyally
+        secondNotebookIndex = model->index(secondNotebookIndex.row(), FavoritesModel::Columns::Type, QModelIndex());
+        if (!secondNotebookIndex.isValid()) {
+            FAIL("Can't get the valid favorites model index for type column");
+        }
+
+        bool res = model->setData(secondNotebookIndex, QVariant(FavoritesModelItem::Type::Note), Qt::EditRole);
+        if (res) {
+            FAIL("Was able to change the type of the favorites model item which is not intended");
+        }
+
+        QVariant data = model->data(secondNotebookIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the favorites model while expected to get the type of the item");
+        }
+
+        bool conversionResult = false;
+        qint32 type = data.toInt(&conversionResult);
+        if (!conversionResult) {
+            FAIL("Can't convert the favorites model item's type to int");
+        }
+
+        if (static_cast<FavoritesModelItem::Type::type>(type) != FavoritesModelItem::Type::Notebook) {
+            FAIL("The favorites model item's type should be notebook but it is not so after the attempt to change the item's type manually");
+        }
+
+        // Should not be able to change the number of affected notes manually
+        secondNotebookIndex = model->index(secondNotebookIndex.row(), FavoritesModel::Columns::NumNotesTargeted, QModelIndex());
+        if (!secondNotebookIndex.isValid()) {
+            FAIL("Can't get the valid favorites model index for num notes targeted column");
+        }
+
+        res = model->setData(secondNotebookIndex, QVariant(9999), Qt::EditRole);
+        if (res) {
+            FAIL("Was able to change the num targeted notes for the favorites model item which is not intended");
+        }
+
+        data = model->data(secondNotebookIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the favorites model while expected to get the number of notes targeted by the item");
+        }
+
+        conversionResult = false;
+        qint32 numNotesTargeted = data.toInt(&conversionResult);
+        if (!conversionResult) {
+            FAIL("Can't convert the favorites model item's num targeted notes to int");
+        }
+
+        if (numNotesTargeted == 9999) {
+            FAIL("The num notes targeted column appears to have changed after setData in favorites model even though the method returned false");
+        }
+
+        // Should be able to change the display name of the item
+        secondNotebookIndex = model->index(secondNotebookIndex.row(), FavoritesModel::Columns::DisplayName, QModelIndex());
+        if (!secondNotebookIndex.isValid()) {
+            FAIL("Can't get the valid favorites model index for display name column");
+        }
+
+        res = model->setData(secondNotebookIndex, m_secondNotebook.name() + "_modified", Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the display name of the favorites model item");
+        }
+
+        data = model->data(secondNotebookIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL("Null data was returned by the favorites model while expected to get the display name of the item");
+        }
+
+        if (data.toString() != m_secondNotebook.name() + "_modified") {
+            FAIL("The name of the item appears to have not changed after setData in favorites model even though the method returned true");
+        }
+
+        // Favoriting some previously non-favorited item should make it appear in the favorites model
+        m_firstNotebook.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateNotebookRequest(m_firstNotebook, QUuid());
+
+        firstNotebookIndex = model->indexForLocalUid(m_firstNotebook.localUid());
+        if (!firstNotebookIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited notebook");
+        }
+
+        m_secondSavedSearch.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateSavedSearchRequest(m_secondSavedSearch, QUuid());
+
+        secondSavedSearchIndex = model->indexForLocalUid(m_secondSavedSearch.localUid());
+        if (!secondSavedSearchIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited saved search");
+        }
+
+        m_firstTag.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_firstTag, QUuid());
+
+        firstTagIndex = model->indexForLocalUid(m_firstTag.localUid());
+        if (!firstTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited tag");
+        }
+
+        // FIXME: this test fails due to previously updated notebook name - because someone screwed up the database schema
+        // the notes from the updated notebook got deleted X_x Need to fix it before proceeding
+        //
+        // m_fourthNote.setShortcut(true);
+        // m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_fourthNote, /* update resources = */ false,
+        //                                                         /* update tags = */ false, QUuid());
+        //
+        // fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
+        // if (!fourthNoteIndex.isValid()) {
+        //     FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited note");
+        // }
+
+        // TODO: implement other model-specific tests here
 
         emit success();
         return;
