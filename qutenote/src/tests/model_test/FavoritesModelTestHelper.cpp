@@ -385,17 +385,13 @@ void FavoritesModelTestHelper::launchTest()
             FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited tag");
         }
 
-        // FIXME: this test fails due to previously updated notebook name - because someone screwed up the database schema
-        // the notes from the updated notebook got deleted X_x Need to fix it before proceeding
-        //
-        // m_fourthNote.setShortcut(true);
-        // m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_fourthNote, /* update resources = */ false,
-        //                                                         /* update tags = */ false, QUuid());
-        //
-        // fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
-        // if (!fourthNoteIndex.isValid()) {
-        //     FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited note");
-        // }
+        m_fourthNote.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_fourthNote, /* update resources = */ false,
+                                                                /* update tags = */ false, QUuid());
+        fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
+        if (!fourthNoteIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited note");
+        }
 
         // TODO: implement other model-specific tests here
 
