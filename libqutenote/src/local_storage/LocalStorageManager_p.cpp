@@ -32,8 +32,6 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceSavedSearchQueryPrepared(false),
     m_getSavedSearchCountQuery(),
     m_getSavedSearchCountQueryPrepared(false),
-    m_expungeSavedSearchQuery(),
-    m_expungeSavedSearchQueryPrepared(false),
     m_insertOrReplaceResourceQuery(),
     m_insertOrReplaceResourceQueryPrepared(false),
     m_insertOrReplaceNoteResourceQuery(),
@@ -60,8 +58,6 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getTagCountQueryPrepared(false),
     m_insertOrReplaceTagQuery(),
     m_insertOrReplaceTagQueryPrepared(false),
-    m_expungeTagQuery(),
-    m_expungeTagQueryPrepared(false),
     m_getNoteCountQuery(),
     m_getNoteCountQueryPrepared(false),
     m_insertOrReplaceNoteQuery(),
@@ -70,62 +66,38 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_canAddNoteToNotebookQueryPrepared(false),
     m_canUpdateNoteInNotebookQuery(),
     m_canUpdateNoteInNotebookQueryPrepared(false),
-    m_expungeNoteFromNoteTagsQuery(),
-    m_expungeNoteFromNoteTagsQueryPrepared(false),
     m_insertOrReplaceNoteIntoNoteTagsQuery(),
     m_insertOrReplaceNoteIntoNoteTagsQueryPrepared(false),
-    m_expungeResourceByNoteQuery(),
-    m_expungeResourceByNoteQueryPrepared(false),
     m_getLinkedNotebookCountQuery(),
     m_getLinkedNotebookCountQueryPrepared(false),
     m_insertOrReplaceLinkedNotebookQuery(),
     m_insertOrReplaceLinkedNotebookQueryPrepared(false),
-    m_expungeLinkedNotebookQuery(),
-    m_expungeLinkedNotebookQueryPrepared(false),
     m_getNotebookCountQuery(),
     m_getNotebookCountQueryPrepared(false),
     m_insertOrReplaceNotebookQuery(),
     m_insertOrReplaceNotebookQueryPrepared(false),
-    m_expungeNotebookFromNotebookRestrictionsQuery(),
-    m_expungeNotebookFromNotebookRestrictionsQueryPrepared(false),
     m_insertOrReplaceNotebookRestrictionsQuery(),
     m_insertOrReplaceNotebookRestrictionsQueryPrepared(false),
-    m_expungeSharedNotebooksQuery(),
-    m_expungeSharedNotebooksQueryPrepared(false),
     m_insertOrReplaceSharedNotebookQuery(),
     m_insertOrReplaceSharedNotebookQueryPrepared(false),
     m_getUserCountQuery(),
     m_getUserCountQueryPrepared(false),
     m_insertOrReplaceUserQuery(),
     m_insertOrReplaceUserQueryPrepared(false),
-    m_expungeUserAttributesQuery(),
-    m_expungeUserAttributesQueryPrepared(false),
     m_insertOrReplaceUserAttributesQuery(),
     m_insertOrReplaceUserAttributesQueryPrepared(false),
-    m_expungeAccountingQuery(),
-    m_expungeAccountingQueryPrepared(false),
     m_insertOrReplaceAccountingQuery(),
     m_insertOrReplaceAccountingQueryPrepared(false),
-    m_expungePremiumUserInfoQuery(),
-    m_expungePremiumUserInfoQueryPrepared(false),
     m_insertOrReplacePremiumUserInfoQuery(),
     m_insertOrReplacePremiumUserInfoQueryPrepared(false),
-    m_expungeBusinessUserInfoQuery(),
-    m_expungeBusinessUserInfoQueryPrepared(false),
     m_insertOrReplaceBusinessUserInfoQuery(),
     m_insertOrReplaceBusinessUserInfoQueryPrepared(false),
-    m_expungeUserAttributesViewedPromotionsQuery(),
-    m_expungeUserAttributesViewedPromotionsQueryPrepared(false),
     m_insertOrReplaceUserAttributesViewedPromotionsQuery(),
     m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared(false),
-    m_expungeUserAttributesRecentMailedAddressesQuery(),
-    m_expungeUserAttributesRecentMailedAddressesQueryPrepared(false),
     m_insertOrReplaceUserAttributesRecentMailedAddressesQuery(),
     m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared(false),
     m_deleteUserQuery(),
     m_deleteUserQueryPrepared(false),
-    m_expungeUserQuery(),
-    m_expungeUserQueryPrepared(false),
     m_stringUtils(),
     m_preservedAsterisk()
 {
@@ -151,6 +123,7 @@ LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
         errorDescription += ": "; \
         QNCRITICAL(errorDescription << query.lastError() << ", last executed query: " << query.lastQuery()); \
         errorDescription += query.lastError().text(); \
+        query.finish(); \
         return false; \
     }
 
@@ -297,6 +270,7 @@ bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QString & errorD
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't update deletion timestamp in \"Users\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -311,13 +285,9 @@ bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QString & error
         return false;
     }
 
-    bool res = checkAndPrepareExpungeUserQuery();
-    QSqlQuery & query = m_expungeUserQuery;
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Users\" table in SQL database: can't prepare SQL query");
-
-    query.bindValue(":id", user.id());
-
-    res = query.exec();
+    QString queryString = QString("DELETE FROM Users WHERE id=%1").arg(user.id());
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Users\" table in SQL database");
 
     return true;
@@ -332,6 +302,7 @@ int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
                                       "can't prepare SQL query");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -340,16 +311,20 @@ int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
         errorDescription = QT_TR_NOOP("Internal error: can't get number of notebooks in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no notebooks in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of notebooks to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -508,6 +483,7 @@ int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
                                       "can't prepare SQL query");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -516,16 +492,20 @@ int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
         errorDescription = QT_TR_NOOP("Internal error: can't get number of users in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no users in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of users to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -1028,6 +1008,7 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) 
                                       "can't prepare SQL query");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -1036,16 +1017,20 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) 
         errorDescription = QT_TR_NOOP("Internal error: can't get number of linked notebooks in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no linked notebooks in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of linked notebooks to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -1195,14 +1180,9 @@ bool LocalStorageManagerPrivate::expungeLinkedNotebook(const LinkedNotebook & li
         return false;
     }
 
-    bool res = checkAndPrepareExpungeLinkedNotebookQuery();
-    QSqlQuery & query = m_expungeLinkedNotebookQuery;
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table: "
-                                 "can't prepare SQL query");
-
-    query.bindValue(":guid", linkedNotebookGuid);
-
-    res = query.exec();
+    QString queryString = QString("DELETE FROM LinkedNotebooks WHERE guid='%1'").arg(linkedNotebookGuid);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table in SQL database");
 
     return true;
@@ -1217,6 +1197,7 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
                                       "can't prepare SQL query");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -1225,16 +1206,20 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
         errorDescription = QT_TR_NOOP("Internal error: can't get number of notes in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no notes in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of notes to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -2053,6 +2038,7 @@ int LocalStorageManagerPrivate::tagCount(QString & errorDescription) const
                                       "can't prepare SQL query: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -2061,16 +2047,20 @@ int LocalStorageManagerPrivate::tagCount(QString & errorDescription) const
         errorDescription = QT_TR_NOOP("Internal error: can't get number of tags in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no tags in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of tags to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -2392,14 +2382,9 @@ bool LocalStorageManagerPrivate::expungeTag(const Tag & tag, QString & errorDesc
         return false;
     }
 
-    bool res = checkAndPrepareExpungeTagQuery();
-    QSqlQuery & query = m_expungeTagQuery;
-    DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table: "
-                                 "can't prepare SQL query");
-
-    query.bindValue(":localUid", tag.localUid());
-
-    res = query.exec();
+    QString queryString = QString("DELETE FROM Tags WHERE localUid='%1'").arg(tag.localUid());
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table in SQL database");
 
     return true;
@@ -2427,6 +2412,7 @@ int LocalStorageManagerPrivate::enResourceCount(QString & errorDescription) cons
                                       "can't prepare SQL query: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -2435,16 +2421,20 @@ int LocalStorageManagerPrivate::enResourceCount(QString & errorDescription) cons
         errorDescription = QT_TR_NOOP("Internal error: can't get number of resources in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no resources in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of resources to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -2558,6 +2548,7 @@ int LocalStorageManagerPrivate::savedSearchCount(QString & errorDescription) con
                                       "of saved searches in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
@@ -2566,16 +2557,20 @@ int LocalStorageManagerPrivate::savedSearchCount(QString & errorDescription) con
         errorDescription = QT_TR_NOOP("Internal error: can't get number of saved searches in local storage database: ");
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
+        query.finish();
         return -1;
     }
 
     if (!query.next()) {
         QNDEBUG("Found no saved searches in local storage database");
+        query.finish();
         return 0;
     }
 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
+    query.finish();
+
     if (!conversionResult) {
         errorDescription = QT_TR_NOOP("Internal error: can't convert number of saved searches to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
@@ -2803,12 +2798,9 @@ bool LocalStorageManagerPrivate::expungeSavedSearch(const SavedSearch & search,
         return false;
     }
 
-    bool res = checkAndPrepareExpungeSavedSearchQuery();
-    QSqlQuery & query = m_expungeSavedSearchQuery;
-    DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from SQL database: can't prepare SQL query");
-
-    query.bindValue(":localUid", localUid);
-    res = query.exec();
+    QString queryString = QString("DELETE FROM SavedSearches WHERE localUid='%1'").arg(localUid);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete saved search from \"SavedSearches\" table in SQL database");
 
     return true;
@@ -3039,7 +3031,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create Users table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributes("
-                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                      "  defaultLocationName         TEXT                    DEFAULT NULL, "
                      "  defaultLatitude             REAL                    DEFAULT NULL, "
                      "  defaultLongitude            REAL                    DEFAULT NULL, "
@@ -3072,17 +3064,17 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributesViewedPromotions("
-                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                      "  promotion               TEXT                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributesViewedPromotions table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributesRecentMailedAddresses("
-                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                      "  address                 TEXT                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create UserAttributesRecentMailedAddresses table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS Accounting("
-                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                      "  uploadLimit                 INTEGER             DEFAULT NULL, "
                      "  uploadLimitEnd              INTEGER             DEFAULT NULL, "
                      "  uploadLimitNextMonth        INTEGER             DEFAULT NULL, "
@@ -3109,7 +3101,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create Accounting table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS PremiumInfo("
-                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                      "  currentTime                 INTEGER                 DEFAULT NULL, "
                      "  premium                     INTEGER                 DEFAULT NULL, "
                      "  premiumRecurring            INTEGER                 DEFAULT NULL, "
@@ -3124,12 +3116,24 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create PremiumInfo table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
-                     "  id REFERENCES Users(id) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                      "  businessId              INTEGER                 DEFAULT NULL, "
                      "  businessName            TEXT                    DEFAULT NULL, "
                      "  role                    INTEGER                 DEFAULT NULL, "
                      "  businessInfoEmail       TEXT                    DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
+
+    res = query.exec("CREATE TRIGGER on_user_delete_trigger "
+                     "AFTER DELETE ON Users "
+                     "BEGIN "
+                     "DELETE FROM UserAttributes WHERE id=OLD.id; "
+                     "DELETE FROM UserAttributesViewedPromotions WHERE id=OLD.id; "
+                     "DELETE FROM UserAttributesRecentMailedAddresses WHERE id=OLD.id; "
+                     "DELETE FROM Accounting WHERE id=OLD.id; "
+                     "DELETE FROM PremiumInfo WHERE id=OLD.id; "
+                     "DELETE FROM BusinessUserInfo WHERE id=OLD.id; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on deletion from users table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
                      "  guid                            TEXT PRIMARY KEY  NOT NULL UNIQUE, "
@@ -3150,7 +3154,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
                      "  localUid                        TEXT PRIMARY KEY  NOT NULL UNIQUE, "
                      "  guid                            TEXT              DEFAULT NULL UNIQUE, "
-                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON UPDATE CASCADE, "
                      "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
                      "  notebookName                    TEXT              DEFAULT NULL, "
                      "  notebookNameUpper               TEXT              DEFAULT NULL, "
@@ -3194,7 +3198,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create NotebookFTS_AfterInsertTrigger");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
-                     "  localUid REFERENCES Notebooks(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  localUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, "
                      "  noReadNotes                 INTEGER      DEFAULT NULL, "
                      "  noCreateNotes               INTEGER      DEFAULT NULL, "
                      "  noUpdateNotes               INTEGER      DEFAULT NULL, "
@@ -3221,7 +3225,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
                      "  shareId                             INTEGER PRIMARY KEY   NOT NULL UNIQUE, "
                      "  userId                              INTEGER    DEFAULT NULL, "
-                     "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
                      "  sharedNotebookEmail                 TEXT       DEFAULT NULL, "
                      "  sharedNotebookCreationTimestamp     INTEGER    DEFAULT NULL, "
                      "  sharedNotebookModificationTimestamp INTEGER    DEFAULT NULL, "
@@ -3259,8 +3263,8 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  isActive                        INTEGER              DEFAULT NULL, "
                      "  hasAttributes                   INTEGER              NOT NULL, "
                      "  thumbnail                       BLOB                 DEFAULT NULL, "
-                     "  notebookLocalUid REFERENCES Notebooks(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  notebookGuid REFERENCES Notebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  notebookLocalUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, "
+                     "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
                      "  subjectDate                     INTEGER              DEFAULT NULL, "
                      "  latitude                        REAL                 DEFAULT NULL, "
                      "  longitude                       REAL                 DEFAULT NULL, "
@@ -3311,11 +3315,19 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger NoteFTS_AfterInsertTrigger");
 
+    res = query.exec("CREATE TRIGGER on_notebook_delete_trigger AFTER DELETE ON Notebooks "
+                     "BEGIN "
+                     "DELETE FROM NotebookRestrictions WHERE NotebookRestrictions.localUid=OLD.localUid; "
+                     "DELETE FROM SharedNotebooks WHERE SharedNotebooks.notebookGuid=OLD.guid; "
+                     "DELETE FROM Notes WHERE Notes.notebookLocalUid=OLD.localUid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on notebook deletion");
+
     res = query.exec("CREATE TABLE IF NOT EXISTS Resources("
                      "  resourceLocalUid                TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  resourceGuid                    TEXT                 DEFAULT NULL UNIQUE, "
-                     "  noteLocalUid REFERENCES Notes(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  noteGuid REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  noteLocalUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
+                     "  noteGuid REFERENCES Notes(guid) ON UPDATE CASCADE, "
                      "  resourceUpdateSequenceNumber    INTEGER              DEFAULT NULL, "
                      "  resourceIsDirty                 INTEGER              NOT NULL, "
                      "  dataBody                        TEXT                 DEFAULT NULL, "
@@ -3339,9 +3351,9 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceMimeIndex index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceRecognitionData("
-                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  noteLocalUid REFERENCES Notes(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  recognitionData                 TEXT                DEFAULT NULL)");
+                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid)     ON UPDATE CASCADE, "
+                     "  noteLocalUid REFERENCES Notes(localUid)                     ON UPDATE CASCADE, "
+                     "  recognitionData                 TEXT                        DEFAULT NULL)");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceRecognitionData table");
 
     res = query.exec("CREATE INDEX IF NOT EXISTS ResourceRecognitionDataIndex ON ResourceRecognitionData(recognitionData)");
@@ -3388,7 +3400,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributes("
-                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON UPDATE CASCADE, "
                      "  resourceSourceURL       TEXT                DEFAULT NULL, "
                      "  timestamp               INTEGER             DEFAULT NULL, "
                      "  resourceLatitude        REAL                DEFAULT NULL, "
@@ -3404,14 +3416,14 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributes table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataKeysOnly("
-                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON UPDATE CASCADE, "
                      "  resourceKey             TEXT                DEFAULT NULL, "
                      "  UNIQUE(resourceLocalUid, resourceKey)"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create ResourceAttributesApplicationDataKeysOnly table");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataFullMap("
-                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON UPDATE CASCADE, "
                      "  resourceMapKey          TEXT                DEFAULT NULL, "
                      "  resourcevalue           TEXT                DEFAULT NULL, "
                      "  UNIQUE(resourceLocalUid, resourceMapKey) ON CONFLICT REPLACE"
@@ -3421,12 +3433,12 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     res = query.exec("CREATE TABLE IF NOT EXISTS Tags("
                      "  localUid              TEXT PRIMARY KEY     NOT NULL UNIQUE, "
                      "  guid                  TEXT                 DEFAULT NULL UNIQUE, "
-                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON UPDATE CASCADE, "
                      "  updateSequenceNumber  INTEGER              DEFAULT NULL, "
                      "  name                  TEXT                 DEFAULT NULL, "
                      "  nameLower             TEXT                 DEFAULT NULL, "
-                     "  parentGuid REFERENCES Tags(guid) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT NULL, "
-                     "  parentLocalUid REFERENCES Tags(localUid) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT NULL, "
+                     "  parentGuid REFERENCES Tags(guid)           ON UPDATE CASCADE DEFAULT NULL, "
+                     "  parentLocalUid REFERENCES Tags(localUid)   ON UPDATE CASCADE DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
                      "  hasShortcut           INTEGER              NOT NULL, "
@@ -3456,11 +3468,11 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create TagsSearchName index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteTags("
-                     "  localNote REFERENCES Notes(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  localTag REFERENCES Tags(localUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  tag  REFERENCES Tags(guid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  tagIndexInNote        INTEGER               DEFAULT NULL, "
+                     "  localNote REFERENCES Notes(localUid) ON UPDATE CASCADE, "
+                     "  note REFERENCES Notes(guid)          ON UPDATE CASCADE, "
+                     "  localTag REFERENCES Tags(localUid)   ON UPDATE CASCADE, "
+                     "  tag  REFERENCES Tags(guid)           ON UPDATE CASCADE, "
+                     "  tagIndexInNote        INTEGER        DEFAULT NULL, "
                      "  UNIQUE(localNote, localTag) ON CONFLICT REPLACE"
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTags table");
@@ -3469,10 +3481,10 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteTagsNote index");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS NoteResources("
-                     "  localNote     REFERENCES Notes(localUid)     ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  note          REFERENCES Notes(guid)          ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  localResource REFERENCES Resources(resourceLocalUid) ON DELETE CASCADE ON UPDATE CASCADE, "
-                     "  resource      REFERENCES Resources(resourceGuid)      ON DELETE CASCADE ON UPDATE CASCADE, "
+                     "  localNote     REFERENCES Notes(localUid)             ON UPDATE CASCADE, "
+                     "  note          REFERENCES Notes(guid)                 ON UPDATE CASCADE, "
+                     "  localResource REFERENCES Resources(resourceLocalUid) ON UPDATE CASCADE, "
+                     "  resource      REFERENCES Resources(resourceGuid)     ON UPDATE CASCADE, "
                      "  UNIQUE(localNote, localResource) ON CONFLICT REPLACE)");
     DATABASE_CHECK_AND_SET_ERROR("can't create NoteResources table");
 
@@ -3481,6 +3493,39 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
 
     // NOTE: reasoning for existence and unique constraint for nameLower, citing Evernote API reference:
     // "The account may only contain one search with a given name (case-insensitive compare)"
+
+    res = query.exec("CREATE TRIGGER on_linked_notebook_delete_trigger AFTER DELETE ON LinkedNotebooks "
+                     "BEGIN "
+                     "DELETE FROM Notebooks WHERE Notebooks.linkedNotebookGuid=OLD.guid; "
+                     "DELETE FROM Tags WHERE Tags.linkedNotebookGuid=OLD.guid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on linked notebook deletion");
+
+    res = query.exec("CREATE TRIGGER on_note_delete_trigger AFTER DELETE ON Notes "
+                     "BEGIN "
+                     "DELETE FROM Resources WHERE Resources.noteLocalUid=OLD.localUid; "
+                     "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.noteLocalUid=OLD.localUid; "
+                     "DELETE FROM NoteTags WHERE NoteTags.localNote=OLD.localUid; "
+                     "DELETE FROM NoteResources WHERE NoteResources.localNote=OLD.localUid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on note deletion");
+
+    res = query.exec("CREATE TRIGGER on_resource_delete_trigger AFTER DELETE ON Resources "
+                     "BEGIN "
+                     "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.resourceLocalUid=OLD.resourceLocalUid; "
+                     "DELETE FROM ResourceAttributes WHERE ResourceAttributes.resourceLocalUid=OLD.resourceLocalUid; "
+                     "DELETE FROM ResourceAttributesApplicationDataKeysOnly WHERE ResourceAttributesApplicationDataKeysOnly.resourceLocalUid=OLD.resourceLocalUid; "
+                     "DELETE FROM ResourceAttributesApplicationDataFullMap WHERE ResourceAttributesApplicationDataFullMap.resourceLocalUid=OLD.resourceLocalUid; "
+                     "DELETE FROM NoteResources WHERE NoteResources.localResource=OLD.resourceLocalUid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on resource deletion");
+
+    res = query.exec("CREATE TRIGGER on_tag_delete_trigger AFTER DELETE ON Tags "
+                     "BEGIN "
+                     "DELETE FROM NoteTags WHERE NoteTags.localTag=OLD.localUid; "
+                     "DELETE FROM Tags WHERE Tags.parentLocalUid=OLD.localUid; "
+                     "END");
+    DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on tag deletion");
 
     res = query.exec("CREATE TABLE IF NOT EXISTS SavedSearches("
                      "  localUid                        TEXT PRIMARY KEY    NOT NULL UNIQUE, "
@@ -3548,6 +3593,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const qever
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NotebookRestrictions\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -3580,6 +3626,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const ISharedNote
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"SharedNotebooks\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -3640,6 +3687,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Users\" table in SQL database");
+
+        query.finish();
     }
 
     if (user.hasUserAttributes())
@@ -3653,40 +3702,25 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString
     {
         // Clean entries from UserAttributesViewedPromotions table
         {
-            bool res = checkAndPrepareExpungeUserAttributesViewedPromotionsQuery();
-            QSqlQuery & query = m_expungeUserAttributesViewedPromotionsQuery;
-            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesViewedPromotions when updating user: "
-                                         "can't prepare SQL query");
-
-            query.bindValue(":id", userId);
-
-            res = query.exec();
+            QString queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id=%1").arg(userId);
+            QSqlQuery query(m_sqlDatabase);
+            bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesViewedPromotions when updating user");
         }
 
         // Clean entries from UserAttributesRecentMailedAddresses table
         {
-            bool res = checkAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
-            QSqlQuery & query = m_expungeUserAttributesRecentMailedAddressesQuery;
-            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user: "
-                                         "can't prepare SQL query");
-
-            query.bindValue(":id", userId);
-
-            res = query.exec();
+            QString queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id=%1").arg(userId);
+            QSqlQuery query(m_sqlDatabase);
+            bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user");
         }
 
         // Clean entries from UserAttributes table
         {
-            bool res = checkAndPrepareExpungeUserAttributesQuery();
-            QSqlQuery & query = m_expungeUserAttributesQuery;
-            DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user: "
-                                         "can't prepare SQL query");
-
-            query.bindValue(":id", userId);
-
-            res = query.exec();
+            QString queryString = QString("DELETE FROM UserAttributes WHERE id=%1").arg(userId);
+            QSqlQuery query(m_sqlDatabase);
+            bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributes when updating user");
         }
     }
@@ -3700,14 +3734,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        bool res = checkAndPrepareExpungeAccountingQuery();
-        QSqlQuery & query = m_expungeAccountingQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear Accounting when updating user: "
-                                     "can't prepare SQL query");
-
-        query.bindValue(":id", userId);
-
-        res = query.exec();
+        QString queryString = QString("DELETE FROM Accounting WHERE id=%1").arg(userId);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear Accounting when updating user");
     }
 
@@ -3720,14 +3749,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        bool res = checkAndPrepareExpungePremiumUserInfoQuery();
-        QSqlQuery & query = m_expungePremiumUserInfoQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear PremiumInfo when updating user: "
-                                     "can't prepare SQL query");
-
-        query.bindValue(":id", userId);
-
-        res = query.exec();
+        QString queryString = QString("DELETE FROM PremiumInfo WHERE id=%1").arg(userId);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear PremiumInfo when updating user");
     }
 
@@ -3740,15 +3764,10 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString
     }
     else
     {
-        bool res = checkAndPrepareExpungeBusinessUserInfoQuery();
-        QSqlQuery & query = m_expungeBusinessUserInfoQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear BusinesUserInfo when updating user: "
-                                     "can't prepare SQL query");
-
-        query.bindValue(":id", userId);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't clear BusinesUserInfo when updating user");
+        QString queryString = QString("DELETE FROM BusinessUserInfo WHERE id=%1").arg(userId);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear BusinessUserInfo when updating user");
     }
 
     return transaction.commit(errorDescription);
@@ -3773,6 +3792,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceBusinesUserInfo(const UserID id,
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's business info into \"BusinessUserInfo\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -3803,6 +3823,7 @@ bool LocalStorageManagerPrivate::insertOrReplacePremiumInfo(const UserID id, con
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's premium info into \"PremiumInfo\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -3856,6 +3877,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, cons
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't set user's acconting into \"Accounting\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -3916,19 +3938,16 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributes\" table in SQL database");
+
+        query.finish();
     }
 
     // Clean viewed promotions first, then re-insert
     {
-        bool res = checkAndPrepareExpungeUserAttributesViewedPromotionsQuery();
-        QSqlQuery & query = m_expungeUserAttributesViewedPromotionsQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" "
-                                     "table in SQL database: can't prepare SQL query");
-
-        query.bindValue(":id", id);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
+        QString queryString = QString("DELETE FROM UserAttributesViewedPromotions WHERE id=%1").arg(id);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesViewedPromotions when updating user");
     }
 
     if (attributes.viewedPromotions.isSet())
@@ -3940,24 +3959,21 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
 
         query.bindValue(":id", id);
 
-        foreach(const QString & promotion, attributes.viewedPromotions.ref()) {
-            query.bindValue(":promotion", promotion);
+        const auto & viewedPromotions = attributes.viewedPromotions.ref();
+        for(auto it = viewedPromotions.begin(), end = viewedPromotions.end(); it != end; ++it) {
+            query.bindValue(":promotion", *it);
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesViewedPromotions\" table in SQL database");
+            query.finish();
         }
     }
 
     // Clean recent mailed addresses first, then re-insert
     {
-        bool res = checkAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
-        QSqlQuery & query = m_expungeUserAttributesRecentMailedAddressesQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database: "
-                                     "can't prepare SQL query");
-
-        query.bindValue(":id", id);
-
-        res = query.exec();
-        DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
+        QString queryString = QString("DELETE FROM UserAttributesRecentMailedAddresses WHERE id=%1").arg(id);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR("can't clear UserAttributesRecentMailedAddresses when updating user");
     }
 
     if (attributes.recentMailedAddresses.isSet())
@@ -3969,10 +3985,12 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
 
         query.bindValue(":id", id);
 
-        foreach(const QString & address, attributes.recentMailedAddresses.ref()) {
-            query.bindValue(":address", address);
+        const auto & recentMailedAddresses = attributes.recentMailedAddresses.ref();
+        for(auto it = recentMailedAddresses.begin(), end = recentMailedAddresses.end(); it != end; ++it) {
+            query.bindValue(":address", *it);
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR("can't set user's attributes into \"UserAttributesRecentMailedAddresses\" table in SQL database");
+            query.finish();
         }
     }
 
@@ -4021,23 +4039,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserQuery()
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeAccountingQuery()
-{
-    if (Q_LIKELY(m_expungeAccountingQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge accounting");
-
-    m_expungeAccountingQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeAccountingQuery.prepare("DELETE FROM Accounting WHERE id = :id");
-    if (res) {
-        m_expungeAccountingQueryPrepared = true;
-    }
-
-    return res;
-}
-
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceAccountingQuery()
 {
     if (Q_LIKELY(m_insertOrReplaceAccountingQueryPrepared)) {
@@ -4069,23 +4070,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceAccountingQuery()
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareExpungePremiumUserInfoQuery()
-{
-    if (Q_LIKELY(m_expungePremiumUserInfoQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge premium user info");
-
-    m_expungePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungePremiumUserInfoQuery.prepare("DELETE FROM PremiumInfo WHERE id = :id");
-    if (res) {
-        m_expungePremiumUserInfoQueryPrepared = true;
-    }
-
-    return res;
-}
-
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplacePremiumUserInfoQuery()
 {
     if (Q_LIKELY(m_insertOrReplacePremiumUserInfoQueryPrepared)) {
@@ -4109,23 +4093,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplacePremiumUserInfoQu
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeBusinessUserInfoQuery()
-{
-    if (Q_LIKELY(m_expungeBusinessUserInfoQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge business user info");
-
-    m_expungeBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeBusinessUserInfoQuery.prepare("DELETE FROM BusinessUserInfo WHERE id = :id");
-    if (res) {
-        m_expungeBusinessUserInfoQueryPrepared = true;
-    }
-
-    return res;
-}
-
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceBusinessUserInfoQuery()
 {
     if (Q_LIKELY(m_insertOrReplaceBusinessUserInfoQueryPrepared)) {
@@ -4140,23 +4107,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceBusinessUserInfoQ
                                                               "VALUES(:id, :businessId, :businessName, :role, :businessInfoEmail)");
     if (res) {
         m_insertOrReplaceBusinessUserInfoQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserAttributesQuery()
-{
-    if (Q_LIKELY(m_expungeUserAttributesQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge user attributes");
-
-    m_expungeUserAttributesQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeUserAttributesQuery.prepare("DELETE FROM UserAttributes WHERE id = :id");
-    if (res) {
-        m_expungeUserAttributesQueryPrepared = true;
     }
 
     return res;
@@ -4205,23 +4155,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesQue
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserAttributesViewedPromotionsQuery()
-{
-    if (Q_LIKELY(m_expungeUserAttributesViewedPromotionsQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge user attributes viewed promotions");
-
-    m_expungeUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeUserAttributesViewedPromotionsQuery.prepare("DELETE FROM UserAttributesViewedPromotions WHERE id = :id");
-    if (res) {
-        m_expungeUserAttributesViewedPromotionsQueryPrepared = true;
-    }
-
-    return res;
-}
-
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery()
 {
     if (Q_LIKELY(m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared)) {
@@ -4235,23 +4168,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesVie
                                                                             "(id, promotion) VALUES(:id, :promotion)");
     if (res) {
         m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserAttributesRecentMailedAddressesQuery()
-{
-    if (Q_LIKELY(m_expungeUserAttributesRecentMailedAddressesQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge user attributes recent mailed addresses");
-
-    m_expungeUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeUserAttributesRecentMailedAddressesQuery.prepare("DELETE FROM UserAttributesRecentMailedAddresses WHERE id = :id");
-    if (res) {
-        m_expungeUserAttributesRecentMailedAddressesQueryPrepared = true;
     }
 
     return res;
@@ -4288,23 +4204,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareDeleteUserQuery()
                                          "userIsLocal = :userIsLocal WHERE id = :id");
     if (res) {
         m_deleteUserQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeUserQuery()
-{
-    if (Q_LIKELY(m_expungeUserQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge user");
-
-    m_expungeUserQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeUserQuery.prepare("DELETE FROM Users WHERE id = :id");
-    if (res) {
-        m_expungeUserQueryPrepared = true;
     }
 
     return res;
@@ -4356,6 +4255,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Notebooks\" table in SQL database");
+
+        query.finish();
     }
 
     if (notebook.hasRestrictions())
@@ -4369,26 +4270,17 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
     }
     else
     {
-        bool res = checkAndPrepareExpungeNotebookFromNotebookRestrictionsQuery();
-        QSqlQuery & query = m_expungeNotebookFromNotebookRestrictionsQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear notebook restrictions when updating notebook: "
-                                     "can't prepare SQL query");
-
-        query.bindValue(":localUid", localUid);
-
-        res = query.exec();
+        QString queryString = QString("DELETE FROM NotebookRestrictions WHERE localUid='%1'").arg(localUid);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear notebook restrictions when updating notebook");
     }
 
     if (notebook.hasGuid())
     {
-        bool res = checkAndPrepareExpungeSharedNotebooksQuery();
-        QSqlQuery & query = m_expungeSharedNotebooksQuery;
-        DATABASE_CHECK_AND_SET_ERROR("can't clear shared notebooks before the insertion: can't prepare SQL query");
-
-        query.bindValue(":notebookGuid", notebook.guid());
-
-        res = query.exec();
+        QString queryString = QString("DELETE FROM SharedNotebooks WHERE notebookGuid='%1'").arg(notebook.guid());
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR("can't clear shared notebooks before the insertion");
 
         QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
@@ -4458,26 +4350,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookQuery()
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeNotebookFromNotebookRestrictionsQuery()
-{
-    if (!m_expungeNotebookFromNotebookRestrictionsQueryPrepared)
-    {
-        QNDEBUG("Preparing SQL query to expunge notebook from notebook restrictions table");
-
-        m_expungeNotebookFromNotebookRestrictionsQuery = QSqlQuery(m_sqlDatabase);
-        bool res = m_expungeNotebookFromNotebookRestrictionsQuery.prepare("DELETE FROM NotebookRestrictions WHERE localUid = :localUid");
-        if (res) {
-            m_expungeNotebookFromNotebookRestrictionsQueryPrepared = true;
-        }
-
-        return res;
-    }
-    else
-    {
-        return true;
-    }
-}
-
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookRestrictionsQuery()
 {
     if (Q_LIKELY(m_insertOrReplaceNotebookRestrictionsQueryPrepared)) {
@@ -4504,23 +4376,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookRestricti
                                                                   ":expungeWhichSharedNotebookRestrictions)");
     if (res) {
         m_insertOrReplaceNotebookRestrictionsQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeSharedNotebooksQuery()
-{
-    if (Q_LIKELY(m_expungeSharedNotebooksQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge shared notebooks per notebook guid");
-
-    m_expungeSharedNotebooksQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeSharedNotebooksQuery.prepare("DELETE FROM SharedNotebooks WHERE notebookGuid = :notebookGuid");
-    if (res) {
-        m_expungeSharedNotebooksQueryPrepared = true;
     }
 
     return res;
@@ -4584,6 +4439,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceLinkedNotebook(const LinkedNoteb
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace notebook into \"LinkedNotebooks\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -4628,23 +4484,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceLinkedNotebookQue
                                                             ":uri, :noteStoreUrl, :webApiUrlPrefix, :stack, :businessId, :isDirty)");
     if (res) {
         m_insertOrReplaceLinkedNotebookQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeLinkedNotebookQuery()
-{
-    if (Q_LIKELY(m_expungeLinkedNotebookQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge linked notebook");
-
-    m_expungeLinkedNotebookQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeLinkedNotebookQuery.prepare("DELETE FROM LinkedNotebooks WHERE guid = :guid");
-    if (res) {
-        m_expungeLinkedNotebookQueryPrepared = true;
     }
 
     return res;
@@ -4757,6 +4596,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             if (!error.isEmpty()) {
                 errorDescription += QT_TR_NOOP("can't get note's plain text and list of words: ") + error;
                 QNWARNING(errorDescription);
+                query.finish();
                 return false;
             }
 
@@ -4822,9 +4662,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
                     const QSet<QString> & keysOnly = lazyMap.keysOnly.ref();
                     QString keysOnlyString;
 
-                    typedef QSet<QString>::const_iterator CIter;
-                    CIter keysOnlyEnd = keysOnly.constEnd();
-                    for(CIter it = keysOnly.constBegin(); it != keysOnlyEnd; ++it) {
+                    for(auto it = keysOnly.begin(), end = keysOnly.end(); it != end; ++it) {
                         keysOnlyString += "'";
                         keysOnlyString += *it;
                         keysOnlyString += "'";
@@ -4845,9 +4683,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
                     QString fullMapKeysString;
                     QString fullMapValuesString;
 
-                    typedef QMap<QString, QString>::const_iterator CIter;
-                    CIter fullMapEnd = fullMap.constEnd();
-                    for(CIter it = fullMap.constBegin(); it != fullMapEnd; ++it)
+                    for(auto it = fullMap.begin(), end = fullMap.end(); it != end; ++it)
                     {
                         fullMapKeysString += "'";
                         fullMapKeysString += it.key();
@@ -4881,9 +4717,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             {
                 const QMap<QString, QString> & classifications = attributes.classifications.ref();
                 QString classificationKeys, classificationValues;
-                typedef QMap<QString, QString>::const_iterator CIter;
-                CIter classificationsEnd = classifications.constEnd();
-                for(CIter it = classifications.constBegin(); it != classificationsEnd; ++it)
+                for(auto it = classifications.begin(), end = classifications.end(); it != end; ++it)
                 {
                     classificationKeys += "'";
                     classificationKeys += it.key();
@@ -4939,19 +4773,17 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace note into \"Notes\" table in SQL database");
+
+        query.finish();
     }
 
     if (updateTags)
     {
         // Clear note-to-tag binding first, update them second
         {
-            bool res = checkAndPrepareExpungeNoteFromNoteTagsQuery();
-            QSqlQuery & query = m_expungeNoteFromNoteTagsQuery;
-            DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note: can't prepare SQL query");
-
-            query.bindValue(":localNote", localUid);
-
-            res = query.exec();
+            QString queryString = QString("DELETE From NoteTags WHERE localNote='%1'").arg(localUid);
+            QSqlQuery query(m_sqlDatabase);
+            bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't clear note's tags when updating note");
         }
 
@@ -5008,6 +4840,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
 
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteTags\" table in SQL database");
+
+                query.finish();
             }
         }
 
@@ -5020,14 +4854,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
         // Clear note's resources first and insert new ones second
         // TODO: it is not perfectly efficient... need to figure out some partial update approach for the future
         {
-            bool res = checkAndPrepareExpungeResourcesByNoteQuery();
-            QSqlQuery & query = m_expungeResourceByNoteQuery;
-            DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note: "
-                                         "can't prepare SQL query");
-
-            query.bindValue(":noteLocalUid", localUid);
-
-            res = query.exec();
+            QString queryString = QString("DELETE FROM Resources WHERE noteLocalUid='%1'").arg(localUid);
+            QSqlQuery query(m_sqlDatabase);
+            bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR("can't clear resources when updating note");
         }
 
@@ -5076,6 +4905,7 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
     if (!query.next()) {
         QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
                 << ", assuming it's possible to add the note to this notebook");
+        query.finish();
         return true;
     }
 
@@ -5084,6 +4914,7 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
         errorDescription += QT_TR_NOOP("notebook restrictions forbid adding the note to it");
     }
 
+    query.finish();
     return res;
 }
 
@@ -5100,6 +4931,7 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
     if (!query.next()) {
         QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
                 << ", assuming it's possible to update the note in this notebook");
+        query.finish();
         return true;
     }
 
@@ -5108,6 +4940,7 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
         errorDescription += QT_TR_NOOP("notebook restrictions forbid updating its notes");
     }
 
+    query.finish();
     return res;
 }
 
@@ -5206,23 +5039,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareCanUpdateNoteInNotebookQuery() c
     return true;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeNoteFromNoteTagsQuery()
-{
-    if (Q_LIKELY(m_expungeNoteFromNoteTagsQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge note from NoteTags table");
-
-    m_expungeNoteFromNoteTagsQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeNoteFromNoteTagsQuery.prepare("DELETE From NoteTags WHERE localNote = :localNote");
-    if (res) {
-        m_expungeNoteFromNoteTagsQueryPrepared = true;
-    }
-
-    return res;
-}
-
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery()
 {
     if (Q_LIKELY(m_insertOrReplaceNoteIntoNoteTagsQueryPrepared)) {
@@ -5237,23 +5053,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQ
                                                               "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)");
     if (res) {
         m_insertOrReplaceNoteIntoNoteTagsQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeResourcesByNoteQuery()
-{
-    if (Q_LIKELY(m_expungeResourceByNoteQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge resource by note");
-
-    m_expungeResourceByNoteQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeResourceByNoteQuery.prepare("DELETE FROM Resources WHERE noteLocalUid = :noteLocalUid");
-    if (res) {
-        m_expungeResourceByNoteQueryPrepared = true;
     }
 
     return res;
@@ -5295,6 +5094,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, QString & e
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -5330,21 +5130,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
                                                  ":hasShortcut)");
     if (res) {
         m_insertOrReplaceTagQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeTagQuery()
-{
-    if (Q_LIKELY(m_expungeTagQueryPrepared)) {
-        return true;
-    }
-
-    m_expungeTagQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeTagQuery.prepare("DELETE FROM Tags WHERE localUid = :localUid");
-    if (res) {
-        m_expungeTagQueryPrepared = true;
     }
 
     return res;
@@ -5396,6 +5181,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"Resources\" table in SQL database");
+
+        query.finish();
     }
 
     // Updating connections between note and resource in NoteResources table
@@ -5412,6 +5199,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"NoteResources\" table in SQL database");
+
+        query.finish();
     }
 
     // Removing resource's local uid from ResourceRecognitionData table
@@ -5425,6 +5214,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceRecognitionData table");
+
+        query.finish();
     }
 
     if (resource.hasRecognitionDataBody())
@@ -5467,6 +5258,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceRecognitionData\" table in SQL database");
+
+                query.finish();
             }
         }
     }
@@ -5482,6 +5275,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributes table");
+
+        query.finish();
     }
 
     // Removing resource from ResourceAttributesApplicationDataKeysOnly table
@@ -5495,6 +5290,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataKeysOnly table");
+
+        query.finish();
     }
 
     // Removing resource from ResourceAttributesApplicationDataFullMap table
@@ -5508,6 +5305,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't delete data from ResourceAttributesApplicationDataFullMap");
+
+        query.finish();
     }
 
     if (resource.hasResourceAttributes())
@@ -5554,6 +5353,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceResourceAttributes(const QString
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributes\" table in SQL database");
+
+        query.finish();
     }
 
     // Special treatment for ResourceAttributes.applicationData: keysOnly + fullMap
@@ -5570,10 +5371,12 @@ bool LocalStorageManagerPrivate::insertOrReplaceResourceAttributes(const QString
             query.bindValue(":resourceLocalUid", localUid);
 
             const QSet<QString> & keysOnly = attributes.applicationData->keysOnly.ref();
-            foreach(const QString & key, keysOnly) {
+            for(auto it = keysOnly.begin(), end = keysOnly.end(); it != end; ++it) {
+                const QString & key = *it;
                 query.bindValue(":resourceKey", key);
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataKeysOnly\" table in SQL database");
+                query.finish();
             }
         }
 
@@ -5587,11 +5390,14 @@ bool LocalStorageManagerPrivate::insertOrReplaceResourceAttributes(const QString
             query.bindValue(":resourceLocalUid", localUid);
 
             const QMap<QString, QString> & fullMap = attributes.applicationData->fullMap.ref();
-            foreach(const QString & key, fullMap.keys()) {
+            for(auto it = fullMap.begin(), end = fullMap.end(); it != end; ++it) {
+                const QString & key = it.key();
+                const QString & value = it.value();
                 query.bindValue(":resourceMapKey", key);
-                query.bindValue(":resourceValue", fullMap.value(key));
+                query.bindValue(":resourceValue", value);
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR("can't insert or replace data into \"ResourceAttributesApplicationDataFullMap\" table in SQL database");
+                query.finish();
             }
         }
     }
@@ -5859,6 +5665,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
 
+    query.finish();
     return true;
 }
 
@@ -5903,24 +5710,6 @@ bool LocalStorageManagerPrivate::checkAndPrepareGetSavedSearchCountQuery() const
 
     if (res) {
         m_getSavedSearchCountQueryPrepared = true;
-    }
-
-    return res;
-}
-
-bool LocalStorageManagerPrivate::checkAndPrepareExpungeSavedSearchQuery()
-{
-    if (Q_LIKELY(m_expungeSavedSearchQueryPrepared)) {
-        return true;
-    }
-
-    QNDEBUG("Preparing SQL query to expunge SavedSearch");
-
-    m_expungeSavedSearchQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_expungeSavedSearchQuery.prepare("DELETE FROM SavedSearches WHERE localUid = :localUid");
-
-    if (res) {
-        m_expungeSavedSearchQueryPrepared = res;
     }
 
     return res;

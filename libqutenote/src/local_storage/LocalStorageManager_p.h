@@ -185,33 +185,23 @@ private:
                                        QString & errorDescription);
     bool checkAndPrepareUserCountQuery() const;
     bool checkAndPrepareInsertOrReplaceUserQuery();
-    bool checkAndPrepareExpungeAccountingQuery();
     bool checkAndPrepareInsertOrReplaceAccountingQuery();
-    bool checkAndPrepareExpungePremiumUserInfoQuery();
     bool checkAndPrepareInsertOrReplacePremiumUserInfoQuery();
-    bool checkAndPrepareExpungeBusinessUserInfoQuery();
     bool checkAndPrepareInsertOrReplaceBusinessUserInfoQuery();
-    bool checkAndPrepareExpungeUserAttributesQuery();
     bool checkAndPrepareInsertOrReplaceUserAttributesQuery();
-    bool checkAndPrepareExpungeUserAttributesViewedPromotionsQuery();
     bool checkAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
-    bool checkAndPrepareExpungeUserAttributesRecentMailedAddressesQuery();
     bool checkAndPrepareInsertOrReplaceUserAttributesRecentMailedAddressesQuery();
     bool checkAndPrepareDeleteUserQuery();
-    bool checkAndPrepareExpungeUserQuery();
 
     bool insertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
     bool checkAndPrepareNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNotebookQuery();
-    bool checkAndPrepareExpungeNotebookFromNotebookRestrictionsQuery();
     bool checkAndPrepareInsertOrReplaceNotebookRestrictionsQuery();
-    bool checkAndPrepareExpungeSharedNotebooksQuery();
     bool checkAndPrepareInsertOrReplaceSharedNotebokQuery();
 
     bool insertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
     bool checkAndPrepareGetLinkedNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceLinkedNotebookQuery();
-    bool checkAndPrepareExpungeLinkedNotebookQuery();
 
     bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription);
     bool getNotebookGuidForNote(const Note & note, QString & notebookGuid, QString & errorDescription);
@@ -224,15 +214,12 @@ private:
     bool checkAndPrepareInsertOrReplaceNoteQuery();
     bool checkAndPrepareCanAddNoteToNotebookQuery() const;
     bool checkAndPrepareCanUpdateNoteInNotebookQuery() const;
-    bool checkAndPrepareExpungeNoteFromNoteTagsQuery();
     bool checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
-    bool checkAndPrepareExpungeResourcesByNoteQuery();
 
     bool insertOrReplaceTag(const Tag & tag, QString & errorDescription);
     bool checkAndPrepareTagCountQuery() const;
     bool checkAndPrepareInsertOrReplaceTagQuery();
     bool checkAndPrepareDeleteTagQuery();
-    bool checkAndPrepareExpungeTagQuery();
 
     bool insertOrReplaceResource(const IResource & resource, QString & errorDescription,
                                  const bool useSeparateTransaction = true);
@@ -357,9 +344,6 @@ private:
     mutable QSqlQuery   m_getSavedSearchCountQuery;
     mutable bool        m_getSavedSearchCountQueryPrepared;
 
-    QSqlQuery           m_expungeSavedSearchQuery;
-    bool                m_expungeSavedSearchQueryPrepared;
-
     QSqlQuery           m_insertOrReplaceResourceQuery;
     bool                m_insertOrReplaceResourceQueryPrepared;
 
@@ -399,9 +383,6 @@ private:
     QSqlQuery           m_insertOrReplaceTagQuery;
     bool                m_insertOrReplaceTagQueryPrepared;
 
-    QSqlQuery           m_expungeTagQuery;
-    bool                m_expungeTagQueryPrepared;
-
     mutable QSqlQuery   m_getNoteCountQuery;
     mutable bool        m_getNoteCountQueryPrepared;
 
@@ -414,14 +395,8 @@ private:
     mutable QSqlQuery   m_canUpdateNoteInNotebookQuery;
     mutable bool        m_canUpdateNoteInNotebookQueryPrepared;
 
-    QSqlQuery           m_expungeNoteFromNoteTagsQuery;
-    bool                m_expungeNoteFromNoteTagsQueryPrepared;
-
     QSqlQuery           m_insertOrReplaceNoteIntoNoteTagsQuery;
     bool                m_insertOrReplaceNoteIntoNoteTagsQueryPrepared;
-
-    QSqlQuery           m_expungeResourceByNoteQuery;
-    bool                m_expungeResourceByNoteQueryPrepared;
 
     mutable QSqlQuery   m_getLinkedNotebookCountQuery;
     mutable bool        m_getLinkedNotebookCountQueryPrepared;
@@ -429,23 +404,14 @@ private:
     QSqlQuery           m_insertOrReplaceLinkedNotebookQuery;
     bool                m_insertOrReplaceLinkedNotebookQueryPrepared;
 
-    QSqlQuery           m_expungeLinkedNotebookQuery;
-    bool                m_expungeLinkedNotebookQueryPrepared;
-
     mutable QSqlQuery   m_getNotebookCountQuery;
     mutable bool        m_getNotebookCountQueryPrepared;
 
     QSqlQuery           m_insertOrReplaceNotebookQuery;
     bool                m_insertOrReplaceNotebookQueryPrepared;
 
-    QSqlQuery           m_expungeNotebookFromNotebookRestrictionsQuery;
-    bool                m_expungeNotebookFromNotebookRestrictionsQueryPrepared;
-
     QSqlQuery           m_insertOrReplaceNotebookRestrictionsQuery;
     bool                m_insertOrReplaceNotebookRestrictionsQueryPrepared;
-
-    QSqlQuery		    m_expungeSharedNotebooksQuery;
-    bool		        m_expungeSharedNotebooksQueryPrepared;
 
     QSqlQuery		    m_insertOrReplaceSharedNotebookQuery;
     bool		        m_insertOrReplaceSharedNotebookQueryPrepared;
@@ -456,47 +422,26 @@ private:
     QSqlQuery           m_insertOrReplaceUserQuery;
     bool                m_insertOrReplaceUserQueryPrepared;
 
-    QSqlQuery           m_expungeUserAttributesQuery;
-    bool                m_expungeUserAttributesQueryPrepared;
-
     QSqlQuery           m_insertOrReplaceUserAttributesQuery;
     bool                m_insertOrReplaceUserAttributesQueryPrepared;
-
-    QSqlQuery           m_expungeAccountingQuery;
-    bool                m_expungeAccountingQueryPrepared;
 
     QSqlQuery           m_insertOrReplaceAccountingQuery;
     bool                m_insertOrReplaceAccountingQueryPrepared;
 
-    QSqlQuery           m_expungePremiumUserInfoQuery;
-    bool                m_expungePremiumUserInfoQueryPrepared;
-
     QSqlQuery           m_insertOrReplacePremiumUserInfoQuery;
     bool                m_insertOrReplacePremiumUserInfoQueryPrepared;
-
-    QSqlQuery           m_expungeBusinessUserInfoQuery;
-    bool                m_expungeBusinessUserInfoQueryPrepared;
 
     QSqlQuery           m_insertOrReplaceBusinessUserInfoQuery;
     bool                m_insertOrReplaceBusinessUserInfoQueryPrepared;
 
-    QSqlQuery           m_expungeUserAttributesViewedPromotionsQuery;
-    bool                m_expungeUserAttributesViewedPromotionsQueryPrepared;
-
     QSqlQuery           m_insertOrReplaceUserAttributesViewedPromotionsQuery;
     bool                m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared;
-
-    QSqlQuery           m_expungeUserAttributesRecentMailedAddressesQuery;
-    bool                m_expungeUserAttributesRecentMailedAddressesQueryPrepared;
 
     QSqlQuery           m_insertOrReplaceUserAttributesRecentMailedAddressesQuery;
     bool                m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared;
 
     QSqlQuery           m_deleteUserQuery;
     bool                m_deleteUserQueryPrepared;
-
-    QSqlQuery           m_expungeUserQuery;
-    bool                m_expungeUserQueryPrepared;
 
     StringUtils         m_stringUtils;
     QVector<QChar>      m_preservedAsterisk;
