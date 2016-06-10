@@ -2271,6 +2271,8 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
                     Q_UNUSED(m_tagLocalUidToChildLocalUids.erase(childrenIt))
                 }
             }
+
+            Q_UNUSED(m_tagLocalUidToParentLocalUid.erase(it))
         }
     }
 

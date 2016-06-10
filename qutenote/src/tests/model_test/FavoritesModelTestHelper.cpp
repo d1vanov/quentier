@@ -402,6 +402,27 @@ void FavoritesModelTestHelper::launchTest()
                  "as its parent tag was expunged");
         }
 
+        // After the tag's promotion expunging the tag previously being the parent should not trigger the removal of its ex-child
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_secondTag, QUuid());
+        m_pLocalStorageManagerThreadWorker->onAddTagRequest(m_thirdTag, QUuid());
+
+        m_thirdTag.setParentGuid(QString());
+        m_thirdTag.setParentLocalUid(QString());
+
+        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_thirdTag, QUuid());
+
+        thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (!thirdTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to just added and updated tag");
+        }
+
+        m_pLocalStorageManagerThreadWorker->onExpungeTagRequest(m_secondTag, QUuid());
+
+        thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (!thirdTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to a tag which has previously been a child of now expunged tag");
+        }
+
         // TODO: implement other model-specific tests here
 
         emit success();
