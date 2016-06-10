@@ -2382,9 +2382,14 @@ bool LocalStorageManagerPrivate::expungeTag(const Tag & tag, QString & errorDesc
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Tags WHERE localUid='%1'").arg(tag.localUid());
     QSqlQuery query(m_sqlDatabase);
+
+    QString queryString = QString("DELETE FROM Tags WHERE parentLocalUid='%1'").arg(tag.localUid());
     bool res = query.exec(queryString);
+    DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table in SQL database: can't delete child tags");
+
+    queryString = QString("DELETE FROM Tags WHERE localUid='%1'").arg(tag.localUid());
+    res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't delete tag from \"Tags\" table in SQL database");
 
     return true;
@@ -3124,7 +3129,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     DATABASE_CHECK_AND_SET_ERROR("can't create BusinessUserInfo table");
 
     res = query.exec("CREATE TRIGGER on_user_delete_trigger "
-                     "AFTER DELETE ON Users "
+                     "BEFORE DELETE ON Users "
                      "BEGIN "
                      "DELETE FROM UserAttributes WHERE id=OLD.id; "
                      "DELETE FROM UserAttributesViewedPromotions WHERE id=OLD.id; "
@@ -3315,7 +3320,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger NoteFTS_AfterInsertTrigger");
 
-    res = query.exec("CREATE TRIGGER on_notebook_delete_trigger AFTER DELETE ON Notebooks "
+    res = query.exec("CREATE TRIGGER on_notebook_delete_trigger BEFORE DELETE ON Notebooks "
                      "BEGIN "
                      "DELETE FROM NotebookRestrictions WHERE NotebookRestrictions.localUid=OLD.localUid; "
                      "DELETE FROM SharedNotebooks WHERE SharedNotebooks.notebookGuid=OLD.guid; "
@@ -3494,14 +3499,14 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
     // NOTE: reasoning for existence and unique constraint for nameLower, citing Evernote API reference:
     // "The account may only contain one search with a given name (case-insensitive compare)"
 
-    res = query.exec("CREATE TRIGGER on_linked_notebook_delete_trigger AFTER DELETE ON LinkedNotebooks "
+    res = query.exec("CREATE TRIGGER on_linked_notebook_delete_trigger BEFORE DELETE ON LinkedNotebooks "
                      "BEGIN "
                      "DELETE FROM Notebooks WHERE Notebooks.linkedNotebookGuid=OLD.guid; "
                      "DELETE FROM Tags WHERE Tags.linkedNotebookGuid=OLD.guid; "
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on linked notebook deletion");
 
-    res = query.exec("CREATE TRIGGER on_note_delete_trigger AFTER DELETE ON Notes "
+    res = query.exec("CREATE TRIGGER on_note_delete_trigger BEFORE DELETE ON Notes "
                      "BEGIN "
                      "DELETE FROM Resources WHERE Resources.noteLocalUid=OLD.localUid; "
                      "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.noteLocalUid=OLD.localUid; "
@@ -3510,7 +3515,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on note deletion");
 
-    res = query.exec("CREATE TRIGGER on_resource_delete_trigger AFTER DELETE ON Resources "
+    res = query.exec("CREATE TRIGGER on_resource_delete_trigger BEFORE DELETE ON Resources "
                      "BEGIN "
                      "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.resourceLocalUid=OLD.resourceLocalUid; "
                      "DELETE FROM ResourceAttributes WHERE ResourceAttributes.resourceLocalUid=OLD.resourceLocalUid; "
@@ -3520,10 +3525,9 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on resource deletion");
 
-    res = query.exec("CREATE TRIGGER on_tag_delete_trigger AFTER DELETE ON Tags "
+    res = query.exec("CREATE TRIGGER on_tag_delete_trigger BEFORE DELETE ON Tags "
                      "BEGIN "
                      "DELETE FROM NoteTags WHERE NoteTags.localTag=OLD.localUid; "
-                     "DELETE FROM Tags WHERE Tags.parentLocalUid=OLD.localUid; "
                      "END");
     DATABASE_CHECK_AND_SET_ERROR("can't create trigger to fire on tag deletion");
 
