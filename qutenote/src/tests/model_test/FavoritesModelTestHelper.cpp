@@ -145,7 +145,6 @@ void FavoritesModelTestHelper::launchTest()
         m_secondTag.setLocal(false);
         m_secondTag.setGuid(UidGenerator::Generate());
         m_secondTag.setDirty(true);
-        m_secondTag.setShortcut(true);
 
         m_thirdTag.setName("Third tag");
         m_thirdTag.setLocal(false);
@@ -153,6 +152,7 @@ void FavoritesModelTestHelper::launchTest()
         m_thirdTag.setDirty(false);
         m_thirdTag.setParentLocalUid(m_secondTag.localUid());
         m_thirdTag.setParentGuid(m_secondTag.guid());
+        m_thirdTag.setShortcut(true);
 
         m_fourthTag.setName("Fourth tag");
         m_fourthTag.setLocal(true);
@@ -278,8 +278,8 @@ void FavoritesModelTestHelper::launchTest()
             FAIL("The favorites model unexpectedly doesn't contain the item corresponding to favorited saved search");
         }
 
-        QModelIndex secondTagIndex = model->indexForLocalUid(m_secondTag.localUid());
-        if (!secondTagIndex.isValid()) {
+        QModelIndex thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (!thirdTagIndex.isValid()) {
             FAIL("The favorites model unexpectedly doesn't contain the item corresponding to favorited tag");
         }
 
@@ -391,6 +391,15 @@ void FavoritesModelTestHelper::launchTest()
         fourthNoteIndex = model->indexForLocalUid(m_fourthNote.localUid());
         if (!fourthNoteIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites model item corresponding to just favorited note");
+        }
+
+        // After expunging the parent tag its child tags should should not be present within the model
+        m_pLocalStorageManagerThreadWorker->onExpungeTagRequest(m_secondTag, QUuid());
+
+        thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (thirdTagIndex.isValid()) {
+            FAIL("Got valid model index for the tag item which should have been removed from the favorites model "
+                 "as its parent tag was expunged");
         }
 
         // TODO: implement other model-specific tests here

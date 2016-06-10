@@ -331,6 +331,8 @@ private:
     QHash<QString, QString> m_noteLocalUidToNotebookLocalUid;
 
     QHash<QString, QStringList>     m_noteLocalUidToTagLocalUids;
+    QHash<QString, QStringList>     m_tagLocalUidToChildLocalUids;
+    QHash<QString, QString>         m_tagLocalUidToParentLocalUid;
 
     LocalUidToRequestIdBimap        m_notebookLocalUidToNoteCountRequestIdBimap;
     LocalUidToRequestIdBimap        m_tagLocalUidToNoteCountRequestIdBimap;

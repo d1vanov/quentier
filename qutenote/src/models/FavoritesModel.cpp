@@ -51,6 +51,8 @@ FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageMan
     m_notebookLocalUidToGuid(),
     m_noteLocalUidToNotebookLocalUid(),
     m_noteLocalUidToTagLocalUids(),
+    m_tagLocalUidToChildLocalUids(),
+    m_tagLocalUidToParentLocalUid(),
     m_notebookLocalUidToNoteCountRequestIdBimap(),
     m_tagLocalUidToNoteCountRequestIdBimap(),
     m_sortedColumn(Columns::DisplayName),
@@ -1076,6 +1078,23 @@ void FavoritesModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions fl
 void FavoritesModel::onExpungeTagComplete(Tag tag, QUuid requestId)
 {
     QNDEBUG("FavoritesModel::onExpungeTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    auto parentIt = m_tagLocalUidToParentLocalUid.find(tag.localUid());
+    if (parentIt != m_tagLocalUidToParentLocalUid.end()) {
+        Q_UNUSED(m_tagLocalUidToParentLocalUid.erase(parentIt))
+    }
+
+    QStringList childTagLocalUids;
+    auto childrenIt = m_tagLocalUidToChildLocalUids.find(tag.localUid());
+    if (childrenIt != m_tagLocalUidToChildLocalUids.end()) {
+        childTagLocalUids = childrenIt.value();
+        Q_UNUSED(m_tagLocalUidToChildLocalUids.erase(childrenIt))
+    }
+
+    for(auto it = childTagLocalUids.begin(), end = childTagLocalUids.end(); it != end; ++it) {
+        removeItemByLocalUid(*it);
+    }
+
     removeItemByLocalUid(tag.localUid());
 }
 
@@ -2221,6 +2240,39 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
     QNDEBUG("FavoritesModel::onTagAddedOrUpdated: local uid = " << tag.localUid());
 
     m_tagCache.put(tag.localUid(), tag);
+
+    if (tag.hasParentLocalUid())
+    {
+        QStringList & childTagLocalUids = m_tagLocalUidToChildLocalUids[tag.parentLocalUid()];
+        int index = childTagLocalUids.indexOf(tag.localUid());
+        if (index < 0) {
+            childTagLocalUids << tag.localUid();
+        }
+
+        m_tagLocalUidToParentLocalUid[tag.localUid()] = tag.parentLocalUid();
+    }
+    else
+    {
+        auto it = m_tagLocalUidToParentLocalUid.find(tag.localUid());
+        if (it != m_tagLocalUidToParentLocalUid.end())
+        {
+            const QString & parentTagLocalUid = it.value();
+
+            auto childrenIt = m_tagLocalUidToChildLocalUids.find(parentTagLocalUid);
+            if (childrenIt != m_tagLocalUidToChildLocalUids.end())
+            {
+                QStringList & childTagLocalUids = childrenIt.value();
+                int index = childTagLocalUids.indexOf(tag.localUid());
+                if (index >= 0) {
+                    childTagLocalUids.removeAt(index);
+                }
+
+                if (childTagLocalUids.isEmpty()) {
+                    Q_UNUSED(m_tagLocalUidToChildLocalUids.erase(childrenIt))
+                }
+            }
+        }
+    }
 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(tag.localUid());
