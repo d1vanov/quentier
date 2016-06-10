@@ -359,6 +359,19 @@ void TagModelTestHelper::test()
             FAIL("Sorting check failed for the tag model for descending order");
         }
 
+        // After expunging the tag being the parent for other tags, the child tags should not be present within the model as well as the parent one
+        m_pLocalStorageManagerThreadWorker->onExpungeTagRequest(tenth, QUuid());
+
+        QModelIndex tenthIndex = model->indexForLocalUid(tenth.localUid());
+        if (tenthIndex.isValid()) {
+            FAIL("The tag model returns valid index for the local uid corresponding to the tag expunged from the local storage");
+        }
+
+        QModelIndex eleventhIndex = model->indexForLocalUid(eleventh.localUid());
+        if (eleventhIndex.isValid()) {
+            FAIL("The tag model returns valid index for the local uid corresponding to the tag being the child of a tag being expunged");
+        }
+
         emit success();
         return;
     }

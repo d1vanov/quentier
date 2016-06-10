@@ -1638,8 +1638,22 @@ void TagModel::removeItemByLocalUid(const QString & localUid)
         return;
     }
 
+    // Need to recursively remove all the children of this tag and do this before the actual removal of their parent
+    TagDataByParentLocalUid & parentLocalUidIndex = m_data.get<ByParentLocalUid>();
+    while(true)
+    {
+        auto childIt = parentLocalUidIndex.find(localUid);
+        if (childIt == parentLocalUidIndex.end()) {
+            break;
+        }
+
+        const TagModelItem & childItem = *childIt;
+        removeItemByLocalUid(childItem.localUid());
+    }
+
     QModelIndex parentItemModelIndex = indexForItem(parentItem);
     beginRemoveRows(parentItemModelIndex, row, row);
+    Q_UNUSED(parentItem->takeChild(row))
     Q_UNUSED(localUidIndex.erase(itemIt))
     endRemoveRows();
 }
