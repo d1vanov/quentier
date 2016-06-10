@@ -135,7 +135,7 @@ QList<SharedNotebookWrapper> LocalStorageManager::listSharedNotebooksPerNotebook
     return d->listSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
 }
 
-bool LocalStorageManager::expungeNotebook(const Notebook & notebook, QString & errorDescription)
+bool LocalStorageManager::expungeNotebook(Notebook & notebook, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeNotebook(notebook, errorDescription);
@@ -269,7 +269,7 @@ NoteList LocalStorageManager::findNotesWithSearchQuery(const NoteSearchQuery & n
     return d->findNotesWithSearchQuery(noteSearchQuery, errorDescription, withResourceBinaryData);
 }
 
-bool LocalStorageManager::expungeNote(const Note & note, QString & errorDescription)
+bool LocalStorageManager::expungeNote(Note & note, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeNote(note, errorDescription);
@@ -327,7 +327,7 @@ QList<Tag> LocalStorageManager::listTags(const ListObjectsOptions flag, QString 
     return d->listTags(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
-bool LocalStorageManager::expungeTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManager::expungeTag(Tag & tag, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeTag(tag, errorDescription);
@@ -364,7 +364,7 @@ bool LocalStorageManager::findEnResource(IResource & resource, QString & errorDe
     return d->findEnResource(resource, errorDescription, withBinaryData);
 }
 
-bool LocalStorageManager::expungeEnResource(const IResource & resource, QString & errorDescription)
+bool LocalStorageManager::expungeEnResource(IResource & resource, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeEnResource(resource, errorDescription);
@@ -411,8 +411,7 @@ QList<SavedSearch> LocalStorageManager::listSavedSearches(const ListObjectsOptio
     return d->listSavedSearches(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
-bool LocalStorageManager::expungeSavedSearch(const SavedSearch & search,
-                                             QString & errorDescription)
+bool LocalStorageManager::expungeSavedSearch(SavedSearch & search, QString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeSavedSearch(search, errorDescription);

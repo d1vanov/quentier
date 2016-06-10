@@ -317,11 +317,12 @@ public:
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some notebook is found to be
      * deleted via either official desktop client or web GUI.
-     * @param notebook - notebook to be expunged. Must have either "remote" or local uid set
+     * @param notebook - notebook to be expunged. Must have either "remote" or local uid set;
+     * may be changed as a result of the call, filled with local uid if it was empty before the call
      * @param errorDescription - error description if notebook could not be expunged
      * @return true if notebook was expunged successfully, false otherwise
      */
-    bool expungeNotebook(const Notebook & notebook, QString & errorDescription);
+    bool expungeNotebook(Notebook & notebook, QString & errorDescription);
 
     /**
      * @brief linkedNotebookCount - returns the number of linked notebooks stored in the local storage database
@@ -609,11 +610,12 @@ public:
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some note is found to be
      * deleted via either official desktop client or web GUI.
-     * @param note - note to be expunged
+     * @param note - note to be expunged; may be changed as a result of the call, filled with fields like local uid
+     * or notebook guid or local uid
      * @param errorDescription - error description if note could not be expunged
      * @return true if note was expunged successfully, false otherwise
      */
-    bool expungeNote(const Note & note, QString & errorDescription);
+    bool expungeNote(Note & note, QString & errorDescription);
 
     /**
      * @brief tagCount returns the number of non-deleted tags currently stored in local storage database
@@ -739,11 +741,12 @@ public:
      * only be done by official desktop client or web GUI. So this method should be called
      * only during the synchronization with remote database, when some tag is found to be
      * deleted via either official desktop client or web GUI.
-     * @param tag - tag to be expunged
+     * @param tag - tag to be expunged; may be changed as a result of the call,
+     * automatically filled with local uid if it was empty before the call
      * @param errorDescription - error description if tag could not be expunged
      * @return true if tag was expunged successfully, false otherwise
      */
-    bool expungeTag(const Tag & tag, QString & errorDescription);
+    bool expungeTag(Tag & tag, QString & errorDescription);
 
     /**
      * @brief expungeNotelessTagsFromLinkedNotebooks - permanently deletes from local storage those tags
@@ -799,11 +802,12 @@ public:
     /**
      * @brief expungeResource - permanently deletes resource from local storage completely,
      * without the possibility to restore it
-     * @param resource - resource to be expunged
+     * @param resource - resource to be expunged; may be changed as a result of the call,
+     * automatically filled with local uid and note local uid and/or guid if these were empty before the call
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool expungeEnResource(const IResource & resource, QString & errorDescription);
+    bool expungeEnResource(IResource & resource, QString & errorDescription);
 
     /**
      * @brief savedSearchCount returns the number of saved seacrhes currently stored in local storage database
@@ -826,9 +830,9 @@ public:
     /**
      * @brief updateSavedSearch - updates passed in SavedSearch in th local storage database.
      * If search has "remote" Evernote service's guid set, it is identified in the database
-     * by this guid. Otherwise it is identified by local uid; may be changed as a result of the call,
-     * filled local uid if it was empty before the call
-     * @param search - SavedSearch filled with values to be updated in the local storage database
+     * by this guid. Otherwise it is identified by local uid
+     * @param search - SavedSearch filled with values to be updated in the local storage database;
+     * may be changed as a result of the call filled local uid if it was empty before the call
      * @param errorDescription - error description if SavedSearch could not be updated
      * @return true if SavedSearch was updated successfully, false otherwise
      */
@@ -899,11 +903,12 @@ public:
     /**
      * @brief expungeSavedSearch - permanently deletes saved search from local storage completely,
      * without the possibility to restore it
-     * @param search - saved search to be expunged
+     * @param search - saved search to be expunged; may be changed as a result of the call filled local uid
+     * if it was empty before the call
      * @param errorDescription - error description if saved search could not be expunged
      * @return true if saved search was expunged succesfully, false otherwise
      */
-    bool expungeSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool expungeSavedSearch(SavedSearch & search, QString & errorDescription);
 
 private:
     LocalStorageManager() Q_DECL_DELETE;
