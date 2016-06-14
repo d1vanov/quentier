@@ -246,7 +246,8 @@ void FavoritesModelTestHelper::launchTest()
         ModelTest t1(model);
         Q_UNUSED(t1)
 
-        // The favorites model shouldn't have items corresponding to non-favorited notebooks, notes, tags and saved searches
+        // The favorites model should have items corresponding to favorited notebooks, notes, tags and saved searches
+        // and shouldn't have items corresponding to non-favorited notebooks, notes, tags and saved searches
         QModelIndex firstNotebookIndex = model->indexForLocalUid(m_firstNotebook.localUid());
         if (firstNotebookIndex.isValid()) {
             FAIL("The favorites model unexpectedly contains the item corresponding to non-favorited notebook");
@@ -421,6 +422,60 @@ void FavoritesModelTestHelper::launchTest()
         thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
         if (!thirdTagIndex.isValid()) {
             FAIL("Can't get the valid model index for the favorites model item corresponding to a tag which has previously been a child of now expunged tag");
+        }
+
+        // Unfavoriting the previously favorited item should make it disappear from the favorites model
+        QModelIndex thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
+        if (!thirdNotebookIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited notebook");
+        }
+
+        m_thirdNotebook.setShortcut(false);
+        m_pLocalStorageManagerThreadWorker->onUpdateNotebookRequest(m_thirdNotebook, QUuid());
+
+        thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
+        if (thirdNotebookIndex.isValid()) {
+            FAIL("Was able to get the valid model index for the favorites model item corresponding to the notebook which has just been unfavorited");
+        }
+
+        QModelIndex thirdSavedSearchIndex = model->indexForLocalUid(m_thirdSavedSearch.localUid());
+        if (!thirdSavedSearchIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited saved search");
+        }
+
+        m_thirdSavedSearch.setShortcut(false);
+        m_pLocalStorageManagerThreadWorker->onUpdateSavedSearchRequest(m_thirdSavedSearch, QUuid());
+
+        thirdSavedSearchIndex = model->indexForLocalUid(m_thirdSavedSearch.localUid());
+        if (thirdSavedSearchIndex.isValid()) {
+            FAIL("Was able to get the valid model index for the favorites model item corresponding to the saved search which has just been unfavorited");
+        }
+
+        thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (!thirdTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited tag");
+        }
+
+        m_thirdTag.setShortcut(false);
+        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_thirdTag, QUuid());
+
+        thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (thirdTagIndex.isValid()) {
+            FAIL("Was able to get the valid model index for the favorites model item corresponding to the tag which has just been unfavorited");
+        }
+
+        QModelIndex thirdNoteIndex = model->indexForLocalUid(m_thirdNote.localUid());
+        if (!thirdNoteIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited note");
+        }
+
+        m_thirdNote.setShortcut(false);
+        m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false,
+                                                                /* update tags = */ false, QUuid());
+
+        thirdNoteIndex = model->indexForLocalUid(m_thirdNote.localUid());
+        if (thirdNoteIndex.isValid()) {
+            FAIL("Was able to get the valid model index for the favorites model item corresponding to the note which has just been unfavorited");
         }
 
         // TODO: implement other model-specific tests here
