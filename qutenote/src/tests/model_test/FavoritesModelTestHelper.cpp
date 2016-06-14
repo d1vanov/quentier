@@ -28,7 +28,11 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerThreadWork
     m_firstSavedSearch(),
     m_secondSavedSearch(),
     m_thirdSavedSearch(),
-    m_fourthSavedSearch()
+    m_fourthSavedSearch(),
+    m_expectingNoteUpdateFromLocalStorage(false),
+    m_expectingNotebookUpdateFromLocalStorage(false),
+    m_expectingTagUpdateFromLocalStorage(false),
+    m_expectingSavedSearchUpdateFromLocalStorage(false)
 {
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
@@ -497,9 +501,72 @@ void FavoritesModelTestHelper::launchTest()
             checkSorting(*model);
         }
 
-        // TODO: implement other model-specific tests here
+        // Ensure the modifications of favorites model items propagate properly to the local storage
+        m_expectingTagUpdateFromLocalStorage = true;
+        m_expectingNotebookUpdateFromLocalStorage = true;
+        m_expectingSavedSearchUpdateFromLocalStorage = true;
+        m_expectingNoteUpdateFromLocalStorage = true;
 
-        emit success();
+        secondNotebookIndex = model->indexForLocalUid(m_secondNotebook.localUid());
+        if (!secondNotebookIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited notebook");
+        }
+
+        secondNotebookIndex = model->index(secondNotebookIndex.row(), FavoritesModel::Columns::DisplayName);
+        if (!secondNotebookIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the display name column");
+        }
+
+        res = model->setData(secondNotebookIndex, "Manual notebook name", Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the display name of the favorites model item");
+        }
+
+        firstSavedSearchIndex = model->indexForLocalUid(m_firstSavedSearch.localUid());
+        if (!firstSavedSearchIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited saved search");
+        }
+
+        firstSavedSearchIndex = model->index(firstSavedSearchIndex.row(), FavoritesModel::Columns::DisplayName);
+        if (!firstSavedSearchIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the display name column");
+        }
+
+        res = model->setData(firstSavedSearchIndex, "Manual saved search name", Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the display name of the favorites model item");
+        }
+
+        QModelIndex fourthTagIndex = model->indexForLocalUid(m_fourthTag.localUid());
+        if (!fourthTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited tag");
+        }
+
+        fourthTagIndex = model->index(fourthTagIndex.row(), FavoritesModel::Columns::DisplayName);
+        if (!fourthTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the display name column");
+        }
+
+        res = model->setData(fourthTagIndex, "Manual tag name", Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the display name of the favorites model item");
+        }
+
+        firstNoteIndex = model->indexForLocalUid(m_firstNote.localUid());
+        if (!firstNoteIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited note");
+        }
+
+        firstNoteIndex = model->index(firstNoteIndex.row(), FavoritesModel::Columns::DisplayName);
+        if (!firstNoteIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the display name column");
+        }
+
+        res = model->setData(firstNoteIndex, "Manual note name", Qt::EditRole);
+        if (!res) {
+            FAIL("Can't change the display name of the favorites model item");
+        }
+
         return;
     }
     CATCH_EXCEPTION()
@@ -514,7 +581,24 @@ void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResour
             << ", update tags = " << (updateTags ? "true" : "false")
             << ", request id = " << requestId);
 
-    // TODO: implement
+    if (m_expectingNoteUpdateFromLocalStorage)
+    {
+        if (note.title() != "Manual note name") {
+            QString error = QT_TR_NOOP("The title of the note updated in the local storage doesn't match the expected one");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_expectingNoteUpdateFromLocalStorage = false;
+
+        if (!m_expectingNotebookUpdateFromLocalStorage &&
+            !m_expectingTagUpdateFromLocalStorage &&
+            !m_expectingSavedSearchUpdateFromLocalStorage)
+        {
+            emit success();
+        }
+    }
 }
 
 void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -554,7 +638,24 @@ void FavoritesModelTestHelper::onUpdateNotebookComplete(Notebook notebook, QUuid
     QNDEBUG("FavoritesModelTestHelper::onUpdateNotebookComplete: notebook = " << notebook
             << ", request id = " << requestId);
 
-    // TODO: implement
+    if (m_expectingNotebookUpdateFromLocalStorage)
+    {
+        if (notebook.name() != "Manual notebook name") {
+            QString error = QT_TR_NOOP("The name of the notebook updated in the local storage doesn't match the expected one");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_expectingNotebookUpdateFromLocalStorage = false;
+
+        if (!m_expectingNoteUpdateFromLocalStorage &&
+            !m_expectingTagUpdateFromLocalStorage &&
+            !m_expectingSavedSearchUpdateFromLocalStorage)
+        {
+            emit success();
+        }
+    }
 }
 
 void FavoritesModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -590,7 +691,24 @@ void FavoritesModelTestHelper::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onUpdateTagComplete: tag = " << tag << ", request id = " << requestId);
 
-    // TODO: implement
+    if (m_expectingTagUpdateFromLocalStorage)
+    {
+        if (tag.name() != "Manual tag name") {
+            QString error = QT_TR_NOOP("The name of the tag updated in the local storage doesn't match the expected one");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_expectingTagUpdateFromLocalStorage = false;
+
+        if (!m_expectingNoteUpdateFromLocalStorage &&
+            !m_expectingSavedSearchUpdateFromLocalStorage &&
+            !m_expectingNotebookUpdateFromLocalStorage)
+        {
+            emit success();
+        }
+    }
 }
 
 void FavoritesModelTestHelper::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
@@ -631,7 +749,24 @@ void FavoritesModelTestHelper::onUpdateSavedSearchComplete(SavedSearch search, Q
     QNDEBUG("FavoritesModelTestHelper::onUpdateSavedSearchComplete: search = " << search
             << ", request id = " << requestId);
 
-    // TODO: implement
+    if (m_expectingSavedSearchUpdateFromLocalStorage)
+    {
+        if (search.name() != "Manual saved search name") {
+            QString error = QT_TR_NOOP("The name of the saved search updated in the local storage doesn't match the expected one");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_expectingSavedSearchUpdateFromLocalStorage = false;
+
+        if (!m_expectingNoteUpdateFromLocalStorage &&
+            !m_expectingNotebookUpdateFromLocalStorage &&
+            !m_expectingTagUpdateFromLocalStorage)
+        {
+            emit success();
+        }
+    }
 }
 
 void FavoritesModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)

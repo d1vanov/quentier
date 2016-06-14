@@ -117,6 +117,11 @@ private:
     SavedSearch                         m_secondSavedSearch;
     SavedSearch                         m_thirdSavedSearch;
     SavedSearch                         m_fourthSavedSearch;
+
+    bool                                m_expectingNoteUpdateFromLocalStorage;
+    bool                                m_expectingNotebookUpdateFromLocalStorage;
+    bool                                m_expectingTagUpdateFromLocalStorage;
+    bool                                m_expectingSavedSearchUpdateFromLocalStorage;
 };
 
 } // namespace qute_note
