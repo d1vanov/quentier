@@ -122,6 +122,11 @@ private:
     bool                                m_expectingNotebookUpdateFromLocalStorage;
     bool                                m_expectingTagUpdateFromLocalStorage;
     bool                                m_expectingSavedSearchUpdateFromLocalStorage;
+
+    bool                                m_expectingNoteUnfavoriteFromLocalStorage;
+    bool                                m_expectingNotebookUnfavoriteFromLocalStorage;
+    bool                                m_expectingTagUnfavoriteFromLocalStorage;
+    bool                                m_expectingSavedSearchUnfavoriteFromLocalStorage;
 };
 
 } // namespace qute_note

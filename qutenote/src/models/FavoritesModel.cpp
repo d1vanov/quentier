@@ -428,7 +428,7 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
-    if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
+    if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size())))
     {
         QString error = QT_TR_NOOP("Detected attempt to remove more rows than the favorites model contains: row") +
                         QStringLiteral(" = ") + QString::number(row) + QStringLiteral(", ") + QT_TR_NOOP("count") +
@@ -495,7 +495,7 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
 
     endRemoveRows();
 
-    return false;
+    return true;
 }
 
 void FavoritesModel::sort(int column, Qt::SortOrder order)

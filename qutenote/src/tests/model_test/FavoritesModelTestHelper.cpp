@@ -32,7 +32,11 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerThreadWork
     m_expectingNoteUpdateFromLocalStorage(false),
     m_expectingNotebookUpdateFromLocalStorage(false),
     m_expectingTagUpdateFromLocalStorage(false),
-    m_expectingSavedSearchUpdateFromLocalStorage(false)
+    m_expectingSavedSearchUpdateFromLocalStorage(false),
+    m_expectingNoteUnfavoriteFromLocalStorage(false),
+    m_expectingNotebookUnfavoriteFromLocalStorage(false),
+    m_expectingTagUnfavoriteFromLocalStorage(false),
+    m_expectingSavedSearchUnfavoriteFromLocalStorage(false)
 {
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
@@ -482,6 +486,81 @@ void FavoritesModelTestHelper::launchTest()
             FAIL("Was able to get the valid model index for the favorites model item corresponding to the note which has just been unfavorited");
         }
 
+        // The removal of items from the favorites model should cause the updates of corresponding data elements in the local storage
+
+        // First restore the favorited status of some items unfavorited just above
+        m_thirdNotebook.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateNotebookRequest(m_thirdNotebook, QUuid());
+
+        m_thirdSavedSearch.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateSavedSearchRequest(m_thirdSavedSearch, QUuid());
+
+        m_thirdTag.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateTagRequest(m_thirdTag, QUuid());
+
+        m_thirdNote.setShortcut(true);
+        m_pLocalStorageManagerThreadWorker->onUpdateNoteRequest(m_thirdNote, /* update resources = */ false, /* update tags = */ false, QUuid());
+
+        thirdNotebookIndex = model->indexForLocalUid(m_thirdNotebook.localUid());
+        if (!thirdNotebookIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited notebook");
+        }
+
+        m_expectingNotebookUnfavoriteFromLocalStorage = true;
+        res = model->removeRow(thirdNotebookIndex.row(), QModelIndex());
+        if (!res) {
+            FAIL("Can't remove row from the favorites model corresponding to the favorited notebook");
+        }
+
+        if (m_thirdNotebook.hasShortcut()) {
+            FAIL("The notebook which should have been unfavorited after the removal of corresponding item from the favorites model is still favorited");
+        }
+
+        thirdSavedSearchIndex = model->indexForLocalUid(m_thirdSavedSearch.localUid());
+        if (!thirdSavedSearchIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited saved search");
+        }
+
+        m_expectingSavedSearchUnfavoriteFromLocalStorage = true;
+        res = model->removeRow(thirdSavedSearchIndex.row(), QModelIndex());
+        if (!res) {
+            FAIL("Can't remove row from the favorites model corresponding to the favorited saved search");
+        }
+
+        if (m_thirdSavedSearch.hasShortcut()) {
+            FAIL("The saved search which should have been unfavorited after the removal of corresponding item from the favorites model is still favorited");
+        }
+
+        thirdTagIndex = model->indexForLocalUid(m_thirdTag.localUid());
+        if (!thirdTagIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited tag");
+        }
+
+        m_expectingTagUnfavoriteFromLocalStorage = true;
+        res = model->removeRow(thirdTagIndex.row(), QModelIndex());
+        if (!res) {
+            FAIL("Can't remove row from the favorites model corresponding to the favorited tag");
+        }
+
+        if (m_thirdTag.hasShortcut()) {
+            FAIL("The tag which should have been unfavorited after the removal of corresponding item from the favorites model is still favorited");
+        }
+
+        thirdNoteIndex = model->indexForLocalUid(m_thirdNote.localUid());
+        if (!thirdNoteIndex.isValid()) {
+            FAIL("Can't get the valid model index for the favorites model item corresponding to the favorited note");
+        }
+
+        m_expectingNoteUnfavoriteFromLocalStorage = true;
+        res = model->removeRow(thirdNoteIndex.row(), QModelIndex());
+        if (!res) {
+            FAIL("Can't remove row from the favorites model corresponding to the favorited note");
+        }
+
+        if (m_thirdNote.hasShortcut()) {
+            FAIL("The note which should have been unfavorited after the removal of corresponding item from the favorites model is still favorited");
+        }
+
         // Check sorting
         QVector<FavoritesModel::Columns::type> columns;
         columns.reserve(model->columnCount(QModelIndex()));
@@ -599,6 +678,18 @@ void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResour
             emit success();
         }
     }
+    else if (m_expectingNoteUnfavoriteFromLocalStorage)
+    {
+        if (note.hasShortcut()) {
+            QString error = QT_TR_NOOP("The note which should have been unfavorited in the local storage is still favorited");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_thirdNote = note;
+        m_expectingNoteUnfavoriteFromLocalStorage = false;
+    }
 }
 
 void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -656,6 +747,18 @@ void FavoritesModelTestHelper::onUpdateNotebookComplete(Notebook notebook, QUuid
             emit success();
         }
     }
+    else if (m_expectingNotebookUnfavoriteFromLocalStorage)
+    {
+        if (notebook.hasShortcut()) {
+            QString error = QT_TR_NOOP("The notebook which should have been unfavorited in the local storage is still favorited");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_thirdNotebook = notebook;
+        m_expectingNotebookUnfavoriteFromLocalStorage = false;
+    }
 }
 
 void FavoritesModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
@@ -708,6 +811,18 @@ void FavoritesModelTestHelper::onUpdateTagComplete(Tag tag, QUuid requestId)
         {
             emit success();
         }
+    }
+    else if (m_expectingTagUnfavoriteFromLocalStorage)
+    {
+        if (tag.hasShortcut()) {
+            QString error = QT_TR_NOOP("The tag which should have been unfavorited in the local storage is still favorited");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_thirdTag = tag;
+        m_expectingTagUnfavoriteFromLocalStorage = false;
     }
 }
 
@@ -766,6 +881,18 @@ void FavoritesModelTestHelper::onUpdateSavedSearchComplete(SavedSearch search, Q
         {
             emit success();
         }
+    }
+    else if (m_expectingSavedSearchUnfavoriteFromLocalStorage)
+    {
+        if (search.hasShortcut()) {
+            QString error = QT_TR_NOOP("The saved search which should have been unfavorited in the local storage is still favorited");
+            QNWARNING(error);
+            emit failure();
+            return;
+        }
+
+        m_thirdSavedSearch = search;
+        m_expectingSavedSearchUnfavoriteFromLocalStorage = false;
     }
 }
 
