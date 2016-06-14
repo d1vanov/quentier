@@ -478,6 +478,25 @@ void FavoritesModelTestHelper::launchTest()
             FAIL("Was able to get the valid model index for the favorites model item corresponding to the note which has just been unfavorited");
         }
 
+        // Check sorting
+        QVector<FavoritesModel::Columns::type> columns;
+        columns.reserve(model->columnCount(QModelIndex()));
+        columns << FavoritesModel::Columns::Type
+                << FavoritesModel::Columns::DisplayName
+                << FavoritesModel::Columns::NumNotesTargeted;
+
+        int numColumns = columns.size();
+        for(int i = 0; i < numColumns; ++i)
+        {
+            // Test the ascending case
+            model->sort(columns[i], Qt::AscendingOrder);
+            checkSorting(*model);
+
+            // Test the descending case
+            model->sort(columns[i], Qt::DescendingOrder);
+            checkSorting(*model);
+        }
+
         // TODO: implement other model-specific tests here
 
         emit success();
@@ -648,8 +667,96 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
 {
     QNDEBUG("FavoritesModelTestHelper::checkSorting");
 
-    // TODO: implement
-    Q_UNUSED(model)
+    int numRows = model.rowCount(QModelIndex());
+
+    QVector<FavoritesModelItem> items;
+    items.reserve(numRows);
+    for(int i = 0; i < numRows; ++i)
+    {
+        const FavoritesModelItem * item = model.itemAtRow(i);
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Unexpected null pointer to the favorites model item");
+        }
+
+        items << *item;
+    }
+
+    bool ascending = (model.sortOrder() == Qt::AscendingOrder);
+    switch(model.sortingColumn())
+    {
+    case FavoritesModel::Columns::Type:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByType());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByType());
+            }
+            break;
+        }
+    case FavoritesModel::Columns::DisplayName:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByDisplayName());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByDisplayName());
+            }
+            break;
+        }
+    case FavoritesModel::Columns::NumNotesTargeted:
+        {
+            if (ascending) {
+                std::sort(items.begin(), items.end(), LessByNumNotesTargeted());
+            }
+            else {
+                std::sort(items.begin(), items.end(), GreaterByNumNotesTargeted());
+            }
+            break;
+        }
+    }
+
+    for(int i = 0; i < numRows; ++i)
+    {
+        const FavoritesModelItem * item = model.itemAtRow(i);
+        if (Q_UNLIKELY(!item)) {
+            FAIL("Unexpected null pointer to the favorites model item");
+        }
+
+        if (item->localUid() != items[i].localUid()) {
+            FAIL("Found mismatched favorites model items when checking the sorting");
+        }
+    }
+}
+
+bool FavoritesModelTestHelper::LessByType::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+{
+    return lhs.type() < rhs.type();
+}
+
+bool FavoritesModelTestHelper::GreaterByType::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+{
+    return lhs.type() > rhs.type();
+}
+
+bool FavoritesModelTestHelper::LessByDisplayName::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+{
+    return lhs.displayName().localeAwareCompare(rhs.displayName()) < 0;
+}
+
+bool FavoritesModelTestHelper::GreaterByDisplayName::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+{
+    return lhs.displayName().localeAwareCompare(rhs.displayName()) > 0;
+}
+
+bool FavoritesModelTestHelper::LessByNumNotesTargeted::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+{
+    return lhs.numNotesTargeted() < rhs.numNotesTargeted();
+}
+
+bool FavoritesModelTestHelper::GreaterByNumNotesTargeted::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const
+{
+    return lhs.numNotesTargeted() > rhs.numNotesTargeted();
 }
 
 } // namespace qute_note
