@@ -5,35 +5,35 @@
 namespace qute_note {
 
 NotebookData::NotebookData() :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecNotebook(),
     m_isLastUsed(false),
     m_linkedNotebookGuid()
 {}
 
 NotebookData::NotebookData(const NotebookData & other) :
-    DataElementWithShortcutData(other),
+    FavoritableDataElementData(other),
     m_qecNotebook(other.m_qecNotebook),
     m_isLastUsed(other.m_isLastUsed),
     m_linkedNotebookGuid(other.m_linkedNotebookGuid)
 {}
 
 NotebookData::NotebookData(NotebookData && other) :
-    DataElementWithShortcutData(std::move(other)),
+    FavoritableDataElementData(std::move(other)),
     m_qecNotebook(std::move(other.m_qecNotebook)),
     m_isLastUsed(std::move(other.m_isLastUsed)),
     m_linkedNotebookGuid(std::move(other.m_linkedNotebookGuid))
 {}
 
 NotebookData::NotebookData(const qevercloud::Notebook & other) :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecNotebook(other),
     m_isLastUsed(false),
     m_linkedNotebookGuid()
 {}
 
 NotebookData::NotebookData(qevercloud::Notebook && other) :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecNotebook(std::move(other)),
     m_isLastUsed(false),
     m_linkedNotebookGuid()
@@ -106,7 +106,7 @@ bool NotebookData::operator==(const NotebookData & other) const
     else if (m_isDirty != other.m_isDirty) {
         return false;
     }
-    else if (m_hasShortcut != other.m_hasShortcut) {
+    else if (m_isFavorited != other.m_isFavorited) {
         return false;
     }
     else if (m_isLastUsed != other.m_isLastUsed) {

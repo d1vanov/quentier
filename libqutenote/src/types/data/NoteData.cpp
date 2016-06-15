@@ -8,7 +8,7 @@
 namespace qute_note {
 
 NoteData::NoteData() :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecNote(),
     m_resourcesAdditionalInfo(),
     m_notebookLocalUid(),
@@ -17,7 +17,7 @@ NoteData::NoteData() :
 {}
 
 NoteData::NoteData(const NoteData & other) :
-    DataElementWithShortcutData(other),
+    FavoritableDataElementData(other),
     m_qecNote(other.m_qecNote),
     m_resourcesAdditionalInfo(other.m_resourcesAdditionalInfo),
     m_notebookLocalUid(other.m_notebookLocalUid),
@@ -26,7 +26,7 @@ NoteData::NoteData(const NoteData & other) :
 {}
 
 NoteData::NoteData(NoteData && other) :
-    DataElementWithShortcutData(std::move(other)),
+    FavoritableDataElementData(std::move(other)),
     m_qecNote(std::move(other.m_qecNote)),
     m_resourcesAdditionalInfo(std::move(other.m_resourcesAdditionalInfo)),
     m_notebookLocalUid(std::move(other.m_notebookLocalUid)),
@@ -38,7 +38,7 @@ NoteData::~NoteData()
 {}
 
 NoteData::NoteData(const qevercloud::Note & other) :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecNote(other),
     m_resourcesAdditionalInfo(),
     m_notebookLocalUid(),

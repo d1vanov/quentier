@@ -5,28 +5,28 @@
 namespace qute_note {
 
 TagData::TagData() :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecTag(),
     m_linkedNotebookGuid(),
     m_parentLocalUid()
 {}
 
 TagData::TagData(const TagData & other) :
-    DataElementWithShortcutData(other),
+    FavoritableDataElementData(other),
     m_qecTag(other.m_qecTag),
     m_linkedNotebookGuid(other.m_linkedNotebookGuid),
     m_parentLocalUid(other.m_parentLocalUid)
 {}
 
 TagData::TagData(TagData && other) :
-    DataElementWithShortcutData(std::move(other)),
+    FavoritableDataElementData(std::move(other)),
     m_qecTag(std::move(other.m_qecTag)),
     m_linkedNotebookGuid(std::move(other.m_linkedNotebookGuid)),
     m_parentLocalUid(std::move(other.m_parentLocalUid))
 {}
 
 TagData::TagData(const qevercloud::Tag & other) :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecTag(other),
     m_linkedNotebookGuid(),
     m_parentLocalUid()
@@ -76,7 +76,7 @@ bool TagData::operator==(const TagData & other) const
     return (m_qecTag == other.m_qecTag) &&
            (m_isDirty == other.m_isDirty) &&
            (m_isLocal == other.m_isLocal) &&
-           (m_hasShortcut == other.m_hasShortcut) &&
+           (m_isFavorited == other.m_isFavorited) &&
            m_linkedNotebookGuid.isEqual(other.m_linkedNotebookGuid) &&
            m_parentLocalUid.isEqual(other.m_parentLocalUid);
 }

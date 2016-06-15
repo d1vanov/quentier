@@ -1,7 +1,7 @@
 #ifndef LIB_QUTE_NOTE_TYPES_NOTE_H
 #define LIB_QUTE_NOTE_TYPES_NOTE_H
 
-#include "IDataElementWithShortcut.h"
+#include "IFavoritableDataElement.h"
 #include <QEverCloud.h>
 #include <QImage>
 #include <QSharedDataPointer>
@@ -13,12 +13,12 @@ QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(NoteData)
 
-class QUTE_NOTE_EXPORT Note: public IDataElementWithShortcut
+class QUTE_NOTE_EXPORT Note: public IFavoritableDataElement
 {
 public:
     QN_DECLARE_LOCAL_UID
     QN_DECLARE_DIRTY
-    QN_DECLARE_SHORTCUT
+    QN_DECLARE_FAVORITED
     QN_DECLARE_LOCAL
 
 public:

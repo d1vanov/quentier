@@ -1502,7 +1502,7 @@ void FavoritesModel::requestNotesList()
 {
     QNDEBUG("FavoritesModel::requestNotesList: offset = " << m_listNotesOffset);
 
-    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListElementsWithShortcuts;
+    LocalStorageManager::ListObjectsOptions flags = LocalStorageManager::ListFavoritedElements;
     LocalStorageManager::ListNotesOrder::type order = LocalStorageManager::ListNotesOrder::NoOrder;
     LocalStorageManager::OrderDirection::type direction = LocalStorageManager::OrderDirection::Ascending;
 
@@ -1952,9 +1952,9 @@ void FavoritesModel::unfavoriteNote(const QString & localUid)
     Note note = *pCachedNote;
 
     note.setLocalUid(localUid);
-    bool dirty = note.isDirty() || note.hasShortcut();
+    bool dirty = note.isDirty() || note.isFavorited();
     note.setDirty(dirty);
-    note.setShortcut(false);
+    note.setFavorited(false);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
@@ -1984,9 +1984,9 @@ void FavoritesModel::unfavoriteNotebook(const QString & localUid)
     Notebook notebook = *pCachedNotebook;
 
     notebook.setLocalUid(localUid);
-    bool dirty = notebook.isDirty() || notebook.hasShortcut();
+    bool dirty = notebook.isDirty() || notebook.isFavorited();
     notebook.setDirty(dirty);
-    notebook.setShortcut(false);
+    notebook.setFavorited(false);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNotebookRequestIds.insert(requestId))
@@ -2016,9 +2016,9 @@ void FavoritesModel::unfavoriteTag(const QString & localUid)
     Tag tag = *pCachedTag;
 
     tag.setLocalUid(localUid);
-    bool dirty = tag.isDirty() || tag.hasShortcut();
+    bool dirty = tag.isDirty() || tag.isFavorited();
     tag.setDirty(dirty);
-    tag.setShortcut(false);
+    tag.setFavorited(false);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateTagRequestIds.insert(requestId))
@@ -2048,9 +2048,9 @@ void FavoritesModel::unfavoriteSavedSearch(const QString & localUid)
     SavedSearch search = *pCachedSearch;
 
     search.setLocalUid(localUid);
-    bool dirty = search.isDirty() || search.hasShortcut();
+    bool dirty = search.isDirty() || search.isFavorited();
     search.setDirty(dirty);
-    search.setShortcut(false);
+    search.setFavorited(false);
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateSavedSearchRequestIds.insert(requestId))
@@ -2078,7 +2078,7 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
 
     checkNotebookUpdateForNote(note.localUid(), note.notebookLocalUid());
 
-    if (!note.hasShortcut()) {
+    if (!note.isFavorited()) {
         removeItemByLocalUid(note.localUid());
         return;
     }
@@ -2193,7 +2193,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
         return;
     }
 
-    if (!notebook.hasShortcut()) {
+    if (!notebook.isFavorited()) {
         QNTRACE("Removing/skipping non-favorited notebook")
         removeItemByLocalUid(notebook.localUid());
         return;
@@ -2297,7 +2297,7 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
         return;
     }
 
-    if (!tag.hasShortcut()) {
+    if (!tag.isFavorited()) {
         QNTRACE("Removing/skipping non-favorited tag");
         removeItemByLocalUid(tag.localUid());
         return;
@@ -2366,7 +2366,7 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         return;
     }
 
-    if (!search.hasShortcut()) {
+    if (!search.isFavorited()) {
         QNTRACE("Removing/skipping non-favorited search");
         removeItemByLocalUid(search.localUid());
         return;

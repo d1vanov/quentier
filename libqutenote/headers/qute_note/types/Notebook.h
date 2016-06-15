@@ -1,7 +1,7 @@
 #ifndef LIB_QUTE_NOTE_TYPES_NOTEBOOK_H
 #define LIB_QUTE_NOTE_TYPES_NOTEBOOK_H
 
-#include "IDataElementWithShortcut.h"
+#include "IFavoritableDataElement.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -14,13 +14,13 @@ QT_FORWARD_DECLARE_CLASS(IUser)
 QT_FORWARD_DECLARE_CLASS(UserAdapter)
 QT_FORWARD_DECLARE_CLASS(NotebookData)
 
-class QUTE_NOTE_EXPORT Notebook: public IDataElementWithShortcut
+class QUTE_NOTE_EXPORT Notebook: public IFavoritableDataElement
 {
 public:
     QN_DECLARE_LOCAL_UID
     QN_DECLARE_DIRTY
     QN_DECLARE_LOCAL
-    QN_DECLARE_SHORTCUT
+    QN_DECLARE_FAVORITED
 
 public:
     Notebook();

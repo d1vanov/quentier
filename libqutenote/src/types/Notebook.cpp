@@ -11,7 +11,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_UID(Notebook)
 QN_DEFINE_DIRTY(Notebook)
 QN_DEFINE_LOCAL(Notebook)
-QN_DEFINE_SHORTCUT(Notebook)
+QN_DEFINE_FAVORITED(Notebook)
 
 Notebook::Notebook() :
     d(new NotebookData)
@@ -68,7 +68,7 @@ Notebook::~Notebook()
 
 bool Notebook::operator==(const Notebook & other) const
 {
-    if (hasShortcut() != other.hasShortcut()) {
+    if (isFavorited() != other.isFavorited()) {
         return false;
     }
     else if (isLocal() != other.isLocal()) {
@@ -1123,7 +1123,7 @@ QTextStream & Notebook::print(QTextStream & strm) const
     }
     INSERT_DELIMITER;
 
-    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
+    strm << "isFavorited = " << (isFavorited() ? "true" : "false");
     INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER

@@ -70,8 +70,8 @@ public:
         ListElementsWithGuid         = 8,
         ListLocal                    = 16,
         ListNonLocal                 = 32,
-        ListElementsWithShortcuts    = 64,
-        ListElementsWithoutShortcuts = 128
+        ListFavoritedElements        = 64,
+        ListNonFavoritedElements     = 128
     };
     Q_DECLARE_FLAGS(ListObjectsOptions, ListObjectsOption)
 

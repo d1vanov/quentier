@@ -1,13 +1,13 @@
 #ifndef LIB_QUTE_NOTE_TYPES_DATA_NOTE_DATA_H
 #define LIB_QUTE_NOTE_TYPES_DATA_NOTE_DATA_H
 
-#include "DataElementWithShortcutData.h"
+#include "FavoritableDataElementData.h"
 #include <QEverCloud.h>
 #include <QImage>
 
 namespace qute_note {
 
-class NoteData: public DataElementWithShortcutData
+class NoteData: public FavoritableDataElementData
 {
 public:
     NoteData();

@@ -2269,7 +2269,7 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
     }
 
     QString queryString = QString("SELECT localUid, guid, linkedNotebookGuid, updateSequenceNumber, name, parentGuid, "
-                                  "parentLocalUid, isDirty, isLocal, isLocal, hasShortcut "
+                                  "parentLocalUid, isDirty, isLocal, isLocal, isFavorited "
                                   "FROM Tags WHERE (%1 = '%2'").arg(column,value);
 
     if (tag.hasLinkedNotebookGuid()) {
@@ -2848,7 +2848,7 @@ bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QString &
 
     QString queryString = QString("SELECT localUid, guid, name, query, format, updateSequenceNumber, isDirty, isLocal, "
                                   "includeAccount, includePersonalLinkedNotebooks, includeBusinessLinkedNotebooks, "
-                                  "hasShortcut FROM SavedSearches WHERE %1 = '%2'").arg(column,value);
+                                  "isFavorited FROM SavedSearches WHERE %1 = '%2'").arg(column,value);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR("can't find saved search in \"SavedSearches\" table in SQL database");
@@ -3326,7 +3326,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  isLocal                         INTEGER           NOT NULL, "
                      "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
                      "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
-                     "  hasShortcut                     INTEGER           DEFAULT NULL, "
+                     "  isFavorited                     INTEGER           DEFAULT NULL, "
                      "  publishingUri                   TEXT              DEFAULT NULL, "
                      "  publishingNoteSortOrder         INTEGER           DEFAULT NULL, "
                      "  publishingAscendingSort         INTEGER           DEFAULT NULL, "
@@ -3408,7 +3408,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  updateSequenceNumber            INTEGER              DEFAULT NULL, "
                      "  isDirty                         INTEGER              NOT NULL, "
                      "  isLocal                         INTEGER              NOT NULL, "
-                     "  hasShortcut                     INTEGER              NOT NULL, "
+                     "  isFavorited                     INTEGER              NOT NULL, "
                      "  title                           TEXT                 DEFAULT NULL, "
                      "  titleNormalized                 TEXT                 DEFAULT NULL, "
                      "  content                         TEXT                 DEFAULT NULL, "
@@ -3603,7 +3603,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  parentLocalUid REFERENCES Tags(localUid)   ON UPDATE CASCADE DEFAULT NULL, "
                      "  isDirty               INTEGER              NOT NULL, "
                      "  isLocal               INTEGER              NOT NULL, "
-                     "  hasShortcut           INTEGER              NOT NULL, "
+                     "  isFavorited           INTEGER              NOT NULL, "
                      "  UNIQUE(linkedNotebookGuid, nameLower) "
                      ")");
     DATABASE_CHECK_AND_SET_ERROR("can't create Tags table");
@@ -3701,7 +3701,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
                      "  includeAccount                  INTEGER             DEFAULT NULL, "
                      "  includePersonalLinkedNotebooks  INTEGER             DEFAULT NULL, "
                      "  includeBusinessLinkedNotebooks  INTEGER             DEFAULT NULL, "
-                     "  hasShortcut                     INTEGER             NOT NULL, "
+                     "  isFavorited                     INTEGER             NOT NULL, "
                      "  UNIQUE(localUid, guid))");
     DATABASE_CHECK_AND_SET_ERROR("can't create SavedSearches table");
 
@@ -4402,7 +4402,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
         query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
         query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
         query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
-        query.bindValue(":hasShortcut", (notebook.hasShortcut() ? 1 : 0));
+        query.bindValue(":isFavorited", (notebook.isFavorited() ? 1 : 0));
         query.bindValue(":publishingUri", (notebook.hasPublishingUri() ? notebook.publishingUri() : nullValue));
         query.bindValue(":publishingNoteSortOrder", (notebook.hasPublishingOrder() ? notebook.publishingOrder() : nullValue));
         query.bindValue(":publishingAscendingSort", (notebook.hasPublishingAscending() ? (notebook.isPublishingAscending() ? 1 : 0) : nullValue));
@@ -4494,14 +4494,14 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookQuery()
                                                       "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                                       "notebookName, notebookNameUpper, creationTimestamp, "
                                                       "modificationTimestamp, isDirty, isLocal, "
-                                                      "isDefault, isLastUsed, hasShortcut, publishingUri, "
+                                                      "isDefault, isLastUsed, isFavorited, publishingUri, "
                                                       "publishingNoteSortOrder, publishingAscendingSort, "
                                                       "publicDescription, isPublished, stack, businessNotebookDescription, "
                                                       "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId) "
                                                       "VALUES(:localUid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
                                                       ":notebookName, :notebookNameUpper, :creationTimestamp, "
                                                       ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
-                                                      ":hasShortcut, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
+                                                      ":isFavorited, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
                                                       ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
                                                       ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
     if (res) {
@@ -4917,7 +4917,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
         query.bindValue(":updateSequenceNumber", (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
         query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
         query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
-        query.bindValue(":hasShortcut", (note.hasShortcut() ? 1 : 0));
+        query.bindValue(":isFavorited", (note.isFavorited() ? 1 : 0));
         query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
         query.bindValue(":titleNormalized", (titleNormalized.isEmpty() ? nullValue : titleNormalized));
         query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
@@ -5337,7 +5337,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
     m_insertOrReplaceNoteQuery = QSqlQuery(m_sqlDatabase);
 
     QString columns = "localUid, guid, updateSequenceNumber, isDirty, isLocal, "
-                      "hasShortcut, title, titleNormalized, content, contentLength, contentHash, "
+                      "isFavorited, title, titleNormalized, content, contentLength, contentHash, "
                       "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
                       "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
                       "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
@@ -5349,7 +5349,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
                       "applicationDataValues, classificationKeys, classificationValues";
 
     QString values = ":localUid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
-                     ":hasShortcut, :title, :titleNormalized, :content, :contentLength, :contentHash, "
+                     ":isFavorited, :title, :titleNormalized, :content, :contentLength, :contentHash, "
                      ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
                      ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
                      ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
@@ -5471,7 +5471,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, QString & e
     query.bindValue(":parentLocalUid", (tag.hasParentLocalUid() ? tag.parentLocalUid() : nullValue));
     query.bindValue(":isDirty", (tag.isDirty() ? 1 : 0));
     query.bindValue(":isLocal", (tag.isLocal() ? 1 : 0));
-    query.bindValue(":hasShortcut", (tag.hasShortcut() ? 1 : 0));
+    query.bindValue(":isFavorited", (tag.isFavorited() ? 1 : 0));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace tag into \"Tags\" table in SQL database");
@@ -5505,11 +5505,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
     bool res = m_insertOrReplaceTagQuery.prepare("INSERT OR REPLACE INTO Tags "
                                                  "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
                                                  "name, nameLower, parentGuid, parentLocalUid, isDirty, "
-                                                 "isLocal, hasShortcut) "
+                                                 "isLocal, isFavorited) "
                                                  "VALUES(:localUid, :guid, :linkedNotebookGuid, "
                                                  ":updateSequenceNumber, :name, :nameLower, "
                                                  ":parentGuid, :parentLocalUid, :isDirty, :isLocal, "
-                                                 ":hasShortcut)");
+                                                 ":isFavorited)");
     if (res) {
         m_insertOrReplaceTagQueryPrepared = true;
     }
@@ -6042,7 +6042,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & 
     query.bindValue(":includeBusinessLinkedNotebooks", (search.hasIncludeBusinessLinkedNotebooks()
                                                         ? (search.includeBusinessLinkedNotebooks() ? 1 : 0)
                                                         : nullValue));
-    query.bindValue(":hasShortcut", (search.hasShortcut() ? 1 : 0));
+    query.bindValue(":isFavorited", (search.isFavorited() ? 1 : 0));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR("can't insert or replace saved search into \"SavedSearches\" table in SQL database");
@@ -6061,11 +6061,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSavedSearchQuery(
 
     QString columns = "localUid, guid, name, nameLower, query, format, updateSequenceNumber, isDirty, "
                       "isLocal, includeAccount, includePersonalLinkedNotebooks, "
-                      "includeBusinessLinkedNotebooks, hasShortcut";
+                      "includeBusinessLinkedNotebooks, isFavorited";
 
     QString valuesNames = ":localUid, :guid, :name, :nameLower, :query, :format, :updateSequenceNumber, :isDirty, "
                           ":isLocal, :includeAccount, :includePersonalLinkedNotebooks, "
-                          ":includeBusinessLinkedNotebooks, :hasShortcut";
+                          ":includeBusinessLinkedNotebooks, :isFavorited";
 
     QString queryString = QString("INSERT OR REPLACE INTO SavedSearches (%1) VALUES(%2)").arg(columns,valuesNames);
 
@@ -6765,7 +6765,7 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
 
     CHECK_AND_SET_NOTE_PROPERTY(isDirty, setDirty, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(isLocal, setLocal, int, bool);
-    CHECK_AND_SET_NOTE_PROPERTY(hasShortcut, setShortcut, int, bool);
+    CHECK_AND_SET_NOTE_PROPERTY(isFavorited, setFavorited, int, bool);
     CHECK_AND_SET_NOTE_PROPERTY(localUid, setLocalUid, QString, QString);
 
     CHECK_AND_SET_NOTE_PROPERTY(guid, setGuid, QString, QString);
@@ -6896,7 +6896,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
                                      qint64, qint64, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(guid, setGuid, QString, QString, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(linkedNotebookGuid, setLinkedNotebookGuid, QString, QString, isRequired);
-    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(hasShortcut, setShortcut, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isFavorited, setFavorited, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(stack, setStack, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isPublished, setPublished, int, bool, isRequired);
@@ -7152,7 +7152,7 @@ bool LocalStorageManagerPrivate::fillSavedSearchFromSqlRecord(const QSqlRecord &
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(localUid, QString, QString, setLocalUid, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isLocal, int, bool, setLocal, isRequired);
-    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
+    CHECK_AND_SET_SAVED_SEARCH_PROPERTY(isFavorited, int, bool, setFavorited, isRequired);
 
 #undef CHECK_AND_SET_SAVED_SEARCH_PROPERTY
 
@@ -7193,7 +7193,7 @@ bool LocalStorageManagerPrivate::fillTagFromSqlRecord(const QSqlRecord & rec, Ta
     CHECK_AND_SET_TAG_PROPERTY(localUid, QString, QString, setLocalUid, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isDirty, int, bool, setDirty, isRequired);
     CHECK_AND_SET_TAG_PROPERTY(isLocal, int, bool, setLocal, isRequired);
-    CHECK_AND_SET_TAG_PROPERTY(hasShortcut, int, bool, setShortcut, isRequired);
+    CHECK_AND_SET_TAG_PROPERTY(isFavorited, int, bool, setFavorited, isRequired);
 
 #undef CHECK_AND_SET_TAG_PROPERTY
 
@@ -8373,11 +8373,11 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
     bool listLocal = options.testFlag(LocalStorageManager::ListLocal);
     bool listNonLocal = options.testFlag(LocalStorageManager::ListNonLocal);
 
-    bool listElementsWithShortcuts = options.testFlag(LocalStorageManager::ListElementsWithShortcuts);
-    bool listElementsWithoutShortcuts = options.testFlag(LocalStorageManager::ListElementsWithoutShortcuts);
+    bool listFavoritedElements = options.testFlag(LocalStorageManager::ListFavoritedElements);
+    bool listNonFavoritedElements = options.testFlag(LocalStorageManager::ListNonFavoritedElements);
 
     if (!listAll && !listDirty && !listNonDirty && !listElementsWithoutGuid && !listElementsWithGuid &&
-        !listLocal && !listNonLocal && !listElementsWithShortcuts && !listElementsWithoutShortcuts)
+        !listLocal && !listNonLocal && !listFavoritedElements && !listNonFavoritedElements)
     {
         errorDescription = QT_TR_NOOP("can't list objects by filter: detected incorrect filter flag: ");
         errorDescription += QString::number(static_cast<int>(options));
@@ -8417,14 +8417,14 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
         }
     }
 
-    if (!(listElementsWithShortcuts && listElementsWithoutShortcuts))
+    if (!(listFavoritedElements && listNonFavoritedElements))
     {
-        if (listElementsWithShortcuts) {
-            result += "(hasShortcut=1) AND ";
+        if (listFavoritedElements) {
+            result += "(isFavorited=1) AND ";
         }
 
-        if (listElementsWithoutShortcuts) {
-            result += "(hasShortcut=0) AND ";
+        if (listNonFavoritedElements) {
+            result += "(isFavorited=0) AND ";
         }
     }
 

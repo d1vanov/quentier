@@ -1,7 +1,7 @@
 #ifndef LIB_QUTE_NOTE_TYPES_TAG_H
 #define LIB_QUTE_NOTE_TYPES_TAG_H
 
-#include "IDataElementWithShortcut.h"
+#include "IFavoritableDataElement.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -9,13 +9,13 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(TagData)
 
-class QUTE_NOTE_EXPORT Tag: public IDataElementWithShortcut
+class QUTE_NOTE_EXPORT Tag: public IFavoritableDataElement
 {
 public:
     QN_DECLARE_LOCAL_UID
     QN_DECLARE_DIRTY
     QN_DECLARE_LOCAL
-    QN_DECLARE_SHORTCUT
+    QN_DECLARE_FAVORITED
 
 public:
     Tag();

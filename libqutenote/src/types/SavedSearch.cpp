@@ -7,7 +7,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_UID(SavedSearch)
 QN_DEFINE_DIRTY(SavedSearch)
 QN_DEFINE_LOCAL(SavedSearch)
-QN_DEFINE_SHORTCUT(SavedSearch)
+QN_DEFINE_FAVORITED(SavedSearch)
 
 SavedSearch::SavedSearch() :
     d(new SavedSearchData)
@@ -62,7 +62,7 @@ SavedSearch::operator qevercloud::SavedSearch & ()
 
 bool SavedSearch::operator==(const SavedSearch & other) const
 {
-    if (hasShortcut() != other.hasShortcut()) {
+    if (isFavorited() != other.isFavorited()) {
         return false;
     }
     else if (isLocal() != other.isLocal()) {
@@ -358,7 +358,7 @@ QTextStream & SavedSearch::print(QTextStream & strm) const
         strm << "includeBusinessLinkedNotebooks is not set; \n";
     }
 
-    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false") << "; \n";
+    strm << "isFavorited = " << (isFavorited() ? "true" : "false") << "; \n";
 
     strm << "}; \n";
     return strm;

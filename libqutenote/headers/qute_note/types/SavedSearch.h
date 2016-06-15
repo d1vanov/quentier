@@ -1,7 +1,7 @@
 #ifndef LIB_QUTE_NOTE_TYPES_SAVED_SEARCH_H
 #define LIB_QUTE_NOTE_TYPES_SAVED_SEARCH_H
 
-#include "IDataElementWithShortcut.h"
+#include "IFavoritableDataElement.h"
 #include <QEverCloud.h>
 #include <QSharedDataPointer>
 
@@ -9,13 +9,13 @@ namespace qute_note {
 
 QT_FORWARD_DECLARE_CLASS(SavedSearchData)
 
-class QUTE_NOTE_EXPORT SavedSearch: public IDataElementWithShortcut
+class QUTE_NOTE_EXPORT SavedSearch: public IFavoritableDataElement
 {
 public:
     QN_DECLARE_LOCAL_UID
     QN_DECLARE_DIRTY
     QN_DECLARE_LOCAL
-    QN_DECLARE_SHORTCUT
+    QN_DECLARE_FAVORITED
 
 public:
     typedef qevercloud::QueryFormat::type QueryFormat;

@@ -6,7 +6,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_UID(Tag)
 QN_DEFINE_DIRTY(Tag)
 QN_DEFINE_LOCAL(Tag)
-QN_DEFINE_SHORTCUT(Tag)
+QN_DEFINE_FAVORITED(Tag)
 
 Tag::Tag() :
     d(new TagData)
@@ -51,7 +51,7 @@ Tag::~Tag()
 
 bool Tag::operator==(const Tag & other) const
 {
-    if (hasShortcut() != other.hasShortcut()) {
+    if (isFavorited() != other.isFavorited()) {
         return false;
     }
     else if (isLocal() != other.isLocal()) {
@@ -287,7 +287,7 @@ QTextStream & Tag::print(QTextStream & strm) const
 
     strm << "isDirty: " << (isDirty() ? "true" : "false") << "; \n";
     strm << "isLocal: " << (d->m_isLocal ? "true" : "false") << "; \n";
-    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false") << "; \n";
+    strm << "isFavorited = " << (isFavorited() ? "true" : "false") << "; \n";
     strm << "}; \n";
 
     return strm;

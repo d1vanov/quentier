@@ -1,12 +1,12 @@
 #ifndef LIB_QUTE_NOTE_TYPES_DATA_SAVED_SEARCH_DATA_H
 #define LIB_QUTE_NOTE_TYPES_DATA_SAVED_SEARCH_DATA_H
 
-#include "DataElementWithShortcutData.h"
+#include "FavoritableDataElementData.h"
 #include <QEverCloud.h>
 
 namespace qute_note {
 
-class SavedSearchData: public DataElementWithShortcutData
+class SavedSearchData: public FavoritableDataElementData
 {
 public:
     SavedSearchData();

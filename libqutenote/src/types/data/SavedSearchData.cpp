@@ -5,28 +5,28 @@
 namespace qute_note {
 
 SavedSearchData::SavedSearchData() :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecSearch()
 {
 }
 
 SavedSearchData::SavedSearchData(const SavedSearchData & other) :
-    DataElementWithShortcutData(other),
+    FavoritableDataElementData(other),
     m_qecSearch(other.m_qecSearch)
 {}
 
 SavedSearchData::SavedSearchData(SavedSearchData && other) :
-    DataElementWithShortcutData(std::move(other)),
+    FavoritableDataElementData(std::move(other)),
     m_qecSearch(std::move(other.m_qecSearch))
 {}
 
 SavedSearchData::SavedSearchData(const qevercloud::SavedSearch & other) :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecSearch(other)
 {}
 
 SavedSearchData::SavedSearchData(qevercloud::SavedSearch && other) :
-    DataElementWithShortcutData(),
+    FavoritableDataElementData(),
     m_qecSearch(std::move(other))
 {}
 
@@ -78,7 +78,10 @@ bool SavedSearchData::checkParameters(QString &errorDescription) const
 
 bool SavedSearchData::operator==(const SavedSearchData & other) const
 {
-    return (m_qecSearch == other.m_qecSearch);
+    return (m_qecSearch == other.m_qecSearch) &&
+           (m_isDirty == other.m_isDirty) &&
+           (m_isLocal == other.m_isLocal) &&
+           (m_isFavorited == other.m_isFavorited);
 }
 
 bool SavedSearchData::operator!=(const SavedSearchData & other) const

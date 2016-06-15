@@ -10,7 +10,7 @@ namespace qute_note {
 QN_DEFINE_LOCAL_UID(Note)
 QN_DEFINE_DIRTY(Note)
 QN_DEFINE_LOCAL(Note)
-QN_DEFINE_SHORTCUT(Note)
+QN_DEFINE_FAVORITED(Note)
 
 Note::Note() :
     d(new NoteData)
@@ -63,7 +63,7 @@ bool Note::operator==(const Note & other) const
              (d->m_resourcesAdditionalInfo == other.d->m_resourcesAdditionalInfo) &&
              (isDirty() == other.isDirty()) &&
              (isLocal() == other.isLocal()) &&
-             (hasShortcut() == other.hasShortcut()) );
+             (isFavorited() == other.isFavorited()) );
     // NOTE: thumbnail doesn't take part in comparison because it's merely a helper
     // for note displaying widget, nothing more
 }
@@ -859,7 +859,7 @@ QTextStream & Note::print(QTextStream & strm) const
     strm << "isLocal: " << (d->m_isLocal ? "true" : "false");
     INSERT_DELIMITER;
 
-    strm << "hasShortcut = " << (hasShortcut() ? "true" : "false");
+    strm << "isFavorited = " << (isFavorited() ? "true" : "false");
     INSERT_DELIMITER;
 
 #undef INSERT_DELIMITER

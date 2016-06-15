@@ -931,10 +931,10 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
             }
 
             if ((i == 0) || (i == 4)) {
-                search.setShortcut(true);
+                search.setFavorited(true);
             }
             else {
-                search.setShortcut(false);
+                search.setFavorited(false);
             }
 
             bool res = localStorageManager.addSavedSearch(search, error);
@@ -991,16 +991,16 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
         // 4) Test method listing only saved searches without guid
         CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 5) Test method listing only saved searches with shortcut
-        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+        // 5) Test method listing only favorited saved searches
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListFavoritedElements, "favorited", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 6) Test method listing dirty saved searches with guid and with shortcut
-        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
-                                          "dirty, having guid, having shortcut", i == 4, i != 4);
+        // 6) Test method listing dirty favorited saved searches with guid
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListFavoritedElements,
+                                          "dirty, favorited, having guid", i == 4, i != 4);
 
-        // 7) Test method listing local saved searches having shortcut
-        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
-                                          "local, having shortcut", i == 0, i != 0);
+        // 7) Test method listing local favorited saved searches
+        CHECK_LIST_SAVED_SEARCHES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListFavoritedElements,
+                                          "local, favorited", i == 0, i != 0);
 
         // 8) Test method listing saved searches with guid set also specifying limit, offset and order
         size_t limit = 2;
@@ -1166,10 +1166,10 @@ void CoreTester::localStorageManagerListTagsTest()
             }
 
             if ((i == 0) || (i == 4)) {
-                tag.setShortcut(true);
+                tag.setFavorited(true);
             }
             else {
-                tag.setShortcut(false);
+                tag.setFavorited(false);
             }
 
             bool res = localStorageManager.addTag(tag, error);
@@ -1226,16 +1226,16 @@ void CoreTester::localStorageManagerListTagsTest()
         // 4) Test method listing only tags without guid
         CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 5) Test method listing only tags with shortcut
-        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+        // 5) Test method listing only favorited tags
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListFavoritedElements, "favorited", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 6) Test method listing dirty tags with guid and with shortcut
-        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
-                                "dirty, having guid, having shortcut", i == 4, i != 4);
+        // 6) Test method listing dirty favorited tags with guid
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListFavoritedElements,
+                                "dirty, favorited, having guid", i == 4, i != 4);
 
-        // 7) Test method listing local tags having shortcut
-        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
-                                "local, having shortcut", i == 0, i != 0);
+        // 7) Test method listing local favorited tags
+        CHECK_LIST_TAGS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListFavoritedElements,
+                                "local, favorited", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }
@@ -1501,10 +1501,10 @@ void CoreTester::localStorageManagerListNotesTest()
             }
 
             if ((i == 0) || (i == 4)) {
-                note.setShortcut(true);
+                note.setFavorited(true);
             }
             else {
-                note.setShortcut(false);
+                note.setFavorited(false);
             }
 
             if ((i == 1) || (i == 2) || (i == 4)) {
@@ -1673,16 +1673,16 @@ void CoreTester::localStorageManagerListNotesTest()
         // 8) Test method listing only notes without guid
         CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 9) Test method listing only notes with shortcut
-        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+        // 9) Test method listing only favorited notes
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListFavoritedElements, "favorited", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 10) Test method listing dirty notes with guid and with shortcut
-        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListElementsWithShortcuts,
-                                 "dirty, having guid, having shortcut", i == 4, i != 4);
+        // 10) Test method listing dirty favorited notes with guid
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid | LocalStorageManager::ListFavoritedElements,
+                                 "dirty, favorited, having guid", i == 4, i != 4);
 
-        // 11) Test method listing local notes having shortcut
-        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
-                                 "local, having shortcut", i == 0, i != 0);
+        // 11) Test method listing local favorited notes
+        CHECK_LIST_NOTES_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListFavoritedElements,
+                                 "local, favorited", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }
@@ -1762,10 +1762,10 @@ void CoreTester::localStorageManagerListNotebooksTest()
             }
 
             if ((i == 0) || (i == 4)) {
-                notebook.setShortcut(true);
+                notebook.setFavorited(true);
             }
             else {
-                notebook.setShortcut(false);
+                notebook.setFavorited(false);
             }
 
             if (i > 1) {
@@ -1839,17 +1839,17 @@ void CoreTester::localStorageManagerListNotebooksTest()
         // 4) Test method listing only notebooks without guid
         CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListElementsWithoutGuid, "guidless", i <= 1, i > 1);
 
-        // 5) Test method listing only notebooks with shortcut
-        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListElementsWithShortcuts, "having shortcut", (i == 0) || (i == 4), (i != 0) && (i != 4));
+        // 5) Test method listing only favorited notebooks
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListFavoritedElements, "favorited", (i == 0) || (i == 4), (i != 0) && (i != 4));
 
-        // 6) Test method listing dirty notebooks with guid and with shortcut
+        // 6) Test method listing dirty favorited notebooks with guid
         CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListDirty | LocalStorageManager::ListElementsWithGuid |
-                                     LocalStorageManager::ListElementsWithShortcuts,
-                                     "dirty, having guid, having shortcut", i == 4, i != 4);
+                                     LocalStorageManager::ListFavoritedElements,
+                                     "dirty, favorited, having guid", i == 4, i != 4);
 
-        // 7) Test method listing local notebooks having shortcut
-        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListElementsWithShortcuts,
-                                     "local, having shortcut", i == 0, i != 0);
+        // 7) Test method listing local favorited notebooks
+        CHECK_LIST_NOTEBOOKS_BY_FLAG(LocalStorageManager::ListLocal | LocalStorageManager::ListFavoritedElements,
+                                     "local, favorited", i == 0, i != 0);
     }
     CATCH_EXCEPTION();
 }

@@ -94,7 +94,7 @@ set(NOTE_EDITOR_HEADERS
     headers/qute_note/note_editor/ResourceFileStorageManager.h)
 
 set(TYPES_HEADERS
-    headers/qute_note/types/IDataElementWithShortcut.h
+    headers/qute_note/types/IFavoritableDataElement.h
     headers/qute_note/types/ISharedNotebook.h
     headers/qute_note/types/IResource.h
     headers/qute_note/types/IUser.h
@@ -238,7 +238,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/SpellCheckAddToUserWordListUndoCommand.h
     src/note_editor/undo_stack/TableActionUndoCommand.h
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.h
-    src/types/data/DataElementWithShortcutData.h
+    src/types/data/FavoritableDataElementData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
     src/types/data/NoteStoreDataElementData.h
@@ -358,7 +358,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/UserAdapter.cpp
     src/types/UserWrapper.cpp
     src/types/RegisterMetatypes.cpp
-    src/types/data/DataElementWithShortcutData.cpp
+    src/types/data/FavoritableDataElementData.cpp
     src/types/data/LocalStorageDataElementData.cpp
     src/types/data/LinkedNotebookData.cpp
     src/types/data/NoteStoreDataElementData.cpp

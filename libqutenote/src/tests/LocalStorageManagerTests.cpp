@@ -66,7 +66,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
     modifiedSearch.setUpdateSequenceNumber(search.updateSequenceNumber() + 1);
     modifiedSearch.setName(search.name() + "_modified");
     modifiedSearch.setQuery(search.query() + "_modified");
-    modifiedSearch.setShortcut(true);
+    modifiedSearch.setFavorited(true);
     modifiedSearch.setDirty(true);
 
     QString localUid = modifiedSearch.localUid();
@@ -286,7 +286,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
     modifiedTag.setLinkedNotebookGuid(QString(""));
     modifiedTag.setName(tag.name() + "_modified");
-    modifiedTag.setShortcut(true);
+    modifiedTag.setFavorited(true);
     modifiedTag.unsetLocalUid();
 
     res = localStorageManager.updateTag(modifiedTag, errorDescription);
@@ -568,7 +568,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     modifiedNote.setTitle(note.title() + "_modified");
     modifiedNote.setCreationTimestamp(note.creationTimestamp() + 1);
     modifiedNote.setModificationTimestamp(note.modificationTimestamp() + 1);
-    modifiedNote.setShortcut(true);
+    modifiedNote.setFavorited(true);
 
     qevercloud::NoteAttributes & noteAttributes = modifiedNote.noteAttributes();
 
@@ -907,7 +907,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     modifiedNotebook.setCanExpungeNotes(false);
     modifiedNotebook.setCanEmailNotes(false);
     modifiedNotebook.setCanPublishToPublic(false);
-    modifiedNotebook.setShortcut(true);
+    modifiedNotebook.setFavorited(true);
 
     res = localStorageManager.updateNotebook(modifiedNotebook, errorDescription);
     if (!res) {
