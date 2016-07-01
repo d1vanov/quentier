@@ -79,6 +79,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
+    src/widgets/NoteTagWidget.h
     src/tests/ManualTestingHelper.h)
 
 set(${PROJECT_NAME}_SOURCES
@@ -105,13 +106,15 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NoteModel.cpp
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
+    src/widgets/NoteTagWidget.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 
 set(FORMS
     src/MainWindow.ui
     src/FindAndReplaceWidget.ui
-    src/insert-table-tool-button/TableSettingsDialog.ui)
+    src/insert-table-tool-button/TableSettingsDialog.ui
+    src/widgets/NoteTagWidget.ui)
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
