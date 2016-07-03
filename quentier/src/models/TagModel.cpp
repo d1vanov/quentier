@@ -1548,6 +1548,21 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     return newIndex;
 }
 
+QStringList TagModel::tagNames() const
+{
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    QStringList result;
+    result.reserve(static_cast<int>(localUidIndex.size()));
+
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
+        const QString tagName = it->name();
+        result << tagName;
+    }
+
+    return result;
+}
+
 bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const
 {
     if (item->isSynchronizable()) {

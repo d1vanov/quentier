@@ -8,6 +8,8 @@ namespace Ui {
 class NoteTagWidget;
 }
 
+namespace quentier {
+
 /**
  * @brief The NoteTagWidget class represents a single tag within the list of currently selected note's tags
  *
@@ -18,7 +20,7 @@ class NoteTagWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteTagWidget(QWidget * parent = Q_NULLPTR);
+    explicit NoteTagWidget(const QString & tagName, QWidget * parent = Q_NULLPTR);
     ~NoteTagWidget();
 
     QString tagName() const;
@@ -33,5 +35,7 @@ private Q_SLOTS:
 private:
     Ui::NoteTagWidget * m_pUi;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_WIDGETS_NOTE_TAG_WIDGET_H

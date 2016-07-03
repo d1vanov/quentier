@@ -80,6 +80,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
     src/widgets/NoteTagWidget.h
+    src/widgets/NoteTagsWidget.h
     src/tests/ManualTestingHelper.h)
 
 set(${PROJECT_NAME}_SOURCES
@@ -107,6 +108,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/widgets/NoteTagWidget.cpp
+    src/widgets/NoteTagsWidget.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
 

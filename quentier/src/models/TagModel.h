@@ -52,6 +52,8 @@ public:
     QModelIndex promote(const QModelIndex & index);
     QModelIndex demote(const QModelIndex & index);
 
+    QStringList tagNames() const;
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;

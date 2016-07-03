@@ -1,11 +1,14 @@
 #include "NoteTagWidget.h"
 #include "ui_NoteTagWidget.h"
 
-NoteTagWidget::NoteTagWidget(QWidget *parent) :
+namespace quentier {
+
+NoteTagWidget::NoteTagWidget(const QString & tagName, QWidget *parent) :
     QWidget(parent),
     m_pUi(new Ui::NoteTagWidget)
 {
     m_pUi->setupUi(this);
+    setTagName(tagName);
     QObject::connect(m_pUi->pushButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(NoteTagWidget,onRemoveTagButtonPressed));
 }
@@ -29,3 +32,5 @@ void NoteTagWidget::onRemoveTagButtonPressed()
 {
     emit removeTagFromNote(m_pUi->tagNameLabel->text());
 }
+
+} // namespace quentier
