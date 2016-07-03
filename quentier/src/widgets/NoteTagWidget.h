@@ -21,7 +21,7 @@ public:
     explicit NoteTagWidget(QWidget * parent = Q_NULLPTR);
     ~NoteTagWidget();
 
-    const QString & tagName() const;
+    QString tagName() const;
     void setTagName(const QString & name);
 
 Q_SIGNALS:

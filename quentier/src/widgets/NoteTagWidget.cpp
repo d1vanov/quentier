@@ -3,8 +3,7 @@
 
 NoteTagWidget::NoteTagWidget(QWidget *parent) :
     QWidget(parent),
-    m_pUi(new Ui::NoteTagWidget),
-    m_tagName()
+    m_pUi(new Ui::NoteTagWidget)
 {
     m_pUi->setupUi(this);
     QObject::connect(m_pUi->pushButton, QNSIGNAL(QPushButton,released),
@@ -16,7 +15,7 @@ NoteTagWidget::~NoteTagWidget()
     delete m_pUi;
 }
 
-const QString & NoteTagWidget::tagName() const
+QString NoteTagWidget::tagName() const
 {
     return m_pUi->tagNameLabel->text();
 }
