@@ -67,7 +67,7 @@ background-color: rgb(205, 221, 229);
       </size>
      </property>
      <property name="text">
-      <string>&lt;Tag&gt;</string>
+      <string notr="true">&lt;Tag&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -86,7 +86,8 @@ background-color: rgb(205, 221, 229);
       <string/>
      </property>
      <property name="icon">
-      <iconset theme="edit-delete"/>
+      <iconset theme="edit-delete">
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <property name="iconSize">
       <size>

@@ -12,6 +12,8 @@
 #include <boost/bimap.hpp>
 #endif
 
+QT_FORWARD_DECLARE_CLASS(FlowLayout)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
@@ -68,9 +70,14 @@ private Q_SLOTS:
     void onExpungeTagComplete(Tag tag, QUuid requestId);
 
 private:
+    void clearLayout();
+
+private:
     Note            m_currentNote;
     QString         m_currentNotebookLocalUid;
-    boost::bimap<QString, QString>  m_currentNoteTagLocalUidToNameBimap;
+
+    typedef  boost::bimap<QString, QString>  TagLocalUidToNameBimap;
+    TagLocalUidToNameBimap  m_currentNoteTagLocalUidToNameBimap;
 
     QPointer<TagModel>  m_pTagModel;
 
@@ -90,6 +97,8 @@ private:
     };
 
     Restrictions    m_tagRestrictions;
+
+    FlowLayout *    m_pLayout;
 };
 
 } // namespace quentier

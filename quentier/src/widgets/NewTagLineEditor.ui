@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>NewTagLineEditor</class>
+ <widget class="QLineEdit" name="NewTagLineEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>113</width>
+    <height>27</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>30</width>
+    <height>26</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>27</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QLineEdit#NewTagLineEditor {
+border: 1px solid #555;
+border-radius: 13px;
+padding: 4px;
+background-color: rgb(223, 231, 236);
+border-color: rgb(182, 189, 195);
+min-width: 80px;
+}
+
+QLineEdit#NewTagLineEditor:hover {
+background-color: rgb(205, 221, 229);
+}</string>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

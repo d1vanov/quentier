@@ -1,4 +1,5 @@
 #include "NoteTagsWidget.h"
+#include "FlowLayout.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
 
@@ -13,16 +14,31 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     m_findNoteRequestIds(),
     m_updateNoteRequestIds(),
     m_findNotebookRequestIds(),
-    m_tagRestrictions()
+    m_tagRestrictions(),
+    m_pLayout(new FlowLayout(this))
 {}
 
 void NoteTagsWidget::setCurrentNote(const Note & note)
 {
     clear();
 
+    if (Q_UNLIKELY(note.localUid().isEmpty())) {
+        QNWARNING("Skipping the note with empty local uid");
+        return;
+    }
+
+    if (Q_UNLIKELY(!note.hasNotebookGuid() && !note.hasNotebookLocalUid())) {
+        QNWARNING("Skipping the note which has neither notebook local uid not notebook guid");
+        return;
+    }
+
     m_currentNote = note;
 
-    // TODO: find the note with this local uid
+    if (!m_currentNote.hasTagLocalUids() && !m_currentNote.hasTagGuids()) {
+        clearLayout();
+        return;
+    }
+
     // TODO: find the corresponding notebook
 }
 
@@ -148,6 +164,11 @@ void NoteTagsWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
     // TODO: implement
     Q_UNUSED(tag)
     Q_UNUSED(requestId)
+}
+
+void NoteTagsWidget::clearLayout()
+{
+    // TODO: implement
 }
 
 bool NoteTagsWidget::isActive() const
