@@ -5135,10 +5135,10 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
 
             QStringList tagIds;
             if (hasTagLocalUids) {
-                note.tagLocalUids(tagIds);
+                tagIds = note.tagLocalUids();
             }
             else {
-                note.tagGuids(tagIds);
+                tagIds = note.tagGuids();
             }
 
             int numTagIds = tagIds.size();

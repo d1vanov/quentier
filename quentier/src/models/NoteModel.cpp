@@ -1654,14 +1654,12 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
     item.setThumbnail(note.thumbnail());
 
     if (note.hasTagLocalUids()) {
-        QStringList tagLocalUids;
-        note.tagLocalUids(tagLocalUids);
+        const QStringList & tagLocalUids = note.tagLocalUids();
         item.setTagLocalUids(tagLocalUids);
     }
 
     if (note.hasTagGuids()) {
-        QStringList tagGuids;
-        note.tagGuids(tagGuids);
+        const QStringList tagGuids = note.tagGuids();
         item.setTagGuids(tagGuids);
     }
 

@@ -46,6 +46,7 @@ public:
     Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
     const TagModelItem * itemForIndex(const QModelIndex & index) const;
+    const TagModelItem * itemForLocalUid(const QString & localUid) const;
     QModelIndex indexForItem(const TagModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
 

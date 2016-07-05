@@ -48,6 +48,9 @@ Q_SIGNALS:
     void notifyError(QString errorDescription);
 
 private Q_SLOTS:
+    void onTagRemoved(const QString & tagName);
+
+private Q_SLOTS:
     // Slots for response to events from local storage
 
     // Slots for notes events: finding, updating & expunging
@@ -70,11 +73,17 @@ private Q_SLOTS:
     void onExpungeTagComplete(Tag tag, QUuid requestId);
 
 private:
-    void clearLayout();
+    void clearLayout(const bool skipNewTagWidget = false);
+    void updateLayout();
+
+    void addTagIconToLayout();
+    void addNewTagWidgetToLayout();
 
 private:
     Note            m_currentNote;
     QString         m_currentNotebookLocalUid;
+
+    QStringList     m_lastDisplayedTagLocalUids;
 
     typedef  boost::bimap<QString, QString>  TagLocalUidToNameBimap;
     TagLocalUidToNameBimap  m_currentNoteTagLocalUidToNameBimap;

@@ -1309,6 +1309,19 @@ const TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
     return m_fakeRootItem;
 }
 
+const TagModelItem * TagModel::itemForLocalUid(const QString & localUid) const
+{
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto it = localUidIndex.find(localUid);
+    if (it == localUidIndex.end()) {
+        return Q_NULLPTR;
+    }
+
+    const TagModelItem & item = *it;
+    return &item;
+}
+
 QModelIndex TagModel::indexForItem(const TagModelItem * item) const
 {
     if (!item) {

@@ -14,7 +14,7 @@ NewTagLineEditor::NewTagLineEditor(TagModel * pTagModel, QWidget *parent) :
     m_pCompleter(new QCompleter(this))
 {
     m_pUi->setupUi(this);
-    setPlaceholderText(tr("Add tag..."));
+    setPlaceholderText("+");
     setupCompleter();
 
     QObject::connect(m_pTagModel, QNSIGNAL(TagModel,sortingChanged),
@@ -42,9 +42,9 @@ void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
     int key = pEvent->key();
     QNTRACE("NewTagLineEditor::keyPressEvent: key = " << key);
 
-    if ((key == Qt::Key_Return) || (key == Qt::Key_Tab)) {
-        QString tagName = QLineEdit::text();
-        emit newTagAdded(tagName);
+    if (key == Qt::Key_Tab) {
+        emit editingFinished();
+        return;
     }
 
     QLineEdit::keyPressEvent(pEvent);

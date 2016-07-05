@@ -2531,7 +2531,7 @@ void FavoritesModel::checkTagsUpdateForNote(const Note & note)
 
     QStringList tagLocalUids;
     if (note.hasTagLocalUids()) {
-        note.tagLocalUids(tagLocalUids);
+        tagLocalUids = note.tagLocalUids();
     }
 
     auto tagLocalUidsIt = m_noteLocalUidToTagLocalUids.find(note.localUid());

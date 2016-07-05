@@ -21,9 +21,6 @@ public:
     explicit NewTagLineEditor(TagModel * pTagModel, QWidget * parent = Q_NULLPTR);
     virtual ~NewTagLineEditor();
 
-Q_SIGNALS:
-    void newTagAdded(QString name);
-
 private Q_SLOTS:
     void onTagModelSortingChanged();
 

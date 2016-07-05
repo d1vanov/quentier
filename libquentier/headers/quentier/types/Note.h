@@ -92,13 +92,13 @@ public:
     void setNotebookLocalUid(const QString & notebookLocalUid);
 
     bool hasTagGuids() const;
-    void tagGuids(QStringList & guids) const;
+    const QStringList tagGuids() const;
     void setTagGuids(const QStringList & guids);
     void addTagGuid(const QString & guid);
     void removeTagGuid(const QString & guid);
 
     bool hasTagLocalUids() const;
-    void tagLocalUids(QStringList & tagLocalUids) const;
+    const QStringList & tagLocalUids() const;
     void setTagLocalUids(const QStringList & localUids);
     void addTagLocalUid(const QString & localUid);
     void removeTagLocalUid(const QString & localUid);

@@ -328,28 +328,9 @@ bool Note::hasTagGuids() const
     return d->m_qecNote.tagGuids.isSet();
 }
 
-// FIXME: isn't it better to return const QList<QString> & ?
-void Note::tagGuids(QStringList & guids) const
+const QStringList Note::tagGuids() const
 {
-    guids.clear();
-
-    if (!d->m_qecNote.tagGuids.isSet()) {
-        QNDEBUG("Note::tagGuids:: no tag guids set");
-        return;
-    }
-
-    const QList<QString> & localTagGuids = d->m_qecNote.tagGuids;
-    int numTagGuids = localTagGuids.size();
-    if (numTagGuids == 0) {
-        QNDEBUG("Note::tagGuids: no tags");
-        return;
-    }
-
-    guids.reserve(numTagGuids);
-    for(int i = 0; i < numTagGuids; ++i) {
-        const QString & guid = localTagGuids[i];
-        guids << guid;
-    }
+    return d->m_qecNote.tagGuids.ref();
 }
 
 void Note::setTagGuids(const QStringList & guids)
@@ -419,16 +400,9 @@ bool Note::hasTagLocalUids() const
     return !d->m_tagLocalUids.isEmpty();
 }
 
-void Note::tagLocalUids(QStringList & tagLocalUids) const
+const QStringList & Note::tagLocalUids() const
 {
-    tagLocalUids.clear();
-
-    if (d->m_tagLocalUids.isEmpty()) {
-        QNDEBUG("Note::tagLocalUids: no tag local uids set");
-        return;
-    }
-
-    tagLocalUids = d->m_tagLocalUids;
+    return d->m_tagLocalUids;
 }
 
 void Note::setTagLocalUids(const QStringList & tagLocalUids)
