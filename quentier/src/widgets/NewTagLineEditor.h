@@ -3,14 +3,12 @@
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QLineEdit>
-#include <QPointer>
 
 namespace Ui {
 class NewTagLineEditor;
 }
 
 QT_FORWARD_DECLARE_CLASS(QCompleter)
-QT_FORWARD_DECLARE_CLASS(QModelIndex)
 
 namespace quentier {
 
@@ -27,21 +25,17 @@ Q_SIGNALS:
     void newTagAdded(QString name);
 
 private Q_SLOTS:
-    void onTagModelDataChanged(const QModelIndex & from,
-                               const QModelIndex & to);
-    void onTagModelRowsChanged(const QModelIndex & index, int start, int end);
-    void onTagModelChanged();
+    void onTagModelSortingChanged();
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
-    void createConnections();
     void setupCompleter();
 
 private:
     Ui::NewTagLineEditor *  m_pUi;
-    QPointer<TagModel>      m_pTagModel;
+    TagModel *              m_pTagModel;
     QCompleter *            m_pCompleter;
 };
 

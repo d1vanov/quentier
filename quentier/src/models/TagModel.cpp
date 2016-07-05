@@ -546,6 +546,7 @@ void TagModel::sort(int column, Qt::SortOrder order)
     }
 
     m_sortOrder = order;
+    emit sortingChanged();
 
     emit layoutAboutToBeChanged();
 

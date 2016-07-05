@@ -4,7 +4,6 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QKeyEvent>
 #include <QCompleter>
-#include <QStringListModel>
 
 namespace quentier {
 
@@ -16,7 +15,10 @@ NewTagLineEditor::NewTagLineEditor(TagModel * pTagModel, QWidget *parent) :
 {
     m_pUi->setupUi(this);
     setPlaceholderText(tr("Add tag..."));
-    createConnections();
+    setupCompleter();
+
+    QObject::connect(m_pTagModel, QNSIGNAL(TagModel,sortingChanged),
+                     this, QNSLOT(NewTagLineEditor,onTagModelSortingChanged));
 }
 
 NewTagLineEditor::~NewTagLineEditor()
@@ -24,24 +26,11 @@ NewTagLineEditor::~NewTagLineEditor()
     delete m_pUi;
 }
 
-void NewTagLineEditor::onTagModelDataChanged(const QModelIndex & from, const QModelIndex & to)
+void NewTagLineEditor::onTagModelSortingChanged()
 {
-    Q_UNUSED(from)
-    Q_UNUSED(to)
-    setupCompleter();
-}
-
-void NewTagLineEditor::onTagModelRowsChanged(const QModelIndex & index, int start, int end)
-{
-    Q_UNUSED(index)
-    Q_UNUSED(start)
-    Q_UNUSED(end)
-    setupCompleter();
-}
-
-void NewTagLineEditor::onTagModelChanged()
-{
-    setupCompleter();
+    QNDEBUG("NewTagLineEditor::onTagModelSortingChanged");
+    m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
+                                   ? QCompleter::CaseSensitivelySortedModel : QCompleter::UnsortedModel);
 }
 
 void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
@@ -61,43 +50,14 @@ void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
     QLineEdit::keyPressEvent(pEvent);
 }
 
-void NewTagLineEditor::createConnections()
-{
-    if (Q_UNLIKELY(m_pTagModel.isNull())) {
-        return;
-    }
-
-    QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,dataChanged,const QModelIndex&,const QModelIndex&),
-                     this, QNSLOT(NewTagLineEditor,onTagModelDataChanged,const QModelIndex&,const QModelIndex&));
-    QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,layoutChanged),
-                     this, QNSLOT(NewTagLineEditor,onTagModelChanged));
-    QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,modelReset),
-                     this, QNSLOT(NewTagLineEditor,onTagModelChanged));
-    QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,rowsInserted,const QModelIndex&,int,int),
-                     this, QNSLOT(NewTagLineEditor,onTagModelRowsChanged,const QModelIndex&,int,int));
-}
-
 void NewTagLineEditor::setupCompleter()
 {
     QNDEBUG("NewTagLineEditor::setupCompleter");
 
-    QStringListModel * pModel = qobject_cast<QStringListModel*>(m_pCompleter->model());
-    if (!pModel) {
-        pModel = new QStringListModel(this);
-    }
-
-    QStringList tagNames;
-
-    if (Q_LIKELY(!m_pTagModel.isNull())) {
-        tagNames = m_pTagModel->tagNames();
-        tagNames.sort();
-    }
-
-    pModel->setStringList(tagNames);
-
-    m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    m_pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
-    m_pCompleter->setModel(pModel);
+    m_pCompleter->setCaseSensitivity(Qt::CaseSensitive);
+    m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
+                                   ? QCompleter::CaseSensitivelySortedModel : QCompleter::UnsortedModel);
+    m_pCompleter->setModel(m_pTagModel);
 }
 
 } // namespace quentier

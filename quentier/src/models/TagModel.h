@@ -86,6 +86,7 @@ public:
                               int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
+    void sortingChanged();
     void notifyError(QString errorDescription);
 
 // private signals
