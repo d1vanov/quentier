@@ -89,18 +89,18 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 {
     auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
     if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
-        QString error = QT_TR_NOOP("Can't create new note: can't identify the notebook");
+        const char * error = QT_TR_NOOP("Can't create new note: can't identify the notebook");
         QNWARNING(error << ", notebook local uid = " << notebookLocalUid);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return QModelIndex();
     }
 
     const NotebookData & notebookData = notebookIt.value();
     if (!notebookData.m_canCreateNotes) {
-        QString error = QT_TR_NOOP("Can't create new note: notebook restrictions apply");
+        const char * error = QT_TR_NOOP("Can't create new note: notebook restrictions apply");
         QNWARNING(error << ", notebook local uid = " << notebookLocalUid << ", notebook name = "
                   << notebookData.m_name);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return QModelIndex();
     }
 
@@ -346,9 +346,9 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     case Columns::Synchronizable:
         {
             if (item.isSynchronizable()) {
-                QString error = QT_TR_NOOP("Can't make already synchronizable note not synchronizable");
+                const char * error = QT_TR_NOOP("Can't make already synchronizable note not synchronizable");
                 QNINFO(error << ", already synchronizable note item: " << item);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
@@ -366,9 +366,9 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
                 timestamp = value.toLongLong(&conversionResult);
 
                 if (!conversionResult) {
-                    QString error = QT_TR_NOOP("Can't change the deleted state of the note: wrong deletion timestamp value");
+                    const char * error = QT_TR_NOOP("Can't change the deleted state of the note: wrong deletion timestamp value");
                     QNINFO(error);
-                    emit notifyError(error);
+                    emit notifyError(tr(error));
                     return false;
                 }
             }
@@ -413,12 +413,9 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
 
     if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
     {
-        QString error = QT_TR_NOOP("Detected attempt to remove more rows than the note model contains: row") +
-                        QStringLiteral(" = ") + QString::number(row) + QStringLiteral(", ") + QT_TR_NOOP("count") +
-                        QStringLiteral(" = ") + QString::number(count) + QStringLiteral(", ") + QT_TR_NOOP("number of note model items") +
-                        QStringLiteral(" = ") + QString::number(static_cast<int>(m_data.size()));
-        QNINFO(error);
-        emit notifyError(error);
+        const char * error = QT_TR_NOOP("Detected attempt to remove more rows than the note model contains");
+        QNINFO(error << ", row = " << row << ", count = " << count << ", number of note model items = " << m_data.size());
+        emit notifyError(tr(error));
         return false;
     }
 
@@ -428,9 +425,9 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         auto it = index.begin() + row;
         if (it->isSynchronizable()) {
-            QString error = QT_TR_NOOP("Can't remove synchronizable note");
+            const char * error = QT_TR_NOOP("Can't remove synchronizable note");
             QNINFO(error << ", synchronizable note item: " << *it);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
     }
@@ -1039,17 +1036,17 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
 
     QString space(" ");
     QString colon(":");
-    QString accessibleText = QT_TR_NOOP("Note") + colon + space;
+    QString accessibleText = tr("Note") + colon + space;
 
     switch(column)
     {
     case Columns::CreationTimestamp:
         {
             if (item.creationTimestamp() == 0) {
-                accessibleText += QT_TR_NOOP("creation time is not set");
+                accessibleText += tr("creation time is not set");
             }
             else {
-                accessibleText += QT_TR_NOOP("was created at") + space +
+                accessibleText += tr("was created at") + space +
                                   printableDateTimeFromTimestamp(item.creationTimestamp());
             }
             break;
@@ -1057,10 +1054,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
     case Columns::ModificationTimestamp:
         {
             if (item.modificationTimestamp() == 0) {
-                accessibleText += QT_TR_NOOP("last modification timestamp is not set");
+                accessibleText += tr("last modification timestamp is not set");
             }
             else {
-                accessibleText += QT_TR_NOOP("was last modified at") + space +
+                accessibleText += tr("was last modified at") + space +
                                   printableDateTimeFromTimestamp(item.modificationTimestamp());
             }
             break;
@@ -1068,10 +1065,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
     case Columns::DeletionTimestamp:
         {
             if (item.deletionTimestamp() == 0) {
-                accessibleText += QT_TR_NOOP("deletion timestamp is not set");
+                accessibleText += tr("deletion timestamp is not set");
             }
             else {
-                accessibleText += QT_TR_NOOP("deleted at") + space +
+                accessibleText += tr("deleted at") + space +
                                   printableDateTimeFromTimestamp(item.deletionTimestamp());
             }
             break;
@@ -1080,10 +1077,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         {
             const QString & title = item.title();
             if (title.isEmpty()) {
-                accessibleText += QT_TR_NOOP("title is not set");
+                accessibleText += tr("title is not set");
             }
             else {
-                accessibleText += QT_TR_NOOP("title is") + space + title;
+                accessibleText += tr("title is") + space + title;
             }
             break;
         }
@@ -1091,10 +1088,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         {
             const QString & previewText = item.previewText();
             if (previewText.isEmpty()) {
-                accessibleText += QT_TR_NOOP("preview text is not available");
+                accessibleText += tr("preview text is not available");
             }
             else {
-                accessibleText += QT_TR_NOOP("preview text") + colon + space + previewText;
+                accessibleText += tr("preview text") + colon + space + previewText;
             }
             break;
         }
@@ -1102,10 +1099,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         {
             const QString & notebookName = item.notebookName();
             if (notebookName.isEmpty()) {
-                accessibleText += QT_TR_NOOP("notebook name is not available");
+                accessibleText += tr("notebook name is not available");
             }
             else {
-                accessibleText += QT_TR_NOOP("notebook name is") + space + notebookName;
+                accessibleText += tr("notebook name is") + space + notebookName;
             }
             break;
         }
@@ -1113,10 +1110,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         {
             const QStringList & tagNameList = item.tagNameList();
             if (tagNameList.isEmpty()) {
-                accessibleText += QT_TR_NOOP("tag list is empty");
+                accessibleText += tr("tag list is empty");
             }
             else {
-                accessibleText += QT_TR_NOOP("has tags") + colon + space + tagNameList.join(", ");
+                accessibleText += tr("has tags") + colon + space + tagNameList.join(", ");
             }
             break;
         }
@@ -1124,10 +1121,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         {
             const quint64 bytes = item.sizeInBytes();
             if (bytes == 0) {
-                accessibleText += QT_TR_NOOP("size is not available");
+                accessibleText += tr("size is not available");
             }
             else {
-                accessibleText += QT_TR_NOOP("size is") + space + humanReadableSize(bytes);
+                accessibleText += tr("size is") + space + humanReadableSize(bytes);
             }
             break;
         }
@@ -1495,10 +1492,9 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
 
     if (!notebookData.m_canCreateNotes)
     {
-        QString error = QT_TR_NOOP("Can't create a new note in the notebook") + QStringLiteral(" ") + notebookData.m_name +
-                        QStringLiteral(": ") + QT_TR_NOOP("notebook restrictions apply");
-        QNINFO(error);
-        emit notifyError(error);
+        const char * error = QT_TR_NOOP("Can't create the new note: notebook restrictions apply");
+        QNINFO(error << ", notebook name = " << notebookData.m_name);
+        emit notifyError(tr(error));
         return;
     }
 
@@ -1601,9 +1597,9 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         NoteDataByIndex & index = m_data.get<ByIndex>();
         auto indexIt = m_data.project<ByIndex>(it);
         if (Q_UNLIKELY(indexIt == index.end())) {
-            QString error = QT_TR_NOOP("Can't project the local uid index to the note item to the random access index iterator");
+            const char * error = QT_TR_NOOP("Can't project the local uid index to the note item to the random access index iterator");
             QNWARNING(error << ", note model item: " << item);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return;
         }
 
