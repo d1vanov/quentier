@@ -28,6 +28,11 @@ void NoteTagWidget::setTagName(const QString & name)
     m_pUi->tagNameLabel->setText(name);
 }
 
+void NoteTagWidget::onCanCreateTagRestrictionChanged(bool canCreateTag)
+{
+    m_pUi->pushButton->setHidden(!canCreateTag);
+}
+
 void NoteTagWidget::onRemoveTagButtonPressed()
 {
     emit removeTagFromNote(m_pUi->tagNameLabel->text());

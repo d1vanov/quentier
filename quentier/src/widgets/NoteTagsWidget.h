@@ -81,6 +81,7 @@ private:
 
     void addTagIconToLayout();
     void addNewTagWidgetToLayout();
+    void removeNewTagWidgetFromLayout();
 
 private:
     Note                    m_currentNote;

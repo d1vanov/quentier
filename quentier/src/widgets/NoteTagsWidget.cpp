@@ -1,5 +1,6 @@
 #include "NoteTagsWidget.h"
 #include "NoteTagWidget.h"
+#include "NewTagLineEditor.h"
 #include "FlowLayout.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -263,7 +264,7 @@ void NoteTagsWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId
     emit canUpdateNoteRestrictionChanged(m_tagRestrictions.m_canUpdateNote);
 
     if (!m_tagRestrictions.m_canUpdateNote) {
-        // TODO: remove the add new tag widget from the layout
+        removeNewTagWidgetFromLayout();
     }
 }
 
@@ -284,16 +285,122 @@ void NoteTagsWidget::onExpungeNotebookComplete(Notebook notebook, QUuid requestI
 
 void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
     Q_UNUSED(requestId)
+
+    int tagIndex = m_lastDisplayedTagLocalUids.indexOf(tag.localUid());
+    if (tagIndex < 0) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onUpdateTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    QString tagName = (tag.hasName() ? tag.name() : QString());
+    m_lastDisplayedTagLocalUids[tagIndex] = tagName;
+
+    auto previousNameIt = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
+    if (Q_UNLIKELY(previousNameIt == m_currentNoteTagLocalUidToNameBimap.left.end())) {
+        const char * errorDescription = QT_TR_NOOP("Detected the update of tag, however, its previous name cannot be found");
+        QNWARNING(errorDescription << ", tag = " << tag);
+        emit notifyError(tr(errorDescription));
+        return;
+    }
+
+    const QString & previousName = previousNameIt->second;
+    if (tag.hasName() && (previousName == tag.name())) {
+        QNDEBUG("The tag's name hasn't changed, nothing to do");
+        return;
+    }
+
+    m_currentNoteTagLocalUidToNameBimap.left.replace_data(previousNameIt, tagName);
+
+    // Need to find the note tag widget responsible for this tag and to change its displayed name
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(pItem->widget());
+        if (!pNoteTagWidget) {
+            continue;
+        }
+
+        if (pNoteTagWidget->tagName() != previousName) {
+            continue;
+        }
+
+        if (!tag.hasName()) {
+            QNDEBUG("Detected the update of tag not having any name... Strange enough, will just remove that tag's widget");
+            pItem = m_pLayout->takeAt(i);
+            delete pItem->widget();
+            delete pItem;
+        }
+        else {
+            pNoteTagWidget->setTagName(tag.name());
+        }
+
+        break;
+    }
 }
 
 void NoteTagsWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(tag)
     Q_UNUSED(requestId)
+
+    int tagIndex = m_lastDisplayedTagLocalUids.indexOf(tag.localUid());
+    if (tagIndex < 0) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onExpungeTagComplete: tag = " << tag << "\nRequest id = " << requestId);
+
+    m_lastDisplayedTagLocalUids.removeAt(tagIndex);
+
+    QString tagName;
+
+    auto it = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
+    if (Q_UNLIKELY(it == m_currentNoteTagLocalUidToNameBimap.left.end()))
+    {
+        const char * errorDescription = QT_TR_NOOP("Detected the expunge of tag, however, its name cannot be found");
+        QNWARNING(errorDescription << ", tag = " << tag);
+
+        if (!tag.hasName()) {
+            emit notifyError(tr(errorDescription));
+            return;
+        }
+
+        tagName = tag.name();
+    }
+    else
+    {
+        tagName = it->second;
+    }
+
+    // Need to find the note tag widget responsible for this tag and remove it from the layout
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(pItem->widget());
+        if (!pNoteTagWidget) {
+            continue;
+        }
+
+        if (pNoteTagWidget->tagName() != tagName) {
+            continue;
+        }
+
+        pItem = m_pLayout->takeAt(i);
+        delete pItem->widget();
+        delete pItem;
+        break;
+    }
 }
 
 void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
@@ -399,6 +506,8 @@ void NoteTagsWidget::updateLayout()
         NoteTagWidget * pTagWidget = new NoteTagWidget(tagName, this);
         QObject::connect(pTagWidget, QNSIGNAL(NoteTagWidget,removeTagFromNote,QString),
                          this, QNSLOT(NoteTagsWidget,onTagRemoved,QString));
+        QObject::connect(this, QNSIGNAL(NoteTagsWidget,canUpdateNoteRestrictionChanged,bool),
+                         pTagWidget, QNSLOT(NoteTagWidget,onCanCreateTagRestrictionChanged,bool));
 
         m_pLayout->addWidget(pTagWidget);
     }
@@ -408,12 +517,41 @@ void NoteTagsWidget::updateLayout()
 
 void NoteTagsWidget::addTagIconToLayout()
 {
+    QNDEBUG("NoteTagsWidget::addTagIconToLayout");
+
     // TODO: implement
 }
 
 void NoteTagsWidget::addNewTagWidgetToLayout()
 {
-    // TODO: implement
+    QNDEBUG("NoteTagsWidget::addNewTagWidgetToLayout");
+
+    NewTagLineEditor * pNewTagLineEditor = new NewTagLineEditor(m_pTagModel, this);
+    m_pLayout->addWidget(pNewTagLineEditor);
+}
+
+void NoteTagsWidget::removeNewTagWidgetFromLayout()
+{
+    QNDEBUG("NoteTagsWidget::removeNewTagWidgetFromLayout");
+
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        NewTagLineEditor * pNewTagLineEditor = qobject_cast<NewTagLineEditor*>(pItem->widget());
+        if (!pNewTagLineEditor) {
+            continue;
+        }
+
+        pItem = m_pLayout->takeAt(i);
+        delete pItem->widget();
+        delete pItem;
+        break;
+    }
 }
 
 bool NoteTagsWidget::isActive() const

@@ -58,6 +58,7 @@ void NewTagLineEditor::setupCompleter()
     m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
                                    ? QCompleter::CaseSensitivelySortedModel : QCompleter::UnsortedModel);
     m_pCompleter->setModel(m_pTagModel);
+    setCompleter(m_pCompleter);
 }
 
 } // namespace quentier

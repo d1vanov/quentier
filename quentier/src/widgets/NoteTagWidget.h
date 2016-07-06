@@ -29,6 +29,9 @@ public:
 Q_SIGNALS:
     void removeTagFromNote(QString name);
 
+public Q_SLOTS:
+    void onCanCreateTagRestrictionChanged(bool canCreateTag);
+
 private Q_SLOTS:
     void onRemoveTagButtonPressed();
 
