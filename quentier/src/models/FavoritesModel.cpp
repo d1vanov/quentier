@@ -332,18 +332,18 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
                 {
                     auto it = m_lowerCaseNotebookNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseNotebookNames.end()) {
-                        QString error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
-                                                   "to have the same name in the case-insensitive manner");
+                        const char * error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
+                                                        "to have the same name in the case-insensitive manner");
                         QNINFO(error << ", suggested new name = " << newDisplayName);
-                        emit notifyError(error);
+                        emit notifyError(tr(error));
                         return false;
                     }
 
                     QString error;
                     if (!Notebook::validateName(newDisplayName, &error)) {
-                        error = QT_TR_NOOP("Can't rename notebook") + QStringLiteral(": ") + error;
-                        QNINFO(error << ", suggested new name = " << newDisplayName);
-                        emit notifyError(error);
+                        const char * errorPrefix = QT_TR_NOOP("Can't rename notebook");
+                        QNINFO(errorPrefix << ": " << error << ", suggested new name = " << newDisplayName);
+                        emit notifyError(tr(errorPrefix) + QStringLiteral(": ") + error);
                         return false;
                     }
 
@@ -353,18 +353,18 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
                 {
                     auto it = m_lowerCaseTagNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseTagNames.end()) {
-                        QString error = QT_TR_NOOP("Can't rename tag: no two tags within the account are allowed "
-                                                   "to have the same name in the case-insensitive manner");
+                        const char * error = QT_TR_NOOP("Can't rename tag: no two tags within the account are allowed "
+                                                        "to have the same name in the case-insensitive manner");
                         QNINFO(error);
-                        emit notifyError(error);
+                        emit notifyError(tr(error));
                         return false;
                     }
 
                     QString error;
                     if (!Tag::validateName(newDisplayName, &error)) {
-                        error = QT_TR_NOOP("Can't rename tag") + QStringLiteral(": ") + error;
-                        QNINFO(error << ", suggested new name = " << newDisplayName);
-                        emit notifyError(error);
+                        const char * errorPrefix = QT_TR_NOOP("Can't rename tag");
+                        QNINFO(errorPrefix << ": " << error << ", suggested new name = " << newDisplayName);
+                        emit notifyError(tr(errorPrefix) + QStringLiteral(": ") + error);
                         return false;
                     }
 
@@ -374,17 +374,18 @@ bool FavoritesModel::setData(const QModelIndex & modelIndex, const QVariant & va
                 {
                     auto it = m_lowerCaseSavedSearchNames.find(newDisplayName.toLower());
                     if (it != m_lowerCaseSavedSearchNames.end()) {
-                        QString error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account are allowed to have the same name in the case-insensitive manner");
+                        const char * error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account "
+                                                        "are allowed to have the same name in the case-insensitive manner");
                         QNINFO(error);
-                        emit notifyError(error);
+                        emit notifyError(tr(error));
                         return false;
                     }
 
                     QString error;
                     if (!SavedSearch::validateName(newDisplayName, &error)) {
-                        error = QT_TR_NOOP("Can't rename saved search") + QStringLiteral(": ") + error;
-                        QNINFO(error << ", suggested new name = " << newDisplayName);
-                        emit notifyError(error);
+                        const char * errorPrefix = QT_TR_NOOP("Can't rename saved search");
+                        QNINFO(errorPrefix << ": " << error << ", suggested new name = " << newDisplayName);
+                        emit notifyError(tr(errorPrefix) + QStringLiteral(": ") + error);
                         return false;
                     }
 
@@ -428,14 +429,10 @@ bool FavoritesModel::removeRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
-    if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size())))
-    {
-        QString error = QT_TR_NOOP("Detected attempt to remove more rows than the favorites model contains: row") +
-                        QStringLiteral(" = ") + QString::number(row) + QStringLiteral(", ") + QT_TR_NOOP("count") +
-                        QStringLiteral(" = ") + QString::number(count) + QStringLiteral(", ") + QT_TR_NOOP("number of favorites model items") +
-                        QStringLiteral(" = ") + QString::number(static_cast<int>(m_data.size()));
-        QNINFO(error);
-        emit notifyError(error);
+    if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size()))) {
+        const char * error = QT_TR_NOOP("Detected attempt to remove more rows than the favorites model contains");
+        QNINFO(error << ", row = " << row << ", count = " << count << ", number of favorites model items = " << m_data.size());
+        emit notifyError(tr(error));
         return false;
     }
 
@@ -1592,19 +1589,19 @@ QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type c
     QString space(" ");
     QString colon(":");
 
-    QString accessibleText = QT_TR_NOOP("Favorited") + space;
+    QString accessibleText = tr("Favorited") + space;
     switch(item.type())
     {
     case FavoritesModelItem::Type::Note:
-        accessibleText += QT_TR_NOOP("note");
+        accessibleText += tr("note");
         break;
     case FavoritesModelItem::Type::Notebook:
-        accessibleText += QT_TR_NOOP("notebook");
+        accessibleText += tr("notebook");
         break;
     case FavoritesModelItem::Type::Tag:
-        accessibleText += QT_TR_NOOP("tag");
+        accessibleText += tr("tag");
     case FavoritesModelItem::Type::SavedSearch:
-        accessibleText += QT_TR_NOOP("saved search");
+        accessibleText += tr("saved search");
     default:
         return QVariant();
     }
@@ -1617,7 +1614,7 @@ QVariant FavoritesModel::dataAccessibleText(const int row, const Columns::type c
         accessibleText += colon + space + item.displayName();
         break;
     case Columns::NumNotesTargeted:
-        accessibleText += colon + space + QT_TR_NOOP("number of targeted notes is") + space + QString::number(item.numNotesTargeted());
+        accessibleText += colon + space + tr("number of targeted notes is") + space + QString::number(item.numNotesTargeted());
         break;
     default:
         return QVariant();
@@ -2120,9 +2117,9 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
 
         auto indexIt = m_data.project<ByIndex>(itemIt);
         if (Q_UNLIKELY(indexIt == index.end())) {
-            QString error = QT_TR_NOOP("Can't project the local uid index to the favorited note item to the random access index iterator");
+            const char * error = QT_TR_NOOP("Can't project the local uid index to the favorited note item to the random access index iterator");
             QNWARNING(error << ", favorites model item: " << item);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return;
         }
 
@@ -2394,9 +2391,9 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         FavoritesDataByIndex & index = m_data.get<ByIndex>();
         auto indexIt = m_data.project<ByIndex>(itemIt);
         if (Q_UNLIKELY(indexIt == index.end())) {
-            QString error = QT_TR_NOOP("Can't project the local uid index to the favorited tag item to the random access index iterator");
+            const char * error = QT_TR_NOOP("Can't project the local uid index to the favorited tag item to the random access index iterator");
             QNWARNING(error << ", favorites model item: " << item);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return;
         }
 
@@ -2711,9 +2708,9 @@ void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, con
             return;
         }
 
-        QString error = QT_TR_NOOP("Can't project the local uid index to the favorites model item to the random access index iterator");
+        const char * error = QT_TR_NOOP("Can't project the local uid index to the favorites model item to the random access index iterator");
         QNWARNING(error << ", favorites model item: " << item);
-        emit notifyError(error);
+        emit notifyError(tr(error));
     }
 
     emit layoutAboutToBeChanged();
