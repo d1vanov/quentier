@@ -46,9 +46,14 @@ public:
 
 Q_SIGNALS:
     void notifyError(QString errorDescription);
+    void canUpdateNoteRestrictionChanged(bool canUpdateNote);
+
+// private signals
+    void findNotebook(Notebook notebook, QUuid requestId);
+    void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
 
 private Q_SLOTS:
-    void onTagRemoved(const QString & tagName);
+    void onTagRemoved(QString tagName);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -57,8 +62,6 @@ private Q_SLOTS:
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                             QString errorDescription, QUuid requestId);
-    void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     // Slots for notebook events: finding, updating and expunging
@@ -80,34 +83,34 @@ private:
     void addNewTagWidgetToLayout();
 
 private:
-    Note            m_currentNote;
-    QString         m_currentNotebookLocalUid;
+    Note                    m_currentNote;
+    QString                 m_currentNotebookLocalUid;
 
-    QStringList     m_lastDisplayedTagLocalUids;
+    QStringList             m_lastDisplayedTagLocalUids;
 
     typedef  boost::bimap<QString, QString>  TagLocalUidToNameBimap;
     TagLocalUidToNameBimap  m_currentNoteTagLocalUidToNameBimap;
 
-    QPointer<TagModel>  m_pTagModel;
+    QPointer<TagModel>      m_pTagModel;
 
-    QSet<QUuid>     m_findNoteRequestIds;
-    QSet<QUuid>     m_updateNoteRequestIds;
-    QSet<QUuid>     m_findNotebookRequestIds;
+    QHash<QUuid, std::pair<QString, QString> >  m_updateNoteRequestIdToRemovedTagLocalUidAndGuid;
+    QUuid                   m_findNotebookRequestId;
+
 
     struct Restrictions
     {
         Restrictions() :
-            m_canCreateTags(false),
+            m_canUpdateNote(false),
             m_canUpdateTags(false)
         {}
 
-        bool    m_canCreateTags;
+        bool    m_canUpdateNote;
         bool    m_canUpdateTags;
     };
 
-    Restrictions    m_tagRestrictions;
+    Restrictions            m_tagRestrictions;
 
-    FlowLayout *    m_pLayout;
+    FlowLayout *            m_pLayout;
 };
 
 } // namespace quentier

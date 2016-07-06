@@ -27,7 +27,7 @@ public:
     void setTagName(const QString & name);
 
 Q_SIGNALS:
-    void removeTagFromNote(const QString & name);
+    void removeTagFromNote(QString name);
 
 private Q_SLOTS:
     void onRemoveTagButtonPressed();

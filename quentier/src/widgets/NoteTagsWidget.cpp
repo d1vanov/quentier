@@ -13,9 +13,8 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     m_lastDisplayedTagLocalUids(),
     m_currentNoteTagLocalUidToNameBimap(),
     m_pTagModel(),
-    m_findNoteRequestIds(),
-    m_updateNoteRequestIds(),
-    m_findNotebookRequestIds(),
+    m_updateNoteRequestIdToRemovedTagLocalUidAndGuid(),
+    m_findNotebookRequestId(),
     m_tagRestrictions(),
     m_pLayout(new FlowLayout(this))
 {
@@ -39,12 +38,24 @@ void NoteTagsWidget::setCurrentNote(const Note & note)
 
     m_currentNote = note;
 
-    if (!m_currentNote.hasTagLocalUids()) {
-        clearLayout();
-        return;
+    if (note.hasNotebookLocalUid()) {
+        m_currentNotebookLocalUid = note.notebookLocalUid();
+    }
+    else {
+        m_currentNotebookLocalUid = QString();
     }
 
-    // TODO: find the corresponding notebook
+    Notebook dummy;
+    dummy.setLocalUid(m_currentNotebookLocalUid);
+    if (note.hasNotebookGuid()) {
+        dummy.setGuid(note.notebookGuid());
+    }
+
+    m_findNotebookRequestId = QUuid::createUuid();
+    QNTRACE("Emitting the request to find notebook: local uid = " << dummy.localUid()
+            << ", guid = " << (dummy.hasGuid() ? dummy.guid() : QStringLiteral("<empty>"))
+            << ", request id = " << m_findNotebookRequestId);
+    emit findNotebook(dummy, m_findNotebookRequestId);
 }
 
 void NoteTagsWidget::clear()
@@ -55,23 +66,65 @@ void NoteTagsWidget::clear()
 
     m_currentNotebookLocalUid.clear();
     m_currentNoteTagLocalUidToNameBimap.clear();
-    m_findNoteRequestIds.clear();
-    m_updateNoteRequestIds.clear();
-    m_findNotebookRequestIds.clear();
+    m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.clear();
+    m_findNotebookRequestId = QUuid();
     m_tagRestrictions = Restrictions();
 }
 
-void NoteTagsWidget::onTagRemoved(const QString & tagName)
+void NoteTagsWidget::onTagRemoved(QString tagName)
 {
-    // TODO: implement
-    Q_UNUSED(tagName)
+    QNDEBUG("NoteTagsWidget::onTagRemoved: tag name = " << tagName);
+
+    if (Q_UNLIKELY(m_currentNote.localUid().isEmpty())) {
+        QNTRACE("No current note is set, ignoring the tag removal event");
+        return;
+    }
+
+    auto localUidIt = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
+    if (Q_UNLIKELY(localUidIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
+        const char * errorDescription = QT_TR_NOOP("Can't determine the tag which has been removed from the note");
+        QNWARNING(errorDescription);
+        emit notifyError(tr(errorDescription));
+        return;
+    }
+
+    QString tagLocalUid = localUidIt->second;
+
+    const TagModelItem * pItem = m_pTagModel->itemForLocalUid(tagLocalUid);
+    if (Q_UNLIKELY(!pItem)) {
+        const char * errorDescription = QT_TR_NOOP("Can't find the tag item attempted to be removed from the note");
+        QNWARNING(errorDescription << ", tag local uid = " << tagLocalUid);
+        emit notifyError(tr(errorDescription));
+        return;
+    }
+
+    m_currentNote.removeTagLocalUid(tagLocalUid);
+
+    const QString & tagGuid = pItem->guid();
+    if (!tagGuid.isEmpty()) {
+        m_currentNote.removeTagGuid(tagGuid);
+    }
+
+    NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(sender());
+    if (Q_LIKELY(pNoteTagWidget)) {
+        m_pLayout->removeWidget(pNoteTagWidget);
+    }
+
+    m_lastDisplayedTagLocalUids.removeOne(tagLocalUid);
+    Q_UNUSED(m_currentNoteTagLocalUidToNameBimap.right.erase(localUidIt))
+
+    QUuid updateNoteRequestId = QUuid::createUuid();
+    m_updateNoteRequestIdToRemovedTagLocalUidAndGuid[updateNoteRequestId] = std::pair<QString, QString>(tagLocalUid, tagGuid);
+
+    QNTRACE("Emitting the request to update note in local storage: request id = " << updateNoteRequestId
+            << ", note = " << m_currentNote);
+    emit updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true, updateNoteRequestId);
 }
 
 void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
                                           bool updateTags, QUuid requestId)
 {
     Q_UNUSED(requestId)
-    Q_UNUSED(updateResources)
 
     if (!updateTags) {
         return;
@@ -81,87 +134,152 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
         return;
     }
 
-    QStringList tagLocalUids;
-    if (note.hasTagLocalUids()) {
-        tagLocalUids = note.tagLocalUids();
+    QNDEBUG("NoteTagsWidget::onUpdateNoteComplete: note local uid = " << note.localUid()
+            << ", request id = " << requestId);
+
+    if (updateResources) {
+        m_currentNote = note;
+    }
+    else {
+        QList<ResourceWrapper> resources = m_currentNote.resources();
+        m_currentNote = note;
+        m_currentNote.setResources(resources);
     }
 
-    QNDEBUG("NoteTagsWidget::onUpdateNoteComplete: note local uid = " << note.localUid()
-            << ", note tag local uids: " << tagLocalUids);
-
-    // TODO: continue implementing the method
+    updateLayout();
 }
 
 void NoteTagsWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                                         QString errorDescription, QUuid requestId)
 {
-    auto it = m_updateNoteRequestIds.find(requestId);
-    if (it == m_updateNoteRequestIds.end()) {
+    Q_UNUSED(updateResources)
+    Q_UNUSED(updateTags)
+
+    auto it = m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.find(requestId);
+    if (it == m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.end()) {
         return;
     }
 
     QNDEBUG("NoteTagsWidget::onUpdateNoteFailed: note local uid = " << note.localUid()
             << ", error description: " << errorDescription << ", request id = " << requestId);
 
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
+    const auto & idsPair = it.value();
 
-    // TODO: continue implementing the method
-}
+    m_currentNote.addTagLocalUid(idsPair.first);
+    if (!idsPair.second.isEmpty()) {
+        m_currentNote.addTagGuid(idsPair.second);
+    }
 
-void NoteTagsWidget::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
-{
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(requestId)
-}
-
-void NoteTagsWidget::onFindNoteFailed(Note note, bool withResourceBinaryData,
-                                      QString errorDescription, QUuid requestId)
-{
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    Q_UNUSED(m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.erase(it))
+    updateLayout();
 }
 
 void NoteTagsWidget::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
+    if (note.localUid() != m_currentNote.localUid()) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onExpungeNoteComplete: note local uid = " << note.localUid()
+            << ", request id = " << requestId);
+
+    clear();
+    clearLayout();
 }
 
 void NoteTagsWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
+    if (requestId != m_findNotebookRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onFindNotebookComplete: notebook = " << notebook << "\nRequest id = " << requestId);
+
+    m_currentNotebookLocalUid = notebook.localUid();
+
+    if (notebook.hasRestrictions()) {
+        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
+        m_tagRestrictions.m_canUpdateNote = !(restrictions.noCreateTags.isSet() && restrictions.noCreateTags.ref());
+        m_tagRestrictions.m_canUpdateTags = !(restrictions.noUpdateTags.isSet() && restrictions.noUpdateTags.ref());
+    }
+    else {
+        m_tagRestrictions.m_canUpdateNote = true;
+        m_tagRestrictions.m_canUpdateTags = true;
+    }
+
+    updateLayout();
 }
 
 void NoteTagsWidget::onFindNotebookFailed(Notebook notebook, QString errorDescription,
                                           QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    if (requestId != m_findNotebookRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onFindNotebookFailed: notebook = " << notebook
+            << "\nError description = " << errorDescription
+            << ", request id = " << requestId);
+
+    clearLayout();
+    emit notifyError(errorDescription);
 }
 
 void NoteTagsWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(notebook)
     Q_UNUSED(requestId)
+
+    if (notebook.localUid() != m_currentNotebookLocalUid) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onUpdateNotebookComplete: notebook = " << notebook
+            << "\nRequest id = " << requestId);
+
+    bool changed = false;
+    bool canUpdateNote = false;
+    bool canUpdateTags = false;
+
+    if (notebook.hasRestrictions()) {
+        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
+        canUpdateNote = !(restrictions.noCreateTags.isSet() && restrictions.noCreateTags.ref());
+        canUpdateTags = !(restrictions.noUpdateTags.isSet() && restrictions.noUpdateTags.ref());
+    }
+    else {
+        canUpdateNote = true;
+        canUpdateTags = true;
+    }
+
+    changed |= (canUpdateNote != m_tagRestrictions.m_canUpdateNote);
+    changed |= (canUpdateTags != m_tagRestrictions.m_canUpdateTags);
+    m_tagRestrictions.m_canUpdateNote = canUpdateNote;
+    m_tagRestrictions.m_canUpdateTags = canUpdateTags;
+
+    if (!changed) {
+        QNTRACE("No notebook restrictions were changed, nothing to do");
+        return;
+    }
+
+    emit canUpdateNoteRestrictionChanged(m_tagRestrictions.m_canUpdateNote);
+
+    if (!m_tagRestrictions.m_canUpdateNote) {
+        // TODO: remove the add new tag widget from the layout
+    }
 }
 
 void NoteTagsWidget::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(notebook)
     Q_UNUSED(requestId)
+
+    if (notebook.localUid() != m_currentNotebookLocalUid) {
+        return;
+    }
+
+    QNDEBUG("NoteTagsWidget::onExpungeNotebookComplete: notebook = " << notebook
+            << "\nRequest id = " << requestId);
+
+    clear();
+    clearLayout();
 }
 
 void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
@@ -192,7 +310,7 @@ void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
     addTagIconToLayout();
 
     if (skipNewTagWidget || m_currentNote.localUid().isEmpty() ||
-        m_currentNotebookLocalUid.isEmpty() || !m_tagRestrictions.m_canCreateTags)
+        m_currentNotebookLocalUid.isEmpty() || !m_tagRestrictions.m_canUpdateNote)
     {
         return;
     }
@@ -279,8 +397,8 @@ void NoteTagsWidget::updateLayout()
         const QString & tagName = tagNames[i];
 
         NoteTagWidget * pTagWidget = new NoteTagWidget(tagName, this);
-        QObject::connect(pTagWidget, QNSIGNAL(NoteTagWidget,removeTagFromNote,const QString&),
-                         this, QNSLOT(NoteTagsWidget,onTagRemoved,const QString&));
+        QObject::connect(pTagWidget, QNSIGNAL(NoteTagWidget,removeTagFromNote,QString),
+                         this, QNSLOT(NoteTagsWidget,onTagRemoved,QString));
 
         m_pLayout->addWidget(pTagWidget);
     }
