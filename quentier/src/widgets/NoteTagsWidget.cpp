@@ -498,7 +498,7 @@ void NoteTagsWidget::updateLayout()
         tagNames << tagName;
     }
 
-    tagNames.sort(Qt::CaseSensitive);
+    tagNames.sort();
     for(int i = 0, size = tagNames.size(); i < size; ++i)
     {
         const QString & tagName = tagNames[i];
