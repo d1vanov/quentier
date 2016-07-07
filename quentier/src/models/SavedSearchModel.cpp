@@ -234,18 +234,18 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
             auto it = m_lowerCaseSavedSearchNames.find(name.toLower());
             if (it != m_lowerCaseSavedSearchNames.end()) {
-                QString error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account "
-                                           "are allowed to have the same name in a case-insensitive manner");
+                const char * error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account "
+                                                "are allowed to have the same name in a case-insensitive manner");
                 QNINFO(error << ", suggested new name = " << name);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
             QString error;
             if (!SavedSearch::validateName(name, &error)) {
-                error = QT_TR_NOOP("Can't rename saved search") + QStringLiteral(": ") + error;
-                QNINFO(error << ", suggested new name = " << name);
-                emit notifyError(error);
+                const char * errorPrefix = QT_TR_NOOP("Can't rename saved search");
+                QNINFO(errorPrefix << ": " << error << "; suggested new name = " << name);
+                emit notifyError(tr(errorPrefix));
                 return false;
             }
 
@@ -267,9 +267,9 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     case Columns::Synchronizable:
         {
             if (item.m_isSynchronizable) {
-                QString error = QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable");
+                const char * error = QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable");
                 QNINFO(error << ", already synchronizable saved search item: " << item);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
@@ -338,12 +338,9 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
 
     if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
     {
-        QString error = QT_TR_NOOP("Detected attempt to remove more rows than the saved search model contains: row") +
-                        QStringLiteral(" = ") + QString::number(row) + QStringLiteral(", ") + QT_TR_NOOP("count") +
-                        QStringLiteral(" = ") + QString::number(count) + QStringLiteral(", ") + QT_TR_NOOP("number of saved search model items") +
-                        QStringLiteral(" = ") + QString::number(static_cast<int>(m_data.size()));
-        QNINFO(error);
-        emit notifyError(error);
+        const char * error = QT_TR_NOOP("Detected attempt to remove more rows than the saved search model contains");
+        QNINFO(error << ", row = " << row << ", count = " << count << ", number of saved search model items = " << m_data.size());
+        emit notifyError(tr(error));
         return false;
     }
 
@@ -353,9 +350,9 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     {
         SavedSearchDataByIndex::iterator it = index.begin() + row + i;
         if (it->m_isSynchronizable) {
-            QString error = QT_TR_NOOP("Can't remove synchronizable saved search");
+            const char * error = QT_TR_NOOP("Can't remove synchronizable saved search");
             QNINFO(error << ", synchronizable note item: " << *it);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
     }
@@ -657,9 +654,9 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     SavedSearchDataByIndex::iterator indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
-        QString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+        const char * error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
         QNWARNING(error);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return;
     }
 
@@ -807,17 +804,17 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
-        QString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+        const char * error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
         QNWARNING(error);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return;
     }
 
     qint64 position = std::distance(index.begin(), indexIt);
     if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
-        QString error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
+        const char * error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
         QNWARNING(error);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return;
     }
 
@@ -864,15 +861,15 @@ QVariant SavedSearchModel::dataAccessibleText(const int row, const Columns::type
         return QVariant();
     }
 
-    QString accessibleText = QT_TR_NOOP("Saved search: ");
+    QString accessibleText = tr("Saved search: ");
 
     switch(column)
     {
     case Columns::Name:
-        accessibleText += QT_TR_NOOP("name is ") + textData.toString();
+        accessibleText += tr("name is ") + textData.toString();
         break;
     case Columns::Query:
-        accessibleText += QT_TR_NOOP("query is ") + textData.toString();
+        accessibleText += tr("query is ") + textData.toString();
         break;
     case Columns::Synchronizable:
         accessibleText += (textData.toBool() ? "synchronizable" : "not synchronizable");
@@ -929,7 +926,7 @@ void SavedSearchModel::updateRandomAccessIndexWithRespectToSorting(const SavedSe
     const SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     auto itemIt = localUidIndex.find(item.m_localUid);
     if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        QNWARNING(QT_TR_NOOP("Can't find saved search item by local uid: ") << item);
+        QNWARNING("Can't find saved search item by local uid: " << item);
         return;
     }
 
