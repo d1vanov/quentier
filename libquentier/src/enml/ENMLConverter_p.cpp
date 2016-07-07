@@ -64,7 +64,7 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
     m_cachedConvertedXml.resize(0);
     bool res = m_pHtmlCleaner->htmlToXml(html, m_cachedConvertedXml, errorDescription);
     if (!res) {
-        errorDescription.prepend(QT_TR_NOOP("Could not clean up note's html: "));
+        errorDescription.prepend(QObject::tr("Could not clean up note's html") + QStringLiteral(": "));
         return false;
     }
 
@@ -216,7 +216,9 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
                     }
 
                     if (!attributes.hasAttribute("encrypted_text")) {
-                        errorDescription = QT_TR_NOOP("Found en-crypt tag without encrypted_text attribute");
+                        const char * error = QT_TR_NOOP("Found en-crypt tag without encrypted_text attribute");
+                        QNDEBUG(error);
+                        errorDescription = QObject::tr(error);
                         return false;
                     }
 
@@ -362,14 +364,17 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
     res = validateEnml(noteContent, errorDescription);
     if (!res)
     {
+        const char * error = Q_NULLPTR;
         if (!errorDescription.isEmpty()) {
-            errorDescription = QT_TR_NOOP("Can't validate ENML with DTD: ") + errorDescription;
+            error = QT_TR_NOOP("Can't validate ENML with DTD");
+            errorDescription.prepend(QObject::tr(error) + QStringLiteral(": "));
         }
         else {
-            errorDescription = QT_TR_NOOP("Failed to convert, produced ENML is invalid according to dtd");
+            error = QT_TR_NOOP("Failed to convert, produced ENML is invalid according to DTD");
+            errorDescription = QObject::tr(error);
         }
 
-        QNWARNING(errorDescription << ", ENML: " << noteContent << "\nHTML: " << html);
+        QNWARNING(error << ", ENML: " << noteContent << "\nHTML: " << html);
         return false;
     }
 
@@ -519,15 +524,17 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
     QByteArray inputBuffer = enml.toLocal8Bit();
     xmlDocPtr pDoc = xmlParseMemory(inputBuffer.constData(), inputBuffer.size());
     if (!pDoc) {
-        errorDescription = QT_TR_NOOP("Can't validate ENML: can't parse enml to xml doc");
-        QNWARNING(errorDescription << ": enml = " << enml);
+        const char * error = QT_TR_NOOP("Can't validate ENML: can't parse enml to xml doc");
+        QNWARNING(error << ": enml = " << enml);
+        errorDescription = QObject::tr(error);
         return false;
     }
 
     QFile dtdFile(":/enml2.dtd");
     if (!dtdFile.open(QIODevice::ReadOnly)) {
-        errorDescription = QT_TR_NOOP("Can't validate ENML: can't open resource file with DTD");
-        QNWARNING(errorDescription << ": enml = " << enml);
+        const char * error = QT_TR_NOOP("Can't validate ENML: can't open resource file with DTD");
+        QNWARNING(error << ": enml = " << enml);
+        errorDescription = QObject::tr(error);
         xmlFreeDoc(pDoc);
         return false;
     }
@@ -537,16 +544,18 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
     xmlParserInputBufferPtr pBuf = xmlParserInputBufferCreateMem(dtdRawData.constData(), dtdRawData.size(),
                                                                  XML_CHAR_ENCODING_NONE);
     if (!pBuf) {
-        errorDescription = QT_TR_NOOP("Can't validate ENML: can't allocate input buffer for dtd validation");
-        QNWARNING(errorDescription);
+        const char * error = QT_TR_NOOP("Can't validate ENML: can't allocate input buffer for dtd validation");
+        QNWARNING(error);
+        errorDescription = QObject::tr(error);
         xmlFreeDoc(pDoc);
         return false;
     }
 
     xmlDtdPtr pDtd = xmlIOParseDTD(NULL, pBuf, XML_CHAR_ENCODING_NONE);
     if (!pDtd) {
-        errorDescription = QT_TR_NOOP("Can't validate ENML: can't parse dtd from buffer");
-        QNWARNING(errorDescription);
+        const char * error = QT_TR_NOOP("Can't validate ENML: can't parse dtd from buffer");
+        QNWARNING(error);
+        errorDescription = QObject::tr(error);
         xmlFreeParserInputBuffer(pBuf);
         xmlFreeDoc(pDoc);
         return false;
@@ -554,8 +563,9 @@ bool ENMLConverterPrivate::validateEnml(const QString & enml, QString & errorDes
 
     xmlParserCtxtPtr pContext = xmlNewParserCtxt();
     if (!pContext) {
-        errorDescription = QT_TR_NOOP("Can't validate ENML: can't allocate parses context");
-        QNWARNING(errorDescription);
+        const char * error = QT_TR_NOOP("Can't validate ENML: can't allocate parses context");
+        QNWARNING(error);
+        errorDescription = QObject::tr(error);
         xmlFreeDtd(pDtd);
         xmlFreeDoc(pDoc);
         return false;
@@ -625,7 +635,10 @@ bool ENMLConverterPrivate::noteContentToPlainText(const QString & noteContent, Q
     }
 
     if (Q_UNLIKELY(reader.hasError())) {
-        errorMessage = QT_TR_NOOP("Encountered error when trying to convert the note content to plain text: ");
+        const char * error = QT_TR_NOOP("Encountered error when trying to convert the note content to plain text");
+        QNWARNING(error << ": " << reader.errorString() << ", error code = " << reader.error());
+        errorMessage = QObject::tr(error);
+        errorMessage += QStringLiteral(": ");
         errorMessage += reader.errorString();
         return false;
     }
@@ -731,14 +744,16 @@ QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString &
     QNDEBUG("ENMLConverterPrivate::resourceHtml");
 
     if (Q_UNLIKELY(!resource.hasDataHash())) {
-        errorDescription = QT_TR_NOOP("Can't compose the html representation of the resource: no data hash is set");
-        QNWARNING(errorDescription << ", resource: " << resource);
+        const char * error = QT_TR_NOOP("Can't compose the html representation of the resource: no data hash is set");
+        QNWARNING(error << ", resource: " << resource);
+        errorDescription = QObject::tr(error);
         return QString();
     }
 
     if (Q_UNLIKELY(!resource.hasMime())) {
-        errorDescription = QT_TR_NOOP("Can't compose the html representation of the resource: no mime type is set");
-        QNWARNING(errorDescription << ", resource: " << resource);
+        const char * error = QT_TR_NOOP("Can't compose the html representation of the resource: no mime type is set");
+        QNWARNING(error << ", resource: " << resource);
+        errorDescription = QObject::tr(error);
         return QString();
     }
 
@@ -751,8 +766,9 @@ QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QString &
 
     bool res = resourceInfoToHtml(attributes, writer, errorDescription);
     if (Q_UNLIKELY(!res)) {
-        errorDescription = QT_TR_NOOP("Can't compose the html representation of the resource: ") + errorDescription;
-        QNWARNING(errorDescription << ", resource: " << resource);
+        const char * error = QT_TR_NOOP("Can't compose the html representation of the resource");
+        QNWARNING(error << ", resource: " << resource);
+        errorDescription.prepend(QObject::tr(error));
         return QString();
     }
 
@@ -937,12 +953,16 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamAttributes & attri
     QNDEBUG("ENMLConverterPrivate::resourceInfoToHtml");
 
     if (!attributes.hasAttribute("hash")) {
-        errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing hash attribute");
+        const char * error = QT_TR_NOOP("Detected incorrect en-media tag missing hash attribute");
+        QNDEBUG(error);
+        errorDescription = QObject::tr(error);
         return false;
     }
 
     if (!attributes.hasAttribute("type")) {
-        errorDescription = QT_TR_NOOP("Detected incorrect en-media tag missing type attribute");
+        const char * error = QT_TR_NOOP("Detected incorrect en-media tag missing type attribute");
+        QNDEBUG(error);
+        errorDescription = QObject::tr(error);
         return false;
     }
 
@@ -1027,7 +1047,9 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
 
     const QXmlStreamAttributes attributes = reader.attributes();
     if (!attributes.hasAttribute("encrypted_text")) {
-        errorDescription = QT_TR_NOOP("Missing encrypted text attribute within en-decrypted div tag");
+        const char * error = QT_TR_NOOP("Missing encrypted text attribute within en-decrypted div tag");
+        QNDEBUG(error);
+        errorDescription = QObject::tr(error);
         return false;
     }
 
@@ -1037,8 +1059,9 @@ bool ENMLConverterPrivate::decryptedTextToEnml(QXmlStreamReader & reader,
     bool rememberForSession = false;
     bool res = decryptedTextManager.findDecryptedTextByEncryptedText(encryptedText, storedDecryptedText, rememberForSession);
     if (!res) {
-        errorDescription = QT_TR_NOOP("Can't find decrypted text by its encrypted text");
-        QNWARNING(errorDescription);
+        const char * error = QT_TR_NOOP("Can't find decrypted text by its encrypted text");
+        QNWARNING(error);
+        errorDescription = QObject::tr(error);
         return false;
     }
 

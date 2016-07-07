@@ -146,10 +146,11 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         return true;
     }
 
-    errorDescription = QT_TR_NOOP("tidy-html5 error: ");
-    errorDescription.append(QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
-                                       static_cast<int>(m_tidyErrorBuffer.size)));
-    QNINFO(errorDescription);
+    const char * errorPrefix = QT_TR_NOOP("tidy-html5 error");
+    QByteArray errorBody = QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
+                                      static_cast<int>(m_tidyErrorBuffer.size));
+    QNINFO(errorPrefix << ": " << errorBody);
+    errorDescription = QObject::tr(errorPrefix) + QStringLiteral(": ") + errorBody;
     return false;
 }
 

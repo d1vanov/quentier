@@ -2310,10 +2310,11 @@ bool NoteEditorPrivate::htmlToNoteContent(QString & errorDescription)
     }
 
     if (m_pNote->hasActive() && !m_pNote->active()) {
-        errorDescription = QT_TR_NOOP("Current note is marked as read-only, the changes won't be saved");
-        QNINFO(errorDescription << ", note: local uid = " << m_pNote->localUid()
+        const char * errorPrefix = QT_TR_NOOP("Current note is marked as read-only, the changes won't be saved");
+        QNINFO(errorPrefix << ", note: local uid = " << m_pNote->localUid()
                << ", guid = " << (m_pNote->hasGuid() ? m_pNote->guid() : "<null>")
                << ", title = " << (m_pNote->hasTitle() ? m_pNote->title() : "<null>"));
+        errorDescription = tr(errorPrefix);
         emit cantConvertToNote(errorDescription);
         return false;
     }
@@ -3736,15 +3737,14 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
     m_lastSelectedHtml.resize(0);
     m_htmlCachedMemory = html;
     m_enmlCachedMemory.resize(0);
-    m_errorCachedMemory.resize(0);
+    QString error;
     bool res = m_enmlConverter.htmlToNoteContent(m_htmlCachedMemory, m_enmlCachedMemory,
-                                                 *m_decryptedTextManager, m_errorCachedMemory,
+                                                 *m_decryptedTextManager, error,
                                                  m_skipRulesForHtmlToEnmlConversion);
     if (!res)
     {
-        m_errorCachedMemory = QT_TR_NOOP("Can't convert note editor page's content to ENML: ") + m_errorCachedMemory;
-        QNWARNING(m_errorCachedMemory)
-        emit notifyError(m_errorCachedMemory);
+        error.prepend(tr("Can't convert note editor page's content to ENML") + QStringLiteral(": "));
+        emit notifyError(error);
 
         m_pendingConversionToNote = false;
         emit cantConvertToNote(m_errorCachedMemory);
