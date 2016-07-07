@@ -72,8 +72,8 @@ QModelIndex NotebookModel::indexForItem(const NotebookModelItem * item) const
 
     int row = parentItem->rowForChild(item);
     if (Q_UNLIKELY(row < 0)) {
-        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in NotebookModel");
-        QNWARNING(error << ", child item: " << *item << "\nParent item: " << *parentItem);
+        QNWARNING("Internal error: can't get the row of the child item in parent in NotebookModel, child item: "
+                  << *item << "\nParent item: " << *parentItem);
         return QModelIndex();
     }
 
@@ -539,19 +539,19 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         const NotebookItem * notebookItem = item->notebookItem();
 
         if (!canUpdateNotebookItem(*notebookItem)) {
-            QString error = QT_TR_NOOP("Can't update notebook \"" + notebookItem->name() +
-                                       "\": restrictions on notebook update apply");
-            QNINFO(error << ", notebook item: " << *notebookItem);
-            emit notifyError(error);
+            const char * errorPrefix = QT_TR_NOOP("Can't update notebook");
+            const char * errorSuffix = QT_TR_NOOP("notebook restrictions apply");
+            QNINFO(errorPrefix << ", " << errorSuffix << ", notebookItem = " << *notebookItem);
+            emit notifyError(tr(errorPrefix) + " \"" + notebookItem->name() + "\", " + tr(errorSuffix));
             return false;
         }
 
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
         auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
         if (Q_UNLIKELY(notebookItemIt == localUidIndex.end())) {
-            QString error = QT_TR_NOOP("Can't update notebook: can't find the notebook being updated in the model");
+            const char * error = QT_TR_NOOP("Can't update notebook: can't find the notebook being updated in the model");
             QNWARNING(error << ", notebook item: " << *notebookItem);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
 
@@ -570,18 +570,18 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
                 auto nameIt = m_lowerCaseNotebookNames.find(newName.toLower());
                 if (nameIt != m_lowerCaseNotebookNames.end()) {
-                    QString error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
-                                               "to have the same name in a case-insensitive manner");
+                    const char * error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
+                                                    "to have the same name in a case-insensitive manner");
                     QNINFO(error << ", suggested new name = " << newName);
-                    emit notifyError(error);
+                    emit notifyError(tr(error));
                     return false;
                 }
 
                 QString error;
                 if (!Notebook::validateName(newName, &error)) {
-                    error = QT_TR_NOOP("Can't rename notebook") + QStringLiteral(": ") + error;
-                    QNINFO(error << ", suggested new name = " << newName);
-                    emit notifyError(error);
+                    const char * errorPrefix = QT_TR_NOOP("Can't rename notebook");
+                    QNINFO(errorPrefix << ": " << error << "; suggested new name = " << newName);
+                    emit notifyError(tr(errorPrefix) + QStringLiteral(": ") + error);
                     return false;
                 }
 
@@ -592,9 +592,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         case Columns::Synchronizable:
             {
                 if (notebookItemCopy.isSynchronizable() && !value.toBool()) {
-                    QString error = QT_TR_NOOP("Can't make already synchronizable notebook not synchronizable");
+                    const char * error = QT_TR_NOOP("Can't make already synchronizable notebook not synchronizable");
                     QNINFO(error << ", already synchronizable notebook item: " << notebookItemCopy);
-                    emit notifyError(error);
+                    emit notifyError(tr(error));
                     return false;
                 }
 
@@ -610,9 +610,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 }
 
                 if (notebookItemCopy.isDefault() && !value.toBool()) {
-                    QString error = QT_TR_NOOP("In order to stop notebook being the default one please choose another default notebook");
+                    const char * error = QT_TR_NOOP("In order to stop notebook being the default one please choose another default notebook");
                     QNDEBUG(error);
-                    emit notifyError(error);
+                    emit notifyError(tr(error));
                     return false;
                 }
 
@@ -682,11 +682,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             CHECK_ITEM(childItem)
 
             if (!canUpdateNotebookItem(*notebookItem)) {
-                QString error = QT_TR_NOOP("Can't update notebook stack \"" + item->notebookStackItem()->name() +
-                                           "\": restrictions on at least one of stacked notebooks' update apply: notebook \"" +
-                                           notebookItem->name() + "\" is restricted from updating");
+                const char * error = QT_TR_NOOP("Can't update notebook stack: restrictions on at least one of stacked notebooks' update apply");
                 QNINFO(error << ", notebook item for which the restrictions apply: " << *notebookItem);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
         }
@@ -694,9 +692,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         // Change the stack item
         auto stackModelItemIt = m_modelItemsByStack.find(previousStack);
         if (stackModelItemIt == m_modelItemsByStack.end()) {
-            QString error = QT_TR_NOOP("Can't update notebook stack item: can't find the item for the previous stack value");
+            const char * error = QT_TR_NOOP("Can't update notebook stack item: can't find the item for the previous stack value");
             QNWARNING(error << ", previous stack: \"" << previousStack << "\", new stack: \"" << newStack << "\"");
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
 
@@ -860,21 +858,21 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         const NotebookModelItem * childItem = parentItem->childAtRow(row + i);
         if (!childItem) {
-            QNWARNING("Detected null pointer to child notebook model item on attempt to remove row " << row + i
-                      << " from parent item: " << *parentItem);
+            QNWARNING("Detected null pointer to child notebook model item on attempt to remove row "
+                      << row + i << " from parent item: " << *parentItem);
             continue;
         }
 
         bool isNotebookItem = (childItem->type() == NotebookModelItem::Type::Notebook);
         if (Q_UNLIKELY(isNotebookItem && !childItem->notebookItem())) {
-            QNWARNING("Detected null pointer to notebook item in notebook model item being removed: row in parent = " << row + i
-                      << ", parent item: " << *parentItem << "\nChild item: " << *childItem);
+            QNWARNING("Detected null pointer to notebook item in notebook model item being removed: row in parent = "
+                      << row + i << ", parent item: " << *parentItem << "\nChild item: " << *childItem);
             continue;
         }
 
         if (Q_UNLIKELY(!isNotebookItem && !childItem->notebookStackItem())) {
-            QNWARNING("Detected null pointer to notebook stack item in notebook model item being removed: row in parent = " << row + i
-                      << ", parent item: " << *parentItem << "\nChild item: " << *childItem);
+            QNWARNING("Detected null pointer to notebook stack item in notebook model item being removed: row in parent = "
+                      << row + i << ", parent item: " << *parentItem << "\nChild item: " << *childItem);
             continue;
         }
 
@@ -884,17 +882,18 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
 #define CHECK_NOTEBOOK_ITEM(notebookItem) \
             if (notebookItem->isSynchronizable()) { \
-                QString error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it is synchronizable, it can't be removed"); \
+                const char * error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
+                                                "is synchronizable, it can't be removed"); \
                 QNINFO(error << ", notebook: " << *notebookItem); \
-                emit notifyError(error); \
+                emit notifyError(tr(error)); \
                 return false; \
             } \
             \
             if (notebookItem->isLinkedNotebook()) { \
-                QString error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it is the linked notebook from another account, " \
-                                           "it can't be removed"); \
+                const char * error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
+                                                "is the linked notebook from another account, it can't be removed"); \
                 QNINFO(error << ", notebook: " << *notebookItem); \
-                emit notifyError(error); \
+                emit notifyError(tr(error)); \
                 return false; \
             }
 
@@ -1474,12 +1473,12 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
         return QVariant();
     }
 
-    QString accessibleText = (isNotebookItem ? QT_TR_NOOP("Notebook: ") : QT_TR_NOOP("Notebook stack: "));
+    QString accessibleText = (isNotebookItem ? tr("Notebook: ") : tr("Notebook stack: "));
 
     switch(column)
     {
     case Columns::Name:
-        accessibleText += QT_TR_NOOP("name is ") + textData.toString();
+        accessibleText += tr("name is ") + textData.toString();
         break;
     case Columns::Synchronizable:
         {
@@ -1487,7 +1486,7 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
                 return QVariant();
             }
 
-            accessibleText += (textData.toBool() ? QT_TR_NOOP("synchronizable") : QT_TR_NOOP("not synchronizable"));
+            accessibleText += (textData.toBool() ? tr("synchronizable") : tr("not synchronizable"));
             break;
         }
     case Columns::Dirty:
@@ -1496,7 +1495,7 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
                 return QVariant();
             }
 
-            accessibleText += (textData.toBool() ? QT_TR_NOOP("dirty") : QT_TR_NOOP("not dirty"));
+            accessibleText += (textData.toBool() ? tr("dirty") : tr("not dirty"));
             break;
         }
     case Columns::Default:
@@ -1505,7 +1504,7 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
                 return QVariant();
             }
 
-            accessibleText += (textData.toBool() ? QT_TR_NOOP("default") : QT_TR_NOOP("not default"));
+            accessibleText += (textData.toBool() ? tr("default") : tr("not default"));
             break;
         }
     case Columns::Published:
@@ -1514,7 +1513,7 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
                 return QVariant();
             }
 
-            accessibleText += (textData.toBool() ? QT_TR_NOOP("published") : QT_TR_NOOP("not published"));
+            accessibleText += (textData.toBool() ? tr("published") : tr("not published"));
             break;
         }
     case Columns::FromLinkedNotebook:
@@ -1523,7 +1522,7 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
                 return QVariant();
             }
 
-            accessibleText += (textData.toBool() ? QT_TR_NOOP("from linked notebook") : QT_TR_NOOP("from own account"));
+            accessibleText += (textData.toBool() ? tr("from linked notebook") : tr("from own account"));
             break;
         }
     default:
@@ -1961,7 +1960,7 @@ void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & 
 
     int currentItemRow = parentItem->rowForChild(&modelItem);
     if (Q_UNLIKELY(currentItemRow < 0)) {
-        QNWARNING(QT_TR_NOOP("Can't update notebook model item's row: can't find its original row within parent: ") << modelItem);
+        QNWARNING("Can't update notebook model item's row: can't find its original row within parent: " << modelItem);
         return;
     }
 
