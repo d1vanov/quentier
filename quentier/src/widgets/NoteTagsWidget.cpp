@@ -4,6 +4,7 @@
 #include "FlowLayout.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
+#include <QLabel>
 
 namespace quentier {
 
@@ -519,7 +520,10 @@ void NoteTagsWidget::addTagIconToLayout()
 {
     QNDEBUG("NoteTagsWidget::addTagIconToLayout");
 
-    // TODO: implement
+    QPixmap tagIconImage("/label/tag.png");
+    QLabel * pTagIconLabel = new QLabel(this);
+    pTagIconLabel->setPixmap(tagIconImage);
+    m_pLayout->addWidget(pTagIconLabel);
 }
 
 void NoteTagsWidget::addNewTagWidgetToLayout()
