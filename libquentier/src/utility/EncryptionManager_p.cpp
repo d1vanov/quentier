@@ -121,9 +121,9 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
     if (cipher == "RC2")
     {
         if (keyLength != 64) {
-            errorDescription = QT_TR_NOOP("Invalid key length for PS2 decryption method, "
-                                          "should be 64");
-            QNWARNING(errorDescription);
+            const char * error = QT_TR_NOOP("iInvalid key length for PS2 decryption method, should be 64");
+            QNWARNING(error);
+            errorDescription = QObject::tr(error);
             return false;
         }
 
@@ -140,9 +140,9 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
     else if (cipher == "AES")
     {
         if (keyLength != 128) {
-            errorDescription = QT_TR_NOOP("Invalid key length for AES decryption method, "
-                                          "should be 128");
-            QNWARNING(errorDescription);
+            const char * error = QT_TR_NOOP("invalid key length for AES decryption method, should be 128");
+            QNWARNING(error);
+            errorDescription = QObject::tr(error);
             return false;
         }
 
@@ -157,8 +157,9 @@ bool EncryptionManagerPrivate::decrypt(const QString & encryptedText, const QStr
     }
     else
     {
-        errorDescription = QT_TR_NOOP("Unsupported decryption method");
-        QNWARNING(errorDescription);
+        const char * error = QT_TR_NOOP("unsupported decryption method");
+        QNWARNING(error);
+        errorDescription = QObject::tr(error);
         return false;
     }
 }
@@ -242,17 +243,21 @@ bool EncryptionManagerPrivate::generateSalt(const EncryptionManagerPrivate::Salt
         saltText = "iv";
         break;
     default:
-        errorDescription = QT_TR_NOOP("Internal error, detected incorrect salt kind for cryptographic key generation");
-        QNCRITICAL(errorDescription);
-        return false;
+        {
+            const char * error = QT_TR_NOOP("internal error, detected incorrect salt kind for cryptographic key generation");
+            QNCRITICAL(error);
+            errorDescription = QObject::tr(error);
+            return false;
+        }
     }
 
     int res = RAND_bytes(salt, static_cast<int>(saltSize));
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't generate cryptographically strong bytes for encryption");
+        const char * error = QT_TR_NOOP("can't generate cryptographically strong bytes for encryption");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << "; " << saltText << ": lib: " << errorLib
+        QNWARNING(error << "; " << saltText << ": lib: " << errorLib
                   << "; func: " << errorFunc << ", reason: " << errorReason);
+        errorDescription = QObject::tr(error);
         return false;
     }
 
@@ -267,11 +272,12 @@ bool EncryptionManagerPrivate::generateKey(const QByteArray & passphraseData, co
     int res = PKCS5_PBKDF2_HMAC(rawPassphraseData, passphraseData.size(), salt, static_cast<int>(keySize),
                                 EN_ITERATIONS, EVP_sha256(), static_cast<int>(keySize), m_key);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't generate cryptographic key");
+        const char * error = QT_TR_NOOP("can't generate cryptographic key");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl PKCS5_PBKDF2_HMAC failed: "
+        QNWARNING(error << ", openssl PKCS5_PBKDF2_HMAC failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         return false;
     }
 
@@ -297,8 +303,7 @@ bool EncryptionManagerPrivate::calculateHmac(const QByteArray & passphraseData, 
     return true;
 }
 
-bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptData,
-                                             QByteArray & encryptedTextData,
+bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptData, QByteArray & encryptedTextData,
                                              QString & errorDescription)
 {
     const unsigned char * rawTextToEncrypt = reinterpret_cast<const unsigned char*>(textToEncryptData.constData());
@@ -311,22 +316,24 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
     EVP_CIPHER_CTX context;
     int res = EVP_EncryptInit(&context, EVP_aes_128_cbc(), m_key, m_iv);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't encrypt the text using AES algorithm");
+        const char * error = QT_TR_NOOP("can't encrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_EnryptInit failed: "
+        QNWARNING(error << ", openssl EVP_EnryptInit failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         free(cipherText);
         return false;
     }
 
     res = EVP_EncryptUpdate(&context, cipherText, &bytesWritten, rawTextToEncrypt, rawTextToEncryptSize);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't encrypt the text using AES algorithm");
+        const char * error = QT_TR_NOOP("can't encrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_CipherUpdate failed: "
+        QNWARNING(error << ", openssl EVP_CipherUpdate failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         free(cipherText);
         return false;
     }
@@ -335,11 +342,12 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
 
     res = EVP_EncryptFinal(&context, cipherText + bytesWritten, &bytesWritten);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't encrypt the text using AES algorithm");
+        const char * error = QT_TR_NOOP("can't encrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_CipherFinal failed: "
+        QNWARNING(error << ", openssl EVP_CipherFinal failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         free(cipherText);
         return false;
     }
@@ -385,11 +393,12 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     for(int i = 0; i < EN_AES_HMACSIZE; ++i)
     {
         if (parsedHmac[i] != m_hmac[i]) {
-            errorDescription = QT_TR_NOOP("Can't decrypt text: invalid checksum");
-            QNWARNING(errorDescription << ", parsed hmac: "
+            const char * error = QT_TR_NOOP("can't decrypt text: invalid checksum");
+            QNWARNING(error << ", parsed hmac: "
                       << QByteArray(reinterpret_cast<const char*>(parsedHmac), EN_AES_HMACSIZE).toHex()
                       << ", expected hmac: "
                       << QByteArray(reinterpret_cast<const char*>(m_hmac), EN_AES_HMACSIZE).toHex());
+            errorDescription = QObject::tr(error);
             return false;
         }
     }
@@ -411,22 +420,24 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     EVP_CIPHER_CTX context;
     int res = EVP_DecryptInit(&context, EVP_aes_128_cbc(), m_key, m_iv);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't decrypt the text");
+        const char * error = QT_TR_NOOP("can't decrypt the text");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_DecryptInit failed: "
+        QNWARNING(error << ", openssl EVP_DecryptInit failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         free(decipheredText);
         return false;
     }
 
     res = EVP_DecryptUpdate(&context, decipheredText, &bytesWritten, rawCipherText, rawCipherTextSize);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't decrypt the text");
+        const char * error = QT_TR_NOOP("can't decrypt the text");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_DecryptUpdate failed: "
+        QNWARNING(error << ", openssl EVP_DecryptUpdate failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         free(decipheredText);
         return false;
     }
@@ -435,11 +446,12 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
 
     res = EVP_DecryptFinal(&context, decipheredText + bytesWritten, &bytesWritten);
     if (res != 1) {
-        errorDescription = QT_TR_NOOP("Can't decrypt the text");
+        const char * error = QT_TR_NOOP("can't decrypt the text");
         GET_OPENSSL_ERROR;
-        QNWARNING(errorDescription << ", openssl EVP_DecryptFinal failed: "
+        QNWARNING(error << ", openssl EVP_DecryptFinal failed: "
                   << ": lib: " << errorLib << "; func: " << errorFunc << ", reason: "
                   << errorReason);
+        errorDescription = QObject::tr(error);
         free(decipheredText);
         return false;
     }
@@ -464,9 +476,9 @@ bool EncryptionManagerPrivate::splitEncryptedData(const QString & encryptedData,
 
     const int encryptedDataSize = decodedEncryptedData.size();
     if (encryptedDataSize <= minLength) {
-        errorDescription = QT_TR_NOOP("Encrypted data is too short for being valid: ") +
-                           QString::number(encryptedDataSize) + " " + QT_TR_NOOP("while should be") + " " +
-                           QString::number(minLength);
+        const char * error = QT_TR_NOOP("encrypted data is too short for being valid");
+        QNWARNING(error << ": " << encryptedDataSize << " bytes while should be at least " << minLength << " bytes");
+        errorDescription = QObject::tr(error);
         return false;
     }
 
