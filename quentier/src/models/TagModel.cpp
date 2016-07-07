@@ -311,18 +311,18 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
             auto it = m_lowerCaseTagNames.find(newName.toLower());
             if (it != m_lowerCaseTagNames.end()) {
-                QString error = QT_TR_NOOP("Can't change tag name: no two tags within the account are allowed "
-                                           "to have the same name in a case-insensitive manner");
+                const char * error = QT_TR_NOOP("Can't change tag name: no two tags within the account are allowed "
+                                                "to have the same name in a case-insensitive manner");
                 QNINFO(error << ", suggested name = " << newName);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
             QString error;
             if (!Tag::validateName(newName, &error)) {
-                error = QT_TR_NOOP("Can't change tag name") + QStringLiteral(": ") + error;
-                QNINFO(error << ", suggested name = " << newName);
-                emit notifyError(error);
+                const char * errorPrefix = QT_TR_NOOP("Can't change tag name");
+                QNINFO(errorPrefix << ": " << error << "; suggested name = " << newName);
+                emit notifyError(tr(errorPrefix));
                 return false;
             }
 
@@ -333,9 +333,9 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     case Columns::Synchronizable:
         {
             if (itemCopy.isSynchronizable() && !value.toBool()) {
-                QString error = QT_TR_NOOP("Can't make already synchronizable tag not synchronizable");
+                const char * error = QT_TR_NOOP("Can't make already synchronizable tag not synchronizable");
                 QNINFO(error << ", already synchronizable tag item: " << itemCopy);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
@@ -371,18 +371,18 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
             dummy.setSynchronizable(true);
             auto dummyIt = index.find(dummy.localUid());
             if (Q_UNLIKELY(dummyIt == index.end())) {
-                QString error = QT_TR_NOOP("Internal error: can't find one of currently made synchronizable item's parents in TagModel by its local uid");
+                const char * error = QT_TR_NOOP("Internal error: can't find one of currently made synchronizable tag's parent tags");
                 QNWARNING(error << ", item: " << dummy);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
             index.replace(dummyIt, dummy);
             QModelIndex changedIndex = indexForLocalUid(dummy.localUid());
             if (Q_UNLIKELY(!changedIndex.isValid())) {
-                QString error = QT_TR_NOOP("Can't get the valid tag item model index for one of currently made synchronizable item's parents in TagModel by its local uid");
+                const char * error = QT_TR_NOOP("Can't get the valid model index for one of currently made synchronizable tag's parent tags");
                 QNWARNING(error << ", item for which the index was requested: " << dummy);
-                emit notifyError(error);
+                emit notifyError(tr(error));
                 return false;
             }
 
@@ -393,9 +393,9 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
 
     auto it = index.find(itemCopy.localUid());
     if (Q_UNLIKELY(it == index.end())) {
-        QString error = QT_TR_NOOP("Internal error: can't find item in TagModel by its local uid");
-        QNWARNING(error << ", item: " << itemCopy);
-        emit notifyError(error);
+        const char * error = QT_TR_NOOP("Internal error: can't find tag being altered");
+        QNWARNING(error << " by its local uid , item: " << itemCopy);
+        emit notifyError(tr(error));
         return false;
     }
 
@@ -482,23 +482,23 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         }
 
         if (!item->linkedNotebookGuid().isEmpty()) {
-            QString error = QT_TR_NOOP("Can't remove tag from linked notebook");
+            const char * error = QT_TR_NOOP("Can't remove tag from linked notebook");
             QNINFO(error);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
 
         if (item->isSynchronizable()) {
-            QString error = QT_TR_NOOP("Can't remove synchronizable tag");
+            const char * error = QT_TR_NOOP("Can't remove synchronizable tag");
             QNINFO(error);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
 
         if (hasSynchronizableChildren(item)) {
-            QString error = QT_TR_NOOP("Can't remove tag with synchronizable children");
+            const char * error = QT_TR_NOOP("Can't remove tag with synchronizable children");
             QNINFO(error);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
     }
@@ -651,9 +651,9 @@ bool TagModel::dropMimeData(const QMimeData * mimeData, Qt::DropAction action,
         }
 
         if (!originalItemParent->linkedNotebookGuid().isEmpty()) {
-            QString error = QT_TR_NOOP("Can't drag tag items from parent tags coming from linked notebook");
+            const char * error = QT_TR_NOOP("Can't drag tag items from parent tags coming from linked notebook");
             QNINFO(error);
-            emit notifyError(error);
+            emit notifyError(tr(error));
             return false;
         }
 
@@ -1120,17 +1120,17 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
 
     const TagModelItem * parentItem = item->parent();
     if (Q_UNLIKELY(!parentItem)) {
-        QString error = QT_TR_NOOP("Tag item being updated does not have a parent item linked with it");
+        const char * error = QT_TR_NOOP("Tag item being updated does not have a parent item linked with it");
         QNWARNING(error << ", tag: " << tag << "\nTag item: " << *item);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return;
     }
 
     int row = parentItem->rowForChild(item);
     if (Q_UNLIKELY(row < 0)) {
-        QString error = QT_TR_NOOP("Can't find the row of tag item being updated within its parent");
+        const char * error = QT_TR_NOOP("Can't find the row of tag item being updated within its parent");
         QNWARNING(error << ", tag: " << tag << "\nTag item: " << *item);
-        emit notifyError(error);
+        emit notifyError(tr(error));
         return;
     }
 
@@ -1272,21 +1272,21 @@ QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::
         return QVariant();
     }
 
-    QString accessibleText = QT_TR_NOOP("Tag: ");
+    QString accessibleText = tr("Tag: ");
 
     switch(column)
     {
     case Columns::Name:
-        accessibleText += QT_TR_NOOP("name is ") + textData.toString();
+        accessibleText += tr("name is ") + textData.toString();
         break;
     case Columns::Synchronizable:
-        accessibleText += (textData.toBool() ? QT_TR_NOOP("synchronizable") : QT_TR_NOOP("not synchronizable"));
+        accessibleText += (textData.toBool() ? tr("synchronizable") : tr("not synchronizable"));
         break;
     case Columns::Dirty:
-        accessibleText += (textData.toBool() ? QT_TR_NOOP("dirty") : QT_TR_NOOP("not dirty"));
+        accessibleText += (textData.toBool() ? tr("dirty") : tr("not dirty"));
         break;
     case Columns::FromLinkedNotebook:
-        accessibleText += (textData.toBool() ? QT_TR_NOOP("from linked notebook") : QT_TR_NOOP("from own account"));
+        accessibleText += (textData.toBool() ? tr("from linked notebook") : tr("from own account"));
         break;
     default:
         return QVariant();
@@ -1340,8 +1340,8 @@ QModelIndex TagModel::indexForItem(const TagModelItem * item) const
 
     int row = parentItem->rowForChild(item);
     if (Q_UNLIKELY(row < 0)) {
-        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in TagModel");
-        QNWARNING(error << ", child item: " << *item << "\nParent item: " << *parentItem);
+        QNWARNING("Internal error: can't get the row of the child item in parent in TagModel"
+                  << ", child item: " << *item << "\nParent item: " << *parentItem);
         return QModelIndex();
     }
 
@@ -1662,8 +1662,8 @@ void TagModel::removeItemByLocalUid(const QString & localUid)
 
     int row = parentItem->rowForChild(&item);
     if (Q_UNLIKELY(row < 0)) {
-        QString error = QT_TR_NOOP("Internal error: can't get the row of the child item in parent in TagModel");
-        QNWARNING(error << ", child item: " << item << "\nParent item: " << *parentItem);
+        QNWARNING("Internal error: can't get the row of the child item in parent in TagModel"
+                  << ", child item: " << item << "\nParent item: " << *parentItem);
         return;
     }
 
@@ -1734,7 +1734,7 @@ void TagModel::updateItemRowWithRespectToSorting(const TagModelItem & item)
 
     int currentItemRow = parentItem->rowForChild(&item);
     if (Q_UNLIKELY(currentItemRow < 0)) {
-        QNWARNING(QT_TR_NOOP("Can't update tag model item's row: can't find its original row within parent: ") << item);
+        QNWARNING("Can't update tag model item's row: can't find its original row within parent: " << item);
         return;
     }
 
