@@ -130,8 +130,7 @@ void DecryptionDialog::accept()
     }
 
     if (!res) {
-        errorDescription.prepend(QT_TR_NOOP("Failed attempt to decrypt text: "));
-        QNINFO(errorDescription);
+        errorDescription.prepend(tr("Failed to decrypt the text") + QStringLiteral(": "));
         setError(errorDescription);
         return;
     }

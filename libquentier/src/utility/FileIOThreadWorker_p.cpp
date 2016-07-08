@@ -38,7 +38,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
         bool madeFolder = folder.mkpath(folder.absolutePath());
         if (!madeFolder) {
             const char * error  = QT_TR_NOOP("can't create folder to write file into");
-            QNDEBUG(error << ": " << absoluteFilePath);
+            QNWARNING(error << ": " << absoluteFilePath);
             QString errorDescription = tr(error) + QStringLiteral(": ") + absoluteFilePath;
             emit writeFileRequestProcessed(false, errorDescription, requestId);
             RESTART_TIMER();
@@ -59,7 +59,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     bool open = file.open(mode);
     if (Q_UNLIKELY(!open)) {
         const char * error = QT_TR_NOOP("can't open file for writing/appending");
-        QNDEBUG(error << ": " << absoluteFilePath);
+        QNWARNING(error << ": " << absoluteFilePath);
         QString errorDescription = tr(error) + QStringLiteral(": ") + absoluteFilePath;
         emit writeFileRequestProcessed(false, errorDescription, requestId);
         RESTART_TIMER();
@@ -69,7 +69,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     qint64 writtenBytes = file.write(data);
     if (Q_UNLIKELY(writtenBytes < data.size())) {
         const char * error = QT_TR_NOOP("can't write the whole data to file");
-        QNDEBUG(error << ": " << absoluteFilePath);
+        QNWARNING(error << ": " << absoluteFilePath);
         QString errorDescription = tr(error) + QStringLiteral(": ") + absoluteFilePath;
         emit writeFileRequestProcessed(false, errorDescription, requestId);
         RESTART_TIMER();

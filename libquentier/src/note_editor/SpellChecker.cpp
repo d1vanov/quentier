@@ -656,12 +656,14 @@ void SpellChecker::checkUserDictionaryDataPendingWriting()
 
 void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId)
 {
+    Q_UNUSED(errorDescription)
+
     if (requestId != m_readUserDictionaryRequestId) {
         return;
     }
 
     QNDEBUG("SpellChecker::onReadFileRequestProcessed: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription << ", request id = " << requestId);
+            << ", request id = " << requestId);
 
     m_readUserDictionaryRequestId = QUuid();
 
@@ -730,13 +732,13 @@ void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescri
 
 void SpellChecker::onAppendUserDictionaryPartDone(bool success, QString errorDescription)
 {
-    QNDEBUG("SpellChecker::onAppendUserDictionaryPartDone: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription);
+    QNDEBUG("SpellChecker::onAppendUserDictionaryPartDone: success = " << (success ? "true" : "false"));
 
+    Q_UNUSED(errorDescription)
     m_appendUserDictionaryPartToFileRequestId = QUuid();
 
     if (Q_UNLIKELY(!success)) {
-        QNWARNING("Can't update user dictionary file: " << errorDescription);
+        QNWARNING("Can't append word to the user dictionary file");
         return;
     }
 
@@ -751,7 +753,7 @@ void SpellChecker::onUpdateUserDictionaryDone(bool success, QString errorDescrip
     m_updateUserDictionaryFileRequestId = QUuid();
 
     if (Q_UNLIKELY(!success)) {
-        QNWARNING("Can't update user dictionary file: " << errorDescription);
+        QNWARNING("Can't update the user dictionary file");
         return;
     }
 }

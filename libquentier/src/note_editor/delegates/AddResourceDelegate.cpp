@@ -117,8 +117,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
         return;
     }
 
-    QNDEBUG("AddResourceDelegate::onResourceFileRead: success = " << (success ? "true" : "false")
-            << ", error description = " << errorDescription);
+    QNDEBUG("AddResourceDelegate::onResourceFileRead: success = " << (success ? "true" : "false"));
 
     QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,readFileData,QString,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
@@ -126,8 +125,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QString errorDescript
                         this, QNSLOT(AddResourceDelegate,onResourceFileRead,bool,QString,QByteArray,QUuid));
 
     if (Q_UNLIKELY(!success)) {
-        errorDescription = QT_TR_NOOP("Can't read the contents of the attached file: ") + errorDescription;
-        QNWARNING(errorDescription);
+        errorDescription.prepend(tr("Can't read the contents of the attached file") + QStringLiteral(": "));
         emit notifyError(errorDescription);
         return;
     }

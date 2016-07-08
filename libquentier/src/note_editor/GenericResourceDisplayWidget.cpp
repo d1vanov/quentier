@@ -284,8 +284,7 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
                                                                         QUuid requestId)
 {
     QNTRACE("GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed: success = "
-            << (success ? "true" : "false") << ", error description = " << errorDescription
-            << ", request id = " << requestId);
+            << (success ? "true" : "false") << ", request id = " << requestId);
 
     if (requestId == m_saveResourceToFileRequestId)
     {
@@ -301,7 +300,6 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
                               errorDescription);
         }
     }
-    // otherwise it's not ours request reply, skip it
 }
 
 void GenericResourceDisplayWidget::setPendingMode(const bool pendingMode)

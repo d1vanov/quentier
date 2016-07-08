@@ -1184,16 +1184,15 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QString errorD
     if (requestId == m_writeNoteHtmlToFileRequestId)
     {
         QNDEBUG("Write note html to file completed: success = " << (success ? "true" : "false")
-                << ", error description = " << errorDescription << ", request id = " << requestId);
+                << ", request id = " << requestId);
 
         m_writeNoteHtmlToFileRequestId = QUuid();
         m_pendingIndexHtmlWritingToFile = false;
 
         if (!success) {
             clearEditorContent();
-            errorDescription.prepend(QT_TR_NOOP("Could not write note html to file: "));
+            errorDescription.prepend(tr("Could not write note html to file") + QStringLiteral(": "));
             emit notifyError(errorDescription);
-            QNWARNING(errorDescription);
             return;
         }
 
@@ -4289,7 +4288,6 @@ void NoteEditorPrivate::convertToNote()
     bool res = htmlToNoteContent(m_errorCachedMemory);
     if (!res) {
         m_pendingConversionToNote = false;
-        return;
     }
 }
 
