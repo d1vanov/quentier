@@ -3,13 +3,14 @@
 
 #include "ILocalStorageDataElement.h"
 #include <quentier/utility/Printable.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QtGlobal>
 #include <QUuid>
 
 namespace quentier {
 
 class QUENTIER_EXPORT INoteStoreDataElement: public ILocalStorageDataElement,
-                                              public Printable
+                                             public Printable
 {
 public:
     virtual void clear() = 0;
@@ -22,7 +23,7 @@ public:
     virtual qint32 updateSequenceNumber() const = 0;
     virtual void setUpdateSequenceNumber(const qint32 usn) = 0;
 
-    virtual bool checkParameters(QString & errorDescription) const = 0;
+    virtual bool checkParameters(QNLocalizedString & errorDescription) const = 0;
 
     virtual bool isDirty() const = 0;
     virtual void setDirty(const bool dirty) = 0;

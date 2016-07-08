@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-NullPtrException::NullPtrException(const QString & message) :
+NullPtrException::NullPtrException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

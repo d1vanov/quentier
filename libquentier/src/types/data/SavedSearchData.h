@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TYPES_DATA_SAVED_SEARCH_DATA_H
 
 #include "FavoritableDataElementData.h"
+#include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 
 namespace quentier {
@@ -17,7 +18,7 @@ public:
     virtual ~SavedSearchData();
 
     void clear();
-    bool checkParameters(QString & errorDescription) const;
+    bool checkParameters(QNLocalizedString & errorDescription) const;
 
     bool operator==(const SavedSearchData & other) const;
     bool operator!=(const SavedSearchData & other) const;

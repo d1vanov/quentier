@@ -47,114 +47,114 @@ Q_SIGNALS:
 public:
     void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false,
                     const bool overrideLock = false);
-    int userCount(QString & errorDescription) const;
-    bool addUser(const IUser & user, QString & errorDescription);
-    bool updateUser(const IUser & user, QString & errorDescription);
-    bool findUser(IUser & user, QString & errorDescription) const;
-    bool deleteUser(const IUser & user, QString & errorDescription);
-    bool expungeUser(const IUser & user, QString & errorDescription);
+    int userCount(QNLocalizedString & errorDescription) const;
+    bool addUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool updateUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool findUser(IUser & user, QNLocalizedString & errorDescription) const;
+    bool deleteUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool expungeUser(const IUser & user, QNLocalizedString & errorDescription);
 
-    int notebookCount(QString & errorDescription) const;
-    bool addNotebook(Notebook & notebook, QString & errorDescription);
-    bool updateNotebook(Notebook & notebook, QString & errorDescription);
-    bool findNotebook(Notebook & notebook, QString & errorDescription) const;
-    bool findDefaultNotebook(Notebook & notebook, QString & errorDescription) const;
-    bool findLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
-    bool findDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const;
-    QList<Notebook> listAllNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
+    int notebookCount(QNLocalizedString & errorDescription) const;
+    bool addNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
+    bool updateNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
+    bool findNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findDefaultNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findDefaultOrLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    QList<Notebook> listAllNotebooks(QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                      const LocalStorageManager::ListNotebooksOrder::type & order,
                                      const LocalStorageManager::OrderDirection::type & orderDirection,
                                      const QString & linkedNotebookGuid) const;
     QList<Notebook> listNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                  QString & errorDescription, const size_t limit, const size_t offset,
+                                  QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                   const LocalStorageManager::ListNotebooksOrder::type & order,
                                   const LocalStorageManager::OrderDirection::type & orderDirection,
                                   const QString & linkedNotebookGuid) const;
-    QList<SharedNotebookWrapper> listAllSharedNotebooks(QString & errorDescription) const;
+    QList<SharedNotebookWrapper> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
     QList<SharedNotebookWrapper> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                    QString & errorDescription) const;
-    bool expungeNotebook(Notebook & notebook, QString & errorDescription);
+                                                                    QNLocalizedString & errorDescription) const;
+    bool expungeNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
 
-    int linkedNotebookCount(QString & errorDescription) const;
-    bool addLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    bool updateLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
-    bool findLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const;
-    QList<LinkedNotebook> listAllLinkedNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
+    int linkedNotebookCount(QNLocalizedString & errorDescription) const;
+    bool addLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
+    bool updateLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
+    bool findLinkedNotebook(LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription) const;
+    QList<LinkedNotebook> listAllLinkedNotebooks(QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                  const LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                                  const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<LinkedNotebook> listLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                              QString & errorDescription, const size_t limit, const size_t offset,
+                                              QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                               const LocalStorageManager::ListLinkedNotebooksOrder::type & order,
                                               const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    bool expungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool expungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
 
-    int noteCount(QString & errorDescription) const;
-    int noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const;
-    int noteCountPerTag(const Tag & tag, QString & errorDescription) const;
-    bool addNote(Note & note, QString & errorDescription);
-    bool updateNote(Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
-    bool findNote(Note & note, QString & errorDescription,
+    int noteCount(QNLocalizedString & errorDescription) const;
+    int noteCountPerNotebook(const Notebook & notebook, QNLocalizedString & errorDescription) const;
+    int noteCountPerTag(const Tag & tag, QNLocalizedString & errorDescription) const;
+    bool addNote(Note & note, QNLocalizedString & errorDescription);
+    bool updateNote(Note & note, const bool updateResources, const bool updateTags, QNLocalizedString & errorDescription);
+    bool findNote(Note & note, QNLocalizedString & errorDescription,
                   const bool withResourceBinaryData = true) const;
-    QList<Note> listNotesPerNotebook(const Notebook & notebook, QString & errorDescription,
+    QList<Note> listNotesPerNotebook(const Notebook & notebook, QNLocalizedString & errorDescription,
                                      const bool withResourceBinaryData,
                                      const LocalStorageManager::ListObjectsOptions & flag,
                                      const size_t limit, const size_t offset,
                                      const LocalStorageManager::ListNotesOrder::type & order,
                                      const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    QList<Note> listNotesPerTag(const Tag & tag, QString & errorDescription,
+    QList<Note> listNotesPerTag(const Tag & tag, QNLocalizedString & errorDescription,
                                 const bool withResourceBinaryData,
                                 const LocalStorageManager::ListObjectsOptions & flag,
                                 const size_t limit, const size_t offset,
                                 const LocalStorageManager::ListNotesOrder::type & order,
                                 const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    QList<Note> listNotes(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
+    QList<Note> listNotes(const LocalStorageManager::ListObjectsOptions flag, QNLocalizedString & errorDescription,
                           const bool withResourceBinaryData, const size_t limit,
                           const size_t offset, const LocalStorageManager::ListNotesOrder::type & order,
                           const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    bool expungeNote(Note & note, QString & errorDescription);
+    bool expungeNote(Note & note, QNLocalizedString & errorDescription);
 
     NoteList findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
-                                      QString & errorDescription,
+                                      QNLocalizedString & errorDescription,
                                       const bool withResourceBinaryData = true) const;
 
-    int tagCount(QString & errorDescription) const;
-    bool addTag(Tag & tag, QString & errorDescription);
-    bool updateTag(Tag & tag, QString & errorDescription);
-    bool findTag(Tag & tag, QString & errorDescription) const;
-    QList<Tag> listAllTagsPerNote(const Note & note, QString & errorDescription,
+    int tagCount(QNLocalizedString & errorDescription) const;
+    bool addTag(Tag & tag, QNLocalizedString & errorDescription);
+    bool updateTag(Tag & tag, QNLocalizedString & errorDescription);
+    bool findTag(Tag & tag, QNLocalizedString & errorDescription) const;
+    QList<Tag> listAllTagsPerNote(const Note & note, QNLocalizedString & errorDescription,
                                   const LocalStorageManager::ListObjectsOptions & flag,
                                   const size_t limit, const size_t offset,
                                   const LocalStorageManager::ListTagsOrder::type & order,
                                   const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    QList<Tag> listAllTags(QString & errorDescription, const size_t limit,
+    QList<Tag> listAllTags(QNLocalizedString & errorDescription, const size_t limit,
                            const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
                            const LocalStorageManager::OrderDirection::type & orderDirection,
                            const QString & linkedNotebookGuid) const;
-    QList<Tag> listTags(const LocalStorageManager::ListObjectsOptions flag, QString & errorDescription,
+    QList<Tag> listTags(const LocalStorageManager::ListObjectsOptions flag, QNLocalizedString & errorDescription,
                         const size_t limit, const size_t offset, const LocalStorageManager::ListTagsOrder::type & order,
                         const LocalStorageManager::OrderDirection::type & orderDirection,
                         const QString & linkedNotebookGuid) const;
-    bool expungeTag(Tag & tag, QString & errorDescription);
-    bool expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription);
+    bool expungeTag(Tag & tag, QNLocalizedString & errorDescription);
+    bool expungeNotelessTagsFromLinkedNotebooks(QNLocalizedString & errorDescription);
 
-    int enResourceCount(QString & errorDescription) const;
-    bool addEnResource(IResource & resource, QString & errorDescription);
-    bool updateEnResource(IResource & resource, QString & errorDescription);
-    bool findEnResource(IResource & resource, QString & errorDescription, const bool withBinaryData = true) const;
-    bool expungeEnResource(IResource & resource, QString & errorDescription);
+    int enResourceCount(QNLocalizedString & errorDescription) const;
+    bool addEnResource(IResource & resource, QNLocalizedString & errorDescription);
+    bool updateEnResource(IResource & resource, QNLocalizedString & errorDescription);
+    bool findEnResource(IResource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
+    bool expungeEnResource(IResource & resource, QNLocalizedString & errorDescription);
 
-    int savedSearchCount(QString & errorDescription) const;
-    bool addSavedSearch(SavedSearch & search, QString & errorDescription);
-    bool updateSavedSearch(SavedSearch & search, QString & errorDescription);
-    bool findSavedSearch(SavedSearch & search, QString & errorDescription) const;
-    QList<SavedSearch> listAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
+    int savedSearchCount(QNLocalizedString & errorDescription) const;
+    bool addSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
+    bool updateSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
+    bool findSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription) const;
+    QList<SavedSearch> listAllSavedSearches(QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                             const LocalStorageManager::ListSavedSearchesOrder::type & order,
                                             const LocalStorageManager::OrderDirection::type & orderDirection) const;
     QList<SavedSearch> listSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
-                                         QString & errorDescription, const size_t limit,
+                                         QNLocalizedString & errorDescription, const size_t limit,
                                          const size_t offset, const LocalStorageManager::ListSavedSearchesOrder::type & order,
                                          const LocalStorageManager::OrderDirection::type & orderDirection) const;
-    bool expungeSavedSearch(SavedSearch & search, QString & errorDescription);
+    bool expungeSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
 
 public Q_SLOTS:
     void processPostTransactionException(QString message, QSqlError error) const;
@@ -165,24 +165,24 @@ private:
 
     void unlockDatabaseFile();
 
-    bool createTables(QString & errorDescription);
+    bool createTables(QNLocalizedString & errorDescription);
     bool insertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                             const QString & localUid, QString & errorDescription);
+                                             const QString & localUid, QNLocalizedString & errorDescription);
     bool insertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
-                                       QString & errorDescription);
+                                       QNLocalizedString & errorDescription);
 
     bool rowExists(const QString & tableName, const QString & uniqueKeyName,
                    const QVariant & uniqueKeyValue) const;
 
-    bool insertOrReplaceUser(const IUser & user, QString & errorDescription);
+    bool insertOrReplaceUser(const IUser & user, QNLocalizedString & errorDescription);
     bool insertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
-                                        QString & errorDescription);
+                                        QNLocalizedString & errorDescription);
     bool insertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
-                                    QString & errorDescription);
+                                    QNLocalizedString & errorDescription);
     bool insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
-                                   QString & errorDescription);
+                                   QNLocalizedString & errorDescription);
     bool insertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
-                                       QString & errorDescription);
+                                       QNLocalizedString & errorDescription);
     bool checkAndPrepareUserCountQuery() const;
     bool checkAndPrepareInsertOrReplaceUserQuery();
     bool checkAndPrepareInsertOrReplaceAccountingQuery();
@@ -193,29 +193,29 @@ private:
     bool checkAndPrepareInsertOrReplaceUserAttributesRecentMailedAddressesQuery();
     bool checkAndPrepareDeleteUserQuery();
 
-    bool insertOrReplaceNotebook(const Notebook & notebook, QString & errorDescription);
+    bool insertOrReplaceNotebook(const Notebook & notebook, QNLocalizedString & errorDescription);
     bool checkAndPrepareNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNotebookQuery();
     bool checkAndPrepareInsertOrReplaceNotebookRestrictionsQuery();
     bool checkAndPrepareInsertOrReplaceSharedNotebokQuery();
 
-    bool insertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QString & errorDescription);
+    bool insertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
     bool checkAndPrepareGetLinkedNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceLinkedNotebookQuery();
 
-    bool getNoteLocalUidFromResource(const IResource & resource, QString & noteLocalUid, QString & errorDescription);
-    bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription);
-    bool getNotebookGuidForNote(const Note & note, QString & notebookGuid, QString & errorDescription);
-    bool getNotebookLocalUidForGuid(const QString & notebookGuid, QString & notebookLocalUid, QString & errorDescription);
-    bool getNoteLocalUidForGuid(const QString & noteGuid, QString & noteLocalUid, QString & errorDescription);
-    bool getTagLocalUidForGuid(const QString & tagGuid, QString & tagLocalUid, QString & errorDescription);
-    bool getResourceLocalUidForGuid(const QString & resourceGuid, QString & resourceLocalUid, QString & errorDescription);
-    bool getSavedSearchLocalUidForGuid(const QString & savedSearchGuid, QString & savedSearchLocalUid, QString & errorDescription);
+    bool getNoteLocalUidFromResource(const IResource & resource, QString & noteLocalUid, QNLocalizedString & errorDescription);
+    bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QNLocalizedString & errorDescription);
+    bool getNotebookGuidForNote(const Note & note, QString & notebookGuid, QNLocalizedString & errorDescription);
+    bool getNotebookLocalUidForGuid(const QString & notebookGuid, QString & notebookLocalUid, QNLocalizedString & errorDescription);
+    bool getNoteLocalUidForGuid(const QString & noteGuid, QString & noteLocalUid, QNLocalizedString & errorDescription);
+    bool getTagLocalUidForGuid(const QString & tagGuid, QString & tagLocalUid, QNLocalizedString & errorDescription);
+    bool getResourceLocalUidForGuid(const QString & resourceGuid, QString & resourceLocalUid, QNLocalizedString & errorDescription);
+    bool getSavedSearchLocalUidForGuid(const QString & savedSearchGuid, QString & savedSearchLocalUid, QNLocalizedString & errorDescription);
 
-    bool insertOrReplaceNote(const Note & note, const bool updateResources, const bool updateTags, QString & errorDescription);
-    bool canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription);
-    bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription);
-    bool canExpungeNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription);
+    bool insertOrReplaceNote(const Note & note, const bool updateResources, const bool updateTags, QNLocalizedString & errorDescription);
+    bool canAddNoteToNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
+    bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
+    bool canExpungeNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
 
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();
@@ -224,16 +224,16 @@ private:
     bool checkAndPrepareCanExpungeNoteInNotebookQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQuery();
 
-    bool insertOrReplaceTag(const Tag & tag, QString & errorDescription);
+    bool insertOrReplaceTag(const Tag & tag, QNLocalizedString & errorDescription);
     bool checkAndPrepareTagCountQuery() const;
     bool checkAndPrepareInsertOrReplaceTagQuery();
     bool checkAndPrepareDeleteTagQuery();
 
-    bool insertOrReplaceResource(const IResource & resource, QString & errorDescription,
+    bool insertOrReplaceResource(const IResource & resource, QNLocalizedString & errorDescription,
                                  const bool useSeparateTransaction = true);
     bool insertOrReplaceResourceAttributes(const QString & localUid,
                                            const qevercloud::ResourceAttributes & attributes,
-                                           QString & errorDescription);
+                                           QNLocalizedString & errorDescription);
     bool checkAndPrepareInsertOrReplaceResourceQuery();
     bool checkAndPrepareInsertOrReplaceNoteResourceQuery();
     bool checkAndPrepareDeleteResourceFromResourceRecognitionTypesQuery();
@@ -246,7 +246,7 @@ private:
     bool checkAndPrepareInsertOrReplaceResourceAttributesApplicationDataFullMapQuery();
     bool checkAndPrepareResourceCountQuery() const;
 
-    bool insertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription);
+    bool insertOrReplaceSavedSearch(const SavedSearch & search, QNLocalizedString & errorDescription);
     bool checkAndPrepareInsertOrReplaceSavedSearchQuery();
     bool checkAndPrepareGetSavedSearchCountQuery() const;
     bool checkAndPrepareExpungeSavedSearchQuery();
@@ -259,53 +259,53 @@ private:
     void fillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void fillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void fillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    bool fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QString &errorDescription) const;
+    bool fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QNLocalizedString & errorDescription) const;
     void fillNoteFromSqlRecord(const QSqlRecord & record, Note & note) const;
     bool fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column, QList<QPair<QString, int> > & tagIdsAndIndices,
-                                    QHash<QString, int> & tagIndexPerId, QString & errorDescription) const;
-    bool fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QString & errorDescription) const;
+                                    QHash<QString, int> & tagIndexPerId, QNLocalizedString & errorDescription) const;
+    bool fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QNLocalizedString & errorDescription) const;
     bool fillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
-                                         QString & errorDescription) const;
+                                         QNLocalizedString & errorDescription) const;
     bool fillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
-                                         QString & errorDescription) const;
+                                         QNLocalizedString & errorDescription) const;
     bool fillSavedSearchFromSqlRecord(const QSqlRecord & rec, SavedSearch & search,
-                                      QString & errorDescription) const;
+                                      QNLocalizedString & errorDescription) const;
     bool fillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
-                              QString & errorDescription) const;
-    QList<Tag> fillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const;
+                              QNLocalizedString & errorDescription) const;
+    QList<Tag> fillTagsFromSqlQuery(QSqlQuery & query, QNLocalizedString & errorDescription) const;
 
-    bool findAndSetTagIdsPerNote(Note & note, QString & errorDescription) const;
-    bool findAndSetResourcesPerNote(Note & note, QString & errorDescription,
+    bool findAndSetTagIdsPerNote(Note & note, QNLocalizedString & errorDescription) const;
+    bool findAndSetResourcesPerNote(Note & note, QNLocalizedString & errorDescription,
                                     const bool withBinaryData = true) const;
     void sortSharedNotebooks(Notebook & notebook) const;
 
     QList<qevercloud::SharedNotebook> listEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                           QString & errorDescription) const;
+                                                                           QNLocalizedString & errorDescription) const;
 
     bool noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery, QString & sql,
-                              QString & errorDescription) const;
+                              QNLocalizedString & errorDescription) const;
 
     bool noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
-                                                QString & sql, QString & errorDescription) const;
+                                                QString & sql, QNLocalizedString & errorDescription) const;
 
     void contentSearchTermToSQLQueryPart(QString & frontSearchTermModifier, QString & searchTerm,
                                          QString & backSearchTermModifier, QString & matchStatement) const;
 
     bool tagNamesToTagLocalUids(const QStringList & tagNames, QStringList & tagLocalUids,
-                                QString & errorDescription) const;
+                                QNLocalizedString & errorDescription) const;
     bool resourceMimeTypesToResourceLocalUids(const QStringList & resourceMimeTypes,
                                               QStringList & resourceLocalUids,
-                                              QString & errorDescription) const;
+                                              QNLocalizedString & errorDescription) const;
 
-    bool complementResourceNoteIds(IResource & resource, QString & errorDescription) const;
+    bool complementResourceNoteIds(IResource & resource, QNLocalizedString & errorDescription) const;
 
     template <class T>
     QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,
-                                                   QString & errorDescription) const;
+                                                   QNLocalizedString & errorDescription) const;
 
     template <class T, class TOrderBy>
     QList<T> listObjects(const LocalStorageManager::ListObjectsOptions & flag,
-                         QString & errorDescription, const size_t limit,
+                         QNLocalizedString & errorDescription, const size_t limit,
                          const size_t offset, const TOrderBy & orderBy,
                          const LocalStorageManager::OrderDirection::type & orderDirection,
                          const QString & additionalSqlQueryCondition = QString()) const;
@@ -317,10 +317,10 @@ private:
     QString orderByToSqlTableColumn(const TOrderBy & orderBy) const;
 
     template <class T>
-    bool fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QString & errorDescription) const;
+    bool fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QNLocalizedString & errorDescription) const;
 
     template <class T>
-    bool fillObjectFromSqlRecord(const QSqlRecord & record, T & object, QString & errorDescription) const;
+    bool fillObjectFromSqlRecord(const QSqlRecord & record, T & object, QNLocalizedString & errorDescription) const;
 
     void clearDatabaseFile();
 

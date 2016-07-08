@@ -3,7 +3,7 @@
 
 namespace quentier {
 
-IQuentierException::IQuentierException(const QString & message) :
+IQuentierException::IQuentierException(const QNLocalizedString & message) :
     Printable(),
     m_message(message)
 {}
@@ -17,9 +17,14 @@ IQuentierException::~IQuentierException() throw()
 #endif
 {}
 
-const QString IQuentierException::errorMessage() const
+QString IQuentierException::localizedErrorMessage() const
 {
-    return m_message;
+    return m_message.localizedString();
+}
+
+QString IQuentierException::nonLocalizedErrorMessage() const
+{
+    return m_message.nonLocalizedString();
 }
 
 #if defined(_MSC_VER)
@@ -30,13 +35,13 @@ const char * IQuentierException::what() const noexcept
 const char * IQuentierException::what() const throw()
 #endif
 {
-    return qPrintable(m_message);
+    return qPrintable(m_message.nonLocalizedString());
 }
 
 QTextStream & IQuentierException::print(QTextStream & strm) const
 {
     strm << "\n" << " " << "<" << exceptionDisplayName() << ">";
-    strm << "\n" << " " << " message: " << m_message;
+    strm << "\n" << " " << " message: " << m_message.nonLocalizedString();
     return strm;
 }
 
@@ -53,7 +58,5 @@ IQuentierException & IQuentierException::operator =(const IQuentierException & o
 
     return *this;
 }
-
-
 
 } // namespace quentier

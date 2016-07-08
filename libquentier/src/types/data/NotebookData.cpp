@@ -42,21 +42,26 @@ NotebookData::NotebookData(qevercloud::Notebook && other) :
 NotebookData::~NotebookData()
 {}
 
-bool NotebookData::checkParameters(QString & errorDescription) const
+bool NotebookData::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (m_qecNotebook.guid.isSet() && !checkGuid(m_qecNotebook.guid.ref())) {
-        errorDescription = QT_TR_NOOP("Notebook's guid is invalid: ") + m_qecNotebook.guid;
+        errorDescription = QT_TR_NOOP("notebook's guid is invalid");
+        errorDescription += ": ";
+        errorDescription += m_qecNotebook.guid;
         return false;
     }
 
     if (m_linkedNotebookGuid.isSet() && !checkGuid(m_linkedNotebookGuid.ref())) {
-        errorDescription = QT_TR_NOOP("Notebook's linked notebook guid is invalid: ") + m_linkedNotebookGuid;
+        errorDescription = QT_TR_NOOP("notebook's linked notebook guid is invalid");
+        errorDescription += ": ";
+        errorDescription += m_linkedNotebookGuid;
         return false;
     }
 
     if (m_qecNotebook.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
-        errorDescription = QT_TR_NOOP("Notebook's update sequence number is invalid: ") +
-                           QString::number(m_qecNotebook.updateSequenceNum);
+        errorDescription = QT_TR_NOOP("notebook's update sequence number is invalid");
+        errorDescription += ": ";
+        errorDescription += QString::number(m_qecNotebook.updateSequenceNum);
         return false;
     }
 
@@ -69,12 +74,12 @@ bool NotebookData::checkParameters(QString & errorDescription) const
         foreach(const qevercloud::SharedNotebook & sharedNotebook, m_qecNotebook.sharedNotebooks.ref())
         {
             if (!sharedNotebook.id.isSet()) {
-                errorDescription = QT_TR_NOOP("Notebook has shared notebook without share id set");
+                errorDescription = QT_TR_NOOP("notebook has shared notebook without share id set");
                 return false;
             }
 
             if (sharedNotebook.notebookGuid.isSet() && !checkGuid(sharedNotebook.notebookGuid.ref())) {
-                errorDescription = QT_TR_NOOP("Notebook has shared notebook with invalid guid");
+                errorDescription = QT_TR_NOOP("notebook has shared notebook with invalid guid");
                 return false;
             }
         }
@@ -89,7 +94,7 @@ bool NotebookData::checkParameters(QString & errorDescription) const
             if ( (businessNotebookDescriptionSize < qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MIN) ||
                  (businessNotebookDescriptionSize > qevercloud::EDAM_BUSINESS_NOTEBOOK_DESCRIPTION_LEN_MAX) )
             {
-                errorDescription = QT_TR_NOOP("Description for business notebook has invalid size");
+                errorDescription = QT_TR_NOOP("description for business notebook has invalid size");
                 return false;
             }
         }

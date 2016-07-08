@@ -9,35 +9,56 @@
 namespace quentier {
 
 /**
- * @brief The QNLocalizedString encapsulates in itself both the text which has been localized (as a QString)
- * and the original non-localized English string.
+ * @brief The QNLocalizedString encapsulates in itself both the (potentially) user visible text which is localized
+ * (i.e. transated) and the original non-localized English string.
  *
  * The primary purpose of this calss is to use the non-localized versions of strings for logging
  * so that the logs don't depend on the locale/translation and are thus actually useful for the troubleshooting
  */
-class QNLocalizedString: public QString,
-                         public Printable
+class QNLocalizedString: public Printable
 {
 public:
-    static QNLocalizedString create(const char * str, QObject * trSource = Q_NULLPTR);
-
-public:
     QNLocalizedString();
+    QNLocalizedString(const QString & localizedString, const char * nonLocalizedString,
+                      QObject * pTranslationContext = Q_NULLPTR, const char * disambiguation = Q_NULLPTR,
+                      const int plurals = -1);
     QNLocalizedString(const QNLocalizedString & other);
-    QNLocalizedString(const char * str);
     QNLocalizedString & operator=(const QNLocalizedString & other);
+    QNLocalizedString & operator=(const char * nonLocalizedString);
     virtual ~QNLocalizedString();
 
-    void setNonLocalizedString(const char * str) { m_nonLocalizedStr = str; }
-    const char * nonLocalizedString() const { return m_nonLocalizedStr; }
+    bool isEmpty() const;
+    void clear();
+
+    void set(const char * nonLocalizedString, QObject * pTranslationContext = Q_NULLPTR,
+             const char * disambiguation = Q_NULLPTR, const int plurals = -1);
+
+    const QString & localizedString() const { return m_localizedString; }
+    const QString & nonLocalizedString() const { return m_nonLocalizedString; }
+
+    QNLocalizedString & operator+=(const QNLocalizedString & str);
+    QNLocalizedString & operator+=(const char * nonLocalizedString);
+    QNLocalizedString & operator+=(const QString & nonTranslatableString);
+
+    void append(const QNLocalizedString & str);
+    void append(const QString & localizedString, const char * nonLocalizedString);
+    void append(const char * nonLocalizedString, QObject * pTranslationContext = Q_NULLPTR,
+                const char * disambiguation = Q_NULLPTR, const int plurals = -1);
+
+    void prepend(const QNLocalizedString & str);
+    void prepend(const QString & localizedString, const char * nonLocalizedString);
+    void prepend(const char * nonLocalizedString, QObject * pTranslationContext = Q_NULLPTR,
+                 const char * disambiguation = Q_NULLPTR, const int plurals = -1);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-protected:
-    QNLocalizedString(const QString & localizedString, const char * nonLocalizedString);
+private:
+    QString translateString(const char * nonLocalizedString, QObject * pTranslationContext,
+                            const char * disambiguation, const int plurals);
 
 private:
-    const char *    m_nonLocalizedStr;
+    QString         m_localizedString;
+    QString         m_nonLocalizedString;
 };
 
 } // namespace quentier

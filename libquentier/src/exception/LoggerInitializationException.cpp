@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-LoggerInitializationException::LoggerInitializationException(const QString & message) :
+LoggerInitializationException::LoggerInitializationException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

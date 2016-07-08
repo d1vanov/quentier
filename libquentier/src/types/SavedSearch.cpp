@@ -89,7 +89,7 @@ void SavedSearch::clear()
     d->clear();
 }
 
-bool SavedSearch::validateName(const QString & name, QString * pErrorDescription)
+bool SavedSearch::validateName(const QString & name, QNLocalizedString * pErrorDescription)
 {
     if (name != name.trimmed())
     {
@@ -157,10 +157,10 @@ void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
     d->m_qecSearch.updateSequenceNum = usn;
 }
 
-bool SavedSearch::checkParameters(QString & errorDescription) const
+bool SavedSearch::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecSearch.guid.isSet()) {
-        errorDescription = QT_TR_NOOP("Both saved search's local and remote guids are empty");
+        errorDescription = QT_TR_NOOP("both saved search's local and remote guids are empty");
         return false;
     }
 

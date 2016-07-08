@@ -8,7 +8,7 @@ namespace quentier {
 class QUENTIER_EXPORT DatabaseLockedException: public IQuentierException
 {
 public:
-    explicit DatabaseLockedException(const QString & message);
+    explicit DatabaseLockedException(const QNLocalizedString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

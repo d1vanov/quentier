@@ -8,7 +8,7 @@ namespace quentier {
 class QUENTIER_EXPORT NoteEditorPluginInitializationException: public IQuentierException
 {
 public:
-    explicit NoteEditorPluginInitializationException(const QString & message);
+    explicit NoteEditorPluginInitializationException(const QNLocalizedString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

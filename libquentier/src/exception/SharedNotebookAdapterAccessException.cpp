@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-SharedNotebookAdapterAccessException::SharedNotebookAdapterAccessException(const QString & message) :
+SharedNotebookAdapterAccessException::SharedNotebookAdapterAccessException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

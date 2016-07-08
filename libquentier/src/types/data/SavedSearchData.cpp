@@ -38,10 +38,12 @@ void SavedSearchData::clear()
     m_qecSearch = qevercloud::SavedSearch();
 }
 
-bool SavedSearchData::checkParameters(QString &errorDescription) const
+bool SavedSearchData::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (m_qecSearch.guid.isSet() && !checkGuid(m_qecSearch.guid.ref())) {
-        errorDescription = QT_TR_NOOP("Saved search's guid is invalid: ") + m_qecSearch.guid;
+        errorDescription = QT_TR_NOOP("saved search's guid is invalid");
+        errorDescription += ": ";
+        errorDescription += m_qecSearch.guid;
         return false;
     }
 
@@ -50,8 +52,9 @@ bool SavedSearchData::checkParameters(QString &errorDescription) const
     }
 
     if (m_qecSearch.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {
-        errorDescription = QT_TR_NOOP("Saved search's update sequence number is invalid: ");
-        errorDescription.append(QString::number(m_qecSearch.updateSequenceNum));
+        errorDescription = QT_TR_NOOP("saved search's update sequence number is invalid");
+        errorDescription += ": ";
+        errorDescription += QString::number(m_qecSearch.updateSequenceNum);
         return false;
     }
 
@@ -63,13 +66,15 @@ bool SavedSearchData::checkParameters(QString &errorDescription) const
         if ( (querySize < qevercloud::EDAM_SEARCH_QUERY_LEN_MIN) ||
              (querySize > qevercloud::EDAM_SEARCH_QUERY_LEN_MAX) )
         {
-            errorDescription = QT_TR_NOOP("Saved search's query exceeds allowed size: ") + query;
+            errorDescription = QT_TR_NOOP("saved search's query exceeds allowed size");
+            errorDescription += ": ";
+            errorDescription += query;
             return false;
         }
     }
 
     if (m_qecSearch.format.isSet() && (static_cast<qevercloud::QueryFormat::type>(m_qecSearch.format) != qevercloud::QueryFormat::USER)) {
-        errorDescription = QT_TR_NOOP("Saved search has unsupported query format");
+        errorDescription = QT_TR_NOOP("saved search has unsupported query format");
         return false;
     }
 

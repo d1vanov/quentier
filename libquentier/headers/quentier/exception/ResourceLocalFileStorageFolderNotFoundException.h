@@ -8,7 +8,7 @@ namespace quentier {
 class QUENTIER_EXPORT ResourceLocalFileStorageFolderNotFoundException: public IQuentierException
 {
 public:
-    explicit ResourceLocalFileStorageFolderNotFoundException(const QString & message);
+    explicit ResourceLocalFileStorageFolderNotFoundException(const QNLocalizedString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

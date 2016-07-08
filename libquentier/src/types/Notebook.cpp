@@ -105,7 +105,7 @@ void Notebook::clear()
     d->m_qecNotebook = qevercloud::Notebook();
 }
 
-bool Notebook::validateName(const QString & name, QString * pErrorDescription)
+bool Notebook::validateName(const QString & name, QNLocalizedString * pErrorDescription)
 {
     if (name != name.trimmed())
     {
@@ -173,10 +173,10 @@ void Notebook::setUpdateSequenceNumber(const qint32 usn)
     d->m_qecNotebook.updateSequenceNum = usn;
 }
 
-bool Notebook::checkParameters(QString & errorDescription) const
+bool Notebook::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecNotebook.guid.isSet()) {
-        errorDescription = QT_TR_NOOP("Both notebook's local and remote guids are not set");
+        errorDescription = QT_TR_NOOP("both notebook's local and remote guids are not set");
         return false;
     }
 

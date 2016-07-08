@@ -116,7 +116,7 @@ void NoteData::clear()
     m_qecNote = qevercloud::Note();
 }
 
-bool NoteData::checkParameters(QString & errorDescription) const
+bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (m_qecNote.guid.isSet() && !checkGuid(m_qecNote.guid.ref())) {
         errorDescription = QT_TR_NOOP("Note's guid is invalid");

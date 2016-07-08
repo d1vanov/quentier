@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-DatabaseLockFailedException::DatabaseLockFailedException(const QString & message) :
+DatabaseLockFailedException::DatabaseLockFailedException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

@@ -120,20 +120,19 @@ LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
 
 #define DATABASE_CHECK_AND_SET_ERROR(errorPrefix) \
     if (!res) { \
-        errorDescription += QT_TR_NOOP("Internal error: "); \
         errorDescription += errorPrefix; \
-        errorDescription += ": "; \
+        errorDescription += ": " QT_TR_NOOP("last error") " = "; \
         QNCRITICAL(errorDescription << query.lastError() << ", last executed query: " << query.lastQuery()); \
         errorDescription += query.lastError().text(); \
         query.finish(); \
         return false; \
     }
 
-bool LocalStorageManagerPrivate::addUser(const IUser & user, QString & errorDescription)
+bool LocalStorageManagerPrivate::addUser(const IUser & user, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't add user into local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't insert user data into the local storage database") ": ";
 
+    QNLocalizedString error;
     bool res = user.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -149,7 +148,7 @@ bool LocalStorageManagerPrivate::addUser(const IUser & user, QString & errorDesc
         return false;
     }
 
-    error.resize(0);
+    error.clear();
     res = insertOrReplaceUser(user, error);
     if (!res) {
         errorDescription += error;
@@ -160,11 +159,11 @@ bool LocalStorageManagerPrivate::addUser(const IUser & user, QString & errorDesc
     return true;
 }
 
-bool LocalStorageManagerPrivate::updateUser(const IUser & user, QString & errorDescription)
+bool LocalStorageManagerPrivate::updateUser(const IUser & user, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't update user in local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't update user data in the local storage database") ": ";
 
+    QNLocalizedString error;
     bool res = user.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -181,7 +180,7 @@ bool LocalStorageManagerPrivate::updateUser(const IUser & user, QString & errorD
         return false;
     }
 
-    error.resize(0);
+    error.clear();
     res = insertOrReplaceUser(user, error);
     if (!res) {
         errorDescription += error;
@@ -192,11 +191,11 @@ bool LocalStorageManagerPrivate::updateUser(const IUser & user, QString & errorD
     return true;
 }
 
-bool LocalStorageManagerPrivate::findUser(IUser & user, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findUser(IUser & user, QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findUser");
 
-    errorDescription = QT_TR_NOOP("Can't find user in local storage database: ");
+    errorDescription = QT_TR_NOOP("can't find user data in the local storage database") ": ";
 
     if (!user.hasId()) {
         // TRANSLATOR explaining the reason of error
@@ -221,7 +220,7 @@ bool LocalStorageManagerPrivate::findUser(IUser & user, QString & errorDescripti
                                   "WHERE Users.id = %1").arg(userId);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't select user from SQL database");
+    DATABASE_CHECK_AND_SET_ERROR(QT_TR_NOOP("can't find user data in the local storage database: internal error, can't execute SQL query"));
 
     size_t counter = 0;
     while(query.next()) {
@@ -234,7 +233,7 @@ bool LocalStorageManagerPrivate::findUser(IUser & user, QString & errorDescripti
     }
 
     if (!counter) {
-        errorDescription += QT_TR_NOOP("no user was found in local storage");
+        errorDescription += QT_TR_NOOP("no user data was found in the local storage database");
         QNDEBUG(errorDescription);
         return false;
     }
@@ -242,9 +241,9 @@ bool LocalStorageManagerPrivate::findUser(IUser & user, QString & errorDescripti
     return true;
 }
 
-bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QString & errorDescription)
+bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't delete user from local storage database: ");
+    errorDescription = QT_TR_NOOP("can't mark the user data deleted in the local storage database") ": ";
 
     if (!user.hasDeletionTimestamp()) {
         // TRANSLATOR explaining the reason of error
@@ -262,23 +261,24 @@ bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QString & errorD
 
     bool res = checkAndPrepareDeleteUserQuery();
     QSqlQuery & query = m_deleteUserQuery;
-    DATABASE_CHECK_AND_SET_ERROR("can't update deletion timestamp in \"Users\" table in SQL database: "
-                                 "can't prepare SQL query");
+    DATABASE_CHECK_AND_SET_ERROR(QT_TR_NOOP("can't update the deletion timestamp in \"Users\" table in the local storage database: "
+                                            "internal error, can't prepare SQL query"));
 
     query.bindValue(":userDeletionTimestamp", user.deletionTimestamp());
     query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
     query.bindValue(":id", user.id());
 
     res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't update deletion timestamp in \"Users\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR(QT_TR_NOOP("can't update deletion timestamp in \"Users\" table in the local storage database: "
+                                            "internal error, can't execute SQL query"));
 
     query.finish();
     return true;
 }
 
-bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't expunge user from local storage database: ");
+    errorDescription = QT_TR_NOOP("can't expunge user data from the local storage database") ": ";
 
     if (!user.hasId()) {
         // TRANSLATOR explaining the reason of error
@@ -290,18 +290,19 @@ bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QString & error
     QString queryString = QString("DELETE FROM Users WHERE id=%1").arg(user.id());
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Users\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR(QT_TR_NOOP("can't delete row from \"Users\" table in the local storage database: "
+                                            "internal error, can't execute SQL query"));
 
     return true;
 }
 
-int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::notebookCount(QNLocalizedString & errorDescription) const
 {
     bool res = checkAndPrepareNotebookCountQuery();
     QSqlQuery & query = m_getNotebookCountQuery;
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of notebooks: "
-                                      "can't prepare SQL query");
+        errorDescription = QT_TR_NOOP("can't get number of notebooks from the local storage database: "
+                                      "internal error, can't prepare SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -310,7 +311,8 @@ int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
 
     res = query.exec();
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of notebooks in local storage database: ");
+        errorDescription = QT_TR_NOOP("can't get the number of notebooks from the local storage database: "
+                                      "internal error, can't pexecute SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -328,7 +330,8 @@ int LocalStorageManagerPrivate::notebookCount(QString & errorDescription) const
     query.finish();
 
     if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("Internal error: can't convert number of notebooks to int");
+        errorDescription = QT_TR_NOOP("can't get the number of notebooks from the local storage database: "
+                                      "internal error, can't convert the fetched data to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
         return -1;
     }
@@ -358,7 +361,7 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     if (!databaseFolder.exists())
     {
         if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
-            throw DatabaseOpeningException(QT_TR_NOOP("Can't create the folder to store the local storage database in"));
+            throw DatabaseOpeningException(QT_TR_NOOP("can't create folder for the local storage database file"));
         }
     }
 
@@ -366,11 +369,16 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     bool isSqlDriverAvailable = QSqlDatabase::isDriverAvailable(sqlDriverName);
     if (!isSqlDriverAvailable)
     {
-        QString error = QT_TR_NOOP("SQL driver") + QStringLiteral(" ") + sqlDriverName + QStringLiteral(" ") +
-                        QT_TR_NOOP("is not available. Available SQL drivers") + QStringLiteral(": ");
+        QNLocalizedString error = QT_TR_NOOP("SQL driver");
+        error += " ";
+        error += sqlDriverName;
+        error += " ";
+        // TRANSLATOR: <SQL driver <smth> > is not available
+        error += QT_TR_NOOP("is not available. Available SQL drivers");
+        error += ": ";
         const QStringList drivers = QSqlDatabase::drivers();
         foreach(const QString & driver, drivers) {
-            error += "{" + driver + "} ";
+            error += QString("{" + driver + "} ");
         }
         throw DatabaseSqlErrorException(error);
     }
@@ -390,13 +398,23 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     if (databaseFileInfo.exists())
     {
         if (Q_UNLIKELY(!databaseFileInfo.isReadable())) {
-            throw DatabaseOpeningException(QT_TR_NOOP("Local storage database file") + QStringLiteral(" ") + m_databaseFilePath +
-                                           QStringLiteral(" ") + QT_TR_NOOP("is not readable"));
+            QNLocalizedString error = QT_TR_NOOP("local storage database file");
+            error += " ";
+            error += m_databaseFilePath;
+            error += " ";
+            // TRANSLATOR: local storage database file is not readable
+            error += QT_TR_NOOP("is not readable");
+            throw DatabaseOpeningException(error);
         }
 
         if (Q_UNLIKELY(!databaseFileInfo.isWritable())) {
-            throw DatabaseOpeningException(QT_TR_NOOP("Local storage database file") + QStringLiteral(" ") + m_databaseFilePath +
-                                           QStringLiteral(" ") + QT_TR_NOOP("is not writable"));
+            QNLocalizedString error = QT_TR_NOOP("local storage database file");
+            error += " ";
+            error += m_databaseFilePath;
+            error += " ";
+            // TRANSLATOR: local storage database file is not writable
+            error += QT_TR_NOOP("is not writable");
+            throw DatabaseOpeningException(error);
         }
     }
     else
@@ -414,16 +432,24 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         lockResult = m_databaseFileLock.try_lock();
     }
     catch(boost::interprocess::interprocess_exception & exc) {
-        throw DatabaseLockFailedException(QT_TR_NOOP("Can't lock the database file: error code") + QStringLiteral(" = ") +
-                                          QString::number(exc.get_error_code()) + QStringLiteral(", ") + QT_TR_NOOP("error message") +
-                                          QStringLiteral(" = ") + QString::fromUtf8(exc.what()));
+        QNLocalizedString error = QT_TR_NOOP("can't lock the database file: error code");
+        error += " = ";
+        error += QString::number(exc.get_error_code());
+        error += "; ";
+        error += QString::fromUtf8(exc.what());
+        throw DatabaseLockFailedException(error);
     }
 
     if (!lockResult)
     {
         if (!overrideLock) {
-            throw DatabaseLockedException(QT_TR_NOOP("Local storage database file") + QStringLiteral(" \"") + m_databaseFilePath +
-                                          QStringLiteral("\" ") + QT_TR_NOOP("is locked"));
+            QNLocalizedString error = QT_TR_NOOP("local storage database file");
+            error += " ";
+            error += m_databaseFilePath;
+            error += " ";
+            // TRANSLATOR: local storage database file is locked
+            error += QT_TR_NOOP("is locked");
+            throw DatabaseLockedException(error);
         }
         else {
             QNINFO("Local storage database file " << m_databaseFilePath << " is locked but nobody cares");
@@ -444,45 +470,65 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     if (!m_sqlDatabase.open())
     {
         QString lastErrorText = m_sqlDatabase.lastError().text();
-        throw DatabaseOpeningException(QT_TR_NOOP("Can't open local storage database") + QStringLiteral(": ") + lastErrorText);
+        QNLocalizedString error = QT_TR_NOOP("can't open the local storage database");
+        error += ": ";
+        error += lastErrorText;
+        throw DatabaseOpeningException(error);
     }
 
     QSqlQuery query(m_sqlDatabase);
     if (!query.exec("PRAGMA foreign_keys = ON")) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't set foreign_keys = ON pragma for SQL local storage database"));
+        QString lastErrorText = m_sqlDatabase.lastError().text();
+        QNLocalizedString error = QT_TR_NOOP("can't set foreign_keys = ON pragma for the local storage database");
+        error += ": ";
+        error += lastErrorText;
+        throw DatabaseSqlErrorException(error);
     }
 
     qint64 pageSize = SysInfo::GetSingleton().GetPageSize();
     QString pageSizeQuery = QString("PRAGMA page_size = %1").arg(QString::number(pageSize));
     if (!query.exec(pageSizeQuery)) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't set page_size pragma for SQL local storage database"));
+        QString lastErrorText = m_sqlDatabase.lastError().text();
+        QNLocalizedString error = QT_TR_NOOP("can't set page_size pragma for SQL local storage database");
+        error += ": ";
+        error += lastErrorText;
+        throw DatabaseSqlErrorException(error);
     }
 
     QString writeAheadLoggingQuery = QString("PRAGMA journal_mode=WAL");
     if (!query.exec(writeAheadLoggingQuery)) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't set journal_mode pragma to WAL for SQL local storage database"));
+        QString lastErrorText = m_sqlDatabase.lastError().text();
+        QNLocalizedString error = QT_TR_NOOP("can't set journal_mode pragma to WAL for SQL local storage database");
+        error += ": ";
+        error += lastErrorText;
+        throw DatabaseSqlErrorException(error);
     }
 
-    QString errorDescription;
+    QNLocalizedString errorDescription;
     if (!createTables(errorDescription)) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't initialize tables in SQL database: ") + errorDescription);
+        QNLocalizedString error = QT_TR_NOOP("can't initialize tables in SQL database") ": ";
+        error += errorDescription.localizedString();
+        throw DatabaseSqlErrorException(error);
     }
 
     // TODO: in future should check whether the upgrade from the previous database version is necessary
 
     if (!query.exec("INSERT INTO Auxiliary DEFAULT VALUES")) {
-        throw DatabaseSqlErrorException(QT_TR_NOOP("Can't initialize the auxiliary info table in SQL database: ") +
-                                        query.lastError().text());
+        QString lastErrorText = m_sqlDatabase.lastError().text();
+        QNLocalizedString error = QT_TR_NOOP("can't initialize the auxiliary info table in SQL database");
+        error += ": ";
+        error += lastErrorText;
+        throw DatabaseSqlErrorException(error);
     }
 }
 
-int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::userCount(QNLocalizedString & errorDescription) const
 {
     bool res = checkAndPrepareUserCountQuery();
     QSqlQuery & query = m_getUserCountQuery;
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of users: "
-                                      "can't prepare SQL query");
+        errorDescription = QT_TR_NOOP("can't get number of users from the local storage database: "
+                                      "internal error, can't prepare SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -491,7 +537,8 @@ int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
 
     res = query.exec();
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of users in local storage database: ");
+        errorDescription = QT_TR_NOOP("can't get number of users from the local storage database: "
+                                      "internal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -509,7 +556,8 @@ int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
     query.finish();
 
     if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("Internal error: can't convert number of users to int");
+        errorDescription = QT_TR_NOOP("can't get the number of users from the local storage database: "
+                                      "internal error, can't convert the fetched data to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
         return -1;
     }
@@ -517,11 +565,11 @@ int LocalStorageManagerPrivate::userCount(QString & errorDescription) const
     return count;
 }
 
-bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QString & errorDescription)
+bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't add notebook to local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't insert notebook data into the local storage database") ": ";
 
+    QNLocalizedString error;
     bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -542,14 +590,14 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QString & erro
 
         if (!checkGuid(uid)) {
             // TRANSLATOR explaining why note cannot be expunged from local storage
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
+            errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
 
         if (localUid.isEmpty())
         {
-            QString error;
+            QNLocalizedString error;
             bool res = getNotebookLocalUidForGuid(uid, localUid, error);
             if (res || !localUid.isEmpty()) {
                 errorDescription += QT_TR_NOOP("found existing local uid corresponding to Notebook's guid");
@@ -581,11 +629,11 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QString & erro
     return insertOrReplaceNotebook(notebook, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QString & errorDescription)
+bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't update notebook in local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't update notebook data in the local storage database") ": ";
 
+    QNLocalizedString error;
     bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -606,7 +654,7 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QString & e
 
         if (!checkGuid(uid)) {
             // TRANSLATOR explaining why note cannot be expunged from local storage
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
+            errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
@@ -630,10 +678,10 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QString & e
 
     if (shouldCheckRowExistence && !rowExists("Notebooks", column, QVariant(uid))) {
         // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("notebook with specified ");
+        errorDescription += QT_TR_NOOP("notebook with specified") " ";
         errorDescription += column;
         // TRANSLATOR previous part of the phrase was "notebook with specified "
-        errorDescription += QT_TR_NOOP(" was not found in local storage");
+        errorDescription += " " QT_TR_NOOP("was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << uid);
         return false;
     }
@@ -641,9 +689,9 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QString & e
     return insertOrReplaceNotebook(notebook, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const
 {
-    errorDescription = QT_TR_NOOP("Can't find notebook in local storage database: ");
+    errorDescription = QT_TR_NOOP("can't find notebook in the local storage database") ": ";
 
     QString column, value;
     bool notebookHasGuid = notebook.hasGuid();
@@ -654,7 +702,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & err
 
         if (!checkGuid(value)) {
             // TRANSLATOR explaining the reason of error
-            errorDescription += QT_TR_NOOP("requested guid is invalid");
+            errorDescription += QT_TR_NOOP("guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
@@ -700,13 +748,14 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & err
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't find notebook in SQL database by guid");
+    DATABASE_CHECK_AND_SET_ERROR("can't find notebook data in the local storage database by guid: "
+                                 "internal error, can't execute SQL query");
 
     size_t counter = 0;
     while(query.next())
     {
         QSqlRecord rec = query.record();
-        QString error;
+        QNLocalizedString error;
         res = fillNotebookFromSqlRecord(rec, notebook, error);
         if (!res) {
             errorDescription += error;
@@ -718,7 +767,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & err
     }
 
     if (!counter) {
-        errorDescription += QT_TR_NOOP("Notebook with specified local uid was not found");
+        errorDescription += QT_TR_NOOP("notebook with specified local uid was not found");
         QNDEBUG(errorDescription);
         return false;
     }
@@ -727,9 +776,9 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QString & err
     return true;
 }
 
-bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const
 {
-    errorDescription = QT_TR_NOOP("Can't find default notebook in local storage database: ");
+    errorDescription = QT_TR_NOOP("can't find default notebook in local storage database") ": ";
 
     notebook = Notebook();
     QSqlQuery query(m_sqlDatabase);
@@ -744,7 +793,8 @@ bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QStrin
                           "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                           "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                           "WHERE isDefault = 1 LIMIT 1");
-    DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't find the default notebook in the local storage database: "
+                                 "internal error, can't execute SQL query");
 
     if (!query.next()) {
         // TRANSLATOR explaining the reason of error
@@ -763,9 +813,9 @@ bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QStrin
     return true;
 }
 
-bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const
 {
-    errorDescription = QT_TR_NOOP("Can't find last used notebook in local storage database: ");
+    errorDescription = QT_TR_NOOP("can't find last used notebook in local storage database") ": ";
 
     notebook = Notebook();
     QSqlQuery query(m_sqlDatabase);
@@ -780,7 +830,8 @@ bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QStri
                           "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
                           "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                           "WHERE isLastUsed = 1 LIMIT 1");
-    DATABASE_CHECK_AND_SET_ERROR("can't find default notebook in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't find the last used notebook in the local storage database: "
+                                 "internal error, can't execute SQL query");
 
     if (!query.next()) {
         // TRANSLATOR explaining the reason of error
@@ -799,7 +850,7 @@ bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QStri
     return true;
 }
 
-bool LocalStorageManagerPrivate::findDefaultOrLastUsedNotebook(Notebook & notebook, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findDefaultOrLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const
 {
     bool res = findDefaultNotebook(notebook, errorDescription);
     if (res) {
@@ -809,7 +860,7 @@ bool LocalStorageManagerPrivate::findDefaultOrLastUsedNotebook(Notebook & notebo
     return findLastUsedNotebook(notebook, errorDescription);
 }
 
-QList<Notebook> LocalStorageManagerPrivate::listAllNotebooks(QString & errorDescription,
+QList<Notebook> LocalStorageManagerPrivate::listAllNotebooks(QNLocalizedString & errorDescription,
                                                              const size_t limit, const size_t offset,
                                                              const LocalStorageManager::ListNotebooksOrder::type & order,
                                                              const LocalStorageManager::OrderDirection::type & orderDirection,
@@ -821,7 +872,7 @@ QList<Notebook> LocalStorageManagerPrivate::listAllNotebooks(QString & errorDesc
 }
 
 QList<Notebook> LocalStorageManagerPrivate::listNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                                          QString & errorDescription, const size_t limit,
+                                                          QNLocalizedString & errorDescription, const size_t limit,
                                                           const size_t offset, const LocalStorageManager::ListNotebooksOrder::type & order,
                                                           const LocalStorageManager::OrderDirection::type & orderDirection,
                                                           const QString & linkedNotebookGuid) const
@@ -836,18 +887,18 @@ QList<Notebook> LocalStorageManagerPrivate::listNotebooks(const LocalStorageMana
                                                                                 linkedNotebookGuidSqlQueryCondition);
 }
 
-QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(QString & errorDescription) const
+QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::listAllSharedNotebooks");
 
     QList<SharedNotebookWrapper> sharedNotebooks;
-    errorDescription = QT_TR_NOOP("Can't list all shared notebooks: ");
+    errorDescription = QT_TR_NOOP("can't list all shared notebooks") ": ";
 
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec("SELECT * FROM SharedNotebooks");
     if (!res) {
         // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("can't select shared notebooks from SQL database: ");
+        errorDescription += QT_TR_NOOP("can't list shared notebooks from the local storage database: internal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
         errorDescription += query.lastError().text();
         return sharedNotebooks;
@@ -873,7 +924,7 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(
     QNDEBUG("found " << numSharedNotebooks << " shared notebooks");
 
     if (numSharedNotebooks <= 0) {
-        errorDescription += QT_TR_NOOP("no shared notebooks exist in local storage");
+        errorDescription += QT_TR_NOOP("no shared notebooks were found in the local storage database");
         QNDEBUG(errorDescription);
     }
 
@@ -881,7 +932,7 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(
 }
 
 QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                                     QString & errorDescription) const
+                                                                                            QNLocalizedString & errorDescription) const
 {
     QList<SharedNotebookWrapper> sharedNotebooks;
 
@@ -900,15 +951,16 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listSharedNotebooksPerN
 }
 
 QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                                            QString & errorDescription) const
+                                                                                                   QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid: guid = " << notebookGuid);
 
     QList<qevercloud::SharedNotebook> sharedNotebooks;
-    QString errorPrefix = QT_TR_NOOP("Can't list shared notebooks per notebook guid: ");
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't list shared notebooks per notebook guid") ": ";
 
     if (!checkGuid(notebookGuid)) {
-        errorDescription = errorPrefix + QT_TR_NOOP("notebook guid is invalid");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("notebook guid is invalid");
         QNWARNING(errorDescription);
         return sharedNotebooks;
     }
@@ -919,8 +971,9 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
 
     bool res = query.exec();
     if (!res) {
-        errorDescription = errorPrefix + QT_TR_NOOP("can't select shared notebooks for given "
-                                                    "notebook guid from SQL database: ");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("can't find shared notebooks for given notebook guid in the local storage database: "
+                                       "internal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << ", last error = " << query.lastError() << ", last query = " << query.lastQuery());
         errorDescription += query.lastError().text();
         return sharedNotebooks;
@@ -961,9 +1014,9 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
     return sharedNotebooks;
 }
 
-bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't expunge notebook from local storage database: ");
+    errorDescription = QT_TR_NOOP("can't expunge notebook from the local storage database") ": ";
 
     QString localUid = notebook.localUid();
 
@@ -1002,7 +1055,7 @@ bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QString & 
 
     if (shouldCheckRowExistence && !rowExists("Notebooks", column, QVariant(uid))) {
         errorDescription += QT_TR_NOOP("notebook to be expunged from \"Notebooks\""
-                                       "table in SQL database was not found");
+                                       "table in the local storage database was not found there");
         QNWARNING(errorDescription << ", " << column << ": " << uid);
         return false;
     }
@@ -1010,18 +1063,19 @@ bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QString & 
     QString queryString = QString("DELETE FROM Notebooks WHERE %1 = '%2'").arg(column,uid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notebooks\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't delete row from \"Notebooks\" table in the local storage database: "
+                                 "internal error, can't execute SQL query");
 
     return true;
 }
 
-int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::linkedNotebookCount(QNLocalizedString & errorDescription) const
 {
     bool res = checkAndPrepareGetLinkedNotebookCountQuery();
     QSqlQuery & query = m_getLinkedNotebookCountQuery;
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of linked notebooks: "
-                                      "can't prepare SQL query");
+        errorDescription = QT_TR_NOOP("can't get the number of linked notebooks in the local storage database: "
+                                      "internal error, can't prepare SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -1030,7 +1084,8 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) 
 
     res = query.exec();
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of linked notebooks in local storage database: ");
+        errorDescription = QT_TR_NOOP("can't get the number of linked notebooks in the local storage database: "
+                                      "internal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -1048,7 +1103,8 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) 
     query.finish();
 
     if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("Internal error: can't convert number of linked notebooks to int");
+        errorDescription = QT_TR_NOOP("can't get the number of linked notebooks in the local storage database: "
+                                      "internal error, can't convert the fetched data to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
         return -1;
     }
@@ -1057,11 +1113,11 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QString & errorDescription) 
 }
 
 bool LocalStorageManagerPrivate::addLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                                   QString & errorDescription)
+                                                   QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't add linked notebook to local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't add linked notebook to the local storage database") ": ";
 
+    QNLocalizedString error;
     bool res = linkedNotebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -1081,11 +1137,11 @@ bool LocalStorageManagerPrivate::addLinkedNotebook(const LinkedNotebook & linked
 }
 
 bool LocalStorageManagerPrivate::updateLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                                      QString & errorDescription)
+                                                      QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't update linked notebook in local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't update linked notebook in the local storage database") ": ";
 
+    QNLocalizedString error;
     bool res = linkedNotebook.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -1106,11 +1162,9 @@ bool LocalStorageManagerPrivate::updateLinkedNotebook(const LinkedNotebook & lin
     return insertOrReplaceLinkedNotebook(linkedNotebook, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::findLinkedNotebook(LinkedNotebook & linkedNotebook, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findLinkedNotebook(LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findLinkedNotebook");
-
-    errorDescription = QT_TR_NOOP("Can't find linked notebook in local storage database: ");
 
     if (!linkedNotebook.hasGuid()) {
         // TRANSLATOR explaining the reason of error
@@ -1137,10 +1191,11 @@ bool LocalStorageManagerPrivate::findLinkedNotebook(LinkedNotebook & linkedNoteb
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR("can't find linked notebook in Sql database by guid");
+    DATABASE_CHECK_AND_SET_ERROR("can't find linked notebook in the local storage database: "
+                                 "internal error, can't execute SQL query");
 
     if (!query.next()) {
-        errorDescription += QT_TR_NOOP("no linked notebook was found in local storage");
+        errorDescription += QT_TR_NOOP("no linked notebook was found in the local storage database");
         QNDEBUG(errorDescription);
         return false;
     }
@@ -1150,7 +1205,7 @@ bool LocalStorageManagerPrivate::findLinkedNotebook(LinkedNotebook & linkedNoteb
     return fillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
 }
 
-QList<LinkedNotebook> LocalStorageManagerPrivate::listAllLinkedNotebooks(QString & errorDescription, const size_t limit, const size_t offset,
+QList<LinkedNotebook> LocalStorageManagerPrivate::listAllLinkedNotebooks(QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                                          const LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                                                          const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
@@ -1159,7 +1214,7 @@ QList<LinkedNotebook> LocalStorageManagerPrivate::listAllLinkedNotebooks(QString
 }
 
 QList<LinkedNotebook> LocalStorageManagerPrivate::listLinkedNotebooks(const LocalStorageManager::ListObjectsOptions flag,
-                                                                      QString & errorDescription, const size_t limit, const size_t offset,
+                                                                      QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                                       const LocalStorageManager::ListLinkedNotebooksOrder::type & order,
                                                                       const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
@@ -1168,13 +1223,13 @@ QList<LinkedNotebook> LocalStorageManagerPrivate::listLinkedNotebooks(const Loca
 }
 
 bool LocalStorageManagerPrivate::expungeLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                                       QString & errorDescription)
+                                                       QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't expunge linked notebook from local storage database: ");
+    errorDescription = QT_TR_NOOP("can't expunge linked notebook from the local storage database") ": ";
 
     if (!linkedNotebook.hasGuid()) {
         // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("linked notebook's guid is not set");
+        errorDescription += QT_TR_NOOP("guid is not set");
         QNWARNING(errorDescription);
         return false;
     }
@@ -1183,15 +1238,15 @@ bool LocalStorageManagerPrivate::expungeLinkedNotebook(const LinkedNotebook & li
 
     if (!checkGuid(linkedNotebookGuid)) {
         // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("linked notebook's guid is invalid");
+        errorDescription += QT_TR_NOOP("guid is invalid");
         QNWARNING(errorDescription);
         return false;
     }
 
     bool exists = rowExists("LinkedNotebooks", "guid", QVariant(linkedNotebookGuid));
     if (!exists) {
-        errorDescription += QT_TR_NOOP("can't find linked notebook to be expunged from "
-                                       "\"LinkedNotebooks\" table in SQL database");
+        errorDescription += QT_TR_NOOP("can't find linked notebook to be expunged in \"LinkedNotebooks\" table "
+                                       "in the local storage database");
         QNWARNING(errorDescription << ", guid: " << linkedNotebookGuid);
         return false;
     }
@@ -1199,18 +1254,20 @@ bool LocalStorageManagerPrivate::expungeLinkedNotebook(const LinkedNotebook & li
     QString queryString = QString("DELETE FROM LinkedNotebooks WHERE guid='%1'").arg(linkedNotebookGuid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"LinkedNotebooks\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't delete row from \"LinkedNotebooks\" table in the local storage database");
 
     return true;
 }
 
-int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::noteCount(QNLocalizedString & errorDescription) const
 {
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't get the number of notes in the local storage database") ": ";
+
     bool res = checkAndPrepareNoteCountQuery();
     QSqlQuery & query = m_getNoteCountQuery;
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of notes in local storage database: "
-                                      "can't prepare SQL query");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't prepare SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -1219,7 +1276,8 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
 
     res = query.exec();
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of notes in local storage database: ");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         query.finish();
@@ -1237,7 +1295,8 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
     query.finish();
 
     if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("Internal error: can't convert number of notes to int");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't convert the fetched data to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
         return -1;
     }
@@ -1245,11 +1304,14 @@ int LocalStorageManagerPrivate::noteCount(QString & errorDescription) const
     return count;
 }
 
-int LocalStorageManagerPrivate::noteCountPerNotebook(const Notebook & notebook, QString & errorDescription) const
+int LocalStorageManagerPrivate::noteCountPerNotebook(const Notebook & notebook, QNLocalizedString & errorDescription) const
 {
-    QString error;
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't get number of notes per notebook in the local storage database") ": ";
+
+    QNLocalizedString error;
     bool res = notebook.checkParameters(error);
     if (!res) {
+        errorDescription = errorPrefix;
         errorDescription += error;
         QNWARNING("Found invalid notebook: " << notebook << "\nError: " << error);
         return -1;
@@ -1270,7 +1332,8 @@ int LocalStorageManagerPrivate::noteCountPerNotebook(const Notebook & notebook, 
     res = query.exec(queryString);
 
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of notes per notebook in local storage database: ");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("interlal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         return -1;
@@ -1284,7 +1347,8 @@ int LocalStorageManagerPrivate::noteCountPerNotebook(const Notebook & notebook, 
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
     if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("Internal error: can't convert number of notes per given notebook to int");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't convert the fetched data to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
         return -1;
     }
@@ -1292,11 +1356,14 @@ int LocalStorageManagerPrivate::noteCountPerNotebook(const Notebook & notebook, 
     return count;
 }
 
-int LocalStorageManagerPrivate::noteCountPerTag(const Tag & tag, QString & errorDescription) const
+int LocalStorageManagerPrivate::noteCountPerTag(const Tag & tag, QNLocalizedString & errorDescription) const
 {
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't get number of notes per tag in the local storage database") ": ";
+
     QString error;
     bool res = tag.checkParameters(error);
     if (!res) {
+        errorDescription = errorPrefix;
         errorDescription += error;
         QNWARNING("Found invalid tag: " << tag << "\nError: " << error);
         return -1;
@@ -1316,9 +1383,9 @@ int LocalStorageManagerPrivate::noteCountPerTag(const Tag & tag, QString & error
                                   "(SELECT DISTINCT localNote FROM NoteTags WHERE %1 = '%2'))").arg(column, value);
     QSqlQuery query(m_sqlDatabase);
     res = query.exec(queryString);
-
     if (!res) {
-        errorDescription = QT_TR_NOOP("Internal error: can't get number of notes per tag in local storage database: ");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't execute SQL query") ": ";
         QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery());
         errorDescription += query.lastError().text();
         return -1;
@@ -1332,7 +1399,8 @@ int LocalStorageManagerPrivate::noteCountPerTag(const Tag & tag, QString & error
     bool conversionResult = false;
     int count = query.value(0).toInt(&conversionResult);
     if (!conversionResult) {
-        errorDescription = QT_TR_NOOP("Internal error: can't convert number of notes per given tag to int");
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error: can't convert the fetched data to int");
         QNCRITICAL(errorDescription << ": " << query.value(0));
         return -1;
     }
@@ -1340,10 +1408,9 @@ int LocalStorageManagerPrivate::noteCountPerTag(const Tag & tag, QString & error
     return count;
 }
 
-bool LocalStorageManagerPrivate::addNote(Note & note, QString & errorDescription)
+bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't add note to local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't add note to the local storage database: ");
 
     QString notebookLocalUid;
     bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, errorDescription);
@@ -1366,6 +1433,7 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QString & errorDescription
 
     note.setNotebookGuid(notebookGuid);
 
+    QNLocalizedString error;
     res = note.checkParameters(error);
     if (Q_UNLIKELY(!res)) {
         errorDescription += error;
@@ -1386,17 +1454,16 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QString & errorDescription
 
         if (!checkGuid(uid)) {
             // TRANSLATOR explaining why note cannot be expunged from local storage
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
+            errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
 
         if (localUid.isEmpty())
         {
-            QString error;
             res = getNoteLocalUidForGuid(uid, localUid, error);
             if (res || !localUid.isEmpty()) {
-                errorDescription += QT_TR_NOOP("found existing local uid corresponding to Note's guid");
+                errorDescription += QT_TR_NOOP("found existing note corresponding to note's guid");
                 QNWARNING(errorDescription << ", guid: " << uid);
                 return false;
             }
@@ -1415,10 +1482,10 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QString & errorDescription
     if (shouldCheckNoteExistence && rowExists("Notes", column, QVariant(uid)))
     {
         // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("note with specified ");
+        errorDescription += QT_TR_NOOP("note with specified") " ";
         errorDescription += column;
         // TRANSLATOR previous part of the phrase was "note with specified guid|localUid "
-        errorDescription += QT_TR_NOOP(" already exists in local storage");
+        errorDescription += " " QT_TR_NOOP("already exists in the local storage database");
         QNWARNING(errorDescription << ", " << column << ": " << uid);
         return false;
     }
@@ -1427,10 +1494,9 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QString & errorDescription
 }
 
 bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResources, const bool updateTags,
-                                            QString & errorDescription)
+                                            QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't update note in local storage database: ");
-    QString error;
+    errorDescription = QT_TR_NOOP("can't update note in the local storage database") ": ";
 
     QString notebookLocalUid;
     bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, errorDescription);
@@ -1453,6 +1519,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
 
     note.setNotebookGuid(notebookGuid);
 
+    QNLocalizedString error;
     res = note.checkParameters(error);
     if (!res) {
         errorDescription += error;
@@ -1473,7 +1540,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
 
         if (!checkGuid(uid)) {
             // TRANSLATOR explaining why note cannot be expunged from local storage
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
+            errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
@@ -1497,10 +1564,10 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
 
     if (shouldCheckNoteExistence && !rowExists("Notes", column, QVariant(uid))) {
         // TRANSLATOR explaining the reason of error
-        errorDescription += QT_TR_NOOP("note with specified ");
+        errorDescription += QT_TR_NOOP("note with specified") " ";
         errorDescription += column;
         // TRANSLATOR previous part of the phrase was "note with specified guid|localUid"
-        errorDescription += QT_TR_NOOP(" was not found in local storage");
+        errorDescription += " " QT_TR_NOOP("was not found in local storage");
         QNWARNING(errorDescription << ", " << column << ": " << uid);
         return false;
     }
@@ -1508,12 +1575,12 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     return insertOrReplaceNote(note, updateResources, updateTags, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescription,
+bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & errorDescription,
                                           const bool withResourceBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findNote");
 
-    errorDescription = QT_TR_NOOP("Can't find note in local storage database: ");
+    errorDescription = QT_TR_NOOP("can't find note in the local storage database: ");
 
     QString column, guid;
     bool noteHasGuid = note.hasGuid();
@@ -1524,7 +1591,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
 
         if (!checkGuid(guid)) {
             // TRANSLATOR explaining why note cannot be found
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
+            errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
@@ -1557,7 +1624,8 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
                                  .arg(resourcesTable,resourceIndexColumn,column,guid);
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't select note from \"Notes\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't find note in the local storage database: "
+                                 "internal error, can't execute SQL query");
 
     QList<ResourceWrapper> resources;
     QHash<QString, int> resourceIndexPerLocalUid;
@@ -1609,7 +1677,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
     }
 
     if (!counter) {
-        errorDescription += QT_TR_NOOP("no note was found in local storage");
+        errorDescription += QT_TR_NOOP("no note was found in the local storage database");
         QNDEBUG(errorDescription);
         return false;
     }
@@ -1652,10 +1720,10 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
         note.setTagLocalUids(tagLocalUids);
     }
 
-    QString error;
+    QNLocalizedString error;
     res = note.checkParameters(error);
     if (!res) {
-        errorDescription = QT_TR_NOOP("Found note is invalid: ");
+        errorDescription = QT_TR_NOOP("found note is invalid: ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1665,7 +1733,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QString & errorDescriptio
 }
 
 QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & notebook,
-                                                             QString & errorDescription,
+                                                             QNLocalizedString & errorDescription,
                                                              const bool withResourceBinaryData,
                                                              const LocalStorageManager::ListObjectsOptions & flag,
                                                              const size_t limit, const size_t offset,
@@ -1677,7 +1745,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
             << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
             << ", order = " << order << ", order direction = " << orderDirection);
 
-    QString errorPrefix = QT_TR_NOOP("Can't list notes per notebook: ");
+    QString errorPrefix = QT_TR_NOOP("can't list notes per notebook") ": ";
 
     QList<Note> notes;
 
@@ -1704,7 +1772,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
     Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
-    QString error;
+    QNLocalizedString error;
     QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column,uid);
     notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
                                                                          orderDirection, notebookGuidSqlQueryCondition);
@@ -1719,7 +1787,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
     {
         Note & note = notes[i];
 
-        error.resize(0);
+        error.clear();
         bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix + error;
@@ -1728,7 +1796,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
             return notes;
         }
 
-        error.resize(0);
+        error.clear();
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix + error;
@@ -1739,7 +1807,8 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
 
         res = note.checkParameters(error);
         if (!res) {
-            errorDescription = errorPrefix + QT_TR_NOOP("found note is invalid: ");
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("found note is invalid") ": ";
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -1750,7 +1819,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
     return notes;
 }
 
-QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString & errorDescription,
+QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocalizedString & errorDescription,
                                                         const bool withResourceBinaryData,
                                                         const LocalStorageManager::ListObjectsOptions & flag,
                                                         const size_t limit, const size_t offset,
@@ -1762,7 +1831,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
             << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
             << ", order = " << order << ", order direction = " << orderDirection);
 
-    QString errorPrefix = QT_TR_NOOP("Can't list all notes with tag: ");
+    QString errorPrefix = QT_TR_NOOP("can't list all notes with tag") ": ";
 
     QList<Note> notes;
 
@@ -1774,7 +1843,8 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
 
         if (!checkGuid(uid)) {
             // TRANSLATOR explaining why notes per notebook cannot be listed
-            errorDescription = errorPrefix + QT_TR_NOOP("tag guid is invalid");
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("tag guid is invalid");
             QNWARNING(errorDescription);
             return notes;
         }
@@ -1789,7 +1859,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
     Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
-    QString error;
+    QNLocalizedString error;
     QString queryCondition = QString("localUid IN (SELECT DISTINCT localNote FROM NoteTags WHERE %1 = '%2')").arg(column, uid);
 
     notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
@@ -1805,7 +1875,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
     {
         Note & note = notes[i];
 
-        error.resize(0);
+        error.clear();
         bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix + error;
@@ -1814,7 +1884,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
             return notes;
         }
 
-        error.resize(0);
+        error.clear();
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix + error;
@@ -1825,7 +1895,8 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
 
         res = note.checkParameters(error);
         if (!res) {
-            errorDescription = errorPrefix + QT_TR_NOOP("found note is invalid: ");
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("found note is invalid") ": ";
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -1837,7 +1908,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QString
 }
 
 QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::ListObjectsOptions flag,
-                                                  QString & errorDescription, const bool withResourceBinaryData,
+                                                  QNLocalizedString & errorDescription, const bool withResourceBinaryData,
                                                   const size_t limit, const size_t offset,
                                                   const LocalStorageManager::ListNotesOrder::type & order,
                                                   const LocalStorageManager::OrderDirection::type & orderDirection) const
@@ -1855,23 +1926,27 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
         return notes;
     }
 
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't list notes from the local storage database") ": ";
+
     const int numNotes = notes.size();
-    QString error;
+    QNLocalizedString error;
     for(int i = 0; i < numNotes; ++i)
     {
         Note & note = notes[i];
 
         bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
+            errorDescription = errorPrefix;
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
             return notes;
         }
 
-        error.resize(0);
+        error.clear();
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
+            errorDescription = errorPrefix;
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -1880,7 +1955,8 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
 
         res = note.checkParameters(error);
         if (!res) {
-            errorDescription += QT_TR_NOOP("found note is invalid: ");
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("found note is invalid") ": ";
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -1891,9 +1967,9 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
     return notes;
 }
 
-bool LocalStorageManagerPrivate::expungeNote(Note & note, QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & errorDescription)
 {
-    errorDescription = QT_TR_NOOP("Can't expunge note from local storage database: ");
+    errorDescription = QT_TR_NOOP("can't expunge note from the local storage database") ": ";
 
     QString notebookLocalUid;
     bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, errorDescription);
@@ -1929,7 +2005,7 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QString & errorDescrip
 
         if (!checkGuid(uid)) {
             // TRANSLATOR explaining why note cannot be expunged from local storage
-            errorDescription += QT_TR_NOOP("requested note guid is invalid");
+            errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
         }
@@ -1960,13 +2036,14 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QString & errorDescrip
     QString queryString = QString("DELETE FROM Notes WHERE %1 = '%2'").arg(column, uid);
     QSqlQuery query(m_sqlDatabase);
     res = query.exec(queryString);
-    DATABASE_CHECK_AND_SET_ERROR("can't delete entry from \"Notes\" table in SQL database");
+    DATABASE_CHECK_AND_SET_ERROR("can't delete row from \"Notes\" table in the local storage database: "
+                                 "internal error: can't execute SQL query");
 
     return true;
 }
 
 NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
-                                                              QString & errorDescription,
+                                                              QNLocalizedString & errorDescription,
                                                               const bool withResourceBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findNotesWithSearchQuery: " << noteSearchQuery);
@@ -1982,9 +2059,12 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
     Transaction transaction(m_sqlDatabase, *this, Transaction::Selection);
     Q_UNUSED(transaction)
 
-    errorDescription = QT_TR_NOOP("Can't convert note search query string into SQL query string: ");
-    bool res = noteSearchQueryToSQL(noteSearchQuery, queryString, errorDescription);
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't find notes with note search query") ": ";
+
+    QNLocalizedString error = errorPrefix;
+    bool res = noteSearchQueryToSQL(noteSearchQuery, queryString, error);
     if (!res) {
+        errorDescription = error;
         return NoteList();
     }
 
@@ -1992,8 +2072,10 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
     QSqlQuery query(m_sqlDatabase);
     res = query.exec(queryString);
     if (!res) {
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't execute SQL query; last error") ": ";
         errorDescription += query.lastError().text();
-        errorDescription += QT_TR_NOOP("; full executed SQL query: ");
+        errorDescription += "; " QT_TR_NOOP("full last executed SQL query") ": ";
         errorDescription += queryString;
         QNCRITICAL(errorDescription << ", full error: " << query.lastError());
         return NoteList();
@@ -2029,9 +2111,10 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
     }
 
     queryString = QString("SELECT * FROM Notes WHERE localUid IN (%1)").arg(joinedLocalUids);
-    errorDescription = QT_TR_NOOP("Can't execute SQL to find notes per local uids: ");
     res = query.exec(queryString);
-    if (!res) {
+    if (Q_UNLIKELY(!res)) {
+        errorDescription = errorPrefix;
+        errorDescription += QT_TR_NOOP("internal error, can't execute SQL query to find note per local uid") ": ";
         errorDescription += query.lastError().text();
         QNCRITICAL(errorDescription << ", full error: " << query.lastError());
         return NoteList();
@@ -2039,9 +2122,9 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
 
     NoteList notes;
     notes.reserve(qMax(query.size(), 0));
-    QString error;
 
-    errorDescription = QT_TR_NOOP("Can't perform post-processing when fetching notes per note search query: ");
+    QNLocalizedString error;
+
     while(query.next())
     {
         notes.push_back(Note());
@@ -2053,14 +2136,18 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
 
         res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("can't fetch tag ids per note") ": ";
             errorDescription += error;
             QNWARNING(errorDescription);
             return NoteList();
         }
 
-        error.resize(0);
+        error.clear();
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("can't fetch resources per note") ": ";
             errorDescription += error;
             QNWARNING(errorDescription);
             return NoteList();
@@ -2068,7 +2155,8 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
 
         res = note.checkParameters(error);
         if (!res) {
-            errorDescription += QT_TR_NOOP("found note is invalid: ");
+            errorDescription = errorPrefix;
+            errorDescription += QT_TR_NOOP("one of found notes is invalid") ": ";
             errorDescription += error;
             QNWARNING(errorDescription);
             return NoteList();
@@ -2079,7 +2167,7 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
     return notes;
 }
 
-int LocalStorageManagerPrivate::tagCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::tagCount(QNLocalizedString & errorDescription) const
 {
     bool res = checkAndPrepareTagCountQuery();
     QSqlQuery & query = m_getTagCountQuery;
@@ -2120,7 +2208,7 @@ int LocalStorageManagerPrivate::tagCount(QString & errorDescription) const
     return count;
 }
 
-bool LocalStorageManagerPrivate::addTag(Tag & tag, QString & errorDescription)
+bool LocalStorageManagerPrivate::addTag(Tag & tag, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add tag to local storage database: ");
     QString error;
@@ -2177,7 +2265,7 @@ bool LocalStorageManagerPrivate::addTag(Tag & tag, QString & errorDescription)
     return insertOrReplaceTag(tag, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::updateTag(Tag & tag, QString & errorDescription)
+bool LocalStorageManagerPrivate::updateTag(Tag & tag, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't update tag in local storage database: ");
     QString error;
@@ -2230,7 +2318,7 @@ bool LocalStorageManagerPrivate::updateTag(Tag & tag, QString & errorDescription
     return insertOrReplaceTag(tag, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findTag(Tag & tag, QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findTag");
 
@@ -2295,7 +2383,7 @@ bool LocalStorageManagerPrivate::findTag(Tag & tag, QString & errorDescription) 
     return fillTagFromSqlRecord(record, tag, errorDescription);
 }
 
-QList<Tag> LocalStorageManagerPrivate::listAllTagsPerNote(const Note & note, QString & errorDescription,
+QList<Tag> LocalStorageManagerPrivate::listAllTagsPerNote(const Note & note, QNLocalizedString & errorDescription,
                                                           const LocalStorageManager::ListObjectsOptions & flag,
                                                           const size_t limit, const size_t offset,
                                                           const LocalStorageManager::ListTagsOrder::type & order,
@@ -2375,7 +2463,7 @@ QList<Tag> LocalStorageManagerPrivate::listAllTagsPerNote(const Note & note, QSt
                                                                       orderDirection, noteGuidSqlQueryCondition);
 }
 
-QList<Tag> LocalStorageManagerPrivate::listAllTags(QString & errorDescription, const size_t limit, const size_t offset,
+QList<Tag> LocalStorageManagerPrivate::listAllTags(QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                    const LocalStorageManager::ListTagsOrder::type & order,
                                                    const LocalStorageManager::OrderDirection::type & orderDirection,
                                                    const QString & linkedNotebookGuid) const
@@ -2385,7 +2473,7 @@ QList<Tag> LocalStorageManagerPrivate::listAllTags(QString & errorDescription, c
 }
 
 QList<Tag> LocalStorageManagerPrivate::listTags(const LocalStorageManager::ListObjectsOptions flag,
-                                                QString & errorDescription, const size_t limit, const size_t offset,
+                                                QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                 const LocalStorageManager::ListTagsOrder::type & order,
                                                 const LocalStorageManager::OrderDirection::type & orderDirection,
                                                 const QString & linkedNotebookGuid) const
@@ -2403,7 +2491,7 @@ QList<Tag> LocalStorageManagerPrivate::listTags(const LocalStorageManager::ListO
                                                                       linkedNotebookGuidSqlQueryCondition);
 }
 
-bool LocalStorageManagerPrivate::expungeTag(Tag & tag, QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeTag(Tag & tag, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge tag from local storage database: ");
 
@@ -2461,7 +2549,7 @@ bool LocalStorageManagerPrivate::expungeTag(Tag & tag, QString & errorDescriptio
     return true;
 }
 
-bool LocalStorageManagerPrivate::expungeNotelessTagsFromLinkedNotebooks(QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeNotelessTagsFromLinkedNotebooks(QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge tags from linked notebooks not connected to any notes: ");
 
@@ -2474,7 +2562,7 @@ bool LocalStorageManagerPrivate::expungeNotelessTagsFromLinkedNotebooks(QString 
     return true;
 }
 
-int LocalStorageManagerPrivate::enResourceCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::enResourceCount(QNLocalizedString & errorDescription) const
 {
     bool res = checkAndPrepareResourceCountQuery();
     QSqlQuery & query = m_getResourceCountQuery;
@@ -2515,7 +2603,7 @@ int LocalStorageManagerPrivate::enResourceCount(QString & errorDescription) cons
     return count;
 }
 
-bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QString & errorDescription,
+bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QNLocalizedString & errorDescription,
                                                 const bool withBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findEnResource");
@@ -2573,7 +2661,7 @@ bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QString & 
     return true;
 }
 
-bool LocalStorageManagerPrivate::expungeEnResource(IResource & resource, QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeEnResource(IResource & resource, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge resource from local storage database: ");
 
@@ -2657,7 +2745,7 @@ bool LocalStorageManagerPrivate::expungeEnResource(IResource & resource, QString
     return true;
 }
 
-int LocalStorageManagerPrivate::savedSearchCount(QString & errorDescription) const
+int LocalStorageManagerPrivate::savedSearchCount(QNLocalizedString & errorDescription) const
 {
     QSqlQuery & query = m_getSavedSearchCountQuery;
     bool res = checkAndPrepareGetSavedSearchCountQuery();
@@ -2698,7 +2786,7 @@ int LocalStorageManagerPrivate::savedSearchCount(QString & errorDescription) con
     return count;
 }
 
-bool LocalStorageManagerPrivate::addSavedSearch(SavedSearch & search, QString & errorDescription)
+bool LocalStorageManagerPrivate::addSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add saved search to local storage database: ");
     QString error;
@@ -2755,7 +2843,7 @@ bool LocalStorageManagerPrivate::addSavedSearch(SavedSearch & search, QString & 
     return insertOrReplaceSavedSearch(search, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::updateSavedSearch(SavedSearch & search, QString & errorDescription)
+bool LocalStorageManagerPrivate::updateSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't update saved search in local storage database: ");
     QString error;
@@ -2808,7 +2896,7 @@ bool LocalStorageManagerPrivate::updateSavedSearch(SavedSearch & search, QString
     return insertOrReplaceSavedSearch(search, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findSavedSearch");
 
@@ -2863,7 +2951,7 @@ bool LocalStorageManagerPrivate::findSavedSearch(SavedSearch & search, QString &
     return fillSavedSearchFromSqlRecord(rec, search, errorDescription);
 }
 
-QList<SavedSearch> LocalStorageManagerPrivate::listAllSavedSearches(QString & errorDescription, const size_t limit, const size_t offset,
+QList<SavedSearch> LocalStorageManagerPrivate::listAllSavedSearches(QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                                     const LocalStorageManager::ListSavedSearchesOrder::type & order,
                                                                     const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
@@ -2872,7 +2960,7 @@ QList<SavedSearch> LocalStorageManagerPrivate::listAllSavedSearches(QString & er
 }
 
 QList<SavedSearch> LocalStorageManagerPrivate::listSavedSearches(const LocalStorageManager::ListObjectsOptions flag,
-                                                                 QString & errorDescription, const size_t limit, const size_t offset,
+                                                                 QNLocalizedString & errorDescription, const size_t limit, const size_t offset,
                                                                  const LocalStorageManager::ListSavedSearchesOrder::type & order,
                                                                  const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
@@ -2880,7 +2968,7 @@ QList<SavedSearch> LocalStorageManagerPrivate::listSavedSearches(const LocalStor
     return listObjects<SavedSearch, LocalStorageManager::ListSavedSearchesOrder::type>(flag, errorDescription, limit, offset, order, orderDirection);
 }
 
-bool LocalStorageManagerPrivate::expungeSavedSearch(SavedSearch & search, QString & errorDescription)
+bool LocalStorageManagerPrivate::expungeSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't expunge saved search from local storage database: ");
 
@@ -2943,7 +3031,7 @@ void LocalStorageManagerPrivate::processPostTransactionException(QString message
     throw DatabaseSqlErrorException(message);
 }
 
-bool LocalStorageManagerPrivate::addEnResource(IResource & resource, QString & errorDescription)
+bool LocalStorageManagerPrivate::addEnResource(IResource & resource, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't add resource to local storage database: ");
 
@@ -3057,7 +3145,7 @@ bool LocalStorageManagerPrivate::addEnResource(IResource & resource, QString & e
     return insertOrReplaceResource(resource, errorDescription);
 }
 
-bool LocalStorageManagerPrivate::updateEnResource(IResource & resource, QString & errorDescription)
+bool LocalStorageManagerPrivate::updateEnResource(IResource & resource, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't update resource in local storage database: ");
 
@@ -3165,7 +3253,7 @@ void LocalStorageManagerPrivate::unlockDatabaseFile()
     }
 }
 
-bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
+bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescription)
 {
     QSqlQuery query(m_sqlDatabase);
     bool res;
@@ -3709,7 +3797,7 @@ bool LocalStorageManagerPrivate::createTables(QString & errorDescription)
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                                                     const QString & localUid, QString & errorDescription)
+                                                                     const QString & localUid, QNLocalizedString & errorDescription)
 {
     errorDescription = QT_TR_NOOP("Can't insert or replace notebook restrictions: ");
 
@@ -3759,7 +3847,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const qever
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
-                                                               QString & errorDescription)
+                                                               QNLocalizedString & errorDescription)
 {
     // NOTE: this method is expected to be called after the sanity check of sharedNotebook object!
 
@@ -3815,7 +3903,7 @@ bool LocalStorageManagerPrivate::rowExists(const QString & tableName, const QStr
     return false;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString & errorDescription)
+bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QNLocalizedString & errorDescription)
 {
     // NOTE: this method is expected to be called after the check of user object for sanity of its parameters!
 
@@ -3935,7 +4023,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QString
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
-                                                                QString & errorDescription)
+                                                                QNLocalizedString & errorDescription)
 {
     bool res = checkAndPrepareInsertOrReplaceBusinessUserInfoQuery();
     QSqlQuery & query = m_insertOrReplaceBusinessUserInfoQuery;
@@ -3958,7 +4046,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceBusinesUserInfo(const UserID id,
 }
 
 bool LocalStorageManagerPrivate::insertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
-                                                            QString & errorDescription)
+                                                            QNLocalizedString & errorDescription)
 {
     bool res = checkAndPrepareInsertOrReplacePremiumUserInfoQuery();
     QSqlQuery & query = m_insertOrReplacePremiumUserInfoQuery;
@@ -3989,7 +4077,7 @@ bool LocalStorageManagerPrivate::insertOrReplacePremiumInfo(const UserID id, con
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
-                                                           QString & errorDescription)
+                                                           QNLocalizedString & errorDescription)
 {
     bool res = checkAndPrepareInsertOrReplaceAccountingQuery();
     QSqlQuery & query = m_insertOrReplaceAccountingQuery;
@@ -4043,7 +4131,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, cons
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
-                                                               QString & errorDescription)
+                                                               QNLocalizedString & errorDescription)
 {
     QVariant nullValue;
 
@@ -4371,7 +4459,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareDeleteUserQuery()
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebook,
-                                                         QString & errorDescription)
+                                                         QNLocalizedString & errorDescription)
 {
     // NOTE: this method expects to be called after notebook is already checked
     // for sanity of its parameters!
@@ -4569,7 +4657,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNotebokQuer
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook,
-                                                               QString & errorDescription)
+                                                               QNLocalizedString & errorDescription)
 {
     // NOTE: this method expects to be called after the linked notebook
     // is already checked for sanity ot its parameters
@@ -4650,7 +4738,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceLinkedNotebookQue
     return res;
 }
 
-bool LocalStorageManagerPrivate::getNoteLocalUidFromResource(const IResource & resource, QString & noteLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::getNoteLocalUidFromResource(const IResource & resource, QString & noteLocalUid, QNLocalizedString & errorDescription)
 {
     noteLocalUid.resize(0);
 
@@ -4699,7 +4787,7 @@ bool LocalStorageManagerPrivate::getNoteLocalUidFromResource(const IResource & r
     return true;
 }
 
-bool LocalStorageManagerPrivate::getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
     notebookLocalUid.resize(0);
 
@@ -4754,7 +4842,7 @@ bool LocalStorageManagerPrivate::getNotebookLocalUidFromNote(const Note & note, 
     return true;
 }
 
-bool LocalStorageManagerPrivate::getNotebookGuidForNote(const Note & note, QString & notebookGuid, QString & errorDescription)
+bool LocalStorageManagerPrivate::getNotebookGuidForNote(const Note & note, QString & notebookGuid, QNLocalizedString & errorDescription)
 {
     notebookGuid.resize(0);
 
@@ -4784,7 +4872,7 @@ bool LocalStorageManagerPrivate::getNotebookGuidForNote(const Note & note, QStri
 }
 
 bool LocalStorageManagerPrivate::getNotebookLocalUidForGuid(const QString & notebookGuid, QString & notebookLocalUid,
-                                                            QString & errorDescription)
+                                                            QNLocalizedString & errorDescription)
 {
     QString queryString = QString("SELECT localUid FROM Notebooks WHERE guid = '%1'").arg(notebookGuid);
     QSqlQuery query(m_sqlDatabase);
@@ -4804,7 +4892,7 @@ bool LocalStorageManagerPrivate::getNotebookLocalUidForGuid(const QString & note
     return true;
 }
 
-bool LocalStorageManagerPrivate::getNoteLocalUidForGuid(const QString & noteGuid, QString & noteLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::getNoteLocalUidForGuid(const QString & noteGuid, QString & noteLocalUid, QNLocalizedString & errorDescription)
 {
     QString queryString = QString("SELECT localUid FROM Notes WHERE guid = '%1'").arg(noteGuid);
     QSqlQuery query(m_sqlDatabase);
@@ -4824,7 +4912,7 @@ bool LocalStorageManagerPrivate::getNoteLocalUidForGuid(const QString & noteGuid
     return true;
 }
 
-bool LocalStorageManagerPrivate::getTagLocalUidForGuid(const QString & tagGuid, QString & tagLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::getTagLocalUidForGuid(const QString & tagGuid, QString & tagLocalUid, QNLocalizedString & errorDescription)
 {
     QString queryString = QString("SELECT localUid FROM Tags WHERE guid = '%1'").arg(tagGuid);
     QSqlQuery query(m_sqlDatabase);
@@ -4845,7 +4933,7 @@ bool LocalStorageManagerPrivate::getTagLocalUidForGuid(const QString & tagGuid, 
 }
 
 bool LocalStorageManagerPrivate::getResourceLocalUidForGuid(const QString & resourceGuid, QString & resourceLocalUid,
-                                                            QString & errorDescription)
+                                                            QNLocalizedString & errorDescription)
 {
     QString queryString = QString("SELECT resourceLocalUid FROM Resources WHERE resourceGuid = '%1'").arg(resourceGuid);
     QSqlQuery query(m_sqlDatabase);
@@ -4866,7 +4954,7 @@ bool LocalStorageManagerPrivate::getResourceLocalUidForGuid(const QString & reso
 }
 
 bool LocalStorageManagerPrivate::getSavedSearchLocalUidForGuid(const QString & savedSearchGuid, QString & savedSearchLocalUid,
-                                                               QString & errorDescription)
+                                                               QNLocalizedString & errorDescription)
 {
     QString queryString = QString("SELECT localUid FROM SavedSearches WHERE guid = '%1'").arg(savedSearchGuid);
     QSqlQuery query(m_sqlDatabase);
@@ -4887,7 +4975,7 @@ bool LocalStorageManagerPrivate::getSavedSearchLocalUidForGuid(const QString & s
 }
 
 bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bool updateResources,
-                                                     const bool updateTags, QString & errorDescription)
+                                                     const bool updateTags, QNLocalizedString & errorDescription)
 {
     // NOTE: this method expects to be called after the note is already checked
     // for sanity of its parameters!
@@ -5231,7 +5319,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
     return transaction.commit(errorDescription);
 }
 
-bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
     bool res = checkAndPrepareCanAddNoteToNotebookQuery();
     QSqlQuery & query = m_canAddNoteToNotebookQuery;
@@ -5257,7 +5345,7 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
     return res;
 }
 
-bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
     bool res = checkAndPrepareCanUpdateNoteInNotebookQuery();
     QSqlQuery & query = m_canUpdateNoteInNotebookQuery;
@@ -5283,7 +5371,7 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
     return res;
 }
 
-bool LocalStorageManagerPrivate::canExpungeNoteInNotebook(const QString & notebookLocalUid, QString & errorDescription)
+bool LocalStorageManagerPrivate::canExpungeNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
     bool res = checkAndPrepareCanExpungeNoteInNotebookQuery();
     QSqlQuery & query = m_canExpungeNoteInNotebookQuery;
@@ -5440,7 +5528,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQ
     return res;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, QString & errorDescription)
+bool LocalStorageManagerPrivate::insertOrReplaceTag(const Tag & tag, QNLocalizedString & errorDescription)
 {
     // NOTE: this method expects to be called after tag is already checked
     // for sanity of its parameters!
@@ -5517,7 +5605,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
     return res;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resource, QString & errorDescription,
+bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resource, QNLocalizedString & errorDescription,
                                                          const bool useSeparateTransaction)
 {
     // NOTE: this method expects to be called after resource is already checked
@@ -5710,7 +5798,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resou
 
 bool LocalStorageManagerPrivate::insertOrReplaceResourceAttributes(const QString & localUid,
                                                                    const qevercloud::ResourceAttributes & attributes,
-                                                                   QString & errorDescription)
+                                                                   QNLocalizedString & errorDescription)
 {
     QVariant nullValue;
 
@@ -6003,7 +6091,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareResourceCountQuery() const
     return res;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & search, QString & errorDescription)
+bool LocalStorageManagerPrivate::insertOrReplaceSavedSearch(const SavedSearch & search, QNLocalizedString & errorDescription)
 {
     // NOTE: this method expects to be called after the search is already checked
     // for sanity of its parameters!
@@ -6513,7 +6601,7 @@ void LocalStorageManagerPrivate::fillNoteAttributesClassificationsFromSqlRecord(
     }
 }
 
-bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QString & errorDescription) const
+bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QNLocalizedString & errorDescription) const
 {
 #define FIND_AND_SET_USER_PROPERTY(column, setter, type, localType, isRequired) \
     { \
@@ -6816,7 +6904,7 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
 
 bool LocalStorageManagerPrivate::fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column,
                                                             QList<QPair<QString, int> > & tagIdsAndIndices,
-                                                            QHash<QString, int> & tagIndexPerId, QString & errorDescription) const
+                                                            QHash<QString, int> & tagIndexPerId, QNLocalizedString & errorDescription) const
 {
     int tagIdIndex = record.indexOf(column);
     if (tagIdIndex < 0) {
@@ -6858,7 +6946,7 @@ bool LocalStorageManagerPrivate::fillNoteTagIdFromSqlRecord(const QSqlRecord & r
 }
 
 bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook,
-                                                           QString & errorDescription) const
+                                                           QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) { \
         bool valueFound = false; \
@@ -7012,7 +7100,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
 
 bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecord & rec,
                                                                  ISharedNotebook & sharedNotebook,
-                                                                 QString & errorDescription) const
+                                                                 QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter) \
     { \
@@ -7064,7 +7152,7 @@ bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecor
 
 bool LocalStorageManagerPrivate::fillLinkedNotebookFromSqlRecord(const QSqlRecord & rec,
                                                                  LinkedNotebook & linkedNotebook,
-                                                                 QString & errorDescription) const
+                                                                 QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(property, type, localType, setter, isRequired) \
     { \
@@ -7113,7 +7201,7 @@ bool LocalStorageManagerPrivate::fillLinkedNotebookFromSqlRecord(const QSqlRecor
 
 bool LocalStorageManagerPrivate::fillSavedSearchFromSqlRecord(const QSqlRecord & rec,
                                                               SavedSearch & search,
-                                                              QString & errorDescription) const
+                                                              QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_SAVED_SEARCH_PROPERTY(property, type, localType, setter, isRequired) \
     { \
@@ -7160,7 +7248,7 @@ bool LocalStorageManagerPrivate::fillSavedSearchFromSqlRecord(const QSqlRecord &
 }
 
 bool LocalStorageManagerPrivate::fillTagFromSqlRecord(const QSqlRecord & rec, Tag & tag,
-                                                      QString & errorDescription) const
+                                                      QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_TAG_PROPERTY(property, type, localType, setter, isRequired) \
     { \
@@ -7200,7 +7288,7 @@ bool LocalStorageManagerPrivate::fillTagFromSqlRecord(const QSqlRecord & rec, Ta
     return true;
 }
 
-QList<Tag> LocalStorageManagerPrivate::fillTagsFromSqlQuery(QSqlQuery & query, QString & errorDescription) const
+QList<Tag> LocalStorageManagerPrivate::fillTagsFromSqlQuery(QSqlQuery & query, QNLocalizedString & errorDescription) const
 {
     QList<Tag> tags;
     tags.reserve(qMax(query.size(), 0));
@@ -7229,7 +7317,7 @@ QList<Tag> LocalStorageManagerPrivate::fillTagsFromSqlQuery(QSqlQuery & query, Q
     return tags;
 }
 
-bool LocalStorageManagerPrivate::findAndSetTagIdsPerNote(Note & note, QString & errorDescription) const
+bool LocalStorageManagerPrivate::findAndSetTagIdsPerNote(Note & note, QNLocalizedString & errorDescription) const
 {
     errorDescription += QT_TR_NOOP("can't find tag guids/local uids per note: ");
 
@@ -7358,7 +7446,7 @@ bool LocalStorageManagerPrivate::findAndSetTagIdsPerNote(Note & note, QString & 
     return true;
 }
 
-bool LocalStorageManagerPrivate::findAndSetResourcesPerNote(Note & note, QString & errorDescription,
+bool LocalStorageManagerPrivate::findAndSetResourcesPerNote(Note & note, QNLocalizedString & errorDescription,
                                                             const bool withBinaryData) const
 {
     errorDescription += QT_TR_NOOP("can't find resources for note: ");
@@ -7440,7 +7528,7 @@ void LocalStorageManagerPrivate::sortSharedNotebooks(Notebook & notebook) const
 }
 
 bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery,
-                                                      QString & sql, QString & errorDescription) const
+                                                      QString & sql, QNLocalizedString & errorDescription) const
 {
     errorDescription = QT_TR_NOOP("Can't convert note search string into SQL query: ");
 
@@ -7991,7 +8079,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 }
 
 bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
-                                                                        QString & sql, QString & errorDescription) const
+                                                                        QString & sql, QNLocalizedString & errorDescription) const
 {
     QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL");
 
@@ -8145,8 +8233,8 @@ void LocalStorageManagerPrivate::contentSearchTermToSQLQueryPart(QString & front
 }
 
 bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagNames,
-                                                         QStringList & tagLocalUids,
-                                                         QString & errorDescription) const
+                                                        QStringList & tagLocalUids,
+                                                        QNLocalizedString & errorDescription) const
 {
     tagLocalUids.clear();
 
@@ -8229,8 +8317,8 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
 }
 
 bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStringList & resourceMimeTypes,
-                                                                       QStringList & resourceLocalUids,
-                                                                       QString & errorDescription) const
+                                                                      QStringList & resourceLocalUids,
+                                                                      QNLocalizedString & errorDescription) const
 {
     resourceLocalUids.clear();
 
@@ -8314,7 +8402,7 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     return true;
 }
 
-bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource, QString & errorDescription) const
+bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource, QNLocalizedString & errorDescription) const
 {
     if (!resource.hasNoteGuid())
     {
@@ -8357,7 +8445,7 @@ void LocalStorageManagerPrivate::clearDatabaseFile()
 
 template <class T>
 QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & options,
-                                                                           QString & errorDescription) const
+                                                                           QNLocalizedString & errorDescription) const
 {
     QString result;
     errorDescription.resize(0);
@@ -8433,7 +8521,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
 
 template<>
 QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<LinkedNotebook>(const LocalStorageManager::ListObjectsOptions & flag,
-                                                                                           QString & errorDescription) const
+                                                                                           QNLocalizedString & errorDescription) const
 {
     QString result;
     errorDescription.resize(0);
@@ -8643,7 +8731,7 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
 }
 
 template <class T>
-bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QString & errorDescription) const
+bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QNLocalizedString & errorDescription) const
 {
     objects.reserve(std::max(query.size(), 0));
 
@@ -8665,7 +8753,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
 
 template <>
 bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery query, QList<Notebook> & notebooks,
-                                                                   QString & errorDescription) const
+                                                                   QNLocalizedString & errorDescription) const
 {
     QMap<QString, int> indexForLocalUid;
 
@@ -8710,35 +8798,35 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery que
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<SavedSearch>(const QSqlRecord & rec, SavedSearch & search,
-                                                                      QString & errorDescription) const
+                                                                      QNLocalizedString & errorDescription) const
 {
     return fillSavedSearchFromSqlRecord(rec, search, errorDescription);
 }
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Tag>(const QSqlRecord & rec, Tag & tag,
-                                                              QString & errorDescription) const
+                                                              QNLocalizedString & errorDescription) const
 {
     return fillTagFromSqlRecord(rec, tag, errorDescription);
 }
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<LinkedNotebook>(const QSqlRecord & rec, LinkedNotebook & linkedNotebook,
-                                                                         QString & errorDescription) const
+                                                                         QNLocalizedString & errorDescription) const
 {
     return fillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
 }
 
 template <>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Notebook>(const QSqlRecord & rec, Notebook & notebook,
-                                                                   QString & errorDescription) const
+                                                                   QNLocalizedString & errorDescription) const
 {
     return fillNotebookFromSqlRecord(rec, notebook, errorDescription);
 }
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Note>(const QSqlRecord & rec, Note & note,
-                                                               QString & errorDescription) const
+                                                               QNLocalizedString & errorDescription) const
 {
     Q_UNUSED(errorDescription);
     fillNoteFromSqlRecord(rec, note);
@@ -8747,7 +8835,7 @@ bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Note>(const QSqlRecord 
 
 template <class T, class TOrderBy>
 QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::ListObjectsOptions & flag,
-                                                 QString & errorDescription, const size_t limit,
+                                                 QNLocalizedString & errorDescription, const size_t limit,
                                                  const size_t offset, const TOrderBy & orderBy,
                                                  const LocalStorageManager::OrderDirection::type & orderDirection,
                                                  const QString & additionalSqlQueryCondition) const

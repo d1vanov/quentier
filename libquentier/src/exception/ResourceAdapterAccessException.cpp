@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-ResourceAdapterAccessException::ResourceAdapterAccessException(const QString & message) :
+ResourceAdapterAccessException::ResourceAdapterAccessException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

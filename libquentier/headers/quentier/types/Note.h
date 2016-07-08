@@ -49,7 +49,7 @@ public:
 
     virtual void clear() Q_DECL_OVERRIDE;
 
-    virtual bool checkParameters(QString & errorDescription) const Q_DECL_OVERRIDE;
+    virtual bool checkParameters(QNLocalizedString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasTitle() const;
     const QString & title() const;

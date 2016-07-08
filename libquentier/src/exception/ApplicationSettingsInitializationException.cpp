@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-ApplicationSettingsInitializationException::ApplicationSettingsInitializationException(const QString & message) :
+ApplicationSettingsInitializationException::ApplicationSettingsInitializationException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

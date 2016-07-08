@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-ResourceLocalFileStorageFolderNotFoundException::ResourceLocalFileStorageFolderNotFoundException(const QString & message) :
+ResourceLocalFileStorageFolderNotFoundException::ResourceLocalFileStorageFolderNotFoundException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

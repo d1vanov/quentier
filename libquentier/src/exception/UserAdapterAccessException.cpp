@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-UserAdapterAccessException::UserAdapterAccessException(const QString & message) :
+UserAdapterAccessException::UserAdapterAccessException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

@@ -2,7 +2,7 @@
 
 namespace quentier {
 
-NoteEditorInitializationException::NoteEditorInitializationException(const QString & message) :
+NoteEditorInitializationException::NoteEditorInitializationException(const QNLocalizedString & message) :
     IQuentierException(message)
 {}
 

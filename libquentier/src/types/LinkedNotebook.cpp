@@ -106,7 +106,7 @@ void LinkedNotebook::setUpdateSequenceNumber(const qint32 usn)
     d->m_qecLinkedNotebook.updateSequenceNum = usn;
 }
 
-bool LinkedNotebook::checkParameters(QString & errorDescription) const
+bool LinkedNotebook::checkParameters(QNLocalizedString & errorDescription) const
 {
     return d->checkParameters(errorDescription);
 }

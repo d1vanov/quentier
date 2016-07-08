@@ -88,7 +88,7 @@ void Tag::clear()
     d->clear();
 }
 
-bool Tag::validateName(const QString & name, QString * pErrorDescription)
+bool Tag::validateName(const QString & name, QNLocalizedString * pErrorDescription)
 {
     if (name != name.trimmed())
     {
@@ -156,7 +156,7 @@ void Tag::setUpdateSequenceNumber(const qint32 usn)
     d->m_qecTag.updateSequenceNum = usn;
 }
 
-bool Tag::checkParameters(QString & errorDescription) const
+bool Tag::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecTag.guid.isSet()) {
         errorDescription = QT_TR_NOOP("both tag's local and remote guids are empty");

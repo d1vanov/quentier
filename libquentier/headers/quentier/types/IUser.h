@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TYPES_I_USER_H
 
 #include <quentier/utility/Printable.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QtGlobal>
 #include <QEverCloud.h>
 
@@ -30,7 +31,7 @@ public:
     bool isLocal() const;
     void setLocal(const bool local);
 
-    bool checkParameters(QString & errorDescription) const;
+    bool checkParameters(QNLocalizedString & errorDescription) const;
 
     bool hasId() const;
     qint32 id() const;

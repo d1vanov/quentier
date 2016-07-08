@@ -8,7 +8,7 @@ namespace quentier {
 class QUENTIER_EXPORT UserAdapterAccessException: public IQuentierException
 {
 public:
-    explicit UserAdapterAccessException(const QString & message);
+    explicit UserAdapterAccessException(const QNLocalizedString & message);
 
 protected:
     const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

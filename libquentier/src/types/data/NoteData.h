@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TYPES_DATA_NOTE_DATA_H
 
 #include "FavoritableDataElementData.h"
+#include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 #include <QImage>
 
@@ -17,7 +18,7 @@ public:
     virtual ~NoteData();
 
     void clear();
-    bool checkParameters(QString & errorDescription) const;
+    bool checkParameters(QNLocalizedString & errorDescription) const;
 
     QString plainText(QString * pErrorMessage) const;
     QStringList listOfWords(QString * pErrorMessage) const;

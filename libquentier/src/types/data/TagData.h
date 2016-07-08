@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TYPES_DATA_TAG_DATA_H
 
 #include "FavoritableDataElementData.h"
+#include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 
 namespace quentier {
@@ -16,7 +17,7 @@ public:
     virtual ~TagData();
 
     void clear();
-    bool checkParameters(QString & errorDescription) const;
+    bool checkParameters(QNLocalizedString & errorDescription) const;
 
     bool operator==(const TagData & other) const;
     bool operator!=(const TagData & other) const;

@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TYPES_DATA_LINKED_NOTEBOOK_DATA_H
 
 #include <QSharedData>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 
 namespace quentier {
@@ -17,7 +18,7 @@ public:
     virtual ~LinkedNotebookData();
 
     void clear();
-    bool checkParameters(QString & errorDescription) const;
+    bool checkParameters(QNLocalizedString & errorDescription) const;
 
     bool operator==(const LinkedNotebookData & other) const;
     bool operator!=(const LinkedNotebookData & other) const;

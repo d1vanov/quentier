@@ -8,7 +8,7 @@ namespace quentier {
 class QUENTIER_EXPORT SharedNotebookAdapterAccessException: public IQuentierException
 {
 public:
-    explicit SharedNotebookAdapterAccessException(const QString & message);
+    explicit SharedNotebookAdapterAccessException(const QNLocalizedString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

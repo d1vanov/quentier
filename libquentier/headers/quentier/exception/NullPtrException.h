@@ -8,7 +8,7 @@ namespace quentier {
 class QUENTIER_EXPORT NullPtrException: public IQuentierException
 {
 public:
-    explicit NullPtrException(const QString & message);
+    explicit NullPtrException(const QNLocalizedString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
