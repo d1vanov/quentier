@@ -8,10 +8,10 @@ QNLocalizedString::QNLocalizedString() :
     m_nonLocalizedString()
 {}
 
-QNLocalizedString::QNLocalizedString(const QString & localizedString, const char * nonLocalizedString,
-                                     QObject * pTranslationContext, const char * disambiguation, const int plurals) :
-    m_localizedString(localizedString),
-    m_nonLocalizedString(translateString(nonLocalizedString, pTranslationContext, disambiguation, plurals))
+QNLocalizedString::QNLocalizedString(const char * nonLocalizedString, QObject * pTranslationContext,
+                                     const char * disambiguation, const int plurals) :
+    m_localizedString(translateString(nonLocalizedString, pTranslationContext, disambiguation, plurals)),
+    m_nonLocalizedString(QString::fromUtf8(nonLocalizedString))
 {}
 
 QNLocalizedString::QNLocalizedString(const QNLocalizedString & other) :
@@ -32,13 +32,7 @@ QNLocalizedString & QNLocalizedString::operator=(const QNLocalizedString & other
 QNLocalizedString & QNLocalizedString::operator=(const char * nonLocalizedString)
 {
     m_localizedString = QObject::tr(nonLocalizedString);
-
-#if QT_VERSION >= 0x050000
     m_nonLocalizedString = QString::fromUtf8(nonLocalizedString);
-#else
-    m_nonLocalizedString = QString::fromAscii(nonLocalizedString);
-#endif
-
     return *this;
 }
 
@@ -60,12 +54,7 @@ void QNLocalizedString::set(const char * nonLocalizedString, QObject * pTranslat
                             const char * disambiguation, const int plurals)
 {
     m_localizedString = translateString(nonLocalizedString, pTranslationContext, disambiguation, plurals);
-
-#if QT_VERSION >= 0x050000
     m_nonLocalizedString = QString::fromUtf8(nonLocalizedString);
-#else
-    m_nonLocalizedString = QString::fromAscii(nonLocalizedString);
-#endif
 }
 
 QNLocalizedString & QNLocalizedString::operator+=(const QNLocalizedString & str)
@@ -96,24 +85,14 @@ void QNLocalizedString::append(const QNLocalizedString & str)
 void QNLocalizedString::append(const QString & localizedString, const char * nonLocalizedString)
 {
     m_localizedString += localizedString;
-
-#if QT_VERSION >= 0x050000
     m_nonLocalizedString += QString::fromUtf8(nonLocalizedString);
-#else
-    m_nonLocalizedString += QString::fromAscii(nonLocalizedString);
-#endif
 }
 
 void QNLocalizedString::append(const char * nonLocalizedString, QObject * pTranslationContext,
                                const char * disambiguation, const int plurals)
 {
     m_localizedString += translateString(nonLocalizedString, pTranslationContext, disambiguation, plurals);
-
-#if QT_VERSION >= 0x050000
     m_nonLocalizedString += QString::fromUtf8(nonLocalizedString);
-#else
-    m_nonLocalizedString += QString::fromAscii(nonLocalizedString);
-#endif
 }
 
 void QNLocalizedString::prepend(const QNLocalizedString & str)
@@ -124,25 +103,15 @@ void QNLocalizedString::prepend(const QNLocalizedString & str)
 
 void QNLocalizedString::prepend(const QString & localizedString, const char * nonLocalizedString)
 {
-    m_localizedString.prepend(str.m_localizedString);
-
-#if QT_VERSION >= 0x050000
+    m_localizedString.prepend(localizedString);
     m_nonLocalizedString.prepend(QString::fromUtf8(nonLocalizedString));
-#else
-    m_nonLocalizedString.prepend(QString::fromAscii(nonLocalizedString));
-#endif
 }
 
 void QNLocalizedString::prepend(const char * nonLocalizedString, QObject * pTranslationContext,
                                 const char * disambiguation, const int plurals)
 {
     m_localizedString.prepend(translateString(nonLocalizedString, pTranslationContext, disambiguation, plurals));
-
-#if QT_VERSION >= 0x050000
     m_nonLocalizedString.prepend(QString::fromUtf8(nonLocalizedString));
-#else
-    m_nonLocalizedString.prepend(QString::fromAscii(nonLocalizedString));
-#endif
 }
 
 QTextStream & QNLocalizedString::print(QTextStream & strm) const
@@ -155,7 +124,12 @@ QString QNLocalizedString::translateString(const char * nonLocalizedString, QObj
                                            const char * disambiguation, const int plurals)
 {
     const char * context = (pTranslationContext ? pTranslationContext->metaObject()->className() : "QObject");
+
+#if QT_VERSION >= 0x050000
     return QApplication::translate(context, nonLocalizedString, disambiguation, plurals);
+#else
+    return QApplication::translate(context, nonLocalizedString, disambiguation, QCoreApplication::UnicodeUTF8, plurals);
+#endif
 }
 
 } // namespace quentier

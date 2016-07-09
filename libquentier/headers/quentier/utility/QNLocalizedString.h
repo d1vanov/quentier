@@ -19,7 +19,7 @@ class QNLocalizedString: public Printable
 {
 public:
     QNLocalizedString();
-    QNLocalizedString(const QString & localizedString, const char * nonLocalizedString,
+    QNLocalizedString(const char * nonLocalizedString,
                       QObject * pTranslationContext = Q_NULLPTR, const char * disambiguation = Q_NULLPTR,
                       const int plurals = -1);
     QNLocalizedString(const QNLocalizedString & other);
