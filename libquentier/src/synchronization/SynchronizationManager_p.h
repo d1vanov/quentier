@@ -4,6 +4,7 @@
 #include "RemoteToLocalSynchronizationManager.h"
 #include "SendLocalChangesManager.h"
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 #include <oauth.h>
 #include <keychain.h>
@@ -23,7 +24,7 @@ public:
     bool paused() const;
 
 Q_SIGNALS:
-    void notifyError(QString errorDescription);
+    void notifyError(QNLocalizedString errorDescription);
     void notifyRemoteToLocalSyncDone();
     void notifyFinish();
 
@@ -39,7 +40,7 @@ Q_SIGNALS:
     void detectedConflictDuringLocalChangesSending();
     void rateLimitExceeded(qint32 secondsToWait);
 
-    void progress(QString message, double workDonePercentage);
+    void progress(QNLocalizedString message, double workDonePercentage);
 
 public Q_SLOTS:
     void synchronize();

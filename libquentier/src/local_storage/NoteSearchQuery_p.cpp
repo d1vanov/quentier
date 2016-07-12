@@ -181,7 +181,7 @@ void NoteSearchQueryPrivate::clear()
     m_negatedContentSearchTerms.clear();
 }
 
-bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QString & error)
+bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLocalizedString & error)
 {
     m_queryString = queryString;
 
@@ -366,8 +366,10 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QStri
 
     QRegExp asteriskFilter("[*]");
 
-    foreach(QString searchTerm, words)
+    for(int i = 0, size = words.size(); i < size; ++i)
     {
+        QString searchTerm = words[i];
+
         if (searchTerm.startsWith("notebook:")) {
             continue;
         }
@@ -785,14 +787,15 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
         }
     }
 
-    foreach(const QString & word, processedWords) {
+    for(int i = 0, size = processedWords.size(); i < size; ++i) {
+        const QString & word = processedWords[i];
         words.removeAll(word);
     }
 }
 
 bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & words,
                                            QVector<qint64> & container, QVector<qint64> & negatedContainer,
-                                           bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const
+                                           bool & hasAnyValue, bool & hasNegatedAnyValue, QNLocalizedString & error) const
 {
     int keyIndex = 0;
     QChar negation('-');
@@ -878,7 +881,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
 
 bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList & words,
                                               QVector<double> & container, QVector<double> & negatedContainer,
-                                              bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const
+                                              bool & hasAnyValue, bool & hasNegatedAnyValue, QNLocalizedString & error) const
 {
     int keyIndex = 0;
     QChar negation('-');
@@ -963,7 +966,7 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
 }
 
 bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
-                                                       qint64 & timestamp, QString & error) const
+                                                       qint64 & timestamp, QNLocalizedString & error) const
 {
     QDateTime todayMidnight = QDateTime::currentDateTime();
     todayMidnight.setTime(QTime(0, 0, 0, 0));
@@ -1055,7 +1058,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     if (relativeDateArgumentFound)
     {
         if (!dateTime.isValid()) {
-            error = QT_TR_NOOP("Internal error: datetime processed from query string is invalid: ");
+            error = QT_TR_NOOP("Datetime processed from query string is invalid: ");
             error += QT_TR_NOOP("Datetime in ISO 861 format: ") + dateTime.toString(Qt::ISODate);
             error += QT_TR_NOOP(", datetime in simple text format: ") + dateTime.toString(Qt::TextDate);
             QNWARNING(error);
@@ -1080,7 +1083,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     return true;
 }
 
-bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const
+bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QNLocalizedString & error) const
 {
     QStringList dateTimePrefixes;
     dateTimePrefixes << "created:" << "-created:" << "updated:" << "-updated:"

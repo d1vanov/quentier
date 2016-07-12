@@ -26,7 +26,7 @@ const QString NoteSearchQuery::queryString() const
     return d->m_queryString;
 }
 
-bool NoteSearchQuery::setQueryString(const QString & queryString, QString & error)
+bool NoteSearchQuery::setQueryString(const QString & queryString, QNLocalizedString & error)
 {
     Q_D(NoteSearchQuery);
     d->clear();

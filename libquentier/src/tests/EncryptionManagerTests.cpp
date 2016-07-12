@@ -31,8 +31,7 @@ bool decryptAesTest(QString & error)
     }
 
     if (decryptedText != originalText) {
-        error = QT_TR_NOOP("Decrypted text differs from the original; original text = ") + originalText +
-                QT_TR_NOOP("; decrypted text = ") + decryptedText;
+        error = "Decrypted text differs from the original; original text = " + originalText + "; decrypted text = " + decryptedText;
         QNWARNING(error);
         return false;
     }
@@ -64,7 +63,7 @@ bool encryptDecryptTest(QString & error)
     }
 
     if (decryptedText != "Very-very secret") {
-        error = QT_TR_NOOP("Decrypted text differs from the original (\"Very-very secret\": ") + decryptedText;
+        error = "Decrypted text differs from the original (\"Very-very secret\": " + decryptedText;
         QNWARNING(error);
         return false;
     }
@@ -95,8 +94,8 @@ bool decryptRc2Test(QString & error)
     }
 
     if (decryptedText != originalText) {
-        error = QT_TR_NOOP("Decrypted text differs from the original; original text = ") + originalText +
-                QT_TR_NOOP("; decrypted text = ") + decryptedText;
+        error = "Decrypted text differs from the original; original text = " + originalText +
+                "; decrypted text = " + decryptedText;
         QNWARNING(error);
         return false;
     }

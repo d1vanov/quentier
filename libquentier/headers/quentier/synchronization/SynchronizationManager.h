@@ -3,6 +3,7 @@
 
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 
 namespace quentier {
@@ -28,7 +29,7 @@ public Q_SLOTS:
     void stop();
 
 Q_SIGNALS:
-    void failed(QString errorDescription);
+    void failed(QNLocalizedString errorDescription);
     void finished();
 
     // state signals
@@ -44,7 +45,7 @@ Q_SIGNALS:
     void rateLimitExceeded(qint32 secondsToWait);
 
     void remoteToLocalSyncDone();
-    void progress(QString message, double workDonePercentage);
+    void progress(QNLocalizedString message, double workDonePercentage);
 
 private:
     SynchronizationManager() Q_DECL_DELETE;

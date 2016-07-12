@@ -1,7 +1,7 @@
 #ifndef LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
 #define LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
 
-#include <quentier/utility/Printable.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QStringList>
 
 namespace quentier {
@@ -13,7 +13,7 @@ public:
 
     void clear();
 
-    bool parseQueryString(const QString & queryString, QString & error);
+    bool parseQueryString(const QString & queryString, QNLocalizedString & error);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
@@ -112,12 +112,12 @@ private:
                           bool & hasAnyValue, bool & hasNegatedAnyValue) const;
     bool parseIntValue(const QString & key, QStringList & words,
                        QVector<qint64> & container, QVector<qint64> & negatedContainer,
-                       bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const;
+                       bool & hasAnyValue, bool & hasNegatedAnyValue, QNLocalizedString & error) const;
     bool parseDoubleValue(const QString & key, QStringList & words,
                           QVector<double> & container, QVector<double> &negatedContainer,
-                          bool & hasAnyValue, bool & hasNegatedAnyValue, QString & error) const;
-    bool dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, QString & error) const;
-    bool convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QString & error) const;
+                          bool & hasAnyValue, bool & hasNegatedAnyValue, QNLocalizedString & error) const;
+    bool dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, QNLocalizedString & error) const;
+    bool convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QNLocalizedString & error) const;
     void removeBoundaryQuotesFromWord(QString & word) const;
 };
 
