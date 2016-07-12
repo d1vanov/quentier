@@ -1,6 +1,7 @@
 #ifndef LIB_QUENTIER_LOCAL_STORAGE_TRANSACTION_H
 #define LIB_QUENTIER_LOCAL_STORAGE_TRANSACTION_H
 
+#include <quentier/utility/QNLocalizedString.h>
 #include <QSqlDatabase>
 
 namespace quentier {
@@ -22,8 +23,8 @@ public:
                 TransactionType type = Default);
     virtual ~Transaction();
 
-    bool commit(QString & errorDescription);
-    bool end(QString & errorDescription);
+    bool commit(QNLocalizedString & errorDescription);
+    bool end(QNLocalizedString & errorDescription);
 
 private:
     Q_DISABLE_COPY(Transaction)

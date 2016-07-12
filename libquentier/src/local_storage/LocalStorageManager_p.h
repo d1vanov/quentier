@@ -157,7 +157,7 @@ public:
     bool expungeSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
 
 public Q_SLOTS:
-    void processPostTransactionException(QString message, QSqlError error) const;
+    void processPostTransactionException(QNLocalizedString message, QSqlError error) const;
 
 private:
     LocalStorageManagerPrivate() Q_DECL_DELETE;
@@ -175,8 +175,8 @@ private:
                    const QVariant & uniqueKeyValue) const;
 
     bool insertOrReplaceUser(const IUser & user, QNLocalizedString & errorDescription);
-    bool insertOrReplaceBusinesUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
-                                        QNLocalizedString & errorDescription);
+    bool insertOrReplaceBusinessUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
+                                         QNLocalizedString & errorDescription);
     bool insertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
                                     QNLocalizedString & errorDescription);
     bool insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
