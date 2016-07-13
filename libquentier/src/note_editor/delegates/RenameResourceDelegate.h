@@ -3,6 +3,7 @@
 
 #include "JsResultCallbackFunctor.hpp"
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/ResourceWrapper.h>
 #include <QObject>
@@ -31,10 +32,9 @@ public:
     void startWithPresetNames(const QString & oldResourceName, const QString & newResourceName);
 
 Q_SIGNALS:
-    void finished(QString oldResourceName, QString newResourceName, ResourceWrapper resource,
-                  bool performingUndo);
+    void finished(QString oldResourceName, QString newResourceName, ResourceWrapper resource, bool performingUndo);
     void cancelled();
-    void notifyError(QString);
+    void notifyError(QNLocalizedString);
 
 // private signals
 #ifdef USE_QT_WEB_ENGINE
@@ -49,7 +49,7 @@ private Q_SLOTS:
 
 #ifdef USE_QT_WEB_ENGINE
     void onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
-                                              QString errorDescription, QUuid requestId);
+                                              QNLocalizedString errorDescription, QUuid requestId);
     void onGenericResourceImageUpdated(const QVariant & data);
 #endif
 

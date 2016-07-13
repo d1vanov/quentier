@@ -9,6 +9,7 @@
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/utility/EncryptionManager.h>
 #include <quentier/utility/StringUtils.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/ResourceRecognitionIndices.h>
 #include <QObject>
 #include <QMimeType>
@@ -64,7 +65,8 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
 QT_FORWARD_DECLARE_CLASS(HyperlinkClickJavaScriptHandler)
 #endif
 
-class NoteEditorPrivate: public WebView, public INoteEditorBackend
+class NoteEditorPrivate: public WebView,
+                         public INoteEditorBackend
 {
     Q_OBJECT
 public:
@@ -81,10 +83,10 @@ public:
 
 Q_SIGNALS:
     void contentChanged();
-    void notifyError(QString error);
+    void notifyError(QNLocalizedString error);
 
     void convertedToNote(Note note);
-    void cantConvertToNote(QString error);
+    void cantConvertToNote(QNLocalizedString error);
 
     void noteEditorHtmlUpdated(QString html);
 
@@ -145,7 +147,8 @@ public:
     void setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate);
 
     void removeSymlinksToImageResourceFile(const QString & resourceLocalUid);
-    QString createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription);
+    QString createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid,
+                                             QNLocalizedString & errorDescription);
 
     void onDropEvent(QDropEvent * pEvent);
     void dropFile(const QString & filepath);
@@ -280,14 +283,14 @@ private Q_SLOTS:
     void onContentChanged();
 
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
-                                  int errorCode, QString errorDescription);
+                                  int errorCode, QNLocalizedString errorDescription);
     void onResourceFileChanged(QString resourceLocalUid, QString fileStoragePath);
     void onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
-                                       int errorCode, QString errorDescription);
+                                       int errorCode, QNLocalizedString errorDescription);
 
 #ifdef USE_QT_WEB_ENGINE
     void onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
-                                     QString filePath, QString errorDescription,
+                                     QString filePath, QNLocalizedString errorDescription,
                                      QUuid requestId);
 
     void onHyperlinkClicked(QString url);
@@ -343,50 +346,50 @@ private Q_SLOTS:
 
     // Slots for delegates
     void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
-    void onAddResourceDelegateError(QString error);
+    void onAddResourceDelegateError(QNLocalizedString error);
     void onAddResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRemoveResourceDelegateFinished(ResourceWrapper removedResource);
-    void onRemoveResourceDelegateError(QString error);
+    void onRemoveResourceDelegateError(QNLocalizedString error);
     void onRemoveResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
                                           ResourceWrapper resource, bool performingUndo);
     void onRenameResourceDelegateCancelled();
-    void onRenameResourceDelegateError(QString error);
+    void onRenameResourceDelegateError(QNLocalizedString error);
 
     void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                                                  QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
                                                  ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
-    void onImageResourceRotationDelegateError(QString error);
+    void onImageResourceRotationDelegateError(QNLocalizedString error);
 
     void onHideDecryptedTextFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
     void onHideDecryptedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onEncryptSelectedTextDelegateFinished();
     void onEncryptSelectedTextDelegateCancelled();
-    void onEncryptSelectedTextDelegateError(QString error);
+    void onEncryptSelectedTextDelegateError(QNLocalizedString error);
     void onEncryptSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onDecryptEncryptedTextDelegateFinished(QString encryptedText, QString cipher, size_t length, QString hint,
                                                 QString decryptedText, QString passphrase, bool rememberForSession,
                                                 bool decryptPermanently);
     void onDecryptEncryptedTextDelegateCancelled();
-    void onDecryptEncryptedTextDelegateError(QString error);
+    void onDecryptEncryptedTextDelegateError(QNLocalizedString error);
     void onDecryptEncryptedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onAddHyperlinkToSelectedTextDelegateFinished();
     void onAddHyperlinkToSelectedTextDelegateCancelled();
-    void onAddHyperlinkToSelectedTextDelegateError(QString error);
+    void onAddHyperlinkToSelectedTextDelegateError(QNLocalizedString error);
     void onAddHyperlinkToSelectedTextUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onEditHyperlinkDelegateFinished();
     void onEditHyperlinkDelegateCancelled();
-    void onEditHyperlinkDelegateError(QString error);
+    void onEditHyperlinkDelegateError(QNLocalizedString error);
     void onEditHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRemoveHyperlinkDelegateFinished();
-    void onRemoveHyperlinkDelegateError(QString error);
+    void onRemoveHyperlinkDelegateError(QNLocalizedString error);
     void onRemoveHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
 private:
@@ -479,6 +482,8 @@ private:
     void onSpellCheckSetOrCleared(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 
     bool isNoteReadOnly() const;
+
+    void setupAddHyperlinkDelegate(const quint64 hyperlinkId, const QString & presetHyperlink = QString());
 
 private:
     // Overrides for some Qt's virtual methods

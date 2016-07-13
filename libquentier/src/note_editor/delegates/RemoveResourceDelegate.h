@@ -3,6 +3,7 @@
 
 #include "JsResultCallbackFunctor.hpp"
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/ResourceWrapper.h>
 #include <QObject>
@@ -21,7 +22,7 @@ public:
 
 Q_SIGNALS:
     void finished(ResourceWrapper removedResource);
-    void notifyError(QString error);
+    void notifyError(QNLocalizedString error);
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);

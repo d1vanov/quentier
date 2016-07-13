@@ -7,7 +7,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't remove hyperlink: can't get note editor's page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't remove hyperlink: no note editor's page"); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -61,7 +61,7 @@ void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)
 
     auto statusIt = resultMap.find("status");
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QString error = QT_TR_NOOP("Internal error: can't parse the result of hyperlink data request from JavaScript");
+        QNLocalizedString error = QT_TR_NOOP("can't parse the result of hyperlink data request from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -70,14 +70,16 @@ void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QString error;
+        QNLocalizedString error;
 
         auto errorIt = resultMap.find("error");
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("Internal error: can't parse the error of hyperlink data request from JavaScript");
+            error = QT_TR_NOOP("can't parse the error of hyperlink data request from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("Can't get hyperlink data from JavaScript: ") + errorIt.value().toString();
+            error = QT_TR_NOOP("can't get hyperlink data from JavaScript");
+            error += ": ";
+            error += errorIt.value().toString();
         }
 
         QNWARNING(error);
@@ -87,7 +89,7 @@ void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)
 
     auto dataIt = resultMap.find("data");
     if (Q_UNLIKELY(dataIt == resultMap.end())) {
-        QString error = QT_TR_NOOP("Internal error: no hyperlink data received from JavaScript");
+        QNLocalizedString error = QT_TR_NOOP("no hyperlink data received from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -98,7 +100,7 @@ void RemoveHyperlinkDelegate::onHyperlinkIdFound(const QVariant & data)
     bool conversionResult = false;
     quint64 hyperlinkId = dataStr.toULongLong(&conversionResult);
     if (!conversionResult) {
-        QString error = QT_TR_NOOP("Can't remove hyperlink under cursor: can't convert hyperlink id to a number");
+        QNLocalizedString error = QT_TR_NOOP("can't remove hyperlink under cursor: can't convert hyperlink id to a number");
         QNWARNING(error << ", data from JS: " << data);
         emit notifyError(error);
         return;
@@ -125,7 +127,7 @@ void RemoveHyperlinkDelegate::onHyperlinkRemoved(const QVariant & data)
 
     auto statusIt = resultMap.find("status");
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QString error = QT_TR_NOOP("Internal error: can't parse the result of hyperlink removal from JavaScript");
+        QNLocalizedString error = QT_TR_NOOP("can't parse the result of hyperlink removal from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -134,14 +136,16 @@ void RemoveHyperlinkDelegate::onHyperlinkRemoved(const QVariant & data)
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QString error;
+        QNLocalizedString error;
 
         auto errorIt = resultMap.find("error");
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("Internal error: can't parse the error of hyperlink removal from JavaScript");
+            error = QT_TR_NOOP("can't parse the error of hyperlink removal from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("Can't remove hyperlink from JavaScript: ") + errorIt.value().toString();
+            error = QT_TR_NOOP("can't remove hyperlink, JavaScript error");
+            error += ": ";
+            error += errorIt.value().toString();
         }
 
         QNWARNING(error);

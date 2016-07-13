@@ -489,7 +489,7 @@ void NoteEditorPrivate::onContentChanged()
 
 void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
                                                  QString fileStoragePath, int errorCode,
-                                                 QString errorDescription)
+                                                 QNLocalizedString errorDescription)
 {
     auto it = m_genericResourceLocalUidBySaveToStorageRequestIds.find(requestId);
     if (it == m_genericResourceLocalUidBySaveToStorageRequestIds.end()) {
@@ -501,9 +501,11 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
             << ", error code = " << errorCode << ", error description: " << errorDescription);
 
     if (errorCode != 0) {
-        errorDescription.prepend(QT_TR_NOOP("Can't write resource to local file: "));
-        QNWARNING(errorDescription + ", error code = " << errorCode);
-        emit notifyError(errorDescription);
+        QNLocalizedString error = QT_TR_NOOP("can't write resource to local file");
+        error += ": ";
+        error += errorDescription;
+        QNWARNING(error << ", error code = " << errorCode);
+        emit notifyError(error);
         return;
     }
 
@@ -672,7 +674,7 @@ void NoteEditorPrivate::onResourceFileChanged(QString resourceLocalUid, QString 
 }
 
 void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
-                                                      int errorCode, QString errorDescription)
+                                                      int errorCode, QNLocalizedString errorDescription)
 {
     auto it = m_resourceLocalUidAndFileStoragePathByReadResourceRequestIds.find(requestId);
     if (it == m_resourceLocalUidAndFileStoragePathByReadResourceRequestIds.end()) {
@@ -690,9 +692,11 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     Q_UNUSED(m_resourceLocalUidAndFileStoragePathByReadResourceRequestIds.erase(it));
 
     if (Q_UNLIKELY(errorCode != 0)) {
-        errorDescription = QT_TR_NOOP("Can't process the update of the resource file data: can't read the data from file") +
-                           QStringLiteral(": ") + errorDescription;
-        QNWARNING(errorDescription << ", resource local uid = " << resourceLocalUid << ", error code = " << errorCode);
+        QNLocalizedString error = QT_TR_NOOP("can't process the update of the resource file data: can't read the data from file");
+        error += ": ";
+        error += errorDescription;
+        QNWARNING(error << ", resource local uid = " << resourceLocalUid << ", error code = " << errorCode);
+        emit notifyError(error);
         return;
     }
 
@@ -743,7 +747,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     const ResourceWrapper & resource = resources[targetResourceIndex];
     bool updated = m_pNote->updateResource(resource);
     if (Q_UNLIKELY(!updated)) {
-        QString errorDescription = QT_TR_NOOP("unexpectedly failed to update the resource within the note");
+        QNLocalizedString errorDescription = QT_TR_NOOP("failed to update resource within the note");
         QNWARNING(errorDescription << ", resource: " << resource << "\nNote: " << *m_pNote);
         emit notifyError(errorDescription);
         return;
@@ -785,7 +789,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
 
 #ifdef USE_QT_WEB_ENGINE
 void NoteEditorPrivate::onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
-                                                    QString filePath, QString errorDescription,
+                                                    QString filePath, QNLocalizedString errorDescription,
                                                     QUuid requestId)
 {
     QNDEBUG("NoteEditorPrivate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
@@ -802,7 +806,10 @@ void NoteEditorPrivate::onGenericResourceImageSaved(bool success, QByteArray res
     Q_UNUSED(m_saveGenericResourceImageToFileRequestIds.erase(it));
 
     if (Q_UNLIKELY(!success)) {
-        emit notifyError(QT_TR_NOOP("Can't save generic resource image to file: ") + errorDescription);
+        QNLocalizedString error = QT_TR_NOOP("can't save generic resource image to file");
+        error += ": ";
+        error += errorDescription;
+        emit notifyError(error);
         return;
     }
 
@@ -1270,7 +1277,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
     convertToNote();
 }
 
-void NoteEditorPrivate::onAddResourceDelegateError(QString error)
+void NoteEditorPrivate::onAddResourceDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onAddResourceDelegateError: " << error);
     emit notifyError(error);
@@ -1332,7 +1339,7 @@ void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removed
     }
 }
 
-void NoteEditorPrivate::onRemoveResourceDelegateError(QString error)
+void NoteEditorPrivate::onRemoveResourceDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onRemoveResourceDelegateError: " << error);
     emit notifyError(error);
@@ -1390,7 +1397,7 @@ void NoteEditorPrivate::onRenameResourceDelegateCancelled()
     }
 }
 
-void NoteEditorPrivate::onRenameResourceDelegateError(QString error)
+void NoteEditorPrivate::onRenameResourceDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onRenameResourceDelegateError: " << error);
     emit notifyError(error);
@@ -1423,7 +1430,7 @@ void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resou
     highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
 }
 
-void NoteEditorPrivate::onImageResourceRotationDelegateError(QString error)
+void NoteEditorPrivate::onImageResourceRotationDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onImageResourceRotationDelegateError");
     emit notifyError(error);
@@ -1544,7 +1551,7 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateCancelled()
     }
 }
 
-void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QString error)
+void NoteEditorPrivate::onEncryptSelectedTextDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onEncryptSelectedTextDelegateError: " << error);
     emit notifyError(error);
@@ -1639,7 +1646,7 @@ void NoteEditorPrivate::onDecryptEncryptedTextDelegateCancelled()
     }
 }
 
-void NoteEditorPrivate::onDecryptEncryptedTextDelegateError(QString error)
+void NoteEditorPrivate::onDecryptEncryptedTextDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onDecryptEncryptedTextDelegateError: " << error);
 
@@ -1722,7 +1729,7 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateCancelled()
     }
 }
 
-void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QString error)
+void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateError");
     emit notifyError(error);
@@ -1795,7 +1802,7 @@ void NoteEditorPrivate::onEditHyperlinkDelegateCancelled()
     }
 }
 
-void NoteEditorPrivate::onEditHyperlinkDelegateError(QString error)
+void NoteEditorPrivate::onEditHyperlinkDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onEditHyperlinkDelegateError: " << error);
     emit notifyError(error);
@@ -1858,7 +1865,7 @@ void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished()
     convertToNote();
 }
 
-void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QString error)
+void NoteEditorPrivate::onRemoveHyperlinkDelegateError(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorPrivate::onRemoveHyperlinkDelegateError: " << error);
     emit notifyError(error);
@@ -3360,16 +3367,16 @@ void NoteEditorPrivate::setupFileIO()
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onCurrentNoteChanged,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,readResourceFromStorage,QString,QString,QUuid),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onReadResourceFromFileRequest,QString,QString,QUuid));
-    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QString),
-                     this, QNSLOT(NoteEditorPrivate,onResourceFileReadFromStorage,QUuid,QByteArray,QByteArray,int,QString));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onResourceFileReadFromStorage,QUuid,QByteArray,QByteArray,int,QNLocalizedString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,openResourceFile,QString),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onOpenResourceRequest,QString));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,resourceFileChanged,QString,QString),
                      this, QNSLOT(NoteEditorPrivate,onResourceFileChanged,QString,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
-    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
-                     this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QString));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QNLocalizedString));
 
     m_pGenericResourceImageManager = new GenericResourceImageManager;
     m_pGenericResourceImageManager->setStorageFolderPath(m_genericResourceImageFileStoragePath);
@@ -3381,8 +3388,8 @@ void NoteEditorPrivate::setupFileIO()
                      m_pGenericResourceImageManager,
                      QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
     QObject::connect(m_pGenericResourceImageManager,
-                     QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
-                     this, QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QString,QUuid));
+                     QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onGenericResourceImageSaved,bool,QByteArray,QString,QNLocalizedString,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note), m_pGenericResourceImageManager,
                      QNSLOT(GenericResourceImageManager,onCurrentNoteChanged,Note));
 #endif
@@ -3487,14 +3494,22 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
                      this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
 
     Q_Q(NoteEditor);
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QString), q, QNSIGNAL(NoteEditor,notifyError,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note), q, QNSIGNAL(NoteEditor,convertedToNote,Note));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QString), q, QNSIGNAL(NoteEditor,cantConvertToNote,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString), q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note), q, QNSIGNAL(NoteEditor,currentNoteChanged,Note));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerNotReady), q, QNSIGNAL(NoteEditor,spellCheckerNotReady));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerReady), q, QNSIGNAL(NoteEditor,spellCheckerReady));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested), q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,notifyError,QNLocalizedString),
+                     q, QNSIGNAL(NoteEditor,notifyError,QNLocalizedString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
+                     q, QNSIGNAL(NoteEditor,convertedToNote,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,cantConvertToNote,QNLocalizedString),
+                     q, QNSIGNAL(NoteEditor,cantConvertToNote,QNLocalizedString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteEditorHtmlUpdated,QString),
+                     q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note),
+                     q, QNSIGNAL(NoteEditor,currentNoteChanged,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerNotReady),
+                     q, QNSIGNAL(NoteEditor,spellCheckerNotReady));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerReady),
+                     q, QNSIGNAL(NoteEditor,spellCheckerReady));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested),
+                     q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
 }
 
 void NoteEditorPrivate::setupNoteEditorPage()
@@ -4161,6 +4176,24 @@ bool NoteEditorPrivate::isNoteReadOnly() const
     return false;
 }
 
+void NoteEditorPrivate::setupAddHyperlinkDelegate(const quint64 hyperlinkId, const QString & presetHyperlink)
+{
+    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, hyperlinkId);
+
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateCancelled));
+    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QNLocalizedString));
+
+    if (presetHyperlink.isEmpty()) {
+        delegate->start();
+    }
+    else {
+        delegate->startWithPresetHyperlink(presetHyperlink);
+    }
+}
 
 #define COMMAND_TO_JS(command) \
     QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
@@ -4446,8 +4479,8 @@ void NoteEditorPrivate::setRenameResourceDelegateSubscriptions(RenameResourceDel
 {
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool));
-    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
+    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QNLocalizedString));
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateCancelled));
 }
@@ -4494,7 +4527,8 @@ void NoteEditorPrivate::removeSymlinksToImageResourceFile(const QString & resour
     }
 }
 
-QString NoteEditorPrivate::createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid, QString & errorDescription)
+QString NoteEditorPrivate::createSymlinkToImageResourceFile(const QString & fileStoragePath, const QString & localUid,
+                                                            QNLocalizedString & errorDescription)
 {
     QNDEBUG("NoteEditorPrivate::createSymlinkToImageResourceFile: file storage path = " << fileStoragePath
             << ", local uid = " << localUid);
@@ -4517,11 +4551,12 @@ QString NoteEditorPrivate::createSymlinkToImageResourceFile(const QString & file
     QFile imageResourceFile(fileStoragePath);
     bool res = imageResourceFile.link(linkFileName);
     if (Q_UNLIKELY(!res)) {
-        errorDescription = QT_TR_NOOP("Can't process the update of image resource: can't create a symlink to the resource file");
+        errorDescription = QT_TR_NOOP("can't process the update of image resource: can't create a symlink to the resource file");
         errorDescription += ": ";
         errorDescription += imageResourceFile.errorString();
         errorDescription += ", ";
-        errorDescription += QT_TR_NOOP("error code = ");
+        errorDescription += QT_TR_NOOP("error code");
+        errorDescription += ": ";
         errorDescription += QString::number(imageResourceFile.error());
         return QString();
     }
@@ -4972,15 +5007,7 @@ void NoteEditorPrivate::paste()
 #endif
 
     quint64 hyperlinkId = m_lastFreeHyperlinkIdNumber++;
-
-    AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, hyperlinkId);
-    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished,QString,int,int),
-                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished,QString,int,int));
-    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
-                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateCancelled));
-    QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QString));
-    delegate->startWithPresetHyperlink(textToPaste);
+    setupAddHyperlinkDelegate(hyperlinkId, textToPaste);
 }
 
 void NoteEditorPrivate::pasteUnformatted()
@@ -5681,8 +5708,8 @@ void NoteEditorPrivate::removeAttachment(const QByteArray & resourceHash)
             RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this);
             QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper),
                              this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper));
-            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QString),
-                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QString));
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QNLocalizedString),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QNLocalizedString));
             delegate->start();
 
             foundResourceToRemove = true;
@@ -5783,14 +5810,7 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
     }
 
     RenameResourceDelegate * delegate = new RenameResourceDelegate(resource, *this, m_pGenericResourceImageManager, m_genericResourceImageFilePathsByResourceHash);
-
-    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool));
-    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QString));
-    QObject::connect(delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateCancelled));
-
+    setRenameResourceDelegateSubscriptions(*delegate);
     delegate->start();
 }
 
@@ -5866,8 +5886,8 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
 
     QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QByteArray,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type),
                      this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QByteArray,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type));
-    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,QNLocalizedString));
 
     delegate->start();
 }
@@ -5909,8 +5929,8 @@ void NoteEditorPrivate::encryptSelectedText()
     EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(this, m_encryptionManager, m_decryptedTextManager);
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
-    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QNLocalizedString));
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateCancelled));
     delegate->start(m_lastSelectedHtml);
@@ -5948,8 +5968,8 @@ void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString ciph
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,QString,size_t,QString,QString,QString,bool,bool));
     QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QNLocalizedString));
 
     delegate->start();
 }
@@ -6034,8 +6054,8 @@ void NoteEditorPrivate::removeHyperlink()
     RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this);
     QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished));
-    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QNLocalizedString));
     delegate->start();
 }
 
@@ -6076,15 +6096,7 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
         GET_PAGE()
 
         quint64 hyperlinkId = m_lastFreeHyperlinkIdNumber++;
-        AddHyperlinkToSelectedTextDelegate * delegate = new AddHyperlinkToSelectedTextDelegate(*this, hyperlinkId);
-        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,finished),
-                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateFinished));
-        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,cancelled),
-                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateCancelled));
-        QObject::connect(delegate, QNSIGNAL(AddHyperlinkToSelectedTextDelegate,notifyError,QString),
-                         this, QNSLOT(NoteEditorPrivate,onAddHyperlinkToSelectedTextDelegateError,QString));
-        delegate->start();
-
+        setupAddHyperlinkDelegate(hyperlinkId);
         return;
     }
 
@@ -6113,8 +6125,8 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
     QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,cancelled), this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateCancelled));
-    QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateError,QNLocalizedString));
     delegate->start();
 }
 
@@ -6158,8 +6170,8 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString));
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QString));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QNLocalizedString));
 
     delegate->start();
 }

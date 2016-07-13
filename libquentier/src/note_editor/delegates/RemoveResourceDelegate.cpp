@@ -7,7 +7,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't remove attachment: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't remove the attachment: no note editor page"); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -49,7 +49,7 @@ void RemoveResourceDelegate::doStart()
     QNDEBUG("RemoveResourceDelegate::doStart");
 
     if (Q_UNLIKELY(!m_resource.hasDataHash())) {
-        QString error = QT_TR_NOOP("Can't remove resource: the resource to be removed doesn't contain the data hash");
+        QNLocalizedString error = QT_TR_NOOP("can't remove the attachment: the data hash is missing");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -69,7 +69,7 @@ void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVa
 
     auto statusIt = resultMap.find("status");
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QString error = QT_TR_NOOP("Internal error: can't parse the result of resource reference removal from JavaScript");
+        QNLocalizedString error = QT_TR_NOOP("can't parse the result of attachment reference removal from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -78,14 +78,16 @@ void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVa
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QString error;
+        QNLocalizedString error;
 
         auto errorIt = resultMap.find("error");
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("Internal error: can't parse the error of resource reference removal from JavaScript");
+            error = QT_TR_NOOP("can't parse the error of attachment reference removal from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("Can't remove resource reference from the note editor: ") + errorIt.value().toString();
+            error = QT_TR_NOOP("can't remove the attachment reference from the note editor");
+            error += ": ";
+            error += errorIt.value().toString();
         }
 
         QNWARNING(error);

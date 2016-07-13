@@ -4,6 +4,7 @@
 #include <quentier/types/Note.h>
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/Linkage.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
@@ -29,10 +30,10 @@ public:
 
 Q_SIGNALS:
     void contentChanged();
-    void notifyError(QString error);
+    void notifyError(QNLocalizedString error);
 
     void convertedToNote(Note note);
-    void cantConvertToNote(QString error);
+    void cantConvertToNote(QNLocalizedString error);
 
     void noteEditorHtmlUpdated(QString html);
 

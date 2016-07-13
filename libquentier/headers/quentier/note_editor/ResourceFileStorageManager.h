@@ -3,6 +3,7 @@
 
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/Linkage.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QUuid>
 
@@ -48,9 +49,9 @@ public:
 
 Q_SIGNALS:
     void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash,
-                                      QString fileStoragePath, int errorCode, QString errorDescription);
+                                      QString fileStoragePath, int errorCode, QNLocalizedString errorDescription);
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
-                                       int errorCode, QString errorDescription);
+                                       int errorCode, QNLocalizedString errorDescription);
 
     void resourceFileChanged(QString localUid, QString fileStoragePath);
 

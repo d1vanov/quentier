@@ -12,7 +12,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't rename resource: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't rename the attachment: no note editor page"); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -77,7 +77,8 @@ void RenameResourceDelegate::onOriginalPageConvertedToNote(Note note)
 
 #define CHECK_NOTE_ACTUALITY() \
     if (m_noteEditor.notePtr() != m_pNote) { \
-        QString error = QT_TR_NOOP("The note set to the note editor was changed during resource renaming, the action was not completed"); \
+        QNLocalizedString error = QT_TR_NOOP("the note set to the note editor was changed during the attachment renaming, " \
+                                             "the action was not completed"); \
         QNDEBUG(error); \
         emit notifyError(error); \
         return; \
@@ -90,7 +91,7 @@ void RenameResourceDelegate::doStart()
     CHECK_NOTE_ACTUALITY()
 
     if (Q_UNLIKELY(!m_resource.hasDataHash())) {
-        QString error = QT_TR_NOOP("Can't rename resource: resource to rename doesn't have the data hash set");
+        QNLocalizedString error = QT_TR_NOOP("can't rename the attachment: the data hash is missing");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -177,14 +178,14 @@ void RenameResourceDelegate::buildAndSaveGenericResourceImage()
 
     QObject::connect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageManager, QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
-    QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QString,QUuid),
-                     this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
+    QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QNLocalizedString,QUuid),
+                     this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QNLocalizedString,QUuid));
 
     emit saveGenericResourceImageToFile(m_pNote->localUid(), m_resource.localUid(), imageData, "png", m_resource.dataHash(), m_resource.displayName(), m_genericResourceImageWriterRequestId);
 }
 
 void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
-                                                                  QString errorDescription, QUuid requestId)
+                                                                  QNLocalizedString errorDescription, QUuid requestId)
 {
     if (requestId != m_genericResourceImageWriterRequestId) {
         return;
@@ -200,7 +201,9 @@ void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, 
                         this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
 
     if (Q_UNLIKELY(!success)) {
-        errorDescription = QT_TR_NOOP("Can't rename generic resource: can't write generic resource image to file") + QString(": ") + errorDescription;
+        QNLocalizedString error = QT_TR_NOOP("can't rename generic resource: can't write generic resource image to file");
+        error += ": ";
+        error += errorDescription;
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;

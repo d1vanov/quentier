@@ -15,7 +15,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't add hyperlink to selected text: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't add hyperlink to the selected text: no note editor page"); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -141,7 +141,7 @@ void AddHyperlinkToSelectedTextDelegate::onHyperlinkSetToSelection(const QVarian
 
     auto statusIt = resultMap.find("status");
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QString error = QT_TR_NOOP("Internal error: can't parse the result of the attempt to set the hyperlink to selection from JavaScript");
+        QNLocalizedString error = QT_TR_NOOP("can't parse the result of the attempt to set the hyperlink to selection from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -150,14 +150,16 @@ void AddHyperlinkToSelectedTextDelegate::onHyperlinkSetToSelection(const QVarian
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QString error;
+        QNLocalizedString error;
 
         auto errorIt = resultMap.find("error");
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("Internal error: can't parse the error of the attempt to set the hyperlink to selection from JavaScript");
+            error = QT_TR_NOOP("can't parse the error of the attempt to set the hyperlink to selection from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("Can't set the hyperlink to selection: ") + errorIt.value().toString();
+            error = QT_TR_NOOP("Can't set the hyperlink to selection");
+            error += ": ";
+            error += errorIt.value().toString();
         }
 
         QNWARNING(error);

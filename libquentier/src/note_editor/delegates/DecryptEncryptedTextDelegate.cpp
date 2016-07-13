@@ -25,7 +25,7 @@ namespace quentier {
     CHECK_NOTE_EDITOR() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_pNoteEditor->page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't decrypt encrypted text: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("Can't decrypt the encrypted text: no note editor page"); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -70,7 +70,8 @@ void DecryptEncryptedTextDelegate::start()
     CHECK_NOTE_EDITOR()
 
     if (Q_UNLIKELY(!m_length)) {
-        QString errorDescription = QT_TR_NOOP("Can't decrypt the encrypted text: can't convert encryption key length from string to number");
+        QNLocalizedString errorDescription = QT_TR_NOOP("can't decrypt the encrypted text: can't convert the encryption key length "
+                                                        "from string to number");
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -163,7 +164,7 @@ void DecryptEncryptedTextDelegate::onDecryptionScriptFinished(const QVariant & d
 
     auto statusIt = resultMap.find("status");
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QString error = QT_TR_NOOP("Internal error: can't parse the result of text decryption script from JavaScript");
+        QNLocalizedString error = QT_TR_NOOP("can't parse the result of text decryption script from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -172,14 +173,16 @@ void DecryptEncryptedTextDelegate::onDecryptionScriptFinished(const QVariant & d
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QString error;
+        QNLocalizedString error;
 
         auto errorIt = resultMap.find("error");
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("Internal error: can't parse the error of text decryption from JavaScript");
+            error = QT_TR_NOOP("can't parse the error of text decryption from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("Can't decrypt the encrypted text: ") + errorIt.value().toString();
+            error = QT_TR_NOOP("can't decrypt the encrypted text");
+            error += ": ";
+            error += errorIt.value().toString();
         }
 
         QNWARNING(error);
@@ -187,7 +190,8 @@ void DecryptEncryptedTextDelegate::onDecryptionScriptFinished(const QVariant & d
         return;
     }
 
-    emit finished(m_encryptedText, m_cipher, m_length, m_hint, m_decryptedText, m_passphrase, m_rememberForSession, m_decryptPermanently);
+    emit finished(m_encryptedText, m_cipher, m_length, m_hint, m_decryptedText, m_passphrase,
+                  m_rememberForSession, m_decryptPermanently);
 }
 
 } // namespace quentier
