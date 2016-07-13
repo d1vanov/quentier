@@ -1,6 +1,7 @@
 #include "EncryptionManagerTests.h"
 #include <quentier/utility/EncryptionManager.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/QNLocalizedString.h>
 
 namespace quentier {
 namespace test {
@@ -24,8 +25,10 @@ bool decryptAesTest(QString & error)
                                  "is going to be long also.&nbsp;</span>";
 
     QString decryptedText;
-    bool res = manager.decrypt(encryptedText, passphrase, "AES", 128, decryptedText, error);
+    QNLocalizedString errorMessage;
+    bool res = manager.decrypt(encryptedText, passphrase, "AES", 128, decryptedText, errorMessage);
     if (!res) {
+        error = errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -46,18 +49,22 @@ bool encryptDecryptTest(QString & error)
     const QString textToEncrypt = "Very-very secret";
     const QString passphrase = "rough_awakening^";
 
+    QNLocalizedString errorMessage;
     QString encryptedText;
     QString cipher;
     size_t keyLength = 0;
-    bool res = manager.encrypt(textToEncrypt, passphrase, cipher, keyLength, encryptedText, error);
+    bool res = manager.encrypt(textToEncrypt, passphrase, cipher, keyLength, encryptedText, errorMessage);
     if (!res) {
+        error = errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
 
+    errorMessage.clear();
     QString decryptedText;
-    res = manager.decrypt(encryptedText, passphrase, cipher, keyLength, decryptedText, error);
+    res = manager.decrypt(encryptedText, passphrase, cipher, keyLength, decryptedText, errorMessage);
     if (!res) {
+        error = errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -86,9 +93,11 @@ bool decryptRc2Test(QString & error)
     const QString originalText = "<span style=\"display: inline !important; float: none; \">"
                                  "Ok, here's a piece of text I'm going to encrypt now</span>";
 
+    QNLocalizedString errorMessage;
     QString decryptedText;
-    bool res = manager.decrypt(encryptedText, passphrase, "RC2", 64, decryptedText, error);
+    bool res = manager.decrypt(encryptedText, passphrase, "RC2", 64, decryptedText, errorMessage);
     if (!res) {
+        error = errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }

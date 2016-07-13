@@ -5586,7 +5586,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
 
         if (note.hasContent())
         {
-            QString error;
+            QNLocalizedString error;
 
             std::pair<QString, QStringList> plainTextAndListOfWords = note.plainTextAndListOfWords(&error);
             if (!error.isEmpty()) {
@@ -7211,7 +7211,7 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
             errorDescription += ": "; \
-            errorDescription += #column;
+            errorDescription += #column; \
             QNCRITICAL(errorDescription); \
             return false; \
         } \
@@ -7219,20 +7219,20 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
 
     bool isRequired = true;
 
-    FIND_AND_SET_USER_PROPERTY(userIsDirty, setDirty, int, bool, isRequired);
-    FIND_AND_SET_USER_PROPERTY(userIsLocal, setLocal, int, bool, isRequired);
-    FIND_AND_SET_USER_PROPERTY(username, setUsername, QString, QString, !isRequired);
-    FIND_AND_SET_USER_PROPERTY(email, setEmail, QString, QString, !isRequired);
-    FIND_AND_SET_USER_PROPERTY(name, setName, QString, QString, !isRequired);
-    FIND_AND_SET_USER_PROPERTY(timezone, setTimezone, QString, QString, !isRequired);
-    FIND_AND_SET_USER_PROPERTY(privilege, setPrivilegeLevel, int, qint8, !isRequired);
+    FIND_AND_SET_USER_PROPERTY(userIsDirty, setDirty, int, bool, isRequired)
+    FIND_AND_SET_USER_PROPERTY(userIsLocal, setLocal, int, bool, isRequired)
+    FIND_AND_SET_USER_PROPERTY(username, setUsername, QString, QString, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(email, setEmail, QString, QString, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(name, setName, QString, QString, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(timezone, setTimezone, QString, QString, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(privilege, setPrivilegeLevel, int, qint8, !isRequired)
     FIND_AND_SET_USER_PROPERTY(userCreationTimestamp, setCreationTimestamp,
-                               qint64, qint64, !isRequired);
+                               qint64, qint64, !isRequired)
     FIND_AND_SET_USER_PROPERTY(userModificationTimestamp, setModificationTimestamp,
-                               qint64, qint64, !isRequired);
+                               qint64, qint64, !isRequired)
     FIND_AND_SET_USER_PROPERTY(userDeletionTimestamp, setDeletionTimestamp,
-                               qint64, qint64, !isRequired);
-    FIND_AND_SET_USER_PROPERTY(userIsActive, setActive, int, bool, !isRequired);
+                               qint64, qint64, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(userIsActive, setActive, int, bool, !isRequired)
 
 #undef FIND_AND_SET_USER_PROPERTY
 
@@ -7543,7 +7543,8 @@ bool LocalStorageManagerPrivate::fillNoteTagIdFromSqlRecord(const QSqlRecord & r
 bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook,
                                                            QNLocalizedString & errorDescription) const
 {
-#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) { \
+#define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) \
+    { \
         bool valueFound = false; \
         int index = record.indexOf(#attribute); \
         if (index >= 0) { \
@@ -7557,7 +7558,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
             errorDescription += ": "; \
-            errorDescription += #attribute;
+            errorDescription += #attribute; \
             return false; \
         } \
     }
@@ -7760,7 +7761,7 @@ bool LocalStorageManagerPrivate::fillLinkedNotebookFromSqlRecord(const QSqlRecor
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
             errorDescription += ": "; \
-            errorDescription += #property;
+            errorDescription += #property; \
             QNCRITICAL(errorDescription); \
             return false; \
         } \
@@ -7811,7 +7812,7 @@ bool LocalStorageManagerPrivate::fillSavedSearchFromSqlRecord(const QSqlRecord &
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
             errorDescription += ": "; \
-            errorDescription += #property;
+            errorDescription += #property; \
             QNCRITICAL(errorDescription); \
             return false; \
         } \
@@ -7860,7 +7861,7 @@ bool LocalStorageManagerPrivate::fillTagFromSqlRecord(const QSqlRecord & rec, Ta
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
             errorDescription += ": "; \
-            errorDescription += #property;
+            errorDescription += #property; \
             QNCRITICAL(errorDescription); \
             return false; \
         } \

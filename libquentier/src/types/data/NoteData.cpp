@@ -173,7 +173,7 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
 
         if (numTagGuids > qevercloud::EDAM_NOTE_TAGS_MAX) {
             errorDescription = QT_TR_NOOP("Note has too many tags, max allowed ");
-            errorDescription.append(QString::number(qevercloud::EDAM_NOTE_TAGS_MAX));
+            errorDescription += QString::number(qevercloud::EDAM_NOTE_TAGS_MAX);
             return false;
         }
     }
@@ -184,7 +184,7 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
 
         if (numResources > qevercloud::EDAM_NOTE_RESOURCES_MAX) {
             errorDescription = QT_TR_NOOP("Note has too many resources, max allowed ");
-            errorDescription.append(QString::number(qevercloud::EDAM_NOTE_RESOURCES_MAX));
+            errorDescription += QString::number(qevercloud::EDAM_NOTE_RESOURCES_MAX);
             return false;
         }
     }
@@ -201,7 +201,9 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
         if ( (name##Size < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) || \
              (name##Size > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ) \
         { \
-            errorDescription = QT_TR_NOOP("Note attributes' " #name " field has invalid size"); \
+            errorDescription = QT_TR_NOOP("Note attributes field has invalid size"); \
+            errorDescription += ": "; \
+            errorDescription += #name; \
             return false; \
         } \
     }

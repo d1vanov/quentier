@@ -288,7 +288,7 @@ void AddResourceDelegate::insertNewResourceHtml()
 {
     QNDEBUG("AddResourceDelegate::insertNewResourceHtml");
 
-    QString errorDescription;
+    QNLocalizedString errorDescription;
     QString resourceHtml = ENMLConverter::resourceHtml(m_resource, errorDescription);
     if (Q_UNLIKELY(resourceHtml.isEmpty())) {
         QNLocalizedString error = QT_TR_NOOP("can't compose the html representation of the attachment");

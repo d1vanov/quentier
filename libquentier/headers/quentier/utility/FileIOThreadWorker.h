@@ -1,8 +1,9 @@
 #ifndef LIB_QUENTIER_UTILITY_FILE_IO_THREAD_WORKER_H
 #define LIB_QUENTIER_UTILITY_FILE_IO_THREAD_WORKER_H
 
-#include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/Linkage.h>
+#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -47,7 +48,7 @@ Q_SIGNALS:
      * @param errorDescription - textual description of the error
      * @param requestId - unique identifier of the file write request
      */
-    void writeFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void writeFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
 
     /**
      * @brief readFileRequestProcessed - signal send when the file read request with given id is finished
@@ -56,7 +57,7 @@ Q_SIGNALS:
      * @param data - data read from file
      * @param requestId - unique identifier of the file read request
      */
-    void readFileRequestProcessed(bool success, QString errorDescription, QByteArray data,
+    void readFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data,
                                   QUuid requestId);
 
 public Q_SLOTS:

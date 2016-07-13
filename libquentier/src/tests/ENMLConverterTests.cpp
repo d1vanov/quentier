@@ -2,6 +2,7 @@
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QXmlStreamReader>
 #include <QFile>
 
@@ -229,9 +230,11 @@ bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextMana
     ENMLConverter converter;
     QString html;
     ENMLConverter::NoteContentToHtmlExtraData extraData;
-    bool res = converter.noteContentToHtml(originalNoteContent, html, error, decryptedTextManager, extraData);
+    QNLocalizedString errorMessage;
+    bool res = converter.noteContentToHtml(originalNoteContent, html, errorMessage, decryptedTextManager, extraData);
     if (!res) {
-        error.prepend("Unable to convert the note content to HTML: ");
+        error = "Unable to convert the note content to HTML: ";
+        error += errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -243,9 +246,11 @@ bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextMana
     html.append("</html>");
 
     QString processedNoteContent;
-    res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, error);
+    errorMessage.clear();
+    res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, errorMessage);
     if (!res) {
-        error.prepend("Unable to convert HTML to note content: ");
+        error = "Unable to convert HTML to note content: ";
+        error += errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -560,9 +565,11 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
     QString html;
     ENMLConverter converter;
     ENMLConverter::NoteContentToHtmlExtraData extraData;
-    bool res = converter.noteContentToHtml(originalENML, html, error, decryptedTextManager, extraData);
+    QNLocalizedString errorMessage;
+    bool res = converter.noteContentToHtml(originalENML, html, errorMessage, decryptedTextManager, extraData);
     if (!res) {
-        error.prepend("Unable to convert the note content to HTML: ");
+        error = "Unable to convert the note content to HTML: ";
+        error += errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -593,9 +600,11 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
     // to trigger the re-evaluation of decrypted text hash in the following conversion
 
     QString processedENML;
-    res = converter.htmlToNoteContent(html, processedENML, decryptedTextManager, error);
+    errorMessage.clear();
+    res = converter.htmlToNoteContent(html, processedENML, decryptedTextManager, errorMessage);
     if (!res) {
-        error.prepend("Unable to convert HTML to note content: ");
+        error = "Unable to convert HTML to note content: ";
+        error += errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -641,9 +650,11 @@ bool convertHtmlWithTableHelperTagsToEnml(QString & error)
     skipRules << skipRule;
 
     QString processedNoteContent;
-    bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, error, skipRules);
+    QNLocalizedString errorMessage;
+    bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, errorMessage, skipRules);
     if (!res) {
-        error.prepend("Unable to convert HTML to note content: ");
+        error = "Unable to convert HTML to note content: ";
+        error += errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }
@@ -696,9 +707,11 @@ bool convertHtmlWithTableAndHilitorHelperTagsToEnml(QString & error)
     skipRules << hilitorSkipRule;
 
     QString processedNoteContent;
-    bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, error, skipRules);
+    QNLocalizedString errorMessage;
+    bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, errorMessage, skipRules);
     if (!res) {
-        error.prepend("Unable to convert HTML to note content: ");
+        error = "Unable to convert HTML to note content: ";
+        error += errorMessage.nonLocalizedString();
         QNWARNING(error);
         return false;
     }

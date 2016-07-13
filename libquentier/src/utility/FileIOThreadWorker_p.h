@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_UTILITY_FILE_IO_THREAD_WORKER_P_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -19,8 +20,8 @@ public:
 
 Q_SIGNALS:
     void readyForIO();
-    void writeFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
-    void readFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId);
+    void writeFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
+    void readFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data, QUuid requestId);
 
 public Q_SLOTS:
     void onWriteFileRequest(QString absoluteFilePath, QByteArray data,

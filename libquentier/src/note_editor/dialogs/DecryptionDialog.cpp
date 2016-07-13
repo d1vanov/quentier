@@ -72,9 +72,9 @@ QString DecryptionDialog::decryptedText() const
     return m_cachedDecryptedText;
 }
 
-void DecryptionDialog::setError(const QString & error)
+void DecryptionDialog::setError(const QNLocalizedString & error)
 {
-    m_pUI->onErrorTextLabel->setText(error);
+    m_pUI->onErrorTextLabel->setText(error.localizedString());
     m_pUI->onErrorTextLabel->setVisible(true);
 }
 
@@ -118,7 +118,7 @@ void DecryptionDialog::accept()
 {
     QString passphrase = m_pUI->passwordLineEdit->text();
 
-    QString errorDescription;
+    QNLocalizedString errorDescription;
     bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
                                             m_keyLength, m_cachedDecryptedText,
                                             errorDescription);
@@ -130,8 +130,10 @@ void DecryptionDialog::accept()
     }
 
     if (!res) {
-        errorDescription.prepend(tr("Failed to decrypt the text") + QStringLiteral(": "));
-        setError(errorDescription);
+        QNLocalizedString error = QT_TR_NOOP("failed to decrypt the text");
+        error += ": ";
+        error += errorDescription;
+        setError(error);
         return;
     }
 
