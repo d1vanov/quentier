@@ -43,7 +43,7 @@ void UpdateResourceUndoCommand::redoImpl()
 
 void UpdateResourceUndoCommand::init()
 {
-    QUndoCommand::setText(QObject::tr("Edit attachment"));
+    setText(tr("Edit attachment"));
 }
 
 } // namespace quentier

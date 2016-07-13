@@ -40,7 +40,7 @@ void NoteEditorContentEditUndoCommand::undoImpl()
 
 void NoteEditorContentEditUndoCommand::init()
 {
-    QUndoCommand::setText(QObject::tr("Note text edit"));
+    setText(tr("Note text edit"));
 }
 
 } // namespace quentier

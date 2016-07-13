@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_I_NOTE_EDITOR_RESOURCE_PLUGIN_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QWidget>
 
 namespace quentier {
@@ -46,7 +47,7 @@ public:
                             const QStringList & parameterValues,
                             const NoteEditorPluginFactory & pluginFactory,
                             const IResource & resource,
-                            QString & errorDescription) = 0;
+                            QNLocalizedString & errorDescription) = 0;
 
     /**
      * @brief mimeTypes - the method telling which are the mime types of the resources the plugin can work with

@@ -2,6 +2,8 @@
 #define LIB_QUENTIER_UTILITY_QUENTIER_UNDO_COMMAND_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
+#include <QObject>
 #include <QUndoCommand>
 
 namespace quentier {
@@ -25,9 +27,13 @@ namespace quentier {
  * that command. We create the corresponding QUndoCommand, set up the stuff for its
  * undo/redo methods and push it to QUndoStack for future use... but at the same time
  * QUndoStack calls "redo" method of the command. Really not the behaviour you'd like to have.
+ *
+ * QuentierUndoCommand is also QObject, it is for error reporting via @link notifyError @endlink signal
  */
-class QuentierUndoCommand: public QUndoCommand
+class QuentierUndoCommand: public QObject,
+                           public QUndoCommand
 {
+    Q_OBJECT
 public:
     QuentierUndoCommand(QUndoCommand * parent = Q_NULLPTR);
     QuentierUndoCommand(const QString & text, QUndoCommand * parent = Q_NULLPTR);
@@ -37,6 +43,9 @@ public:
     virtual void redo() Q_DECL_OVERRIDE Q_DECL_FINAL;
 
     bool onceUndoExecuted() const { return m_onceUndoExecuted; }
+
+Q_SIGNALS:
+    void notifyError(QNLocalizedString error);
 
 protected:
     virtual void undoImpl() = 0;

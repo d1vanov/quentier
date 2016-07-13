@@ -20,9 +20,9 @@ public:
     void clear();
     bool checkParameters(QNLocalizedString & errorDescription) const;
 
-    QString plainText(QString * pErrorMessage) const;
-    QStringList listOfWords(QString * pErrorMessage) const;
-    std::pair<QString, QStringList> plainTextAndListOfWords(QString * pErrorMessage) const;
+    QString plainText(QNLocalizedString * pErrorMessage) const;
+    QStringList listOfWords(QNLocalizedString * pErrorMessage) const;
+    std::pair<QString, QStringList> plainTextAndListOfWords(QNLocalizedString * pErrorMessage) const;
 
     bool containsToDoImpl(const bool checked) const;
     bool containsEncryption() const;

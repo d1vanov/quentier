@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo remove attachment: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo remove attachment: can't get note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -18,7 +19,7 @@ RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & res
     m_resource(resource),
     m_callback(callback)
 {
-    setText(QObject::tr("Remove attachment"));
+    setText(tr("Remove attachment"));
 }
 
 RemoveResourceUndoCommand::RemoveResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback,

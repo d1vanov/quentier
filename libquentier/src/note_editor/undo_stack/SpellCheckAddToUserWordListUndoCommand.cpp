@@ -11,7 +11,7 @@ SpellCheckAddToUserWordListUndoCommand::SpellCheckAddToUserWordListUndoCommand(N
     m_pSpellChecker(pSpellChecker),
     m_word(word)
 {
-    setText(QObject::tr("Add to user word list"));
+    setText(tr("Add to user word list"));
 }
 
 SpellCheckAddToUserWordListUndoCommand::SpellCheckAddToUserWordListUndoCommand(NoteEditorPrivate & noteEditor, const QString & word,

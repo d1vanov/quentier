@@ -3,14 +3,16 @@
 
 namespace quentier {
 
-bool parsePageScrollData(const QVariant & data, int & pageXOffset, int & pageYOffset, QString & errorDescription)
+bool parsePageScrollData(const QVariant & data, int & pageXOffset, int & pageYOffset, QNLocalizedString & errorDescription)
 {
     QStringList dataStrList = data.toStringList();
     const int numDataItems = dataStrList.size();
 
     if (Q_UNLIKELY(numDataItems != 2)) {
         errorDescription = QT_TR_NOOP("can't find note editor page's scroll: unexpected number of items "
-                                      "received from JavaScript side, expected 2, got ") + QString::number(numDataItems);
+                                      "received from JavaScript side, expected 2, got");
+        errorDescription += " ";
+        errorDescription += QString::number(numDataItems);
         return false;
     }
 

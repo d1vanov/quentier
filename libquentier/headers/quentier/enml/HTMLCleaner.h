@@ -3,6 +3,7 @@
 
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QString>
 
 namespace quentier {
@@ -13,9 +14,9 @@ public:
     HTMLCleaner();
     virtual ~HTMLCleaner();
 
-    bool htmlToXml(const QString & html, QString & output, QString & errorDescription);
-    bool htmlToXhtml(const QString & html, QString & output, QString & errorDescription);
-    bool cleanupHtml(QString & html, QString & errorDescription);
+    bool htmlToXml(const QString & html, QString & output, QNLocalizedString & errorDescription);
+    bool htmlToXhtml(const QString & html, QString & output, QNLocalizedString & errorDescription);
+    bool cleanupHtml(QString & html, QNLocalizedString & errorDescription);
 
 private:
     Q_DISABLE_COPY(HTMLCleaner)

@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo the text encryption: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo the text encryption: can't get note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -16,7 +17,7 @@ EncryptUndoCommand::EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate, co
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_callback(callback)
 {
-    setText(QObject::tr("Encrypt selected text"));
+    setText(tr("Encrypt selected text"));
 }
 
 EncryptUndoCommand:: EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate, const Callback & callback,

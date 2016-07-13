@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo hyperlink removal: can't get note editor's page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo hyperlink removal: no note editor's page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -17,7 +18,7 @@ RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(NoteEditorPrivate & noteE
     INoteEditorUndoCommand(noteEditor, parent),
     m_callback(callback)
 {
-    setText(QObject::tr("Remove hyperlink"));
+    setText(tr("Remove hyperlink"));
 }
 
 RemoveHyperlinkUndoCommand::RemoveHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback,

@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo the encrypted text decryption: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo the encrypted text decryption: no note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -19,7 +20,7 @@ DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & inf
     m_decryptedTextManager(decryptedTextManager),
     m_callback(callback)
 {
-    QUndoCommand::setText(QObject::tr("Decrypt text"));
+    setText(tr("Decrypt text"));
 }
 
 DecryptUndoCommand::DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, const QSharedPointer<DecryptedTextManager> & decryptedTextManager,

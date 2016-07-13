@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo text replacement: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo text replacement: can't get note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -19,7 +20,7 @@ ReplaceAllUndoCommand::ReplaceAllUndoCommand(const QString & textToReplace, cons
     m_matchCase(matchCase),
     m_callback(callback)
 {
-    setText(QObject::tr("Replace all"));
+    setText(tr("Replace all"));
 }
 
 ReplaceAllUndoCommand::ReplaceAllUndoCommand(const QString & textToReplace, const bool matchCase, NoteEditorPrivate & noteEditorPrivate,

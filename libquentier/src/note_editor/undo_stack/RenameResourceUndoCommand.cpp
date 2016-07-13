@@ -17,7 +17,7 @@ RenameResourceUndoCommand::RenameResourceUndoCommand(const ResourceWrapper & res
     m_pGenericResourceImageManager(pGenericResourceImageManager),
     m_genericResourceImageFilePathsByResourceHash(genericResourceImageFilePathsByResourceHash)
 {
-    setText(QObject::tr("Rename attachment"));
+    setText(tr("Rename attachment"));
 }
 
 RenameResourceUndoCommand::RenameResourceUndoCommand(const ResourceWrapper & resource,

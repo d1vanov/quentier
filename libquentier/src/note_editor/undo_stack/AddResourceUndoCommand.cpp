@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo adding the attachment: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo adding the attachment: no note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -18,7 +19,7 @@ AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource,
     m_resource(resource),
     m_callback(callback)
 {
-    setText(QObject::tr("Add attachment"));
+    setText(tr("Add attachment"));
 }
 
 AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback,

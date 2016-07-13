@@ -3,6 +3,7 @@
 
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/Linkage.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -25,15 +26,15 @@ public:
 
     bool decrypt(const QString & encryptedText, const QString & passphrase,
                  const QString & cipher, const size_t keyLength,
-                 QString & decryptedText, QString & errorDescription);
+                 QString & decryptedText, QNLocalizedString & errorDescription);
 
     bool encrypt(const QString & textToEncrypt, const QString & passphrase,
                  QString & cipher, size_t & keyLength,
-                 QString & encryptedText, QString & errorDescription);
+                 QString & encryptedText, QNLocalizedString & errorDescription);
 
 Q_SIGNALS:
-    void decryptedText(QString text, bool success, QString errorDescription, QUuid requestId);
-    void encryptedText(QString encryptedText, bool success, QString errorDescription, QUuid requestId);
+    void decryptedText(QString text, bool success, QNLocalizedString errorDescription, QUuid requestId);
+    void encryptedText(QString encryptedText, bool success, QNLocalizedString errorDescription, QUuid requestId);
 
 public Q_SLOTS:
     void onDecryptTextRequest(QString encryptedText, QString passphrase,

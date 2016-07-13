@@ -3,6 +3,7 @@
 
 #include "SpellCheckerDictionariesFinder.h"
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QStringList>
 #include <QVector>
@@ -58,12 +59,12 @@ private:
 
     void checkUserDictionaryDataPendingWriting();
 
-    void onAppendUserDictionaryPartDone(bool success, QString errorDescription);
-    void onUpdateUserDictionaryDone(bool success, QString errorDescription);
+    void onAppendUserDictionaryPartDone(bool success, QNLocalizedString errorDescription);
+    void onUpdateUserDictionaryDone(bool success, QNLocalizedString errorDescription);
 
 private Q_SLOTS:
-    void onReadFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId);
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void onReadFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data, QUuid requestId);
+    void onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     class Dictionary

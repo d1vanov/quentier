@@ -16,7 +16,7 @@ ENMLConverter::~ENMLConverter()
 
 bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteContent,
                                       DecryptedTextManager & decryptedTextManager,
-                                      QString & errorDescription,
+                                      QNLocalizedString & errorDescription,
                                       const QVector<SkipHtmlElementRule> & skipRules) const
 {
     QNDEBUG("ENMLConverter::htmlToNoteContent");
@@ -26,7 +26,7 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
 }
 
 bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & html,
-                                      QString & errorDescription,
+                                      QNLocalizedString & errorDescription,
                                       DecryptedTextManager & decryptedTextManager,
                                       NoteContentToHtmlExtraData & extraData) const
 {
@@ -36,20 +36,20 @@ bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & htm
     return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager, extraData);
 }
 
-bool ENMLConverter::validateEnml(const QString & enml, QString & errorDescription) const
+bool ENMLConverter::validateEnml(const QString & enml, QNLocalizedString & errorDescription) const
 {
     Q_D(const ENMLConverter);
     return d->validateEnml(enml, errorDescription);
 }
 
 bool ENMLConverter::noteContentToPlainText(const QString & noteContent, QString & plainText,
-                                           QString & errorMessage)
+                                           QNLocalizedString & errorMessage)
 {
     return ENMLConverterPrivate::noteContentToPlainText(noteContent, plainText, errorMessage);
 }
 
 bool ENMLConverter::noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
-                                             QString & errorMessage, QString * plainText)
+                                             QNLocalizedString & errorMessage, QString * plainText)
 {
     return ENMLConverterPrivate::noteContentToListOfWords(noteContent, listOfWords, errorMessage, plainText);
 }
@@ -79,7 +79,7 @@ QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QS
                                                    hint, cipher, keyLength, enDecryptedIndex);
 }
 
-QString ENMLConverter::resourceHtml(const IResource & resource, QString & errorDescription)
+QString ENMLConverter::resourceHtml(const IResource & resource, QNLocalizedString & errorDescription)
 {
     return ENMLConverterPrivate::resourceHtml(resource, errorDescription);
 }

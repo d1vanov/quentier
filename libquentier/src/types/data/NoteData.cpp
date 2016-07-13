@@ -290,7 +290,7 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
     return true;
 }
 
-QString NoteData::plainText(QString * pErrorMessage) const
+QString NoteData::plainText(QNLocalizedString * pErrorMessage) const
 {
     if (!m_qecNote.content.isSet()) {
         if (pErrorMessage) {
@@ -300,7 +300,7 @@ QString NoteData::plainText(QString * pErrorMessage) const
     }
 
     QString plainText;
-    QString error;
+    QNLocalizedString error;
     bool res = ENMLConverter::noteContentToPlainText(m_qecNote.content.ref(),
                                                      plainText, error);
     if (!res) {
@@ -314,10 +314,10 @@ QString NoteData::plainText(QString * pErrorMessage) const
     return plainText;
 }
 
-QStringList NoteData::listOfWords(QString * pErrorMessage) const
+QStringList NoteData::listOfWords(QNLocalizedString * pErrorMessage) const
 {
     QStringList result;
-    QString error;
+    QNLocalizedString error;
     bool res = ENMLConverter::noteContentToListOfWords(m_qecNote.content.ref(),
                                                        result, error);
     if (!res) {
@@ -331,11 +331,11 @@ QStringList NoteData::listOfWords(QString * pErrorMessage) const
     return result;
 }
 
-std::pair<QString, QStringList> NoteData::plainTextAndListOfWords(QString * pErrorMessage) const
+std::pair<QString, QStringList> NoteData::plainTextAndListOfWords(QNLocalizedString * pErrorMessage) const
 {
     std::pair<QString, QStringList> result;
 
-    QString error;
+    QNLocalizedString error;
     bool res = ENMLConverter::noteContentToListOfWords(m_qecNote.content.ref(),
                                                        result.second,
                                                        error, &result.first);

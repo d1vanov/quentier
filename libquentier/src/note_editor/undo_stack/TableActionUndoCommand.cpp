@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't table action: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't table action: can't get note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -16,7 +17,7 @@ TableActionUndoCommand::TableActionUndoCommand(NoteEditorPrivate & noteEditorPri
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_callback(callback)
 {
-    setText(QObject::tr("Table action"));
+    setText(tr("Table action"));
 }
 
 TableActionUndoCommand::TableActionUndoCommand(NoteEditorPrivate & noteEditorPrivate, const QString & text, Callback callback, QUndoCommand * parent) :

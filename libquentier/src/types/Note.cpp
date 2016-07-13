@@ -638,17 +638,17 @@ void Note::setThumbnail(const QImage & thumbnail)
     d->m_thumbnail = thumbnail;
 }
 
-QString Note::plainText(QString * pErrorMessage) const
+QString Note::plainText(QNLocalizedString * pErrorMessage) const
 {
     return d->plainText(pErrorMessage);
 }
 
-QStringList Note::listOfWords(QString * pErrorMessage) const
+QStringList Note::listOfWords(QNLocalizedString * pErrorMessage) const
 {
     return d->listOfWords(pErrorMessage);
 }
 
-std::pair<QString, QStringList> Note::plainTextAndListOfWords(QString * pErrorMessage) const
+std::pair<QString, QStringList> Note::plainTextAndListOfWords(QNLocalizedString * pErrorMessage) const
 {
     return d->plainTextAndListOfWords(pErrorMessage);
 }

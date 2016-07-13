@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo adding the hyperlink to the selected text: can't get note editor page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo adding the hyperlink to the selected text: no note editor page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -16,7 +17,7 @@ AddHyperlinkUndoCommand::AddHyperlinkUndoCommand(NoteEditorPrivate & noteEditor,
     INoteEditorUndoCommand(noteEditor, parent),
     m_callback(callback)
 {
-    setText(QObject::tr("Add hyperlink"));
+    setText(tr("Add hyperlink"));
 }
 
 AddHyperlinkUndoCommand::AddHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback, const QString & text, QUndoCommand * parent) :

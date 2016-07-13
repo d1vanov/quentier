@@ -87,26 +87,25 @@ void EncryptionDialog::accept()
 
     if (passphrase.isEmpty()) {
         QNINFO("Attempted to press OK in EncryptionDialog without having a password set");
-        QString error = tr("Please choose the encryption password");
+        QNLocalizedString error = QT_TR_NOOP("Please choose the encryption password");
         setError(error);
         return;
     }
 
     if (passphrase != repeatedPassphrase) {
-        QString error = QT_TR_NOOP("Can't encrypt: password and repeated password do not match");
+        QNLocalizedString error = QT_TR_NOOP("Can't encrypt: password and repeated password do not match");
         QNINFO(error);
         setError(error);
         return;
     }
 
     m_cachedEncryptedText.resize(0);
-    QString errorDescription;
+    QNLocalizedString errorDescription;
     QString cipher = "AES";
     size_t keyLength = 128;
     bool res = m_encryptionManager->encrypt(m_textToEncrypt, passphrase, cipher, keyLength,
                                             m_cachedEncryptedText, errorDescription);
     if (!res) {
-        errorDescription.prepend(QT_TR_NOOP("Can't encrypt: "));
         QNINFO(errorDescription);
         setError(errorDescription);
         return;
@@ -122,9 +121,9 @@ void EncryptionDialog::accept()
     QDialog::accept();
 }
 
-void EncryptionDialog::setError(const QString & error)
+void EncryptionDialog::setError(const QNLocalizedString & error)
 {
-    m_pUI->onErrorTextLabel->setText(error);
+    m_pUI->onErrorTextLabel->setText(error.localizedString());
     m_pUI->onErrorTextLabel->setVisible(true);
 }
 

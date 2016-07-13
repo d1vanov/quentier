@@ -173,8 +173,8 @@ void SpellChecker::removeFromUserWordList(const QString & word)
 
     QObject::connect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
 
     m_updateUserDictionaryFileRequestId = QUuid::createUuid();
     emit writeFile(m_userDictionaryPath, dataToWrite, m_updateUserDictionaryFileRequestId, /* append = */ false);
@@ -572,8 +572,8 @@ void SpellChecker::initializeUserDictionary(const QString & userDictionaryPath)
 
         QObject::connect(this, QNSIGNAL(SpellChecker,readFile,QString,QUuid),
                          m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                         this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QString,QByteArray,QUuid));
+        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid),
+                         this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid));
 
         m_readUserDictionaryRequestId = QUuid::createUuid();
         emit readFile(m_userDictionaryPath, m_readUserDictionaryRequestId);
@@ -642,8 +642,8 @@ void SpellChecker::checkUserDictionaryDataPendingWriting()
     {
         QObject::connect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
                          m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                         this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
+        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
+                         this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
 
         m_appendUserDictionaryPartToFileRequestId = QUuid::createUuid();
         emit writeFile(m_userDictionaryPath, dataToWrite, m_appendUserDictionaryPartToFileRequestId, /* append = */ true);
@@ -654,7 +654,7 @@ void SpellChecker::checkUserDictionaryDataPendingWriting()
     m_userDictionaryPartPendingWriting.clear();
 }
 
-void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescription, QByteArray data, QUuid requestId)
+void SpellChecker::onReadFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data, QUuid requestId)
 {
     Q_UNUSED(errorDescription)
 
@@ -669,8 +669,8 @@ void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescrip
 
     QObject::disconnect(this, QNSIGNAL(SpellChecker,readFile,QString,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QString,QByteArray,QUuid),
-                        this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QString,QByteArray,QUuid));
+    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid),
+                        this, QNSLOT(SpellChecker,onReadFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid));
 
     if (Q_LIKELY(success))
     {
@@ -708,7 +708,7 @@ void SpellChecker::onReadFileRequestProcessed(bool success, QString errorDescrip
     }
 }
 
-void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId)
+void SpellChecker::onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId)
 {
     if (requestId == m_appendUserDictionaryPartToFileRequestId) {
         onAppendUserDictionaryPartDone(success, errorDescription);
@@ -725,12 +725,12 @@ void SpellChecker::onWriteFileRequestProcessed(bool success, QString errorDescri
     {
         QObject::disconnect(this, QNSIGNAL(SpellChecker,writeFile,QString,QByteArray,QUuid,bool),
                             m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-        QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                            this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QString,QUuid));
+        QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
+                            this, QNSLOT(SpellChecker,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
     }
 }
 
-void SpellChecker::onAppendUserDictionaryPartDone(bool success, QString errorDescription)
+void SpellChecker::onAppendUserDictionaryPartDone(bool success, QNLocalizedString errorDescription)
 {
     QNDEBUG("SpellChecker::onAppendUserDictionaryPartDone: success = " << (success ? "true" : "false"));
 
@@ -745,7 +745,7 @@ void SpellChecker::onAppendUserDictionaryPartDone(bool success, QString errorDes
     checkUserDictionaryDataPendingWriting();
 }
 
-void SpellChecker::onUpdateUserDictionaryDone(bool success, QString errorDescription)
+void SpellChecker::onUpdateUserDictionaryDone(bool success, QNLocalizedString errorDescription)
 {
     QNDEBUG("SpellChecker::onUpdateUserDictionaryDone: success = " << (success ? "true" : "false")
             << ", error description = " << errorDescription);

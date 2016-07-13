@@ -9,7 +9,7 @@ ToDoCheckboxUndoCommand::ToDoCheckboxUndoCommand(const quint64 enToDoCheckboxId,
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_enToDoCheckboxId(enToDoCheckboxId)
 {
-    setText(QObject::tr("Change ToDo state"));
+    setText(tr("Change ToDo state"));
 }
 
 ToDoCheckboxUndoCommand::ToDoCheckboxUndoCommand(const quint64 enToDoCheckboxId, NoteEditorPrivate & noteEditorPrivate,

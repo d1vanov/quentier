@@ -78,13 +78,13 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     QObject::connect(m_pUI->saveResourceButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveAsButtonPressed));
 
-    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QString),
-                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,QString));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,QNLocalizedString));
     QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
 
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QString,QUuid),
-                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QNLocalizedString,QUuid));
     QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid,bool),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
 
@@ -248,7 +248,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 
 void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash,
                                                                            QString fileStoragePath, int errorCode,
-                                                                           QString errorDescription)
+                                                                           QNLocalizedString errorDescription)
 {
     if (requestId == m_saveResourceToStorageRequestId)
     {
@@ -270,7 +270,7 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
             warningMessageBox(this, tr("Error saving the resource to hidden file"),
                               tr("Could not save the resource to hidden file "
                                  "(in order to make it possible to open it with some application)"),
-                              tr("Error code = ") + QString::number(errorCode) + ": " + errorDescription);
+                              tr("Error code") + " = " + QString::number(errorCode) + ": " + errorDescription.localizedString());
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
             }
@@ -280,7 +280,7 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
 }
 
 void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool success,
-                                                                        QString errorDescription,
+                                                                        QNLocalizedString errorDescription,
                                                                         QUuid requestId)
 {
     QNTRACE("GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed: success = "
@@ -297,7 +297,7 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
                       << "; request id = " << requestId);
             warningMessageBox(this, tr("Error saving the resource to file"),
                               tr("Could not save the resource to file"),
-                              errorDescription);
+                              errorDescription.localizedString());
         }
     }
 }

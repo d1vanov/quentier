@@ -24,7 +24,7 @@ public:
     }
 
     bool convertHtml(const QString & html, const TidyOptionId outputFormat,
-                     QString & output, QString & errorDescription);
+                     QString & output, QNLocalizedString & errorDescription);
 
     TidyBuffer  m_tidyOutput;
     TidyBuffer  m_tidyErrorBuffer;
@@ -40,7 +40,7 @@ HTMLCleaner::~HTMLCleaner()
     delete m_impl;
 }
 
-bool HTMLCleaner::htmlToXml(const QString & html, QString & output, QString & errorDescription)
+bool HTMLCleaner::htmlToXml(const QString & html, QString & output, QNLocalizedString & errorDescription)
 {
     QNDEBUG("HTMLCleaner::htmlToXml");
     QNTRACE("html = " << html);
@@ -48,7 +48,7 @@ bool HTMLCleaner::htmlToXml(const QString & html, QString & output, QString & er
     return m_impl->convertHtml(html, TidyXmlOut, output, errorDescription);
 }
 
-bool HTMLCleaner::htmlToXhtml(const QString & html, QString & output, QString & errorDescription)
+bool HTMLCleaner::htmlToXhtml(const QString & html, QString & output, QNLocalizedString & errorDescription)
 {
     QNDEBUG("HTMLCleaner::htmlToXhtml");
     QNTRACE("html = " << html);
@@ -56,7 +56,7 @@ bool HTMLCleaner::htmlToXhtml(const QString & html, QString & output, QString & 
     return m_impl->convertHtml(html, TidyXhtmlOut, output, errorDescription);
 }
 
-bool HTMLCleaner::cleanupHtml(QString & html, QString & errorDescription)
+bool HTMLCleaner::cleanupHtml(QString & html, QNLocalizedString & errorDescription)
 {
     QNDEBUG("HTMLCleaner::cleanupHtml");
     QNTRACE("html = " << html);
@@ -64,7 +64,8 @@ bool HTMLCleaner::cleanupHtml(QString & html, QString & errorDescription)
     return m_impl->convertHtml(html, TidyHtmlOut, html, errorDescription);
 }
 
-bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId outputFormat, QString & output, QString & errorDescription)
+bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId outputFormat, QString & output,
+                                    QNLocalizedString & errorDescription)
 {
     // Clear buffers from the previous run, if any
     tidyBufClear(&m_tidyOutput);
@@ -146,11 +147,13 @@ bool HTMLCleaner::Impl::convertHtml(const QString & html, const TidyOptionId out
         return true;
     }
 
-    const char * errorPrefix = QT_TR_NOOP("tidy-html5 error");
+    QNLocalizedString errorPrefix = QT_TR_NOOP("tidy-html5 error");
     QByteArray errorBody = QByteArray(reinterpret_cast<const char*>(m_tidyErrorBuffer.bp),
                                       static_cast<int>(m_tidyErrorBuffer.size));
     QNINFO(errorPrefix << ": " << errorBody);
-    errorDescription = QObject::tr(errorPrefix) + QStringLiteral(": ") + errorBody;
+    errorDescription = errorPrefix;
+    errorDescription += ": ";
+    errorDescription += QString::fromUtf8(errorBody.constData(), errorBody.size());
     return false;
 }
 

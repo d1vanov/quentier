@@ -7,8 +7,9 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditorPrivate.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QString error = QT_TR_NOOP("Can't undo/redo spelling correction: can't get note editor's page"); \
+        QNLocalizedString error = QT_TR_NOOP("can't undo/redo spelling correction: can't get note editor's page"); \
         QNWARNING(error); \
+        emit notifyError(error); \
         return; \
     }
 
@@ -17,7 +18,7 @@ SpellCorrectionUndoCommand::SpellCorrectionUndoCommand(NoteEditorPrivate & noteE
     INoteEditorUndoCommand(noteEditor, parent),
     m_callback(callback)
 {
-    setText(QObject::tr("Spelling correction"));
+    setText(tr("Spelling correction"));
 }
 
 SpellCorrectionUndoCommand::SpellCorrectionUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback,

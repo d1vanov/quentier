@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_GENERIC_RESOURCE_DISPLAY_WIDGET_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QWidget>
 #include <QUuid>
 
@@ -49,8 +50,9 @@ private Q_SLOTS:
     void onOpenWithButtonPressed();
     void onSaveAsButtonPressed();
 
-    void onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash, QString fileStoragePath, int errorCode, QString errorDescription);
-    void onSaveResourceToFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash, QString fileStoragePath, int errorCode,
+                                                 QNLocalizedString errorDescription);
+    void onSaveResourceToFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     void setPendingMode(const bool pendingMode);

@@ -3,6 +3,7 @@
 
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QtGlobal>
 #include <QStringList>
 #include <QFlag>
@@ -30,19 +31,19 @@ public:
                            const QVector<SkipHtmlElementRule> & skipRules,
                            QString & noteContent,
                            DecryptedTextManager & decryptedTextManager,
-                           QString & errorDescription) const;
+                           QNLocalizedString & errorDescription) const;
     bool noteContentToHtml(const QString & noteContent, QString & html,
-                           QString & errorDescription,
+                           QNLocalizedString & errorDescription,
                            DecryptedTextManager & decryptedTextManager,
                            NoteContentToHtmlExtraData & extraData) const;
 
-    bool validateEnml(const QString & enml, QString & errorDescription) const;
+    bool validateEnml(const QString & enml, QNLocalizedString & errorDescription) const;
 
     static bool noteContentToPlainText(const QString & noteContent, QString & plainText,
-                                       QString & errorMessage);
+                                       QNLocalizedString & errorMessage);
 
     static bool noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
-                                         QString & errorMessage, QString * plainText = Q_NULLPTR);
+                                         QNLocalizedString & errorMessage, QString * plainText = Q_NULLPTR);
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
@@ -56,7 +57,7 @@ public:
                                      const QString & hint, const QString & cipher,
                                      const size_t keyLength, const quint64 enDecryptedIndex);
 
-    static QString resourceHtml(const IResource & resource, QString & errorDescription);
+    static QString resourceHtml(const IResource & resource, QNLocalizedString & errorDescription);
 
     static void escapeString(QString & string, const bool simplify);
 
@@ -69,16 +70,16 @@ private:
     // convert <div> element with decrypted text to ENML <en-crypt> tag
     bool decryptedTextToEnml(QXmlStreamReader & reader,
                              DecryptedTextManager & decryptedTextManager,
-                             QXmlStreamWriter & writer, QString & errorDescription) const;
+                             QXmlStreamWriter & writer, QNLocalizedString & errorDescription) const;
 
     // convert ENML en-crypt tag to HTML <object> tag
     bool encryptedTextToHtml(const QXmlStreamAttributes & enCryptAttributes,
                              const QStringRef & encryptedTextCharacters, const quint64 enCryptIndex, const quint64 enDecryptedIndex,
-                             QXmlStreamWriter & writer, DecryptedTextManager & decryptedTextManager, bool &convertedToEnCryptNode) const;
+                             QXmlStreamWriter & writer, DecryptedTextManager & decryptedTextManager, bool & convertedToEnCryptNode) const;
 
     // convert ENML <en-media> tag to HTML <object> tag
     static bool resourceInfoToHtml(const QXmlStreamAttributes & attributes, QXmlStreamWriter & writer,
-                                   QString & errorDescription);
+                                   QNLocalizedString & errorDescription);
 
     void toDoTagsToHtml(const QXmlStreamReader & reader, const quint64 enToDoIndex,
                         QXmlStreamWriter & writer) const;

@@ -299,7 +299,7 @@ private Q_SLOTS:
 #endif
 
     void onToDoCheckboxClicked(quint64 enToDoCheckboxId);
-    void onToDoCheckboxClickHandlerError(QString error);
+    void onToDoCheckboxClickHandlerError(QNLocalizedString error);
 
     void onJavaScriptLoaded();
 
@@ -330,7 +330,7 @@ private Q_SLOTS:
     void onTextCursorFontNameChanged(QString fontName);
     void onTextCursorFontSizeChanged(int fontSize);
 
-    void onWriteFileRequestProcessed(bool success, QString errorDescription, QUuid requestId);
+    void onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
 
     void onSpellCheckCorrectionAction();
     void onSpellCheckIgnoreWordAction();
@@ -392,8 +392,12 @@ private Q_SLOTS:
     void onRemoveHyperlinkDelegateError(QNLocalizedString error);
     void onRemoveHyperlinkUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
+    // Slots for undo command signals
+    void onUndoCommandError(QNLocalizedString error);
+
 private:
     void pushNoteContentEditUndoCommand();
+    void pushTableActionUndoCommand(const QString & name, NoteEditorPage::Callback callback);
 
     template <typename T>
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
@@ -409,7 +413,7 @@ private:
     void noteToEditorContent();
     void updateColResizableTableBindings();
 
-    bool htmlToNoteContent(QString & errorDescription);
+    bool htmlToNoteContent(QNLocalizedString & errorDescription);
 
     void saveNoteResourcesToLocalFiles();
     bool saveResourceToLocalFile(const IResource & resource);
@@ -469,7 +473,7 @@ private:
 
     bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
                                                 QString & cipher, QString & keyLength, QString & hint,
-                                                QString & id, QString & errorDescription) const;
+                                                QString & id, QNLocalizedString & errorDescription) const;
     void setupPasteGenericTextMenuActions();
     void setupParagraphSubMenuForGenericTextMenu(const QString & selectedHtml);
     void setupStyleSubMenuForGenericTextMenu();

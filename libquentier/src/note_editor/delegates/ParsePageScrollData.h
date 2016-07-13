@@ -1,12 +1,12 @@
 #ifndef LIB_QUENTIER_NOTE_EDITOR_DELEGATES_PARSE_PAGE_SCROLL_DATA_H
 #define LIB_QUENTIER_NOTE_EDITOR_DELEGATES_PARSE_PAGE_SCROLL_DATA_H
 
-#include <QString>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QVariant>
 
 namespace quentier {
 
-bool parsePageScrollData(const QVariant & data, int & pageXOffset, int & pageYOffset, QString & errorDescription);
+bool parsePageScrollData(const QVariant & data, int & pageXOffset, int & pageYOffset, QNLocalizedString & errorDescription);
 
 } // namespace quentier
 

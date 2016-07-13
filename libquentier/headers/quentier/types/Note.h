@@ -119,9 +119,9 @@ public:
     QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);
 
-    QString plainText(QString * pErrorMessage = Q_NULLPTR) const;
-    QStringList listOfWords(QString * pErrorMessage = Q_NULLPTR) const;
-    std::pair<QString, QStringList> plainTextAndListOfWords(QString * pErrorMessage = Q_NULLPTR) const;
+    QString plainText(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
+    QStringList listOfWords(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
+    std::pair<QString, QStringList> plainTextAndListOfWords(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
 
     bool containsCheckedTodo() const;
     bool containsUncheckedTodo() const;

@@ -11,7 +11,7 @@ SpellCheckIgnoreWordUndoCommand::SpellCheckIgnoreWordUndoCommand(NoteEditorPriva
     m_pSpellChecker(pSpellChecker),
     m_ignoredWord(ignoredWord)
 {
-    setText(QObject::tr("Ignore word"));
+    setText(tr("Ignore word"));
 }
 
 SpellCheckIgnoreWordUndoCommand::SpellCheckIgnoreWordUndoCommand(NoteEditorPrivate & noteEditor, const QString & ignoredWord,
