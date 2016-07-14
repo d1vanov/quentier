@@ -1,6 +1,7 @@
 #ifndef LIB_QUENTIER_UTILITY_LOCALIZED_STRING_H
 #define LIB_QUENTIER_UTILITY_LOCALIZED_STRING_H
 
+#include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/Printable.h>
 #include <QString>
@@ -15,7 +16,7 @@ namespace quentier {
  * The primary purpose of this calss is to use the non-localized versions of strings for logging
  * so that the logs don't depend on the locale/translation and are thus actually useful for the troubleshooting
  */
-class QNLocalizedString: public Printable
+class QUENTIER_EXPORT QNLocalizedString: public Printable
 {
 public:
     QNLocalizedString();
