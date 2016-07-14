@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TESTS_USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/UserWrapper.h>
 #include <QUuid>
 
@@ -36,17 +37,19 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetUserCountCompleted(int count, QUuid requestId);
-    void onGetUserCountFailed(QString errorDescription, QUuid requestId);
+    void onGetUserCountFailed(QNLocalizedString errorDescription, QUuid requestId);
     void onAddUserCompleted(UserWrapper user, QUuid requestId);
-    void onAddUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onAddUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateUserCompleted(UserWrapper user, QUuid requestId);
-    void onUpdateUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onUpdateUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onFindUserCompleted(UserWrapper user, QUuid requestId);
-    void onFindUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onFindUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onDeleteUserCompleted(UserWrapper user, QUuid requestId);
-    void onDeleteUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onDeleteUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeUserCompleted(UserWrapper user, QUuid requestId);
-    void onExpungeUserFailed(UserWrapper user, QString errorDescription, QUuid requestId);
+    void onExpungeUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
+
+    void onFailure(QNLocalizedString errorDescription);
 
 private:
     void createConnections();

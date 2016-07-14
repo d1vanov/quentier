@@ -49,7 +49,10 @@
     QDir appPersistentStoragePathFolder(appPersistentStoragePathString); \
     if (!appPersistentStoragePathFolder.exists()) { \
         if (!appPersistentStoragePathFolder.mkpath(".")) { \
-            throw quentier::LoggerInitializationException(QString("Can't create path for log file: ") + appPersistentStoragePathString); \
+            quentier::QNLocalizedString error = QT_TR_NOOP("Can't create path for log file"); \
+            error += ": "; \
+            error += appPersistentStoragePathString; \
+            throw quentier::LoggerInitializationException(error); \
         } \
     } \
     \

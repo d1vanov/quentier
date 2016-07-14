@@ -8,6 +8,7 @@
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/SharedNotebookWrapper.h>
 #include <quentier/local_storage/LocalStorageManager.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <QMetaType>
 
 namespace quentier {
@@ -47,6 +48,8 @@ void registerMetatypes()
     qRegisterMetaType<QHash<QString,QString> >("QHash<QString,QString>");
     qRegisterMetaType<QHash<QString,qevercloud::Timestamp> >("QHash<QString,qevercloud::Timestamp>");
     qRegisterMetaType<QHash<QString,qint32> >("QHash<QString,qint32>");
+
+    qRegisterMetaType<QNLocalizedString>("QNLocalizedString");
 }
 
 } // namespace quentier

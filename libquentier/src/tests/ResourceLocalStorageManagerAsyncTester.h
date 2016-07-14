@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TESTS_RESOURCE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/ResourceWrapper.h>
@@ -38,20 +39,22 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onAddNoteCompleted(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
     void onGetResourceCountCompleted(int count, QUuid requestId);
-    void onGetResourceCountFailed(QString errorDescription, QUuid requestId);
+    void onGetResourceCountFailed(QNLocalizedString errorDescription, QUuid requestId);
     void onAddResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onAddResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
+    void onAddResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onUpdateResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
+    void onUpdateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
     void onFindResourceCompleted(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
     void onFindResourceFailed(ResourceWrapper resource, bool withBinaryData,
-                              QString errorDescription, QUuid requestId);
+                              QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onExpungeResourceFailed(ResourceWrapper resource, QString errorDescription, QUuid requestId);
+    void onExpungeResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
+
+    void onFailure(QNLocalizedString errorDescription);
 
 private:
     void createConnections();

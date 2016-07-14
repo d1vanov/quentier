@@ -2,6 +2,7 @@
 #define LIB_QUENTIER_TESTS_NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebookWrapper.h>
@@ -45,19 +46,19 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetNotebookCountCompleted(int count, QUuid requestId);
-    void onGetNotebookCountFailed(QString errorDescription, QUuid requestId);
+    void onGetNotebookCountFailed(QNLocalizedString errorDescription, QUuid requestId);
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onFindDefaultNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindDefaultNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindDefaultNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onFindLastUsedNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindLastUsedNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onFindDefaultOrLastUsedNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindDefaultOrLastUsedNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindDefaultOrLastUsedNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onListAllNotebooksCompleted(size_t limit, size_t offset,
                                      LocalStorageManager::ListNotebooksOrder::type order,
                                      LocalStorageManager::OrderDirection::type orderDirection,
@@ -65,14 +66,16 @@ private Q_SLOTS:
     void onListAllNotebooksFailed(size_t limit, size_t offset,
                                   LocalStorageManager::ListNotebooksOrder::type order,
                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                  QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
+                                  QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
     void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks, QUuid requestId);
-    void onListAllSharedNotebooksFailed(QString errorDescription, QUuid requestId);
+    void onListAllSharedNotebooksFailed(QNLocalizedString errorDescription, QUuid requestId);
     void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks,
                                                        QUuid requestId);
-    void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QString errorDescription, QUuid requestId);
+    void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+
+    void onFailure(QNLocalizedString errorDescription);
 
 private:
     void createConnections();

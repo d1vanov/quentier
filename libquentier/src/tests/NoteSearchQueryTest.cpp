@@ -384,8 +384,10 @@ bool NoteSearchQueryTest(QString & error)
             }
         }
 
-        bool res = noteSearchQuery.setQueryString(queryString, error);
+        QNLocalizedString errorMessage;
+        bool res = noteSearchQuery.setQueryString(queryString, errorMessage);
         if (!res) {
+            error = errorMessage.nonLocalizedString();
             return false;
         }
 
@@ -781,9 +783,10 @@ bool NoteSearchQueryTest(QString & error)
         negatedContentSearchTermsStr += "-" + negatedContentSearchTerms[i] + " ";
     }
 
-    bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + " " + negatedContentSearchTermsStr, error);
+    QNLocalizedString errorMessage;
+    bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + " " + negatedContentSearchTermsStr, errorMessage);
     if (!res) {
-        error = "Internal error: can't set simple search query string without any search modifiers: " + error;
+        error = "Internal error: can't set simple search query string without any search modifiers: " + errorMessage.nonLocalizedString();
         return false;
     }
 

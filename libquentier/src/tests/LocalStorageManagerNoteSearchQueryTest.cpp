@@ -14,7 +14,7 @@ namespace test {
 bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
                       const QVector<bool> expectedContainedNotesIndices,
                       const LocalStorageManager & localStorageManager,
-                      QString & errorDescription)
+                      QNLocalizedString & errorDescription)
 {
     NoteSearchQuery noteSearchQuery;
     bool res = noteSearchQuery.setQueryString(queryString, errorDescription);
@@ -545,18 +545,22 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     LocalStorageManager localStorageManager("LocalStorageManagerNoteSearchQueryTestFakeUser",
                                             0, startFromScratch, overrideLock);
 
+    QNLocalizedString errorMessage;
+
     for(int i = 0; i < numNotebooks; ++i)
     {
-        bool res = localStorageManager.addNotebook(notebooks[i], errorDescription);
+        bool res = localStorageManager.addNotebook(notebooks[i], errorMessage);
         if (!res) {
+            errorDescription = errorMessage.nonLocalizedString();
             return false;
         }
     }
 
     for(int i = 0; i < numTags; ++i)
     {
-        bool res = localStorageManager.addTag(tags[i], errorDescription);
+        bool res = localStorageManager.addTag(tags[i], errorMessage);
         if (!res) {
+            errorDescription = errorMessage.nonLocalizedString();
             return false;
         }
     }
@@ -564,8 +568,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     for(int i = 0; i < numNotes; ++i)
     {
         notes[i].setNotebookLocalUid(notebooks[notebookIndexForNoteIndex[i]].localUid());
-        bool res = localStorageManager.addNote(notes[i], errorDescription);
+        bool res = localStorageManager.addNote(notes[i], errorMessage);
         if (!res) {
+            errorDescription = errorMessage.nonLocalizedString();
             return false;
         }
     }
@@ -576,8 +581,9 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
 #define RUN_CHECK() \
     res = CheckQueryString(queryString, notes, expectedContainedNotesIndices, \
-                           localStorageManager, errorDescription); \
+                           localStorageManager, errorMessage); \
     if (!res) { \
+        errorDescription = errorMessage.nonLocalizedString(); \
         return false; \
     }
 

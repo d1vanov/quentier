@@ -116,7 +116,7 @@ void QNLocalizedString::prepend(const char * nonLocalizedString, QObject * pTran
 
 QTextStream & QNLocalizedString::print(QTextStream & strm) const
 {
-    strm << "QNLocalizedString { localized string: \"" << m_localizedString << "\"; non-localized string: \"" << m_nonLocalizedString << "\" };";
+    strm << m_nonLocalizedString;
     return strm;
 }
 
