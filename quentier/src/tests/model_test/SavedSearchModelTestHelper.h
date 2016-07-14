@@ -22,15 +22,15 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
     void onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
                                    size_t limit, size_t offset,
                                    LocalStorageManager::ListSavedSearchesOrder::type order,
                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                   QString errorDescription, QUuid requestId);
-    void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+                                   QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     bool checkSorting(const SavedSearchModel & model) const;

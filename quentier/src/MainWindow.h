@@ -4,6 +4,7 @@
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/utility/ShortcutManager.h>
 
 #include <QtCore>
@@ -83,7 +84,7 @@ private Q_SLOTS:
     void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
     void onNoteEditorHtmlUpdate(QString html);
-    void onNoteEditorError(QString error);
+    void onNoteEditorError(quentier::QNLocalizedString error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();
@@ -112,7 +113,7 @@ private:
     void setupDefaultShortcuts();
     void setupUserShortcuts();
 
-    bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error);
+    bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, quentier::QNLocalizedString & error);
 
     void connectActionsToSlots();
     void connectActionsToEditorSlots();

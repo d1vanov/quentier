@@ -13,22 +13,22 @@ TagModelTestHelper::TagModelTestHelper(LocalStorageManagerThreadWorker * pLocalS
     QObject(parent),
     m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
 {
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(TagModelTestHelper,onAddTagFailed,Tag,QString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(TagModelTestHelper,onUpdateTagFailed,Tag,QString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(TagModelTestHelper,onFindTagFailed,Tag,QString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(TagModelTestHelper,onAddTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(TagModelTestHelper,onUpdateTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(TagModelTestHelper,onFindTagFailed,Tag,QNLocalizedString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,
                                                                 LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListTagsOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,
-                                                                QString,QString,QUuid),
+                                                                QString,QNLocalizedString,QUuid),
                      this, QNSLOT(TagModelTestHelper,onListTagsFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(TagModelTestHelper,onExpungeTagFailed,Tag,QString,QUuid));
+                                  LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(TagModelTestHelper,onExpungeTagFailed,Tag,QNLocalizedString,QUuid));
 }
 
 void TagModelTestHelper::test()
@@ -380,7 +380,7 @@ void TagModelTestHelper::test()
     emit failure();
 }
 
-void TagModelTestHelper::onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void TagModelTestHelper::onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("TagModelTestHelper::onAddTagFailed: tag = " << tag << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -388,7 +388,7 @@ void TagModelTestHelper::onAddTagFailed(Tag tag, QString errorDescription, QUuid
     emit failure();
 }
 
-void TagModelTestHelper::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void TagModelTestHelper::onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("TagModelTestHelper::onUpdateTagFailed: tag = " << tag << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -396,7 +396,7 @@ void TagModelTestHelper::onUpdateTagFailed(Tag tag, QString errorDescription, QU
     emit failure();
 }
 
-void TagModelTestHelper::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void TagModelTestHelper::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("TagModelTestHelper::onFindTagFailed: tag = " << tag << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -409,7 +409,7 @@ void TagModelTestHelper::onListTagsFailed(LocalStorageManager::ListObjectsOption
                                           LocalStorageManager::ListTagsOrder::type order,
                                           LocalStorageManager::OrderDirection::type orderDirection,
                                           QString linkedNotebookGuid,
-                                          QString errorDescription, QUuid requestId)
+                                          QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("TagModelTestHelper::onListTagsFailed: flag = " << flag << ", limit = " << limit
             << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
@@ -421,7 +421,7 @@ void TagModelTestHelper::onListTagsFailed(LocalStorageManager::ListObjectsOption
     emit failure();
 }
 
-void TagModelTestHelper::onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void TagModelTestHelper::onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("TagModelTestHelper::onExpungeTagFailed: tag = " << tag << "\nError description = "
             << errorDescription << ", request id = " << requestId);

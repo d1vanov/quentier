@@ -219,7 +219,7 @@ void MainWindow::connectEditorSignalsToSlots()
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,insertTableDialogRequested), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerNotReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerNotReady));
     QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerReady));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,notifyError,QString), this, QNSLOT(MainWindow,onNoteEditorError,QString));
+    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,notifyError,QNLocalizedString), this, QNSLOT(MainWindow,onNoteEditorError,QNLocalizedString));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -739,17 +739,17 @@ void MainWindow::onNoteEditorHtmlUpdate(QString html)
     updateNoteHtmlView(html);
 }
 
-void MainWindow::onNoteEditorError(QString error)
+void MainWindow::onNoteEditorError(QNLocalizedString error)
 {
     QNINFO("MainWindow::onNoteEditorError: " << error);
-    onSetStatusBarText(error, 20000);
+    onSetStatusBarText(error.localizedString(), 20000);
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
 {
     QNDEBUG("MainWindow::onNoteEditorSpellCheckerNotReady");
 
-    onSetStatusBarText(QT_TR_NOOP("Spell checker is loading dictionaries, please wait"));
+    onSetStatusBarText(tr("Spell checker is loading dictionaries, please wait"));
 }
 
 void MainWindow::onNoteEditorSpellCheckerReady()
@@ -1285,7 +1285,7 @@ void MainWindow::setupUserShortcuts()
 #undef PROCESS_ACTION_SHORTCUT
 }
 
-bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QString & error)
+bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QNLocalizedString & error)
 {
     SimpleCrypt crypto(0xB87F6B9);
 
@@ -1301,8 +1301,8 @@ bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerS
                                                     "fVFAoUW128Qgu/W4+W3dbetmV3NEDjxojsvBn"
                                                     "koe2J8ZyeZ+Ektss4HrzBGTnmH1x0HzZOrMR9"
                                                     "zm9BFP7JADvc2QTku"));
-    if (consumerKey.isEmpty()) {
-        error = QT_TR_NOOP("Can't decrypt the consumer key");
+    if (Q_UNLIKELY(consumerKey.isEmpty())) {
+        error = QT_TR_NOOP("can't decrypt the application's consumer key for the Evernote service");
         return false;
     }
 
@@ -1319,7 +1319,7 @@ bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerS
                                                        "1P2QSi+OcisJLerkthnyAPouiatyDYC2PDLhu25iu"
                                                        "09ONDC0KA=="));
     if (consumerSecret.isEmpty()) {
-        error = QT_TR_NOOP("Can't decrypt the consumer secret");
+        error = QT_TR_NOOP("can't decrypt the application's consumer secret for the Evernote service");
         return false;
     }
 

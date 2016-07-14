@@ -84,9 +84,9 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
     auto localUidIt = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
     if (Q_UNLIKELY(localUidIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
-        const char * errorDescription = QT_TR_NOOP("Can't determine the tag which has been removed from the note");
+        QNLocalizedString errorDescription = QT_TR_NOOP("can't determine the tag which has been removed from the note");
         QNWARNING(errorDescription);
-        emit notifyError(tr(errorDescription));
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -94,9 +94,9 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
     const TagModelItem * pItem = m_pTagModel->itemForLocalUid(tagLocalUid);
     if (Q_UNLIKELY(!pItem)) {
-        const char * errorDescription = QT_TR_NOOP("Can't find the tag item attempted to be removed from the note");
+        QNLocalizedString errorDescription = QT_TR_NOOP("can't find the tag item attempted to be removed from the note");
         QNWARNING(errorDescription << ", tag local uid = " << tagLocalUid);
-        emit notifyError(tr(errorDescription));
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -152,7 +152,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
 }
 
 void NoteTagsWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                        QString errorDescription, QUuid requestId)
+                                        QNLocalizedString errorDescription, QUuid requestId)
 {
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
@@ -212,7 +212,7 @@ void NoteTagsWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
     updateLayout();
 }
 
-void NoteTagsWidget::onFindNotebookFailed(Notebook notebook, QString errorDescription,
+void NoteTagsWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription,
                                           QUuid requestId)
 {
     if (requestId != m_findNotebookRequestId) {
@@ -300,9 +300,9 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
 
     auto previousNameIt = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
     if (Q_UNLIKELY(previousNameIt == m_currentNoteTagLocalUidToNameBimap.left.end())) {
-        const char * errorDescription = QT_TR_NOOP("Detected the update of tag, however, its previous name cannot be found");
+        QNLocalizedString errorDescription = QT_TR_NOOP("detected the update of tag, however, its previous name cannot be found");
         QNWARNING(errorDescription << ", tag = " << tag);
-        emit notifyError(tr(errorDescription));
+        emit notifyError(errorDescription);
         return;
     }
 
@@ -364,11 +364,11 @@ void NoteTagsWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
     auto it = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
     if (Q_UNLIKELY(it == m_currentNoteTagLocalUidToNameBimap.left.end()))
     {
-        const char * errorDescription = QT_TR_NOOP("Detected the expunge of tag, however, its name cannot be found");
+        QNLocalizedString errorDescription = QT_TR_NOOP("detected the expunge of tag, however, its name cannot be found");
         QNWARNING(errorDescription << ", tag = " << tag);
 
         if (!tag.hasName()) {
-            emit notifyError(tr(errorDescription));
+            emit notifyError(errorDescription);
             return;
         }
 

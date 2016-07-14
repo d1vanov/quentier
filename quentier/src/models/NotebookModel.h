@@ -83,7 +83,7 @@ public:
                               int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(QString errorDescription);
+    void notifyError(QNLocalizedString errorDescription);
 
 // private signals
     void addNotebook(Notebook notebook, QUuid requestId);
@@ -99,11 +99,11 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onListNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
                                  size_t limit, size_t offset,
                                  LocalStorageManager::ListNotebooksOrder::type order,
@@ -114,9 +114,9 @@ private Q_SLOTS:
                                size_t limit, size_t offset,
                                LocalStorageManager::ListNotebooksOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, QString errorDescription, QUuid requestId);
+                               QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);

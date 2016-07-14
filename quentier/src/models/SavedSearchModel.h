@@ -63,7 +63,7 @@ public:
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(QString errorDescription);
+    void notifyError(QNLocalizedString errorDescription);
 
 // private signals
     void addSavedSearch(SavedSearch search, QUuid requestId);
@@ -79,11 +79,11 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
     void onFindSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
     void onListSavedSearchesComplete(LocalStorageManager::ListObjectsOptions flag,
                                      size_t limit, size_t offset,
                                      LocalStorageManager::ListSavedSearchesOrder::type order,
@@ -93,9 +93,9 @@ private Q_SLOTS:
                                    size_t limit, size_t offset,
                                    LocalStorageManager::ListSavedSearchesOrder::type order,
                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                   QString errorDescription, QUuid requestId);
+                                   QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);

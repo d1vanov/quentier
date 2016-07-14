@@ -9,7 +9,7 @@
 #define CATCH_EXCEPTION() \
     catch(const IQuentierException & exception) { \
         SysInfo & sysInfo = SysInfo::GetSingleton(); \
-        QNWARNING("Caught Quentier exception: " + exception.errorMessage() + \
+        QNWARNING("Caught Quentier exception: " + exception.nonLocalizedErrorMessage() + \
                   ", what: " + QString(exception.what()) + "; stack trace: " + sysInfo.GetStackTrace()); \
     } \
     catch(const std::exception & exception) { \

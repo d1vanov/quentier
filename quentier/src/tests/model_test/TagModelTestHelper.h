@@ -23,16 +23,16 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddTagFailed(Tag tag, QString errorDescription, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId);
-    void onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+    void onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
     void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
                           size_t limit, size_t offset,
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
                           QString linkedNotebookGuid,
-                          QString errorDescription, QUuid requestId);
-    void onExpungeTagFailed(Tag tag, QString errorDescription, QUuid requestId);
+                          QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     bool checkSorting(const TagModel & model, const TagModelItem * rootItem) const;

@@ -40,58 +40,58 @@ FavoritesModelTestHelper::FavoritesModelTestHelper(LocalStorageManagerThreadWork
 {
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteFailed,Note,bool,bool,QString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onFindNoteFailed,Note,bool,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onFindNoteFailed,Note,bool,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,
                                                                   LocalStorageManager::ListObjectsOptions,bool,
                                                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,
-                                                                  LocalStorageManager::OrderDirection::type,QString,QUuid),
+                                                                  LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  QString,QUuid));
+                                  QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNotebookFailed,Notebook,QString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onFindNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onUpdateNotebookFailed,Notebook,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,
                                                                   LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                                                   LocalStorageManager::ListNotebooksOrder::type,
                                                                   LocalStorageManager::OrderDirection::type,
-                                                                  QString,QString,QUuid),
+                                                                  QString,QNLocalizedString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
+                                  LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onUpdateTagFailed,Tag,QString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onFindTagFailed,Tag,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onUpdateTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onFindTagFailed,Tag,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,
                                                                   LocalStorageManager::ListObjectsOptions,
                                                                   size_t,size_t,LocalStorageManager::ListTagsOrder::type,
                                                                   LocalStorageManager::OrderDirection::type,
-                                                                  QString,QString,QUuid),
+                                                                  QString,QNLocalizedString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListTagsFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
+                                  LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onUpdateSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,QString,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QString,QUuid),
-                     this, QNSLOT(FavoritesModelTestHelper,onFindSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
+                     this, QNSLOT(FavoritesModelTestHelper,onFindSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
                                                                   LocalStorageManager::ListObjectsOptions,
                                                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                  LocalStorageManager::OrderDirection::type,QString,QUuid),
+                                                                  LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
                      this, QNSLOT(FavoritesModelTestHelper,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  QString,QUuid));
+                                  QNLocalizedString,QUuid));
 }
 
 void FavoritesModelTestHelper::launchTest()
@@ -693,7 +693,7 @@ void FavoritesModelTestHelper::onUpdateNoteComplete(Note note, bool updateResour
 }
 
 void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                                  QString errorDescription, QUuid requestId)
+                                                  QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onUpdateNoteFailed: note = " << note << "\nUpdate resources = "
             << (updateResources ? "true" : "false") << ", update tags = " << (updateTags ? "true" : "false")
@@ -702,7 +702,7 @@ void FavoritesModelTestHelper::onUpdateNoteFailed(Note note, bool updateResource
     emit failure();
 }
 
-void FavoritesModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onFindNoteFailed: note = " << note << "\nWith resource binary data = "
             << (withResourceBinaryData ? "true" : "false") << ", error description = "
@@ -714,7 +714,7 @@ void FavoritesModelTestHelper::onFindNoteFailed(Note note, bool withResourceBina
 void FavoritesModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                                  size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                                  LocalStorageManager::OrderDirection::type orderDirection,
-                                                 QString errorDescription, QUuid requestId)
+                                                 QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onListNotesFailed: flag = " << flag << ", with resource binary data = "
             << (withResourceBinaryData ? "true" : "false") << ", limit = " << limit << ", offset = " << offset
@@ -761,7 +761,7 @@ void FavoritesModelTestHelper::onUpdateNotebookComplete(Notebook notebook, QUuid
     }
 }
 
-void FavoritesModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onUpdateNotebookFailed: notebook = " << notebook << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -769,7 +769,7 @@ void FavoritesModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QString
     emit failure();
 }
 
-void FavoritesModelTestHelper::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onFindNotebookFailed: notebook = " << notebook << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -780,7 +780,7 @@ void FavoritesModelTestHelper::onFindNotebookFailed(Notebook notebook, QString e
 void FavoritesModelTestHelper::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
                                                      LocalStorageManager::ListNotebooksOrder::type order,
                                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                                     QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
+                                                     QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onListNotebooksFailed: flag = " << flag << ", limit = " << limit
             << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
@@ -826,7 +826,7 @@ void FavoritesModelTestHelper::onUpdateTagComplete(Tag tag, QUuid requestId)
     }
 }
 
-void FavoritesModelTestHelper::onUpdateTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onUpdateTagFailed: tag = " << tag << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -834,7 +834,7 @@ void FavoritesModelTestHelper::onUpdateTagFailed(Tag tag, QString errorDescripti
     emit failure();
 }
 
-void FavoritesModelTestHelper::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onFindTagFailed: tag = " << tag << "\nError description = "
             << errorDescription << ", request id = " << requestId);
@@ -847,7 +847,7 @@ void FavoritesModelTestHelper::onListTagsFailed(LocalStorageManager::ListObjects
                                                 LocalStorageManager::ListTagsOrder::type order,
                                                 LocalStorageManager::OrderDirection::type orderDirection,
                                                 QString linkedNotebookGuid,
-                                                QString errorDescription, QUuid requestId)
+                                                QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onListTagsFailed: flag = " << flag << ", limit = " << limit
             << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
@@ -896,7 +896,7 @@ void FavoritesModelTestHelper::onUpdateSavedSearchComplete(SavedSearch search, Q
     }
 }
 
-void FavoritesModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onUpdateSavedSearchFailed: search = " << search << ", error description = "
             << errorDescription << ", request id = " << requestId);
@@ -904,7 +904,7 @@ void FavoritesModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, QSt
     emit failure();
 }
 
-void FavoritesModelTestHelper::onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+void FavoritesModelTestHelper::onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onFindSavedSearchFailed: search = " << search << ", error description = "
             << errorDescription << ", request id = " << requestId);
@@ -916,7 +916,7 @@ void FavoritesModelTestHelper::onListSavedSearchesFailed(LocalStorageManager::Li
                                                          size_t limit, size_t offset,
                                                          LocalStorageManager::ListSavedSearchesOrder::type order,
                                                          LocalStorageManager::OrderDirection::type orderDirection,
-                                                         QString errorDescription, QUuid requestId)
+                                                         QNLocalizedString errorDescription, QUuid requestId)
 {
     QNDEBUG("FavoritesModelTestHelper::onListSavedSearchesFailed: flag = " << flag << ", limit = " << limit
             << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection

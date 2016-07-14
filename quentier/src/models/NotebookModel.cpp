@@ -539,19 +539,22 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         const NotebookItem * notebookItem = item->notebookItem();
 
         if (!canUpdateNotebookItem(*notebookItem)) {
-            const char * errorPrefix = QT_TR_NOOP("Can't update notebook");
-            const char * errorSuffix = QT_TR_NOOP("notebook restrictions apply");
-            QNINFO(errorPrefix << ", " << errorSuffix << ", notebookItem = " << *notebookItem);
-            emit notifyError(tr(errorPrefix) + " \"" + notebookItem->name() + "\", " + tr(errorSuffix));
+            QNLocalizedString error = QT_TR_NOOP("can't update notebook");
+            error += " \"";
+            error += notebookItem->name();
+            error += "\", ";
+            error += QT_TR_NOOP("notebook restrictions apply");
+            QNINFO(error << ", notebookItem = " << *notebookItem);
+            emit notifyError(error);
             return false;
         }
 
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
         auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
         if (Q_UNLIKELY(notebookItemIt == localUidIndex.end())) {
-            const char * error = QT_TR_NOOP("Can't update notebook: can't find the notebook being updated in the model");
+            QNLocalizedString error = QT_TR_NOOP("can't update notebook: can't find the notebook being updated in the model");
             QNWARNING(error << ", notebook item: " << *notebookItem);
-            emit notifyError(tr(error));
+            emit notifyError(error);
             return false;
         }
 
@@ -570,18 +573,20 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
                 auto nameIt = m_lowerCaseNotebookNames.find(newName.toLower());
                 if (nameIt != m_lowerCaseNotebookNames.end()) {
-                    const char * error = QT_TR_NOOP("Can't rename notebook: no two notebooks within the account are allowed "
-                                                    "to have the same name in a case-insensitive manner");
+                    QNLocalizedString error = QT_TR_NOOP("can't rename notebook: no two notebooks within the account are allowed "
+                                                         "to have the same name in a case-insensitive manner");
                     QNINFO(error << ", suggested new name = " << newName);
-                    emit notifyError(tr(error));
+                    emit notifyError(error);
                     return false;
                 }
 
-                QString error;
-                if (!Notebook::validateName(newName, &error)) {
-                    const char * errorPrefix = QT_TR_NOOP("Can't rename notebook");
-                    QNINFO(errorPrefix << ": " << error << "; suggested new name = " << newName);
-                    emit notifyError(tr(errorPrefix) + QStringLiteral(": ") + error);
+                QNLocalizedString errorDescription;
+                if (!Notebook::validateName(newName, &errorDescription)) {
+                    QNLocalizedString error = QT_TR_NOOP("an't rename notebook");
+                    error += ": ";
+                    error += errorDescription;
+                    QNINFO(error << "; suggested new name = " << newName);
+                    emit notifyError(error);
                     return false;
                 }
 
@@ -592,9 +597,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         case Columns::Synchronizable:
             {
                 if (notebookItemCopy.isSynchronizable() && !value.toBool()) {
-                    const char * error = QT_TR_NOOP("Can't make already synchronizable notebook not synchronizable");
+                    QNLocalizedString error = QT_TR_NOOP("can't make already synchronizable notebook not synchronizable");
                     QNINFO(error << ", already synchronizable notebook item: " << notebookItemCopy);
-                    emit notifyError(tr(error));
+                    emit notifyError(error);
                     return false;
                 }
 
@@ -610,9 +615,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 }
 
                 if (notebookItemCopy.isDefault() && !value.toBool()) {
-                    const char * error = QT_TR_NOOP("In order to stop notebook being the default one please choose another default notebook");
+                    QNLocalizedString error = QT_TR_NOOP("in order to stop notebook being the default one please choose another default notebook");
                     QNDEBUG(error);
-                    emit notifyError(tr(error));
+                    emit notifyError(error);
                     return false;
                 }
 
@@ -682,9 +687,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             CHECK_ITEM(childItem)
 
             if (!canUpdateNotebookItem(*notebookItem)) {
-                const char * error = QT_TR_NOOP("Can't update notebook stack: restrictions on at least one of stacked notebooks' update apply");
+                QNLocalizedString error = QT_TR_NOOP("can't update notebook stack: restrictions on at least one of stacked notebooks' update apply");
                 QNINFO(error << ", notebook item for which the restrictions apply: " << *notebookItem);
-                emit notifyError(tr(error));
+                emit notifyError(error);
                 return false;
             }
         }
@@ -692,9 +697,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         // Change the stack item
         auto stackModelItemIt = m_modelItemsByStack.find(previousStack);
         if (stackModelItemIt == m_modelItemsByStack.end()) {
-            const char * error = QT_TR_NOOP("Can't update notebook stack item: can't find the item for the previous stack value");
+            QNLocalizedString error = QT_TR_NOOP("can't update notebook stack item: can't find the item for the previous stack value");
             QNWARNING(error << ", previous stack: \"" << previousStack << "\", new stack: \"" << newStack << "\"");
-            emit notifyError(tr(error));
+            emit notifyError(error);
             return false;
         }
 
@@ -882,18 +887,18 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
 #define CHECK_NOTEBOOK_ITEM(notebookItem) \
             if (notebookItem->isSynchronizable()) { \
-                const char * error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
-                                                "is synchronizable, it can't be removed"); \
+                QNLocalizedString error = QT_TR_NOOP("one of notebooks being removed along with the stack containing it " \
+                                                     "is synchronizable, it can't be removed"); \
                 QNINFO(error << ", notebook: " << *notebookItem); \
-                emit notifyError(tr(error)); \
+                emit notifyError(error); \
                 return false; \
             } \
             \
             if (notebookItem->isLinkedNotebook()) { \
-                const char * error = QT_TR_NOOP("One of notebooks being removed along with the stack containing it " \
-                                                "is the linked notebook from another account, it can't be removed"); \
+                QNLocalizedString error = QT_TR_NOOP("one of notebooks being removed along with the stack containing it " \
+                                                     "is the linked notebook from another account, it can't be removed"); \
                 QNINFO(error << ", notebook: " << *notebookItem); \
-                emit notifyError(tr(error)); \
+                emit notifyError(error); \
                 return false; \
             }
 
@@ -1144,7 +1149,7 @@ void NotebookModel::onAddNotebookComplete(Notebook notebook, QUuid requestId)
     onNotebookAddedOrUpdated(notebook);
 }
 
-void NotebookModel::onAddNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void NotebookModel::onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_addNotebookRequestIds.find(requestId);
     if (it == m_addNotebookRequestIds.end()) {
@@ -1174,7 +1179,7 @@ void NotebookModel::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
     onNotebookAddedOrUpdated(notebook);
 }
 
-void NotebookModel::onUpdateNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void NotebookModel::onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_updateNotebookRequestIds.find(requestId);
     if (it == m_updateNotebookRequestIds.end()) {
@@ -1222,7 +1227,7 @@ void NotebookModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
     }
 }
 
-void NotebookModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void NotebookModel::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto restoreUpdateIt = m_findNotebookToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findNotebookToPerformUpdateRequestIds.find(requestId);
@@ -1277,7 +1282,7 @@ void NotebookModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOption
                                           size_t limit, size_t offset,
                                           LocalStorageManager::ListNotebooksOrder::type order,
                                           LocalStorageManager::OrderDirection::type orderDirection,
-                                          QString linkedNotebookGuid, QString errorDescription, QUuid requestId)
+                                          QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotebooksRequestId) {
         return;
@@ -1307,7 +1312,7 @@ void NotebookModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId
     removeItemByLocalUid(notebook.localUid());
 }
 
-void NotebookModel::onExpungeNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void NotebookModel::onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_expungeNotebookRequestIds.find(requestId);
     if (it == m_expungeNotebookRequestIds.end()) {
@@ -1346,16 +1351,16 @@ void NotebookModel::createConnections(LocalStorageManagerThreadWorker & localSto
     // localStorageManagerThreadWorker's signals to local slots
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NotebookModel,onAddNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(NotebookModel,onAddNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(NotebookModel,onAddNotebookFailed,Notebook,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NotebookModel,onUpdateNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(NotebookModel,onUpdateNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(NotebookModel,onUpdateNotebookFailed,Notebook,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NotebookModel,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(NotebookModel,onFindNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(NotebookModel,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksComplete,
                                                                 LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                                                 LocalStorageManager::ListNotebooksOrder::type,
@@ -1368,14 +1373,14 @@ void NotebookModel::createConnections(LocalStorageManagerThreadWorker & localSto
                                                                 LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                                                 LocalStorageManager::ListNotebooksOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,
-                                                                QString,QString,QUuid),
+                                                                QString,QNLocalizedString,QUuid),
                      this, QNSLOT(NotebookModel,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,QString,QUuid));
+                                  LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NotebookModel,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(NotebookModel,onExpungeNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(NotebookModel,onExpungeNotebookFailed,Notebook,QNLocalizedString,QUuid));
 }
 
 void NotebookModel::requestNotebooksList()

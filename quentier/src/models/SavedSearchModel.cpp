@@ -234,18 +234,20 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
             auto it = m_lowerCaseSavedSearchNames.find(name.toLower());
             if (it != m_lowerCaseSavedSearchNames.end()) {
-                const char * error = QT_TR_NOOP("Can't rename saved search: no two saved searches within the account "
-                                                "are allowed to have the same name in a case-insensitive manner");
+                QNLocalizedString error = QT_TR_NOOP("can't rename saved search: no two saved searches within the account "
+                                                     "are allowed to have the same name in a case-insensitive manner");
                 QNINFO(error << ", suggested new name = " << name);
-                emit notifyError(tr(error));
+                emit notifyError(error);
                 return false;
             }
 
-            QString error;
-            if (!SavedSearch::validateName(name, &error)) {
-                const char * errorPrefix = QT_TR_NOOP("Can't rename saved search");
-                QNINFO(errorPrefix << ": " << error << "; suggested new name = " << name);
-                emit notifyError(tr(errorPrefix));
+            QNLocalizedString errorDescription;
+            if (!SavedSearch::validateName(name, &errorDescription)) {
+                QNLocalizedString error = QT_TR_NOOP("can't rename saved search");
+                error += ": ";
+                error += errorDescription;
+                QNINFO(error << "; suggested new name = " << name);
+                emit notifyError(error);
                 return false;
             }
 
@@ -267,9 +269,9 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     case Columns::Synchronizable:
         {
             if (item.m_isSynchronizable) {
-                const char * error = QT_TR_NOOP("Can't make already synchronizable saved search not synchronizable");
+                QNLocalizedString error = QT_TR_NOOP("can't make already synchronizable saved search not synchronizable");
                 QNINFO(error << ", already synchronizable saved search item: " << item);
-                emit notifyError(tr(error));
+                emit notifyError(error);
                 return false;
             }
 
@@ -338,9 +340,9 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
 
     if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
     {
-        const char * error = QT_TR_NOOP("Detected attempt to remove more rows than the saved search model contains");
+        QNLocalizedString error = QT_TR_NOOP("detected attempt to remove more rows than the saved search model contains");
         QNINFO(error << ", row = " << row << ", count = " << count << ", number of saved search model items = " << m_data.size());
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return false;
     }
 
@@ -350,9 +352,9 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     {
         SavedSearchDataByIndex::iterator it = index.begin() + row + i;
         if (it->m_isSynchronizable) {
-            const char * error = QT_TR_NOOP("Can't remove synchronizable saved search");
+            QNLocalizedString error = QT_TR_NOOP("can't remove synchronizable saved search");
             QNINFO(error << ", synchronizable note item: " << *it);
-            emit notifyError(tr(error));
+            emit notifyError(error);
             return false;
         }
     }
@@ -457,7 +459,7 @@ void SavedSearchModel::onAddSavedSearchComplete(SavedSearch search, QUuid reques
     onSavedSearchAddedOrUpdated(search);
 }
 
-void SavedSearchModel::onAddSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+void SavedSearchModel::onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_addSavedSearchRequestIds.find(requestId);
     if (it == m_addSavedSearchRequestIds.end()) {
@@ -505,7 +507,7 @@ void SavedSearchModel::onUpdateSavedSearchComplete(SavedSearch search, QUuid req
     onSavedSearchAddedOrUpdated(search);
 }
 
-void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+void SavedSearchModel::onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_updateSavedSearchRequestIds.find(requestId);
     if (it == m_updateSavedSearchRequestIds.end()) {
@@ -553,7 +555,7 @@ void SavedSearchModel::onFindSavedSearchComplete(SavedSearch search, QUuid reque
     }
 }
 
-void SavedSearchModel::onFindSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+void SavedSearchModel::onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto restoreUpdateIt = m_findSavedSearchToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findSavedSearchToPerformUpdateRequestIds.find(requestId);
@@ -611,7 +613,7 @@ void SavedSearchModel::onListSavedSearchesFailed(LocalStorageManager::ListObject
                                                  size_t limit, size_t offset,
                                                  LocalStorageManager::ListSavedSearchesOrder::type order,
                                                  LocalStorageManager::OrderDirection::type orderDirection,
-                                                 QString errorDescription, QUuid requestId)
+                                                 QNLocalizedString errorDescription, QUuid requestId)
 {
     if (requestId != m_listSavedSearchesRequestId) {
         return;
@@ -654,9 +656,9 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     SavedSearchDataByIndex::iterator indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
-        const char * error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+        QNLocalizedString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
         QNWARNING(error);
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return;
     }
 
@@ -666,7 +668,7 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
     endRemoveRows();
 }
 
-void SavedSearchModel::onExpungeSavedSearchFailed(SavedSearch search, QString errorDescription, QUuid requestId)
+void SavedSearchModel::onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_expungeSavedSearchRequestIds.find(requestId);
     if (it == m_expungeSavedSearchRequestIds.end()) {
@@ -705,16 +707,16 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
     // localStorageManagerThreadWorker's signals to local slots
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(SavedSearchModel,onAddSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchFailed,SavedSearch,QString,QUuid),
-                     this, QNSLOT(SavedSearchModel,onAddSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
+                     this, QNSLOT(SavedSearchModel,onAddSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(SavedSearchModel,onUpdateSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QString,QUuid),
-                     this, QNSLOT(SavedSearchModel,onUpdateSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
+                     this, QNSLOT(SavedSearchModel,onUpdateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(SavedSearchModel,onFindSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QString,QUuid),
-                     this, QNSLOT(SavedSearchModel,onFindSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
+                     this, QNSLOT(SavedSearchModel,onFindSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,QList<SavedSearch>,QUuid),
@@ -724,14 +726,14 @@ void SavedSearchModel::createConnections(LocalStorageManagerThreadWorker & local
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
                                                                 LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,QString,QUuid),
+                                                                LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
                      this, QNSLOT(SavedSearchModel,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  QString,QUuid));
+                                  QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(SavedSearchModel,onExpungeSavedSearchComplete,SavedSearch,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchFailed,SavedSearch,QString,QUuid),
-                     this, QNSLOT(SavedSearchModel,onExpungeSavedSearchFailed,SavedSearch,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
+                     this, QNSLOT(SavedSearchModel,onExpungeSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
 }
 
 void SavedSearchModel::requestSavedSearchesList()
@@ -804,17 +806,17 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
     if (Q_UNLIKELY(indexIt == index.end())) {
-        const char * error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
+        QNLocalizedString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
         QNWARNING(error);
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return;
     }
 
     qint64 position = std::distance(index.begin(), indexIt);
     if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
-        const char * error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
+        QNLocalizedString error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
         QNWARNING(error);
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return;
     }
 

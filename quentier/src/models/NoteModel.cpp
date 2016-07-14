@@ -89,18 +89,18 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 {
     auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
     if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
-        const char * error = QT_TR_NOOP("Can't create new note: can't identify the notebook");
+        QNLocalizedString error = QT_TR_NOOP("can't create new note: can't identify the notebook");
         QNWARNING(error << ", notebook local uid = " << notebookLocalUid);
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return QModelIndex();
     }
 
     const NotebookData & notebookData = notebookIt.value();
     if (!notebookData.m_canCreateNotes) {
-        const char * error = QT_TR_NOOP("Can't create new note: notebook restrictions apply");
+        QNLocalizedString error = QT_TR_NOOP("can't create new note: notebook restrictions apply");
         QNWARNING(error << ", notebook local uid = " << notebookLocalUid << ", notebook name = "
                   << notebookData.m_name);
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return QModelIndex();
     }
 
@@ -346,9 +346,9 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     case Columns::Synchronizable:
         {
             if (item.isSynchronizable()) {
-                const char * error = QT_TR_NOOP("Can't make already synchronizable note not synchronizable");
+                QNLocalizedString error = QT_TR_NOOP("can't make already synchronizable note not synchronizable");
                 QNINFO(error << ", already synchronizable note item: " << item);
-                emit notifyError(tr(error));
+                emit notifyError(error);
                 return false;
             }
 
@@ -366,9 +366,9 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
                 timestamp = value.toLongLong(&conversionResult);
 
                 if (!conversionResult) {
-                    const char * error = QT_TR_NOOP("Can't change the deleted state of the note: wrong deletion timestamp value");
+                    QNLocalizedString error = QT_TR_NOOP("can't change the deleted state of the note: wrong deletion timestamp value");
                     QNINFO(error);
-                    emit notifyError(tr(error));
+                    emit notifyError(error);
                     return false;
                 }
             }
@@ -413,9 +413,9 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
 
     if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
     {
-        const char * error = QT_TR_NOOP("Detected attempt to remove more rows than the note model contains");
+        QNLocalizedString error = QT_TR_NOOP("detected attempt to remove more rows than the note model contains");
         QNINFO(error << ", row = " << row << ", count = " << count << ", number of note model items = " << m_data.size());
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return false;
     }
 
@@ -425,9 +425,9 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         auto it = index.begin() + row;
         if (it->isSynchronizable()) {
-            const char * error = QT_TR_NOOP("Can't remove synchronizable note");
+            QNLocalizedString error = QT_TR_NOOP("can't remove synchronizable note");
             QNINFO(error << ", synchronizable note item: " << *it);
-            emit notifyError(tr(error));
+            emit notifyError(error);
             return false;
         }
     }
@@ -571,7 +571,7 @@ void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
     onNoteAddedOrUpdated(note);
 }
 
-void NoteModel::onAddNoteFailed(Note note, QString errorDescription, QUuid requestId)
+void NoteModel::onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_addNoteRequestIds.find(requestId);
     if (it == m_addNoteRequestIds.end()) {
@@ -604,7 +604,7 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
 }
 
 void NoteModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                   QString errorDescription, QUuid requestId)
+                                   QNLocalizedString errorDescription, QUuid requestId)
 {
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
@@ -658,7 +658,7 @@ void NoteModel::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid
     }
 }
 
-void NoteModel::onFindNoteFailed(Note note, bool withResourceBinaryData, QString errorDescription, QUuid requestId)
+void NoteModel::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId)
 {
     Q_UNUSED(withResourceBinaryData)
 
@@ -713,7 +713,7 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
 void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                   size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                  QString errorDescription, QUuid requestId)
+                                  QNLocalizedString errorDescription, QUuid requestId)
 {
     if (requestId != m_listNotesRequestId) {
         return;
@@ -742,7 +742,7 @@ void NoteModel::onExpungeNoteComplete(Note note, QUuid requestId)
     removeItemByLocalUid(note.localUid());
 }
 
-void NoteModel::onExpungeNoteFailed(Note note, QString errorDescription, QUuid requestId)
+void NoteModel::onExpungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_expungeNoteRequestIds.find(requestId);
     if (it == m_expungeNoteRequestIds.end()) {
@@ -772,7 +772,7 @@ void NoteModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
     updateNotebookData(notebook);
 }
 
-void NoteModel::onFindNotebookFailed(Notebook notebook, QString errorDescription, QUuid requestId)
+void NoteModel::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_findNotebookRequestForNotebookLocalUid.right.find(requestId);
     if (it == m_findNotebookRequestForNotebookLocalUid.right.end()) {
@@ -828,7 +828,7 @@ void NoteModel::onFindTagComplete(Tag tag, QUuid requestId)
     updateTagData(tag);
 }
 
-void NoteModel::onFindTagFailed(Tag tag, QString errorDescription, QUuid requestId)
+void NoteModel::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_findTagRequestForTagLocalUid.right.find(requestId);
     if (it == m_findTagRequestForTagLocalUid.right.end()) {
@@ -929,33 +929,33 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
     // localStorageManagerThreadWorker's signals to local slots
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModel,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QString,QUuid),
-                     this, QNSLOT(NoteModel,onAddNoteFailed,Note,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteModel,onAddNoteFailed,Note,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QString,QUuid),
-                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,bool,bool,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteModel,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(NoteModel,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QString,QUuid),
-                     this, QNSLOT(NoteModel,onFindNoteFailed,Note,bool,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteModel,onFindNoteFailed,Note,bool,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                                                 LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
                                                                 QList<Note>,QUuid),
                      this, QNSLOT(NoteModel,onListNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
                                   LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QList<Note>,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                                                LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid),
+                                                                LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
                      this, QNSLOT(NoteModel,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QString,QUuid));
+                                  LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModel,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QString,QUuid),
-                     this, QNSLOT(NoteModel,onExpungeNoteFailed,Note,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteModel,onExpungeNoteFailed,Note,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteModel,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QString,QUuid),
-                     this, QNSLOT(NoteModel,onFindNotebookFailed,Notebook,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteModel,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteModel,onAddNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
@@ -964,8 +964,8 @@ void NoteModel::createConnections(LocalStorageManagerThreadWorker & localStorage
                      this, QNSLOT(NoteModel,onExpungeNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteModel,onFindTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QString,QUuid),
-                     this, QNSLOT(NoteModel,onFindTagFailed,Tag,QString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteModel,onFindTagFailed,Tag,QNLocalizedString,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
                      this, QNSLOT(NoteModel,onAddTagComplete,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
@@ -1129,10 +1129,10 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
             break;
         }
     case Columns::Synchronizable:
-        accessibleText += (item.isSynchronizable() ? QT_TR_NOOP("synchronizable") : QT_TR_NOOP("not synchronizable"));
+        accessibleText += (item.isSynchronizable() ? tr("synchronizable") : tr("not synchronizable"));
         break;
     case Columns::Dirty:
-        accessibleText += (item.isDirty() ? QT_TR_NOOP("dirty") : QT_TR_NOOP("not dirty"));
+        accessibleText += (item.isDirty() ? tr("dirty") : tr("not dirty"));
         break;
     case Columns::ThumbnailImageFilePath:
     default:
@@ -1492,9 +1492,9 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
 
     if (!notebookData.m_canCreateNotes)
     {
-        const char * error = QT_TR_NOOP("Can't create the new note: notebook restrictions apply");
+        QNLocalizedString error = QT_TR_NOOP("can't create the new note: notebook restrictions apply");
         QNINFO(error << ", notebook name = " << notebookData.m_name);
-        emit notifyError(tr(error));
+        emit notifyError(error);
         return;
     }
 
@@ -1597,9 +1597,9 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         NoteDataByIndex & index = m_data.get<ByIndex>();
         auto indexIt = m_data.project<ByIndex>(it);
         if (Q_UNLIKELY(indexIt == index.end())) {
-            const char * error = QT_TR_NOOP("Can't project the local uid index to the note item to the random access index iterator");
+            QNLocalizedString error = QT_TR_NOOP("can't project the local uid index to the note item to the random access index iterator");
             QNWARNING(error << ", note model item: " << item);
-            emit notifyError(tr(error));
+            emit notifyError(error);
             return;
         }
 
