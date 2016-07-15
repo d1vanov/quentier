@@ -13,4 +13,3 @@ WRAP("style")
 WRAP("title")
 WRAP("lang")
 WRAP("dir")
-
