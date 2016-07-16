@@ -425,7 +425,8 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         error += QT_TR_NOOP("is not available. Available SQL drivers");
         error += ": ";
         const QStringList drivers = QSqlDatabase::drivers();
-        foreach(const QString & driver, drivers) {
+        for(auto it = drivers.begin(), end = drivers.end(); it != end; ++it) {
+            const QString & driver = *it;
             error += QString("{" + driver + "} ");
         }
         throw DatabaseSqlErrorException(error);
@@ -2350,8 +2351,10 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
     }
 
     QString joinedLocalUids;
-    foreach(const QString & item, foundLocalUids)
+    for(auto it = foundLocalUids.begin(), end = foundLocalUids.end(); it != end; ++it)
     {
+        const QString & item = *it;
+
         if (!joinedLocalUids.isEmpty()) {
             joinedLocalUids += ", ";
         }
@@ -8120,8 +8123,10 @@ bool LocalStorageManagerPrivate::findAndSetResourcesPerNote(Note & note, QNLocal
     QNLocalizedString error;
     QList<ResourceWrapper> resources;
     resources.reserve(std::max(numResources, 0));
-    foreach(const QString & resourceLocalUid, resourceLocalUids)
+    for(auto it = resourceLocalUids.begin(), end = resourceLocalUids.end(); it != end; ++it)
     {
+        const QString & resourceLocalUid = *it;
+
         resources << ResourceWrapper();
         ResourceWrapper & resource = resources.back();
         resource.setLocalUid(resourceLocalUid);
@@ -8269,8 +8274,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 const int numTagLocalUids = tagLocalUids.size();
                 sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
-                foreach(const QString & tagLocalUid, tagLocalUids) {
-                    sql += tagLocalUid;
+                for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8286,8 +8291,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
                 sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag "
                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
-                foreach(const QString & tagLocalUid, tagLocalUids) {
-                    sql += tagLocalUid;
+                for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8323,8 +8328,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 const int numTagNegatedLocalUids = tagNegatedLocalUids.size();
                 sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
-                foreach(const QString & tagNegatedLocalUid, tagNegatedLocalUids) {
-                    sql += tagNegatedLocalUid;
+                for(auto it = tagNegatedLocalUids.begin(), end = tagNegatedLocalUids.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8345,8 +8350,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
                 sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag "
                        "FROM NoteTags WHERE NoteTags.localTag IN ('";
-                foreach(const QString & tagNegatedLocalUid, tagNegatedLocalUids) {
-                    sql += tagNegatedLocalUid;
+                for(auto it = tagNegatedLocalUids.begin(), end = tagNegatedLocalUids.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8410,8 +8415,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
                 sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
                        "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceLocalUid, resourceLocalUidsPerMime) {
-                    sql += resourceLocalUid;
+                for(auto it = resourceLocalUidsPerMime.begin(), end = resourceLocalUidsPerMime.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8427,8 +8432,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
                 sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
                        "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceLocalUid, resourceLocalUidsPerMime) {
-                    sql += resourceLocalUid;
+                for(auto it = resourceLocalUidsPerMime.begin(), end = resourceLocalUidsPerMime.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8461,8 +8466,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             {
                 sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
                        "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceNegatedLocalUid, resourceNegatedLocalUidsPerMime) {
-                    sql += resourceNegatedLocalUid;
+                for(auto it = resourceNegatedLocalUidsPerMime.begin(), end = resourceNegatedLocalUidsPerMime.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8479,8 +8484,8 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             {
                 sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
                        "FROM NoteResources WHERE NoteResources.localResource IN ('";
-                foreach(const QString & resourceNegatedLocalUid, resourceNegatedLocalUidsPerMime) {
-                    sql += resourceNegatedLocalUid;
+                for(auto it = resourceNegatedLocalUidsPerMime.begin(), end = resourceNegatedLocalUidsPerMime.end(); it != end; ++it) {
+                    sql += *it;
                     sql += "', '";
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
@@ -8515,8 +8520,9 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
         sql += "("; \
-        foreach(const auto & item, noteSearchQuery##list##column) \
+        for(auto it = noteSearchQuery##list##column.begin(), end = noteSearchQuery##list##column.end(); it != end; ++it) \
         { \
+            const auto & item = *it; \
             if (negated) { \
                 sql += "(localUid NOT IN "; \
             } \
@@ -8916,8 +8922,9 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
     else
     {
         bool someTagNameHasWhitespace = false;
-        foreach(const QString & tagName, tagNames)
+        for(auto it = tagNames.begin(), end = tagNames.end(); it != end; ++it)
         {
+            const QString & tagName = *it;
             if (tagName.contains(" ")) {
                 someTagNameHasWhitespace = true;
                 break;
@@ -8931,7 +8938,8 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
             queryString = "SELECT localUid FROM Tags WHERE ";
 
-            foreach(const QString & tagName, tagNames) {
+            for(auto it = tagNames.begin(), end = tagNames.end(); it != end; ++it) {
+                const QString & tagName = *it;
                 queryString += "(nameLower = \'";
                 queryString += tagName.toLower();
                 queryString += "\') OR ";
@@ -8942,7 +8950,8 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
         {
             queryString = "SELECT localUid FROM TagFTS WHERE ";
 
-            foreach(const QString & tagName, tagNames) {
+            for(auto it = tagNames.begin(), end = tagNames.end(); it != end; ++it) {
+                const QString & tagName = *it;
                 queryString += "(localUid IN (SELECT localUid FROM TagFTS WHERE nameLower MATCH \'";
                 queryString += tagName.toLower();
                 queryString += "\')) OR ";
@@ -9005,8 +9014,9 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     else
     {
         bool someMimeTypeHasWhitespace = false;
-        foreach(const QString & mimeType, resourceMimeTypes)
+        for(auto it = resourceMimeTypes.begin(), end = resourceMimeTypes.end(); it != end; ++it)
         {
+            const QString & mimeType = *it;
             if (mimeType.contains(" ")) {
                 someMimeTypeHasWhitespace = true;
                 break;
@@ -9020,7 +9030,8 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
             queryString = "SELECT resourceLocalUid FROM Resources WHERE ";
 
-            foreach(const QString & mimeType, resourceMimeTypes) {
+            for(auto it = resourceMimeTypes.begin(), end = resourceMimeTypes.end(); it != end; ++it) {
+                const QString & mimeType = *it;
                 queryString += "(mime = \'";
                 queryString += mimeType;
                 queryString += "\') OR ";
@@ -9032,7 +9043,8 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
             // For unknown reason statements like "MATCH 'x OR y'" don't work for me while
             // "SELECT ... MATCH 'x' UNION SELECT ... MATCH 'y'" does work.
 
-            foreach(const QString & mimeType, resourceMimeTypes) {
+            for(auto it = resourceMimeTypes.begin(), end = resourceMimeTypes.end(); it != end; ++it) {
+                const QString & mimeType = *it;
                 queryString += "SELECT resourceLocalUid FROM ResourceMimeFTS WHERE mime MATCH \'";
                 queryString += mimeType;
                 queryString += "\' UNION ";
