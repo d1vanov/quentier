@@ -70,6 +70,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NotebookStackItem.h
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
+    src/models/NoteFilterModel.h
     src/models/NoteModel.h
     src/models/NoteCache.h
     src/models/FavoritesModel.h
@@ -106,6 +107,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
     src/models/NoteModelItem.cpp
+    src/models/NoteFilterModel.cpp
     src/models/NoteModel.cpp
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
@@ -197,6 +199,7 @@ set(MODEL_TEST_HEADERS
     src/models/NotebookStackItem.h
     src/models/NotebookCache.h
     src/models/NoteModelItem.h
+    src/models/NoteFilterModel.h
     src/models/NoteModel.h
     src/models/NoteCache.h
     src/models/FavoritesModel.h
@@ -220,6 +223,7 @@ set(MODEL_TEST_SOURCES
     src/models/NotebookItem.cpp
     src/models/NotebookStackItem.cpp
     src/models/NoteModelItem.cpp
+    src/models/NoteFilterModel.cpp
     src/models/NoteModel.cpp
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp)
@@ -241,14 +245,12 @@ endif()
 target_link_libraries(${PROJECT_NAME}_model_test ${LIB_QUENTIER} ${THIRDPARTY_LIBS})
 
 # include dirs for cppcheck
-set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/client")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/enml")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/types")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/evernote_sdk/src")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/gui")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/note_editor")
-list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/evernote_client/tools")
+set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/models")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/tests")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/color-picker-tool-button")
+list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/insert-table-tool-button")
 
 # modify the sources list for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
