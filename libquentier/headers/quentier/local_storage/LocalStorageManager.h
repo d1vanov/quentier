@@ -607,7 +607,16 @@ public:
                           const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
     /**
-     * @brief findNotesWithSearchQuery - attempt to find notes corresponding to passed in
+     * @brief findNoteLocalUidsWithSearchQuery - attempt to find note local uids of notes
+     * corresponding to the passed in NoteSearchQuery object.
+     * @param noteSearchQuery - filled NoteSearchQuery object used to filter the notes
+     * @param errorDescription - error description in case note local uids could not be listed
+     */
+    QStringList findNoteLocalUidsWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                 QNLocalizedString & errorDescription) const;
+
+    /**
+     * @brief findNotesWithSearchQuery - attempt to find notes corresponding to the passed in
      * NoteSearchQuery object.
      * @param noteSearchQuery - filled NoteSearchQuery object used to filter the notes
      * @param errorDescription - error description in case notes could not be listed

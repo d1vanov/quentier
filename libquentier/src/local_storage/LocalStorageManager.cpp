@@ -279,6 +279,13 @@ QList<Note> LocalStorageManager::listNotes(const ListObjectsOptions flag, QNLoca
     return d->listNotes(flag, errorDescription, withResourceBinaryData, limit, offset, order, orderDirection);
 }
 
+QStringList LocalStorageManager::findNoteLocalUidsWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                                  QNLocalizedString & errorDescription) const
+{
+    Q_D(const LocalStorageManager);
+    return d->findNoteLocalUidsWithSearchQuery(noteSearchQuery, errorDescription);
+}
+
 NoteList LocalStorageManager::findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
                                                        QNLocalizedString & errorDescription,
                                                        const bool withResourceBinaryData) const

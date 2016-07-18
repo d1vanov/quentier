@@ -113,6 +113,8 @@ public:
                           const LocalStorageManager::OrderDirection::type & orderDirection) const;
     bool expungeNote(Note & note, QNLocalizedString & errorDescription);
 
+    QStringList findNoteLocalUidsWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                 QNLocalizedString & errorDescription) const;
     NoteList findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
                                       QNLocalizedString & errorDescription,
                                       const bool withResourceBinaryData = true) const;

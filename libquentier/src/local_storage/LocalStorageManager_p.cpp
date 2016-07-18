@@ -2295,14 +2295,13 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
     return true;
 }
 
-NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
-                                                              QNLocalizedString & errorDescription,
-                                                              const bool withResourceBinaryData) const
+QStringList LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                                         QNLocalizedString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::findNotesWithSearchQuery: " << noteSearchQuery);
+    QNDEBUG("LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery: " << noteSearchQuery);
 
     if (!noteSearchQuery.isMatcheable()) {
-        return NoteList();
+        return QStringList();
     }
 
     QString queryString;
@@ -2322,7 +2321,7 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         errorDescription += ": ";
         errorDescription += error;
         QNWARNING(errorDescription);
-        return NoteList();
+        return QStringList();
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -2330,7 +2329,7 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
     if (!res) {
         SET_ERROR();
         QNWARNING("Full executed SQL query: " << queryString);
-        return NoteList();
+        return QStringList();
     }
 
     QSet<QString> foundLocalUids;
@@ -2350,6 +2349,26 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         foundLocalUids.insert(value);
     }
 
+    QStringList result;
+    result.reserve(foundLocalUids.size());
+    for(auto it = foundLocalUids.begin(), end = foundLocalUids.end(); it != end; ++it) {
+        result << *it;
+    }
+
+    return result;
+}
+
+NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
+                                                              QNLocalizedString & errorDescription,
+                                                              const bool withResourceBinaryData) const
+{
+    QNDEBUG("LocalStorageManagerPrivate::findNotesWithSearchQuery: " << noteSearchQuery);
+
+    QStringList foundLocalUids = findNoteLocalUidsWithSearchQuery(noteSearchQuery, errorDescription);
+    if (foundLocalUids.isEmpty()) {
+        return NoteList();
+    }
+
     QString joinedLocalUids;
     for(auto it = foundLocalUids.begin(), end = foundLocalUids.end(); it != end; ++it)
     {
@@ -2364,8 +2383,11 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         joinedLocalUids += "'";
     }
 
-    queryString = QString("SELECT * FROM Notes WHERE localUid IN (%1)").arg(joinedLocalUids);
-    res = query.exec(queryString);
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't find notes with the note search query");
+
+    QString queryString = QString("SELECT * FROM Notes WHERE localUid IN (%1)").arg(joinedLocalUids);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(queryString);
     if (Q_UNLIKELY(!res)) {
         SET_ERROR();
         return NoteList();
@@ -2373,6 +2395,7 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
 
     NoteList notes;
     notes.reserve(qMax(query.size(), 0));
+    QNLocalizedString error;
 
     while(query.next())
     {
