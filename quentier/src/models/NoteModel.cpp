@@ -92,7 +92,7 @@ const NoteModelItem * NoteModel::itemForLocalUid(const QString & localUid) const
     return &(*it);
 }
 
-const NoteModelItem *NoteModel::itemAtRow(const int row) const
+const NoteModelItem * NoteModel::itemAtRow(const int row) const
 {
     const NoteDataByIndex & index = m_data.get<ByIndex>();
     if (Q_UNLIKELY((row < 0) || (index.size() <= static_cast<size_t>(row)))) {
@@ -101,6 +101,19 @@ const NoteModelItem *NoteModel::itemAtRow(const int row) const
     }
 
     return &(index[static_cast<size_t>(row)]);
+}
+
+const NoteModelItem * NoteModel::itemForIndex(const QModelIndex & index) const
+{
+    if (!index.isValid()) {
+        return Q_NULLPTR;
+    }
+
+    if (index.parent().isValid()) {
+        return Q_NULLPTR;
+    }
+
+    return itemAtRow(index.row());
 }
 
 QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
