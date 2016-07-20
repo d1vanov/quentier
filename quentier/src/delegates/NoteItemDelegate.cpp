@@ -69,8 +69,18 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-    // TODO: process option flags
-    Q_UNUSED(option)
+    painter->fillRect(m_itemRect, option.palette.background());
+    painter->setPen(option.palette.windowText().color());
+
+    if (option.state & QStyle::State_Selected) {
+        QPen originalPen = painter->pen();
+        QPen pen = originalPen;
+        pen.setWidth(1);
+        pen.setColor(option.palette.highlightedText().color());
+        painter->setPen(pen);
+        painter->drawRoundedRect(QRectF(m_itemRect.adjusted(1, 1, -1, -1)), 2, 2);
+        painter->setPen(originalPen);
+    }
 
     QFont boldFont = painter->font();
     boldFont.setBold(true);
@@ -88,98 +98,101 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         width -= 120;
     }
 
-    int column = index.column();
-    if (column == NoteModel::Columns::Title)
-    {
-        QRect titleRect(left, m_itemRect.top() + m_topMargin,
-                        width, boldFontMetrics.height());
+    // 1) Painting the title (or a piece of preview text if there's no title)
+    QRect titleRect(left, m_itemRect.top() + m_topMargin,
+                    width, boldFontMetrics.height());
 
-        QString title = pItem->title();
-        if (title.isEmpty()) {
-            title = pItem->previewText();
-        }
-
-        if (!title.isEmpty()) {
-            m_doc.setHtml("<b>" + title + "</b>");
-        }
-        else {
-            m_doc.setPlainText(QString());
-        }
-
-        m_doc.drawContents(painter, titleRect);
+    QString title = pItem->title();
+    if (title.isEmpty()) {
+        title = pItem->previewText();
     }
-    else if ( (column == NoteModel::Columns::CreationTimestamp) ||
-              (column == NoteModel::Columns::ModificationTimestamp) ||
-              (column == NoteModel::Columns::DeletionTimestamp) )
-    {
-        qint64 targetTimestamp = 0;
-        bool deleted = false;
 
-        qint64 deletionTimestamp = pItem->deletionTimestamp();
-        if (deletionTimestamp != 0) {
-            targetTimestamp = deletionTimestamp;
-            deleted = true;
-        }
-        else {
-            qint64 modificationTimestamp = pItem->modificationTimestamp();
-            qint64 creationTimestamp = pItem->creationTimestamp();
-            targetTimestamp = std::max(creationTimestamp, modificationTimestamp);
-        }
-
-        qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
-
-        qint64 timeSpan = currentTimestamp - targetTimestamp;
-
-        QString text;
-        if (timeSpan > MSEC_PER_WEEK)
-        {
-            int pastWeeks = static_cast<int>(std::floor(timeSpan / MSEC_PER_WEEK + 0.5));
-
-            if (pastWeeks == 1) {
-                text = tr("Last week");
-            }
-            else if (pastWeeks < 5) {
-                text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
-            }
-        }
-        else if (timeSpan > MSEC_PER_DAY)
-        {
-            int pastDays = static_cast<int>(std::floor(timeSpan / MSEC_PER_DAY + 0.5));
-
-            if (pastDays == 1) {
-                text = tr("Yesterday");
-            }
-            else if (pastDays < 6) {
-                text = tr("%n days ago", Q_NULLPTR, pastDays);
-            }
-        }
-
-        if (text.isEmpty()) {
-            text = QDateTime::fromMSecsSinceEpoch(targetTimestamp).toString(Qt::ISODate);
-        }
-
-        if (deleted) {
-            text = tr("Deleted") + " " + text;
-        }
-
-        int top = m_itemRect.top() + m_topMargin + boldFontMetrics.height() + 2;
-        QRect dateTimeRect(left, top, width, m_itemRect.height() - top);
-
-        m_doc.setDefaultFont(smallerFont);
-        m_doc.setPlainText(text);
-        m_doc.drawContents(painter, dateTimeRect);
+    if (!title.isEmpty()) {
+        m_doc.setHtml("<b>" + title + "</b>");
     }
-    else if (column == NoteModel::Columns::PreviewText)
-    {
-        int top = m_itemRect.top() + m_topMargin + boldFontMetrics.height() + smallerFontMetrics.height() + 4;
-        QRect previewTextRect(left, top, width, m_itemRect.height() - top);
-
-        m_doc.setDefaultFont(painter->font());
-        m_doc.setPlainText(pItem->previewText());
-        m_doc.drawContents(painter, previewTextRect);
+    else {
+        m_doc.setPlainText(QString());
     }
-    else if ((column == NoteModel::Columns::ThumbnailImageFilePath) && !thumbnail.isNull())
+
+    m_doc.drawContents(painter, titleRect);
+
+    // 2) Painting the created/modified/deleted datetime
+    qint64 targetTimestamp = 0;
+    bool deleted = false;
+
+    qint64 deletionTimestamp = pItem->deletionTimestamp();
+    if (deletionTimestamp != 0) {
+        targetTimestamp = deletionTimestamp;
+        deleted = true;
+    }
+    else {
+        qint64 modificationTimestamp = pItem->modificationTimestamp();
+        qint64 creationTimestamp = pItem->creationTimestamp();
+        targetTimestamp = std::max(creationTimestamp, modificationTimestamp);
+    }
+
+    qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+
+    qint64 timeSpan = currentTimestamp - targetTimestamp;
+
+#define CHECK_AND_SET_DELETED_PREFIX(text) \
+    if (deleted) { \
+        text.prepend(tr(QT_TR_NOOP("Deleted")) + " "); \
+    }
+
+    QString text;
+    if (timeSpan > MSEC_PER_WEEK)
     {
+        int pastWeeks = static_cast<int>(std::floor(timeSpan / MSEC_PER_WEEK + 0.5));
+
+        if (pastWeeks == 1) {
+            text = (deleted ? tr("Deleted last week") : tr("Last week"));
+        }
+        else if (pastWeeks < 5) {
+            text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
+            CHECK_AND_SET_DELETED_PREFIX(text)
+        }
+    }
+    else if (timeSpan > MSEC_PER_DAY)
+    {
+        int pastDays = static_cast<int>(std::floor(timeSpan / MSEC_PER_DAY + 0.5));
+
+        if (pastDays == 1) {
+            text = (deleted ? tr("Deleted yesterday") : tr("Yesterday"));
+        }
+        else if (pastDays < 6) {
+            text = tr("%n days ago", Q_NULLPTR, pastDays);
+            if (deleted) {
+                CHECK_AND_SET_DELETED_PREFIX(text)
+            }
+        }
+    }
+
+    if (text.isEmpty()) {
+        text = QDateTime::fromMSecsSinceEpoch(targetTimestamp).toString(Qt::ISODate);
+        CHECK_AND_SET_DELETED_PREFIX(text)
+    }
+
+    int top = m_itemRect.top() + m_topMargin + boldFontMetrics.height() + 2;
+    QRect dateTimeRect(left, top, width, m_itemRect.height() - top);
+
+    m_doc.setDefaultFont(smallerFont);
+    m_doc.setPlainText(text);
+    m_doc.drawContents(painter, dateTimeRect);
+
+#undef CHECK_AND_SET_DELETED_PREFIX
+
+    // 3) Painting the preview text
+
+    top = m_itemRect.top() + m_topMargin + boldFontMetrics.height() + smallerFontMetrics.height() + 4;
+    QRect previewTextRect(left, top, width, m_itemRect.height() - top);
+
+    m_doc.setDefaultFont(painter->font());
+    m_doc.setPlainText(pItem->previewText());
+    m_doc.drawContents(painter, previewTextRect);
+
+    // 4) Painting the thumbnail (if any)
+    if (!thumbnail.isNull()) {
         int top = m_itemRect.top() + m_topMargin;
         int bottom = m_itemRect.bottom() - m_bottomMargin;
         QRect thumbnailRect(m_itemRect.width() - 110, top, 100, bottom);
