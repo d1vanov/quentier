@@ -83,6 +83,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelector.h
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
+    src/widgets/NoteEditorWidget.h
     src/widgets/NoteTagWidget.h
     src/widgets/NoteTagsWidget.h
     src/tests/ManualTestingHelper.h)
@@ -115,6 +116,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/NoteItemDelegate.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp
+    src/widgets/NoteEditorWidget.cpp
     src/widgets/NoteTagWidget.cpp
     src/widgets/NoteTagsWidget.cpp
     src/tests/ManualTestingHelper.cpp
@@ -125,7 +127,8 @@ set(FORMS
     src/FindAndReplaceWidget.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/NewTagLineEditor.ui
-src/widgets/NoteTagWidget.ui)
+    src/widgets/NoteEditorWidget.ui
+    src/widgets/NoteTagWidget.ui)
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
