@@ -188,6 +188,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_imageAreasHilitorJs(),
     m_findReplaceManagerJs(),
     m_spellCheckerJs(),
+    m_managedPageActionJs(),
 #ifndef USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
@@ -449,6 +450,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_hilitorJs);
     page->executeJavaScript(m_imageAreasHilitorJs);
     page->executeJavaScript(m_spellCheckerJs);
+    page->executeJavaScript(m_managedPageActionJs);
 
     if (m_isPageEditable) {
         QNTRACE("Note page is editable");
@@ -2070,6 +2072,46 @@ void NoteEditorPrivate::pushTableActionUndoCommand(const QString & name, NoteEdi
     m_pUndoStack->push(pCommand);
 }
 
+void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, const QVector<QPair<QString, QString> > & extraData)
+{
+    QNDEBUG("NoteEditorPrivate::onManagedPageActionFinished: " << result);
+    Q_UNUSED(extraData)
+
+    AUTO_SET_FOCUS()
+
+    QMap<QString,QVariant> resultMap = result.toMap();
+
+    auto statusIt = resultMap.find("status");
+    if (Q_UNLIKELY(statusIt == resultMap.end())) {
+        QNLocalizedString error = QT_TR_NOOP("can't parse the result of managed page action execution attempt");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    bool res = statusIt.value().toBool();
+    if (!res)
+    {
+        QString errorMessage;
+        auto errorIt = resultMap.find("error");
+        if (errorIt != resultMap.end()) {
+            errorMessage = errorIt.value().toString();
+        }
+
+        QNLocalizedString error = QT_TR_NOOP("can't execute page action");
+        if (!errorMessage.isEmpty()) {
+            error += ": ";
+            error += errorMessage;
+        }
+
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    pushNoteContentEditUndoCommand();
+}
+
 void NoteEditorPrivate::changeFontSize(const bool increase)
 {
     QNDEBUG("NoteEditorPrivate::changeFontSize: increase = " << (increase ? "true" : "false"));
@@ -2148,7 +2190,7 @@ void NoteEditorPrivate::changeIndentation(const bool increase)
 {
     QNDEBUG("NoteEditorPrivate::changeIndentation: increase = " << (increase ? "true" : "false"));
 
-    execJavascriptCommand((increase ? "indent" : "outdent"));
+    execJavascriptCommand(increase ? "indent" : "outdent");
     setFocus();
 }
 
@@ -3517,6 +3559,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/replaceSelectionWithHtml.js", m_replaceSelectionWithHtmlJs);
     SETUP_SCRIPT("javascript/scripts/findReplaceManager.js", m_findReplaceManagerJs);
     SETUP_SCRIPT("javascript/scripts/spellChecker.js", m_spellCheckerJs);
+    SETUP_SCRIPT("javascript/scripts/managedPageAction.js", m_managedPageActionJs);
     SETUP_SCRIPT("javascript/scripts/replaceHyperlinkContent.js", m_replaceHyperlinkContentJs);
     SETUP_SCRIPT("javascript/scripts/updateResourceHash.js", m_updateResourceHashJs);
     SETUP_SCRIPT("javascript/scripts/updateImageResourceSrc.js", m_updateImageResourceSrcJs);
@@ -4282,10 +4325,10 @@ void NoteEditorPrivate::setupAddHyperlinkDelegate(const quint64 hyperlinkId, con
 }
 
 #define COMMAND_TO_JS(command) \
-    QString javascript = QString("document.execCommand(\"%1\", false, null)").arg(command)
+    QString javascript = QString("managedPageAction(\"%1\", null)").arg(command)
 
 #define COMMAND_WITH_ARGS_TO_JS(command, args) \
-    QString javascript = QString("document.execCommand('%1', false, '%2')").arg(command,args)
+    QString javascript = QString("managedPageAction('%1', '%2')").arg(command,args)
 
 #ifndef USE_QT_WEB_ENGINE
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
@@ -4307,20 +4350,21 @@ QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & comm
 }
 #endif
 
-void NoteEditorPrivate::execJavascriptCommand(const QString & command, NoteEditorPage::Callback callback)
+void NoteEditorPrivate::execJavascriptCommand(const QString & command)
 {
     COMMAND_TO_JS(command);
 
     GET_PAGE()
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onManagedPageActionFinished);
     page->executeJavaScript(javascript, callback);
 }
 
-void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args,
-                                              NoteEditorPage::Callback callback)
+void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QString & args)
 {
     COMMAND_WITH_ARGS_TO_JS(command, args);
 
     GET_PAGE()
+    NoteEditorCallbackFunctor<QVariant> callback(this, &NoteEditorPrivate::onManagedPageActionFinished);
     page->executeJavaScript(javascript, callback);
 }
 
@@ -5146,20 +5190,11 @@ void NoteEditorPrivate::fontMenu()
 
 #undef HANDLE_ACTION
 
-#ifndef USE_QT_WEB_ENGINE
-#define HANDLE_ACTION(method, name, item, command) \
-    QNDEBUG("NoteEditorPrivate::" #method); \
-    AUTO_SET_FOCUS() \
-    CHECK_NOTE_EDITABLE(name) \
-    GET_PAGE() \
-    page->triggerAction(QWebPage::item)
-#else
 #define HANDLE_ACTION(method, name, item, command) \
     QNDEBUG("NoteEditorPrivate::" #method); \
     AUTO_SET_FOCUS() \
     CHECK_NOTE_EDITABLE(name) \
     execJavascriptCommand(#command)
-#endif
 
 void NoteEditorPrivate::textBold()
 {
@@ -5300,7 +5335,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("insert checkbox"))
 
     QString html = ENMLConverter::toDoCheckboxHtml(/* checked = */ false, m_lastFreeEnToDoIdNumber++);
-    QString javascript = QString("document.execCommand('insertHtml', false, '%1'); ").arg(html);
+    QString javascript = QString("managedPageAction('insertHtml', '%1'); ").arg(html);
     javascript += m_setupEnToDoTagsJs;
 
     page->executeJavaScript(javascript);
@@ -5335,7 +5370,9 @@ bool NoteEditorPrivate::spellCheckEnabled() const
 void NoteEditorPrivate::setFont(const QFont & font)
 {
     QNDEBUG("NoteEditorPrivate::setFont: " << font.family()
-            << ", point size = " << font.pointSize());
+            << ", point size = " << font.pointSize()
+            << ", previous font family = " << m_font.family()
+            << ", previous font point size = " << m_font.pointSize());
 
     AUTO_SET_FOCUS()
 
@@ -6208,7 +6245,7 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
                                                    const QVector<QPair<QString, QString> > & extraData)
 {
     QNDEBUG("NoteEditorPrivate::onFoundSelectedHyperlinkId: " << hyperlinkData);
-    Q_UNUSED(extraData);
+    Q_UNUSED(extraData)
 
     QMap<QString,QVariant> resultMap = hyperlinkData.toMap();
 

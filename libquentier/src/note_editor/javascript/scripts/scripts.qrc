@@ -35,5 +35,6 @@
         <file>clickInterceptor.js</file>
         <file>findReplaceManager.js</file>
         <file>imageAreasHilitor.js</file>
+        <file>managedPageAction.js</file>
     </qresource>
 </RCC>

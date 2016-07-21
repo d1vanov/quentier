@@ -96,8 +96,8 @@ public:
     QVariant execJavascriptCommandWithResult(const QString & command, const QString & args);
 #endif
 
-    void execJavascriptCommand(const QString & command, NoteEditorPage::Callback callback = 0);
-    void execJavascriptCommand(const QString & command, const QString & args, NoteEditorPage::Callback = 0);
+    void execJavascriptCommand(const QString & command);
+    void execJavascriptCommand(const QString & command, const QString & args);
 
 Q_SIGNALS:
     void contentChanged();
@@ -421,6 +421,8 @@ private:
     QString composeHtmlTable(const T width, const T singleColumnWidth, const int rows,
                              const int columns, const bool relative);
 
+    void onManagedPageActionFinished(const QVariant & result, const QVector<QPair<QString, QString> > & extraData);
+
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
 
@@ -672,6 +674,7 @@ private:
     QString     m_imageAreasHilitorJs;
     QString     m_findReplaceManagerJs;
     QString     m_spellCheckerJs;
+    QString     m_managedPageActionJs;
 
 #ifndef USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;

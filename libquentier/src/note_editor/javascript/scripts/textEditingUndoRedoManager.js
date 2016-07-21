@@ -59,10 +59,15 @@ function TextEditingUndoRedoManager() {
     }
 
     this.collectHtmlWithOldTextNodeValue = function(element, textNode, value) {
+        console.log("TextEditingUndoRedoManager::collectHtmlWithOldTextNodeValue");
         var html = "";
         for(var i = 0; i < element.childNodes.length; ++i) {
             var child = element.childNodes[i];
+            console.log("Inspecting node: type = " + child.nodeType + ", name = " + child.nodeName +
+                        ", node value = " + (child.nodeType === 3 ? child.nodeValue : child.innerHTML));
+
             if (child === textNode) {
+                console.log("This node is the mutated node, taking the old value \"" + value + "\" instead of its actual value");
                 html += value;
             }
             else if (child.nodeType === 3) {

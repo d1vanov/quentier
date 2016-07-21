@@ -45,6 +45,8 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 }
 
+using quentier::QNLocalizedString;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -102,7 +104,7 @@ private Q_SLOTS:
     void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
     void onNoteEditorHtmlUpdate(QString html);
-    void onNoteEditorError(quentier::QNLocalizedString error);
+    void onNoteEditorError(QNLocalizedString error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();
