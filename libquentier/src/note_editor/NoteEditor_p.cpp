@@ -164,6 +164,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_rangyCoreJs(),
     m_rangySelectionSaveRestoreJs(),
     m_onTableResizeJs(),
+    m_selectionManagerJs(),
     m_textEditingUndoRedoManagerJs(),
     m_getSelectionHtmlJs(),
     m_snapSelectionToWordJs(),
@@ -434,6 +435,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_rangyCoreJs);
     page->executeJavaScript(m_rangySelectionSaveRestoreJs);
     page->executeJavaScript(m_onTableResizeJs);
+    page->executeJavaScript(m_selectionManagerJs);
     page->executeJavaScript(m_textEditingUndoRedoManagerJs);
     page->executeJavaScript(m_snapSelectionToWordJs);
     page->executeJavaScript(m_replaceHyperlinkContentJs);
@@ -2110,6 +2112,27 @@ void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, con
     }
 
     pushNoteContentEditUndoCommand();
+
+    updateJavaScriptBindings();
+}
+
+void NoteEditorPrivate::updateJavaScriptBindings()
+{
+    QNDEBUG("NoteEditorPrivate::updateJavaScriptBindings");
+
+    updateColResizableTableBindings();
+
+#ifdef USE_QT_WEB_ENGINE
+    provideSrcAndOnClickScriptForImgEnCryptTags();
+    setupGenericResourceImages();
+#endif
+
+    if (m_spellCheckerEnabled) {
+        applySpellCheck();
+    }
+
+    GET_PAGE()
+    page->executeJavaScript(m_setupEnToDoTagsJs);
 }
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
@@ -3553,6 +3576,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/hilitor/hilitor-utf8.js", m_hilitorJs);
     SETUP_SCRIPT("javascript/scripts/imageAreasHilitor.js", m_imageAreasHilitorJs);
     SETUP_SCRIPT("javascript/scripts/onTableResize.js", m_onTableResizeJs);
+    SETUP_SCRIPT("javascript/scripts/selectionManager.js", m_selectionManagerJs);
     SETUP_SCRIPT("javascript/scripts/textEditingUndoRedoManager.js", m_textEditingUndoRedoManagerJs);
     SETUP_SCRIPT("javascript/scripts/getSelectionHtml.js", m_getSelectionHtmlJs);
     SETUP_SCRIPT("javascript/scripts/snapSelectionToWord.js", m_snapSelectionToWordJs);
@@ -4844,6 +4868,7 @@ void NoteEditorPrivate::undoPageAction()
 
     GET_PAGE()
     page->executeJavaScript("textEditingUndoRedoManager.undo()");
+    updateJavaScriptBindings();
     setFocus();
 }
 

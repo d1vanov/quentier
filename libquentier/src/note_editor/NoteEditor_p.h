@@ -422,6 +422,7 @@ private:
                              const int columns, const bool relative);
 
     void onManagedPageActionFinished(const QVariant & result, const QVector<QPair<QString, QString> > & extraData);
+    void updateJavaScriptBindings();
 
     void changeFontSize(const bool increase);
     void changeIndentation(const bool increase);
@@ -650,6 +651,7 @@ private:
     QString     m_rangyCoreJs;
     QString     m_rangySelectionSaveRestoreJs;
     QString     m_onTableResizeJs;
+    QString     m_selectionManagerJs;
     QString     m_textEditingUndoRedoManagerJs;
     QString     m_getSelectionHtmlJs;
     QString     m_snapSelectionToWordJs;
