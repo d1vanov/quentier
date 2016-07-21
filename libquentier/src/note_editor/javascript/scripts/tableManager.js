@@ -182,7 +182,7 @@ function TableManager() {
         observer.stop();
 
         try {
-            this.disableColumnHandles(table);
+            this.disableColumnHandlesImpl(table);
 
             for(i = 0; i < table.rows.length; ++i) {
                 var row = table.rows[i];
@@ -215,7 +215,7 @@ function TableManager() {
                 }
             }
 
-            this.updateColumnHandles(table);
+            this.updateColumnHandlesImpl(table);
         }
         finally {
             observer.start();
@@ -312,13 +312,13 @@ function TableManager() {
         observer.stop();
 
         try {
-            this.disableColumnHandles(table);
+            this.disableColumnHandlesImpl(table);
 
             for(var i = 0; i < table.rows.length; ++i) {
                 table.rows[i].deleteCell(columnIndex);
             }
 
-            this.updateColumnHandles(table);
+            this.updateColumnHandlesImpl(table);
         }
         finally {
             observer.start();
@@ -406,22 +406,32 @@ function TableManager() {
         observer.stop();
 
         try {
-            this.disableColumnHandles(sourceNode);
+            this.disableColumnHandlesImpl(sourceNode);
             sourceNode.innerHTML = sourceNodeInnerHtml;
-            this.updateColumnHandles(sourceNode);
+            this.updateColumnHandlesImpl(sourceNode);
         }
         finally {
             observer.start();
         }
     }
 
-    this.disableColumnHandles = function(table) {
+    this.disableColumnHandlesImpl = function(table) {
         $(table).colResizable({
             disable:true
         });
     }
 
-    this.updateColumnHandles = function(table) {
+    this.disableColumnHandles = function(table) {
+        observer.stop();
+        try {
+            this.disableColumnHandlesImpl(table);
+        }
+        finally {
+            observer.start();
+        }
+    }
+
+    this.updateColumnHandlesImpl = function(table) {
         $(table).each(function(index, element) {
             var foundRelativeWidthColumn = false;
             if (element.rows.length > 0) {
@@ -457,6 +467,16 @@ function TableManager() {
                 });
             }
         });
+    }
+
+    this.updateColumnHandles = function(table) {
+        observer.stop();
+        try {
+            this.updateColumnHandlesImpl(table);
+        }
+        finally {
+            observer.start();
+        }
     }
 }
 
