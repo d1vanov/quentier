@@ -126,6 +126,8 @@ function TextEditingUndoRedoManager() {
 
         observer.stop();
         try {
+            var savedSelection = selectionManager.saveSelection();
+
             lastError = null;
             for(var i = 0; i < numMutations; ++i) {
                 console.log("Processing mutation " + i);
@@ -172,6 +174,8 @@ function TextEditingUndoRedoManager() {
                     selection.addRange(range);
                 }
             }
+
+            selectionManager.restoreSelection(savedSelection);
         }
         finally {
             observer.start();

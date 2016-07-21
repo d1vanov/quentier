@@ -54,7 +54,9 @@ function managedPageAction(command, args) {
 
     observer.stop();
     try {
+        var savedSelection = selectionManager.saveSelection();
         document.execCommand(command, false, args);
+        selectionManager.restoreSelection(savedSelection);
     }
     finally {
         observer.start();
