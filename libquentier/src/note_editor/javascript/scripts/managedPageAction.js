@@ -52,15 +52,31 @@ function managedPageAction(command, args) {
     textEditingUndoRedoManager.pushNode(targetNode, targetNodeHtml);
     textEditingUndoRedoManager.pushNumMutations(1);
 
+    var extraData;
+
     observer.stop();
     try {
         var savedSelection = selectionManager.saveSelection();
-        document.execCommand(command, false, args);
+
+        if (command === 'cut') {
+            // This command doesn't seem to really work so need to emulate
+            extraData = getSelectionHtml();
+            document.execCommand("insertHTML", false, "");
+        }
+        else {
+            document.execCommand(command, false, args);
+        }
+
         selectionManager.restoreSelection(savedSelection);
+
+        if (command === 'cut') {
+            var selection = window.getSelection();
+            selection.collapseToStart();
+        }
     }
     finally {
         observer.start();
     }
 
-    return { status: true, error: "" };
+    return { status: true, error: "", command: command, extraData: extraData };
 }

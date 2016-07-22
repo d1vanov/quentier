@@ -2111,6 +2111,22 @@ void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, con
         return;
     }
 
+    auto commandIt = resultMap.find("command");
+    if (commandIt != resultMap.end())
+    {
+        QString command = commandIt.value().toString();
+        if (command == "cut")
+        {
+            QClipboard * pClipboard = QApplication::clipboard();
+            auto extraDataIt = resultMap.find("extraData");
+            if (pClipboard && (extraDataIt != resultMap.end())) {
+                QMimeData * pMimeData = new QMimeData();
+                pMimeData->setHtml(extraDataIt.value().toString());
+                pClipboard->setMimeData(pMimeData);
+            }
+        }
+    }
+
     pushNoteContentEditUndoCommand();
 
     updateJavaScriptBindings();
@@ -5103,11 +5119,6 @@ void NoteEditorPrivate::onImageResourceResized(bool pushUndoCommand)
     convertToNote();
 }
 
-void NoteEditorPrivate::cut()
-{
-    HANDLE_ACTION(cut, Cut);
-}
-
 void NoteEditorPrivate::copy()
 {
     HANDLE_ACTION(copy, Copy);
@@ -5215,30 +5226,35 @@ void NoteEditorPrivate::fontMenu()
 
 #undef HANDLE_ACTION
 
-#define HANDLE_ACTION(method, name, item, command) \
+#define HANDLE_ACTION(method, name, command) \
     QNDEBUG("NoteEditorPrivate::" #method); \
     AUTO_SET_FOCUS() \
     CHECK_NOTE_EDITABLE(name) \
     execJavascriptCommand(#command)
 
+void NoteEditorPrivate::cut()
+{
+    HANDLE_ACTION(cut, QT_TR_NOOP("cut"), cut);
+}
+
 void NoteEditorPrivate::textBold()
 {
-    HANDLE_ACTION(textBold, QT_TR_NOOP("toggle bold"), ToggleBold, bold);
+    HANDLE_ACTION(textBold, QT_TR_NOOP("toggle bold"), bold);
 }
 
 void NoteEditorPrivate::textItalic()
 {
-    HANDLE_ACTION(textItalic, QT_TR_NOOP("toggle italic"), ToggleItalic, italic);
+    HANDLE_ACTION(textItalic, QT_TR_NOOP("toggle italic"), italic);
 }
 
 void NoteEditorPrivate::textUnderline()
 {
-    HANDLE_ACTION(textUnderline, QT_TR_NOOP("toggle underline"), ToggleUnderline, underline);
+    HANDLE_ACTION(textUnderline, QT_TR_NOOP("toggle underline"), underline);
 }
 
 void NoteEditorPrivate::textStrikethrough()
 {
-    HANDLE_ACTION(textStrikethrough, QT_TR_NOOP("toggle strikethrough"), ToggleStrikethrough, strikethrough);
+    HANDLE_ACTION(textStrikethrough, QT_TR_NOOP("toggle strikethrough"), strikethrough);
 }
 
 void NoteEditorPrivate::textHighlight()
@@ -5253,17 +5269,17 @@ void NoteEditorPrivate::textHighlight()
 
 void NoteEditorPrivate::alignLeft()
 {
-    HANDLE_ACTION(alignLeft, QT_TR_NOOP("align left"), AlignLeft, justifyleft);
+    HANDLE_ACTION(alignLeft, QT_TR_NOOP("align left"), justifyleft);
 }
 
 void NoteEditorPrivate::alignCenter()
 {
-    HANDLE_ACTION(alignCenter, QT_TR_NOOP("align center"), AlignCenter, justifycenter);
+    HANDLE_ACTION(alignCenter, QT_TR_NOOP("align center"), justifycenter);
 }
 
 void NoteEditorPrivate::alignRight()
 {
-    HANDLE_ACTION(alignRight, QT_TR_NOOP("align right"), AlignRight, justifyright);
+    HANDLE_ACTION(alignRight, QT_TR_NOOP("align right"), justifyright);
 }
 
 #undef HANDLE_ACTION
