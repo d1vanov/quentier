@@ -27,7 +27,7 @@ else()
   else()
     message(STATUS "Haven't found Qt Keychain sources in 3rdparty folder, will try to find the existing installation")
   endif()
-  include(FindQtKeychain)
+  include(LibquentierFindQtKeychain)
 endif()
 
 if((NOT USE_SYSTEM_QSLOG) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qslog/CMakeLists.txt)
