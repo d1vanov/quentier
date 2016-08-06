@@ -15,21 +15,6 @@ get_directory_property(QEVERCLOUD_LIB DIRECTORY QEverCloud DEFINITION PROJECT_NA
 get_directory_property(QEVERCLOUD_SOURCES DIRECTORY QEverCloud DEFINITION SOURCES)
 get_directory_property(QEVERCLOUD_INCLUDE_DIRS DIRECTORY QEverCloud DEFINITION INCLUDE_DIRS)
 
-if((NOT USE_SYSTEM_QT_KEYCHAIN) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qtkeychain/CMakeLists.txt)
-  message(STATUS "Found Qt Keychain sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
-  add_subdirectory(qtkeychain)
-  get_directory_property(QTKEYCHAIN_LIB DIRECTORY qtkeychain DEFINITION QTKEYCHAIN_TARGET_NAME)
-  get_directory_property(QTKEYCHAIN_SOURCES DIRECTORY qtkeychain DEFINITION SOURCES)
-  get_directory_property(QTKEYCHAIN_INCLUDE_PATH DIRECTORY qtkeychain DEFINITION INCLUDE_DIRS)
-else()
-  if(USE_SYSTEM_QT_KEYCHAIN)
-    message(STATUS "USE_SYSTEM_QT_KEYCHAIN option is set, will try to find the existing installation of Qt Keychain")
-  else()
-    message(STATUS "Haven't found Qt Keychain sources in 3rdparty folder, will try to find the existing installation")
-  endif()
-  include(FindQtKeychain)
-endif()
-
 if((NOT USE_SYSTEM_QSLOG) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qslog/CMakeLists.txt)
   message(STATUS "Found QsLog sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
   add_subdirectory(qslog)
@@ -101,7 +86,7 @@ endif()
 
 set(THIRDPARTY_INCLUDE_DIRS ${SIMPLECRYPT_INCLUDE_PATH})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${QEVERCLOUD_INCLUDE_DIRS})
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${QTKEYCHAIN_INCLUDE_PATH})
+list(APPEND THIRDPARTY_INCLUDE_DIRS ${QTKEYCHAIN_INCLUDE_DIRS})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${QSLOG_INCLUDE_PATH})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${TIDY_HTML5_INCLUDE_PATH})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${HUNSPELL_INCLUDE_DIR})
@@ -109,7 +94,6 @@ list(APPEND THIRDPARTY_INCLUDE_DIRS ${HUNSPELL_INCLUDE_DIR})
 set(THIRDPARTY_SOURCES
     ${SIMPLECRYPT_SOURCES}
     ${QEVERCLOUD_SOURCES}
-    ${QTKEYCHAIN_SOURCES}
     ${QSLOG_SOURCES}
     ${TIDY_HTML5_SOURCES})
 

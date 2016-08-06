@@ -18,6 +18,7 @@ include(QuentierFindLibXml2)
 include(QuentierFindOpenSSL)
 include(QuentierFindBoost)
 include(QuentierFindHunspell)
+include(QuentierFindQtKeychain)
 include(QuentierDoxygen)
 include(PrependPath)
 

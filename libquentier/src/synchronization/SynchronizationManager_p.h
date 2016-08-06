@@ -25,7 +25,7 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 #include <oauth.h>
-#include <keychain.h>
+#include <qtkeychain/keychain.h>
 #include <QObject>
 
 namespace quentier {
