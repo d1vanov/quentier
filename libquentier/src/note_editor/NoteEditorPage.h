@@ -72,7 +72,11 @@ Q_SIGNALS:
     void noteLoadCancelled();
 
 public Q_SLOTS:
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)) && !defined(USE_QT_WEB_ENGINE)
+    virtual bool shouldInterruptJavaScript() Q_DECL_OVERRIDE;
+#else
     bool shouldInterruptJavaScript();
+#endif
 
     void executeJavaScript(const QString & script, Callback callback = 0, const bool clearPreviousQueue = false);
 

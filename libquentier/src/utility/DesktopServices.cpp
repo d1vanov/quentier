@@ -41,7 +41,6 @@
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
 #endif
-
 #include <QDesktopServices>
 #include <QFile>
 
@@ -49,8 +48,15 @@ namespace quentier {
 
 const QString applicationPersistentStoragePath()
 {
-#if QT_VERSION >= 0x050000
+    // FIXME: clarify in which version the enum item was actually renamed
+    // Seriously, WTF is going on? Why the API gets changed within the major release?
+    // Who is the moron who has authorized that?
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 4, 0)
+    return QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+#else
     return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+#endif
 #else
     return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 #endif
@@ -58,7 +64,7 @@ const QString applicationPersistentStoragePath()
 
 const QString applicationTemporaryStoragePath()
 {
-#if QT_VERSION >= 0x50000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     return QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 #else
     return QDesktopServices::storageLocation(QDesktopServices::TempLocation);
@@ -67,7 +73,7 @@ const QString applicationTemporaryStoragePath()
 
 const QString homePath()
 {
-#if QT_VERSION >= 0x50000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     return QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
 #else
     return QDesktopServices::storageLocation(QDesktopServices::HomeLocation);

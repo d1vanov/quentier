@@ -2017,7 +2017,7 @@ void CoreTester::localStorageManagerAsyncSavedSearchesTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &savedSearchAsyncTester, QNSLOT(SavedSearchLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &savedSearchAsyncTester, SLOT(onInitTestCase()));
         savedSeachAsyncTestsResult = loop.exec();
     }
 
@@ -2052,7 +2052,7 @@ void CoreTester::localStorageManagerAsyncLinkedNotebooksTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &linkedNotebookAsyncTester, QNSLOT(LinkedNotebookLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &linkedNotebookAsyncTester, SLOT(onInitTestCase()));
         linkedNotebookAsyncTestResult = loop.exec();
     }
 
@@ -2087,7 +2087,7 @@ void CoreTester::localStorageManagerAsyncTagsTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &tagAsyncTester, QNSLOT(TagLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &tagAsyncTester, SLOT(onInitTestCase()));
         tagAsyncTestResult = loop.exec();
     }
 
@@ -2122,7 +2122,7 @@ void CoreTester::localStorageManagerAsyncUsersTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &userAsyncTester, QNSLOT(UserLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &userAsyncTester, SLOT(onInitTestCase()));
         userAsyncTestResult = loop.exec();
     }
 
@@ -2157,7 +2157,7 @@ void CoreTester::localStorageManagerAsyncNotebooksTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &notebookAsyncTester, QNSLOT(NotebookLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &notebookAsyncTester, SLOT(onInitTestCase()));
         notebookAsyncTestResult = loop.exec();
     }
 
@@ -2192,7 +2192,7 @@ void CoreTester::localStorageManagerAsyncNotesTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &noteAsyncTester, QNSLOT(NoteLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &noteAsyncTester, SLOT(onInitTestCase()));
         noteAsyncTestResult = loop.exec();
     }
 
@@ -2227,7 +2227,7 @@ void CoreTester::localStorageManagerAsyncResourceTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &resourceAsyncTester, QNSLOT(ResourceLocalStorageManagerAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &resourceAsyncTester, SLOT(onInitTestCase()));
         resourceAsyncTestResult = loop.exec();
     }
 
@@ -2262,7 +2262,7 @@ void CoreTester::localStorageCacheManagerTest()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &localStorageCacheAsyncTester, QNSLOT(LocalStorageCacheAsyncTester,onInitTestCase));
+        slotInvokingTimer.singleShot(0, &localStorageCacheAsyncTester, SLOT(onInitTestCase()));
         localStorageCacheAsyncTestResult = loop.exec();
     }
 

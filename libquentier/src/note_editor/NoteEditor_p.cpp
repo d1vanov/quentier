@@ -60,7 +60,13 @@
 
 #ifndef USE_QT_WEB_ENGINE
 #include <QWebFrame>
+#include <QWebPage>
 typedef QWebSettings WebSettings;
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    typedef QScriptEngine OwnershipNamespace;
+#else
+    typedef QWebFrame OwnershipNamespace;
+#endif
 #else
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
@@ -395,21 +401,21 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     }
 
     frame->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("resizableImageHandler", m_pResizableImageJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
@@ -3693,21 +3699,21 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->setContentEditable(true);
 
     page->mainFrame()->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("resizableImageHandler", m_pResizableImageJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
     if (Q_LIKELY(!m_pNote.isNull())) {

@@ -21,7 +21,7 @@
 
 #include <QtGlobal>
 
-#if QT_VERSION < 0x050000
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 
 #ifndef Q_DECL_OVERRIDE
 #ifdef CPP11_COMPLIANT
@@ -69,7 +69,7 @@
 #undef QNSLOT
 #endif
 
-#if QT_VERSION < 0x050000
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #define QNSIGNAL(className, methodName, ...) SIGNAL(methodName(__VA_ARGS__))
 #define QNSLOT(className, methodName, ...) SLOT(methodName(__VA_ARGS__))
 #else

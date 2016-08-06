@@ -325,12 +325,15 @@ QString ShortcutManagerPrivate::keyToString(const int key) const
         PRINT_ITEM(WhatsThis);
         PRINT_ITEM(ZoomIn);
         PRINT_ITEM(ZoomOut);
-#if QT_VERSION >= 0x050000
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
         PRINT_ITEM(FullScreen);
-        PRINT_ITEM(Backspace);
         PRINT_ITEM(DeleteCompleteLine);
         PRINT_ITEM(Delete);
         PRINT_ITEM(Deselect);
+// FIXME: clarify in which Qt version the below enum item has actually been introduced
+#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+        PRINT_ITEM(Backspace);
+#endif
 #endif
             default:
             {

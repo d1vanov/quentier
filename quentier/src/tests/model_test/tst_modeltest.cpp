@@ -528,7 +528,7 @@ void tst_ModelTest::testNoteModel()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &noteModelTestHelper, QNSLOT(NoteModelTestHelper,launchTest));
+        slotInvokingTimer.singleShot(0, &noteModelTestHelper, SLOT(launchTest()));
         res = loop.exec();
     }
 
@@ -571,7 +571,7 @@ void tst_ModelTest::testFavoritesModel()
         slotInvokingTimer.setSingleShot(true);
 
         timer.start();
-        slotInvokingTimer.singleShot(0, &favoritesModelTestHelper, QNSLOT(FavoritesModelTestHelper,launchTest));
+        slotInvokingTimer.singleShot(0, &favoritesModelTestHelper, SLOT(launchTest()));
         res = loop.exec();
     }
 
