@@ -63,7 +63,7 @@ if(USE_QT5)
       qt5_use_modules(${PROJECT_NAME} WebEngineCore)
     endif()
   else()
-    qt5_use_modules(${PROJECT_NAME} Core Widgets Webkit WebKitWidgets Network)
+    qt5_use_modules(${PROJECT_NAME} Core Widgets WebKit WebKitWidgets Network)
   endif()
 endif()
 

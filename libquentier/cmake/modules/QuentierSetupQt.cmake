@@ -16,7 +16,7 @@ if(USE_QT5)
   find_package(Qt5Widgets REQUIRED)
 
   find_package(Qt5WebKit QUIET)
-  if(NOT Qt5WebKit)
+  if(NOT Qt5WebKit_FOUND)
     message(STATUS "Haven't found Qt5WebKit module, trying to find Qt5WebEngine instead")
     find_package(Qt5WebEngine REQUIRED)
     find_package(Qt5WebEngineWidgets REQUIRED)
