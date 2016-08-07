@@ -19,7 +19,7 @@
 #include "JavaScriptInOrderExecutor.h"
 #include <quentier/logging/QuentierLogger.h>
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebFrame>
 #endif
 
@@ -51,7 +51,7 @@ void JavaScriptInOrderExecutor::start()
 
     m_currentPendingCallback = callback;
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     m_view.page()->runJavaScript(script, JavaScriptCallback(*this));
 #else
     QVariant data = m_view.page()->mainFrame()->evaluateJavaScript(script);

@@ -25,7 +25,7 @@ SpellCheckerDynamicHelper::SpellCheckerDynamicHelper(QObject * parent) :
     QObject(parent)
 {}
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 void SpellCheckerDynamicHelper::setLastEnteredWords(QVariant words)
 {
     QNDEBUG("SpellCheckerDynamicHelper::setLastEnteredWords: " << words);

@@ -38,7 +38,7 @@
 #include <QPointer>
 #include <QScopedPointer>
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebEngineView>
 typedef QWebEngineView WebView;
 typedef QWebEnginePage WebPage;
@@ -54,7 +54,7 @@ QT_FORWARD_DECLARE_CLASS(QMimeType)
 QT_FORWARD_DECLARE_CLASS(QImage)
 QT_FORWARD_DECLARE_CLASS(QThread)
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(QWebChannel)
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(WebSocketClientWrapper)
@@ -76,7 +76,7 @@ QT_FORWARD_DECLARE_CLASS(SpellChecker)
 QT_FORWARD_DECLARE_CLASS(SpellCheckerDynamicHelper)
 QT_FORWARD_DECLARE_CLASS(ResizableImageJavaScriptHandler)
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 QT_FORWARD_DECLARE_CLASS(EnCryptElementOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceOpenAndSaveButtonsOnClickHandler)
 QT_FORWARD_DECLARE_CLASS(GenericResourceImageJavaScriptHandler)
@@ -91,7 +91,7 @@ public:
     explicit NoteEditorPrivate(NoteEditor & noteEditor);
     virtual ~NoteEditorPrivate();
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     QVariant execJavascriptCommandWithResult(const QString & command);
     QVariant execJavascriptCommandWithResult(const QString & command, const QString & args);
 #endif
@@ -306,7 +306,7 @@ private Q_SLOTS:
     void onResourceFileReadFromStorage(QUuid requestId, QByteArray data, QByteArray dataHash,
                                        int errorCode, QNLocalizedString errorDescription);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     void onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
                                      QString filePath, QNLocalizedString errorDescription,
                                      QUuid requestId);
@@ -444,7 +444,7 @@ private:
     void manualSaveResourceToFile(const IResource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     void provideSrcAndOnClickScriptForImgEnCryptTags();
 
     void setupGenericResourceImages();
@@ -678,7 +678,7 @@ private:
     QString     m_spellCheckerJs;
     QString     m_managedPageActionJs;
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     QString     m_qWebKitSetupJs;
 #else
     QString     m_provideSrcForGenericResourceImagesJs;
@@ -761,7 +761,7 @@ private:
 
     ENMLConverter                           m_enmlConverter;
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     NoteEditorPluginFactory *               m_pluginFactory;
 #endif
 
@@ -816,7 +816,7 @@ private:
 
     QHash<QByteArray, QString>      m_genericResourceImageFilePathsByResourceHash;
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     GenericResourceImageJavaScriptHandler *     m_pGenericResoureImageJavaScriptHandler;
 #endif
 

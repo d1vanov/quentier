@@ -38,7 +38,7 @@ Q_SIGNALS:
 public Q_SLOTS:
 
     // NOTE: workarounding https://bugreports.qt.io/browse/QTBUG-39951 - JavaScript array doesn't get automatically converted to QVariant
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     void setLastEnteredWords(QVariant words);
 #else
     void setLastEnteredWords(QVariantList words);

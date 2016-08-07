@@ -55,7 +55,7 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString);
 
 // private signals
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     void saveGenericResourceImageToFile(QString noteLocalUid, QString resourceLocalUid, QByteArray resourceImageData,
                                         QString resourceFileSuffix, QByteArray resourceActualHash,
                                         QString resourceDisplayName, QUuid requestId);
@@ -65,7 +65,7 @@ private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
     void onRenameResourceDialogFinished(QString newResourceName);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     void onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
                                               QNLocalizedString errorDescription, QUuid requestId);
     void onGenericResourceImageUpdated(const QVariant & data);
@@ -75,7 +75,7 @@ private:
     void doStart();
     void raiseRenameResourceDialog();
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     void buildAndSaveGenericResourceImage();
 #endif
 
@@ -96,7 +96,7 @@ private:
 
     Note *                          m_pNote;
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     QUuid                           m_genericResourceImageWriterRequestId;
 #endif
 };

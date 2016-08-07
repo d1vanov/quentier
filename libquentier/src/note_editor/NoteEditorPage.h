@@ -22,7 +22,7 @@
 #include "JavaScriptInOrderExecutor.h"
 #include <quentier/utility/Qt4Helper.h>
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebPage>
 #else
 #include <QWebEnginePage>
@@ -34,7 +34,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 class NoteEditorPage:
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
         public QWebPage
 #else
         public QWebEnginePage
@@ -72,7 +72,7 @@ Q_SIGNALS:
     void noteLoadCancelled();
 
 public Q_SLOTS:
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)) && !defined(USE_QT_WEB_ENGINE)
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)) && !defined(QUENTIER_USE_QT_WEB_ENGINE)
     virtual bool shouldInterruptJavaScript() Q_DECL_OVERRIDE;
 #else
     bool shouldInterruptJavaScript();
@@ -84,7 +84,7 @@ private Q_SLOTS:
     void onJavaScriptQueueEmpty();
 
 private:
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     virtual void javaScriptAlert(QWebFrame * pFrame, const QString & message) Q_DECL_OVERRIDE;
     virtual bool javaScriptConfirm(QWebFrame * pFrame, const QString & message) Q_DECL_OVERRIDE;
     virtual void javaScriptConsoleMessage(const QString & message, int lineNumber, const QString & sourceID) Q_DECL_OVERRIDE;

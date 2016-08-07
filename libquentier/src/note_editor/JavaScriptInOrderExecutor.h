@@ -23,7 +23,7 @@
 #include <QObject>
 #include <QQueue>
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebEngineView>
 #else
 #include <QWebView>
@@ -38,7 +38,7 @@ class JavaScriptInOrderExecutor: public QObject
     Q_OBJECT
 private:
     typedef
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     QWebEngineView
 #else
     QWebView

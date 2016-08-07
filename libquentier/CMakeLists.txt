@@ -262,7 +262,7 @@ set(PRIVATE_HEADERS
     src/utility/ShortcutManager_p.h
     src/utility/StringUtils_p.h)
 
-if(NOT USE_QT_WEB_ENGINE)
+if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND PRIVATE_HEADERS
        src/note_editor/NoteEditorPluginFactory.h
        src/note_editor/INoteEditorResourcePlugin.h
@@ -422,7 +422,7 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/Utility.cpp
     src/utility/UidGenerator.cpp)
 
-if(NOT USE_QT_WEB_ENGINE)
+if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND ${PROJECT_NAME}_SOURCES
     src/note_editor/EncryptedAreaPlugin.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
@@ -473,7 +473,7 @@ set(FORMS
     src/note_editor/dialogs/EditHyperlinkDialog.ui
     src/note_editor/dialogs/RenameResourceDialog.ui)
 
-if(NOT USE_QT_WEB_ENGINE)
+if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND FORMS
        src/note_editor/EncryptedAreaPlugin.ui
        src/note_editor/GenericResourceDisplayWidget.ui)
@@ -499,7 +499,7 @@ if(USE_QT5)
   qt5_use_modules(${PROJECT_NAME} Network)
   qt5_use_modules(${PROJECT_NAME} Xml)
   qt5_use_modules(${PROJECT_NAME} Sql)
-  if(USE_QT_WEB_ENGINE)
+  if(QUENTIER_USE_QT_WEB_ENGINE)
     qt5_use_modules(${PROJECT_NAME} WebEngine)
     qt5_use_modules(${PROJECT_NAME} WebEngineWidgets)
     qt5_use_modules(${PROJECT_NAME} WebSockets)

@@ -55,10 +55,6 @@ using quentier::NoteEditor;
 #include <QUndoStack>
 #include <QCryptographicHash>
 
-#ifndef USE_QT_WEB_ENGINE
-#include <QWebFrame>
-#endif
-
 using namespace quentier;
 
 MainWindow::MainWindow(QWidget * pParentWidget) :

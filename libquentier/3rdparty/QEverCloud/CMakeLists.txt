@@ -57,7 +57,7 @@ list(APPEND INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/generated")
 add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
 
 if(USE_QT5)
-  if(USE_QT_WEB_ENGINE)
+  if(QUENTIER_USE_QT_WEB_ENGINE)
     qt5_use_modules(${PROJECT_NAME} Core Widgets WebEngine WebEngineWidgets Network)
     if(NOT Qt5WebEngine_VERSION VERSION_LESS "5.6.0")
       qt5_use_modules(${PROJECT_NAME} WebEngineCore)
