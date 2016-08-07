@@ -330,8 +330,7 @@ QString ShortcutManagerPrivate::keyToString(const int key) const
         PRINT_ITEM(DeleteCompleteLine);
         PRINT_ITEM(Delete);
         PRINT_ITEM(Deselect);
-// FIXME: clarify in which Qt version the below enum item has actually been introduced
-#if QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(5, 5, 0)
         PRINT_ITEM(Backspace);
 #endif
 #endif
