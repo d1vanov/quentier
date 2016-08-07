@@ -146,32 +146,7 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_SOURCES}
                ${${PROJECT_NAME}_FORMS_HEADERS}
                ${${PROJECT_NAME}_RESOURCES_RCC})
-
-if(USE_QT5)
-  qt5_use_modules(${PROJECT_NAME} Core)
-  qt5_use_modules(${PROJECT_NAME} Gui)
-  qt5_use_modules(${PROJECT_NAME} Widgets)
-  qt5_use_modules(${PROJECT_NAME} Network)
-  qt5_use_modules(${PROJECT_NAME} Xml)
-  qt5_use_modules(${PROJECT_NAME} Sql)
-  if(QUENTIER_USE_QT_WEB_ENGINE)
-    qt5_use_modules(${PROJECT_NAME} WebEngine)
-    qt5_use_modules(${PROJECT_NAME} WebEngineWidgets)
-    qt5_use_modules(${PROJECT_NAME} WebSockets)
-    qt5_use_modules(${PROJECT_NAME} WebChannel)
-    if(NOT Qt5WebEngine_VERSION VERSION_LESS "5.6.0")
-      qt5_use_modules(${PROJECT_NAME} WebEngineCore)
-    endif()
-  else()
-    qt5_use_modules(${PROJECT_NAME} WebKit)
-    qt5_use_modules(${PROJECT_NAME} WebKitWidgets)
-  endif()
-else()
-  target_link_libraries(${PROJECT_NAME}
-                        ${QT_LIBRARIES})
-endif()
-
-target_link_libraries(${PROJECT_NAME} ${LIB_QUENTIER} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${LIB_QUENTIER} ${THIRDPARTY_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
@@ -230,19 +205,7 @@ set(MODEL_TEST_SOURCES
 
 add_executable(${PROJECT_NAME}_model_test ${MODEL_TEST_SOURCES} ${MODEL_TEST_SOURCES})
 add_test(${PROJECT_NAME}_model_test ${PROJECT_NAME}_model_test)
-
-if(USE_QT5)
-  qt5_use_modules(${PROJECT_NAME}_model_test Core)
-  qt5_use_modules(${PROJECT_NAME}_model_test Gui)
-  qt5_use_modules(${PROJECT_NAME}_model_test Widgets)
-  qt5_use_modules(${PROJECT_NAME}_model_test Test)
-  qt5_use_modules(${PROJECT_NAME}_model_test Xml)
-  qt5_use_modules(${PROJECT_NAME}_model_test Sql)
-else()
-  target_link_libraries(${PROJECT_NAME}_model_test ${QT_LIBRARIES})
-endif()
-
-target_link_libraries(${PROJECT_NAME}_model_test ${LIB_QUENTIER} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME}_model_test ${QT_LIBRARIES} ${LIB_QUENTIER} ${THIRDPARTY_LIBS})
 
 # include dirs for cppcheck
 set(${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src")
