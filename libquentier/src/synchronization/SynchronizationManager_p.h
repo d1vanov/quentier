@@ -25,7 +25,13 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <QEverCloud.h>
 #include <oauth.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5keychain/keychain.h>
+#else
 #include <qtkeychain/keychain.h>
+#endif
+
 #include <QObject>
 
 namespace quentier {
