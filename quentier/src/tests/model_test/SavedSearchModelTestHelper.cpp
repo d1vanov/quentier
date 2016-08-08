@@ -22,6 +22,7 @@
 #include "Macros.h"
 #include <quentier/utility/SysInfo.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/exception/IQuentierException.h>
 
 namespace quentier {
 

@@ -275,6 +275,7 @@ endif()
 set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
+    src/logging/QuentierLogger.cpp
     src/note_editor/GenericResourceImageManager.cpp
     src/note_editor/DecryptedTextManager.cpp
     src/note_editor/DecryptedTextManager_p.cpp

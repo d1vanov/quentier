@@ -29,9 +29,7 @@ int main(int argc, char *argv[])
 
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
-
-    QsLogging::Logger & logger = QsLogging::Logger::instance();
-    logger.addDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
+    QUENTIER_ADD_STDOUT_LOG_DESTINATION();
 
     quentier::registerMetatypes();
 

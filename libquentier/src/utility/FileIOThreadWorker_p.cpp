@@ -20,6 +20,8 @@
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QFile>
+#include <QFileInfo>
+#include <QDir>
 #include <QTimerEvent>
 
 namespace quentier {

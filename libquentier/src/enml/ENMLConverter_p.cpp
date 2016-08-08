@@ -28,6 +28,7 @@
 #include <QScopedPointer>
 #include <QDomDocument>
 #include <QRegExp>
+#include <QFile>
 
 namespace quentier {
 
