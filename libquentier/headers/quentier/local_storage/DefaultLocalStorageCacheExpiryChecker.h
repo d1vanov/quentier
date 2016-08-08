@@ -46,7 +46,7 @@ public:
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    DefaultLocalStorageCacheExpiryChecker() Q_DECL_DELETE;
+    DefaultLocalStorageCacheExpiryChecker() Q_DECL_EQ_DELETE;
     Q_DISABLE_COPY(DefaultLocalStorageCacheExpiryChecker)
 };
 

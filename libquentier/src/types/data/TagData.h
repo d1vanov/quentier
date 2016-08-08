@@ -21,7 +21,12 @@
 
 #include "FavoritableDataElementData.h"
 #include <quentier/utility/QNLocalizedString.h>
-#include <QEverCloud.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
 
 namespace quentier {
 
@@ -45,8 +50,8 @@ public:
     qevercloud::Optional<QString>   m_parentLocalUid;
 
 private:
-    TagData & operator=(const TagData & other) Q_DECL_DELETE;
-    TagData & operator=(TagData && other) Q_DECL_DELETE;
+    TagData & operator=(const TagData & other) Q_DECL_EQ_DELETE;
+    TagData & operator=(TagData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier

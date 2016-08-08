@@ -19,6 +19,7 @@ include(QuentierFindOpenSSL)
 include(QuentierFindBoost)
 include(QuentierFindHunspell)
 include(QuentierFindQtKeychain)
+include(QuentierFindQEverCloud)
 include(QuentierDoxygen)
 include(PrependPath)
 

@@ -74,11 +74,11 @@ public:
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    LocalStorageCacheManagerPrivate() Q_DECL_DELETE;
-    LocalStorageCacheManagerPrivate(const LocalStorageCacheManagerPrivate & other) Q_DECL_DELETE;
-    LocalStorageCacheManagerPrivate(LocalStorageCacheManagerPrivate && other) Q_DECL_DELETE;
-    LocalStorageCacheManagerPrivate & operator=(const LocalStorageCacheManagerPrivate & other) Q_DECL_DELETE;
-    LocalStorageCacheManagerPrivate & operator=(LocalStorageCacheManagerPrivate && other) Q_DECL_DELETE;
+    LocalStorageCacheManagerPrivate() Q_DECL_EQ_DELETE;
+    LocalStorageCacheManagerPrivate(const LocalStorageCacheManagerPrivate & other) Q_DECL_EQ_DELETE;
+    LocalStorageCacheManagerPrivate(LocalStorageCacheManagerPrivate && other) Q_DECL_EQ_DELETE;
+    LocalStorageCacheManagerPrivate & operator=(const LocalStorageCacheManagerPrivate & other) Q_DECL_EQ_DELETE;
+    LocalStorageCacheManagerPrivate & operator=(LocalStorageCacheManagerPrivate && other) Q_DECL_EQ_DELETE;
 
 private:
     class NoteHolder: public Printable

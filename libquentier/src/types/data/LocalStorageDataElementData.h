@@ -37,8 +37,8 @@ public:
     QUuid m_localUid;
 
 private:
-    LocalStorageDataElementData & operator=(const LocalStorageDataElementData & other) Q_DECL_DELETE;
-    LocalStorageDataElementData & operator=(LocalStorageDataElementData && other) Q_DECL_DELETE;
+    LocalStorageDataElementData & operator=(const LocalStorageDataElementData & other) Q_DECL_EQ_DELETE;
+    LocalStorageDataElementData & operator=(LocalStorageDataElementData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier

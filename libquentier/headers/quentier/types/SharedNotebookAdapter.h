@@ -20,7 +20,13 @@
 #define LIB_QUENTIER_TYPES_SHARED_NOTEBOOK_ADAPTER_H
 
 #include "ISharedNotebook.h"
-#include <QEverCloud.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
+
 
 namespace quentier {
 
@@ -53,7 +59,7 @@ public:
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    SharedNotebookAdapter() Q_DECL_DELETE;
+    SharedNotebookAdapter() Q_DECL_EQ_DELETE;
 
     qevercloud::SharedNotebook * m_pEnSharedNotebook;
     bool m_isConst;

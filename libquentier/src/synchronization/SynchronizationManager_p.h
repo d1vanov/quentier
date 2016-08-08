@@ -23,8 +23,15 @@
 #include "SendLocalChangesManager.h"
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
-#include <QEverCloud.h>
-#include <oauth.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#include <qt5qevercloud/QEverCloudOAuth.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#include <qt4qevercloud/QEverCloudOAuth.h>
+#endif
+
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5keychain/keychain.h>
@@ -128,9 +135,9 @@ private Q_SLOTS:
     void onRateLimitExceeded(qint32 secondsToWait);
 
 private:
-    SynchronizationManagerPrivate() Q_DECL_DELETE;
-    SynchronizationManagerPrivate(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
-    SynchronizationManagerPrivate & operator=(const SynchronizationManagerPrivate & other) Q_DECL_DELETE;
+    SynchronizationManagerPrivate() Q_DECL_EQ_DELETE;
+    SynchronizationManagerPrivate(const SynchronizationManagerPrivate & other) Q_DECL_EQ_DELETE;
+    SynchronizationManagerPrivate & operator=(const SynchronizationManagerPrivate & other) Q_DECL_EQ_DELETE;
 
     void createConnections();
 

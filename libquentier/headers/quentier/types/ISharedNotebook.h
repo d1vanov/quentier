@@ -20,7 +20,12 @@
 #define LIB_QUENTIER_TYPES_I_SHARED_NOTEBOOK_H
 
 #include <quentier/utility/Printable.h>
-#include <QEverCloud.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
 
 namespace quentier {
 

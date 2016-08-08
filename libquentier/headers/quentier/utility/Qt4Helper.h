@@ -77,12 +77,12 @@
 #define QNSLOT(className, methodName, ...) &className::methodName
 #endif
 
-#ifndef Q_DECL_DELETE
+#ifndef Q_DECL_EQ_DELETE
 #ifdef CPP11_COMPLIANT
-#define Q_DECL_DELETE = delete
+#define Q_DECL_EQ_DELETE = delete
 #else
-#define Q_DECL_DELETE
+#define Q_DECL_EQ_DELETE
 #endif
-#endif // Q_DECL_DELETE
+#endif // Q_DECL_EQ_DELETE
 
 #endif // LIB_QUENTIER_UTILITY_QT4HELPER_H

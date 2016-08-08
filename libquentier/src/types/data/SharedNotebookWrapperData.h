@@ -19,8 +19,13 @@
 #ifndef LIB_QUENTIER_TYPES_DATA_SHARED_NOTEBOOK_WRAPPER_DATA_H
 #define LIB_QUENTIER_TYPES_DATA_SHARED_NOTEBOOK_WRAPPER_DATA_H
 
-#include <QEverCloud.h>
 #include <QSharedData>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
 
 namespace quentier {
 
@@ -37,8 +42,8 @@ public:
     qevercloud::SharedNotebook    m_qecSharedNotebook;
 
 private:
-    SharedNotebookWrapperData & operator=(const SharedNotebookWrapperData & other) Q_DECL_DELETE;
-    SharedNotebookWrapperData & operator=(SharedNotebookWrapperData && other) Q_DECL_DELETE;
+    SharedNotebookWrapperData & operator=(const SharedNotebookWrapperData & other) Q_DECL_EQ_DELETE;
+    SharedNotebookWrapperData & operator=(SharedNotebookWrapperData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier

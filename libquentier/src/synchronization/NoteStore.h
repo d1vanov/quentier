@@ -19,9 +19,14 @@
 #ifndef LIB_QUENTIER_SYNCHRONIZATION_NOTE_STORE_H
 #define LIB_QUENTIER_SYNCHRONIZATION_NOTE_STORE_H
 
-#include <QEverCloud.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QSharedPointer>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
 
 namespace quentier {
 
@@ -125,9 +130,9 @@ private:
                                       QNLocalizedString & errorDescription) const;
 
 private:
-    NoteStore() Q_DECL_DELETE;
-    NoteStore(const NoteStore & other) Q_DECL_DELETE;
-    NoteStore & operator=(const NoteStore & other) Q_DECL_DELETE;
+    NoteStore() Q_DECL_EQ_DELETE;
+    NoteStore(const NoteStore & other) Q_DECL_EQ_DELETE;
+    NoteStore & operator=(const NoteStore & other) Q_DECL_EQ_DELETE;
 
 private:
     QSharedPointer<qevercloud::NoteStore> m_pQecNoteStore;

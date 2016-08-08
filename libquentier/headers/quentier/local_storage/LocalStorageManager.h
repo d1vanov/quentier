@@ -939,7 +939,7 @@ public:
     bool expungeSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
 
 private:
-    LocalStorageManager() Q_DECL_DELETE;
+    LocalStorageManager() Q_DECL_EQ_DELETE;
     Q_DISABLE_COPY(LocalStorageManager)
 
     QScopedPointer<LocalStorageManagerPrivate>  d_ptr;

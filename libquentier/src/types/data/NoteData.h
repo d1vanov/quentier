@@ -21,7 +21,13 @@
 
 #include "FavoritableDataElementData.h"
 #include <quentier/utility/QNLocalizedString.h>
-#include <QEverCloud.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
+
 #include <QImage>
 
 namespace quentier {
@@ -63,8 +69,8 @@ public:
     QImage                          m_thumbnail;
 
 private:
-    NoteData & operator=(const NoteData & other) Q_DECL_DELETE;
-    NoteData & operator=(NoteData && other) Q_DECL_DELETE;
+    NoteData & operator=(const NoteData & other) Q_DECL_EQ_DELETE;
+    NoteData & operator=(NoteData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier

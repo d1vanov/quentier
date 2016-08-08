@@ -20,7 +20,12 @@
 #define LIB_QUENTIER_TYPES_DATA_RESOURCE_WRAPPER_DATA_H
 
 #include "NoteStoreDataElementData.h"
-#include <QEverCloud.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
 
 namespace quentier {
 
@@ -37,8 +42,8 @@ public:
     qevercloud::Resource    m_qecResource;
 
 private:
-    ResourceWrapperData & operator=(const ResourceWrapperData & other) Q_DECL_DELETE;
-    ResourceWrapperData & operator=(ResourceWrapperData && other) Q_DECL_DELETE;
+    ResourceWrapperData & operator=(const ResourceWrapperData & other) Q_DECL_EQ_DELETE;
+    ResourceWrapperData & operator=(ResourceWrapperData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier

@@ -47,6 +47,7 @@
 #include <QApplication>
 #include <QTextStream>
 #include <QtTest/QTest>
+#include <QTimer>
 
 // 10 minutes should be enough
 #define MAX_ALLOWED_MILLISECONDS 600000

@@ -38,10 +38,10 @@ public:
 
 private:
     SysInfo();
-    SysInfo(const SysInfo & other) Q_DECL_DELETE;
-    SysInfo(SysInfo && other) Q_DECL_DELETE;
-    SysInfo & operator=(const SysInfo & other) Q_DECL_DELETE;
-    SysInfo & operator=(SysInfo && other) Q_DECL_DELETE;
+    SysInfo(const SysInfo & other) Q_DECL_EQ_DELETE;
+    SysInfo(SysInfo && other) Q_DECL_EQ_DELETE;
+    SysInfo & operator=(const SysInfo & other) Q_DECL_EQ_DELETE;
+    SysInfo & operator=(SysInfo && other) Q_DECL_EQ_DELETE;
     ~SysInfo();
 };
 

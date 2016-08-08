@@ -66,7 +66,7 @@ Q_SIGNALS:
     void progress(QNLocalizedString message, double workDonePercentage);
 
 private:
-    SynchronizationManager() Q_DECL_DELETE;
+    SynchronizationManager() Q_DECL_EQ_DELETE;
     Q_DISABLE_COPY(SynchronizationManager)
 
     SynchronizationManagerPrivate * d_ptr;

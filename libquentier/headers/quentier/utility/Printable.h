@@ -26,8 +26,14 @@
 #include <QDebug>
 #include <QHash>
 #include <QSet>
-#include <QEverCloud.h>
-#include <oauth.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#include <qt5qevercloud/QEverCloudOAuth.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#include <qt4qevercloud/QEverCloudOAuth.h>
+#endif
 
 namespace quentier {
 

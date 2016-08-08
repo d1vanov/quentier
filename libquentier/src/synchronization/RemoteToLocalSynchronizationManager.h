@@ -30,7 +30,12 @@
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/SavedSearch.h>
-#include <oauth.h>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloudOAuth.h>
+#else
+#include <qt4qevercloud/QEverCloudOAuth.h>
+#endif
 
 namespace quentier {
 
@@ -396,7 +401,7 @@ private:
     bool checkLinkedNotebooksSyncStates(bool & asyncWait, bool & error);
 
 private:
-    RemoteToLocalSynchronizationManager() Q_DECL_DELETE;
+    RemoteToLocalSynchronizationManager() Q_DECL_EQ_DELETE;
 
 private:
     template <class T>

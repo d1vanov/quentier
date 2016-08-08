@@ -47,9 +47,9 @@ private:
     virtual const qevercloud::User & GetEnUser() const Q_DECL_OVERRIDE;
     virtual qevercloud::User & GetEnUser() Q_DECL_OVERRIDE;
 
-    UserAdapter() Q_DECL_DELETE;
-    UserAdapter & operator=(const UserAdapter & other) Q_DECL_DELETE;
-    UserAdapter & operator=(UserAdapter && other) Q_DECL_DELETE;
+    UserAdapter() Q_DECL_EQ_DELETE;
+    UserAdapter & operator=(const UserAdapter & other) Q_DECL_EQ_DELETE;
+    UserAdapter & operator=(UserAdapter && other) Q_DECL_EQ_DELETE;
 
     qevercloud::User * m_pEnUser;
     bool m_isConst;
