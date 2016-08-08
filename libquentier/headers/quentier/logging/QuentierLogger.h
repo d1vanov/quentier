@@ -30,10 +30,10 @@
 #define QS_LOG_SEPARATE_THREAD
 #endif
 
-#include <QsLog.h>
-#include <QsLogLevel.h>
-#include <QsLogDest.h>
-#include <QsLogDestFile.h>
+#include <QsLog/QsLog.h>
+#include <QsLog/QsLogLevel.h>
+#include <QsLog/QsLogDest.h>
+#include <QsLog/QsLogDestFile.h>
 
 #define QNTRACE(message) \
     QLOG_TRACE() << message;

@@ -20,6 +20,7 @@ include(QuentierFindBoost)
 include(QuentierFindHunspell)
 include(QuentierFindQtKeychain)
 include(QuentierFindQEverCloud)
+include(QuentierFindQsLog)
 include(QuentierDoxygen)
 include(PrependPath)
 

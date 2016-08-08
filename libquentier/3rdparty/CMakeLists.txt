@@ -10,21 +10,6 @@ if(POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
 
-if((NOT USE_SYSTEM_QSLOG) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qslog/CMakeLists.txt)
-  message(STATUS "Found QsLog sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
-  add_subdirectory(qslog)
-  get_directory_property(QSLOG_LIB DIRECTORY qslog DEFINITION PROJECT_NAME)
-  get_directory_property(QSLOG_SOURCES DIRECTORY qslog DEFINITION SOURCES)
-  get_directory_property(QSLOG_INCLUDE_PATH DIRECTORY qslog DEFINITION INCLUDE_DIRS)
-else()
-  if(USE_SYSTEM_QSLOG)
-    message(STATUS "USE_SYSTEM_QSLOG option is set, will try to find the existing installation of QsLog")
-  else()
-    message(STATUS "Haven't found QsLog sources in 3rdparty folder, will try to find the existing installation")
-  endif()
-  include(FindQsLog)
-endif()
-
 if((NOT USE_SYSTEM_TIDY_HTML5) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tidy-html5/CMakeLists.txt)
   message(STATUS "Found tidy-html5 sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
   add_subdirectory(tidy-html5)
@@ -80,14 +65,10 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 endif()
 
 set(THIRDPARTY_INCLUDE_DIRS ${SIMPLECRYPT_INCLUDE_PATH})
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${QTKEYCHAIN_INCLUDE_DIRS})
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${QSLOG_INCLUDE_PATH})
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${TIDY_HTML5_INCLUDE_PATH})
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${HUNSPELL_INCLUDE_DIR})
 
 set(THIRDPARTY_SOURCES
     ${SIMPLECRYPT_SOURCES}
-    ${QSLOG_SOURCES}
     ${TIDY_HTML5_SOURCES})
 
 if(NOT USE_QT5)
