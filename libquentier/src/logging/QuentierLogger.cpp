@@ -40,12 +40,13 @@ void QuentierInitializeLogging()
     logger.addDestination(fileDest);
 }
 
-QDebug QuentierGetLoggerHelper(const LogLevel::type logLevel)
+void QuentierAddLogEntry(const QString & message, const LogLevel::type logLevel)
 {
 #define CONVERT_TO_QSLOG(level) \
     case LogLevel::level: \
         { \
-            return QsLogging::Logger::Helper(QsLogging::level).stream(); \
+            QsLogging::Logger::Helper(QsLogging::level).stream() << message; \
+            break; \
         }
 
     switch(logLevel)
@@ -59,7 +60,7 @@ QDebug QuentierGetLoggerHelper(const LogLevel::type logLevel)
     default:
         {
             qWarning() << "Unidentified logging level: " << logLevel;
-            return QsLogging::Logger::Helper(QsLogging::FatalLevel).stream();
+            break;
         }
     }
 

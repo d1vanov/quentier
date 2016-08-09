@@ -39,7 +39,7 @@ struct LogLevel
     };
 };
 
-QDebug QUENTIER_EXPORT QuentierGetLoggerHelper(const LogLevel::type logLevel);
+void QUENTIER_EXPORT QuentierAddLogEntry(const QString & message, const LogLevel::type logLevel);
 
 void QUENTIER_EXPORT QuentierSetMinLogLevel(const LogLevel::type logLevel);
 
@@ -51,8 +51,10 @@ bool QUENTIER_EXPORT QuentierIsLogLevelActive(const LogLevel::type logLevel);
 
 #define __QNLOG_BASE(message, level) \
     if (quentier::QuentierIsLogLevelActive(quentier::LogLevel::level##Level)) { \
-        QDebug __quentierLogStrm = quentier::QuentierGetLoggerHelper(quentier::LogLevel::level##Level); \
+        QString __quentierLogEntry; \
+        QDebug __quentierLogStrm(&__quentierLogEntry); \
         __quentierLogStrm << __FILE__ << '@' << __LINE__ << ": " << message; \
+        quentier::QuentierAddLogEntry(__quentierLogEntry, quentier::LogLevel::level##Level); \
     }
 
 #define QNTRACE(message) \

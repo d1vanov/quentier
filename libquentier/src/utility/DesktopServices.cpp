@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QScopedPointer>
+#include <QUrl>
 
 #ifdef Q_OS_WIN
 #include <qwindowdefs.h>
