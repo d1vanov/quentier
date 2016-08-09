@@ -25,21 +25,6 @@ else()
   include(FindTidyHtml5)
 endif()
 
-if((NOT USE_SYSTEM_SIMPLECRYPT) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/simplecrypt/CMakeLists.txt)
-  message(STATUS "Found SimpleCrypt sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
-  add_subdirectory(simplecrypt)
-  get_directory_property(SIMPLECRYPT_LIB DIRECTORY simplecrypt DEFINITION PROJECT_NAME)
-  get_directory_property(SIMPLECRYPT_SOURCES DIRECTORY simplecrypt DEFINITION SOURCES)
-  get_directory_property(SIMPLECRYPT_INCLUDE_PATH DIRECTORY simplecrypt DEFINITION INCLUDE_DIRS)
-else()
-  if(USE_SYSTEM_SIMPLECRYPT)
-    message(STATUS "USE_SYSTEM_SIMPLECRYPT option is set, will try to find the existing installation of SimpleCrypt")
-  else()
-    message(STATUS "Haven't found SimpleCrypt sources in 3rdparty folder, will try to find the existing installation")
-  endif()
-  include(FindSimpleCrypt)
-endif()
-
 if(NOT USE_QT5)
   if((NOT USE_SYSTEM_QT4_MIMETYPES) AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/qt4-mimetypes/CMakeLists.txt)
     message(STATUS "Found Qt4 Mimetypes sources in 3rdparty folder, will use them to build the local lib instead of attempting to find the existing installation")
@@ -64,12 +49,9 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   get_directory_property(STACKTRACE_INCLUDE_PATH DIRECTORY stacktrace DEFINITION INCLUDE_DIRS)
 endif()
 
-set(THIRDPARTY_INCLUDE_DIRS ${SIMPLECRYPT_INCLUDE_PATH})
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${TIDY_HTML5_INCLUDE_PATH})
+set(THIRDPARTY_INCLUDE_DIRS ${TIDY_HTML5_INCLUDE_PATH})
 
-set(THIRDPARTY_SOURCES
-    ${SIMPLECRYPT_SOURCES}
-    ${TIDY_HTML5_SOURCES})
+set(THIRDPARTY_SOURCES ${TIDY_HTML5_SOURCES})
 
 if(NOT USE_QT5)
   list(APPEND THIRDPARTY_INCLUDE_DIRS ${QT4_MIMETYPES_INCLUDE_PATH})

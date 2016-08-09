@@ -23,7 +23,6 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/Printable.h>
-#include <Simplecrypt.h>
 #include <QApplication>
 
 #define EXPIRATION_TIMESTAMP_KEY "ExpirationTimestamp"

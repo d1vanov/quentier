@@ -37,7 +37,6 @@ using quentier::NoteEditor;
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <Simplecrypt.h>
 #include <cmath>
 #include <QPushButton>
 #include <QIcon>
@@ -114,6 +113,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, QNSLOT(MainWindow,onSetTestNoteWithResources));
     QObject::connect(m_pUI->ActionSetTestReadOnlyNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSetTestReadOnlyNote));
+
+    QString consumerKey, consumerSecret;
+    setupConsumerKeyAndSecret(consumerKey, consumerSecret);
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
@@ -1299,43 +1301,31 @@ void MainWindow::setupUserShortcuts()
 #undef PROCESS_ACTION_SHORTCUT
 }
 
-bool MainWindow::consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, QNLocalizedString & error)
+void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret)
 {
-    SimpleCrypt crypto(0xB87F6B9);
+    const char key[10] = "e3zA914Ol";
 
-    consumerKey = crypto.decryptToString(QByteArray("AwP9s05FRUQgWDvIjk7sru7uV3H5QCBk1W1"
-                                                    "fiJsnZrc5qCOs75z4RrgmnN0awQ8d7X7PBu"
-                                                    "HHF8JDM33DcxXHSh5Kt8fjQoz5HrPOu8i66"
-                                                    "frlRFKguciY7xULwrXdqgECazLB9aveoIo7f"
-                                                    "SDRK9FEM0tTOjfdYVGyC3XW86WH42AT/hVpG"
-                                                    "QqGKDYNPSJktaeMQ0wVoi7u1iUCMN7L7boxl3"
-                                                    "jUO1hw6EjfnO4+f6svSocjkTmrt0qagvxpb1g"
-                                                    "xrjdYzOF/7XO9SB8wq0pPihnIvMQAMlVhW9lG"
-                                                    "2stiXrgAL0jebYmsHWo1XFNPUN2MGi7eM22uW"
-                                                    "fVFAoUW128Qgu/W4+W3dbetmV3NEDjxojsvBn"
-                                                    "koe2J8ZyeZ+Ektss4HrzBGTnmH1x0HzZOrMR9"
-                                                    "zm9BFP7JADvc2QTku"));
-    if (Q_UNLIKELY(consumerKey.isEmpty())) {
-        error = QT_TR_NOOP("can't decrypt the application's consumer key for the Evernote service");
-        return false;
+    QByteArray consumerKeyObf = QByteArray::fromBase64(QString("ZVYsYCHKtSuDnK0g0swrUYAHzYy1m1UeVw==").toUtf8());
+    char lastChar = 0;
+    int size = consumerKeyObf.size();
+    for(int i = 0; i < size; ++i) {
+        char currentChar = consumerKeyObf[i];
+        consumerKeyObf[i] = consumerKeyObf[i] ^ lastChar ^ key[i % 8];
+        lastChar = currentChar;
     }
 
-    consumerSecret = crypto.decryptToString(QByteArray("AwNqc1pRUVDQqMs4frw+fU1N9NJay4hlBoiEXZ"
-                                                       "sBC7bffG0TKeA3+INU0F49tVjvLNvU3J4haezDi"
-                                                       "wrAPVgCBsADTKz5ss3woXfHlyHVUQ7C41Q8FFS6"
-                                                       "EPpgT2tM1835rb8H3+FAHF+2mu8QBIVhe0dN1js"
-                                                       "S9+F+iTWKyTwMRO1urOLaF17GEHemW5YLlsl3MN"
-                                                       "U5bz9Kq8Uw/cWOuo3S2849En8ZFbYmUE9DDGsO7"
-                                                       "eRv9lkeMe8PQ5F1GSVMV8grB71nz4E1V4wVrHR1"
-                                                       "vRm4WchFO/y2lWzq4DCrVjnqZNCWOrgwH6dnOpHg"
-                                                       "glvnsCSN2YhB+i9LhTLvM8qZHN51HZtXEALwSoWX"
-                                                       "UZ3fD5jspD0MRZNN+wr+0zfwVovoPIwo7SSkcqIY"
-                                                       "1P2QSi+OcisJLerkthnyAPouiatyDYC2PDLhu25iu"
-                                                       "09ONDC0KA=="));
-    if (consumerSecret.isEmpty()) {
-        error = QT_TR_NOOP("can't decrypt the application's consumer secret for the Evernote service");
-        return false;
+    consumerKeyObf = qUncompress(consumerKeyObf);
+    consumerKey = QString::fromUtf8(consumerKeyObf.constData(), consumerKeyObf.size());
+
+    QByteArray consumerSecretObf = QByteArray::fromBase64(QString("ZVYsfTzX0KqA+jbDsjC0T2ZnKiRT0+Os7AN9uQ==").toUtf8());
+    lastChar = 0;
+    size = consumerSecretObf.size();
+    for(int i = 0; i < size; ++i) {
+        char currentChar = consumerSecretObf[i];
+        consumerSecretObf[i] = consumerSecretObf[i] ^ lastChar ^ key[i % 8];
+        lastChar = currentChar;
     }
 
-    return true;
+    consumerSecretObf = qUncompress(consumerSecretObf);
+    consumerSecret = QString::fromUtf8(consumerSecretObf.constData(), consumerSecretObf.size());
 }
