@@ -25,10 +25,9 @@
 
 namespace quentier {
 
-void QUENTIER_EXPORT QuentierInitializeLogging();
-
-struct LogLevel
+class LogLevel
 {
+public:
     enum type {
         TraceLevel,
         DebugLevel,
@@ -38,6 +37,8 @@ struct LogLevel
         FatalLevel
     };
 };
+
+void QUENTIER_EXPORT QuentierInitializeLogging();
 
 void QUENTIER_EXPORT QuentierAddLogEntry(const QString & message, const LogLevel::type logLevel);
 
