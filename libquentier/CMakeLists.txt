@@ -46,8 +46,7 @@ if(NOT USE_SYSTEM_TIDY_HTML5)
   get_directory_property(TIDY_HTML5_LIB DIRECTORY 3rdparty DEFINITION TIDY_HTML5_LIB)
 endif()
 
-set(THIRDPARTY_LIBS ${SIMPLECRYPT_LIB})
-list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
+set(THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${QSLOG_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${TIDY_HTML5_LIB})
 list(APPEND THIRDPARTY_LIBS ${QTKEYCHAIN_LIBRARIES})
@@ -476,32 +475,7 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_RESOURCES_RCC}
             ${${PROJECT_NAME}_FORMS_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
-
-if(USE_QT5)
-  qt5_use_modules(${PROJECT_NAME} Core)
-  qt5_use_modules(${PROJECT_NAME} Gui)
-  qt5_use_modules(${PROJECT_NAME} Widgets)
-  qt5_use_modules(${PROJECT_NAME} Network)
-  qt5_use_modules(${PROJECT_NAME} Xml)
-  qt5_use_modules(${PROJECT_NAME} Sql)
-  if(QUENTIER_USE_QT_WEB_ENGINE)
-    qt5_use_modules(${PROJECT_NAME} WebEngine)
-    qt5_use_modules(${PROJECT_NAME} WebEngineWidgets)
-    qt5_use_modules(${PROJECT_NAME} WebSockets)
-    qt5_use_modules(${PROJECT_NAME} WebChannel)
-    if(NOT Qt5WebEngine_VERSION VERSION_LESS "5.6.0")
-      qt5_use_modules(${PROJECT_NAME} WebEngineCore)
-    endif()
-  else()
-    qt5_use_modules(${PROJECT_NAME} WebKit)
-    qt5_use_modules(${PROJECT_NAME} WebKitWidgets)
-  endif()
-else()
-  target_link_libraries(${PROJECT_NAME}
-                        ${QT_LIBRARIES})
-endif()
-
-target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
 
 set(TEST_HEADERS
     src/tests/EncryptionManagerTests.h
