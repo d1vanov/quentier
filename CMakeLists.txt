@@ -21,6 +21,7 @@ include(QuentierFindHunspell)
 include(QuentierFindQtKeychain)
 include(QuentierFindQEverCloud)
 include(QuentierFindQsLog)
+include(QuentierFindQt4Mimetypes)
 include(QuentierDoxygen)
 include(PrependPath)
 
