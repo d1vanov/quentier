@@ -47,7 +47,6 @@ if(NOT USE_SYSTEM_TIDY_HTML5)
 endif()
 
 set(THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
-list(APPEND THIRDPARTY_LIBS ${QSLOG_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${TIDY_HTML5_LIB})
 list(APPEND THIRDPARTY_LIBS ${QTKEYCHAIN_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${OPENSSL_LIBRARIES})
@@ -162,6 +161,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
+    src/logging/QuentierLogger_p.h
     src/note_editor/GenericResourceImageManager.h
     src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
@@ -265,6 +265,7 @@ set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
     src/logging/QuentierLogger.cpp
+    src/logging/QuentierLogger_p.cpp
     src/note_editor/GenericResourceImageManager.cpp
     src/note_editor/DecryptedTextManager.cpp
     src/note_editor/DecryptedTextManager_p.cpp
