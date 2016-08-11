@@ -128,7 +128,8 @@ void QuentierFileLogWriter::rotate()
         return;
     }
 
-    // 3) Open the renamed file
+    // 3) Open the new file
+    m_logFile.setFileName(logFileDirPath + QStringLiteral("/") + QApplication::applicationName() + QStringLiteral("-log.txt"));
     bool opened = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered);
     if (Q_UNLIKELY(!opened)) {
         std::cerr << "Can't open the renamed/rotated libquentier log file, error: " << qPrintable(m_logFile.errorString())
