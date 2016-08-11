@@ -20,8 +20,10 @@
 #define LIB_QUENTIER_LOGGING_QUENTIER_LOGGER_H
 
 #include <quentier/utility/Linkage.h>
+#include <quentier/utility/Qt4Helper.h>
 #include <QDebug>
 #include <QString>
+#include <QApplication>
 
 namespace quentier {
 
@@ -54,7 +56,20 @@ bool QUENTIER_EXPORT QuentierIsLogLevelActive(const LogLevel::type logLevel);
     if (quentier::QuentierIsLogLevelActive(quentier::LogLevel::level##Level)) { \
         QString __quentierLogEntry; \
         QDebug __quentierLogStrm(&__quentierLogEntry); \
-        __quentierLogStrm << __FILE__ << '@' << __LINE__ << ": " << message; \
+        QString __quentierLogRelativeFileName(__FILE__); \
+        QString __quentierAppName = QApplication::applicationName(); \
+        int prefixIndex = __quentierLogRelativeFileName.indexOf(__quentierAppName); \
+        if (prefixIndex >= 0) { \
+            __quentierLogRelativeFileName.remove(0, prefixIndex + __quentierAppName.size() + 1); \
+        } \
+        else { \
+            /* If building libquentier itself, try its own name */ \
+            prefixIndex = __quentierLogRelativeFileName.indexOf(QStringLiteral("libquentier")); \
+            if (prefixIndex >= 0) { \
+                __quentierLogRelativeFileName.remove(0, prefixIndex + 1); \
+            } \
+        } \
+        __quentierLogStrm << __quentierLogRelativeFileName << '@' << __LINE__ << "[" #level "]" << message; \
         quentier::QuentierAddLogEntry(__quentierLogEntry, quentier::LogLevel::level##Level); \
     }
 

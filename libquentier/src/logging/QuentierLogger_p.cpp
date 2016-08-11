@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QTextCodec>
 #include <QDir>
+#include <QDateTime>
 #include <iostream>
 
 #if __cplusplus < 201103L
@@ -77,6 +78,8 @@ QuentierFileLogWriter::~QuentierFileLogWriter()
 
 void QuentierFileLogWriter::write(QString message)
 {
+    message.prepend(QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral(" "));
+
     qint64 messageSize = message.toUtf8().size();
     m_currentLogFileSize += messageSize;
 
@@ -84,7 +87,7 @@ void QuentierFileLogWriter::write(QString message)
         rotate();
     }
 
-    m_stream << message;
+    m_stream << message << "\n";
 }
 
 void QuentierFileLogWriter::rotate()
