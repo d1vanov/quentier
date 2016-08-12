@@ -78,7 +78,7 @@ QuentierFileLogWriter::~QuentierFileLogWriter()
 
 void QuentierFileLogWriter::write(QString message)
 {
-    message.prepend(QDateTime::currentDateTime().toString(Qt::ISODate) + QStringLiteral(" "));
+    message.prepend(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz t") + QStringLiteral(" "));
 
     qint64 messageSize = message.toUtf8().size();
     m_currentLogFileSize += messageSize;
