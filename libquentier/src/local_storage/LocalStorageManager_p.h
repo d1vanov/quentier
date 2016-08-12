@@ -162,7 +162,7 @@ public Q_SLOTS:
     void processPostTransactionException(QNLocalizedString message, QSqlError error) const;
 
 private:
-    LocalStorageManagerPrivate() Q_DECL_DELETE;
+    LocalStorageManagerPrivate() Q_DECL_EQ_DELETE;
     Q_DISABLE_COPY(LocalStorageManagerPrivate)
 
     void unlockDatabaseFile();

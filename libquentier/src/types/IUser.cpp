@@ -18,7 +18,6 @@
 
 #include <quentier/types/IUser.h>
 #include <quentier/utility/Utility.h>
-#include <QEverCloud.h>
 #include <QRegExp>
 
 namespace quentier {

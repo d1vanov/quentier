@@ -58,9 +58,15 @@
 #include "undo_stack/TableActionUndoCommand.h"
 #include <quentier/utility/ApplicationSettings.h>
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebFrame>
+#include <QWebPage>
 typedef QWebSettings WebSettings;
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    typedef QScriptEngine OwnershipNamespace;
+#else
+    typedef QWebFrame OwnershipNamespace;
+#endif
 #else
 #include "javascript_glue/EnCryptElementOnClickHandler.h"
 #include "javascript_glue/GenericResourceOpenAndSaveButtonsOnClickHandler.h"
@@ -190,7 +196,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_findReplaceManagerJs(),
     m_spellCheckerJs(),
     m_managedPageActionJs(),
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     m_qWebKitSetupJs(),
 #else
     m_provideSrcForGenericResourceImagesJs(),
@@ -241,7 +247,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_encryptionManager(new EncryptionManager),
     m_decryptedTextManager(new DecryptedTextManager),
     m_enmlConverter(),
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     m_pluginFactory(Q_NULLPTR),
 #endif
     m_pGenericTextContextMenu(Q_NULLPTR),
@@ -291,7 +297,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_fileSuffixesForMimeType(),
     m_fileFilterStringForMimeType(),
     m_genericResourceImageFilePathsByResourceHash(),
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     m_pGenericResoureImageJavaScriptHandler(new GenericResourceImageJavaScriptHandler(m_genericResourceImageFilePathsByResourceHash, this)),
 #endif
     m_saveGenericResourceImageToFileRequestIds(),
@@ -313,7 +319,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     setupFileIO();
     setupSpellChecker();
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     setupWebSocketServer();
     setupJavaScriptObjects();
 #endif
@@ -388,28 +394,28 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     page->executeJavaScript(m_replaceSelectionWithHtmlJs);
     page->executeJavaScript(m_findReplaceManagerJs);
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     QWebFrame * frame = page->mainFrame();
     if (Q_UNLIKELY(!frame)) {
         return;
     }
 
     frame->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("resizableImageHandler", m_pResizableImageJavaScriptHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
     frame->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
-                                       QScriptEngine::QtOwnership);
+                                       OwnershipNamespace::QtOwnership);
 
     page->executeJavaScript(m_onResourceInfoReceivedJs);
     page->executeJavaScript(m_qWebKitSetupJs);
@@ -463,7 +469,7 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
     updateColResizableTableBindings();
     saveNoteResourcesToLocalFiles();
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
     page->executeJavaScript(m_setupTextCursorPositionTrackingJs);
     setupTextCursorPositionTracking();
@@ -660,7 +666,7 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
         openResource(fileStoragePath);
     }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     setupGenericResourceImages();
 #endif
 }
@@ -813,7 +819,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     }
 }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 void NoteEditorPrivate::onGenericResourceImageSaved(bool success, QByteArray resourceActualHash,
                                                     QString filePath, QNLocalizedString errorDescription,
                                                     QUuid requestId)
@@ -898,7 +904,7 @@ void NoteEditorPrivate::onJavaScriptLoaded()
     {
         m_pendingJavaScriptExecution = false;
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
         m_htmlCachedMemory = page->mainFrame()->toHtml();
         onPageHtmlReceived(m_htmlCachedMemory);
 #else
@@ -1238,7 +1244,7 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QNLocalizedStr
 
         QUrl url = QUrl::fromLocalFile(noteEditorPagePath());
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
         page()->setUrl(url);
         page()->load(url);
 #else
@@ -1291,7 +1297,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResou
     m_resourceInfo.cacheResourceInfo(addedResource.dataHash(), addedResource.displayName(),
                                      humanReadableSize(static_cast<quint64>(addedResource.dataSize())), resourceFileStoragePath);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     setupGenericResourceImages();
 #endif
 
@@ -1406,7 +1412,7 @@ void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName
             << ", new resource name = " << newResourceName << ", performing undo = "
             << (performingUndo ? "true" : "false") << ", resource: " << resource);
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     if (m_pluginFactory) {
         m_pluginFactory->updateResource(resource);
     }
@@ -1519,7 +1525,7 @@ void NoteEditorPrivate::onHideDecryptedTextFinished(const QVariant & data, const
         return;
     }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
 
@@ -1564,7 +1570,7 @@ void NoteEditorPrivate::onHideDecryptedTextUndoRedoFinished(const QVariant & dat
         return;
     }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
 }
@@ -1584,7 +1590,7 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished()
 
     convertToNote();
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
 }
@@ -1648,7 +1654,7 @@ void NoteEditorPrivate::onEncryptSelectedTextUndoRedoFinished(const QVariant & d
 
     convertToNote();
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
 #endif
 }
@@ -2138,7 +2144,7 @@ void NoteEditorPrivate::updateJavaScriptBindings()
 
     updateColResizableTableBindings();
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
     setupGenericResourceImages();
 #endif
@@ -2241,7 +2247,7 @@ void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCas
 
     GET_PAGE()
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     QString escapedTextToFind = textToFind;
     ENMLConverter::escapeString(escapedTextToFind);
 
@@ -2502,7 +2508,7 @@ bool NoteEditorPrivate::htmlToNoteContent(QNLocalizedString & errorDescription)
 
     m_pendingConversionToNote = true;
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     m_htmlCachedMemory = page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
@@ -3014,7 +3020,7 @@ void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, con
                                         resource.displayName(), requestId);
 }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 void NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags()
 {
     QNDEBUG("NoteEditorPrivate::provideSrcAndOnClickScriptForImgEnCryptTags");
@@ -3545,7 +3551,7 @@ void NoteEditorPrivate::setupFileIO()
     m_pGenericResourceImageManager->setStorageFolderPath(m_genericResourceImageFileStoragePath);
     m_pGenericResourceImageManager->moveToThread(m_pIOThread);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     QObject::connect(this,
                      QNSIGNAL(NoteEditorPrivate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageManager,
@@ -3614,7 +3620,7 @@ void NoteEditorPrivate::setupScripts()
     SETUP_SCRIPT("javascript/scripts/hyperlinkManager.js", m_hyperlinkManagerJs);
     SETUP_SCRIPT("javascript/scripts/encryptDecryptManager.js", m_encryptDecryptManagerJs);
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/qWebKitSetup.js", m_qWebKitSetupJs);
 #else
     SETUP_SCRIPT("qtwebchannel/qwebchannel.js", m_qWebChannelJs);
@@ -3623,7 +3629,7 @@ void NoteEditorPrivate::setupScripts()
 
     SETUP_SCRIPT("javascript/scripts/enToDoTagsSetup.js", m_setupEnToDoTagsJs);
     SETUP_SCRIPT("javascript/scripts/flipEnToDoCheckboxState.js", m_flipEnToDoCheckboxStateJs);
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     SETUP_SCRIPT("javascript/scripts/provideSrcAndOnClickScriptForEnCryptImgTags.js", m_provideSrcAndOnClickScriptForEnCryptImgTagsJs);
     SETUP_SCRIPT("javascript/scripts/provideSrcForGenericResourceImages.js", m_provideSrcForGenericResourceImagesJs);
     SETUP_SCRIPT("javascript/scripts/onGenericResourceImageReceived.js", m_onGenericResourceImageReceivedJs);
@@ -3686,28 +3692,28 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessFileUrls, true);
     page->settings()->setAttribute(WebSettings::LocalContentCanAccessRemoteUrls, false);
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     page->settings()->setAttribute(QWebSettings::PluginsEnabled, true);
     page->settings()->setAttribute(QWebSettings::DeveloperExtrasEnabled, true);
     page->setLinkDelegationPolicy(QWebPage::DelegateExternalLinks);
     page->setContentEditable(true);
 
     page->mainFrame()->addToJavaScriptWindowObject("pageMutationObserver", m_pPageMutationHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("resourceCache", m_pResourceInfoJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("textCursorPositionHandler", m_pTextCursorPositionJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("contextMenuEventHandler", m_pContextMenuEventJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("toDoCheckboxClickHandler", m_pToDoCheckboxClickHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("tableResizeHandler", m_pTableResizeJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("resizableImageHandler", m_pResizableImageJavaScriptHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
     page->mainFrame()->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
-                                                   QScriptEngine::QtOwnership);
+                                                   OwnershipNamespace::QtOwnership);
 
     m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
     if (Q_LIKELY(!m_pNote.isNull())) {
@@ -3728,7 +3734,7 @@ void NoteEditorPrivate::setupNoteEditorPageConnections(NoteEditorPage * page)
     QNDEBUG("NoteEditorPrivate::setupNoteEditorPageConnections");
 
     QObject::connect(page, QNSIGNAL(NoteEditorPage,javaScriptLoaded), this, QNSLOT(NoteEditorPrivate,onJavaScriptLoaded));
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     QObject::connect(page, QNSIGNAL(NoteEditorPage,microFocusChanged), this, QNSLOT(NoteEditorPrivate,onTextCursorPositionChange));
 
     QWebFrame * frame = page->mainFrame();
@@ -3877,7 +3883,7 @@ void NoteEditorPrivate::setPageEditable(const bool editable)
 
     GET_PAGE()
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     page->setContentEditable(editable);
 #else
     QString javascript = QString("document.body.contentEditable='") + QString(editable ? "true" : "false") + QString("'; ") +
@@ -3947,7 +3953,7 @@ void NoteEditorPrivate::onSelectedTextEncryptionDone(const QVariant & dummy, con
 
     m_pendingConversionToNote = true;
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     m_htmlCachedMemory = page()->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
@@ -4309,7 +4315,7 @@ void NoteEditorPrivate::onSpellCheckSetOrCleared(const QVariant & dummy, const Q
     Q_UNUSED(extraData)
 
     GET_PAGE()
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     m_htmlCachedMemory = page->mainFrame()->toHtml();
     onPageHtmlReceived(m_htmlCachedMemory);
 #else
@@ -4370,7 +4376,7 @@ void NoteEditorPrivate::setupAddHyperlinkDelegate(const quint64 hyperlinkId, con
 #define COMMAND_WITH_ARGS_TO_JS(command, args) \
     QString javascript = QString("managedPageAction('%1', '%2')").arg(command,args)
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 QVariant NoteEditorPrivate::execJavascriptCommandWithResult(const QString & command)
 {
     COMMAND_TO_JS(command);
@@ -4468,7 +4474,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     m_lastSearchHighlightedText.resize(0);
     m_lastSearchHighlightedTextCaseSensitivity = false;
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     m_localUidsOfResourcesWantedToBeSaved.clear();
 #else
     m_pluginFactory->setNote(*m_pNote);

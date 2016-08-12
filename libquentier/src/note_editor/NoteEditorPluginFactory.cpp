@@ -25,6 +25,7 @@
 #include <quentier/utility/EncryptionManager.h>
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/utility/QuentierCheckPtr.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/ResourceAdapter.h>

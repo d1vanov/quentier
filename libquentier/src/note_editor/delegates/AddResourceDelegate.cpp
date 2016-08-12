@@ -28,8 +28,9 @@
 #include <QBuffer>
 #include <QFileInfo>
 #include <QMimeDatabase>
+#include <QCryptographicHash>
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebFrame>
 #endif
 

@@ -389,7 +389,7 @@ public Q_SLOTS:
     void onExpungeSavedSearch(SavedSearch search, QUuid requestId);
 
 private:
-    LocalStorageManagerThreadWorker() Q_DECL_DELETE;
+    LocalStorageManagerThreadWorker() Q_DECL_EQ_DELETE;
     Q_DISABLE_COPY(LocalStorageManagerThreadWorker)
 
     QString                     m_username;

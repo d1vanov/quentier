@@ -59,7 +59,7 @@ protected:
     virtual const QString exceptionDisplayName() const = 0;
 
 private:
-    IQuentierException() Q_DECL_DELETE;
+    IQuentierException() Q_DECL_EQ_DELETE;
 
     QNLocalizedString   m_message;
 };

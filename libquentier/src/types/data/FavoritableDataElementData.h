@@ -36,8 +36,8 @@ public:
     bool    m_isFavorited;
 
 private:
-    FavoritableDataElementData & operator=(const FavoritableDataElementData & other) Q_DECL_DELETE;
-    FavoritableDataElementData & operator=(FavoritableDataElementData && other) Q_DECL_DELETE;
+    FavoritableDataElementData & operator=(const FavoritableDataElementData & other) Q_DECL_EQ_DELETE;
+    FavoritableDataElementData & operator=(FavoritableDataElementData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier

@@ -24,7 +24,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QScopedPointer>
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebFrame>
 #endif
 

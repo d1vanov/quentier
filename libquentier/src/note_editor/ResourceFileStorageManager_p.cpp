@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDesktopServices>
+#include <QCryptographicHash>
 
 namespace quentier {
 

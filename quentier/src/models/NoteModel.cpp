@@ -20,6 +20,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/UidGenerator.h>
 #include <quentier/utility/Utility.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/types/ResourceAdapter.h>
 
 // Limit for the queries to the local storage

@@ -28,9 +28,9 @@ class QUENTIER_EXPORT NoteSearchQuery : public Printable
 {
 public:
     NoteSearchQuery();
-    NoteSearchQuery(const NoteSearchQuery & other) Q_DECL_DELETE;
+    NoteSearchQuery(const NoteSearchQuery & other) Q_DECL_EQ_DELETE;
     NoteSearchQuery(NoteSearchQuery && other);
-    NoteSearchQuery & operator=(const NoteSearchQuery & other) Q_DECL_DELETE;
+    NoteSearchQuery & operator=(const NoteSearchQuery & other) Q_DECL_EQ_DELETE;
     NoteSearchQuery & operator=(NoteSearchQuery && other);
     ~NoteSearchQuery();
 

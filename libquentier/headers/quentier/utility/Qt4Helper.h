@@ -21,7 +21,7 @@
 
 #include <QtGlobal>
 
-#if QT_VERSION < 0x050000
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 
 #ifndef Q_DECL_OVERRIDE
 #ifdef CPP11_COMPLIANT
@@ -69,7 +69,7 @@
 #undef QNSLOT
 #endif
 
-#if QT_VERSION < 0x050000
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #define QNSIGNAL(className, methodName, ...) SIGNAL(methodName(__VA_ARGS__))
 #define QNSLOT(className, methodName, ...) SLOT(methodName(__VA_ARGS__))
 #else
@@ -77,12 +77,12 @@
 #define QNSLOT(className, methodName, ...) &className::methodName
 #endif
 
-#ifndef Q_DECL_DELETE
+#ifndef Q_DECL_EQ_DELETE
 #ifdef CPP11_COMPLIANT
-#define Q_DECL_DELETE = delete
+#define Q_DECL_EQ_DELETE = delete
 #else
-#define Q_DECL_DELETE
+#define Q_DECL_EQ_DELETE
 #endif
-#endif // Q_DECL_DELETE
+#endif // Q_DECL_EQ_DELETE
 
 #endif // LIB_QUENTIER_UTILITY_QT4HELPER_H

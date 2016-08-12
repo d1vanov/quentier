@@ -31,60 +31,21 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers
                     ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_subdirectory(3rdparty)
-
-get_directory_property(THIRDPARTY_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION THIRDPARTY_INCLUDE_DIRS)
-get_directory_property(THIRDPARTY_SOURCES DIRECTORY 3rdparty DEFINITION THIRDPARTY_SOURCES)
-
 include(QuentierAdditionalCompilerWarnings)
 
-get_directory_property(QEVERCLOUD_LIB DIRECTORY 3rdparty DEFINITION QEVERCLOUD_LIB)
-
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  get_directory_property(STACKTRACE_LIB DIRECTORY 3rdparty DEFINITION STACKTRACE_LIB)
-endif()
-
-if(NOT USE_SYSTEM_SIMPLECRYPT)
-  get_directory_property(SIMPLECRYPT_LIB DIRECTORY 3rdparty DEFINITION SIMPLECRYPT_LIB)
-endif()
-
-if(NOT USE_SYSTEM_QT_KEYCHAIN)
-  get_directory_property(QTKEYCHAIN_LIB DIRECTORY 3rdparty DEFINITION QTKEYCHAIN_LIB)
-endif()
-
-if(NOT USE_SYSTEM_QSLOG)
-  get_directory_property(QSLOG_LIB DIRECTORY 3rdparty DEFINITION QSLOG_LIB)
-endif()
-
-if(NOT USE_SYSTEM_TIDY_HTML5)
-  get_directory_property(TIDY_HTML5_LIB DIRECTORY 3rdparty DEFINITION TIDY_HTML5_LIB)
-endif()
-
-if(NOT USE_QT5)
-  if(NOT USE_SYSTEM_QT4_MIMETYPES)
-    get_directory_property(QT4_MIMETYPES_LIB DIRECTORY 3rdparty DEFINITION QT4_MIMETYPES_LIB)
-  endif()
-endif()
-
-set(THIRDPARTY_LIBS ${QTKEYCHAIN_LIB})
-list(APPEND THIRDPARTY_LIBS ${SIMPLECRYPT_LIB})
-list(APPEND THIRDPARTY_LIBS ${QEVERCLOUD_LIB})
-list(APPEND THIRDPARTY_LIBS ${QSLOG_LIB})
+set(THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${TIDY_HTML5_LIB})
+list(APPEND THIRDPARTY_LIBS ${QTKEYCHAIN_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${OPENSSL_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${LIBXML2_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${HUNSPELL_LIBRARIES})
 if(NOT USE_QT5)
-  list(APPEND THIRDPARTY_LIBS ${QT4_MIMETYPES_LIB})
+  list(APPEND THIRDPARTY_LIBS ${QT4-MIMETYPES_LIBRARIES})
 endif()
 if(LIBCPP)
   list(APPEND THIRDPARTY_LIBS ${LIBCPP})
 endif()
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND THIRDPARTY_LIBS ${STACKTRACE_LIB})
-endif()
 
-include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
@@ -183,6 +144,7 @@ list(APPEND PUBLIC_HEADERS ${UTILITY_HEADERS})
 
 set(PRIVATE_HEADERS
     src/local_storage/Transaction.h
+    src/logging/QuentierLogger_p.h
     src/note_editor/GenericResourceImageManager.h
     src/note_editor/DecryptedTextManager_p.h
     src/note_editor/NoteEditorPage.h
@@ -266,7 +228,12 @@ set(PRIVATE_HEADERS
     src/utility/ShortcutManager_p.h
     src/utility/StringUtils_p.h)
 
-if(NOT USE_QT_WEB_ENGINE)
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  list(APPEND PRIVATE_HEADERS
+       src/utility/unix/StackTrace.h)
+endif()
+
+if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND PRIVATE_HEADERS
        src/note_editor/NoteEditorPluginFactory.h
        src/note_editor/INoteEditorResourcePlugin.h
@@ -285,6 +252,8 @@ endif()
 set(${PROJECT_NAME}_HEADERS ${PUBLIC_HEADERS} ${PRIVATE_HEADERS})
 
 set(${PROJECT_NAME}_SOURCES
+    src/logging/QuentierLogger.cpp
+    src/logging/QuentierLogger_p.cpp
     src/note_editor/GenericResourceImageManager.cpp
     src/note_editor/DecryptedTextManager.cpp
     src/note_editor/DecryptedTextManager_p.cpp
@@ -426,7 +395,7 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/Utility.cpp
     src/utility/UidGenerator.cpp)
 
-if(NOT USE_QT_WEB_ENGINE)
+if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND ${PROJECT_NAME}_SOURCES
     src/note_editor/EncryptedAreaPlugin.cpp
     src/note_editor/GenericResourceDisplayWidget.cpp
@@ -445,9 +414,11 @@ endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfo.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/linux/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/linux/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/StackTrace.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/darwin/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/StackTrace.cpp)
 endif()
 
 set(RESOURCES
@@ -477,7 +448,7 @@ set(FORMS
     src/note_editor/dialogs/EditHyperlinkDialog.ui
     src/note_editor/dialogs/RenameResourceDialog.ui)
 
-if(NOT USE_QT_WEB_ENGINE)
+if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND FORMS
        src/note_editor/EncryptedAreaPlugin.ui
        src/note_editor/GenericResourceDisplayWidget.ui)
@@ -495,32 +466,7 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_RESOURCES_RCC}
             ${${PROJECT_NAME}_FORMS_HEADERS})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
-
-if(USE_QT5)
-  qt5_use_modules(${PROJECT_NAME} Core)
-  qt5_use_modules(${PROJECT_NAME} Gui)
-  qt5_use_modules(${PROJECT_NAME} Widgets)
-  qt5_use_modules(${PROJECT_NAME} Network)
-  qt5_use_modules(${PROJECT_NAME} Xml)
-  qt5_use_modules(${PROJECT_NAME} Sql)
-  if(USE_QT_WEB_ENGINE)
-    qt5_use_modules(${PROJECT_NAME} WebEngine)
-    qt5_use_modules(${PROJECT_NAME} WebEngineWidgets)
-    qt5_use_modules(${PROJECT_NAME} WebSockets)
-    qt5_use_modules(${PROJECT_NAME} WebChannel)
-    if(NOT Qt5WebEngine_VERSION VERSION_LESS "5.6.0")
-      qt5_use_modules(${PROJECT_NAME} WebEngineCore)
-    endif()
-  else()
-    qt5_use_modules(${PROJECT_NAME} Webkit)
-    qt5_use_modules(${PROJECT_NAME} WebKitWidgets)
-  endif()
-else()
-  target_link_libraries(${PROJECT_NAME}
-                        ${QT_LIBRARIES})
-endif()
-
-target_link_libraries(${PROJECT_NAME} ${THIRDPARTY_LIBS})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
 
 set(TEST_HEADERS
     src/tests/EncryptionManagerTests.h
@@ -600,7 +546,6 @@ prepend_path(TEST_SOURCES "${TEST_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 # collect the list of sources to be checked by static analyzer
 set(${PROJECT_NAME}_CHECKABLE_SOURCES ${${PROJECT_NAME}_SOURCES})
 list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${TEST_SOURCES})
-list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${THIRDPARTY_SOURCES})
 
 # install shared library
 install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)

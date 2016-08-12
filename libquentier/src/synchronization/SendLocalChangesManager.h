@@ -187,7 +187,7 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent);
 
 private:
-    SendLocalChangesManager() Q_DECL_DELETE;
+    SendLocalChangesManager() Q_DECL_EQ_DELETE;
 
 private:
     void createConnections();

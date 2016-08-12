@@ -17,14 +17,12 @@
  */
 
 #include "SynchronizationManager_p.h"
-#include <keychain.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/Printable.h>
-#include <Simplecrypt.h>
 #include <QApplication>
 
 #define EXPIRATION_TIMESTAMP_KEY "ExpirationTimestamp"

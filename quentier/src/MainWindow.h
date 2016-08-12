@@ -133,7 +133,7 @@ private:
     void setupDefaultShortcuts();
     void setupUserShortcuts();
 
-    bool consumerKeyAndSecret(QString & consumerKey, QString & consumerSecret, quentier::QNLocalizedString & error);
+    void setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret);
 
     void connectActionsToSlots();
     void connectActionsToEditorSlots();

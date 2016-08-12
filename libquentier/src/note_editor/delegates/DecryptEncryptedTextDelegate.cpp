@@ -27,7 +27,7 @@
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/logging/QuentierLogger.h>
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebFrame>
 #endif
 

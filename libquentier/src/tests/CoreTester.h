@@ -90,8 +90,8 @@ private slots:
     void localStorageCacheManagerTest();
 
 private:
-    CoreTester(const CoreTester & other) Q_DECL_DELETE;
-    CoreTester & operator=(const CoreTester & other) Q_DECL_DELETE;
+    CoreTester(const CoreTester & other) Q_DECL_EQ_DELETE;
+    CoreTester & operator=(const CoreTester & other) Q_DECL_EQ_DELETE;
 
 };
 

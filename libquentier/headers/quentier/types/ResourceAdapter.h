@@ -52,7 +52,7 @@ private:
     virtual const qevercloud::Resource & GetEnResource() const Q_DECL_OVERRIDE;
     virtual qevercloud::Resource & GetEnResource() Q_DECL_OVERRIDE;
 
-    ResourceAdapter() Q_DECL_DELETE;
+    ResourceAdapter() Q_DECL_EQ_DELETE;
 
     qevercloud::Resource * m_pEnResource;
     bool m_isConst;

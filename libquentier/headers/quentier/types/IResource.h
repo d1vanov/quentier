@@ -21,7 +21,6 @@
 
 #include "INoteStoreDataElement.h"
 #include "Note.h"
-#include <QEverCloud.h>
 
 namespace quentier {
 

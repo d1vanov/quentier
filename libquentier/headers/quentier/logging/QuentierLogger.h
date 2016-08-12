@@ -19,66 +19,85 @@
 #ifndef LIB_QUENTIER_LOGGING_QUENTIER_LOGGER_H
 #define LIB_QUENTIER_LOGGING_QUENTIER_LOGGER_H
 
-#include <quentier/exception/LoggerInitializationException.h>
-#include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/Linkage.h>
+#include <quentier/utility/Qt4Helper.h>
+#include <QDebug>
+#include <QString>
+#include <QApplication>
 
-#ifndef QS_LOG_LINE_NUMBERS
-#define QS_LOG_LINE_NUMBERS
-#endif
+namespace quentier {
 
-#ifndef QS_LOG_SEPARATE_THREAD
-#define QS_LOG_SEPARATE_THREAD
-#endif
+class LogLevel
+{
+public:
+    enum type {
+        TraceLevel,
+        DebugLevel,
+        InfoLevel,
+        WarnLevel,
+        ErrorLevel,
+        FatalLevel
+    };
+};
 
-#include <QsLog.h>
-#include <QsLogLevel.h>
-#include <QsLogDest.h>
-#include <QsLogDestFile.h>
+void QUENTIER_EXPORT QuentierInitializeLogging();
+
+void QUENTIER_EXPORT QuentierAddLogEntry(const QString & message, const LogLevel::type logLevel);
+
+void QUENTIER_EXPORT QuentierSetMinLogLevel(const LogLevel::type logLevel);
+
+void QUENTIER_EXPORT QuentierAddStdOutLogDestination();
+
+bool QUENTIER_EXPORT QuentierIsLogLevelActive(const LogLevel::type logLevel);
+
+} // namespace quentier
+
+#define __QNLOG_BASE(message, level) \
+    if (quentier::QuentierIsLogLevelActive(quentier::LogLevel::level##Level)) { \
+        QString __quentierLogEntry; \
+        QDebug __quentierLogStrm(&__quentierLogEntry); \
+        QString __quentierLogRelativeFileName(__FILE__); \
+        QString __quentierAppName = QApplication::applicationName(); \
+        int prefixIndex = __quentierLogRelativeFileName.indexOf(__quentierAppName); \
+        if (prefixIndex >= 0) { \
+            __quentierLogRelativeFileName.remove(0, prefixIndex + __quentierAppName.size() + 1); \
+        } \
+        else { \
+            /* If building libquentier itself, try its own name */ \
+            prefixIndex = __quentierLogRelativeFileName.indexOf(QStringLiteral("libquentier")); \
+            if (prefixIndex >= 0) { \
+                __quentierLogRelativeFileName.remove(0, prefixIndex + 1); \
+            } \
+        } \
+        __quentierLogStrm << __quentierLogRelativeFileName << '@' << __LINE__ << "[" #level "]" << message; \
+        quentier::QuentierAddLogEntry(__quentierLogEntry, quentier::LogLevel::level##Level); \
+    }
 
 #define QNTRACE(message) \
-    QLOG_TRACE() << message;
+    __QNLOG_BASE(message, Trace)
 
 #define QNDEBUG(message) \
-    QLOG_DEBUG() << message;
+    __QNLOG_BASE(message, Debug)
 
 #define QNINFO(message) \
-    QLOG_INFO() << message;
+    __QNLOG_BASE(message, Info)
 
 #define QNWARNING(message) \
-    QLOG_WARN() << message;
+    __QNLOG_BASE(message, Warn)
 
 #define QNCRITICAL(message) \
-    QLOG_ERROR() << message;
+    __QNLOG_BASE(message, Error)
 
 #define QNFATAL(message) \
-    QLOG_FATAL() << message;
+    __QNLOG_BASE(message, Fatal)
 
 #define QUENTIER_SET_MIN_LOG_LEVEL(level) \
-    QsLogging::Logger::instance().setLoggingLevel(QsLogging::level##Level);
+    quentier::QuentierSetMinLogLevel(quentier::LogLevel::level##Level)
 
 #define QUENTIER_INITIALIZE_LOGGING() \
-{ \
-    using namespace QsLogging; \
-    \
-    Logger & logger = Logger::instance(); \
-    logger.setLoggingLevel(InfoLevel); \
-    \
-    QString appPersistentStoragePathString = quentier::applicationPersistentStoragePath(); \
-    QDir appPersistentStoragePathFolder(appPersistentStoragePathString); \
-    if (!appPersistentStoragePathFolder.exists()) { \
-        if (!appPersistentStoragePathFolder.mkpath(".")) { \
-            quentier::QNLocalizedString error = QT_TR_NOOP("Can't create path for log file"); \
-            error += ": "; \
-            error += appPersistentStoragePathString; \
-            throw quentier::LoggerInitializationException(error); \
-        } \
-    } \
-    \
-    QString logFileName = appPersistentStoragePathString + QString("/") + QApplication::applicationName() + \
-                          QString("-log.txt"); \
-    DestinationPtr fileDest(DestinationFactory::MakeFileDestination(logFileName, EnableLogRotation, \
-                                                                    MaxSizeBytes(104857600), MaxOldLogCount(2))); \
-    logger.addDestination(fileDest); \
-}
+    quentier::QuentierInitializeLogging()
+
+#define QUENTIER_ADD_STDOUT_LOG_DESTINATION() \
+    quentier::QuentierAddStdOutLogDestination()
 
 #endif // LIB_QUENTIER_LOGGING_QUENTIER_LOGGER_H

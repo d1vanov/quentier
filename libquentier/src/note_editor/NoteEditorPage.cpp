@@ -55,7 +55,7 @@ void NoteEditorPage::setInactive()
 {
     QNDEBUG("NoteEditorPage::setInactive");
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     NoteEditorPluginFactory * pPluginFactory = qobject_cast<NoteEditorPluginFactory*>(pluginFactory());
     if (Q_LIKELY(pPluginFactory)) {
         pPluginFactory->setInactive();
@@ -67,7 +67,7 @@ void NoteEditorPage::setActive()
 {
     QNDEBUG("NoteEditorPage::setActive");
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     NoteEditorPluginFactory * pPluginFactory = qobject_cast<NoteEditorPluginFactory*>(pluginFactory());
     if (Q_LIKELY(pPluginFactory)) {
         pPluginFactory->setActive();
@@ -130,7 +130,7 @@ void NoteEditorPage::onJavaScriptQueueEmpty()
     emit javaScriptLoaded();
 }
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
 void NoteEditorPage::javaScriptAlert(QWebFrame * pFrame, const QString & message)
 {
     QNDEBUG("NoteEditorPage::javaScriptAlert, message: " << message);

@@ -28,6 +28,7 @@
 #include <QScopedPointer>
 #include <QDomDocument>
 #include <QRegExp>
+#include <QFile>
 
 namespace quentier {
 
@@ -706,7 +707,7 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
 {
     QString encryptedTextHtmlObject;
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     encryptedTextHtmlObject = "<img ";
 #else
     encryptedTextHtmlObject = "<object type=\"application/vnd.quentier.encrypt\" ";
@@ -732,7 +733,7 @@ QString ENMLConverterPrivate::encryptedTextHtml(const QString & encryptedText, c
         encryptedTextHtmlObject += "\" ";
     }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     encryptedTextHtmlObject += " />";
 #else
     encryptedTextHtmlObject += ">some fake characters to prevent self-enclosing html tag confusing webkit</object>";
@@ -925,7 +926,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
     convertedToEnCryptNode = true;
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     writer.writeStartElement("object");
     writer.writeAttribute("type", "application/vnd.quentier.encrypt");
 #else
@@ -953,7 +954,7 @@ bool ENMLConverterPrivate::encryptedTextToHtml(const QXmlStreamAttributes & enCr
 
     writer.writeAttribute("en-crypt-id", QString::number(enCryptIndex));
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     // Required for webkit, otherwise it can't seem to handle self-enclosing object tag properly
     writer.writeCharacters("some fake characters to prevent self-enclosing html tag confusing webkit");
 #endif
@@ -997,7 +998,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamAttributes & attri
         inlineImage = true;
     }
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
     writer.writeStartElement(inlineImage ? "img" : "object");
 #else
     writer.writeStartElement("img");
@@ -1017,7 +1018,7 @@ bool ENMLConverterPrivate::resourceInfoToHtml(const QXmlStreamAttributes & attri
     {
         writer.writeAttribute("class", "en-media-generic hvr-border-color");
 
-#ifndef USE_QT_WEB_ENGINE
+#ifndef QUENTIER_USE_QT_WEB_ENGINE
         writer.writeAttribute("type", "application/vnd.quentier.resource");
 
         const int numAttributes = attributes.size();

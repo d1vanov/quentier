@@ -49,7 +49,7 @@ RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource,
     m_shouldGetResourceNameFromDialog(true),
     m_performingUndo(performingUndo),
     m_pNote(noteEditor.notePtr())
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     ,
     m_genericResourceImageWriterRequestId()
 #endif
@@ -123,7 +123,7 @@ void RenameResourceDelegate::doStart()
     {
         m_resource.setDisplayName(m_newResourceName);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
         buildAndSaveGenericResourceImage();
 #else
         emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo);
@@ -167,14 +167,14 @@ void RenameResourceDelegate::onRenameResourceDialogFinished(QString newResourceN
     m_resource.setDisplayName(m_newResourceName);
     m_noteEditor.replaceResourceInNote(m_resource);
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
     buildAndSaveGenericResourceImage();
 #else
     emit finished(m_oldResourceName, m_newResourceName, m_resource, m_performingUndo);
 #endif
 }
 
-#ifdef USE_QT_WEB_ENGINE
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
 void RenameResourceDelegate::buildAndSaveGenericResourceImage()
 {
     QNDEBUG("RenameResourceDelegate::buildAndSaveGenericResourceImage");

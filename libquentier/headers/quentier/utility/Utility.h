@@ -20,8 +20,14 @@
 #define LIB_QUENTIER_UTILITY_UTILITY_H
 
 #include <quentier/utility/Linkage.h>
-#include <QEverCloud.h>
 #include <QString>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
+
 #include <QFlags>
 #include <cstdint>
 
