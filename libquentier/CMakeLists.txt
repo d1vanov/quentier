@@ -31,20 +31,7 @@ set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/headers
                     ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_subdirectory(3rdparty)
-
-get_directory_property(THIRDPARTY_INCLUDE_DIRS DIRECTORY 3rdparty DEFINITION THIRDPARTY_INCLUDE_DIRS)
-get_directory_property(THIRDPARTY_SOURCES DIRECTORY 3rdparty DEFINITION THIRDPARTY_SOURCES)
-
 include(QuentierAdditionalCompilerWarnings)
-
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  get_directory_property(STACKTRACE_LIB DIRECTORY 3rdparty DEFINITION STACKTRACE_LIB)
-endif()
-
-if(NOT USE_SYSTEM_TIDY_HTML5)
-  get_directory_property(TIDY_HTML5_LIB DIRECTORY 3rdparty DEFINITION TIDY_HTML5_LIB)
-endif()
 
 set(THIRDPARTY_LIBS ${QEVERCLOUD_LIBRARIES})
 list(APPEND THIRDPARTY_LIBS ${TIDY_HTML5_LIB})
@@ -58,11 +45,7 @@ endif()
 if(LIBCPP)
   list(APPEND THIRDPARTY_LIBS ${LIBCPP})
 endif()
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND THIRDPARTY_LIBS ${STACKTRACE_LIB})
-endif()
 
-include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(headers)
 
 set(NOTE_EDITOR_HEADERS
@@ -245,6 +228,11 @@ set(PRIVATE_HEADERS
     src/utility/ShortcutManager_p.h
     src/utility/StringUtils_p.h)
 
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  list(APPEND PRIVATE_HEADERS
+       src/utility/unix/StackTrace.h)
+endif()
+
 if(NOT QUENTIER_USE_QT_WEB_ENGINE)
   list(APPEND PRIVATE_HEADERS
        src/note_editor/NoteEditorPluginFactory.h
@@ -426,9 +414,11 @@ endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfo.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/linux/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/linux/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/StackTrace.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/darwin/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/darwin/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/StackTrace.cpp)
 endif()
 
 set(RESOURCES
@@ -556,7 +546,6 @@ prepend_path(TEST_SOURCES "${TEST_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 # collect the list of sources to be checked by static analyzer
 set(${PROJECT_NAME}_CHECKABLE_SOURCES ${${PROJECT_NAME}_SOURCES})
 list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${TEST_SOURCES})
-list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${THIRDPARTY_SOURCES})
 
 # install shared library
 install(TARGETS ${PROJECT_NAME} ARCHIVE DESTINATION lib LIBRARY DESTINATION lib RUNTIME DESTINATION bin)
