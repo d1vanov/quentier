@@ -21,7 +21,7 @@ include(QuentierFindHunspell)
 include(QuentierFindQtKeychain)
 include(QuentierFindQEverCloud)
 include(QuentierFindQt4Mimetypes)
-include(QuentierFindTidyHtml5)
+include(QuentierFindLibTidyHtml5)
 include(QuentierDoxygen)
 include(PrependPath)
 

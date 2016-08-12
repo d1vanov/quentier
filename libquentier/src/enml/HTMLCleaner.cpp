@@ -19,7 +19,9 @@
 #include <quentier/enml/HTMLCleaner.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <tidy.h>
+#include <tidyenum.h>
 #include <tidybuffio.h>
+#include <tidyplatform.h>
 #include <stdio.h>
 #include <errno.h>
 
