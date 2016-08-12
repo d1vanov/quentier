@@ -35,7 +35,7 @@ SavedSearchModelTestHelper::SavedSearchModelTestHelper(LocalStorageManagerThread
                      this, QNSLOT(SavedSearchModelTestHelper,onAddSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QString,QUuid),
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onFindSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
                                                                 LocalStorageManager::ListObjectsOptions,
