@@ -60,13 +60,13 @@ bool QUENTIER_EXPORT QuentierIsLogLevelActive(const LogLevel::type logLevel);
         QString __quentierAppName = QApplication::applicationName(); \
         int prefixIndex = __quentierLogRelativeFileName.indexOf(__quentierAppName); \
         if (prefixIndex >= 0) { \
-            __quentierLogRelativeFileName.remove(0, prefixIndex + __quentierAppName.size() + 1); \
+            __quentierLogRelativeFileName.remove(0, prefixIndex + __quentierAppName.size()); \
         } \
         else { \
             /* If building libquentier itself, try its own name */ \
             prefixIndex = __quentierLogRelativeFileName.indexOf(QStringLiteral("libquentier")); \
             if (prefixIndex >= 0) { \
-                __quentierLogRelativeFileName.remove(0, prefixIndex + 1); \
+                __quentierLogRelativeFileName.remove(0, prefixIndex); \
             } \
         } \
         __quentierLogStrm << __quentierLogRelativeFileName << '@' << __LINE__ << "[" #level "]" << message; \
