@@ -140,6 +140,8 @@ public:
 
     virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) = 0;
 
+    virtual void clear() = 0;
+
 protected:
     INoteEditorBackend(NoteEditor * parent);
     NoteEditor *    m_pNoteEditor;

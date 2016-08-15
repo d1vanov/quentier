@@ -248,7 +248,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_decryptedTextManager(new DecryptedTextManager),
     m_enmlConverter(),
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
-    m_pluginFactory(Q_NULLPTR),
+    m_pPluginFactory(Q_NULLPTR),
 #endif
     m_pGenericTextContextMenu(Q_NULLPTR),
     m_pImageResourceContextMenu(Q_NULLPTR),
@@ -1413,8 +1413,8 @@ void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName
             << (performingUndo ? "true" : "false") << ", resource: " << resource);
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
-    if (m_pluginFactory) {
-        m_pluginFactory->updateResource(resource);
+    if (m_pPluginFactory) {
+        m_pPluginFactory->updateResource(resource);
     }
 #endif
 
@@ -3715,12 +3715,12 @@ void NoteEditorPrivate::setupNoteEditorPage()
     page->mainFrame()->addToJavaScriptWindowObject("spellCheckerDynamicHelper", m_pSpellCheckerDynamicHandler,
                                                    OwnershipNamespace::QtOwnership);
 
-    m_pluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
+    m_pPluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
     if (Q_LIKELY(!m_pNote.isNull())) {
-        m_pluginFactory->setNote(*m_pNote);
+        m_pPluginFactory->setNote(*m_pNote);
     }
 
-    page->setPluginFactory(m_pluginFactory);
+    page->setPluginFactory(m_pPluginFactory);
 #endif
 
     setupNoteEditorPageConnections(page);
@@ -4477,7 +4477,20 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
     m_localUidsOfResourcesWantedToBeSaved.clear();
 #else
-    m_pluginFactory->setNote(*m_pNote);
+    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(page());
+    if (Q_LIKELY(page))
+    {
+        bool missingPluginFactory = !m_pPluginFactory;
+        if (missingPluginFactory) {
+            m_pPluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
+        }
+
+        m_pPluginFactory->setNote(*m_pNote);
+
+        if (missingPluginFactory) {
+            page->setPluginFactory(m_pPluginFactory);
+        }
+    }
 #endif
 
     m_resourceLocalUidAndFileStoragePathByReadResourceRequestIds.clear();
@@ -4486,6 +4499,38 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     noteToEditorContent();
 
     QNTRACE("Done setting the current note and notebook");
+}
+
+void NoteEditorPrivate::clear()
+{
+    QNDEBUG("NoteEditorPrivate::clear");
+
+    m_pNote.reset(Q_NULLPTR);
+    m_pNotebook.reset(Q_NULLPTR);
+
+    // Clear the caches from previous note
+    m_resourceInfo.clear();
+    m_genericResourceLocalUidBySaveToStorageRequestIds.clear();
+    m_imageResourceSaveToStorageRequestIds.clear();
+    m_resourceFileStoragePathsByResourceLocalUid.clear();
+    m_genericResourceImageFilePathsByResourceHash.clear();
+    m_saveGenericResourceImageToFileRequestIds.clear();
+    m_recognitionIndicesByResourceHash.clear();
+
+    m_lastSearchHighlightedText.resize(0);
+    m_lastSearchHighlightedTextCaseSensitivity = false;
+
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
+    m_localUidsOfResourcesWantedToBeSaved.clear();
+#else
+    page()->setPluginFactory(Q_NULLPTR);
+    delete m_pPluginFactory;
+    m_pPluginFactory = Q_NULLPTR;
+#endif
+
+    m_resourceLocalUidAndFileStoragePathByReadResourceRequestIds.clear();
+
+    clearEditorContent();
 }
 
 void NoteEditorPrivate::convertToNote()

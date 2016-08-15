@@ -270,6 +270,7 @@ public Q_SLOTS:
     virtual void onNoteLoadCancelled() Q_DECL_OVERRIDE;
 
     virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) Q_DECL_OVERRIDE;
+    virtual void clear() Q_DECL_OVERRIDE;
     virtual void convertToNote() Q_DECL_OVERRIDE;
 
     void undoPageAction();
@@ -762,7 +763,7 @@ private:
     ENMLConverter                           m_enmlConverter;
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
-    NoteEditorPluginFactory *               m_pluginFactory;
+    NoteEditorPluginFactory *               m_pPluginFactory;
 #endif
 
     QMenu *                                 m_pGenericTextContextMenu;

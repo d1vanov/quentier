@@ -62,6 +62,11 @@ void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook
     m_backend->setNoteAndNotebook(note, notebook);
 }
 
+void NoteEditor::clear()
+{
+    m_backend->clear();
+}
+
 void NoteEditor::convertToNote()
 {
     m_backend->convertToNote();

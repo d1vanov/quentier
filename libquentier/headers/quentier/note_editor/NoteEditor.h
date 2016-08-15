@@ -46,6 +46,8 @@ public:
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
 
+    void clear();
+
 Q_SIGNALS:
     void contentChanged();
     void notifyError(QNLocalizedString error);
