@@ -730,8 +730,16 @@ void LocalStorageManagerThreadWorker::onUpdateNoteRequest(Note note, bool update
             return;
         }
 
-        if (m_useCache) {
-            m_pLocalStorageCacheManager->cacheNote(note);
+        if (m_useCache)
+        {
+            if (updateResources && updateTags) {
+                m_pLocalStorageCacheManager->cacheNote(note);
+            }
+            else {
+                // The note was somehow changed but the resources or tags information was not updated =>
+                // the note in the cache is stale/incomplete in either case, need to remove it from there
+                m_pLocalStorageCacheManager->expungeNote(note);
+            }
         }
 
         emit updateNoteComplete(note, updateResources, updateTags, requestId);
@@ -746,7 +754,7 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
         QNLocalizedString errorDescription;
 
         bool foundNoteInCache = false;
-        if (m_useCache)
+        if (m_useCache && withResourceBinaryData)
         {
             bool noteHasGuid = note.hasGuid();
             const QString uid = (noteHasGuid ? note.guid() : note.localUid());
@@ -766,6 +774,10 @@ void LocalStorageManagerThreadWorker::onFindNoteRequest(Note note, bool withReso
                 emit findNoteFailed(note, withResourceBinaryData, errorDescription, requestId);
                 return;
             }
+        }
+
+        if (!foundNoteInCache && m_useCache && withResourceBinaryData) {
+            m_pLocalStorageCacheManager->cacheNote(note);
         }
 
         emit findNoteComplete(note, withResourceBinaryData, requestId);
@@ -793,7 +805,7 @@ void LocalStorageManagerThreadWorker::onListNotesPerNotebookRequest(Notebook not
             return;
         }
 
-        if (m_useCache)
+        if (m_useCache && withResourceBinaryData)
         {
             const int numNotes = notes.size();
             for(int i = 0; i < numNotes; ++i) {
@@ -828,7 +840,7 @@ void LocalStorageManagerThreadWorker::onListNotesPerTagRequest(Tag tag, bool wit
             return;
         }
 
-        if (m_useCache)
+        if (m_useCache && withResourceBinaryData)
         {
             const int numNotes = notes.size();
             for(int i = 0; i < numNotes; ++i) {
@@ -843,7 +855,9 @@ void LocalStorageManagerThreadWorker::onListNotesPerTagRequest(Tag tag, bool wit
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData, size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order, LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId)
+void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
+                                                         size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
+                                                         LocalStorageManager::OrderDirection::type orderDirection, QUuid requestId)
 {
     try
     {
@@ -856,7 +870,7 @@ void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::Li
             return;
         }
 
-        if (m_useCache)
+        if (m_useCache && withResourceBinaryData)
         {
             const int numNotes = notes.size();
             for(int i = 0; i < numNotes; ++i) {
