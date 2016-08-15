@@ -33,7 +33,7 @@ public:
     explicit NoteEditorWidget(LocalStorageManagerThreadWorker & localStorageWorker,
                               NoteCache & noteCache, NotebookCache & notebookCache,
                               TagCache & TagCache, QWidget * parent = Q_NULLPTR);
-    ~NoteEditorWidget();
+    virtual ~NoteEditorWidget();
 
     void setNoteLocalUid(const QString & noteLocalUid);
 
@@ -129,6 +129,9 @@ private:
 
     QScopedPointer<Note>        m_pCurrentNote;
     QScopedPointer<Notebook>    m_pCurrentNotebook;
+
+    QSet<QUuid>                 m_findCurrentNoteRequestIds;
+    QSet<QUuid>                 m_findCurrentNotebookRequestIds;
 
     int                         m_lastFontSizeComboBoxIndex;
     QString                     m_lastFontComboBoxFontFamily;

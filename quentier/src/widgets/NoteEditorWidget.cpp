@@ -15,8 +15,15 @@ using quentier::NoteTagsWidget;
 
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/types/ResourceAdapter.h>
 #include <QFontDatabase>
 #include <QScopedPointer>
+
+#define CHECK_NOTE_SET() \
+    if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
+        emit notifyError(QT_TR_NOOP("No note is set to the editor")); \
+        return; \
+    }
 
 namespace quentier {
 
@@ -30,6 +37,8 @@ NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorag
     m_tagCache(tagCache),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
+    m_findCurrentNoteRequestIds(),
+    m_findCurrentNotebookRequestIds(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_lastSuggestedFontSize(-1),
@@ -47,8 +56,86 @@ NoteEditorWidget::~NoteEditorWidget()
 
 void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 {
-    Q_UNUSED(noteLocalUid)
-    // TODO: implement
+    QNDEBUG("NoteEditorWidget::setNoteLocalUid: " << noteLocalUid);
+
+    if (!m_pCurrentNote.isNull() && (m_pCurrentNote->localUid() == noteLocalUid)) {
+        QNDEBUG("This note is already set to the editor, nothing to do");
+        return;
+    }
+
+    m_pUi->noteEditor->clear();
+    m_pCurrentNote.reset(Q_NULLPTR);
+    m_pCurrentNotebook.reset(Q_NULLPTR);
+
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        return;
+    }
+
+    const Note * pCachedNote = m_noteCache.get(noteLocalUid);
+
+    // The cache might contain the note without resource binary data, need to check for this
+    bool hasMissingResources = false;
+    if (Q_LIKELY(pCachedNote))
+    {
+        QList<ResourceAdapter> resourceAdapters = pCachedNote->resourceAdapters();
+        if (!resourceAdapters.isEmpty())
+        {
+            for(int i = 0, size = resourceAdapters.size(); i < size; ++i)
+            {
+                const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+                if (resourceAdapter.hasDataHash() && !resourceAdapter.hasDataBody()) {
+                    hasMissingResources = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (Q_UNLIKELY(!pCachedNote || hasMissingResources))
+    {
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_findCurrentNoteRequestIds.insert(requestId))
+        Note dummy;
+        dummy.setLocalUid(noteLocalUid);
+        QNTRACE("Emitting the request to find the current note: local uid = " << noteLocalUid
+                << ", request id = " << requestId);
+        emit findNote(dummy, /* with resource binary data = */ true, requestId);
+        return;
+    }
+
+    QNTRACE("Found the cached note");
+    if (Q_UNLIKELY(!pCachedNote->hasNotebookLocalUid() && !pCachedNote->hasNotebookGuid())) {
+        emit notifyError(QT_TR_NOOP("Can't set the note to the editor: the note has no linkage to any notebook"));
+        return;
+    }
+
+    m_pCurrentNote.reset(new Note(*pCachedNote));
+
+    const Notebook * pCachedNotebook = Q_NULLPTR;
+    if (m_pCurrentNote->hasNotebookLocalUid()) {
+        pCachedNotebook = m_notebookCache.get(m_pCurrentNote->notebookLocalUid());
+    }
+
+    if (Q_UNLIKELY(!pCachedNotebook))
+    {
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_findCurrentNotebookRequestIds.insert(requestId))
+        Notebook dummy;
+        if (m_pCurrentNote->hasNotebookLocalUid()) {
+            dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
+        }
+        else {
+            dummy.setLocalUid(QString());
+            dummy.setGuid(m_pCurrentNote->notebookGuid());
+        }
+
+        QNTRACE("Emitting the request to find the current notebook: " << dummy
+                << "\nRequest id = " << requestId);
+        emit findNotebook(dummy, requestId);
+        return;
+    }
+
+    // TODO: continue from here
 }
 
 void NoteEditorWidget::onEditorTextBoldToggled()
