@@ -4477,18 +4477,18 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
     m_localUidsOfResourcesWantedToBeSaved.clear();
 #else
-    NoteEditorPage * page = qobject_cast<NoteEditorPage*>(page());
-    if (Q_LIKELY(page))
+    NoteEditorPage * pNoteEditorPage = qobject_cast<NoteEditorPage*>(page());
+    if (Q_LIKELY(pNoteEditorPage))
     {
         bool missingPluginFactory = !m_pPluginFactory;
         if (missingPluginFactory) {
-            m_pPluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, page);
+            m_pPluginFactory = new NoteEditorPluginFactory(*this, *m_pResourceFileStorageManager, *m_pFileIOThreadWorker, pNoteEditorPage);
         }
 
         m_pPluginFactory->setNote(*m_pNote);
 
         if (missingPluginFactory) {
-            page->setPluginFactory(m_pPluginFactory);
+            pNoteEditorPage->setPluginFactory(m_pPluginFactory);
         }
     }
 #endif
