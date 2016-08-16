@@ -4190,7 +4190,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     res = query.exec("CREATE TABLE IF NOT EXISTS ResourceAttributesApplicationDataFullMap("
                      "  resourceLocalUid REFERENCES Resources(resourceLocalUid) ON UPDATE CASCADE, "
                      "  resourceMapKey          TEXT                DEFAULT NULL, "
-                     "  resourcevalue           TEXT                DEFAULT NULL, "
+                     "  resourceValue           TEXT                DEFAULT NULL, "
                      "  UNIQUE(resourceLocalUid, resourceMapKey) ON CONFLICT REPLACE"
                      ")");
     errorPrefix = QT_TR_NOOP("can't create ResourceAttributesApplicationDataFullMap table");
@@ -5898,45 +5898,19 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
 
     if (updateResources)
     {
-        // Clear note's resources first and insert new ones second
-        // TODO: it is not perfectly efficient... need to figure out some partial update approach for the future
+        if (!note.hasResources())
         {
+            // Just clear any resources the note might have had then
             QString queryString = QString("DELETE FROM Resources WHERE noteLocalUid='%1'").arg(localUid);
             QSqlQuery query(m_sqlDatabase);
             bool res = query.exec(queryString);
             DATABASE_CHECK_AND_SET_ERROR();
         }
-
-        if (note.hasResources())
+        else
         {
-            QList<ResourceAdapter> resources = note.resourceAdapters();
-            int numResources = resources.size();
-            for(int i = 0; i < numResources; ++i)
-            {
-                const ResourceAdapter & resource = resources[i];
-
-                QNLocalizedString error;
-                bool res = resource.checkParameters(error);
-                if (!res) {
-                    errorDescription = errorPrefix;
-                    errorDescription += ": ";
-                    errorDescription += QT_TR_NOOP("found invalid resource linked with note");
-                    errorDescription += ": ";
-                    errorDescription += error;
-                    QNWARNING(errorDescription);
-                    return false;
-                }
-
-                error.clear();
-                res = insertOrReplaceResource(resource, error, /* useSeparateTransaction = */ false);
-                if (!res) {
-                    errorDescription = errorPrefix;
-                    errorDescription += ": ";
-                    errorDescription += QT_TR_NOOP("can't add or update one of note's resources");
-                    errorDescription += ": ";
-                    errorDescription += error;
-                    return false;
-                }
+            bool res = partialUpdateNoteResources(localUid, note.resourceAdapters(), errorDescription);
+            if (!res) {
+                return false;
             }
         }
     }
@@ -9127,6 +9101,172 @@ bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource,
 
         if (query.next()) {
             resource.setNoteLocalUid(query.record().value("localUid").toString());
+        }
+    }
+
+    return true;
+}
+
+bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & noteLocalUid,
+                                                            const QList<ResourceAdapter> & updatedNoteResources,
+                                                            QNLocalizedString & errorDescription)
+{
+    QNDEBUG("LocalStorageManagerPrivate::partialUpdateNoteResources: note local uid = " << noteLocalUid);
+
+    QNLocalizedString errorPrefix = QT_TR_NOOP("Can't do the partial update of note's resources");
+
+    QString listNoteResourcesQueryString = QString("SELECT Resources.resourceLocalUid, resourceGuid, noteLocalUid, noteGuid, "
+                                                   "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
+                                                   "mime, width, height, recognitionDataSize, recognitionDataHash, "
+                                                   "alternateDataSize, alternateDataHash, resourceIndexInNote, "
+                                                   "resourceSourceURL, timestamp, resourceLatitude, resourceLongitude, "
+                                                   "resourceAltitude, cameraMake, cameraModel, clientWillIndex, "
+                                                   "fileName, attachment, resourceKey, resourceMapKey, resourceValue "
+                                                   "FROM Resources LEFT OUTER JOIN ResourceAttributes "
+                                                   "ON Resources.resourceLocalUid = ResourceAttributes.resourceLocalUid "
+                                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataKeysOnly "
+                                                   "ON Resources.resourceLocalUid = ResourceAttributesApplicationDataKeysOnly.resourceLocalUid "
+                                                   "LEFT OUTER JOIN ResourceAttributesApplicationDataFullMap "
+                                                   "ON Resources.resourceLocalUid = ResourceAttributesApplicationDataFullMap.resourceLocalUid "
+                                                   "WHERE noteLocalUid='%1'").arg(noteLocalUid);
+    QSqlQuery query(m_sqlDatabase);
+    bool res = query.exec(listNoteResourcesQueryString);
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    QList<ResourceWrapper> previousNoteResources;
+
+    QString resourceLocalUidProperty("resourceLocalUid");
+    while(query.next())
+    {
+        QSqlRecord record = query.record();
+
+        int resourceLocalUidIndex = record.indexOf(resourceLocalUidProperty);
+        if (resourceLocalUidIndex < 0) {
+            errorDescription = errorPrefix;
+            errorDescription += ": ";
+            errorDescription += QT_TR_NOOP("can't retrieve the resource local uid from the query result");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        ResourceWrapper resource;
+        resource.setLocalUid(record.value(resourceLocalUidIndex).toString());
+
+        fillResourceFromSqlRecord(record, /* with binary data = */ false, resource);
+        previousNoteResources << resource;
+    }
+
+    // Now figure out which resources were removed from the note and which were added or updated
+    QStringList localUidsForResourcesRemovedFromNote;
+    QList<ResourceAdapter> addedOrUpdatedResources;
+
+    int numResources = updatedNoteResources.size();
+    int numPreviousResources = previousNoteResources.size();
+    for(int i = 0; i < numPreviousResources; ++i)
+    {
+        const ResourceWrapper & previousNoteResource = previousNoteResources[i];
+
+        bool foundResource = false;
+        for(int j = 0; j < numResources; ++j)
+        {
+            const ResourceAdapter & resourceAdapter = updatedNoteResources[j];
+            if (resourceAdapter.localUid() != previousNoteResource.localUid()) {
+                continue;
+            }
+
+            foundResource = true;
+
+            bool changed = false;
+
+#define COMPARE_RESOURCE_PROPERTY(hasProperty, property) \
+            changed = changed || ( (resourceAdapter.hasProperty() && previousNoteResource.hasProperty() && (resourceAdapter.property() != previousNoteResource.property())) || \
+                                   (resourceAdapter.hasProperty() != previousNoteResource.hasProperty()) )
+
+            COMPARE_RESOURCE_PROPERTY(hasGuid, guid);
+            COMPARE_RESOURCE_PROPERTY(hasNoteGuid, noteGuid);
+            COMPARE_RESOURCE_PROPERTY(hasNoteLocalUid, noteLocalUid);
+            COMPARE_RESOURCE_PROPERTY(hasUpdateSequenceNumber, updateSequenceNumber);
+            COMPARE_RESOURCE_PROPERTY(hasDataSize, dataSize);
+            COMPARE_RESOURCE_PROPERTY(hasDataHash, dataHash);
+            COMPARE_RESOURCE_PROPERTY(hasMime, mime);
+            COMPARE_RESOURCE_PROPERTY(hasWidth, width);
+            COMPARE_RESOURCE_PROPERTY(hasHeight, height);
+            COMPARE_RESOURCE_PROPERTY(hasRecognitionDataSize, recognitionDataSize);
+            COMPARE_RESOURCE_PROPERTY(hasRecognitionDataHash, recognitionDataHash);
+            COMPARE_RESOURCE_PROPERTY(hasAlternateDataSize, alternateDataSize);
+            COMPARE_RESOURCE_PROPERTY(hasAlternateDataHash, alternateDataHash);
+            COMPARE_RESOURCE_PROPERTY(hasResourceAttributes, resourceAttributes);
+
+#undef COMPARE_RESOURCE_PROPERTY
+
+            changed |= (resourceAdapter.isDirty() != previousNoteResource.isDirty());
+            changed |= (resourceAdapter.isLocal() != previousNoteResource.isLocal());
+            changed |= (resourceAdapter.indexInNote() != previousNoteResource.indexInNote());
+
+            if (changed) {
+                addedOrUpdatedResources << resourceAdapter;
+            }
+
+            break;
+        }
+
+        if (!foundResource) {
+            localUidsForResourcesRemovedFromNote << previousNoteResource.localUid();
+        }
+    }
+
+    for(int j = 0; j < numResources; ++j)
+    {
+        const ResourceAdapter & resourceAdapter = updatedNoteResources[j];
+
+        bool foundResource = false;
+        for(int i = 0; i < numPreviousResources; ++i)
+        {
+            const ResourceWrapper & resource = previousNoteResources[i];
+            if (resource.localUid() != resourceAdapter.localUid()) {
+                continue;
+            }
+
+            foundResource = true;
+            break;
+        }
+
+        if (!foundResource) {
+            addedOrUpdatedResources << resourceAdapter;
+        }
+    }
+
+    // Now delete the removed resources and update the updated ones
+    QString removeResourcesQueryString = QString("DELETE FROM Resources WHERE resourceLocalUid IN ('%1')").arg(localUidsForResourcesRemovedFromNote.join(","));
+    res = query.exec(removeResourcesQueryString);
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    int numAddedOrUpdatedResources = addedOrUpdatedResources.size();
+    for(int i = 0; i < numAddedOrUpdatedResources; ++i)
+    {
+        const ResourceAdapter & resource = addedOrUpdatedResources[i];
+
+        QNLocalizedString error;
+        bool res = resource.checkParameters(error);
+        if (!res) {
+            errorDescription = errorPrefix;
+            errorDescription += ": ";
+            errorDescription += QT_TR_NOOP("found invalid resource linked with note");
+            errorDescription += ": ";
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        error.clear();
+        res = insertOrReplaceResource(resource, error, /* useSeparateTransaction = */ false);
+        if (!res) {
+            errorDescription = errorPrefix;
+            errorDescription += ": ";
+            errorDescription += QT_TR_NOOP("can't add or update one of note's resources");
+            errorDescription += ": ";
+            errorDescription += error;
+            return false;
         }
     }
 

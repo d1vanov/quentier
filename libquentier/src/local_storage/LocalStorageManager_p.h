@@ -301,6 +301,9 @@ private:
 
     bool complementResourceNoteIds(IResource & resource, QNLocalizedString & errorDescription) const;
 
+    bool partialUpdateNoteResources(const QString & noteLocalUid, const QList<ResourceAdapter> & updatedNoteResources,
+                                    QNLocalizedString & errorDescription);
+
     template <class T>
     QString listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & flag,
                                                    QNLocalizedString & errorDescription) const;
