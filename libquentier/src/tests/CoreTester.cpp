@@ -610,7 +610,6 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         ResourceWrapper resource;
         resource.setGuid("00000000-0000-0000-c000-000000000049");
         resource.setUpdateSequenceNumber(1);
-        resource.setFreeAccount(true);
         resource.setNoteGuid(note.guid());
         resource.setDataBody("Fake resource data body");
         resource.setDataSize(resource.dataBody().size());

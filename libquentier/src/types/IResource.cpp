@@ -33,15 +33,6 @@ QN_DEFINE_LOCAL(IResource)
 IResource::IResource() :
     INoteStoreDataElement(),
     d(new NoteStoreDataElementData),
-    m_isFreeAccount(true),
-    m_indexInNote(-1),
-    m_noteLocalUid()
-{}
-
-IResource::IResource(const bool isFreeAccount) :
-    INoteStoreDataElement(),
-    d(new NoteStoreDataElementData),
-    m_isFreeAccount(isFreeAccount),
     m_indexInNote(-1),
     m_noteLocalUid()
 {}
@@ -149,15 +140,6 @@ bool IResource::checkParameters(QNLocalizedString & errorDescription) const
             return false; \
         } \
         \
-        int32_t dataSize = static_cast<int32_t>(enResource.name->body->size()); \
-        int32_t allowedSize = (m_isFreeAccount \
-                               ? qevercloud::EDAM_RESOURCE_SIZE_MAX_FREE \
-                               : qevercloud::EDAM_RESOURCE_SIZE_MAX_PREMIUM); \
-        if (dataSize > allowedSize) { \
-            errorDescription = QT_TR_NOOP("resource's " #name " body size is too large"); \
-            return false; \
-        } \
-        \
         if (!enResource.name->size.isSet()) { \
             errorDescription = QT_TR_NOOP("resource's " #name " size is not set"); \
             return false; \
@@ -230,16 +212,6 @@ bool IResource::checkParameters(QNLocalizedString & errorDescription) const
     }
 
     return true;
-}
-
-bool IResource::isFreeAccount() const
-{
-    return m_isFreeAccount;
-}
-
-void IResource::setFreeAccount(const bool isFreeAccount)
-{
-    m_isFreeAccount = isFreeAccount;
 }
 
 QString IResource::displayName() const
@@ -675,7 +647,6 @@ void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attribut
 IResource::IResource(const IResource & other) :
     INoteStoreDataElement(other),
     d(other.d),
-    m_isFreeAccount(other.m_isFreeAccount),
     m_indexInNote(other.indexInNote()),
     m_noteLocalUid(other.m_noteLocalUid)
 {}
@@ -685,7 +656,6 @@ IResource & IResource::operator=(const IResource & other)
     if (this != &other)
     {
         d = other.d;
-        setFreeAccount(other.m_isFreeAccount);
         setIndexInNote(other.m_indexInNote);
         setNoteLocalUid(other.m_noteLocalUid.isSet() ? other.m_noteLocalUid.ref() : QString());
     }
@@ -710,7 +680,6 @@ QTextStream & IResource::print(QTextStream & strm) const
     }
 
     strm << indent << "isDirty = " << (isDirty() ? "true" : "false") << "; \n";
-    strm << indent << "isFreeAccount = " << (m_isFreeAccount ? "true" : "false") << "; \n";
     strm << indent << "indexInNote = " << QString::number(m_indexInNote) << "; \n";
     strm << indent << "note local uid = " << (m_noteLocalUid.isSet() ? m_noteLocalUid.ref() : QStringLiteral("<not set>")) << "; \n";
 

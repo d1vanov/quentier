@@ -35,7 +35,6 @@ public:
 
 public:
     IResource();
-    IResource(const bool isFreeAccount);
     virtual ~IResource();
 
     bool operator==(const IResource & other) const;
@@ -55,9 +54,6 @@ public:
     virtual void setUpdateSequenceNumber(const qint32 updateSequenceNumber) Q_DECL_OVERRIDE;
 
     virtual bool checkParameters(QNLocalizedString & errorDescription) const Q_DECL_OVERRIDE;
-
-    bool isFreeAccount() const;
-    void setFreeAccount(const bool isFreeAccount);
 
     QString displayName() const;
     void setDisplayName(const QString & displayName);

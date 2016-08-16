@@ -668,7 +668,6 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     ResourceWrapper newResource;
     newResource.setGuid("00000000-0000-0000-c000-000000000051");
     newResource.setUpdateSequenceNumber(2);
-    newResource.setFreeAccount(true);
     newResource.setNoteGuid(note.guid());
     newResource.setDataBody("Fake new resource data body");
     newResource.setDataSize(newResource.dataBody().size());
