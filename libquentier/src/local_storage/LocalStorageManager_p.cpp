@@ -9236,10 +9236,13 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
         }
     }
 
-    // Now delete the removed resources and update the updated ones
-    QString removeResourcesQueryString = QString("DELETE FROM Resources WHERE resourceLocalUid IN ('%1')").arg(localUidsForResourcesRemovedFromNote.join(","));
-    res = query.exec(removeResourcesQueryString);
-    DATABASE_CHECK_AND_SET_ERROR();
+    // Now delete the removed resources and add/update the added/updated ones
+
+    if (!localUidsForResourcesRemovedFromNote.isEmpty()) {
+        QString removeResourcesQueryString = QString("DELETE FROM Resources WHERE resourceLocalUid IN ('%1')").arg(localUidsForResourcesRemovedFromNote.join(","));
+        res = query.exec(removeResourcesQueryString);
+        DATABASE_CHECK_AND_SET_ERROR();
+    }
 
     int numAddedOrUpdatedResources = addedOrUpdatedResources.size();
     for(int i = 0; i < numAddedOrUpdatedResources; ++i)
