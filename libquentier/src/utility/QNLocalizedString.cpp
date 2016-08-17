@@ -22,17 +22,20 @@
 namespace quentier {
 
 QNLocalizedString::QNLocalizedString() :
+    Printable(),
     m_localizedString(),
     m_nonLocalizedString()
 {}
 
 QNLocalizedString::QNLocalizedString(const char * nonLocalizedString, QObject * pTranslationContext,
                                      const char * disambiguation, const int plurals) :
+    Printable(),
     m_localizedString(translateString(nonLocalizedString, pTranslationContext, disambiguation, plurals)),
     m_nonLocalizedString(QString::fromUtf8(nonLocalizedString))
 {}
 
 QNLocalizedString::QNLocalizedString(const QNLocalizedString & other) :
+    Printable(),
     m_localizedString(other.m_localizedString),
     m_nonLocalizedString(other.m_nonLocalizedString)
 {}
