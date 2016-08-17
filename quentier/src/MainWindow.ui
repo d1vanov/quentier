@@ -2719,7 +2719,7 @@ stop: 1 #0EB7FF);
   <customwidget>
    <class>FindAndReplaceWidget</class>
    <extends>QWidget</extends>
-   <header>FindAndReplaceWidget.h</header>
+   <header>widgets/FindAndReplaceWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -25,7 +25,7 @@
 
 // workarouding Qt4 Designer's inability to work with namespaces
 
-#include "FindAndReplaceWidget.h"
+#include "widgets/FindAndReplaceWidget.h"
 using quentier::FindAndReplaceWidget;
 
 #include <quentier/note_editor/NoteEditor.h>

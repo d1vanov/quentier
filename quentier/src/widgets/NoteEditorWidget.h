@@ -12,6 +12,7 @@
 #include <QWidget>
 #include <QUuid>
 #include <QScopedPointer>
+#include <QStringList>
 
 namespace Ui {
 class NoteEditorWidget;
@@ -58,16 +59,14 @@ public Q_SLOTS:
     void onEditorTextAddHorizontalLineAction();
     void onEditorTextIncreaseFontSizeAction();
     void onEditorTextDecreaseFontSizeAction();
-    // void onEditorTextHighlightAction();
+    void onEditorTextHighlightAction();
     void onEditorTextIncreaseIndentationAction();
     void onEditorTextDecreaseIndentationAction();
     void onEditorTextInsertUnorderedListAction();
     void onEditorTextInsertOrderedListAction();
-    /*
     void onEditorTextEditHyperlinkAction();
     void onEditorTextCopyHyperlinkAction();
     void onEditorTextRemoveHyperlinkAction();
-    */
 
     void onEditorChooseTextColor(QColor color);
     void onEditorChooseBackgroundColor(QColor color);
@@ -120,6 +119,7 @@ private Q_SLOTS:
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
+    void clear();
 
 private:
     Ui::NoteEditorWidget *      m_pUi;
@@ -130,8 +130,8 @@ private:
     QScopedPointer<Note>        m_pCurrentNote;
     QScopedPointer<Notebook>    m_pCurrentNotebook;
 
-    QSet<QUuid>                 m_findCurrentNoteRequestIds;
-    QSet<QUuid>                 m_findCurrentNotebookRequestIds;
+    QUuid                       m_findCurrentNoteRequestId;
+    QUuid                       m_findCurrentNotebookRequestId;
 
     int                         m_lastFontSizeComboBoxIndex;
     QString                     m_lastFontComboBoxFontFamily;

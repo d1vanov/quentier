@@ -37,8 +37,8 @@ NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorag
     m_tagCache(tagCache),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
-    m_findCurrentNoteRequestIds(),
-    m_findCurrentNotebookRequestIds(),
+    m_findCurrentNoteRequestId(),
+    m_findCurrentNotebookRequestId(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_lastSuggestedFontSize(-1),
@@ -63,9 +63,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
         return;
     }
 
-    m_pUi->noteEditor->clear();
-    m_pCurrentNote.reset(Q_NULLPTR);
-    m_pCurrentNotebook.reset(Q_NULLPTR);
+    clear();
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
         return;
@@ -93,13 +91,12 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     if (Q_UNLIKELY(!pCachedNote || hasMissingResources))
     {
-        QUuid requestId = QUuid::createUuid();
-        Q_UNUSED(m_findCurrentNoteRequestIds.insert(requestId))
+        m_findCurrentNoteRequestId = QUuid::createUuid();
         Note dummy;
         dummy.setLocalUid(noteLocalUid);
         QNTRACE("Emitting the request to find the current note: local uid = " << noteLocalUid
-                << ", request id = " << requestId);
-        emit findNote(dummy, /* with resource binary data = */ true, requestId);
+                << ", request id = " << m_findCurrentNoteRequestId);
+        emit findNote(dummy, /* with resource binary data = */ true, m_findCurrentNoteRequestId);
         return;
     }
 
@@ -110,6 +107,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
     }
 
     m_pCurrentNote.reset(new Note(*pCachedNote));
+    m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
 
     const Notebook * pCachedNotebook = Q_NULLPTR;
     if (m_pCurrentNote->hasNotebookLocalUid()) {
@@ -118,8 +116,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     if (Q_UNLIKELY(!pCachedNotebook))
     {
-        QUuid requestId = QUuid::createUuid();
-        Q_UNUSED(m_findCurrentNotebookRequestIds.insert(requestId))
+        m_findCurrentNotebookRequestId = QUuid::createUuid();
         Notebook dummy;
         if (m_pCurrentNote->hasNotebookLocalUid()) {
             dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
@@ -130,119 +127,184 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
         }
 
         QNTRACE("Emitting the request to find the current notebook: " << dummy
-                << "\nRequest id = " << requestId);
-        emit findNotebook(dummy, requestId);
+                << "\nRequest id = " << m_findCurrentNotebookRequestId);
+        emit findNotebook(dummy, m_findCurrentNotebookRequestId);
         return;
     }
 
-    // TODO: continue from here
+    m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
+
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onEditorTextBoldToggled()
 {
-    // TODO: implement
+    m_pUi->noteEditor->textBold();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextItalicToggled()
 {
-    // TODO: implement
+    m_pUi->noteEditor->textItalic();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextUnderlineToggled()
 {
-    // TODO: implement
+    m_pUi->noteEditor->textUnderline();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextStrikethroughToggled()
 {
-    // TODO: implement
+    m_pUi->noteEditor->textStrikethrough();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAlignLeftAction()
 {
-    // TODO: implement
+    if (m_pUi->formatJustifyLeftPushButton->isChecked()) {
+        m_pUi->formatJustifyCenterPushButton->setChecked(false);
+        m_pUi->formatJustifyRightPushButton->setChecked(false);
+    }
+
+    m_pUi->noteEditor->alignLeft();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAlignCenterAction()
 {
-    // TODO: implement
+    if (m_pUi->formatJustifyCenterPushButton->isChecked()) {
+        m_pUi->formatJustifyLeftPushButton->setChecked(false);
+        m_pUi->formatJustifyRightPushButton->setChecked(false);
+    }
+
+    m_pUi->noteEditor->alignCenter();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAlignRightAction()
 {
-    // TODO: implement
+    if (m_pUi->formatJustifyRightPushButton->isChecked()) {
+        m_pUi->formatJustifyLeftPushButton->setChecked(false);
+        m_pUi->formatJustifyCenterPushButton->setChecked(false);
+    }
+
+    m_pUi->noteEditor->alignRight();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAddHorizontalLineAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->insertHorizontalLine();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextIncreaseFontSizeAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->increaseFontSize();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextDecreaseFontSizeAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->decreaseFontSize();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onEditorTextHighlightAction()
+{
+    m_pUi->noteEditor->textHighlight();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextIncreaseIndentationAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->increaseIndentation();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextDecreaseIndentationAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->decreaseIndentation();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextInsertUnorderedListAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->insertBulletedList();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextInsertOrderedListAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->insertNumberedList();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onEditorTextEditHyperlinkAction()
+{
+    m_pUi->noteEditor->editHyperlinkDialog();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onEditorTextCopyHyperlinkAction()
+{
+    m_pUi->noteEditor->copyHyperlink();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onEditorTextRemoveHyperlinkAction()
+{
+    m_pUi->noteEditor->removeHyperlink();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorChooseTextColor(QColor color)
 {
-    Q_UNUSED(color)
-    // TODO: implement
+    m_pUi->noteEditor->setFontColor(color);
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorChooseBackgroundColor(QColor color)
 {
-    Q_UNUSED(color)
-    // TODO: implement
+    m_pUi->noteEditor->setBackgroundColor(color);
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorSpellCheckStateChanged(int state)
 {
-    Q_UNUSED(state)
-    // TODO: implement
+    m_pUi->noteEditor->setSpellcheck(state != Qt::Unchecked);
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorInsertToDoCheckBoxAction()
 {
-    // TODO: implement
+    m_pUi->noteEditor->insertToDoCheckbox();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorInsertTableDialogAction()
 {
-    // TODO: implement
+    onEditorTextInsertTableDialogRequested();
 }
 
 void NoteEditorWidget::onEditorInsertTable(int rows, int columns, double width, bool relativeWidth)
 {
-    Q_UNUSED(rows)
-    Q_UNUSED(columns)
-    Q_UNUSED(width)
-    Q_UNUSED(relativeWidth)
-    // TODO: implement
+    rows = std::max(rows, 1);
+    columns = std::max(columns, 1);
+    width = std::max(width, 1.0);
+
+    if (relativeWidth) {
+        m_pUi->noteEditor->insertRelativeWidthTable(rows, columns, width);
+    }
+    else {
+        m_pUi->noteEditor->insertFixedWidthTable(rows, columns, static_cast<int>(width));
+    }
+
+    QNTRACE("Inserted table: rows = " << rows << ", columns = " << columns
+            << ", width = " << width << ", relative width = " << (relativeWidth ? "true" : "false"));
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -267,20 +329,68 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
 
 void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (requestId != m_findCurrentNoteRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onFindNoteComplete: request id = " << requestId
+            << ", with resource binary data = " << (withResourceBinaryData ? "true" : "false"));
+    QNTRACE("Note: " << note);
+
+    m_findCurrentNoteRequestId = QUuid();
+
+    m_pCurrentNote.reset(new Note(note));
+    m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
+
+    const Notebook * pCachedNotebook = Q_NULLPTR;
+    if (m_pCurrentNote->hasNotebookLocalUid()) {
+        pCachedNotebook = m_notebookCache.get(m_pCurrentNote->notebookLocalUid());
+    }
+
+    if (Q_UNLIKELY(!pCachedNotebook))
+    {
+        if (!m_findCurrentNotebookRequestId.isNull()) {
+            QNDEBUG("Couldn't find the notebook in the cache and the request to find it is already active");
+            return;
+        }
+
+        m_findCurrentNotebookRequestId = QUuid::createUuid();
+        Notebook dummy;
+        if (m_pCurrentNote->hasNotebookLocalUid()) {
+            dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
+        }
+        else {
+            dummy.setLocalUid(QString());
+            dummy.setGuid(m_pCurrentNote->notebookGuid());
+        }
+
+        QNTRACE("Emitting the request to find the current notebook: " << dummy
+                << "\nRequest id = " << m_findCurrentNotebookRequestId);
+        emit findNotebook(dummy, m_findCurrentNotebookRequestId);
+        return;
+    }
+
+    m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
+
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
                                         QUuid requestId)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (requestId != m_findCurrentNoteRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onFindNoteFailed: request id = " << requestId << ", with resource binary data = "
+            << (withResourceBinaryData ? "true" : "false") << ", error description: " << errorDescription);
+    QNTRACE("Note: " << note);
+
+    m_findCurrentNoteRequestId = QUuid();
+
+    clear();
+
+    emit notifyError(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor"));
 }
 
 void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -306,17 +416,36 @@ void NoteEditorWidget::onExpungeNotebookComplete(Notebook notebook, QUuid reques
 
 void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (requestId != m_findCurrentNotebookRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onFindNotebookComplete: request id = " << requestId << ", notebook: " << notebook);
+
+    m_findCurrentNotebookRequestId = QUuid();
+
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
+        QNDEBUG("Can't process the update of the notebook: no current note is set");
+        clear();
+        return;
+    }
+
+    m_pCurrentNotebook.reset(new Notebook(notebook));
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (requestId != m_findCurrentNotebookRequestId) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onFindNotebookFailed: request id = " << requestId
+            << ", notebook: " << notebook << "\nError description = " << errorDescription);
+
+    m_findCurrentNotebookRequestId = QUuid();
+    clear();
+    emit notifyError(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor"));
 }
 
 void NoteEditorWidget::onFindTagComplete(Tag tag, QUuid requestId)
@@ -728,6 +857,16 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorInsertToDoCheckBoxAction));
     QObject::connect(m_pUi->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorInsertTable,int,int,double,bool));
+}
+
+void NoteEditorWidget::clear()
+{
+    QNDEBUG("NoteEditorWidget::clear: note " << (m_pCurrentNote ? m_pCurrentNote->localUid() : QStringLiteral("<null>")));
+
+    m_pCurrentNote.reset(Q_NULLPTR);
+    m_pCurrentNotebook.reset(Q_NULLPTR);
+    m_pUi->noteEditor->clear();
+    m_pUi->tagNameLabelsContainer->clear();
 }
 
 } // namespace quentier

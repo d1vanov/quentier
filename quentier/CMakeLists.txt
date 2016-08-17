@@ -54,7 +54,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libquentier/headers)
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/BasicXMLSyntaxHighlighter.h
-    src/FindAndReplaceWidget.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/models/NewItemNameGenerator.hpp
@@ -81,6 +80,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
+    src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
     src/widgets/NoteEditorWidget.h
@@ -92,7 +92,6 @@ set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
-    src/FindAndReplaceWidget.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
@@ -114,6 +113,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/delegates/NoteItemDelegate.cpp
+    src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp
     src/widgets/NoteEditorWidget.cpp
@@ -124,8 +124,8 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/MainWindow.ui
-    src/FindAndReplaceWidget.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
+    src/widgets/FindAndReplaceWidget.ui
     src/widgets/NewTagLineEditor.ui
     src/widgets/NoteEditorWidget.ui
     src/widgets/NoteTagWidget.ui)
