@@ -42,6 +42,11 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     setLayout(m_pLayout);
 }
 
+void NoteTagsWidget::setTagModel(TagModel * pTagModel)
+{
+    m_pTagModel = QPointer<TagModel>(pTagModel);
+}
+
 void NoteTagsWidget::setCurrentNote(const Note & note)
 {
     clear();

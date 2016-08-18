@@ -20,6 +20,7 @@ class NoteEditorWidget;
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 /**
@@ -33,7 +34,8 @@ class NoteEditorWidget: public QWidget
 public:
     explicit NoteEditorWidget(LocalStorageManagerThreadWorker & localStorageWorker,
                               NoteCache & noteCache, NotebookCache & notebookCache,
-                              TagCache & TagCache, QWidget * parent = Q_NULLPTR);
+                              TagCache & tagCache, TagModel & tagModel,
+                              QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditorWidget();
 
     void setNoteLocalUid(const QString & noteLocalUid);
@@ -45,7 +47,6 @@ Q_SIGNALS:
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
-    void findTag(Tag tag, QUuid requestId);
 
 public Q_SLOTS:
     // Slots for toolbar button actions or external actions
@@ -91,11 +92,6 @@ private Q_SLOTS:
     void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
-    void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onFindTagComplete(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
-    void onExpungeTagComplete(Tag tag, QUuid requestId);
-
     // Slots for updates from the actual note editor
     void onEditorNoteUpdate(Note note);
     void onEditorNoteUpdateFailed(QNLocalizedString error);
@@ -133,6 +129,8 @@ private:
     QUuid                       m_findCurrentNoteRequestId;
     QUuid                       m_findCurrentNotebookRequestId;
 
+    QSet<QUuid>                 m_updateNoteRequestIds;
+
     int                         m_lastFontSizeComboBoxIndex;
     QString                     m_lastFontComboBoxFontFamily;
 
@@ -140,6 +138,7 @@ private:
     int                         m_lastActualFontSize;
 
     bool                        m_pendingEditorSpellChecker;
+    bool                        m_currentNoteWasExpunged;
 };
 
 } // namespace quentier

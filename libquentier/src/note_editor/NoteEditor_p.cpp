@@ -4443,20 +4443,62 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
     }
     else
     {
-        if ( (m_pNote->localUid() == note.localUid()) &&
-             (m_pNote->hasContent() == note.hasContent()) &&
-             (!m_pNote->hasContent() || (m_pNote->content() == note.content())) )
+        bool sameUpdatedNote = (m_pNote->localUid() == note.localUid());
+
+        if (sameUpdatedNote)
         {
-            QNDEBUG("This note has already been set for the editor and its content hasn't changed");
-            return;
+            bool noteChanged = false;
+            noteChanged = noteChanged || (m_pNote->hasContent() != note.hasContent());
+            noteChanged = noteChanged || (m_pNote->hasResources() != note.hasResources());
+
+            if (!noteChanged && m_pNote->hasResources() && note.hasResources())
+            {
+                QList<ResourceWrapper> currentResources = m_pNote->resources();
+                QList<ResourceWrapper> updatedResources = note.resources();
+
+                int size = currentResources.size();
+                noteChanged = (size != updatedResources.size());
+                if (!noteChanged)
+                {
+                    // NOTE: clearing out data bodies before comparing resources to speed up the comparison
+                    for(int i = 0; i < size; ++i)
+                    {
+                        ResourceWrapper currentResource = currentResources[i];
+                        currentResource.setDataBody(QByteArray());
+                        currentResource.setAlternateDataBody(QByteArray());
+
+                        ResourceWrapper updatedResource = updatedResources[i];
+                        updatedResource.setDataBody(QByteArray());
+                        updatedResource.setAlternateDataBody(QByteArray());
+
+                        if (currentResource != updatedResource) {
+                            noteChanged = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!noteChanged && m_pNote->hasContent() && note.hasContent()) {
+                noteChanged = (m_pNote->content() != note.content());
+            }
+
+            if (!noteChanged) {
+                QNDEBUG("Haven't found the updates within the note which would be sufficient enough to reload the note editor");
+                *m_pNote = note;
+                noteToEditorContent();
+                return;
+            }
         }
-        else
-        {
-            // Remove the no longer needed html file with the note editor page
-            Q_UNUSED(removeFile(noteEditorPagePath()))
 
-            *m_pNote = note;
+        // If we got here, it's either another note or the same note with sufficient updates
 
+        // Remove the no longer needed html file with the note editor page
+        Q_UNUSED(removeFile(noteEditorPagePath()))
+
+        *m_pNote = note;
+
+        if (!sameUpdatedNote) {
             m_decryptedTextManager->clearNonRememberedForSessionEntries();
             QNTRACE("Removed non-per-session saved passphrases from decrypted text manager");
         }

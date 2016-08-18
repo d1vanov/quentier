@@ -1,4 +1,5 @@
 #include "NoteEditorWidget.h"
+#include "../models/TagModel.h"
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
 // is deeply disappointing
@@ -29,7 +30,7 @@ namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorageWorker,
                                    NoteCache & noteCache, NotebookCache & notebookCache,
-                                   TagCache & tagCache, QWidget * parent) :
+                                   TagCache & tagCache, TagModel & tagModel, QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::NoteEditorWidget),
     m_noteCache(noteCache),
@@ -39,13 +40,16 @@ NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorag
     m_pCurrentNotebook(),
     m_findCurrentNoteRequestId(),
     m_findCurrentNotebookRequestId(),
+    m_updateNoteRequestIds(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_lastSuggestedFontSize(-1),
     m_lastActualFontSize(-1),
-    m_pendingEditorSpellChecker(false)
+    m_pendingEditorSpellChecker(false),
+    m_currentNoteWasExpunged(false)
 {
     m_pUi->setupUi(this);
+    m_pUi->tagNameLabelsContainer->setTagModel(&tagModel);
     createConnections(localStorageWorker);
 }
 
@@ -134,6 +138,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
 
+    m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
     m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
@@ -309,22 +314,131 @@ void NoteEditorWidget::onEditorInsertTable(int rows, int columns, double width, 
 
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onUpdateNoteComplete: note local uid = " << note.localUid()
+            << ", request id = " << requestId << ", update resources = " << (updateResources ? "true" : "false")
+            << ", update tags = " << (updateTags ? "true" : "false"));
+    QNTRACE("Updated note: " << note);
+
+    auto it = m_updateNoteRequestIds.find(requestId);
+    if (it != m_updateNoteRequestIds.end()) {
+        Q_UNUSED(m_updateNoteRequestIds.erase(it))
+    }
+
+    QList<ResourceWrapper> backupResources;
+    if (!updateResources) {
+        backupResources = m_pCurrentNote->resources();
+    }
+
+    QStringList backupTagLocalUids;
+    bool hadTagLocalUids = m_pCurrentNote->hasTagLocalUids();
+    if (!updateTags && hadTagLocalUids) {
+        backupTagLocalUids = m_pCurrentNote->tagLocalUids();
+    }
+
+    QStringList backupTagGuids;
+    bool hadTagGuids = m_pCurrentNote->hasTagGuids();
+    if (!updateTags && hadTagGuids) {
+        backupTagGuids = m_pCurrentNote->tagGuids();
+    }
+
+    *m_pCurrentNote = note;
+
+    if (!updateResources) {
+        m_pCurrentNote->setResources(backupResources);
+    }
+
+    if (!updateTags) {
+        m_pCurrentNote->setTagLocalUids(backupTagLocalUids);
+        m_pCurrentNote->setTagGuids(backupTagGuids);
+    }
+    else {
+        m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
+    }
+
+    if (Q_UNLIKELY(m_pCurrentNotebook.isNull()))
+    {
+        QNDEBUG("Current notebook is null - a bit unexpected at this point");
+
+        if (!m_findCurrentNotebookRequestId.isNull()) {
+            QNDEBUG("The request to find the current notebook is still active, waiting for it to finish");
+            return;
+        }
+
+        const Notebook * pCachedNotebook = Q_NULLPTR;
+        if (m_pCurrentNote->hasNotebookLocalUid()) {
+            const QString & notebookLocalUid = m_pCurrentNote->notebookLocalUid();
+            pCachedNotebook = m_notebookCache.get(notebookLocalUid);
+        }
+
+        if (pCachedNotebook)
+        {
+            m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
+        }
+        else
+        {
+            if (Q_UNLIKELY(!m_pCurrentNote->hasNotebookLocalUid() && !m_pCurrentNote->hasNotebookGuid())) {
+                QNLocalizedString error = QT_TR_NOOP("Note");
+                error += " ";
+                if (note.hasTitle()) {
+                    error += "\"";
+                    error += note.title();
+                    error += "\"";
+                }
+                else {
+                    error += QT_TR_NOOP("with local uid");
+                    error += " ";
+                    error += m_pCurrentNote->localUid();
+                }
+
+                error += " ";
+                error += QT_TR_NOOP("has neither notebook local uid nor notebook guid");
+                QNWARNING(error << ", note: " << *m_pCurrentNote);
+                emit notifyError(error);
+                clear();
+                return;
+            }
+
+            m_findCurrentNotebookRequestId = QUuid::createUuid();
+            Notebook dummy;
+            if (m_pCurrentNote->hasNotebookLocalUid()) {
+                dummy.setLocalUid(m_pCurrentNote->notebookLocalUid());
+            }
+            else {
+                dummy.setLocalUid(QString());
+                dummy.setGuid(m_pCurrentNote->notebookGuid());
+            }
+
+            QNTRACE("Emitting the request to find the current notebook: " << dummy
+                    << "\nRequest id = " << m_findCurrentNotebookRequestId);
+            emit findNotebook(dummy, m_findCurrentNotebookRequestId);
+            return;
+        }
+    }
+
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                                           QNLocalizedString errorDescription, QUuid requestId)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    auto it = m_updateNoteRequestIds.find(requestId);
+    if (it == m_updateNoteRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING("NoteEditorWidget::onUpdateNoteFailed: " << note << ", update resoures = "
+              << (updateResources ? "true" : "false") << ", update tags = " << (updateTags ? "true" : "false")
+              << ", error description: " << errorDescription << "\nRequest id = " << requestId);
+
+    QNLocalizedString error = QT_TR_NOOP("Failed to save the updated note");
+    error += QStringLiteral(": ");
+    error += errorDescription;
+    emit notifyError(error);
+    // NOTE: not clearing out the unsaved stuff because it may be of value to the user
 }
 
 void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -371,7 +485,6 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     }
 
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
-
     m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
@@ -395,23 +508,43 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, 
 
 void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
 {
-    Q_UNUSED(note)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onExpungeNoteComplete: note local uid = " << note.localUid()
+            << ", request id = " << requestId);
+
+    m_currentNoteWasExpunged = true;
+
+    // TODO: ideally should allow the choice to either re-save the note or to drop it
+
+    QNLocalizedString message = QT_TR_NOOP("The note loaded into the editor was expunged from the local storage");
+    QNINFO(message << ", note: " << *m_pCurrentNote);
+    emit notifyError(message);
 }
 
 void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (!m_pCurrentNote || !m_pCurrentNotebook || (m_pCurrentNotebook->localUid() != notebook.localUid())) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onUpdateNotebookComplete: notebook = " << notebook << "\nRequest id = " << requestId);
+
+    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 {
-    Q_UNUSED(notebook)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    if (!m_pCurrentNotebook || (m_pCurrentNotebook->localUid() != notebook.localUid())) {
+        return;
+    }
+
+    QNDEBUG("NoteEditorWidget::onExpungeNotebookComplete: notebook = " << notebook
+            << "\nRequest id = " << requestId);
+
+    clear();
 }
 
 void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
@@ -448,35 +581,6 @@ void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString
     emit notifyError(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor"));
 }
 
-void NoteEditorWidget::onFindTagComplete(Tag tag, QUuid requestId)
-{
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
-    // TODO: implement
-}
-
-void NoteEditorWidget::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
-{
-    Q_UNUSED(tag)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
-    // TODO: implement
-}
-
-void NoteEditorWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
-{
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
-    // TODO: implement
-}
-
-void NoteEditorWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
-{
-    Q_UNUSED(tag)
-    Q_UNUSED(requestId)
-    // TODO: implement
-}
-
 void NoteEditorWidget::onEditorNoteUpdate(Note note)
 {
     Q_UNUSED(note)
@@ -486,7 +590,6 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
 void NoteEditorWidget::onEditorNoteUpdateFailed(QNLocalizedString error)
 {
     QNDEBUG("NoteEditorWidget::onEditorNoteUpdateFailed: " << error);
-
     emit notifyError(error);
 }
 
@@ -748,8 +851,6 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNoteRequest,Note,bool,QUuid));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,findNotebook,Notebook,QUuid),
                      &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,findTag,Tag,QUuid),
-                     &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindTagRequest,Tag,QUuid));
 
     // localStorageWorker's signals to local slots
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
@@ -770,14 +871,6 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onUpdateTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onFindTagComplete,Tag,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onFindTagFailed,Tag,QNLocalizedString,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onExpungeTagComplete,Tag,QUuid));
 
     // Connect note editor's signals to local slots
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,convertedToNote,Note),
@@ -867,6 +960,13 @@ void NoteEditorWidget::clear()
     m_pCurrentNotebook.reset(Q_NULLPTR);
     m_pUi->noteEditor->clear();
     m_pUi->tagNameLabelsContainer->clear();
+
+    m_findCurrentNoteRequestId = QUuid();
+    m_findCurrentNotebookRequestId = QUuid();
+    m_updateNoteRequestIds.clear();
+
+    m_pendingEditorSpellChecker = false;
+    m_currentNoteWasExpunged = false;
 }
 
 } // namespace quentier

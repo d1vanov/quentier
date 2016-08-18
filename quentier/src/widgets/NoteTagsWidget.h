@@ -49,6 +49,8 @@ class NoteTagsWidget: public QWidget
 public:
     explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
 
+    void setTagModel(TagModel * pTagModel);
+
     const Note & currentNote() const { return m_currentNote; }
     void setCurrentNote(const Note & note);
 
