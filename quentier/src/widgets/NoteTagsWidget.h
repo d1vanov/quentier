@@ -49,10 +49,12 @@ class NoteTagsWidget: public QWidget
 public:
     explicit NoteTagsWidget(QWidget * parent = Q_NULLPTR);
 
+    void setLocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker & localStorageWorker);
+
     void setTagModel(TagModel * pTagModel);
 
     const Note & currentNote() const { return m_currentNote; }
-    void setCurrentNote(const Note & note);
+    void setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook);
 
     const QString & currentNotebookLocalUid() const { return m_currentNotebookLocalUid; }
 
@@ -69,7 +71,6 @@ Q_SIGNALS:
     void canUpdateNoteRestrictionChanged(bool canUpdateNote);
 
 // private signals
-    void findNotebook(Notebook notebook, QUuid requestId);
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
 
 private Q_SLOTS:
@@ -84,10 +85,8 @@ private Q_SLOTS:
                             QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
-    // Slots for notebook events: finding, updating and expunging
+    // Slots for notebook events: updating and expunging
     // The notebooks are important  because they hold the information about the note restrictions
-    void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
@@ -103,6 +102,8 @@ private:
     void addNewTagWidgetToLayout();
     void removeNewTagWidgetFromLayout();
 
+    void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
+
 private:
     Note                    m_currentNote;
     QString                 m_currentNotebookLocalUid;
@@ -115,8 +116,6 @@ private:
     QPointer<TagModel>      m_pTagModel;
 
     QHash<QUuid, std::pair<QString, QString> >  m_updateNoteRequestIdToRemovedTagLocalUidAndGuid;
-    QUuid                   m_findNotebookRequestId;
-
 
     struct Restrictions
     {

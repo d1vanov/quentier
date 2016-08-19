@@ -34,7 +34,6 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     m_currentNoteTagLocalUidToNameBimap(),
     m_pTagModel(),
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid(),
-    m_findNotebookRequestId(),
     m_tagRestrictions(),
     m_pLayout(new FlowLayout(this))
 {
@@ -42,45 +41,81 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     setLayout(m_pLayout);
 }
 
+void NoteTagsWidget::setLocalStorageManagerThreadWorker(LocalStorageManagerThreadWorker & localStorageWorker)
+{
+    createConnections(localStorageWorker);
+}
+
 void NoteTagsWidget::setTagModel(TagModel * pTagModel)
 {
     m_pTagModel = QPointer<TagModel>(pTagModel);
 }
 
-void NoteTagsWidget::setCurrentNote(const Note & note)
+void NoteTagsWidget::setCurrentNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
-    clear();
+    QNDEBUG("NoteTagsWidget::setCurrentNoteAndNotebook: note local uid = " << note
+            << ", notebook: " << notebook);
 
-    if (Q_UNLIKELY(note.localUid().isEmpty())) {
-        QNWARNING("Skipping the note with empty local uid");
-        return;
+    bool changed = (note.localUid() != m_currentNote.localUid());
+    if (!changed)
+    {
+        QNDEBUG("The note is the same as the current one already, checking whether the tag information has changed");
+
+        changed |= (note.hasTagLocalUids() != m_currentNote.hasTagLocalUids());
+        changed |= (note.hasTagGuids() != m_currentNote.hasTagGuids());
+
+        if (note.hasTagLocalUids() && m_currentNote.hasTagLocalUids()) {
+            changed |= (note.tagLocalUids() != m_currentNote.tagLocalUids());
+        }
+
+        if (note.hasTagGuids() && m_currentNote.hasTagGuids()) {
+            changed |= (note.tagGuids() != m_currentNote.tagGuids());
+        }
+
+        if (!changed) {
+            QNDEBUG("Tag info hasn't changed");
+        }
+        else {
+            clear();
+        }
+
+        m_currentNote = note;   // Accepting the update just in case
+    }
+    else
+    {
+        clear();
+
+        if (Q_UNLIKELY(note.localUid().isEmpty())) {
+            QNWARNING("Skipping the note with empty local uid");
+            return;
+        }
+
+        m_currentNote = note;
     }
 
-    if (Q_UNLIKELY(!note.hasNotebookGuid() && !note.hasNotebookLocalUid())) {
-        QNWARNING("Skipping the note which has neither notebook local uid not notebook guid");
-        return;
-    }
+    changed |= (m_currentNotebookLocalUid != notebook.localUid());
 
-    m_currentNote = note;
+    m_currentNotebookLocalUid = notebook.localUid();
 
-    if (note.hasNotebookLocalUid()) {
-        m_currentNotebookLocalUid = note.notebookLocalUid();
+    bool couldUpdateNote = m_tagRestrictions.m_canUpdateNote;
+    bool couldUpdateTags = m_tagRestrictions.m_canUpdateTags;
+
+    if (notebook.hasRestrictions()) {
+        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
+        m_tagRestrictions.m_canUpdateNote = !(restrictions.noCreateTags.isSet() && restrictions.noCreateTags.ref());
+        m_tagRestrictions.m_canUpdateTags = !(restrictions.noUpdateTags.isSet() && restrictions.noUpdateTags.ref());
     }
     else {
-        m_currentNotebookLocalUid = QString();
+        m_tagRestrictions.m_canUpdateNote = true;
+        m_tagRestrictions.m_canUpdateTags = true;
     }
 
-    Notebook dummy;
-    dummy.setLocalUid(m_currentNotebookLocalUid);
-    if (note.hasNotebookGuid()) {
-        dummy.setGuid(note.notebookGuid());
-    }
+    changed |= (couldUpdateNote != m_tagRestrictions.m_canUpdateNote);
+    changed |= (couldUpdateTags != m_tagRestrictions.m_canUpdateTags);
 
-    m_findNotebookRequestId = QUuid::createUuid();
-    QNTRACE("Emitting the request to find notebook: local uid = " << dummy.localUid()
-            << ", guid = " << (dummy.hasGuid() ? dummy.guid() : QStringLiteral("<empty>"))
-            << ", request id = " << m_findNotebookRequestId);
-    emit findNotebook(dummy, m_findNotebookRequestId);
+    if (changed) {
+        updateLayout();
+    }
 }
 
 void NoteTagsWidget::clear()
@@ -92,7 +127,6 @@ void NoteTagsWidget::clear()
     m_currentNotebookLocalUid.clear();
     m_currentNoteTagLocalUidToNameBimap.clear();
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid.clear();
-    m_findNotebookRequestId = QUuid();
     m_tagRestrictions = Restrictions();
 }
 
@@ -210,44 +244,6 @@ void NoteTagsWidget::onExpungeNoteComplete(Note note, QUuid requestId)
 
     clear();
     clearLayout();
-}
-
-void NoteTagsWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId)
-{
-    if (requestId != m_findNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG("NoteTagsWidget::onFindNotebookComplete: notebook = " << notebook << "\nRequest id = " << requestId);
-
-    m_currentNotebookLocalUid = notebook.localUid();
-
-    if (notebook.hasRestrictions()) {
-        const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
-        m_tagRestrictions.m_canUpdateNote = !(restrictions.noCreateTags.isSet() && restrictions.noCreateTags.ref());
-        m_tagRestrictions.m_canUpdateTags = !(restrictions.noUpdateTags.isSet() && restrictions.noUpdateTags.ref());
-    }
-    else {
-        m_tagRestrictions.m_canUpdateNote = true;
-        m_tagRestrictions.m_canUpdateTags = true;
-    }
-
-    updateLayout();
-}
-
-void NoteTagsWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription,
-                                          QUuid requestId)
-{
-    if (requestId != m_findNotebookRequestId) {
-        return;
-    }
-
-    QNDEBUG("NoteTagsWidget::onFindNotebookFailed: notebook = " << notebook
-            << "\nError description = " << errorDescription
-            << ", request id = " << requestId);
-
-    clearLayout();
-    emit notifyError(errorDescription);
 }
 
 void NoteTagsWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)
@@ -579,6 +575,31 @@ void NoteTagsWidget::removeNewTagWidgetFromLayout()
         delete pItem;
         break;
     }
+}
+
+void NoteTagsWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
+{
+    QNDEBUG("NoteTagsWidget::createConnections");
+
+    // Connect local storage signals to local slots
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onExpungeNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onExpungeNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateTagComplete,Tag,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onExpungeTagComplete,Tag,QUuid));
+
+    // Connect local signals to local storage slots
+    QObject::connect(this, QNSIGNAL(NoteTagsWidget,updateNote,Note,bool,bool,QUuid),
+                     &localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateNoteRequest,Note,bool,bool,QUuid));
 }
 
 bool NoteTagsWidget::isActive() const

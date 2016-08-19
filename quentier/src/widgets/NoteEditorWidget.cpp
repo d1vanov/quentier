@@ -50,6 +50,7 @@ NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorag
 {
     m_pUi->setupUi(this);
     m_pUi->tagNameLabelsContainer->setTagModel(&tagModel);
+    m_pUi->tagNameLabelsContainer->setLocalStorageManagerThreadWorker(localStorageWorker);
     createConnections(localStorageWorker);
 }
 
@@ -111,7 +112,6 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
     }
 
     m_pCurrentNote.reset(new Note(*pCachedNote));
-    m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
 
     const Notebook * pCachedNotebook = Q_NULLPTR;
     if (m_pCurrentNote->hasNotebookLocalUid()) {
@@ -138,8 +138,8 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
 
-    m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
     m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onEditorTextBoldToggled()
@@ -355,9 +355,6 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         m_pCurrentNote->setTagLocalUids(backupTagLocalUids);
         m_pCurrentNote->setTagGuids(backupTagGuids);
     }
-    else {
-        m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
-    }
 
     if (Q_UNLIKELY(m_pCurrentNotebook.isNull()))
     {
@@ -420,6 +417,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
     }
 
     m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -454,7 +452,6 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     m_findCurrentNoteRequestId = QUuid();
 
     m_pCurrentNote.reset(new Note(note));
-    m_pUi->tagNameLabelsContainer->setCurrentNote(*m_pCurrentNote);
 
     const Notebook * pCachedNotebook = Q_NULLPTR;
     if (m_pCurrentNote->hasNotebookLocalUid()) {
@@ -485,7 +482,9 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     }
 
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
+
     m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
@@ -583,8 +582,28 @@ void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString
 
 void NoteEditorWidget::onEditorNoteUpdate(Note note)
 {
-    Q_UNUSED(note)
-    // TODO: implement
+    QNDEBUG("NoteEditorWidget::onEditorNoteUpdate: note local uid = " << note.localUid());
+    QNTRACE("Note: " << note);
+
+    if (Q_UNLIKELY(!m_pCurrentNote)) {
+        // That shouldn't really happen in normal circumstances but it could in theory be some old event
+        // which has reached this object after the note has already been cleaned up
+        QNDEBUG("No current note in the note editor widget! Ignoring the update from the note editor");
+        return;
+    }
+
+    *m_pCurrentNote = note;
+
+    if (Q_LIKELY(m_pCurrentNotebook)) {
+        // Update the note within the tag names container just to avoid any potential race with updates from it
+        // messing with other note's parts than tags
+        m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    }
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
+    QNTRACE("Emitting the request to update note: request id = " << requestId << ", note = " << *m_pCurrentNote);
+    emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
 }
 
 void NoteEditorWidget::onEditorNoteUpdateFailed(QNLocalizedString error)
