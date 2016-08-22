@@ -132,6 +132,10 @@ void NoteData::setContent(const QString & content)
 void NoteData::clear()
 {
     m_qecNote = qevercloud::Note();
+    m_resourcesAdditionalInfo.clear();
+    m_notebookLocalUid.clear();
+    m_tagLocalUids.clear();
+    m_thumbnail = QImage();
 }
 
 bool NoteData::checkParameters(QNLocalizedString & errorDescription) const

@@ -368,8 +368,8 @@ void Note::setTagGuids(const QStringList & guids)
     tagGuids.clear();
 
     tagGuids.reserve(numTagGuids);
-    foreach(const QString & guid, guids) {
-        tagGuids << guid;
+    for(auto it = guids.begin(), end = guids.end(); it != end; ++it) {
+        tagGuids << *it;
     }
 
     QNDEBUG("Added " << numTagGuids << " tag guids to note");
@@ -573,7 +573,6 @@ void Note::addResource(const IResource & resource)
     info.localUid = resource.localUid();
     info.isDirty = resource.isDirty();
     d->m_resourcesAdditionalInfo.push_back(info);
-
     QNDEBUG("Added resource to note, local uid = " << resource.localUid());
 }
 
@@ -654,6 +653,27 @@ QImage Note::thumbnail() const
 void Note::setThumbnail(const QImage & thumbnail)
 {
     d->m_thumbnail = thumbnail;
+}
+
+bool Note::isInkNote() const
+{
+    if (!d->m_qecNote.resources.isSet()) {
+        return false;
+    }
+
+    const QList<qevercloud::Resource> & resources = d->m_qecNote.resources.ref();
+
+    if (resources.size() != 1) {
+        return false;
+    }
+
+    const qevercloud::Resource & resource = resources[0];
+
+    if (!resource.mime.isSet()) {
+        return false;
+    }
+
+    return (resource.mime.ref() == QStringLiteral("application/vnd.evernote.ink"));
 }
 
 QString Note::plainText(QNLocalizedString * pErrorMessage) const

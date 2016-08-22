@@ -143,6 +143,8 @@ public:
     QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);
 
+    bool isInkNote() const;
+
     QString plainText(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
     QStringList listOfWords(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
     std::pair<QString, QStringList> plainTextAndListOfWords(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
