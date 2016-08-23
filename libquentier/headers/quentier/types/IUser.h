@@ -97,6 +97,10 @@ public:
     bool active() const;
     void setActive(const bool active);
 
+    bool hasShardId() const;
+    const QString & shardId() const;
+    void setShardId(const QString & shardId);
+
     bool hasUserAttributes() const;
     const qevercloud::UserAttributes & userAttributes() const;
     void setUserAttributes(qevercloud::UserAttributes && attributes);

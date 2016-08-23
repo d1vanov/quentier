@@ -3756,7 +3756,8 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                      "  userIsDirty                 INTEGER                 NOT NULL, "
                      "  userIsLocal                 INTEGER                 NOT NULL, "
                      "  userDeletionTimestamp       INTEGER                 DEFAULT NULL, "
-                     "  userIsActive                INTEGER                 DEFAULT NULL"
+                     "  userIsActive                INTEGER                 DEFAULT NULL, "
+                     "  userShardId                 TEXT                    DEFAULT NULL"
                      ")");
     errorPrefix = QT_TR_NOOP("can't create Users table");
     DATABASE_CHECK_AND_SET_ERROR();
@@ -4461,8 +4462,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QNLocal
         query.bindValue(":userModificationTimestamp", (user.hasModificationTimestamp() ? user.modificationTimestamp() : nullValue));
         query.bindValue(":userIsDirty", (user.isDirty() ? 1 : 0));
         query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
-        query.bindValue(":userIsActive", (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
         query.bindValue(":userDeletionTimestamp", (user.hasDeletionTimestamp() ? user.deletionTimestamp() : nullValue));
+        query.bindValue(":userIsActive", (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
+        query.bindValue(":userShardId", (user.hasShardId() ? user.shardId() : nullValue));
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR();
@@ -4824,11 +4826,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserQuery()
                                                   "(id, username, email, name, timezone, "
                                                   "privilege, userCreationTimestamp, "
                                                   "userModificationTimestamp, userIsDirty, "
-                                                  "userIsLocal, userIsActive, userDeletionTimestamp)"
+                                                  "userIsLocal, userDeletionTimestamp, userIsActive, userShardId)"
                                                   "VALUES(:id, :username, :email, :name, :timezone, "
                                                   ":privilege, :userCreationTimestamp, "
                                                   ":userModificationTimestamp, :userIsDirty, "
-                                                  ":userIsLocal, :userIsActive, :userDeletionTimestamp)");
+                                                  ":userIsLocal, :userDeletionTimestamp, :userIsActive, :userShardId)");
     if (res) {
         m_insertOrReplaceUserQueryPrepared = true;
     }
@@ -7251,6 +7253,7 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
     FIND_AND_SET_USER_PROPERTY(userDeletionTimestamp, setDeletionTimestamp,
                                qint64, qint64, !isRequired)
     FIND_AND_SET_USER_PROPERTY(userIsActive, setActive, int, bool, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(userShardId, setShardId, QString, QString, !isRequired)
 
 #undef FIND_AND_SET_USER_PROPERTY
 

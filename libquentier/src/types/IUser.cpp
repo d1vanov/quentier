@@ -469,6 +469,26 @@ void IUser::setActive(const bool active)
     GetEnUser().active = active;
 }
 
+bool IUser::hasShardId() const
+{
+    return GetEnUser().shardId.isSet();
+}
+
+const QString & IUser::shardId() const
+{
+    return GetEnUser().shardId.ref();
+}
+
+void IUser::setShardId(const QString & shardId)
+{
+    if (!shardId.isEmpty()) {
+        GetEnUser().shardId = shardId;
+    }
+    else {
+        GetEnUser().shardId.clear();
+    }
+}
+
 bool IUser::hasUserAttributes() const
 {
     return GetEnUser().attributes.isSet();
