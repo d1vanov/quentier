@@ -78,7 +78,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_allLinkedNotebooks(),
     m_listAllLinkedNotebooksRequestId(),
     m_allLinkedNotebooksListed(false),
-    m_authenticationTokensByLinkedNotebookGuid(),
+    m_authenticationTokensAndShardIdsByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_pendingAuthenticationTokensForLinkedNotebooks(false),
     m_syncStatesByLinkedNotebookGuid(),
@@ -601,7 +601,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
     {
         QPair<ResourceWrapper,QUuid> resourceWithFindRequestId = rit.value();
 
-        Q_UNUSED(m_resourcesWithFindRequestIdsPerFindNoteRequestId.erase(rit));
+        Q_UNUSED(m_resourcesWithFindRequestIdsPerFindNoteRequestId.erase(rit))
 
         CHECK_STOPPED();
 
@@ -630,7 +630,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
             QNDEBUG("Found duplicate resource in local storage which is not marked dirty => using the version from synchronization manager");
 
             QUuid updateResourceRequestId = QUuid::createUuid();
-            Q_UNUSED(m_updateResourceRequestIds.insert(updateResourceRequestId));
+            Q_UNUSED(m_updateResourceRequestIds.insert(updateResourceRequestId))
 
             emit updateResource(resource, updateResourceRequestId);
             return;
@@ -827,13 +827,15 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
 {
     CHECK_PAUSED();
 
-    Q_UNUSED(withResourceBinaryData);
+    Q_UNUSED(withResourceBinaryData)
 
     QSet<QUuid>::iterator rit = m_findResourceByGuidRequestIds.find(requestId);
     if (rit != m_findResourceByGuidRequestIds.end())
     {
         QNDEBUG("RemoteToLocalSynchronizationManager::onFindResourceCompleted: resource = " << resource
                 << ", requestId = " << requestId);
+
+        Q_UNUSED(m_findResourceByGuidRequestIds.erase(rit))
 
         CHECK_STOPPED();
 
@@ -843,7 +845,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
         }
 
         // Removing the resource from the list of resources waiting for processing
-        Q_UNUSED(m_resources.erase(it));
+        Q_UNUSED(m_resources.erase(it))
 
         // need to find the note owning the resource to proceed
         if (!resource.hasNoteGuid()) {
@@ -853,7 +855,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
             return;
         }
 
-        Q_UNUSED(m_resourceFoundFlagPerFindResourceRequestId.insert(requestId));
+        Q_UNUSED(m_resourceFoundFlagPerFindResourceRequestId.insert(requestId))
 
         QUuid findNotePerResourceRequestId = QUuid::createUuid();
         m_resourcesWithFindRequestIdsPerFindNoteRequestId[findNotePerResourceRequestId] =
@@ -862,8 +864,6 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
         Note noteToFind;
         noteToFind.unsetLocalUid();
         noteToFind.setGuid(resource.noteGuid());
-
-        Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
 
         emit findNote(noteToFind, /* with resource binary data = */ true, findNotePerResourceRequestId);
         return;
@@ -876,7 +876,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
 {
     CHECK_PAUSED();
 
-    Q_UNUSED(withResourceBinaryData);
+    Q_UNUSED(withResourceBinaryData)
 
     QSet<QUuid>::iterator rit = m_findResourceByGuidRequestIds.find(requestId);
     if (rit != m_findResourceByGuidRequestIds.end())
@@ -884,8 +884,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
         QNDEBUG("RemoteToLocalSynchronizationManager::onFindResourceFailed: resource = " << resource
                 << ", requestId = " << requestId);
 
-        // NOTE: erase is required for proper work of the macro; the request would be re-inserted below if macro doesn't return from the method
-        Q_UNUSED(m_findResourceByGuidRequestIds.erase(rit));
+        Q_UNUSED(m_findResourceByGuidRequestIds.erase(rit))
 
         CHECK_STOPPED();
 
@@ -895,7 +894,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
         }
 
         // Removing the resource from the list of resources waiting for processing
-        Q_UNUSED(m_resources.erase(it));
+        Q_UNUSED(m_resources.erase(it))
 
         // need to find the note owning the resource to proceed
         if (!resource.hasNoteGuid()) {
@@ -912,8 +911,6 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
         Note noteToFind;
         noteToFind.unsetLocalUid();
         noteToFind.setGuid(resource.noteGuid());
-
-        Q_UNUSED(m_findResourceByGuidRequestIds.insert(requestId));
 
         emit findNote(noteToFind, /* with resource binary data = */ false, findNotePerResourceRequestId);
         return;
@@ -1623,7 +1620,7 @@ void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<ResourceWrapper>
 
 void RemoteToLocalSynchronizationManager::onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId)
 {
-    HandleLinkedNotebookAdded(linkedNotebook);
+    handleLinkedNotebookAdded(linkedNotebook);
     onAddDataElementCompleted(linkedNotebook, requestId, "LinkedNotebook", m_addLinkedNotebookRequestIds);
 }
 
@@ -1637,7 +1634,7 @@ void RemoteToLocalSynchronizationManager::onAddLinkedNotebookFailed(LinkedNotebo
 void RemoteToLocalSynchronizationManager::onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook,
                                                                           QUuid requestId)
 {
-    HandleLinkedNotebookUpdated(linkedNotebook);
+    handleLinkedNotebookUpdated(linkedNotebook);
 
     QSet<QUuid>::iterator it = m_updateLinkedNotebookRequestIds.find(requestId);
     if (it != m_updateLinkedNotebookRequestIds.end())
@@ -1856,7 +1853,15 @@ void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(ResourceWrapper
     }
 }
 
-void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QString> authenticationTokensByLinkedNotebookGuid,
+void RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived(QString authToken, QString shardId, qevercloud::Timestamp expirationTime)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived: auth token = " << authToken
+            << ", shard id = " << shardId << ", expiration timestamp = " << expirationTime);
+
+    // TODO: implement
+}
+
+void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                                                            QHash<QString, qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived");
@@ -1868,7 +1873,7 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
     }
 
     m_pendingAuthenticationTokensForLinkedNotebooks = false;
-    m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
+    m_authenticationTokensAndShardIdsByLinkedNotebookGuid = authenticationTokensAndShardIdsByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
     startLinkedNotebooksSync();
@@ -2316,9 +2321,12 @@ void RemoteToLocalSynchronizationManager::launchSync()
             "checking if there are notes to process");
 
     launchNotesSync();
-    if (!m_notes.empty()) {
+    if (!m_notes.empty())
+    {
         QNDEBUG("Launching the sync of notes");
         // NOTE: the sync of individual resources would be launched later (if current sync is incremental)
+        // TODO: download the thumbnails for these notes
+        // TODO: see whether there are ink notes within the list and if so, download their representing images
         return;
     }
 
@@ -2574,10 +2582,9 @@ bool RemoteToLocalSynchronizationManager::checkAndRequestAuthenticationTokensFor
             return false;
         }
 
-        if (!m_authenticationTokensByLinkedNotebookGuid.contains(linkedNotebook.guid())) {
+        if (!m_authenticationTokensAndShardIdsByLinkedNotebookGuid.contains(linkedNotebook.guid())) {
             QNDEBUG("Authentication token for linked notebook with guid " << linkedNotebook.guid()
                     << " was not found; will request authentication tokens for all linked notebooks at once");
-
             requestAuthenticationTokensForAllLinkedNotebooks();
             return false;
         }
@@ -2758,8 +2765,8 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
             continue;
         }
 
-        auto it = m_authenticationTokensByLinkedNotebookGuid.find(linkedNotebookGuid);
-        if (it == m_authenticationTokensByLinkedNotebookGuid.end()) {
+        auto it = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(linkedNotebookGuid);
+        if (it == m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end()) {
             QNLocalizedString error = QT_TR_NOOP("can't find authentication token for one of linked notebooks "
                                                  "when attempting to synchronize the content it points to");
             QNWARNING(error << ": " << linkedNotebook);
@@ -2767,7 +2774,7 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
             return false;
         }
 
-        const QString & authToken = it.value();
+        const QString & authToken = it.value().first;
 
         if (m_onceSyncDone || (afterUsn != 0))
         {
@@ -3187,9 +3194,9 @@ void RemoteToLocalSynchronizationManager::clear()
     }
 }
 
-void RemoteToLocalSynchronizationManager::HandleLinkedNotebookAdded(const LinkedNotebook & linkedNotebook)
+void RemoteToLocalSynchronizationManager::handleLinkedNotebookAdded(const LinkedNotebook & linkedNotebook)
 {
-    QNDEBUG("RemoteToLocalSynchronizationManager::HandleLinkedNotebookAdded: linked notebook = " << linkedNotebook);
+    QNDEBUG("RemoteToLocalSynchronizationManager::handleLinkedNotebookAdded: linked notebook = " << linkedNotebook);
 
     if (!m_allLinkedNotebooksListed) {
         return;
@@ -3212,8 +3219,10 @@ void RemoteToLocalSynchronizationManager::HandleLinkedNotebookAdded(const Linked
     m_allLinkedNotebooks << linkedNotebook;
 }
 
-void RemoteToLocalSynchronizationManager::HandleLinkedNotebookUpdated(const LinkedNotebook & linkedNotebook)
+void RemoteToLocalSynchronizationManager::handleLinkedNotebookUpdated(const LinkedNotebook & linkedNotebook)
 {
+    QNDEBUG("RemoteToLocalSynchronizationManager::handleLinkedNotebookUpdated: linked notebook = " << linkedNotebook);
+
     if (!m_allLinkedNotebooksListed) {
         return;
     }
@@ -3635,8 +3644,8 @@ bool RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates(bool & 
 
         const QString & linkedNotebookGuid = linkedNotebook.guid();
 
-        auto it = m_authenticationTokensByLinkedNotebookGuid.find(linkedNotebookGuid);
-        if (it == m_authenticationTokensByLinkedNotebookGuid.end()) {
+        auto it = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(linkedNotebookGuid);
+        if (it == m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end()) {
             QNINFO("Detected missing auth token for one of linked notebooks. Will request auth tokens "
                    "for all linked notebooks now. Linked notebook without auth token: " << linkedNotebook);
             requestAuthenticationTokensForAllLinkedNotebooks();
@@ -3644,7 +3653,7 @@ bool RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates(bool & 
             return false;
         }
 
-        const QString & authToken = it.value();
+        const QString & authToken = it.value().first;
 
         auto lastUpdateCountIt = m_lastUpdateCountByLinkedNotebookGuid.find(linkedNotebookGuid);
         if (lastUpdateCountIt == m_lastUpdateCountByLinkedNotebookGuid.end()) {

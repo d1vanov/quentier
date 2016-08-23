@@ -54,7 +54,7 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_notes(),
     m_linkedNotebookGuidsAndShareKeys(),
     m_lastProcessedLinkedNotebookGuidIndex(-1),
-    m_authenticationTokensByLinkedNotebookGuid(),
+    m_authenticationTokensAndShardIdsByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_pendingAuthenticationTokensForLinkedNotebooks(false),
     m_updateTagRequestIds(),
@@ -132,7 +132,7 @@ void SendLocalChangesManager::resume()
     }
 }
 
-void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
+void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensByLinkedNotebookGuid,
                                                                                QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
     QNDEBUG("SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived");
@@ -144,7 +144,7 @@ void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(Q
     }
 
     m_pendingAuthenticationTokensForLinkedNotebooks = false;
-    m_authenticationTokensByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
+    m_authenticationTokensAndShardIdsByLinkedNotebookGuid = authenticationTokensByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
 
     sendLocalChanges();
@@ -1212,10 +1212,10 @@ void SendLocalChangesManager::sendTags()
         QString linkedNotebookAuthToken;
         if (tag.hasLinkedNotebookGuid())
         {
-            auto cit = m_authenticationTokensByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
-            if (cit != m_authenticationTokensByLinkedNotebookGuid.end())
+            auto cit = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
+            if (cit != m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end())
             {
-                linkedNotebookAuthToken = cit.value();
+                linkedNotebookAuthToken = cit.value().first;
             }
             else
             {
@@ -1470,10 +1470,10 @@ void SendLocalChangesManager::sendNotebooks()
         QString linkedNotebookAuthToken;
         if (notebook.hasLinkedNotebookGuid())
         {
-            auto cit = m_authenticationTokensByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
-            if (cit != m_authenticationTokensByLinkedNotebookGuid.end())
+            auto cit = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+            if (cit != m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end())
             {
-                linkedNotebookAuthToken = cit.value();
+                linkedNotebookAuthToken = cit.value().first;
             }
             else
             {
@@ -1658,10 +1658,10 @@ void SendLocalChangesManager::sendNotes()
         QString linkedNotebookAuthToken;
         if (notebook.hasLinkedNotebookGuid())
         {
-            auto cit = m_authenticationTokensByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
-            if (cit != m_authenticationTokensByLinkedNotebookGuid.end())
+            auto cit = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+            if (cit != m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end())
             {
-                linkedNotebookAuthToken = cit.value();
+                linkedNotebookAuthToken = cit.value().first;
             }
             else
             {
@@ -1986,8 +1986,8 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
             return false;
         }
 
-        auto it = m_authenticationTokensByLinkedNotebookGuid.find(guid);
-        if (it == m_authenticationTokensByLinkedNotebookGuid.end()) {
+        auto it = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(guid);
+        if (it == m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end()) {
             QNDEBUG("Authentication token for linked notebook with guid " << guid
                     << " was not found; will request authentication tokens for all linked notebooks at once");
             emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);

@@ -61,7 +61,7 @@ Q_SIGNALS:
     // there's no need to restart the synchronization manually)
     void rateLimitExceeded(qint32 secondsToWait);
 
-    // signals notifying about the progress of sycnhronization
+    // signals notifying about the progress of synchronization
     void syncChunksDownloaded();
     void fullNotesContentsDownloaded();
     void expungedFromServerToClient();
@@ -81,7 +81,8 @@ public Q_SLOTS:
     void pause();
     void resume();
 
-    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
+    void onAuthenticationTokenReceived(QString authToken, QString shardId, qevercloud::Timestamp expirationTime);
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                           QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
     void onLastSyncParametersReceived(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                       QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
@@ -384,8 +385,8 @@ private:
     void finalize();
     void clear();
 
-    void HandleLinkedNotebookAdded(const LinkedNotebook & linkedNotebook);
-    void HandleLinkedNotebookUpdated(const LinkedNotebook & linkedNotebook);
+    void handleLinkedNotebookAdded(const LinkedNotebook & linkedNotebook);
+    void handleLinkedNotebookUpdated(const LinkedNotebook & linkedNotebook);
 
     virtual void timerEvent(QTimerEvent * pEvent);
 
@@ -504,7 +505,7 @@ private:
     QUuid                                   m_listAllLinkedNotebooksRequestId;
     bool                                    m_allLinkedNotebooksListed;
 
-    QHash<QString,QString>                  m_authenticationTokensByLinkedNotebookGuid;
+    QHash<QString,QPair<QString,QString> >  m_authenticationTokensAndShardIdsByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
     bool                                    m_pendingAuthenticationTokensForLinkedNotebooks;
 

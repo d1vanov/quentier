@@ -68,7 +68,7 @@ public Q_SLOTS:
     void pause();
     void resume();
 
-    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QString> authenticationTokensByLinkedNotebookGuid,
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                           QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
 
 // private signals:
@@ -267,7 +267,7 @@ private:
     QList<QPair<QString, QString> >         m_linkedNotebookGuidsAndShareKeys;
 
     int                                     m_lastProcessedLinkedNotebookGuidIndex;
-    QHash<QString, QString>                 m_authenticationTokensByLinkedNotebookGuid;
+    QHash<QString,QPair<QString,QString> >  m_authenticationTokensAndShardIdsByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
     bool                                    m_pendingAuthenticationTokensForLinkedNotebooks;
 

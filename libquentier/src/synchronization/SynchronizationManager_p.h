@@ -81,8 +81,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 // private signals
-    void sendAuthenticationToken(QString authToken, qevercloud::Timestamp expirationTime);
-    void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QString> authenticationTokensByLinkedNotebookGuids,
+    void sendAuthenticationTokenAndShardId(QString authToken, QString shardId, qevercloud::Timestamp expirationTime);
+    void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuids,
                                                     QHash<QString,qevercloud::Timestamp> authenticatonTokenExpirationTimesByLinkedNotebookGuids);
     void sendLastSyncParameters(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                 QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
@@ -174,7 +174,9 @@ private:
     void authenticateToLinkedNotebooks();
 
     void onReadAuthTokenFinished();
+    void onReadShardIdFinished();
     void onWriteAuthTokenFinished();
+    void onWriteShardIdFinished();
 
     void updatePersistentSyncSettings();
 
@@ -202,14 +204,21 @@ private:
     SendLocalChangesManager                 m_sendLocalChangesManager;
 
     QList<QPair<QString,QString> >          m_linkedNotebookGuidsAndShareKeysWaitingForAuth;
-    QHash<QString,QString>                  m_cachedLinkedNotebookAuthTokensByGuid;
+    QHash<QString,QPair<QString,QString> >  m_cachedLinkedNotebookAuthTokensAndShardIdsByGuid;
     QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid;
 
     int                                     m_authenticateToLinkedNotebooksPostponeTimerId;
     bool                                    m_receivedRequestToAuthenticateToLinkedNotebooks;
 
     QKeychain::ReadPasswordJob              m_readAuthTokenJob;
+    QKeychain::ReadPasswordJob              m_readShardIdJob;
+    bool                                    m_readingAuthToken;
+    bool                                    m_readingShardId;
+
     QKeychain::WritePasswordJob             m_writeAuthTokenJob;
+    QKeychain::WritePasswordJob             m_writeShardIdJob;
+    bool                                    m_writingAuthToken;
+    bool                                    m_writingShardId;
 
     QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookAuthTokenJobsByGuid;
     QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookAuthTokenJobsByGuid;
