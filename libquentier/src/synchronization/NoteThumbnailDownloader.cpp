@@ -44,7 +44,11 @@ void NoteThumbnailDownloader::run()
         SET_ERROR("note guid is empty");
     }
 
-    if (Q_UNLIKELY(!m_noteFromPublicLinkedNotebook && (m_authToken.isEmpty() || m_shardId.isEmpty()))) {
+    if (Q_UNLIKELY(m_shardId.isEmpty())) {
+        SET_ERROR("shard id is empty");
+    }
+
+    if (Q_UNLIKELY(!m_noteFromPublicLinkedNotebook && m_authToken.isEmpty())) {
         SET_ERROR("authentication data is incomplete");
     }
 
