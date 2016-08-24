@@ -272,17 +272,20 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
             const auto & cachedJob = it.value();
             if (cachedJob.data() == job)
             {
-                if (job->error() == QKeychain::NoError) {
+                if (job->error() == QKeychain::NoError)
+                {
                     QNDEBUG("Successfully read the authentication token for linked notebook from the keychain: "
                             "linked notebook guid: " << it.key());
                     m_cachedLinkedNotebookAuthTokensAndShardIdsByGuid[it.key()].first = cachedJob->textData();
                 }
-                else if (job->error() == QKeychain::EntryNotFound) {
+                else if (job->error() == QKeychain::EntryNotFound)
+                {
                     QNDEBUG("Could not find authentication token for linked notebook in the keychain: "
                             "linked notebook guid: " << it.key());
                     Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                 }
-                else {
+                else
+                {
                     QNLocalizedString error = QT_TR_NOOP("error reading linked notebook's authentication token from the keychain");
                     error += ": ";
                     error += ToString(job->error());
@@ -290,7 +293,10 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                     error += job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
-                    return;
+
+                    // Try to recover by making user to authenticate again in the blind hope that
+                    // the next time the persistence of auth settings in the keychain would work
+                    Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                 }
 
                 authenticateToLinkedNotebooks();
@@ -306,17 +312,20 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
             const auto & cachedJob = it.value();
             if (cachedJob.data() == job)
             {
-                if (job->error() == QKeychain::NoError) {
+                if (job->error() == QKeychain::NoError)
+                {
                     QNDEBUG("Successfully read the shard id for linked notebook from the keychain: "
                             "linked notebook guid: " << it.key());
                     m_cachedLinkedNotebookAuthTokensAndShardIdsByGuid[it.key()].second = cachedJob->textData();
                 }
-                else if (job->error() == QKeychain::EntryNotFound) {
+                else if (job->error() == QKeychain::EntryNotFound)
+                {
                     QNDEBUG("Could not find shard id for linked notebook in the keychain: "
                             "linked notebook guid: " << it.key());
                     Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                 }
-                else {
+                else
+                {
                     QNLocalizedString error = QT_TR_NOOP("error reading linked notebook's shard id from the keychain");
                     error += ": ";
                     error += ToString(job->error());
@@ -324,7 +333,10 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                     error += job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
-                    return;
+
+                    // Try to recover by making user to authenticate again in the blind hope that
+                    // the next time the persistence of auth settings in the keychain would work
+                    Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                 }
 
                 authenticateToLinkedNotebooks();
