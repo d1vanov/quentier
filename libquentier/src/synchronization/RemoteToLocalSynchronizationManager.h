@@ -505,6 +505,11 @@ private:
     QUuid                                   m_listAllLinkedNotebooksRequestId;
     bool                                    m_allLinkedNotebooksListed;
 
+    QString                                 m_authenticationToken;
+    QString                                 m_shardId;
+    qevercloud::Timestamp                   m_authenticationTokenExpirationTime;
+    bool                                    m_pendingAuthenticationTokenAndShardId;
+
     QHash<QString,QPair<QString,QString> >  m_authenticationTokensAndShardIdsByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
     bool                                    m_pendingAuthenticationTokensForLinkedNotebooks;

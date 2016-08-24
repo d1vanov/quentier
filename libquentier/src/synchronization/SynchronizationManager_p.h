@@ -197,8 +197,8 @@ private:
 
     int                                     m_launchSyncPostponeTimerId;
 
-    QScopedPointer<qevercloud::EvernoteOAuthWebView>                m_pOAuthWebView;
-    QSharedPointer<qevercloud::EvernoteOAuthWebView::OAuthResult>   m_pOAuthResult;
+    qevercloud::EvernoteOAuthWebView        m_OAuthWebView;
+    qevercloud::EvernoteOAuthWebView::OAuthResult   m_OAuthResult;
 
     RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
     SendLocalChangesManager                 m_sendLocalChangesManager;
@@ -221,7 +221,9 @@ private:
     bool                                    m_writingShardId;
 
     QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookAuthTokenJobsByGuid;
+    QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookShardIdJobsByGuid;
     QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookAuthTokenJobsByGuid;
+    QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >  m_writeLinkedNotebookShardIdJobsByGuid;
 
     QSet<QString>                           m_linkedNotebookGuidsWithoutLocalAuthData;
 

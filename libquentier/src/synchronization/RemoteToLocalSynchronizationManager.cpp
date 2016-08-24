@@ -78,6 +78,10 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_allLinkedNotebooks(),
     m_listAllLinkedNotebooksRequestId(),
     m_allLinkedNotebooksListed(false),
+    m_authenticationToken(),
+    m_shardId(),
+    m_authenticationTokenExpirationTime(0),
+    m_pendingAuthenticationTokenAndShardId(false),
     m_authenticationTokensAndShardIdsByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_pendingAuthenticationTokensForLinkedNotebooks(false),
@@ -1855,10 +1859,27 @@ void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(ResourceWrapper
 
 void RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived(QString authToken, QString shardId, qevercloud::Timestamp expirationTime)
 {
-    QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived: auth token = " << authToken
-            << ", shard id = " << shardId << ", expiration timestamp = " << expirationTime);
+    QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived: expiration time = "
+            << printableDateTimeFromTimestamp(expirationTime));
 
-    // TODO: implement
+    bool wasPending = m_pendingAuthenticationTokenAndShardId;
+
+    // NOTE: we only need this authentication information to download the thumbnails and ink note images
+    m_authenticationToken = authToken;
+    m_shardId = shardId;
+    m_authenticationTokenExpirationTime = expirationTime;
+    m_pendingAuthenticationTokenAndShardId = false;
+
+    if (!wasPending) {
+        return;
+    }
+
+    if (m_paused) {
+        resume();
+    }
+    else {
+        launchSync();
+    }
 }
 
 void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
@@ -1866,15 +1887,16 @@ void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNoteboo
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived");
 
-    if (!m_pendingAuthenticationTokensForLinkedNotebooks) {
-        QNDEBUG("Authentication tokens for linked notebooks were not requested by this object, "
-                "won't do anything");
-        return;
-    }
+    bool wasPending = m_pendingAuthenticationTokensForLinkedNotebooks;
 
-    m_pendingAuthenticationTokensForLinkedNotebooks = false;
     m_authenticationTokensAndShardIdsByLinkedNotebookGuid = authenticationTokensAndShardIdsByLinkedNotebookGuid;
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid = authenticationTokenExpirationTimesByLinkedNotebookGuid;
+    m_pendingAuthenticationTokensForLinkedNotebooks = false;
+
+    if (!wasPending) {
+        QNDEBUG("Authentication tokens for linked notebooks were not requested");
+        return;
+    }
 
     startLinkedNotebooksSync();
 }
@@ -2307,13 +2329,21 @@ void RemoteToLocalSynchronizationManager::launchSync()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::launchSync");
 
+    if (m_authenticationToken.isEmpty()) {
+        m_pendingAuthenticationTokenAndShardId = true;
+        emit requestAuthenticationToken();
+        return;
+    }
+
     launchSavedSearchSync();
     launchLinkedNotebookSync();
 
     launchTagsSync();
     launchNotebookSync();
+
     if (!m_tags.empty() || !m_notebooks.empty()) {
-        // NOTE: the sync of notes and, if need be, individual resouces would be launched later
+        // NOTE: the sync of notes and, if need be, individual resouces would be launched asynchronously when the
+        // notebooks and tags are synced
         return;
     }
 
@@ -2323,8 +2353,9 @@ void RemoteToLocalSynchronizationManager::launchSync()
     launchNotesSync();
     if (!m_notes.empty())
     {
-        QNDEBUG("Launching the sync of notes");
-        // NOTE: the sync of individual resources would be launched later (if current sync is incremental)
+        QNDEBUG("Synchronizing notes");
+        // NOTE: the sync of individual resources would be launched asynchronously (if current sync is incremental)
+        // when the notes are synced
         // TODO: download the thumbnails for these notes
         // TODO: see whether there are ink notes within the list and if so, download their representing images
         return;
@@ -3072,7 +3103,7 @@ void RemoteToLocalSynchronizationManager::clear()
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::clear");
 
-    // NOTE: not clearing authentication tokens by linked notebook guid hash; it is intentional,
+    // NOTE: not clearing authentication tokens and shard ids; it is intentional,
     // this information can be reused in subsequent syncs
 
     m_lastSyncChunksDownloadedUsn = -1;
@@ -3534,9 +3565,12 @@ const Notebook * RemoteToLocalSynchronizationManager::getNotebookPerNote(const N
 
 void RemoteToLocalSynchronizationManager::handleAuthExpiration()
 {
-    QNINFO("Got AUTH_EXPIRED error, pausing and requesting new authentication token");
+    QNINFO("Got AUTH_EXPIRED error, pausing the sync and requesting a new authentication token");
+
     m_paused = true;
     emit paused(/* pending authentication = */ true);
+
+    m_pendingAuthenticationTokenAndShardId = true;
     emit requestAuthenticationToken();
 }
 
