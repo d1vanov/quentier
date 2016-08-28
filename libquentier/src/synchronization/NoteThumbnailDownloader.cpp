@@ -59,7 +59,7 @@ void NoteThumbnailDownloader::run()
         SET_ERROR("received empty note thumbnail data");
     }
 
-    QString folderPath = applicationPersistentStoragePath() + "/NoteEditorPage/inkNoteImages";
+    QString folderPath = applicationPersistentStoragePath() + "/NoteEditorPage/thumbnails";
     QFileInfo folderPathInfo(folderPath);
     if (Q_UNLIKELY(!folderPathInfo.exists()))
     {

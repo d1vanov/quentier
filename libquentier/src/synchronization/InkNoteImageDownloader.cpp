@@ -1,5 +1,16 @@
 #include "InkNoteImageDownloader.h"
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#include <qt4qevercloud/thumbnail.h>
+#else
+#include <qt5qevercloud/thumbnail.h>
+#endif
+
+#include <QFile>
+#include <QFileInfo>
+#include <QDir>
 #include <QNetworkRequest>
 #include <QUrl>
 #include <QScopedPointer>
@@ -24,7 +35,7 @@ InkNoteImageDownloader::InkNoteImageDownloader(const QString & host, const QStri
 
 void InkNoteImageDownloader::run()
 {
-    QNDEBUG("InkNoteImageDownloader::run: host = " << m_host << ", note guid = "
+    QNDEBUG("InkNoteImageDownloader::run: host = " << m_host << ", resource guid = "
             << m_resourceGuid);
 
 #define SET_ERROR(error) \
@@ -48,30 +59,40 @@ void InkNoteImageDownloader::run()
         SET_ERROR("authentication data is incomplete");
     }
 
-    QString url = QStringLiteral("https://") + m_host + QStringLiteral("/shardId/") +
-                  m_shardId + QStringLiteral("/res/") + m_resourceGuid + QStringLiteral(".ink?slice=");
-    int numSlices = (m_height - 1) / 600 + 1;
-
-    // QSize inkNoteImageSize(m_width, m_height);
-
-    QByteArray postData = "";
-    if (!m_noteFromPublicLinkedNotebook) {
-        postData = QByteArray("auth=")+ QUrl::toPercentEncoding(m_authToken);
+    qevercloud::InkNoteImageDownloader downloader(m_host, m_authToken, m_shardId, m_height, m_width);
+    QByteArray inkNoteImageData = downloader.download(m_resourceGuid, m_noteFromPublicLinkedNotebook);
+    if (Q_UNLIKELY(inkNoteImageData.isEmpty())) {
+        SET_ERROR("received empty note thumbnail data");
     }
 
-    QScopedPointer<QImage> pInkNoteImage;
-    for(int i = 0; i < numSlices; ++i)
+    QString folderPath = applicationPersistentStoragePath() + "/NoteEditorPage/inkNoteImages";
+    QFileInfo folderPathInfo(folderPath);
+    if (Q_UNLIKELY(!folderPathInfo.exists()))
     {
-        // Download each slice of the ink note's resource image
-
-        QNetworkRequest request;
-        request.setUrl(QUrl(url + QString::number(i+1)));
-        request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/x-www-form-urlencoded"));
-
-        // TODO: continue
+        QDir dir(folderPath);
+        bool res = dir.mkpath(folderPath);
+        if (Q_UNLIKELY(!res)) {
+            SET_ERROR("can't create folder to store ink note images in");
+        }
+    }
+    else if (Q_UNLIKELY(!folderPathInfo.isDir())) {
+        SET_ERROR("can't create folder to store ink note images in: "
+                  "a file with similar name and path exists");
+    }
+    else if (Q_UNLIKELY(!folderPathInfo.isWritable())) {
+        SET_ERROR("folder to store ink note images in is not writable");
     }
 
-    // TODO: continue
+    QString filePath = folderPath + "/" + m_resourceGuid;
+    QFile file(filePath);
+    if (Q_UNLIKELY(!file.open(QIODevice::WriteOnly))) {
+        SET_ERROR("can't open file to write the ink note images into");
+    }
+
+    file.write(inkNoteImageData);
+    file.close();
+
+    emit finished(true, filePath, QNLocalizedString());
 }
 
 } // namespace quentier
