@@ -34,7 +34,7 @@ class QUENTIER_EXPORT SynchronizationManager: public QObject
     Q_OBJECT
 public:
     SynchronizationManager(const QString & consumerKey, const QString & consumerSecret,
-                           LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
+                           const QString & host, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     virtual ~SynchronizationManager();
 
     bool active() const;

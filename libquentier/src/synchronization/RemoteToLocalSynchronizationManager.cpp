@@ -17,22 +17,25 @@
  */
 
 #include "RemoteToLocalSynchronizationManager.h"
+#include "InkNoteImageDownloader.h"
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/types/ResourceAdapter.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QTimerEvent>
+#include <QThreadPool>
 #include <algorithm>
 
 namespace quentier {
 
 RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                                                                         QSharedPointer<qevercloud::NoteStore> pNoteStore,
+                                                                         const QString & host, QSharedPointer<qevercloud::NoteStore> pNoteStore,
                                                                          QObject * parent) :
     QObject(parent),
     m_localStorageManagerThreadWorker(localStorageManagerThreadWorker),
     m_connectedToLocalStorage(false),
+    m_host(host),
     m_noteStore(pNoteStore),
     m_maxSyncChunkEntries(50),
     m_lastSyncMode(SyncMode::FullSync),
@@ -111,6 +114,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_addResourceRequestIds(),
     m_updateResourceRequestIds(),
     m_resourcesWithFindRequestIdsPerFindNoteRequestId(),
+    m_inkNoteResourceDataPerFindNotebookRequestId(),
+    m_numPendingInkNoteImageDownloads(0),
     m_resourceFoundFlagPerFindResourceRequestId(),
     m_resourceConflictedAndRemoteNotesPerNotebookGuid(),
     m_findNotebookForNotesWithConflictedResourcesRequestIds(),
@@ -516,6 +521,18 @@ void RemoteToLocalSynchronizationManager::onFindNotebookCompleted(Notebook noteb
 
         return;
     }
+
+    auto iit = m_inkNoteResourceDataPerFindNotebookRequestId.find(requestId);
+    if (iit != m_inkNoteResourceDataPerFindNotebookRequestId.end())
+    {
+        InkNoteResourceData resourceData = iit.value();
+        Q_UNUSED(m_inkNoteResourceDataPerFindNotebookRequestId.erase(iit))
+
+        CHECK_STOPPED();
+
+        setupInkNoteImageDownloading(resourceData.m_resourceGuid, resourceData.m_resourceHeight, resourceData.m_resourceWidth, notebook);
+        return;
+    }
 }
 
 void RemoteToLocalSynchronizationManager::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription,
@@ -557,6 +574,15 @@ void RemoteToLocalSynchronizationManager::onFindNotebookFailed(Notebook notebook
                                                         "which should resolve the conflict of individual resource");
         QNWARNING(errorDescription << ", notebook attempted to be found: " << notebook);
         emit failure(errorDescription);
+        return;
+    }
+
+    auto iit = m_inkNoteResourceDataPerFindNotebookRequestId.find(requestId);
+    if (iit != m_inkNoteResourceDataPerFindNotebookRequestId.end())
+    {
+        Q_UNUSED(m_inkNoteResourceDataPerFindNotebookRequestId.erase(iit))
+        QNWARNING("Can't find notebook for the purpose of setting up the ink note image downloading");
+        CHECK_STOPPED();
         return;
     }
 }
@@ -635,8 +661,50 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
 
             QUuid updateResourceRequestId = QUuid::createUuid();
             Q_UNUSED(m_updateResourceRequestIds.insert(updateResourceRequestId))
-
             emit updateResource(resource, updateResourceRequestId);
+
+            if (resource.hasGuid() && resource.hasMime() && resource.hasWidth() && resource.hasHeight() &&
+                (resource.mime() == QStringLiteral("application/vnd.evernote.ink")))
+            {
+                QNDEBUG("The resource appears to be the one for the ink note, need to download the image for it; "
+                        "but first need to understand whether the note owning the resource is from the current user's account "
+                        "or from some linked notebook");
+
+                const Notebook * pNotebook = getNotebookPerNote(note);
+                if (pNotebook)
+                {
+                    setupInkNoteImageDownloading(resource.guid(), resource.height(), resource.width(), *pNotebook);
+                }
+                else if (note.hasNotebookLocalUid() || note.hasNotebookGuid())
+                {
+                    InkNoteResourceData resourceData;
+                    resourceData.m_resourceGuid = resource.guid();
+                    resourceData.m_resourceHeight = resource.height();
+                    resourceData.m_resourceWidth = resource.width();
+
+                    Notebook dummyNotebook;
+                    if (note.hasNotebookLocalUid()) {
+                        dummyNotebook.setLocalUid(note.notebookLocalUid());
+                    }
+                    else {
+                        dummyNotebook.setLocalUid(QString());
+                        dummyNotebook.setGuid(note.notebookGuid());
+                    }
+
+                    QUuid findNotebookForInkNoteSetupRequestId = QUuid::createUuid();
+                    m_inkNoteResourceDataPerFindNotebookRequestId[findNotebookForInkNoteSetupRequestId] = resourceData;
+                    QNTRACE("Emitting the request to find notebook for ink note image download resolution: "
+                            << findNotebookForInkNoteSetupRequestId << ", resource guid = " << resourceData.m_resourceGuid
+                            << ", resource height = " << resourceData.m_resourceHeight << ", resource width = "
+                            << resourceData.m_resourceWidth << ", notebook: " << dummyNotebook);
+                    emit findNotebook(dummyNotebook, findNotebookForInkNoteSetupRequestId);
+                }
+                else
+                {
+                    QNWARNING("Can't download the ink note image: note has neither notebook local uid not notebook guid: " << note);
+                }
+            }
+
             return;
         }
 
@@ -1282,7 +1350,9 @@ void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<ResourceW
 {
     if (m_addResourceRequestIds.empty() && m_updateResourceRequestIds.empty() &&
         m_resourcesWithFindRequestIdsPerFindNoteRequestId.empty() &&
-        m_findNotebookForNotesWithConflictedResourcesRequestIds.empty())
+        m_findNotebookForNotesWithConflictedResourcesRequestIds.empty() &&
+        m_inkNoteResourceDataPerFindNotebookRequestId.empty() &&
+        (m_numPendingInkNoteImageDownloads == 0))
     {
         if (!m_expungedNotes.empty()) {
             expungeNotes();
@@ -1855,6 +1925,22 @@ void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(ResourceWrapper
         error += errorDescription;
         emit failure(error);
     }
+}
+
+void RemoteToLocalSynchronizationManager::onInkNoteImageDownloadFinished(bool status, QString inkNoteImageFilePath,
+                                                                         QNLocalizedString errorDescription)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::onInkNoteImageDownloadFinished: status = " << (status ? "true" : "false")
+            << ", ink note image file path = " << inkNoteImageFilePath << ", error description = " << errorDescription);
+
+    --m_numPendingInkNoteImageDownloads;
+    m_numPendingInkNoteImageDownloads = std::max(m_numPendingInkNoteImageDownloads, 0);
+
+    if (status) {
+        return;
+    }
+
+    QNWARNING(errorDescription);
 }
 
 void RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived(QString authToken, QString shardId, qevercloud::Timestamp expirationTime)
@@ -3045,13 +3131,17 @@ void RemoteToLocalSynchronizationManager::checkServerDataMergeCompletion()
     {
         bool resourcesReady = m_updateResourceRequestIds.empty() && m_addResourceRequestIds.empty() &&
                               m_resourcesWithFindRequestIdsPerFindNoteRequestId.empty() &&
-                              m_findNotebookForNotesWithConflictedResourcesRequestIds.empty();
+                              m_findNotebookForNotesWithConflictedResourcesRequestIds.empty() &&
+                              m_inkNoteResourceDataPerFindNotebookRequestId.empty() &&
+                              (m_numPendingInkNoteImageDownloads == 0);
         if (!resourcesReady) {
             QNDEBUG("Resources are not ready, pending response for " << m_updateResourceRequestIds.size()
                     << " resource update requests and/or " << m_addResourceRequestIds.size()
                     << " resource add requests and/or  " << m_resourcesWithFindRequestIdsPerFindNoteRequestId.size()
                     << " resource find note requests and/or " << m_findNotebookForNotesWithConflictedResourcesRequestIds.size()
-                    << " resource find notebook requests");
+                    << " resource find notebook requests and/or " << m_inkNoteResourceDataPerFindNotebookRequestId.size()
+                    << " resource find notebook for ink note image download processing and/or " << m_numPendingInkNoteImageDownloads
+                    << " ink note image downloads");
             return;
         }
     }
@@ -3182,6 +3272,8 @@ void RemoteToLocalSynchronizationManager::clear()
     m_addResourceRequestIds.clear();
     m_updateResourceRequestIds.clear();
     m_resourcesWithFindRequestIdsPerFindNoteRequestId.clear();
+    m_inkNoteResourceDataPerFindNotebookRequestId.clear();
+    m_numPendingInkNoteImageDownloads = 0;
     m_resourceFoundFlagPerFindResourceRequestId.clear();
     m_resourceConflictedAndRemoteNotesPerNotebookGuid.clear();
     m_findNotebookForNotesWithConflictedResourcesRequestIds.clear();
@@ -3715,6 +3807,25 @@ bool RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncStates(bool & 
 
     QNTRACE("Checked sync states for all linked notebooks, found no updates from Evernote service");
     return false;
+}
+
+void RemoteToLocalSynchronizationManager::setupInkNoteImageDownloading(const QString & resourceGuid, const int resourceHeight,
+                                                                       const int resourceWidth, const Notebook & notebook)
+{
+    QNDEBUG("RemoteToLocalSynchronizationManager::setupInkNoteImageDownloading: resource guid = " << resourceGuid
+            << ", resource height = " << resourceHeight << ", resource width = " << resourceWidth
+            << ", notebook: " << notebook);
+
+    // FIXME: properly figure out whether notebook is from user's own account or is a linked one
+
+    ++m_numPendingInkNoteImageDownloads;
+
+    InkNoteImageDownloader * pDownloader = new InkNoteImageDownloader(m_host, resourceGuid, m_noteStore.authenticationToken(),
+                                                                      m_shardId, resourceHeight, resourceWidth,
+                                                                      /* from public linked notebook = */ false, this);
+    QObject::connect(pDownloader, QNSIGNAL(InkNoteImageDownloader,finished,bool,QString,QNLocalizedString),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onInkNoteImageDownloadFinished,bool,QString,QNLocalizedString));
+    QThreadPool::globalInstance()->start(pDownloader);
 }
 
 QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::SyncMode::type & obj)

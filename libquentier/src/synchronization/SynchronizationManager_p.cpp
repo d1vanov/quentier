@@ -47,9 +47,10 @@
 namespace quentier {
 
 SynchronizationManagerPrivate::SynchronizationManagerPrivate(const QString & consumerKey, const QString & consumerSecret,
-                                                             LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
+                                                             const QString & host, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
     m_consumerKey(consumerKey),
     m_consumerSecret(consumerSecret),
+    m_host(host),
     m_maxSyncChunkEntries(50),
     m_lastUpdateCount(-1),
     m_lastSyncTime(-1),
@@ -61,7 +62,7 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(const QString & con
     m_launchSyncPostponeTimerId(-1),
     m_OAuthWebView(),
     m_OAuthResult(),
-    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore()),
+    m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_host, m_noteStore.getQecNoteStore()),
     m_sendLocalChangesManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore()),
     m_linkedNotebookGuidsAndShareKeysWaitingForAuth(),
     m_cachedLinkedNotebookAuthTokensAndShardIdsByGuid(),
@@ -784,7 +785,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
 void SynchronizationManagerPrivate::launchOAuth()
 {
-    m_OAuthWebView.authenticate("sandbox.evernote.com", m_consumerKey, m_consumerSecret);
+    m_OAuthWebView.authenticate(m_host, m_consumerKey, m_consumerSecret);
 }
 
 void SynchronizationManagerPrivate::launchSync()

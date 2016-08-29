@@ -46,9 +46,19 @@ QSharedPointer<qevercloud::NoteStore> NoteStore::getQecNoteStore()
     return m_pQecNoteStore;
 }
 
+QString NoteStore::noteStoreUrl() const
+{
+    return m_pQecNoteStore->noteStoreUrl();
+}
+
 void NoteStore::setNoteStoreUrl(const QString & noteStoreUrl)
 {
     m_pQecNoteStore->setNoteStoreUrl(noteStoreUrl);
+}
+
+QString NoteStore::authenticationToken() const
+{
+    return m_pQecNoteStore->authenticationToken();
 }
 
 void NoteStore::setAuthenticationToken(const QString & authToken)

@@ -53,7 +53,10 @@ public:
 
     QSharedPointer<qevercloud::NoteStore> getQecNoteStore();
 
+    QString noteStoreUrl() const;
     void setNoteStoreUrl(const QString & noteStoreUrl);
+
+    QString authenticationToken() const;
     void setAuthenticationToken(const QString & authToken);
 
     qint32 createNotebook(Notebook & notebook, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());

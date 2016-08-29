@@ -46,7 +46,7 @@ class RemoteToLocalSynchronizationManager: public QObject
     Q_OBJECT
 public:
     explicit RemoteToLocalSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
-                                                 QSharedPointer<qevercloud::NoteStore> pNoteStore,
+                                                 const QString & host, QSharedPointer<qevercloud::NoteStore> pNoteStore,
                                                  QObject * parent = Q_NULLPTR);
 
     bool active() const;
@@ -187,6 +187,8 @@ private Q_SLOTS:
     void onAddResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId);
     void onUpdateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
+
+    void onInkNoteImageDownloadFinished(bool status, QString inkNoteImageFilePath, QNLocalizedString errorDescription);
 
 private:
     void createConnections();
@@ -401,6 +403,9 @@ private:
     bool checkUserAccountSyncState(bool & asyncWait, bool & error, qint32 & afterUsn);
     bool checkLinkedNotebooksSyncStates(bool & asyncWait, bool & error);
 
+    void setupInkNoteImageDownloading(const QString & resourceGuid, const int resourceHeight, const int resourceWidth,
+                                      const Notebook & notebook);
+
 private:
     RemoteToLocalSynchronizationManager() Q_DECL_EQ_DELETE;
 
@@ -434,6 +439,25 @@ private:
     typedef QList<qevercloud::Note> NotesList;
     typedef QList<qevercloud::Resource> ResourcesList;
 
+    struct InkNoteResourceData
+    {
+        InkNoteResourceData() :
+            m_resourceGuid(),
+            m_resourceHeight(0),
+            m_resourceWidth(0)
+        {}
+
+        InkNoteResourceData(const QString & resourceGuid, int height, int width) :
+            m_resourceGuid(resourceGuid),
+            m_resourceHeight(height),
+            m_resourceWidth(width)
+        {}
+
+        QString     m_resourceGuid;
+        int         m_resourceHeight;
+        int         m_resourceWidth;
+    };
+
     struct SyncMode
     {
         enum type
@@ -448,6 +472,8 @@ private:
 private:
     LocalStorageManagerThreadWorker &       m_localStorageManagerThreadWorker;
     bool                                    m_connectedToLocalStorage;
+
+    QString                                 m_host;
 
     NoteStore                               m_noteStore;
     qint32                                  m_maxSyncChunkEntries;
@@ -549,6 +575,11 @@ private:
 
     typedef QHash<QUuid,QPair<ResourceWrapper,QUuid> > ResourceDataPerFindNoteRequestId;
     ResourceDataPerFindNoteRequestId        m_resourcesWithFindRequestIdsPerFindNoteRequestId;
+
+    typedef QHash<QUuid,InkNoteResourceData> InkNoteResourceDataPerFindNotebookRequestId;
+    InkNoteResourceDataPerFindNotebookRequestId     m_inkNoteResourceDataPerFindNotebookRequestId;
+
+    int                                     m_numPendingInkNoteImageDownloads;
 
     QSet<QUuid>                             m_resourceFoundFlagPerFindResourceRequestId;
 
