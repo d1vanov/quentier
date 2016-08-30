@@ -3816,13 +3816,32 @@ void RemoteToLocalSynchronizationManager::setupInkNoteImageDownloading(const QSt
             << ", resource height = " << resourceHeight << ", resource width = " << resourceWidth
             << ", notebook: " << notebook);
 
-    // FIXME: properly figure out whether notebook is from user's own account or is a linked one
+    bool isPublicNotebook = notebook.hasPublished() && notebook.isPublished();
+
+    QString authToken, shardId;
+    if (notebook.hasLinkedNotebookGuid())
+    {
+        auto it = m_authenticationTokensAndShardIdsByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
+        if (Q_UNLIKELY(it == m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end())) {
+            QNWARNING("Can't download ink note image: no authentication token and shard id for linked notebook: " << notebook);
+            return;
+        }
+
+        authToken = it.value().first;
+        shardId = it.value().second;
+    }
+    else
+    {
+        authToken = m_authenticationToken;
+        shardId = m_shardId;
+    }
 
     ++m_numPendingInkNoteImageDownloads;
 
-    InkNoteImageDownloader * pDownloader = new InkNoteImageDownloader(m_host, resourceGuid, m_noteStore.authenticationToken(),
-                                                                      m_shardId, resourceHeight, resourceWidth,
-                                                                      /* from public linked notebook = */ false, this);
+    InkNoteImageDownloader * pDownloader = new InkNoteImageDownloader(m_host, resourceGuid, authToken,
+                                                                      shardId, resourceHeight, resourceWidth,
+                                                                      /* from public linked notebook = */
+                                                                      isPublicNotebook, this);
     QObject::connect(pDownloader, QNSIGNAL(InkNoteImageDownloader,finished,bool,QString,QNLocalizedString),
                      this, QNSLOT(RemoteToLocalSynchronizationManager,onInkNoteImageDownloadFinished,bool,QString,QNLocalizedString));
     QThreadPool::globalInstance()->start(pDownloader);
