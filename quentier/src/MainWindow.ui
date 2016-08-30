@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1516</width>
+    <width>1530</width>
     <height>876</height>
    </rect>
   </property>
@@ -1202,8 +1202,8 @@ background-color: rgb(205, 221, 229);
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1516</width>
-     <height>23</height>
+     <width>1530</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1433,6 +1433,7 @@ background-color: rgb(205, 221, 229);
     <addaction name="ActionSetTestNoteWithEncryptedData"/>
     <addaction name="ActionSetTestNoteWithResources"/>
     <addaction name="ActionSetTestReadOnlyNote"/>
+    <addaction name="ActionSetTestInkNote"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -2695,6 +2696,11 @@ stop: 1 #0EB7FF);
   <action name="ActionSetTestReadOnlyNote">
    <property name="text">
     <string>Set test read only note</string>
+   </property>
+  </action>
+  <action name="ActionSetTestInkNote">
+   <property name="text">
+    <string>Set test ink note</string>
    </property>
   </action>
  </widget>

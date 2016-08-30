@@ -36,6 +36,7 @@ using quentier::NoteEditor;
 #include <quentier/types/Notebook.h>
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/utility/QuentierCheckPtr.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <cmath>
 #include <QPushButton>
@@ -113,6 +114,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                      this, QNSLOT(MainWindow,onSetTestNoteWithResources));
     QObject::connect(m_pUI->ActionSetTestReadOnlyNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSetTestReadOnlyNote));
+    QObject::connect(m_pUI->ActionSetTestInkNote, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSetInkNote));
 
     QString consumerKey, consumerSecret;
     setupConsumerKeyAndSecret(consumerKey, consumerSecret);
@@ -272,7 +275,7 @@ void MainWindow::prepareTestNoteWithResources()
 
     // Read the first result from qrc
     QFile resourceFile(":/test_notes/Architecture_whats_the_architecture.png");
-    resourceFile.open(QIODevice::ReadOnly);
+    Q_UNUSED(resourceFile.open(QIODevice::ReadOnly))
     QByteArray resourceData = resourceFile.readAll();
     resourceFile.close();
 
@@ -349,6 +352,51 @@ void MainWindow::prepareTestNoteWithResources()
 
     // Add the third resource to the note
     m_testNote.addResource(resource);
+}
+
+void MainWindow::prepareTestInkNote()
+{
+    QNDEBUG("MainWindow::prepareTestInkNote");
+
+    m_testNote = Note();
+    m_testNote.setGuid("a458d0ac-5c0b-446d-bc39-5b069148f66a");
+
+    // Read the ink note image data from qrc
+    QFile inkNoteImageQrc(":/test_notes/inknoteimage.png");
+    Q_UNUSED(inkNoteImageQrc.open(QIODevice::ReadOnly))
+    QByteArray inkNoteImageData = inkNoteImageQrc.readAll();
+    inkNoteImageQrc.close();
+
+    quentier::ResourceWrapper resource;
+    resource.setGuid("6bdf808c-7bd9-4a39-bef8-20b84779956e");
+    resource.setDataBody("aaa");
+    resource.setDataHash("2e0f79af4ca47b473e5105156a18c7cb");
+    resource.setMime("application/vnd.evernote.ink");
+    resource.setHeight(308);
+    resource.setWidth(602);
+    resource.setNoteGuid(m_testNote.guid());
+
+    m_testNote.addResource(resource);
+
+    QString inkNoteImageFilePath = quentier::applicationPersistentStoragePath() + "/NoteEditorPage/inkNoteImages";
+    QDir inkNoteImageFileDir(inkNoteImageFilePath);
+    if (!inkNoteImageFileDir.exists())
+    {
+        if (Q_UNLIKELY(!inkNoteImageFileDir.mkpath(inkNoteImageFilePath))) {
+            onSetStatusBarText("Can't set test ink note to the editor: can't create folder to hold the ink note resource images");
+            return;
+        }
+    }
+
+    inkNoteImageFilePath += "/" + resource.guid() + ".png";
+    QFile inkNoteImageFile(inkNoteImageFilePath);
+    if (Q_UNLIKELY(!inkNoteImageFile.open(QIODevice::WriteOnly))) {
+        onSetStatusBarText("Can't set test ink note to the editor: can't open file meant to hold the ink note resource image for writing");
+        return;
+    }
+
+    inkNoteImageFile.write(inkNoteImageData);
+    inkNoteImageFile.close();
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
@@ -599,6 +647,17 @@ void MainWindow::onSetTestReadOnlyNote()
 
     m_testNote.setLocalUid("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}");
     m_testNotebook.setCanUpdateNotes(false);
+
+    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
+    m_pNoteEditor->setFocus();
+}
+
+void MainWindow::onSetInkNote()
+{
+    prepareTestInkNote();
+
+    m_testNote.setLocalUid("{96c747e2-7bdc-4805-a704-105cbfcc7fbe}");
+    m_testNotebook.setCanUpdateNotes(true);
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();

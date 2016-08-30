@@ -87,9 +87,12 @@ private Q_SLOTS:
     void onNoteTextInsertTable(int rows, int columns, double width, bool relativeWidth);
 
     void onShowNoteSource();
+
+    // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
     void onSetTestReadOnlyNote();
+    void onSetInkNote();
 
     void onFindInsideNoteAction();
     void onFindPreviousInsideNoteAction();
@@ -141,6 +144,7 @@ private:
     void addMenuActionsToMainWindow();
 
     void prepareTestNoteWithResources();
+    void prepareTestInkNote();
 
 private:
     Ui::MainWindow * m_pUI;
