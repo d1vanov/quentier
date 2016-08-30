@@ -189,6 +189,7 @@ private Q_SLOTS:
     void onUpdateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
 
     void onInkNoteImageDownloadFinished(bool status, QString inkNoteImageFilePath, QNLocalizedString errorDescription);
+    void onNoteThumbnailDownloadingFinished(bool status, QString noteGuid, QString downloadedThumbnailImageFilePath, QNLocalizedString errorDescription);
 
 private:
     void createConnections();
@@ -403,8 +404,11 @@ private:
     bool checkUserAccountSyncState(bool & asyncWait, bool & error, qint32 & afterUsn);
     bool checkLinkedNotebooksSyncStates(bool & asyncWait, bool & error);
 
+    void authenticationInfoForNotebook(const Notebook & notebook, QString & authToken, QString & shardId, bool & isPublic) const;
+
     void setupInkNoteImageDownloading(const QString & resourceGuid, const int resourceHeight, const int resourceWidth,
                                       const Notebook & notebook);
+    void setupNoteThumbnailDownloading(const QString & noteGuid, const Notebook & notebook);
 
 private:
     RemoteToLocalSynchronizationManager() Q_DECL_EQ_DELETE;
@@ -578,8 +582,10 @@ private:
 
     typedef QHash<QUuid,InkNoteResourceData> InkNoteResourceDataPerFindNotebookRequestId;
     InkNoteResourceDataPerFindNotebookRequestId     m_inkNoteResourceDataPerFindNotebookRequestId;
+    qint64                                  m_numPendingInkNoteImageDownloads;
 
-    int                                     m_numPendingInkNoteImageDownloads;
+    QHash<QUuid,QString>                    m_noteGuidForThumbnailDownloadByFindNotebookRequestId;
+    QSet<QString>                           m_noteGuidsPendingThumbnailDownload;
 
     QSet<QUuid>                             m_resourceFoundFlagPerFindResourceRequestId;
 

@@ -33,7 +33,7 @@ void NoteThumbnailDownloader::run()
 
 #define SET_ERROR(error) \
     QNLocalizedString errorDescription = QT_TR_NOOP(error); \
-    emit finished(false, QString(), errorDescription); \
+    emit finished(false, m_noteGuid, QString(), errorDescription); \
     return
 
     if (Q_UNLIKELY(m_host.isEmpty())) {
@@ -86,7 +86,7 @@ void NoteThumbnailDownloader::run()
     file.write(thumbnailImageData);
     file.close();
 
-    emit finished(true, filePath, QNLocalizedString());
+    emit finished(true, m_noteGuid, filePath, QNLocalizedString());
 }
 
 } // namespace quentier

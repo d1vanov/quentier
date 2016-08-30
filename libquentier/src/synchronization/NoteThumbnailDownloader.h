@@ -22,7 +22,7 @@ public:
     virtual void run() Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void finished(bool success, QString downloadedThumbnailImageFilePath, QNLocalizedString errorDescription);
+    void finished(bool success, QString noteGuid, QString downloadedThumbnailImageFilePath, QNLocalizedString errorDescription);
 
 private:
     QString     m_host;
