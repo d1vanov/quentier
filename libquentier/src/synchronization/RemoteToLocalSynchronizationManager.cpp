@@ -2007,6 +2007,8 @@ void RemoteToLocalSynchronizationManager::onInkNoteImageDownloadFinished(bool st
     --m_numPendingInkNoteImageDownloads;
     m_numPendingInkNoteImageDownloads = std::max(m_numPendingInkNoteImageDownloads, qint64(0));
 
+    checkServerDataMergeCompletion();
+
     if (status) {
         return;
     }
@@ -2029,6 +2031,8 @@ void RemoteToLocalSynchronizationManager::onNoteThumbnailDownloadingFinished(boo
     else {
         QNWARNING("Received note thumbnail downloaded event for note which seemingly was not pending it: note guid = " << noteGuid);
     }
+
+    checkServerDataMergeCompletion();
 
     if (status) {
         return;
