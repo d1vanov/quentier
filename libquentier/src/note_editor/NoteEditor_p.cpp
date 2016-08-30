@@ -377,6 +377,10 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         QNDEBUG("Current note is not active, setting it to read-only state");
         editable = false;
     }
+    else if (m_pNote->isInkNote()) {
+        QNDEBUG("Current note is an ink note, setting it to read-only state");
+        editable = false;
+    }
     else if (m_pNotebook->hasRestrictions())
     {
         const qevercloud::NotebookRestrictions & restrictions = m_pNotebook->restrictions();
@@ -2400,6 +2404,11 @@ void NoteEditorPrivate::noteToEditorContent()
         return;
     }
 
+    if (m_pNote->isInkNote()) {
+        inkNoteToEditorContent();
+        return;
+    }
+
     if (!m_pNote->hasContent()) {
         QNDEBUG("Note without content was inserted into NoteEditor");
         clearEditorContent();
@@ -2468,6 +2477,85 @@ void NoteEditorPrivate::updateColResizableTableBindings()
 
     GET_PAGE()
     page->executeJavaScript(javascript);
+}
+
+void NoteEditorPrivate::inkNoteToEditorContent()
+{
+    QNDEBUG("NoteEditorPrivate::inkNoteToEditorContent");
+
+    m_lastFreeEnToDoIdNumber = 1;
+    m_lastFreeHyperlinkIdNumber = 1;
+    m_lastFreeEnCryptIdNumber = 1;
+    m_lastFreeEnDecryptedIdNumber = 1;
+
+    bool problemDetected = false;
+    QList<ResourceWrapper> resources = m_pNote->resources();
+    const int numResources = resources.size();
+
+    QString inkNoteHtml = m_pagePrefix;
+    inkNoteHtml += QStringLiteral("<body>");
+
+    for(int i = 0; i < numResources; ++i)
+    {
+        const ResourceWrapper & resource = resources[i];
+
+        if (!resource.hasGuid()) {
+            QNWARNING("Detected ink note which has at least one resource without guid: note = " << *m_pNote
+                      << "\nResource: " << resource);
+            problemDetected = true;
+            break;
+        }
+
+        if (!resource.hasDataHash()) {
+            QNWARNING("Detected ink note which has at least one resource without data hash: note = " << *m_pNote
+                      << "\nResource: " << resource);
+            problemDetected = true;
+            break;
+        }
+
+        QFileInfo inkNoteImageFileInfo(m_noteEditorPageFolderPath + QStringLiteral("/inkNoteImages/") + resource.guid() + QStringLiteral(".png"));
+        if (!inkNoteImageFileInfo.exists() || !inkNoteImageFileInfo.isFile() || !inkNoteImageFileInfo.isReadable()) {
+            QNWARNING("Detected broken or nonexistent ink note image file, check file at path " << inkNoteImageFileInfo.absoluteFilePath());
+            problemDetected = true;
+            break;
+        }
+
+        QString inkNoteImageFilePath = inkNoteImageFileInfo.absoluteFilePath();
+        ENMLConverter::escapeString(inkNoteImageFilePath);
+        if (Q_UNLIKELY(inkNoteImageFilePath.isEmpty())) {
+            QNWARNING("Unable to escape the ink note image file path: " << inkNoteImageFileInfo.absoluteFilePath());
+            problemDetected = true;
+            break;
+        }
+
+        inkNoteHtml += QStringLiteral("<img src=\"");
+        inkNoteHtml += inkNoteImageFilePath;
+        inkNoteHtml += QStringLiteral("\" ");
+
+        if (resource.hasHeight()) {
+            inkNoteHtml += QStringLiteral("height=");
+            inkNoteHtml += QString::number(resource.height());
+            inkNoteHtml += QStringLiteral(" ");
+        }
+
+        if (resource.hasWidth()) {
+            inkNoteHtml += QStringLiteral("width=");
+            inkNoteHtml += QString::number(resource.width());
+            inkNoteHtml += QStringLiteral(" ");
+        }
+
+        inkNoteHtml += "/>";
+    }
+
+    if (problemDetected) {
+        inkNoteHtml = m_pagePrefix;
+        inkNoteHtml += QStringLiteral("<body><div>");
+        inkNoteHtml += tr("The read-only ink note image should have been present here but something went wrong so the image is not accessible");
+        inkNoteHtml += QStringLiteral("</div></body></html>");
+    }
+
+    QNTRACE("Ink note html: " << inkNoteHtml);
+    writeNotePageFile(inkNoteHtml);
 }
 
 bool NoteEditorPrivate::htmlToNoteContent(QNLocalizedString & errorDescription)
@@ -3916,6 +4004,12 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
         m_pendingConversionToNote = false;
         QNLocalizedString error = QT_TR_NOOP("no current note is set to note editor");
         emit cantConvertToNote(error);
+        return;
+    }
+
+    if (m_pNote->isInkNote()) {
+        m_pendingConversionToNote = false;
+        QNINFO("Currently selected note is an ink note, it's not editable hence won't respond to the unexpected change of its HTML");
         return;
     }
 

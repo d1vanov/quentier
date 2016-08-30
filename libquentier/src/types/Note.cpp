@@ -663,17 +663,20 @@ bool Note::isInkNote() const
 
     const QList<qevercloud::Resource> & resources = d->m_qecNote.resources.ref();
 
-    if (resources.size() != 1) {
-        return false;
+    // NOTE: it is not known for sure how many resources there might be within an ink note. Probably just one in most cases.
+    const int numResources = resources.size();
+    for(int i = 0; i < numResources; ++i)
+    {
+        const qevercloud::Resource & resource = resources[i];
+        if (!resource.mime.isSet()) {
+            return false;
+        }
+        else if (resource.mime.ref() != QStringLiteral("application/vnd.evernote.ink")) {
+            return false;
+        }
     }
 
-    const qevercloud::Resource & resource = resources[0];
-
-    if (!resource.mime.isSet()) {
-        return false;
-    }
-
-    return (resource.mime.ref() == QStringLiteral("application/vnd.evernote.ink"));
+    return true;
 }
 
 QString Note::plainText(QNLocalizedString * pErrorMessage) const

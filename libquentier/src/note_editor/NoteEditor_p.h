@@ -434,6 +434,7 @@ private:
     void clearEditorContent();
     void noteToEditorContent();
     void updateColResizableTableBindings();
+    void inkNoteToEditorContent();
 
     bool htmlToNoteContent(QNLocalizedString & errorDescription);
 
