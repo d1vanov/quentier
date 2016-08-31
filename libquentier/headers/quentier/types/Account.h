@@ -59,8 +59,9 @@ public:
     qint32 noteCountMax() const;
     qint32 notebookCountMax() const;
     qint32 tagCountMax() const;
+    qint32 noteTagCountMax() const;
     qint32 savedSearchCountMax() const;
-    qint32 resourceCountMax() const;
+    qint32 noteResourceCountMax() const;
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

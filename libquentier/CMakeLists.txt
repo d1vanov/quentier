@@ -55,6 +55,7 @@ set(NOTE_EDITOR_HEADERS
     headers/quentier/note_editor/ResourceFileStorageManager.h)
 
 set(TYPES_HEADERS
+    headers/quentier/types/Account.h
     headers/quentier/types/IFavoritableDataElement.h
     headers/quentier/types/ISharedNotebook.h
     headers/quentier/types/IResource.h
@@ -201,6 +202,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/SpellCheckAddToUserWordListUndoCommand.h
     src/note_editor/undo_stack/TableActionUndoCommand.h
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.h
+    src/types/data/AccountData.h
     src/types/data/FavoritableDataElementData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -313,6 +315,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/SpellCheckAddToUserWordListUndoCommand.cpp
     src/note_editor/undo_stack/TableActionUndoCommand.cpp
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.cpp
+    src/types/Account.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/IUser.cpp
@@ -330,6 +333,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/UserAdapter.cpp
     src/types/UserWrapper.cpp
     src/types/RegisterMetatypes.cpp
+    src/types/data/AccountData.cpp
     src/types/data/FavoritableDataElementData.cpp
     src/types/data/LocalStorageDataElementData.cpp
     src/types/data/LinkedNotebookData.cpp
