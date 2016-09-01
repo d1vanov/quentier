@@ -1184,12 +1184,19 @@ void SendLocalChangesManager::sendLocalChanges()
 
     // TODO: consider checking the expiration time of user's own authentication token here
 
-    // IMPROVEME: it would be very nice to have a possibility to check whether the attempt to send tags/saved searches/notebooks
-    // had to delay itself due to rate limit exceeding or problems with authentication token expiration; should such event occur,
-    // there's no much sense in trying to send another stuff to Evernote service, it would respond with the same exception again
+#define CHECK_RATE_LIMIT() \
+    if (rateLimitIsActive()) { \
+        return; \
+    }
+
     sendTags();
+    CHECK_RATE_LIMIT()
+
     sendSavedSearches();
+    CHECK_RATE_LIMIT()
+
     sendNotebooks();
+    CHECK_RATE_LIMIT()
 
     findNotebooksForNotes();
 }
