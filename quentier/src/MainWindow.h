@@ -21,6 +21,7 @@
 
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
+#include <quentier/types/Account.h>
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/utility/ShortcutManager.h>
@@ -147,20 +148,21 @@ private:
     void prepareTestInkNote();
 
 private:
-    Ui::MainWindow * m_pUI;
-    QWidget * m_currentStatusBarChildWidget;
-    quentier::NoteEditor * m_pNoteEditor;
-    QString m_lastNoteEditorHtml;
+    Ui::MainWindow *        m_pUI;
+    QWidget *               m_currentStatusBarChildWidget;
+    quentier::NoteEditor *  m_pNoteEditor;
+    QString                 m_lastNoteEditorHtml;
 
-    quentier::Notebook    m_testNotebook;
-    quentier::Note        m_testNote;
+    quentier::Notebook      m_testNotebook;
+    quentier::Note          m_testNote;
+    QScopedPointer<quentier::Account>   m_pAccount;
 
-    int                    m_lastFontSizeComboBoxIndex;
-    QString                m_lastFontComboBoxFontFamily;
+    int                     m_lastFontSizeComboBoxIndex;
+    QString                 m_lastFontComboBoxFontFamily;
 
-    QUndoStack *           m_pUndoStack;
+    QUndoStack *            m_pUndoStack;
 
-    quentier::ShortcutManager  m_shortcutManager;
+    quentier::ShortcutManager   m_shortcutManager;
 };
 
 #endif // QUENTIER_MAINWINDOW_H

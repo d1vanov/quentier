@@ -65,6 +65,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_lastNoteEditorHtml(),
     m_testNotebook(),
     m_testNote(),
+    m_pAccount(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_pUndoStack(new QUndoStack(this)),
@@ -74,6 +75,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     m_pUI->setupUi(this);
     m_pUI->findAndReplaceWidget->setHidden(true);
+
+    // TODO: try to find within the app settings the last used account and pick it
+    m_pAccount.reset(new Account("Default user", Account::Type::Local));
+    m_pUI->noteEditorWidget->setAccount(*m_pAccount);
 
     m_pUI->noteEditorWidget->setUndoStack(m_pUndoStack);
 

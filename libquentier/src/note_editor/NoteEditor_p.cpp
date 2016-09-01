@@ -2056,6 +2056,41 @@ void NoteEditorPrivate::dropEvent(QDropEvent * pEvent)
     onDropEvent(pEvent);
 }
 
+bool NoteEditorPrivate::checkNoteSize(const QString & newNoteContent) const
+{
+    QNDEBUG("NoteEditorPrivate::checkNoteSize");
+
+    if (Q_UNLIKELY(m_pNote.isNull())) {
+        QNLocalizedString error = QT_TR_NOOP("Internal error: can't check the note size on note editor update: "
+                                             "no note is set ot the editor");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    if (Q_UNLIKELY(m_pAccount.isNull())) {
+        QNLocalizedString error = QT_TR_NOOP("Internal error: can't check the note size on note editor update: no account "
+                                             "is associated with the note editor; the note was not saved!");
+        QNWARNING(error);
+        emit notifyError(error);
+        return false;
+    }
+
+    qint64 noteSize = noteResourcesSize();
+    noteSize += newNoteContent.size();
+
+    if (Q_UNLIKELY(noteSize > m_pAccount->noteSizeMax())) {
+        QNLocalizedString error = QT_TR_NOOP("Can't save note: note size (text + resources) exceeds the allowed maximum");
+        error += ": ";
+        error += humanReadableSize(static_cast<quint64>(m_pAccount->noteSizeMax()));
+        QNINFO(error);
+        emit cantConvertToNote(error);
+        return false;
+    }
+
+    return true;
+}
+
 void NoteEditorPrivate::pushNoteContentEditUndoCommand()
 {
     QNDEBUG("NoteEditorPrivate::pushNoteTextEditUndoCommand");
@@ -4035,6 +4070,10 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
         return;
     }
 
+    if (!checkNoteSize(m_enmlCachedMemory)) {
+        return;
+    }
+
     m_pNote->setContent(m_enmlCachedMemory);
     m_pendingConversionToNote = false;
     emit convertedToNote(*m_pNote);
@@ -5108,6 +5147,56 @@ void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
     GET_PAGE()
     QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
     page->executeJavaScript(javascript);
+}
+
+qint64 NoteEditorPrivate::noteResourcesSize() const
+{
+    if (Q_UNLIKELY(!m_pNote)) {
+        return qint64(0);
+    }
+
+    if (Q_UNLIKELY(!m_pNote->hasResources())) {
+        return qint64(0);
+    }
+
+    qint64 size = 0;
+    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
+    for(auto it = resourceAdapters.begin(), end = resourceAdapters.end(); it != end; ++it)
+    {
+        const ResourceAdapter & resourceAdapter = *it;
+
+        if (resourceAdapter.hasDataSize()) {
+            size += resourceAdapter.dataSize();
+        }
+
+        if (resourceAdapter.hasAlternateDataSize()) {
+            size += resourceAdapter.alternateDataSize();
+        }
+
+        if (resourceAdapter.hasRecognitionDataSize()) {
+            size += resourceAdapter.recognitionDataSize();
+        }
+    }
+
+    return size;
+}
+
+qint64 NoteEditorPrivate::noteContentSize() const
+{
+    if (Q_UNLIKELY(!m_pNote)) {
+        return qint64(0);
+    }
+
+    if (Q_UNLIKELY(!m_pNote->hasContent())) {
+        return qint64(0);
+    }
+
+    return static_cast<qint64>(m_pNote->content().size());
+}
+
+qint64 NoteEditorPrivate::noteSize() const
+{
+    return noteContentSize() + noteResourcesSize();
 }
 
 void NoteEditorPrivate::onSpellCheckCorrectionAction()

@@ -101,10 +101,10 @@ public:
 
 Q_SIGNALS:
     void contentChanged();
-    void notifyError(QNLocalizedString error);
+    void notifyError(QNLocalizedString error) const;
 
     void convertedToNote(Note note);
-    void cantConvertToNote(QNLocalizedString error);
+    void cantConvertToNote(QNLocalizedString error) const;
 
     void noteEditorHtmlUpdated(QString html);
 
@@ -281,6 +281,10 @@ public Q_SLOTS:
 
     void flipEnToDoCheckboxState(const quint64 enToDoIdNumber);
 
+    qint64 noteResourcesSize() const;
+    qint64 noteContentSize() const;
+    qint64 noteSize() const;
+
 // private signals:
 Q_SIGNALS:
     void saveResourceToStorage(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
@@ -418,6 +422,8 @@ private Q_SLOTS:
     void onUndoCommandError(QNLocalizedString error);
 
 private:
+    bool checkNoteSize(const QString & newNoteContent) const;
+
     void pushNoteContentEditUndoCommand();
     void pushTableActionUndoCommand(const QString & name, NoteEditorPage::Callback callback);
 

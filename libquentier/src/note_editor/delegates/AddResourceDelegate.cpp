@@ -136,10 +136,20 @@ void AddResourceDelegate::doStart()
     {
         const qint64 fileSize = fileInfo.size();
         if (Q_UNLIKELY(fileSize > pAccount->resourceSizeMax())) {
-            QNLocalizedString error = QT_TR_NOOP("can't attach the file's contents to the note as a resource: the file is too large, "
+            QNLocalizedString error = QT_TR_NOOP("can't add resource to note: the resource file is too large, "
                                                  "max resource size allowed is");
             error += " ";
             error += humanReadableSize(static_cast<quint64>(pAccount->resourceSizeMax()));
+            emit notifyError(error);
+            return;
+        }
+
+        const qint64 previousNoteSize = m_noteEditor.noteSize();
+        if (previousNoteSize + fileSize > pAccount->noteSizeMax()) {
+            QNLocalizedString error = QT_TR_NOOP("can't add resource to note: the addition of the resource file "
+                                                 "would violate the max resource size which is");
+            error += " ";
+            error += humanReadableSize(static_cast<quint64>(pAccount->noteSizeMax()));
             emit notifyError(error);
             return;
         }
