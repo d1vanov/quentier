@@ -29,6 +29,7 @@ QT_FORWARD_DECLARE_CLASS(QUndoStack)
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 
 class QUENTIER_EXPORT INoteEditorBackend
@@ -39,6 +40,7 @@ public:
     virtual QObject * object() = 0;   // provide QObject interface
     virtual QWidget * widget() = 0;   // provide QWidget interface
 
+    virtual void setAccount(const Account & account) = 0;
     virtual void setUndoStack(QUndoStack * pUndoStack) = 0;
 
     virtual void convertToNote() = 0;

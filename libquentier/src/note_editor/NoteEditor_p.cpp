@@ -92,6 +92,7 @@ typedef QWebEngineSettings WebSettings;
 #include <quentier/types/Notebook.h>
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/types/ResourceRecognitionIndexItem.h>
+#include <quentier/types/Account.h>
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/types/ResourceAdapter.h>
@@ -224,6 +225,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pToDoCheckboxClickHandler(new ToDoCheckboxOnClickHandler(this)),
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
+    m_pAccount(),
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
     m_lastContextMenuEventGlobalPos(),
     m_lastContextMenuEventPagePos(),
@@ -4508,6 +4510,12 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
     page->executeJavaScript(javascript, callback);
 }
 
+void NoteEditorPrivate::setAccount(const Account & account)
+{
+    QNDEBUG("NoteEditorPrivate::setAccount: " << account);
+    m_pAccount.reset(new Account(account));
+}
+
 void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
 {
     QNDEBUG("NoteEditorPrivate::setUndoStack");
@@ -4950,6 +4958,11 @@ void NoteEditorPrivate::onDropEvent(QDropEvent * pEvent)
     }
 
     pEvent->acceptProposedAction();
+}
+
+const Account * NoteEditorPrivate::accountPtr() const
+{
+    return m_pAccount.data();
 }
 
 const ResourceWrapper NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,

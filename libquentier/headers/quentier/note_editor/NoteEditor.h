@@ -29,6 +29,7 @@ QT_FORWARD_DECLARE_CLASS(QUndoStack)
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
 
@@ -40,6 +41,8 @@ public:
     virtual ~NoteEditor();
 
     void setBackend(INoteEditorBackend * backend);
+
+    void setAccount(const Account & account);
 
     const QUndoStack * undoStack() const;
     void setUndoStack(QUndoStack * pUndoStack);

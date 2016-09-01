@@ -14,7 +14,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(AccountData);
+QT_FORWARD_DECLARE_CLASS(AccountData)
 
 /**
  * @brief The Account class encapsulates some details about the account: its name,
@@ -47,6 +47,10 @@ public:
 public:
     explicit Account(const QString & name, const Type::type type,
                      const EvernoteAccountType::type evernoteAccountType = EvernoteAccountType::Free);
+    Account(const Account & other);
+    Account & operator=(const Account & other);
+    virtual ~Account();
+
     void setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType);
 
     QString name() const;

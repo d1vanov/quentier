@@ -22,8 +22,10 @@
 #include "../GenericResourceImageManager.h"
 #include <quentier/note_editor/ResourceFileStorageManager.h>
 #include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Account.h>
 #include <QImage>
 #include <QBuffer>
 #include <QFileInfo>
@@ -101,6 +103,24 @@ void AddResourceDelegate::doStart()
         return;
     }
 
+    const Account * pAccount = m_noteEditor.accountPtr();
+    if (!pAccount) {
+        QNINFO("No account when adding the resource to note, can't check limits");
+    }
+
+    if (pAccount)
+    {
+        int numNoteResources = (pNote->hasResources() ? pNote->resources().size() : 0);
+        ++numNoteResources;
+        if (numNoteResources > pAccount->noteResourceCountMax()) {
+            QNLocalizedString error = QT_TR_NOOP("Can't add resource: the note already has max allowed number of resources");
+            error += ": ";
+            error += QString::number(numNoteResources - 1);
+            emit notifyError(error);
+            return;
+        }
+    }
+
     QFileInfo fileInfo(m_filePath);
     if (!fileInfo.isFile()) {
         QNINFO("Detected attempt to drop something else rather than file: " << m_filePath);
@@ -110,6 +130,19 @@ void AddResourceDelegate::doStart()
     if (!fileInfo.isReadable()) {
         QNINFO("Detected attempt to drop file which is not readable: " << m_filePath);
         return;
+    }
+
+    if (pAccount)
+    {
+        const qint64 fileSize = fileInfo.size();
+        if (Q_UNLIKELY(fileSize > pAccount->resourceSizeMax())) {
+            QNLocalizedString error = QT_TR_NOOP("can't attach the file's contents to the note as a resource: the file is too large, "
+                                                 "max resource size allowed is");
+            error += " ";
+            error += humanReadableSize(static_cast<quint64>(pAccount->resourceSizeMax()));
+            emit notifyError(error);
+            return;
+        }
     }
 
     QMimeDatabase mimeDatabase;

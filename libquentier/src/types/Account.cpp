@@ -12,6 +12,22 @@ Account::Account(const QString & name, const Type::type type,
     d->switchEvernoteAccountType(evernoteAccountType);
 }
 
+Account::Account(const Account & other) :
+    d(other.d)
+{}
+
+Account & Account::operator=(const Account & other)
+{
+    if (this != &other) {
+        d = other.d;
+    }
+
+    return *this;
+}
+
+Account::~Account()
+{}
+
 void Account::setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType)
 {
     d->switchEvernoteAccountType(evernoteAccountType);

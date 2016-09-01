@@ -137,6 +137,8 @@ public:
     // Resets the note's HTML to the given one
     void setNoteHtml(const QString & html);
 
+    const Account * accountPtr() const;
+
     const ResourceWrapper attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
                                                const QMimeType & mimeType, const QString & filename);
     void addResourceToNote(const ResourceWrapper & resource);
@@ -183,6 +185,7 @@ public:
 public Q_SLOTS:
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
     virtual QWidget * widget() Q_DECL_OVERRIDE { return this; }
+    virtual void setAccount(const Account & account) Q_DECL_OVERRIDE;
     virtual void setUndoStack(QUndoStack * pUndoStack) Q_DECL_OVERRIDE;
 
     virtual void undo() Q_DECL_OVERRIDE;
@@ -712,6 +715,8 @@ private:
     PageMutationHandler *               m_pPageMutationHandler;
 
     QUndoStack * m_pUndoStack;
+
+    QScopedPointer<Account>     m_pAccount;
 
     quint64     m_contextMenuSequenceNumber;
     QPoint      m_lastContextMenuEventGlobalPos;

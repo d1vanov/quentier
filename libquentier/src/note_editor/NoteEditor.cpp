@@ -20,6 +20,7 @@
 #include <quentier/note_editor/NoteEditor.h>
 #include <quentier/note_editor/INoteEditorBackend.h>
 #include <quentier/types/Notebook.h>
+#include <quentier/types/Account.h>
 #include <QUndoStack>
 #include <QFont>
 #include <QColor>
@@ -50,6 +51,11 @@ void NoteEditor::setBackend(INoteEditorBackend * backend)
     backend->widget()->setParent(this, this->windowFlags());
     m_backend = backend;
     pLayout->addWidget(m_backend->widget());
+}
+
+void NoteEditor::setAccount(const Account & account)
+{
+    m_backend->setAccount(account);
 }
 
 void NoteEditor::setUndoStack(QUndoStack * pUndoStack)
