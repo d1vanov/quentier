@@ -24,6 +24,7 @@
 #include "NotebookCache.h"
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
+#include <quentier/types/Account.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -57,10 +58,12 @@ public:
         };
     };
 
-    explicit NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit NoteModel(const Account & account,  LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                        NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent = Q_NULLPTR,
                        const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();
+
+    void updateAccount(const Account & account);
 
     struct Columns
     {
@@ -242,6 +245,7 @@ private:
     void addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData);
 
 private:
+    Account                 m_account;
     IncludedNotes::type     m_includedNotes;
     NoteData                m_data;
     size_t                  m_listNotesOffset;
@@ -250,6 +254,9 @@ private:
 
     NoteCache &             m_cache;
     NotebookCache &         m_notebookCache;
+
+    // NOTE: it would only corresond to m_data.size() if m_includedNotes == IncludedNotes::All
+    qint32                  m_numberOfNotesPerAccount;
 
     QSet<QUuid>             m_addNoteRequestIds;
     QSet<QUuid>             m_updateNoteRequestIds;

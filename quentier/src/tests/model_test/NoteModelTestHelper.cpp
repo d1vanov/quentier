@@ -201,8 +201,9 @@ void NoteModelTestHelper::launchTest()
 
         NoteCache noteCache(20);
         NotebookCache notebookCache(3);
+        Account account("Default name", Account::Type::Local);
 
-        NoteModel * model = new NoteModel(*m_pLocalStorageManagerThreadWorker, noteCache, notebookCache, this);
+        NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, notebookCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

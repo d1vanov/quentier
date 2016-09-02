@@ -30,9 +30,11 @@
 
 namespace quentier {
 
-NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker, NoteCache & noteCache,
-                     NotebookCache & notebookCache, QObject * parent, const IncludedNotes::type includedNotes) :
+NoteModel::NoteModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+                     NoteCache & noteCache, NotebookCache & notebookCache, QObject * parent,
+                     const IncludedNotes::type includedNotes) :
     QAbstractItemModel(parent),
+    m_account(account),
     m_includedNotes(includedNotes),
     m_data(),
     m_listNotesOffset(0),
@@ -40,6 +42,7 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
     m_noteItemsNotYetInLocalStorageUids(),
     m_cache(noteCache),
     m_notebookCache(notebookCache),
+    m_numberOfNotesPerAccount(0),
     m_addNoteRequestIds(),
     m_updateNoteRequestIds(),
     m_expungeNoteRequestIds(),
@@ -60,6 +63,12 @@ NoteModel::NoteModel(LocalStorageManagerThreadWorker & localStorageManagerThread
 
 NoteModel::~NoteModel()
 {}
+
+void NoteModel::updateAccount(const Account & account)
+{
+    QNDEBUG("NoteModel::updateAccount: " << account);
+    m_account = account;
+}
 
 QModelIndex NoteModel::indexForLocalUid(const QString & localUid) const
 {
@@ -119,6 +128,15 @@ const NoteModelItem * NoteModel::itemForIndex(const QModelIndex & index) const
 
 QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 {
+    if ((m_includedNotes != IncludedNotes::Deleted) && (m_numberOfNotesPerAccount >= m_account.noteCountMax())) {
+        QNLocalizedString error = QT_TR_NOOP("can't create new note: the account already contains the max allowed number of notes");
+        error += ": ";
+        error += QString::number(m_account.noteCountMax());
+        QNINFO(error);
+        emit notifyError(error);
+        return QModelIndex();
+    }
+
     auto notebookIt = m_notebookDataByNotebookLocalUid.find(notebookLocalUid);
     if (notebookIt == m_notebookDataByNotebookLocalUid.end()) {
         QNLocalizedString error = QT_TR_NOOP("can't create new note: can't identify the notebook");
@@ -144,6 +162,7 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
     item.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
     item.setModificationTimestamp(item.creationTimestamp());
     item.setDirty(true);
+    item.setSynchronizable(m_account.type() != Account::Type::Local);
 
     int row = rowForNewItem(item);
     beginInsertRows(QModelIndex(), row, row);
@@ -594,6 +613,8 @@ void NoteModel::onAddNoteComplete(Note note, QUuid requestId)
 {
     QNDEBUG("NoteModel::onAddNoteComplete: " << note << "\nRequest id = " << requestId);
 
+    ++m_numberOfNotesPerAccount;
+
     auto it = m_addNoteRequestIds.find(requestId);
     if (it != m_addNoteRequestIds.end()) {
         Q_UNUSED(m_addNoteRequestIds.erase(it))
@@ -730,6 +751,7 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
             << foundNotes.size() << ", request id = " << requestId);
 
     for(auto it = foundNotes.begin(), end = foundNotes.end(); it != end; ++it) {
+        ++m_numberOfNotesPerAccount;
         onNoteAddedOrUpdated(*it);
     }
 
@@ -764,6 +786,8 @@ void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, 
 void NoteModel::onExpungeNoteComplete(Note note, QUuid requestId)
 {
     QNDEBUG("NoteModel::onExpungeNoteComplete: note = " << note << "\nRequest id = " << requestId);
+
+    --m_numberOfNotesPerAccount;
 
     auto it = m_expungeNoteRequestIds.find(requestId);
     if (it != m_expungeNoteRequestIds.end()) {
