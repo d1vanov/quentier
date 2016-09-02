@@ -28,9 +28,10 @@ namespace quentier {
 
 #define NUM_NOTEBOOK_MODEL_COLUMNS (6)
 
-NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                              NotebookCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
+    m_account(account),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
     m_defaultNotebookItem(Q_NULLPTR),
@@ -57,6 +58,12 @@ NotebookModel::NotebookModel(LocalStorageManagerThreadWorker & localStorageManag
 NotebookModel::~NotebookModel()
 {
     delete m_fakeRootItem;
+}
+
+void NotebookModel::updateAccount(const Account & account)
+{
+    QNDEBUG("NotebookModel::updateAccount: " << account);
+    m_account = account;
 }
 
 const NotebookModelItem * NotebookModel::itemForIndex(const QModelIndex & index) const
@@ -810,6 +817,15 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
     }
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    int numExistingNotebooks = static_cast<int>(localUidIndex.size());
+    if (numExistingNotebooks + count >= m_account.notebookCountMax()) {
+        QNLocalizedString error = QT_TR_NOOP("can't create notebook(s): the account can contain a limited number of notebooks");
+        error += ": ";
+        error += QString::number(m_account.notebookCountMax());
+        QNINFO(error);
+        emit notifyError(error);
+        return false;
+    }
 
     std::vector<NotebookDataByLocalUid::iterator> addedItems;
     addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
@@ -825,6 +841,7 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
         item.setName(nameForNewNotebook());
         item.setDirty(true);
         item.setStack(stackItem->name());
+        item.setSynchronizable(m_account.type() != Account::Type::Local);
 
         auto insertionResult = localUidIndex.insert(item);
         addedItems.push_back(insertionResult.first);

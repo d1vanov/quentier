@@ -141,8 +141,9 @@ void NotebookModelTestHelper::test()
 #undef ADD_NOTEBOOK
 
         NotebookCache cache(5);
+        Account account("Default user", Account::Type::Local);
 
-        NotebookModel * model = new NotebookModel(*m_pLocalStorageManagerThreadWorker, cache, this);
+        NotebookModel * model = new NotebookModel(account, *m_pLocalStorageManagerThreadWorker, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

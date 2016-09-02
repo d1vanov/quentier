@@ -22,6 +22,7 @@
 #include "NotebookModelItem.h"
 #include "NotebookCache.h"
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/types/Account.h>
 #include <QAbstractItemModel>
 #include <QUuid>
 #include <QSet>
@@ -43,9 +44,11 @@ class NotebookModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit NotebookModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                            NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
+
+    void updateAccount(const Account & account);
 
     struct Columns
     {
@@ -223,6 +226,8 @@ private:
     ModelItems::iterator addNewStackModelItem(const NotebookStackItem & stackItem);
 
 private:
+    Account                 m_account;
+
     NotebookData            m_data;
     NotebookModelItem *     m_fakeRootItem;
     const NotebookItem *    m_defaultNotebookItem;
