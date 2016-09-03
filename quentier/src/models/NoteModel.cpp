@@ -128,7 +128,9 @@ const NoteModelItem * NoteModel::itemForIndex(const QModelIndex & index) const
 
 QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
 {
-    if ((m_includedNotes != IncludedNotes::Deleted) && (m_numberOfNotesPerAccount >= m_account.noteCountMax())) {
+    if (Q_UNLIKELY((m_includedNotes != IncludedNotes::Deleted) &&
+                   (m_numberOfNotesPerAccount >= m_account.noteCountMax())))
+    {
         QNLocalizedString error = QT_TR_NOOP("can't create new note: the account already contains the max allowed number of notes");
         error += ": ";
         error += QString::number(m_account.noteCountMax());

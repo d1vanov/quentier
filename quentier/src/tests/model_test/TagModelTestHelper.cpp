@@ -157,8 +157,9 @@ void TagModelTestHelper::test()
 #undef ADD_TAG
 
         TagCache cache(20);
+        Account account("Default user", Account::Type::Local);
 
-        TagModel * model = new TagModel(*m_pLocalStorageManagerThreadWorker, cache, this);
+        TagModel * model = new TagModel(account, *m_pLocalStorageManagerThreadWorker, cache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)
 

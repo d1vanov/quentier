@@ -30,9 +30,10 @@
 
 namespace quentier {
 
-TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                    TagCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
+    m_account(account),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
     m_cache(cache),
@@ -58,6 +59,12 @@ TagModel::TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWo
 TagModel::~TagModel()
 {
     delete m_fakeRootItem;
+}
+
+void TagModel::updateAccount(const Account & account)
+{
+    QNDEBUG("TagModel::updateAccount: " << account);
+    m_account = account;
 }
 
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
@@ -448,6 +455,15 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     }
 
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    int numExistingTags = static_cast<int>(localUidIndex.size());
+    if (Q_UNLIKELY(numExistingTags + count >= m_account.tagCountMax())) {
+        QNLocalizedString error = QT_TR_NOOP("can't create tag(s): the account can contain a limited number of tags");
+        error += ": ";
+        error += QString::number(m_account.tagCountMax());
+        QNINFO(error);
+        emit notifyError(error);
+        return false;
+    }
 
     std::vector<TagDataByLocalUid::iterator> addedItems;
     addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
@@ -462,6 +478,7 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         item.setName(nameForNewTag());
         item.setDirty(true);
         item.setParent(parentItem);
+        item.setSynchronizable(m_account.type() != Account::Type::Local);
 
         auto insertionResult = localUidIndex.insert(item);
         addedItems.push_back(insertionResult.first);

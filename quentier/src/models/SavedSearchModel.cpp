@@ -30,9 +30,10 @@
 
 namespace quentier {
 
-SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+SavedSearchModel::SavedSearchModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                    SavedSearchCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
+    m_account(account),
     m_data(),
     m_listSavedSearchesOffset(0),
     m_listSavedSearchesRequestId(),
@@ -54,6 +55,12 @@ SavedSearchModel::SavedSearchModel(LocalStorageManagerThreadWorker & localStorag
 
 SavedSearchModel::~SavedSearchModel()
 {}
+
+void SavedSearchModel::updateAccount(const Account & account)
+{
+    QNDEBUG("SavedSearchModel::updateAccount: " << account);
+    m_account = account;
+}
 
 QModelIndex SavedSearchModel::indexForLocalUid(const QString & localUid) const
 {
@@ -320,6 +327,15 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
     Q_UNUSED(parent)
 
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    int numExistingSavedSearches = static_cast<int>(index.size());
+    if (Q_UNLIKELY(numExistingSavedSearches + count >= m_account.savedSearchCountMax())) {
+        QNLocalizedString error = QT_TR_NOOP("can't create saved search(es): the account can contain a limited number of saved searches");
+        error += ": ";
+        error += QString::number(m_account.savedSearchCountMax());
+        QNINFO(error);
+        emit notifyError(error);
+        return false;
+    }
 
     std::vector<SavedSearchDataByIndex::iterator> addedItems;
     addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
@@ -332,6 +348,7 @@ bool SavedSearchModel::insertRows(int row, int count, const QModelIndex & parent
         Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.m_localUid));
         item.m_name = nameForNewSavedSearch();
         item.m_isDirty = true;
+        item.m_isSynchronizable = (m_account.type() != Account::Type::Local);
 
         auto insertionResult = index.insert(index.begin() + row, item);
         addedItems.push_back(insertionResult.first);

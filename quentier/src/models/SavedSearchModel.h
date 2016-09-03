@@ -22,6 +22,7 @@
 #include "SavedSearchModelItem.h"
 #include "SavedSearchCache.h"
 #include <quentier/types/SavedSearch.h>
+#include <quentier/types/Account.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -43,9 +44,11 @@ class SavedSearchModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit SavedSearchModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit SavedSearchModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                               SavedSearchCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~SavedSearchModel();
+
+    void updateAccount(const Account & account);
 
     struct Columns
     {
@@ -170,6 +173,7 @@ private:
     };
 
 private:
+    Account                 m_account;
     SavedSearchData         m_data;
     size_t                  m_listSavedSearchesOffset;
     QUuid                   m_listSavedSearchesRequestId;

@@ -818,7 +818,7 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingNotebooks = static_cast<int>(localUidIndex.size());
-    if (numExistingNotebooks + count >= m_account.notebookCountMax()) {
+    if (Q_UNLIKELY(numExistingNotebooks + count >= m_account.notebookCountMax())) {
         QNLocalizedString error = QT_TR_NOOP("can't create notebook(s): the account can contain a limited number of notebooks");
         error += ": ";
         error += QString::number(m_account.notebookCountMax());

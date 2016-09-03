@@ -23,6 +23,7 @@
 #include "TagCache.h"
 #include <quentier/types/Tag.h>
 #include <quentier/types/Notebook.h>
+#include <quentier/types/Account.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/utility/LRUCache.hpp>
 #include <QAbstractItemModel>
@@ -46,9 +47,11 @@ class TagModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit TagModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit TagModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                       TagCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~TagModel();
+
+    void updateAccount(const Account & account);
 
     struct Columns
     {
@@ -218,6 +221,7 @@ private:
     void updateRestrictionsFromNotebook(const Notebook & notebook);
 
 private:
+    Account                 m_account;
     TagData                 m_data;
     TagModelItem *          m_fakeRootItem;
 
