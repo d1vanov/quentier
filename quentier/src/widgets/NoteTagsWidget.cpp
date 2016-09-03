@@ -165,8 +165,18 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
     }
 
     NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(sender());
-    if (Q_LIKELY(pNoteTagWidget)) {
+    if (Q_LIKELY(pNoteTagWidget))
+    {
         m_pLayout->removeWidget(pNoteTagWidget);
+
+        if (m_tagRestrictions.m_canUpdateNote &&
+            ((m_lastDisplayedTagLocalUids.size() - 1) < m_pTagModel->account().noteTagCountMax()))
+        {
+            NewTagLineEditor * pNewTagLineEditorWidget = m_pLayout->findChild<NewTagLineEditor*>();
+            if (!pNewTagLineEditorWidget) {
+                addNewTagWidgetToLayout();
+            }
+        }
     }
 
     m_lastDisplayedTagLocalUids.removeOne(tagLocalUid);
@@ -442,7 +452,9 @@ void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
         return;
     }
 
-    addNewTagWidgetToLayout();
+    if (m_tagRestrictions.m_canUpdateNote) {
+        addNewTagWidgetToLayout();
+    }
 }
 
 void NoteTagsWidget::updateLayout()
@@ -532,7 +544,11 @@ void NoteTagsWidget::updateLayout()
         m_pLayout->addWidget(pTagWidget);
     }
 
-    addNewTagWidgetToLayout();
+    if (Q_LIKELY((tagNames.size() < m_pTagModel->account().noteTagCountMax()) &&
+                 (m_tagRestrictions.m_canUpdateNote)))
+    {
+        addNewTagWidgetToLayout();
+    }
 }
 
 void NoteTagsWidget::addTagIconToLayout()
