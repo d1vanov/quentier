@@ -48,6 +48,7 @@ public:
                            NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
 
+    const Account & account() const { return m_account; }
     void updateAccount(const Account & account);
 
     struct Columns

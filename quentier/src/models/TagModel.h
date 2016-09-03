@@ -51,6 +51,7 @@ public:
                       TagCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~TagModel();
 
+    const Account & account() const { return m_account; }
     void updateAccount(const Account & account);
 
     struct Columns

@@ -63,6 +63,7 @@ public:
                        const IncludedNotes::type includedNotes = IncludedNotes::NonDeleted);
     virtual ~NoteModel();
 
+    const Account & account() const { return m_account; }
     void updateAccount(const Account & account);
 
     struct Columns
