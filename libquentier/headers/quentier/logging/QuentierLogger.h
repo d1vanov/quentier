@@ -23,6 +23,7 @@
 #include <quentier/utility/Qt4Helper.h>
 #include <QDebug>
 #include <QString>
+#include <QLatin1String>
 #include <QApplication>
 
 namespace quentier {
@@ -56,7 +57,7 @@ bool QUENTIER_EXPORT QuentierIsLogLevelActive(const LogLevel::type logLevel);
     if (quentier::QuentierIsLogLevelActive(quentier::LogLevel::level##Level)) { \
         QString __quentierLogEntry; \
         QDebug __quentierLogStrm(&__quentierLogEntry); \
-        QString __quentierLogRelativeFileName(__FILE__); \
+        QString __quentierLogRelativeFileName(QStringLiteral(__FILE__)); \
         QString __quentierAppName = QApplication::applicationName(); \
         int prefixIndex = __quentierLogRelativeFileName.indexOf(__quentierAppName); \
         if (prefixIndex >= 0) { \
@@ -69,7 +70,8 @@ bool QUENTIER_EXPORT QuentierIsLogLevelActive(const LogLevel::type logLevel);
                 __quentierLogRelativeFileName.remove(0, prefixIndex); \
             } \
         } \
-        __quentierLogStrm << __quentierLogRelativeFileName << '@' << __LINE__ << "[" #level "]" << message; \
+        __quentierLogStrm << __quentierLogRelativeFileName << QStringLiteral("@") << QString::number(__LINE__) \
+                          << QStringLiteral("[") << QStringLiteral(#level) << QStringLiteral("]") << message; \
         quentier::QuentierAddLogEntry(__quentierLogEntry, quentier::LogLevel::level##Level); \
     }
 

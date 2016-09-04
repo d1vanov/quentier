@@ -30,7 +30,7 @@ QuentierFileLogWriter::QuentierFileLogWriter(const MaxSizeBytes & maxSizeBytes,
     QDir logFileDir(logFileDirPath);
     if (Q_UNLIKELY(!logFileDir.exists()))
     {
-        if (Q_UNLIKELY(!logFileDir.mkpath("."))) {
+        if (Q_UNLIKELY(!logFileDir.mkpath(QStringLiteral(".")))) {
             QNLocalizedString error = QT_TR_NOOP("Can't create the log file path");
             error += ": ";
             error += logFileDirPath;
@@ -78,7 +78,7 @@ QuentierFileLogWriter::~QuentierFileLogWriter()
 
 void QuentierFileLogWriter::write(QString message)
 {
-    message.prepend(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz t") + QStringLiteral(" "));
+    message.prepend(QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")) + QStringLiteral(" "));
 
     qint64 messageSize = message.toUtf8().size();
     m_currentLogFileSize += messageSize;
