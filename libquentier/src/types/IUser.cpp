@@ -391,6 +391,27 @@ void IUser::setPrivilegeLevel(const qint8 level)
     }
 }
 
+bool IUser::hasServiceLevel() const
+{
+    return GetEnUser().serviceLevel.isSet();
+}
+
+IUser::ServiceLevel IUser::serviceLevel() const
+{
+    return GetEnUser().serviceLevel;
+}
+
+void IUser::setServiceLevel(const qint8 level)
+{
+    qevercloud::User & enUser = GetEnUser();
+    if (level <= static_cast<qint8>(qevercloud::ServiceLevel::PREMIUM)) {
+        enUser.serviceLevel = static_cast<ServiceLevel>(level);
+    }
+    else {
+        enUser.serviceLevel.clear();
+    }
+}
+
 bool IUser::hasCreationTimestamp() const
 {
     return GetEnUser().created.isSet();
@@ -519,21 +540,6 @@ void IUser::setAccounting(qevercloud::Accounting && accounting)
     GetEnUser().accounting = std::move(accounting);
 }
 
-bool IUser::hasPremiumInfo() const
-{
-    return GetEnUser().premiumInfo.isSet();
-}
-
-const qevercloud::PremiumInfo & IUser::premiumInfo() const
-{
-    return GetEnUser().premiumInfo;
-}
-
-void IUser::setPremiumInfo(qevercloud::PremiumInfo && premiumInfo)
-{
-    GetEnUser().premiumInfo = std::move(premiumInfo);
-}
-
 bool IUser::hasBusinessUserInfo() const
 {
     return GetEnUser().businessUserInfo.isSet();
@@ -547,6 +553,61 @@ const qevercloud::BusinessUserInfo & IUser::businessUserInfo() const
 void IUser::setBusinessUserInfo(qevercloud::BusinessUserInfo && info)
 {
     GetEnUser().businessUserInfo = std::move(info);
+}
+
+bool IUser::hasPhotoUrl() const
+{
+    return GetEnUser().photoUrl.isSet();
+}
+
+QString IUser::photoUrl() const
+{
+    return GetEnUser().photoUrl;
+}
+
+void IUser::setPhotoUrl(const QString & photoUrl)
+{
+    if (photoUrl.isEmpty()) {
+        GetEnUser().photoUrl.clear();
+    }
+    else {
+        GetEnUser().photoUrl = photoUrl;
+    }
+}
+
+bool IUser::hasPhotoLastUpdateTimestamp() const
+{
+    return GetEnUser().photoLastUpdated.isSet();
+}
+
+qint64 IUser::photoLastUpdateTimestamp() const
+{
+    return GetEnUser().photoLastUpdated;
+}
+
+void IUser::setPhotoLastUpdateTimestamp(const qint64 timestamp)
+{
+    if (timestamp >= 0) {
+        GetEnUser().photoLastUpdated = timestamp;
+    }
+    else {
+        GetEnUser().photoLastUpdated.clear();
+    }
+}
+
+bool IUser::hasAccountLimits() const
+{
+    return GetEnUser().accountLimits.isSet();
+}
+
+const qevercloud::AccountLimits & IUser::accountLimits() const
+{
+    return GetEnUser().accountLimits;
+}
+
+void IUser::setAccountLimits(qevercloud::AccountLimits && limits)
+{
+    GetEnUser().accountLimits = std::move(limits);
 }
 
 IUser::IUser(const IUser & other) :

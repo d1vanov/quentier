@@ -35,7 +35,8 @@ namespace quentier {
 class QUENTIER_EXPORT IUser: public Printable
 {
 public:
-    typedef qevercloud::PrivilegeLevel::type  PrivilegeLevel;
+    typedef qevercloud::PrivilegeLevel::type    PrivilegeLevel;
+    typedef qevercloud::ServiceLevel::type      ServiceLevel;
 
 public:
     IUser();
@@ -81,6 +82,10 @@ public:
     PrivilegeLevel privilegeLevel() const;
     void setPrivilegeLevel(const qint8 level);
 
+    bool hasServiceLevel() const;
+    ServiceLevel serviceLevel() const;
+    void setServiceLevel(const qint8 level);
+
     bool hasCreationTimestamp() const;
     qint64 creationTimestamp() const;
     void setCreationTimestamp(const qint64 timestamp);
@@ -109,13 +114,21 @@ public:
     const qevercloud::Accounting & accounting() const;
     void setAccounting(qevercloud::Accounting && accounting);
 
-    bool hasPremiumInfo() const;
-    const qevercloud::PremiumInfo & premiumInfo() const;
-    void setPremiumInfo(qevercloud::PremiumInfo && premiumInfo);
-
     bool hasBusinessUserInfo() const;
     const qevercloud::BusinessUserInfo & businessUserInfo() const;
     void setBusinessUserInfo(qevercloud::BusinessUserInfo && info);
+
+    bool hasPhotoUrl() const;
+    QString photoUrl() const;
+    void setPhotoUrl(const QString & photoUrl);
+
+    bool hasPhotoLastUpdateTimestamp() const;
+    qint64 photoLastUpdateTimestamp() const;
+    void setPhotoLastUpdateTimestamp(const qint64 timestamp);
+
+    bool hasAccountLimits() const;
+    const qevercloud::AccountLimits & accountLimits() const;
+    void setAccountLimits(qevercloud::AccountLimits && limits);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
