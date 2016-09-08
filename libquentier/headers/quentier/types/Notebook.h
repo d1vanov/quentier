@@ -215,6 +215,29 @@ public:
 
     bool hasRestrictions() const;
     const qevercloud::NotebookRestrictions & restrictions() const;
+    void setNotebookRestrictions(qevercloud::NotebookRestrictions && restrictions);
+
+    // Recipient settings
+
+    bool hasRecipientReminderNotifyEmail() const;
+    bool recipientReminderNotifyEmail() const;
+    void setRecipientReminderNotifyEmail(const bool notifyEmail);
+
+    bool hasRecipientReminderNotifyInApp() const;
+    bool recipientReminderNotifyInApp() const;
+    void setRecipientReminderNotifyInApp(const bool notifyInApp);
+
+    bool hasRecipientInMyList() const;
+    bool recipientInMyList() const;
+    void setRecipientInMyList(const bool inMyList);
+
+    bool hasRecipientStack() const;
+    const QString & recipientStack() const;
+    void setRecipientStack(const QString & recipientString);
+
+    bool hasRecipientSettings() const;
+    const qevercloud::NotebookRecipientSettings & recipientSettings() const;
+    void setNotebookRecipientSettings(qevercloud::NotebookRecipientSettings && settings);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

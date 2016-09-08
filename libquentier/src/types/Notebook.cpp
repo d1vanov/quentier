@@ -889,7 +889,7 @@ qint8 Notebook::updateWhichSharedNotebookRestrictions() const
 
 void Notebook::setUpdateWhichSharedNotebookRestrictions(const qint8 which)
 {
-    if (which <= static_cast<qint8>(qevercloud::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW)) {
+    if (which <= static_cast<qint8>(qevercloud::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS)) {
         CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
         d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions = static_cast<qevercloud::SharedNotebookInstanceRestrictions::type>(which);
     }
@@ -910,7 +910,7 @@ qint8 Notebook::expungeWhichSharedNotebookRestrictions() const
 
 void Notebook::setExpungeWhichSharedNotebookRestrictions(const qint8 which)
 {
-    if (which <= static_cast<qint8>(qevercloud::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW)) {
+    if (which <= static_cast<qint8>(qevercloud::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS)) {
         CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
         d->m_qecNotebook.restrictions->expungeWhichSharedNotebookRestrictions = static_cast<qevercloud::SharedNotebookInstanceRestrictions::type>(which);
     }
@@ -929,6 +929,124 @@ bool Notebook::hasRestrictions() const
 const qevercloud::NotebookRestrictions & Notebook::restrictions() const
 {
     return d->m_qecNotebook.restrictions;
+}
+
+void Notebook::setNotebookRestrictions(qevercloud::NotebookRestrictions && restrictions)
+{
+    d->m_qecNotebook.restrictions = std::move(restrictions);
+}
+
+bool Notebook::hasRecipientReminderNotifyEmail() const
+{
+    if (!d->m_qecNotebook.recipientSettings.isSet()) {
+        return false;
+    }
+
+    return d->m_qecNotebook.recipientSettings->reminderNotifyEmail.isSet();
+}
+
+bool Notebook::recipientReminderNotifyEmail() const
+{
+    return d->m_qecNotebook.recipientSettings->reminderNotifyEmail;
+}
+
+#define CHECK_AND_SET_NOTEBOOK_RECIPIENT_SETTINGS \
+    if (!d->m_qecNotebook.recipientSettings.isSet()) { \
+        d->m_qecNotebook.recipientSettings = qevercloud::NotebookRecipientSettings(); \
+    }
+
+void Notebook::setRecipientReminderNotifyEmail(const bool notifyEmail)
+{
+    CHECK_AND_SET_NOTEBOOK_RECIPIENT_SETTINGS
+    d->m_qecNotebook.recipientSettings->reminderNotifyEmail = notifyEmail;
+}
+
+bool Notebook::hasRecipientReminderNotifyInApp() const
+{
+    if (!d->m_qecNotebook.recipientSettings.isSet()) {
+        return false;
+    }
+
+    return d->m_qecNotebook.recipientSettings->reminderNotifyInApp.isSet();
+}
+
+bool Notebook::recipientReminderNotifyInApp() const
+{
+    return d->m_qecNotebook.recipientSettings->reminderNotifyInApp;
+}
+
+void Notebook::setRecipientReminderNotifyInApp(const bool notifyInApp)
+{
+    CHECK_AND_SET_NOTEBOOK_RECIPIENT_SETTINGS
+    d->m_qecNotebook.recipientSettings->reminderNotifyInApp = notifyInApp;
+}
+
+bool Notebook::hasRecipientInMyList() const
+{
+    if (!d->m_qecNotebook.recipientSettings.isSet()) {
+        return false;
+    }
+
+    return d->m_qecNotebook.recipientSettings->inMyList.isSet();
+}
+
+bool Notebook::recipientInMyList() const
+{
+    return d->m_qecNotebook.recipientSettings->inMyList;
+}
+
+void Notebook::setRecipientInMyList(const bool inMyList)
+{
+    CHECK_AND_SET_NOTEBOOK_RECIPIENT_SETTINGS
+    d->m_qecNotebook.recipientSettings->inMyList = inMyList;
+}
+
+bool Notebook::hasRecipientStack() const
+{
+    if (!d->m_qecNotebook.recipientSettings.isSet()) {
+        return false;
+    }
+
+    return d->m_qecNotebook.recipientSettings->stack.isSet();
+}
+
+const QString & Notebook::recipientStack() const
+{
+    return d->m_qecNotebook.recipientSettings->stack;
+}
+
+void Notebook::setRecipientStack(const QString & recipientStack)
+{
+    if (recipientStack.isEmpty())
+    {
+        if (!d->m_qecNotebook.recipientSettings.isSet()) {
+            return;
+        }
+
+        d->m_qecNotebook.recipientSettings->stack.clear();
+    }
+    else
+    {
+        CHECK_AND_SET_NOTEBOOK_RECIPIENT_SETTINGS
+        d->m_qecNotebook.recipientSettings->stack = recipientStack;
+    }
+}
+
+#undef CHECK_AND_SET_NOTEBOOK_RECIPIENT_SETTINGS
+
+bool Notebook::hasRecipientSettings() const
+{
+    return d->m_qecNotebook.recipientSettings.isSet();
+}
+
+const qevercloud::NotebookRecipientSettings & Notebook::recipientSettings() const
+{
+    return d->m_qecNotebook.recipientSettings;
+}
+
+void Notebook::setNotebookRecipientSettings(qevercloud::NotebookRecipientSettings && settings)
+{
+    d->m_qecNotebook.recipientSettings = std::move(settings);
 }
 
 QTextStream & Notebook::print(QTextStream & strm) const
