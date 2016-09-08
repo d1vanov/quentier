@@ -109,12 +109,15 @@ const QString ToString(const QSet<T> & object)
         return debug; \
     }
 
+QUENTIER_DECLARE_PRINTABLE(qevercloud::Contact)
+QUENTIER_DECLARE_PRINTABLE(qevercloud::Identity)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::BusinessUserInfo)
-QUENTIER_DECLARE_PRINTABLE(qevercloud::PremiumInfo)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::Accounting)
+QUENTIER_DECLARE_PRINTABLE(qevercloud::AccountLimits)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::UserAttributes)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::NoteAttributes)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::PrivilegeLevel::type)
+QUENTIER_DECLARE_PRINTABLE(qevercloud::ServiceLevel::type)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::QueryFormat::type)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::SharedNotebookPrivilegeLevel::type)
 QUENTIER_DECLARE_PRINTABLE(qevercloud::NoteSortOrder::type)

@@ -52,341 +52,310 @@ QTextStream & operator <<(QTextStream & strm,
 
 } // namespace quentier
 
-#define CHECK_AND_PRINT_ATTRIBUTE(object, name, ...) \
-    bool isSet##name = object.name.isSet(); \
-    strm << #name " is " << (isSet##name ? "set" : "not set") << "\n"; \
-    if (isSet##name) { \
-        strm << #name " = " << __VA_ARGS__(object.name) << "\n"; \
-    }
-
-QTextStream & operator <<(QTextStream & strm, const qevercloud::BusinessUserInfo & info)
+inline QString __contactTypeToString(const qevercloud::ContactType::type & type)
 {
-    strm << "qevercloud::BusinessUserInfo: {\n";
-    QString indent = "  ";
-
-    strm << indent << "businessId = " << (info.businessId.isSet()
-                                          ? QString::number(info.businessId.ref())
-                                          : "<empty>") << "; \n";
-    strm << indent << "businessName = " << (info.businessName.isSet()
-                                            ? info.businessName.ref()
-                                            : "<empty>") << "; \n";
-    strm << indent << "role = ";
-    if (info.role.isSet()) {
-        strm << info.role.ref();
+    switch(type)
+    {
+    case qevercloud::ContactType::EVERNOTE:
+        return QStringLiteral("EVERNOTE");
+    case qevercloud::ContactType::SMS:
+        return QStringLiteral("SMS");
+    case qevercloud::ContactType::FACEBOOK:
+        return QStringLiteral("FACEBOOK");
+    case qevercloud::ContactType::EMAIL:
+        return QStringLiteral("EMAIL");
+    case qevercloud::ContactType::TWITTER:
+        return QStringLiteral("TWITTER");
+    case qevercloud::ContactType::LINKEDIN:
+        return QStringLiteral("LINKEDIN");
+    default:
+        return QStringLiteral("Unknown");
     }
-    else {
-        strm << "<empty>";
-    }
-    strm << "; \n";
+}
 
-    strm << indent << "email = " << (info.email.isSet() ? info.email.ref() : "<empty>") << "; \n";
+QTextStream & operator <<(QTextStream & strm, const qevercloud::Contact & contact)
+{
+    strm << QStringLiteral("qevercloud::Contact: {\n");
+    const char * indent = "  ";
 
-    strm << "}; \n";
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (contact.field.isSet() \
+                                                        ? __VA_ARGS__(contact.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral(";\n")
+
+    PRINT_FIELD(name);
+    PRINT_FIELD(id);
+    PRINT_FIELD(type, __contactTypeToString);
+    PRINT_FIELD(photoUrl);
+    PRINT_FIELD(photoLastUpdated, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(messagingPermit);
+    PRINT_FIELD(messagingPermitExpires, quentier::printableDateTimeFromTimestamp);
+
+#undef PRINT_FIELD
+
+    strm << QStringLiteral("}; \n");
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const qevercloud::PremiumInfo & info)
+QString boolToString(const bool value) { return (value ? QStringLiteral("true") : QStringLiteral("false")); }
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::Identity & identity)
 {
-    strm << "qevercloud::PremiumUserInfo {\n";
-    QString indent = "  ";
+    strm << QStringLiteral("qevercloud::Identity: {\n");
+    const char * indent = "  ";
 
-    strm << indent << "premiumExpirationDate = " << (info.premiumExpirationDate.isSet()
-                                                     ? quentier::printableDateTimeFromTimestamp(info.premiumExpirationDate.ref())
-                                                     : "<empty>") << "; \n";
-    strm << indent << "sponsoredGroupName = " << (info.sponsoredGroupName.isSet()
-                                                  ? info.sponsoredGroupName.ref()
-                                                  : "<empty>") << "; \n";
-    strm << indent << "sponsoredGroupRole = ";
-    if (info.sponsoredGroupRole.isSet()) {
-        strm << info.sponsoredGroupRole.ref();
-    }
-    else {
-        strm << "<empty>";
-    }
-    strm << "; \n";
+    strm << indent << QStringLiteral("id = ") << QString::number(identity.id) << QStringLiteral(";\n");
 
-    strm << indent << "premiumUpgradable = " << (info.premiumUpgradable.isSet()
-                                                 ? (info.premiumUpgradable.ref() ? "true" : "false")
-                                                 : "<empty>") << "; \n";
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (identity.field.isSet() \
+                                                        ? __VA_ARGS__(identity.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral(";\n")
 
-    strm << indent << "premiumExtendable = " << (info.premiumExtendable ? "true" : "false") << "\n";
-    strm << indent << "premiumPending = " << (info.premiumPending ? "true" : "false") << "\n";
-    strm << indent << "premiumCancellationPending = " << (info.premiumCancellationPending ? "true" : "false") << "\n";
-    strm << indent << "canPurchaseUploadAllowance = " << (info.canPurchaseUploadAllowance ? "true" : "false") << "\n";
+    PRINT_FIELD(contact, ToString);
+    PRINT_FIELD(userId, QString::number);
+    PRINT_FIELD(deactivated, boolToString);
+    PRINT_FIELD(sameBusiness, boolToString);
+    PRINT_FIELD(blocked, boolToString);
+    PRINT_FIELD(userConnected, boolToString);
+    PRINT_FIELD(eventId, QString::number);
 
-    strm << "}; \n";
+#undef PRINT_FIELD
+
+    strm << QStringLiteral("}; \n");
     return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::BusinessUserInfo & info)
+{
+    strm << QStringLiteral("qevercloud::BusinessUserInfo: {\n");
+    const char * indent = "  ";
+
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (info.field.isSet() \
+                                                        ? __VA_ARGS__(info.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral(";\n")
+
+    PRINT_FIELD(businessId, QString::number);
+    PRINT_FIELD(businessName);
+    PRINT_FIELD(role, ToString);
+    PRINT_FIELD(email);
+    PRINT_FIELD(updated, quentier::printableDateTimeFromTimestamp);
+
+#undef PRINT_FIELD
+
+    strm << QStringLiteral("}; \n");
+    return strm;
+}
+
+QString premiumOrderStatusToString(const qevercloud::PremiumOrderStatus::type & status)
+{
+    switch(status)
+    {
+    case qevercloud::PremiumOrderStatus::NONE:
+        return QStringLiteral("NONE");
+    case qevercloud::PremiumOrderStatus::PENDING:
+        return QStringLiteral("PENDING");
+    case qevercloud::PremiumOrderStatus::ACTIVE:
+        return QStringLiteral("ACTIVE");
+    case qevercloud::PremiumOrderStatus::FAILED:
+        return QStringLiteral("FAILED");
+    case qevercloud::PremiumOrderStatus::CANCELLATION_PENDING:
+        return QStringLiteral("CANCELLATION_PENDING");
+    case qevercloud::PremiumOrderStatus::CANCELED:
+        return QStringLiteral("CANCELED");
+    default:
+        return QStringLiteral("Unknown");
+    }
+}
+
+QString businessUserRoleToString(const qevercloud::BusinessUserRole::type & role)
+{
+    switch(role)
+    {
+    case qevercloud::BusinessUserRole::ADMIN:
+        return QStringLiteral("ADMIN");
+    case qevercloud::BusinessUserRole::NORMAL:
+        return QStringLiteral("NORMAL");
+    default:
+        return QStringLiteral("Unknown");
+    }
 }
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::Accounting & accounting)
 {
-    strm << "qevercloud::Accounting: { \n";
-    QString indent = "  ";
+    strm << QStringLiteral("qevercloud::Accounting: { \n");
+    const char * indent = "  ";
 
-    strm << indent << "uploadLimit = " << (accounting.uploadLimit.isSet()
-                                           ? QString::number(accounting.uploadLimit.ref())
-                                           : "<empty>") << "; \n";
-    strm << indent << "uploadLimitEnd = " << (accounting.uploadLimitEnd.isSet()
-                                              ? quentier::printableDateTimeFromTimestamp(accounting.uploadLimitEnd.ref())
-                                              : "<empty>") << "; \n";
-    strm << indent << "uploadLimitNextMonth = " << (accounting.uploadLimitNextMonth.isSet()
-                                                    ? QString::number(accounting.uploadLimitNextMonth.ref())
-                                                    : "<empty>") << "; \n";
-    strm << indent << "premiumServiceStatus = ";
-    if (accounting.premiumServiceStatus.isSet()) {
-        strm << accounting.premiumServiceStatus.ref();
-    }
-    else {
-        strm << "<empty>";
-    }
-    strm << "; \n";
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (accounting.field.isSet() \
+                                                        ? __VA_ARGS__(accounting.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral(";\n")
 
-    strm << indent << "premiumOrderNumber = " << (accounting.premiumOrderNumber.isSet()
-                                                  ? accounting.premiumOrderNumber.ref()
-                                                  : "<empty>") << "; \n";
-    strm << indent << "premiumCommerceService = " << (accounting.premiumCommerceService.isSet()
-                                                      ? accounting.premiumCommerceService.ref()
-                                                      : "<empty>") << "; \n";
-    strm << indent << "premiumServiceStart = " << (accounting.premiumServiceStart.isSet()
-                                                   ? quentier::printableDateTimeFromTimestamp(accounting.premiumServiceStart.ref())
-                                                   : "<empty>") << "; \n";
-    strm << indent << "premiumServiceSKU = " << (accounting.premiumServiceSKU.isSet()
-                                                 ? accounting.premiumServiceSKU.ref()
-                                                 : "<empty>") << "; \n";
-    strm << indent << "lastSuccessfulCharge = " << (accounting.lastSuccessfulCharge.isSet()
-                                                    ? quentier::printableDateTimeFromTimestamp(accounting.lastSuccessfulCharge.ref())
-                                                    : "<empty>") << "; \n";
-    strm << indent << "lastFailedCharge = " << (accounting.lastFailedCharge.isSet()
-                                                ? quentier::printableDateTimeFromTimestamp(accounting.lastFailedCharge.ref())
-                                                : "<empty>") << "; \n";
-    strm << indent << "lastFailedChargeReason = " << (accounting.lastFailedChargeReason.isSet()
-                                                      ? accounting.lastFailedChargeReason.ref()
-                                                      : "<empty>") << "; \n";
-    strm << indent << "nextPaymentDue = " << (accounting.nextPaymentDue.isSet()
-                                              ? quentier::printableDateTimeFromTimestamp(accounting.nextPaymentDue.ref())
-                                              : "<empty>") << "; \n";
-    strm << indent << "premiumLockUntil = " << (accounting.premiumLockUntil.isSet()
-                                                ? quentier::printableDateTimeFromTimestamp(accounting.premiumLockUntil.ref())
-                                                : "<empty>") << "; \n";
-    strm << indent << "updated = " << (accounting.updated.isSet()
-                                       ? quentier::printableDateTimeFromTimestamp(accounting.updated.ref())
-                                       : "<empty>") << "; \n";
-    strm << indent << "premiumSubscriptionNumber = " << (accounting.premiumSubscriptionNumber.isSet()
-                                                         ? accounting.premiumSubscriptionNumber.ref()
-                                                         : "<empty>") << "; \n";
-    strm << indent << "lastRequestedCharge = " << (accounting.lastRequestedCharge.isSet()
-                                                   ? quentier::printableDateTimeFromTimestamp(accounting.lastRequestedCharge.ref())
-                                                   : "<empty>") << "; \n";
-    strm << indent << "currency = " << (accounting.currency.isSet() ? accounting.currency.ref() : "<empty>") << "; \n";
-    strm << indent << "unitPrice = " << (accounting.unitPrice.isSet() ? QString::number(accounting.unitPrice.ref()) : "<empty>") << "; \n";
-    strm << indent << "businessId = " << (accounting.businessId.isSet() ? QString::number(accounting.businessId.ref()) : "<empty>") << "; \n";
+    PRINT_FIELD(uploadLimitEnd, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(uploadLimitNextMonth, QString::number);
+    PRINT_FIELD(premiumServiceStatus, premiumOrderStatusToString);
+    PRINT_FIELD(premiumOrderNumber);
+    PRINT_FIELD(premiumCommerceService);
+    PRINT_FIELD(premiumServiceStart, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(premiumServiceSKU);
+    PRINT_FIELD(lastSuccessfulCharge, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(lastFailedCharge, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(lastFailedChargeReason);
+    PRINT_FIELD(nextPaymentDue, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(premiumLockUntil, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(updated, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(premiumSubscriptionNumber);
+    PRINT_FIELD(lastRequestedCharge, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(currency);
+    PRINT_FIELD(unitPrice, QString::number);
+    PRINT_FIELD(businessId, QString::number);
+    PRINT_FIELD(businessRole, businessUserRoleToString);
+    PRINT_FIELD(unitDiscount, QString::number);
+    PRINT_FIELD(nextChargeDate, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(availablePoints, QString::number);
 
-    strm << indent << "businessRole = ";
-    if (accounting.businessRole.isSet()) {
-        strm << accounting.businessRole.ref();
-    }
-    else {
-        strm << "<empty>";
-    }
-    strm << "; \n";
+#undef PRINT_FIELD
 
-    strm << indent << "unitDiscount = " << (accounting.unitDiscount.isSet()
-                                            ? QString::number(accounting.unitDiscount.ref())
-                                            : "<empty>") << "; \n";
-    strm << indent << "nextChargeDate = " << (accounting.nextChargeDate.isSet()
-                                              ? quentier::printableDateTimeFromTimestamp(accounting.nextChargeDate.ref())
-                                              : "<empty>") << "; \n";
-
-    strm << "}; \n";
+    strm << QStringLiteral("}; \n");
     return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::AccountLimits & limits)
+{
+    strm << QStringLiteral("qevercloud::AccountLimits: {\n");
+    const char * indent = "  ";
+
+#define PRINT_FIELD(field) \
+    strm << indent << QStringLiteral( #field " =") << (limits.field.isSet() \
+                                                       ? QString::number(limits.field.ref()) \
+                                                       : QStringLiteral("<empty>")) << "; \n"
+
+    PRINT_FIELD(userMailLimitDaily);
+    PRINT_FIELD(noteSizeMax);
+    PRINT_FIELD(resourceSizeMax);
+    PRINT_FIELD(userLinkedNotebookMax);
+    PRINT_FIELD(uploadLimit);
+    PRINT_FIELD(userNoteCountMax);
+    PRINT_FIELD(userNotebookCountMax);
+    PRINT_FIELD(userTagCountMax);
+    PRINT_FIELD(noteTagCountMax);
+    PRINT_FIELD(userSavedSearchesMax);
+    PRINT_FIELD(noteResourceCountMax);
+
+#undef PRINT_FIELD
+
+    return strm;
+}
+
+QString reminderEmailConfigToString(const qevercloud::ReminderEmailConfig::type & type)
+{
+    switch(type)
+    {
+    case qevercloud::ReminderEmailConfig::DO_NOT_SEND:
+        return QStringLiteral("DO NOT SEND");
+    case qevercloud::ReminderEmailConfig::SEND_DAILY_EMAIL:
+        return QStringLiteral("SEND DAILY EMAIL");
+    default:
+        return QStringLiteral("Unknown");
+    }
 }
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::UserAttributes & attributes)
 {
-    strm << "qevercloud::UserAttributes: {\n";
-    QString indent = "  ";
+    strm << QStringLiteral("qevercloud::UserAttributes: {\n");
+    const char * indent = "  ";
 
-    strm << indent << "defaultLocationName = " << (attributes.defaultLocationName.isSet()
-                                                   ? attributes.defaultLocationName.ref()
-                                                   : "<empty>") << "; \n";
-    strm << indent << "defaultLatitude = " << (attributes.defaultLatitude.isSet()
-                                               ? QString::number(attributes.defaultLatitude.ref())
-                                               : "<empty>") << "; \n";
-    strm << indent << "defaultLongitude = " << (attributes.defaultLongitude.isSet()
-                                                ? QString::number(attributes.defaultLongitude.ref())
-                                                : "<empty>") << "; \n";
-    strm << indent << "preactivation = " << (attributes.preactivation.isSet()\
-                                             ? (attributes.preactivation.ref() ? "true" : "false")
-                                             : "<empty>") << "; \n";
-    strm << indent << "viewedPromotions";
-    if (attributes.viewedPromotions.isSet())
-    {
-        strm << ": { \n";
-        const QStringList & viewedPromotions = attributes.viewedPromotions.ref();
-        const int numViewedPromotions = viewedPromotions.size();
-        for(int i = 0; i < numViewedPromotions; ++i) {
-            strm << indent << indent << "[" << i << "]: " << viewedPromotions[i] << "; \n";
-        }
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (attributes.field.isSet() \
+                                                        ? __VA_ARGS__(attributes.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral("; \n")
 
-        strm << indent << "}; \n";
-    }
-    else
-    {
-        strm << " = <empty>; \n";
+#define PRINT_LIST_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field ); \
+    if (attributes.field.isSet()) \
+    { \
+        strm << QStringLiteral(": { \n"); \
+        const auto & field##List = attributes.field.ref(); \
+        const int num##field = field##List.size(); \
+        for(int i = 0; i < num##field; ++i) { \
+            strm << indent << indent << QStringLiteral("[") << i << QStringLiteral("]: ") \
+                 << __VA_ARGS__(field##List[i]) << QStringLiteral(";\n"); \
+        } \
+        strm << indent << QStringLiteral("};\n"); \
+    } \
+    else \
+    { \
+        strm << QStringLiteral(" = <empty>;\n"); \
     }
 
-    strm << indent << "incomingEmailAddress = " << (attributes.incomingEmailAddress.isSet()
-                                                    ? attributes.incomingEmailAddress.ref()
-                                                    : "<empty>") << "; \n";
+    PRINT_FIELD(defaultLocationName);
+    PRINT_FIELD(defaultLatitude, QString::number);
+    PRINT_FIELD(defaultLongitude, QString::number);
+    PRINT_FIELD(preactivation, boolToString);
+    PRINT_LIST_FIELD(viewedPromotions)
+    PRINT_FIELD(incomingEmailAddress);
+    PRINT_LIST_FIELD(recentMailedAddresses)
+    PRINT_FIELD(comments);
+    PRINT_FIELD(dateAgreedToTermsOfService, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(maxReferrals, QString::number);
+    PRINT_FIELD(referralCount, QString::number);
+    PRINT_FIELD(refererCode);
+    PRINT_FIELD(sentEmailDate, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(dailyEmailLimit, QString::number);
+    PRINT_FIELD(emailOptOutDate, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(partnerEmailOptInDate, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(preferredLanguage);
+    PRINT_FIELD(preferredCountry);
+    PRINT_FIELD(clipFullPage, boolToString);
+    PRINT_FIELD(twitterUserName);
+    PRINT_FIELD(twitterId);
+    PRINT_FIELD(groupName);
+    PRINT_FIELD(recognitionLanguage);
+    PRINT_FIELD(referralProof);
+    PRINT_FIELD(educationalDiscount, boolToString);
+    PRINT_FIELD(businessAddress);
+    PRINT_FIELD(hideSponsorBilling, boolToString);
+    PRINT_FIELD(useEmailAutoFiling, boolToString);
+    PRINT_FIELD(reminderEmailConfig, reminderEmailConfigToString);
+    PRINT_FIELD(passwordUpdated, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(salesforcePushEnabled, boolToString);
 
-    strm << indent << "recentMailedAddresses";
-    if (attributes.recentMailedAddresses.isSet())
-    {
-        strm << ": { \n";
-        const QStringList & recentMailedAddresses = attributes.recentMailedAddresses.ref();
-        const int numRecentMailedAddresses = recentMailedAddresses.size();
-        for(int i = 0; i < numRecentMailedAddresses; ++i) {
-            strm << indent << indent << "[" << i << "]: " << recentMailedAddresses[i] << "; \n";
-        }
+#undef PRINT_LIST_FIELD
+#undef PRINT_FIELD
 
-        strm << indent << "}; \n";
-    }
-    else
-    {
-        strm << " = <empty>; \n";
-    }
-
-    strm << indent << "comments = " << (attributes.comments.isSet() ? attributes.comments.ref() : "<empty>") << "; \n";
-
-    strm << indent << "dateAgreedToTermsOfService = " << (attributes.dateAgreedToTermsOfService.isSet()
-                                                          ? quentier::printableDateTimeFromTimestamp(attributes.dateAgreedToTermsOfService.ref())
-                                                          : "<empty>") << "; \n";
-    strm << indent << "maxReferrals = " << (attributes.maxReferrals.isSet()
-                                            ? QString::number(attributes.maxReferrals.ref())
-                                            : "<empty>") << "; \n";
-    strm << indent << "referralCount = " << (attributes.referralCount.isSet()
-                                             ? QString::number(attributes.referralCount.ref())
-                                             : "<empty>") << "; \n";
-    strm << indent << "refererCode = " << (attributes.refererCode.isSet()
-                                           ? attributes.refererCode.ref()
-                                           : "<empty>") << "; \n";
-    strm << indent << "sentEmailDate = " << (attributes.sentEmailDate.isSet()
-                                             ? quentier::printableDateTimeFromTimestamp(attributes.sentEmailDate.ref())
-                                             : "<empty>") << "; \n";
-    strm << indent << "sentEmailCount = " << (attributes.sentEmailCount.isSet()
-                                              ? QString::number(attributes.sentEmailCount.ref())
-                                              : "<empty>") << "; \n";
-    strm << indent << "dailyEmailLimit = " << (attributes.dailyEmailLimit.isSet()
-                                               ? QString::number(attributes.dailyEmailLimit.ref())
-                                               : "<empty>") << "; \n";
-    strm << indent << "emailOptOutDate = " << (attributes.emailOptOutDate.isSet()
-                                               ? quentier::printableDateTimeFromTimestamp(attributes.emailOptOutDate.ref())
-                                               : "<empty>") << "; \n";
-    strm << indent << "partnerEmailOptInDate = " << (attributes.partnerEmailOptInDate.isSet()
-                                                     ? quentier::printableDateTimeFromTimestamp(attributes.partnerEmailOptInDate.ref())
-                                                     : "<empty>") << "; \n";
-    strm << indent << "preferredLanguage = " << (attributes.preferredLanguage.isSet()
-                                                 ? attributes.preferredLanguage.ref()
-                                                 : "<empty>") << "; \n";
-    strm << indent << "preferredCountry = " << (attributes.preferredCountry.isSet()
-                                                ? attributes.preferredCountry.ref()
-                                                : "<empty>") << "; \n";
-    strm << indent << "clipFullPage = " << (attributes.clipFullPage.isSet()
-                                            ? (attributes.clipFullPage.ref() ? "true" : "false")
-                                            : "<empty>") << "; \n";
-    strm << indent << "twitterUserName = " << (attributes.twitterUserName.isSet()
-                                               ? attributes.twitterUserName.ref()
-                                               : "<empty>") << "; \n";
-    strm << indent << "twitterId = " << (attributes.twitterId.isSet()
-                                         ? attributes.twitterId.ref()
-                                         : "<empty>") << "; \n";
-    strm << indent << "groupName = " << (attributes.groupName.isSet()
-                                         ? attributes.groupName.ref()
-                                         : "<empty>") << "; \n";
-    strm << indent << "recognitionLanguage = " << (attributes.recognitionLanguage.isSet()
-                                                   ? attributes.recognitionLanguage.ref()
-                                                   : "<empty>") << "; \n";
-    strm << indent << "referralProof = " << (attributes.referralProof.isSet()
-                                             ? attributes.referralProof.ref()
-                                             : "<empty>") << "; \n";
-    strm << indent << "educationalDiscount = " << (attributes.educationalDiscount.isSet()
-                                                   ? (attributes.educationalDiscount.ref() ? "true" : "false")
-                                                   : "<empty>") << "; \n";
-    strm << indent << "businessAddress = " << (attributes.businessAddress.isSet()
-                                               ? attributes.businessAddress.ref()
-                                               : "<empty>") << "; \n";
-    strm << indent << "hideSponsorBilling = " << (attributes.hideSponsorBilling.isSet()
-                                                  ? (attributes.hideSponsorBilling.ref() ? "true" : "false")
-                                                  : "<empty>") << "; \n";
-    strm << indent << "taxExempt = " << (attributes.taxExempt.isSet()
-                                         ? (attributes.taxExempt.ref() ? "true" : "false")
-                                         : "<empty>") << "; \n";
-    strm << indent << "useEmailAutoFiling = " << (attributes.useEmailAutoFiling.isSet()
-                                                  ? (attributes.useEmailAutoFiling.ref() ? "true" : "false")
-                                                  : "<empty>") << "; \n";
-    strm << indent << "reminderEmailConfig = ";
-    if (attributes.reminderEmailConfig.isSet()) {
-        strm << attributes.reminderEmailConfig.ref();
-    }
-    else {
-        strm << "<empty>";
-    }
-    strm << "; \n";
-
-    strm << "}; \n";
+    strm << QStringLiteral("};\n");
     return strm;
 }
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes & attributes)
 {
-    strm << "qevercloud::NoteAttributes: {\n";
-    QString indent = "  ";
+    strm << QStringLiteral("qevercloud::NoteAttributes: {\n");
+    const char * indent = "  ";
 
-    strm << indent << "subjectDate = " << (attributes.subjectDate.isSet()
-                                           ? quentier::printableDateTimeFromTimestamp(attributes.subjectDate.ref())
-                                           : "<empty>") << "; \n";
-    strm << indent << "latitude = " << (attributes.latitude.isSet()
-                                        ? QString::number(attributes.latitude.ref())
-                                        : "<empty>") << "; \n";
-    strm << indent << "longitude = " << (attributes.longitude.isSet()
-                                         ? QString::number(attributes.longitude.ref())
-                                         : "<empty>") << "; \n";
-    strm << indent << "altitude = " << (attributes.altitude.isSet()
-                                        ? QString::number(attributes.altitude.ref())
-                                        : "<empty>") << "; \n";
-    strm << indent << "author = " << (attributes.author.isSet()
-                                      ? attributes.author.ref() : "<empty>") << "; \n";
-    strm << indent << "source = " << (attributes.source.isSet()
-                                      ? attributes.source.ref() : "<empty>") << "; \n";
-    strm << indent << "sourceURL = " << (attributes.sourceURL.isSet()
-                                         ? attributes.sourceURL.ref() : "<empty>") << "; \n";
-    strm << indent << "sourceApplication = " << (attributes.sourceApplication.isSet()
-                                                 ? attributes.sourceApplication.ref()
-                                                 : "<empty>") << "; \n";
-    strm << indent << "shareDate = " << (attributes.shareDate.isSet()
-                                         ? quentier::printableDateTimeFromTimestamp(attributes.shareDate.ref())
-                                         : "<empty>") << "; \n";
-    strm << indent << "reminderOrder = " << (attributes.reminderOrder.isSet()
-                                             ? QString::number(attributes.reminderOrder.ref())
-                                             : "<empty>") << "; \n";
-    strm << indent << "reminderDoneTime = " << (attributes.reminderDoneTime.isSet()
-                                                ? quentier::printableDateTimeFromTimestamp(attributes.reminderDoneTime.ref())
-                                                : "<empty>") << "; \n";
-    strm << indent << "reminderTime = " << (attributes.reminderTime.isSet()
-                                            ? quentier::printableDateTimeFromTimestamp(attributes.reminderTime.ref())
-                                            : "<empty>") << "; \n";
-    strm << indent << "placeName = " << (attributes.placeName.isSet()
-                                         ? attributes.placeName.ref() : "<empty>") << "; \n";
-    strm << indent << "contentClass = " << (attributes.contentClass.isSet()
-                                            ? attributes.contentClass.ref() : "<empty>") << "; \n";
-    strm << indent << "lastEditedBy = " << (attributes.lastEditedBy.isSet()
-                                            ? attributes.lastEditedBy.ref() : "<empty>") << "; \n";
-    strm << indent << "creatorId = " << (attributes.creatorId.isSet()
-                                         ? QString::number(attributes.creatorId.ref())
-                                         : "<empty>") << "; \n";
-    strm << indent << "lastEditorId = " << (attributes.lastEditorId.isSet()
-                                            ? QString::number(attributes.lastEditorId.ref())
-                                            : "<empty>") << "; \n";
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (attributes.field.isSet() \
+                                                        ? __VA_ARGS__(attributes.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral("; \n")
+
+    PRINT_FIELD(subjectDate, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(latitude, QString::number);
+    PRINT_FIELD(longitude, QString::number);
+    PRINT_FIELD(altitude, QString::number);
+    PRINT_FIELD(author);
+    PRINT_FIELD(source);
+    PRINT_FIELD(sourceURL);
+    PRINT_FIELD(sourceApplication);
+    PRINT_FIELD(shareDate, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(reminderOrder, QString::number);
+    PRINT_FIELD(reminderDoneTime, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(reminderTime, quentier::printableDateTimeFromTimestamp);
+    PRINT_FIELD(placeName);
+    PRINT_FIELD(contentClass);
+    PRINT_FIELD(lastEditedBy);
+    PRINT_FIELD(creatorId, QString::number);
+    PRINT_FIELD(lastEditorId, QString::number);
+
+#undef PRINT_FIELD
 
     if (attributes.applicationData.isSet())
     {
@@ -394,338 +363,175 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteAttributes &
 
         if (applicationData.keysOnly.isSet()) {
             const QSet<QString> & keysOnly = applicationData.keysOnly;
-            strm << indent << "ApplicationData: keys only: \n";
-            foreach(const QString & key, keysOnly) {
-                strm << key << "; ";
+            strm << indent << QStringLiteral("applicationData: keys only: \n");
+            for(auto it = keysOnly.begin(), end = keysOnly.end(); it != end; ++it) {
+                strm << *it << QStringLiteral("; ");
             }
-            strm << "\n";
+            strm << QStringLiteral("\n");
         }
 
         if (applicationData.fullMap.isSet()) {
             const QMap<QString, QString> & fullMap = applicationData.fullMap;
-            strm << indent << "ApplicationData: full map: \n";
-            foreach(const QString & key, fullMap.keys()) {
-                strm << "[" << key << "] = " << fullMap.value(key) << "; ";
+            strm << indent << QStringLiteral("applicationData: full map: \n");
+            for(auto it = fullMap.begin(), end = fullMap.end(); it != end; ++it) {
+                strm << QStringLiteral("[") << it.key() << QStringLiteral("] = ")
+                     << it.value() << QStringLiteral("; ");
             }
-            strm << "\n";
+            strm << QStringLiteral("\n");
         }
     }
 
     if (attributes.classifications.isSet())
     {
-        strm << indent << "Classifications: ";
+        strm << indent << QStringLiteral("classifications: ");
         const QMap<QString, QString> & classifications = attributes.classifications;
-        foreach(const QString & key, classifications) {
-            strm << "[" << key << "] = " << classifications.value(key) << "; ";
+        for(auto it = classifications.begin(), end = classifications.end(); it != end; ++it) {
+            strm << QStringLiteral("[") << it.key() << QStringLiteral("] = ")
+                 << it.value() << QStringLiteral("; ");
         }
-        strm << "\n";
+        strm << QStringLiteral("\n");
     }
 
-    strm << "}; \n";
+    strm << QStringLiteral("};\n");
     return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::type & level)
+QString privilegeLevelToString(const qevercloud::PrivilegeLevel::type & level)
 {
-    strm << "qevercloud::PrivilegeLevel: ";
-
     switch (level)
     {
     case qevercloud::PrivilegeLevel::NORMAL:
-        strm << "NORMAL";
-        break;
+        return QStringLiteral("NORMAL");
     case qevercloud::PrivilegeLevel::PREMIUM:
-        strm << "PREMIUM";
-        break;
+        return QStringLiteral("PREMIUM");
     case qevercloud::PrivilegeLevel::VIP:
-        strm << "VIP";
-        break;
+        return QStringLiteral("VIP");
     case qevercloud::PrivilegeLevel::MANAGER:
-        strm << "MANAGER";
-        break;
+        return QStringLiteral("MANAGER");
     case qevercloud::PrivilegeLevel::SUPPORT:
-        strm << "SUPPORT";
-        break;
+        return QStringLiteral("SUPPORT");
     case qevercloud::PrivilegeLevel::ADMIN:
-        strm << "ADMIN";
-        break;
+        return QStringLiteral("ADMIN");
     default:
-        strm << "Unknown";
-        break;
+        return QStringLiteral("Unknown");
     }
-
-    return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const qevercloud::QueryFormat::type & format)
+QString serviceLevelToString(const qevercloud::ServiceLevel::type & level)
+{
+    switch(level)
+    {
+    case qevercloud::ServiceLevel::BASIC:
+        return QStringLiteral("BASIC");
+    case qevercloud::ServiceLevel::PLUS:
+        return QStringLiteral("PLUS");
+    case qevercloud::ServiceLevel::PREMIUM:
+        return QStringLiteral("PREMIUM");
+    default:
+        return QStringLiteral("Unknown");
+    }
+}
+
+QString queryFormatToString(const qevercloud::QueryFormat::type & format)
 {
     switch (format)
     {
     case qevercloud::QueryFormat::USER:
-        strm << "USER";
-        break;
+        return QStringLiteral("USER");
     case qevercloud::QueryFormat::SEXP:
-        strm << "SEXP";
-        break;
+        return QStringLiteral("SEXP");
     default:
-        strm << "UNKNOWN";
-        break;
+        return QStringLiteral("Unknown");
     }
-
-    return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookPrivilegeLevel::type & privilege)
+QString sharedNotebookPrivilegeLevelToString(const qevercloud::SharedNotebookPrivilegeLevel::type & privilege)
 {
-    strm << "qevercloud::SharedNotebookPrivilegeLevel: ";
-
     switch(privilege)
     {
     case qevercloud::SharedNotebookPrivilegeLevel::READ_NOTEBOOK:
-        strm << "READ_NOTEBOOK";
-        break;
+        return QStringLiteral("READ_NOTEBOOK");
     case qevercloud::SharedNotebookPrivilegeLevel::MODIFY_NOTEBOOK_PLUS_ACTIVITY:
-        strm << "MODIFY_NOTEBOOK_PLUS_ACTIVITY";
-        break;
+        return QStringLiteral("MODIFY_NOTEBOOK_PLUS_ACTIVITY");
     case qevercloud::SharedNotebookPrivilegeLevel::READ_NOTEBOOK_PLUS_ACTIVITY:
-        strm << "READ_NOTEBOOK_PLUS_ACTIVITY";
-        break;
+        return QStringLiteral("READ_NOTEBOOK_PLUS_ACTIVITY");
     case qevercloud::SharedNotebookPrivilegeLevel::GROUP:
-        strm << "GROUP";
-        break;
+        return QStringLiteral("GROUP");
     case qevercloud::SharedNotebookPrivilegeLevel::FULL_ACCESS:
-        strm << "FULL_ACCESS";
-        break;
+        return QStringLiteral("FULL_ACCESS");
     case qevercloud::SharedNotebookPrivilegeLevel::BUSINESS_FULL_ACCESS:
-        strm << "BUSINESS_FULL_ACCESS";
-        break;
+        return QStringLiteral("BUSINESS_FULL_ACCESS");
     default:
-        strm << "Unknown";
-        break;
+        return QStringLiteral("Unknown");
     }
-
-    return strm;
 }
 
-QTextStream & operator <<(QTextStream & strm, const qevercloud::NoteSortOrder::type & order)
+QString noteSortOrderToString(const qevercloud::NoteSortOrder::type & order)
 {
-    strm << "qevercloud::NoteSortOrder: ";
-
     switch(order)
     {
     case qevercloud::NoteSortOrder::CREATED:
-        strm << "CREATED";
-        break;
+        return QStringLiteral("CREATED");
     case qevercloud::NoteSortOrder::RELEVANCE:
-        strm << "RELEVANCE";
-        break;
+        return QStringLiteral("RELEVANCE");
     case qevercloud::NoteSortOrder::TITLE:
-        strm << "TITLE";
-        break;
+        return QStringLiteral("TITLE");
     case qevercloud::NoteSortOrder::UPDATED:
-        strm << "UPDATED";
-        break;
+        return QStringLiteral("UPDATED");
     case qevercloud::NoteSortOrder::UPDATE_SEQUENCE_NUMBER:
-        strm << "UPDATE_SEQUENCE_NUMBER";
-        break;
+        return QStringLiteral("UPDATE_SEQUENCE_NUMBER");
     default:
-        strm << "UNKNOWN";
-        break;
+        return QStringLiteral("Unknown");
     }
+}
 
-    return strm;
+QString sharedNotebookInstanceRestrictionsToString(const qevercloud::SharedNotebookInstanceRestrictions::type & restrictions)
+{
+    switch(restrictions)
+    {
+    case qevercloud::SharedNotebookInstanceRestrictions::ASSIGNED:
+        return QStringLiteral("ASSIGNED");
+    case qevercloud::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS:
+        return QStringLiteral("NO_SHARED_NOTEBOOKS");
+    default:
+        return QStringLiteral("Unknown");
+    }
 }
 
 QTextStream & operator <<(QTextStream & strm, const qevercloud::NotebookRestrictions & restrictions)
 {
-    strm << "{ \n";
+    strm << QStringLiteral("NotebookRestrictions: {\n");
+    const char * indent = "  ";
 
-#define INSERT_DELIMITER \
-    strm << "; \n"
+#define PRINT_FIELD(field, ...) \
+    strm << indent << QStringLiteral( #field " = ") << (restrictions.field.isSet() \
+                                                        ? __VA_ARGS__(restrictions.field.ref()) \
+                                                        : QStringLiteral("<empty>")) << QStringLiteral("; \n")
 
-    if (restrictions.noReadNotes.isSet()) {
-        strm << "noReadNotes: " << (restrictions.noReadNotes ? "true" : "false");
-    }
-    else {
-        strm << "noReadNotes is not set";
-    }
-    INSERT_DELIMITER;
+    PRINT_FIELD(noReadNotes, boolToString);
+    PRINT_FIELD(noCreateNotes, boolToString);
+    PRINT_FIELD(noUpdateNotes, boolToString);
+    PRINT_FIELD(noExpungeNotes, boolToString);
+    PRINT_FIELD(noShareNotes, boolToString);
+    PRINT_FIELD(noEmailNotes, boolToString);
+    PRINT_FIELD(noSendMessageToRecipients, boolToString);
+    PRINT_FIELD(noUpdateNotebook, boolToString);
+    PRINT_FIELD(noExpungeNotebook, boolToString);
+    PRINT_FIELD(noSetDefaultNotebook, boolToString);
+    PRINT_FIELD(noSetNotebookStack, boolToString);
+    PRINT_FIELD(noPublishToPublic, boolToString);
+    PRINT_FIELD(noPublishToBusinessLibrary, boolToString);
+    PRINT_FIELD(noCreateTags, boolToString);
+    PRINT_FIELD(noUpdateTags, boolToString);
+    PRINT_FIELD(noExpungeTags, boolToString);
+    PRINT_FIELD(noSetParentTag, boolToString);
+    PRINT_FIELD(noCreateSharedNotebooks, boolToString);
+    PRINT_FIELD(updateWhichSharedNotebookRestrictions, sharedNotebookInstanceRestrictionsToString);
+    PRINT_FIELD(expungeWhichSharedNotebookRestrictions, sharedNotebookInstanceRestrictionsToString);
 
-    if (restrictions.noCreateNotes.isSet()) {
-        strm << "noCreateNotes: " << (restrictions.noCreateNotes ? "true" : "false");
-    }
-    else {
-        strm << "noCreateNotes is not set";
-    }
-    INSERT_DELIMITER;
+#undef PRINT_FIELD
 
-    if (restrictions.noUpdateNotes.isSet()) {
-        strm << "noUpdateNotes: " << (restrictions.noUpdateNotes ? "true" : "false");
-    }
-    else {
-        strm << "noUpdateNotes is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noExpungeNotes.isSet()) {
-        strm << "noExpungeNotes: " << (restrictions.noExpungeNotes ? "true" : "false");
-    }
-    else {
-        strm << "noExpungeNotes is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noShareNotes.isSet()) {
-        strm << "noShareNotes: " << (restrictions.noShareNotes ? "true" : "false");
-    }
-    else {
-        strm << "noShareNotes is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noEmailNotes.isSet()) {
-        strm << "noEmailNotes: " << (restrictions.noEmailNotes ? "true" : "false");
-    }
-    else {
-        strm << "noEmailNotes is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noSendMessageToRecipients.isSet()) {
-        strm << "noSendMessageToRecipients: " << (restrictions.noSendMessageToRecipients ? "true" : "false");
-    }
-    else {
-        strm << "noSendMessageToRecipients is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noUpdateNotebook.isSet()) {
-        strm << "noUpdateNotebook: " << (restrictions.noUpdateNotebook ? "true" : "false");
-    }
-    else {
-        strm << "noUpdateNotebook is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noExpungeNotebook.isSet()) {
-        strm << "noExpungeNotebook: " << (restrictions.noExpungeNotebook ? "true" : "false");
-    }
-    else {
-        strm << "noExpungeNotebook is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noSetDefaultNotebook.isSet()) {
-        strm << "noSetDefaultNotebook: " << (restrictions.noSetDefaultNotebook ? "true" : "false");
-    }
-    else {
-        strm << "noSetDefaultNotebook is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noSetNotebookStack.isSet()) {
-        strm << "noSetNotebookStack: " << (restrictions.noSetNotebookStack ? "true" : "false");
-    }
-    else {
-        strm << "noSetNotebookStack is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noPublishToPublic.isSet()) {
-        strm << "noPublishToPublic: " << (restrictions.noPublishToPublic ? "true" : "false");
-    }
-    else {
-        strm << "noPublishToPublic is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noPublishToBusinessLibrary.isSet()) {
-        strm << "noPublishToBusinessLibrary: " << (restrictions.noPublishToBusinessLibrary ? "true" : "false");
-    }
-    else {
-        strm << "noPublishToBusinessLibrary is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noCreateTags.isSet()) {
-        strm << "noCreateTags: " << (restrictions.noCreateTags ? "true" : "false");
-    }
-    else {
-        strm << "noCreateTags is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noUpdateTags.isSet()) {
-        strm << "noUpdateTags: " << (restrictions.noUpdateTags ? "true" : "false");
-    }
-    else {
-        strm << "noUpdateTags is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noExpungeTags.isSet()) {
-        strm << "noExpungeTags: " << (restrictions.noExpungeTags ? "true" : "false");
-    }
-    else {
-        strm << "noExpungeTags is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noSetParentTag.isSet()) {
-        strm << "noSetParentTag: " << (restrictions.noSetParentTag ? "true" : "false");
-    }
-    else {
-        strm << "noSetParentTag is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.noCreateSharedNotebooks.isSet()) {
-        strm << "noCreateSharedNotebooks: " << (restrictions.noCreateSharedNotebooks ? "true" : "false");
-    }
-    else {
-        strm << "noCreateSharedNotebooks is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.updateWhichSharedNotebookRestrictions.isSet()) {
-        strm << "updateWhichSharedNotebookRestrictions: " << restrictions.updateWhichSharedNotebookRestrictions;
-    }
-    else {
-        strm << "updateWhichSharedNotebookRestrictions is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (restrictions.expungeWhichSharedNotebookRestrictions.isSet()) {
-        strm << "expungeWhichSharedNotebookRestrictions: " << restrictions.expungeWhichSharedNotebookRestrictions;
-    }
-    else {
-        strm << "expungeWhichSharedNotebookRestrictions is not set";
-    }
-    INSERT_DELIMITER;
-
-#undef INSERT_DELIMITER
-
-    strm << "}; \n";
-
-    return strm;
-}
-
-QTextStream & operator <<(QTextStream & strm, const qevercloud::SharedNotebookInstanceRestrictions::type & restrictions)
-{
-    strm << "qevercloud::SharedNotebookInstanceRestrictions: ";
-
-    switch(restrictions)
-    {
-    case qevercloud::SharedNotebookInstanceRestrictions::NO_SHARED_NOTEBOOKS:
-        strm << "NO_SHARED_NOTEBOOKS";
-        break;
-    case qevercloud::SharedNotebookInstanceRestrictions::ONLY_JOINED_OR_PREVIEW:
-        strm << "ONLY_JOINED_OR_PREVIEW";
-        break;
-    default:
-        strm << "Unknown";
-        break;
-    }
+    strm << QStringLiteral("};\n");
 
     return strm;
 }
@@ -734,7 +540,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::ResourceAttribut
 {
     strm << "ResourceAttributes: { \n";
 
-    QString indent = "  ";
+    const char * indent = "  ";
 
     if (attributes.sourceURL.isSet()) {
         strm << indent << "sourceURL = " << attributes.sourceURL << "; \n";
@@ -833,7 +639,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::ResourceAttribut
 QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resource)
 {
     strm << "qevercloud::Resource { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     if (resource.guid.isSet()) {
         strm << indent << "guid = " << resource.guid << "; \n";
@@ -973,7 +779,7 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::Resource & resou
 QTextStream & operator<<(QTextStream & strm, const qevercloud::SyncChunk & syncChunk)
 {
     strm << "qevercloud::SyncChunk: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "chunkHighUSN = "
          << (syncChunk.chunkHighUSN.isSet() ? QString::number(syncChunk.chunkHighUSN.ref()) : "<empty>") << "; \n";
@@ -1031,7 +837,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SyncChunk & syncC
 QTextStream & operator<<(QTextStream & strm, const qevercloud::Tag & tag)
 {
     strm << "qevercloud::Tag: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "guid = " << (tag.guid.isSet() ? tag.guid.ref() : "<empty>") << "; \n";
     strm << indent << "name = " << (tag.name.isSet() ? tag.name.ref() : "<empty>") << "; \n";
@@ -1048,7 +854,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Tag & tag)
 QTextStream & operator<<(QTextStream & strm, const qevercloud::SavedSearch & savedSearch)
 {
     strm << "qevercloud::SavedSearch: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "guid = " << (savedSearch.guid.isSet() ? savedSearch.guid.ref() : "<empty>") << "; \n";
     strm << indent << "name = " << (savedSearch.name.isSet() ? savedSearch.name.ref() : "<empty>") << "; \n";
@@ -1102,12 +908,11 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SavedSearch & sav
 QTextStream & operator<<(QTextStream & strm, const qevercloud::LinkedNotebook & linkedNotebook)
 {
     strm << "qevercloud::LinkedNotebook: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "shareName = " << (linkedNotebook.shareName.isSet() ? linkedNotebook.shareName.ref() : "<empty>") << "; \n";
     strm << indent << "username = " << (linkedNotebook.username.isSet() ? linkedNotebook.username.ref() : "<empty>") << "; \n";
     strm << indent << "shardId = " << (linkedNotebook.shardId.isSet() ? linkedNotebook.shardId.ref() : "<empty>") << "; \n";
-    strm << indent << "shareKey = " << (linkedNotebook.shareKey.isSet() ? linkedNotebook.shareKey.ref() : "<empty>") << "; \n";
     strm << indent << "uri = " << (linkedNotebook.uri.isSet() ? linkedNotebook.uri.ref() : "<empty>") << "; \n";
     strm << indent << "guid = " << (linkedNotebook.guid.isSet() ? linkedNotebook.guid.ref() : "<empty>") << "; \n";
     strm << indent << "updateSequenceNum = " << (linkedNotebook.updateSequenceNum.isSet()
@@ -1127,7 +932,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::LinkedNotebook & 
 QTextStream & operator<<(QTextStream & strm, const qevercloud::Notebook & notebook)
 {
     strm << "qevercloud::Notebook: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "guid = " << (notebook.guid.isSet() ? notebook.guid.ref() : "<empty>") << "; \n";
     strm << indent << "name = " << (notebook.name.isSet() ? notebook.name.ref() : "<empty>") << "; \n";
@@ -1205,7 +1010,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Notebook & notebo
 QTextStream & operator<<(QTextStream & strm, const qevercloud::Publishing & publishing)
 {
     strm << "qevercloud::Publishing: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "uri = " << (publishing.uri.isSet() ? publishing.uri.ref() : "<empty>") << "; \n";
 
@@ -1232,7 +1037,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::Publishing & publ
 QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & sharedNotebook)
 {
     strm << "qevercloud::SharedNotebook: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "id = " << (sharedNotebook.id.isSet() ? QString::number(sharedNotebook.id.ref()) : "<empty>") << "; \n";
     strm << indent << "userId = " << (sharedNotebook.userId.isSet() ? QString::number(sharedNotebook.userId.ref()) : "<empty>") << "; \n";
@@ -1254,10 +1059,6 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & 
     }
     strm << "; \n";
 
-    strm << indent << "allowPreview = " << (sharedNotebook.allowPreview.isSet()
-                                            ? (sharedNotebook.allowPreview.ref() ? "true" : "false")
-                                            : "<empty>") << "; \n";
-
     strm << indent << "recipientSettings = ";
     if (sharedNotebook.recipientSettings.isSet()) {
         strm << sharedNotebook.recipientSettings.ref();
@@ -1274,7 +1075,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & 
 QTextStream & operator<<(QTextStream & strm, const qevercloud::BusinessNotebook & businessNotebook)
 {
     strm << "qevercloud::BusinessNotebook: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "notebookDescription = " << (businessNotebook.notebookDescription.isSet()
                                                    ? businessNotebook.notebookDescription.ref()
@@ -1300,7 +1101,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::BusinessNotebook 
 QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
 {
     strm << "qevercloud::User: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "id = " << (user.id.isSet() ? QString::number(user.id.ref()) : "<empty>") << "; \n";
     strm << indent << "username = " << (user.username.isSet() ? user.username.ref() : "<empty>") << "; \n";
@@ -1346,14 +1147,6 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
         strm << " = empty>; \n";
     }
 
-    strm << indent << "premiumInfo";
-    if (user.premiumInfo.isSet()) {
-        strm << ": \n" << user.premiumInfo.ref();
-    }
-    else {
-        strm << " = <empty>; \n";
-    }
-
     strm << indent << "businessUserInfo";
     if (user.businessUserInfo.isSet()) {
         strm << ": \n" << user.businessUserInfo.ref();
@@ -1369,7 +1162,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::User & user)
 QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebookRecipientSettings & settings)
 {
     strm << "qevercloud::SharedNotebookRecipientSettings: { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "reminderNotifyEmail = " << (settings.reminderNotifyEmail.isSet()
                                                    ? (settings.reminderNotifyEmail.ref() ? "true" : "false")
@@ -1480,7 +1273,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SponsoredGroupRol
 QTextStream & operator<<(QTextStream & strm, const qevercloud::Note & note)
 {
     strm << "qevercloud::Note { \n";
-    QString indent = "  ";
+    const char * indent = "  ";
 
     strm << indent << "guid = " << (note.guid.isSet() ? note.guid.ref() : "<empty>") << "; \n";
     strm << indent << "title = " << (note.title.isSet() ? note.title.ref() : "<empty>") << "; \n";
