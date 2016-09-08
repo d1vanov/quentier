@@ -654,98 +654,119 @@ QTextStream & IUser::print(QTextStream & strm) const
         strm << "User ID = " << QString::number(enUser.id) << "; \n";
     }
     else {
-        strm << "User ID is not set" << "; \n";
+        strm << "User ID is not set; \n";
     }
 
     if (enUser.username.isSet()) {
         strm << "username = " << enUser.username << "; \n";
     }
     else {
-        strm << "username is not set" << "; \n";
+        strm << "username is not set; \n";
     }
 
     if (enUser.email.isSet()) {
         strm << "email = " << enUser.email << "; \n";
     }
     else {
-        strm << "email is not set" << "; \n";
+        strm << "email is not set; \n";
     }
 
     if (enUser.name.isSet()) {
         strm << "name = " << enUser.name << "; \n";
     }
     else {
-        strm << "name is not set" << "; \n";
+        strm << "name is not set; \n";
     }
 
     if (enUser.timezone.isSet()) {
         strm << "timezone = " << enUser.timezone << "; \n";
     }
     else {
-        strm << "timezone is not set" << "; \n";
+        strm << "timezone is not set; \n";
     }
 
     if (enUser.privilege.isSet()) {
         strm << "privilege = " << enUser.privilege << "; \n";
     }
     else {
-        strm << "privilege is not set" << "; \n";
+        strm << "privilege is not set; \n";
+    }
+
+    if (enUser.serviceLevel.isSet()) {
+        strm << "service level = " << enUser.serviceLevel << "; \n;
+    }
+    else {
+        strm << "service level is not set; \n";
     }
 
     if (enUser.created.isSet()) {
         strm << "created = " << printableDateTimeFromTimestamp(enUser.created) << "; \n";
     }
     else {
-        strm << "created is not set" << "; \n";
+        strm << "created is not set; \n";
     }
 
     if (enUser.updated.isSet()) {
         strm << "updated = " << printableDateTimeFromTimestamp(enUser.updated) << "; \n";
     }
     else {
-        strm << "updated is not set" << "; \n";
+        strm << "updated is not set; \n";
     }
 
     if (enUser.deleted.isSet()) {
         strm << "deleted = " << printableDateTimeFromTimestamp(enUser.deleted) << "; \n";
     }
     else {
-        strm << "deleted is not set" << "; \n";
+        strm << "deleted is not set; \n";
     }
 
     if (enUser.active.isSet()) {
         strm << "active = " << (enUser.active ? "true" : "false") << "; \n";
     }
     else {
-        strm << "active is not set" << "; \n";
+        strm << "active is not set; \n";
     }
 
     if (enUser.attributes.isSet()) {
         strm << enUser.attributes;
     }
     else {
-        strm << "attributes are not set" << "; \n";
+        strm << "attributes are not set; \n";
     }
 
     if (enUser.accounting.isSet()) {
         strm << enUser.accounting;
     }
     else {
-        strm << "accounting is not set" << "; \n";
-    }
-
-    if (enUser.premiumInfo.isSet()) {
-        strm << enUser.premiumInfo;
-    }
-    else {
-        strm << "premium info is not set" << "; \n";
+        strm << "accounting is not set; \n";
     }
 
     if (enUser.businessUserInfo.isSet()) {
         strm << enUser.businessUserInfo;
     }
     else {
-        strm << "business user info is not set" << "; \n";
+        strm << "business user info is not set; \n";
+    }
+
+    if (enUser.photoUrl.isSet()) {
+        strm << "photo url = " << enUser.photoUrl << "; \n";
+    }
+    else {
+        strm << "photo url is not set; \n";
+    }
+
+    if (enUser.photoLastUpdated.isSet()) {
+        strm << "photo url last updated = " << printableDateTimeFromTimestamp(enUser.photoLastUpdated) << "; \n";
+    }
+    else {
+        strm << "photo url last updates is not set; \n";
+    }
+
+    if (enUser.accountLimits.isSet()) {
+        strm << enUser.accountLimits;
+    }
+    else {
+        strm << "account limits are not set; \n";
     }
 
     return strm;
