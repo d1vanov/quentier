@@ -1051,220 +1051,24 @@ void Notebook::setNotebookRecipientSettings(qevercloud::NotebookRecipientSetting
 
 QTextStream & Notebook::print(QTextStream & strm) const
 {
-    strm << "Notebook { \n";
+    strm << QStringLiteral("Notebook {\n");
 
-#define INSERT_DELIMITER \
-    strm << "; \n"
+    strm << QStringLiteral("  local uid: ") << d->m_localUid.toString() << QStringLiteral(";\n");
+    strm << QStringLiteral("  is last used: ") << (d->m_isLastUsed ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral("  ;\n");
 
-    strm << "local uid: " << d->m_localUid.toString();
-    INSERT_DELIMITER;
+    strm << QStringLiteral("  linked notebook guid: ") << (d->m_linkedNotebookGuid.isSet()
+                                                           ? d->m_linkedNotebookGuid.ref()
+                                                           : QStringLiteral("<empty>")) << QStringLiteral(";\n");
 
-    if (d->m_qecNotebook.guid.isSet()) {
-        strm << "guid: " << d->m_qecNotebook.guid;
-    }
-    else {
-        strm << "guid is not set";
-    }
-    INSERT_DELIMITER;
+    strm << QStringLiteral("  dirty: ")     << (isDirty()     ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
+    strm << QStringLiteral("  local: ")     << (isLocal()     ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
+    strm << QStringLiteral("  last used: ") << (isLastUsed()  ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
+    strm << QStringLiteral("  favorited: ") << (isFavorited() ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(";\n");
 
-    if (d->m_linkedNotebookGuid.isSet()) {
-        strm << "linked notebook guid: " << d->m_linkedNotebookGuid;
-    }
-    else {
-        strm << "linked notebook guid is not set";
-    }
-    INSERT_DELIMITER;
+    strm << d->m_qecNotebook;
 
-    if (d->m_qecNotebook.name.isSet()) {
-        strm << "name: " << d->m_qecNotebook.name;
-    }
-    else {
-        strm << "name is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.updateSequenceNum.isSet()) {
-        strm << "updateSequenceNumber: " << d->m_qecNotebook.updateSequenceNum;
-    }
-    else {
-        strm << "updateSequenceNumber is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.defaultNotebook.isSet()) {
-        strm << "defaultNotebook: " << (d->m_qecNotebook.defaultNotebook ? "true" : "false");
-    }
-    else {
-        strm << "defaultNotebook is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.serviceCreated.isSet()) {
-        strm << "creationTimestamp: " << d->m_qecNotebook.serviceCreated << ", datetime: "
-             << printableDateTimeFromTimestamp(d->m_qecNotebook.serviceCreated);
-    }
-    else {
-        strm << "creationTimestamp is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.serviceUpdated.isSet()) {
-        strm << "modificationTimestamp: " << d->m_qecNotebook.serviceUpdated << ", datetime: "
-             << printableDateTimeFromTimestamp(d->m_qecNotebook.serviceUpdated);
-    }
-    else {
-        strm << "modificationTimestamp is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.publishing.isSet())
-    {
-        const qevercloud::Publishing & publishing = d->m_qecNotebook.publishing;
-
-        if (publishing.uri.isSet()) {
-            strm << "publishingUri: " << publishing.uri;
-        }
-        else {
-            strm << "publishingUri is not set";
-        }
-        INSERT_DELIMITER;
-
-        if (publishing.order.isSet()) {
-            strm << "publishingOrder: " << publishing.order;
-        }
-        else {
-            strm << "publishingOrder is not set";
-        }
-        INSERT_DELIMITER;
-
-        if (publishing.ascending.isSet()) {
-            strm << "publishingAscending: " << (publishing.ascending ? "true" : "false");
-        }
-        else {
-            strm << "publishingAscending is not set";
-        }
-        INSERT_DELIMITER;
-
-        if (publishing.publicDescription.isSet()) {
-            strm << "publishingPublicDescription: " << publishing.publicDescription;
-        }
-        else {
-            strm << "publishingPublicDescription is not set";
-        }
-        INSERT_DELIMITER;
-    }
-    else {
-        strm << "publishing is not set";
-        INSERT_DELIMITER;
-    }
-
-    if (d->m_qecNotebook.published.isSet()) {
-        strm << "published: " << (d->m_qecNotebook.published ? "true" : "false");
-    }
-    else {
-        strm << "published is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.stack.isSet()) {
-        strm << "stack: " << d->m_qecNotebook.stack;
-    }
-    else {
-        strm << "stack is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.sharedNotebooks.isSet()) {
-        strm << "sharedNotebooks: \n";
-        foreach(const qevercloud::SharedNotebook & sharedNotebook, d->m_qecNotebook.sharedNotebooks.ref()) {
-            strm << SharedNotebookAdapter(sharedNotebook);
-        }
-    }
-    else {
-        strm << "sharedNotebooks are not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.businessNotebook.isSet())
-    {
-        const qevercloud::BusinessNotebook & businessNotebook = d->m_qecNotebook.businessNotebook;
-
-        if (businessNotebook.notebookDescription.isSet()) {
-            strm << "businessNotebookDescription: " << businessNotebook.notebookDescription;
-        }
-        else {
-            strm << "businessNotebookDescription is not set";
-        }
-        INSERT_DELIMITER;
-
-        if (businessNotebook.privilege.isSet()) {
-            strm << "businessNotebookPrivilegeLevel: " << businessNotebook.privilege;
-        }
-        else {
-            strm << "businessNotebookPrivilegeLevel is not set";
-        }
-        INSERT_DELIMITER;
-
-        if (businessNotebook.recommended.isSet()) {
-            strm << "businessNotebookRecommended = " << (businessNotebook.recommended ? "true" : "false");
-        }
-        else {
-            strm << "businessNotebookRecommended is not set";
-        }
-        INSERT_DELIMITER;
-    }
-    else {
-        strm << "businessNotebook is not set";
-        INSERT_DELIMITER;
-    }
-
-    if (d->m_qecNotebook.contact.isSet()) {
-        strm << "contact: \n";
-        strm << UserAdapter(d->m_qecNotebook.contact);
-    }
-    else {
-        strm << "contact is not set";
-    }
-    INSERT_DELIMITER;
-
-    if (d->m_qecNotebook.restrictions.isSet()) {
-        strm << "restrictions: " << d->m_qecNotebook.restrictions;
-    }
-    else {
-        strm << "restrictions are not set";
-    }
-    INSERT_DELIMITER;
-
-    if (isDirty()) {
-        strm << "notebook is dirty";
-    }
-    else {
-        strm << "notebook is synchronized";
-    }
-    INSERT_DELIMITER;
-
-    if (isLocal()) {
-        strm << "notebook is local";
-    }
-    else {
-        strm << "notebook is not local";
-    }
-    INSERT_DELIMITER;
-
-    if (isLastUsed()) {
-        strm << "notebook is last used";
-    }
-    else {
-        strm << "notebook is not last used";
-    }
-    INSERT_DELIMITER;
-
-    strm << "isFavorited = " << (isFavorited() ? "true" : "false");
-    INSERT_DELIMITER;
-
-#undef INSERT_DELIMITER
-
-    strm << "}; \n";
+    strm << QStringLiteral("};\n");
     return strm;
 }
 
