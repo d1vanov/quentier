@@ -22,8 +22,15 @@
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <algorithm>
 
 namespace quentier {
+
+struct CompareSharedNotesByIndexInNote
+{
+    bool operator()(const SharedNote & lhs, const SharedNote & rhs) const
+    { return lhs.indexInNote() < rhs.indexInNote(); }
+};
 
 QN_DEFINE_LOCAL_UID(Note)
 QN_DEFINE_DIRTY(Note)
@@ -643,6 +650,129 @@ qevercloud::NoteAttributes & Note::noteAttributes()
     }
 
     return d->m_qecNote.attributes;
+}
+
+bool Note::hasSharedNotes() const
+{
+    return d->m_qecNote.sharedNotes.isSet() && !d->m_qecNote.sharedNotes->isEmpty();
+}
+
+QList<SharedNote> Note::sharedNotes() const
+{
+    QList<SharedNote> result;
+
+    if (!d->m_qecNote.sharedNotes.isSet() || d->m_qecNote.sharedNotes->isEmpty()) {
+        return result;
+    }
+
+    result.reserve(d->m_qecNote.sharedNotes->size());
+
+    int noteIndex = 0;
+    for(auto it = d->m_qecNote.sharedNotes->begin(), end = d->m_qecNote.sharedNotes->end(); it != end; ++it) {
+        SharedNote sharedNote(*it);
+        sharedNote.setIndexInNote(noteIndex++);
+        result << sharedNote;
+    }
+
+    return result;
+}
+
+void Note::setSharedNotes(const QList<SharedNote> & sharedNotes)
+{
+    if (sharedNotes.isEmpty()) {
+        d->m_qecNote.sharedNotes.clear();
+        return;
+    }
+
+    QList<SharedNote> sortedSharedNotes = sharedNotes;
+    std::sort(sortedSharedNotes.begin(), sortedSharedNotes.end(), CompareSharedNotesByIndexInNote());
+
+    QList<qevercloud::SharedNote> internalSharedNotes;
+    internalSharedNotes.reserve(sortedSharedNotes.size());
+
+    for(auto it = sortedSharedNotes.begin(), end = sortedSharedNotes.end(); it != end; ++it) {
+        const qevercloud::SharedNote & qecSharedNote = static_cast<const qevercloud::SharedNote&>(*it);
+        internalSharedNotes << qecSharedNote;
+    }
+
+    d->m_qecNote.sharedNotes = internalSharedNotes;
+}
+
+void Note::addSharedNote(const SharedNote & sharedNote)
+{
+    if (!d->m_qecNote.sharedNotes.isSet()) {
+        d->m_qecNote.sharedNotes = QList<qevercloud::SharedNote>();
+    }
+
+    const qevercloud::SharedNote & qecSharedNote = static_cast<const qevercloud::SharedNote&>(sharedNote);
+
+    if (d->m_qecNote.sharedNotes->contains(qecSharedNote)) {
+        QNDEBUG("Can't add shared note: this note already has this shared note");
+        return;
+    }
+
+    d->m_qecNote.sharedNotes.ref() << qecSharedNote;
+}
+
+bool Note::updateSharedNote(const SharedNote & sharedNote)
+{
+    if (!d->m_qecNote.sharedNotes.isSet() || d->m_qecNote.sharedNotes->isEmpty()) {
+        return false;
+    }
+
+    int index = sharedNote.indexInNote();
+    if ((index < 0) || (index >= d->m_qecNote.sharedNotes->size())) {
+        return false;
+    }
+
+    const qevercloud::SharedNote & qecSharedNote = static_cast<const qevercloud::SharedNote&>(sharedNote);
+    d->m_qecNote.sharedNotes.ref()[index] = qecSharedNote;
+    return true;
+}
+
+bool Note::removeSharedNote(const SharedNote & sharedNote)
+{
+    if (!d->m_qecNote.sharedNotes.isSet() || d->m_qecNote.sharedNotes->isEmpty()) {
+        return false;
+    }
+
+    int index = sharedNote.indexInNote();
+    if ((index < 0) || (index >= d->m_qecNote.sharedNotes->size())) {
+        return false;
+    }
+
+    d->m_qecNote.sharedNotes->removeAt(index);
+    return true;
+}
+
+bool Note::hasNoteRestrictions() const
+{
+    return d->m_qecNote.restrictions.isSet();
+}
+
+const qevercloud::NoteRestrictions & Note::noteRestrictions() const
+{
+    return d->m_qecNote.restrictions.ref();
+}
+
+qevercloud::NoteRestrictions & Note::noteRestrictions()
+{
+    return d->m_qecNote.restrictions.ref();
+}
+
+bool Note::hasNoteLimits() const
+{
+    return d->m_qecNote.limits.isSet();
+}
+
+const qevercloud::NoteLimits & Note::noteLimits() const
+{
+    return d->m_qecNote.limits.ref();
+}
+
+qevercloud::NoteLimits & Note::noteLimits()
+{
+    return d->m_qecNote.limits.ref();
 }
 
 QImage Note::thumbnail() const

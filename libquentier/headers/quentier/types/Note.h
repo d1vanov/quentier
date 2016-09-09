@@ -20,6 +20,7 @@
 #define LIB_QUENTIER_TYPES_NOTE_H
 
 #include "IFavoritableDataElement.h"
+#include "SharedNote.h"
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
@@ -139,6 +140,23 @@ public:
     bool hasNoteAttributes() const;
     const qevercloud::NoteAttributes & noteAttributes() const;
     qevercloud::NoteAttributes & noteAttributes();
+
+    bool hasSharedNotes() const;
+    QList<SharedNote> sharedNotes() const;
+    void setSharedNotes(const QList<SharedNote> & sharedNotes);
+    void addSharedNote(const SharedNote & sharedNote);
+
+    // NOTE: the shared note is recognized by its index in note in the following two methods
+    bool updateSharedNote(const SharedNote & sharedNote);
+    bool removeSharedNote(const SharedNote & sharedNote);
+
+    bool hasNoteRestrictions() const;
+    const qevercloud::NoteRestrictions & noteRestrictions() const;
+    qevercloud::NoteRestrictions & noteRestrictions();
+
+    bool hasNoteLimits() const;
+    const qevercloud::NoteLimits & noteLimits() const;
+    qevercloud::NoteLimits & noteLimits();
 
     QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);

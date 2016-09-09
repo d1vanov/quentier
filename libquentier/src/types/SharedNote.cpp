@@ -34,6 +34,12 @@ SharedNote::SharedNote(SharedNote && other) :
     d(std::move(other.d))
 {}
 
+SharedNote::SharedNote(const qevercloud::SharedNote & sharedNote) :
+    d(new SharedNoteData)
+{
+    d->m_qecSharedNote = sharedNote;
+}
+
 SharedNote & SharedNote::operator=(const SharedNote & other)
 {
     if (this != &other) {
