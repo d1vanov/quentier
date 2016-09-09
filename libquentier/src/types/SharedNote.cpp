@@ -211,26 +211,11 @@ QTextStream & SharedNote::print(QTextStream & strm) const
 {
     strm << QStringLiteral("SharedNote {\n");
 
-    if (d->m_qecSharedNote.sharerUserID.isSet()) {
-        strm << QStringLiteral("  sharer user id = ") << QString::number(d->m_qecSharedNote.sharerUserID.ref())
-             << QStringLiteral(";\n");
-    }
-    else {
-        strm << QStringLiteral("  sharer user id is not set;\n");
-    }
-
-    if (d->m_qecSharedNote.recipientIdentity.isSet()) {
-        strm << QStringLiteral("  recipient identity: ") << d->m_qecSharedNote.recipientIdentity
-             << QStringLiteral(";\n");
-    }
-    else {
-        strm << QStringLiteral("  recipient identity is not set;\n");
-    }
-
-    // TODO: continue from here
+    strm << d->m_qecSharedNote;
+    strm << QStringLiteral("index in note = ") << d->m_indexInNote << QStringLiteral(";\n");
+    strm << QStringLiteral("};\n");
 
     return strm;
 }
-
 
 } // namespace quentier
