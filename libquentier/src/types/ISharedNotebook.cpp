@@ -177,26 +177,6 @@ void ISharedNotebook::setModificationTimestamp(const qint64 timestamp)
     }
 }
 
-bool ISharedNotebook::hasShareKey() const
-{
-    return GetEnSharedNotebook().shareKey.isSet();
-}
-
-const QString & ISharedNotebook::shareKey() const
-{
-    return GetEnSharedNotebook().shareKey;
-}
-
-void ISharedNotebook::setShareKey(const QString & shareKey)
-{
-    if (!shareKey.isEmpty()) {
-        GetEnSharedNotebook().shareKey = shareKey;
-    }
-    else {
-        GetEnSharedNotebook().shareKey.clear();
-    }
-}
-
 bool ISharedNotebook::hasUsername() const
 {
     return GetEnSharedNotebook().username.isSet();
@@ -240,21 +220,6 @@ void ISharedNotebook::setPrivilegeLevel(const qint8 privilegeLevel)
     else {
         GetEnSharedNotebook().privilege.clear();
     }
-}
-
-bool ISharedNotebook::hasAllowPreview() const
-{
-    return GetEnSharedNotebook().allowPreview.isSet();
-}
-
-bool ISharedNotebook::allowPreview() const
-{
-    return GetEnSharedNotebook().allowPreview;
-}
-
-void ISharedNotebook::setAllowPreview(const bool allowPreview)
-{
-    GetEnSharedNotebook().allowPreview = allowPreview;
 }
 
 bool ISharedNotebook::hasReminderNotifyEmail() const
@@ -327,123 +292,70 @@ ISharedNotebook & ISharedNotebook::operator=(ISharedNotebook && other)
     return *this;
 }
 
+bool ISharedNotebook::hasRecipientUsername() const
+{
+    return GetEnSharedNotebook().recipientUsername.isSet();
+}
+
+const QString & ISharedNotebook::recipientUsername() const
+{
+    return GetEnSharedNotebook().recipientUsername.ref();
+}
+
+void ISharedNotebook::setRecipientUsername(const QString & recipientUsername)
+{
+    if (recipientUsername.isEmpty()) {
+        GetEnSharedNotebook().recipientUsername.clear();
+    }
+    else {
+        GetEnSharedNotebook().recipientUsername = recipientUsername;
+    }
+}
+
+bool ISharedNotebook::hasRecipientUserId() const
+{
+    return GetEnSharedNotebook().recipientUserId.isSet();
+}
+
+qint32 ISharedNotebook::recipientUserId() const
+{
+    return GetEnSharedNotebook().recipientUserId.ref();
+}
+
+void ISharedNotebook::setRecipientUserId(const qint32 recipientUserId)
+{
+    GetEnSharedNotebook().recipientUserId = recipientUserId;
+}
+
+bool ISharedNotebook::hasAssignmentTimestamp() const
+{
+    return GetEnSharedNotebook().serviceAssigned.isSet();
+}
+
+qint64 ISharedNotebook::assignmentTimestamp() const
+{
+    return GetEnSharedNotebook().serviceAssigned.ref();
+}
+
+void ISharedNotebook::setAssignmentTimestamp(const qint64 timestamp)
+{
+    if (timestamp >= 0) {
+        GetEnSharedNotebook().serviceAssigned = timestamp;
+    }
+    else {
+        GetEnSharedNotebook().serviceAssigned.clear();
+    }
+}
+
 QTextStream & ISharedNotebook::print(QTextStream & strm) const
 {
-    strm << "SharedNotebook { \n";
+    strm << QStringLiteral("SharedNotebook {\n");
+    strm << QStringLiteral("  index in notebook: ") << QString::number(m_indexInNotebook)
+         << QStringLiteral(";\n");
 
     const qevercloud::SharedNotebook & sharedNotebook = GetEnSharedNotebook();
-
-#define INSERT_DELIMITER \
-    strm << "; \n";
-
-    if (sharedNotebook.id.isSet()) {
-        strm << "id: " << QString::number(sharedNotebook.id);
-    }
-    else {
-        strm << "id is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.userId.isSet()) {
-        strm << "userId: " << QString::number(sharedNotebook.userId);
-    }
-    else {
-        strm << "userId is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.notebookGuid.isSet()) {
-        strm << "notebookGuid: " << sharedNotebook.notebookGuid;
-    }
-    else {
-        strm << "notebookGuid is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.email.isSet()) {
-        strm << "email: " << sharedNotebook.email;
-    }
-    else {
-        strm << "email is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.serviceCreated.isSet()) {
-        strm << "creationTimestamp: " << QString::number(sharedNotebook.serviceCreated)
-             << ", datetime: " << printableDateTimeFromTimestamp(sharedNotebook.serviceCreated);
-    }
-    else {
-        strm << "creationTimestamp is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.serviceUpdated.isSet()) {
-        strm << "modificationTimestamp: " << QString::number(sharedNotebook.serviceUpdated)
-             << ", datetime: " << printableDateTimeFromTimestamp(sharedNotebook.serviceUpdated);
-    }
-    else {
-        strm << "modificationTimestamp is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.shareKey.isSet()) {
-        strm << "shareKey: " << sharedNotebook.shareKey;
-    }
-    else {
-        strm << "shareKey is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.username.isSet()) {
-        strm << "username: " << sharedNotebook.username;
-    }
-    else {
-        strm << "username is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.privilege.isSet()) {
-        strm << "privilegeLevel: " << sharedNotebook.privilege;
-    }
-    else {
-        strm << "privilegeLevel is not set";
-    }
-    strm << "; \n";
-
-    if (sharedNotebook.allowPreview.isSet()) {
-        strm << "allowPreview: " << (sharedNotebook.allowPreview ? "true" : "false");
-    }
-    else {
-        strm << "allowPreview is not set";
-    }
-    INSERT_DELIMITER
-
-    if (sharedNotebook.recipientSettings.isSet())
-    {
-        const qevercloud::SharedNotebookRecipientSettings & recipientSettings = sharedNotebook.recipientSettings;
-
-        if (recipientSettings.reminderNotifyEmail.isSet()) {
-            strm << "reminderNotifyEmail: " << (recipientSettings.reminderNotifyEmail ? "true" : "false");
-        }
-        else {
-            strm << "reminderNotifyEmail is not set";
-        }
-        INSERT_DELIMITER
-
-        if (recipientSettings.reminderNotifyInApp.isSet()) {
-            strm << "reminderNotifyApp: " << (recipientSettings.reminderNotifyInApp ? "true" : "false");
-        }
-        else {
-            strm << "reminderNotifyApp is not set";
-        }
-        INSERT_DELIMITER
-    }
-    else {
-        strm << "recipientSettings are not set; \n";
-    }
-
-#undef INSERT_DELIMITER
-
+    strm << sharedNotebook;
+    strm << QStringLiteral("};\n");
     return strm;
 }
 

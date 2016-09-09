@@ -71,10 +71,6 @@ public:
     qint64 modificationTimestamp() const;
     void setModificationTimestamp(const qint64 timestamp);
 
-    bool hasShareKey() const;
-    const QString & shareKey() const;
-    void setShareKey(const QString & shareKey);
-
     bool hasUsername() const;
     const QString & username() const;
     void setUsername(const QString & username);
@@ -84,10 +80,6 @@ public:
     void setPrivilegeLevel(const SharedNotebookPrivilegeLevel privilegeLevel);
     void setPrivilegeLevel(const qint8 privilegeLevel);
 
-    bool hasAllowPreview() const;
-    bool allowPreview() const;
-    void setAllowPreview(const bool allowPreview);
-
     bool hasReminderNotifyEmail() const;
     bool reminderNotifyEmail() const;
     void setReminderNotifyEmail(const bool notifyEmail);
@@ -95,6 +87,18 @@ public:
     bool hasReminderNotifyApp() const;
     bool reminderNotifyApp() const;
     void setReminderNotifyApp(const bool notifyApp);
+
+    bool hasRecipientUsername() const;
+    const QString & recipientUsername() const;
+    void setRecipientUsername(const QString & recipientUsername);
+
+    bool hasRecipientUserId() const;
+    qint32 recipientUserId() const;
+    void setRecipientUserId(const qint32 userId);
+
+    bool hasAssignmentTimestamp() const;
+    qint64 assignmentTimestamp() const;
+    void setAssignmentTimestamp(const qint64 timestamp);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

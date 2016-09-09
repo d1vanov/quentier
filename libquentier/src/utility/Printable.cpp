@@ -756,6 +756,9 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & 
     PRINT_FIELD(sharedNotebook, serviceUpdated, quentier::printableDateTimeFromTimestamp);
     PRINT_FIELD(sharedNotebook, privilege, sharedNotebookPrivilegeLevelToString);
     PRINT_FIELD(sharedNotebook, recipientSettings, ToString);
+    PRINT_FIELD(sharedNotebook, recipientUsername);
+    PRINT_FIELD(sharedNotebook, recipientUserId, QString::number);
+    PRINT_FIELD(sharedNotebook, serviceAssigned, quentier::printableDateTimeFromTimestamp);
 
     strm << QStringLiteral("};\n");
     return strm;
