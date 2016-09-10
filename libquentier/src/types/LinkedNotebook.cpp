@@ -189,23 +189,23 @@ void LinkedNotebook::setShardId(const QString & shardId)
     }
 }
 
-bool LinkedNotebook::hasShareKey() const
+bool LinkedNotebook::hasSharedNotebookGlobalId() const
 {
-    return d->m_qecLinkedNotebook.shareKey.isSet();
+    return d->m_qecLinkedNotebook.sharedNotebookGlobalId.isSet();
 }
 
-const QString & LinkedNotebook::shareKey() const
+const QString & LinkedNotebook::sharedNotebookGlobalId() const
 {
-    return d->m_qecLinkedNotebook.shareKey;
+    return d->m_qecLinkedNotebook.sharedNotebookGlobalId.ref();
 }
 
-void LinkedNotebook::setShareKey(const QString & shareKey)
+void LinkedNotebook::setSharedNotebookGlobalId(const QString & sharedNotebookGlobalId)
 {
-    if (!shareKey.isEmpty()) {
-        d->m_qecLinkedNotebook.shareKey = shareKey;
+    if (!sharedNotebookGlobalId.isEmpty()) {
+        d->m_qecLinkedNotebook.sharedNotebookGlobalId = sharedNotebookGlobalId;
     }
     else {
-        d->m_qecLinkedNotebook.shareKey.clear();
+        d->m_qecLinkedNotebook.sharedNotebookGlobalId.clear();
     }
 }
 
@@ -306,80 +306,11 @@ void LinkedNotebook::setBusinessId(const qint32 businessId)
 
 QTextStream & LinkedNotebook::print(QTextStream & strm) const
 {
-    strm << "LinkedNotebook: { \n";
-    strm << "isDirty = " << (isDirty() ? "true" : "false") << "\n";
-
-    if (d->m_qecLinkedNotebook.guid.isSet()) {
-        strm << "guid = " << d->m_qecLinkedNotebook.guid << "\n";
-    }
-    else {
-        strm << "guid is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.updateSequenceNum.isSet()) {
-        strm << "updateSequenceNum = " << QString::number(d->m_qecLinkedNotebook.updateSequenceNum) << "\n";
-    }
-    else {
-        strm << "updateSequenceNum is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.shareName.isSet()) {
-        strm << "shareName = " << d->m_qecLinkedNotebook.shareName << "\n";
-    }
-    else {
-        strm << "shareName is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.shardId.isSet()) {
-        strm << "shardId = " << d->m_qecLinkedNotebook.shardId << "\n";
-    }
-    else {
-        strm << "shardId is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.shareKey.isSet()) {
-        strm << "shareKey = " << d->m_qecLinkedNotebook.shareKey << "\n";
-    }
-    else {
-        strm << "shareKey is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.uri.isSet()) {
-        strm << "uri = " << d->m_qecLinkedNotebook.uri << "\n";
-    }
-    else {
-        strm << "uri is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.noteStoreUrl.isSet()) {
-        strm << "noteStoreUrl = " << d->m_qecLinkedNotebook.noteStoreUrl << "\n";
-    }
-    else {
-        strm << "noteStoreUrl is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.webApiUrlPrefix.isSet()) {
-        strm << "webApiUrlPrefix = " << d->m_qecLinkedNotebook.webApiUrlPrefix << "\n";
-    }
-    else {
-        strm << "webApiUrlPrefix is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.stack.isSet()) {
-        strm << "stack = " << d->m_qecLinkedNotebook.stack << "\n";
-    }
-    else {
-        strm << "stack is not set" << "\n";
-    }
-
-    if (d->m_qecLinkedNotebook.businessId.isSet()) {
-        strm << "businessId = " << d->m_qecLinkedNotebook.businessId << "\n";
-    }
-    else {
-        strm << "businessId is not set" << "\n";
-    }
-
-    strm << "}; \n";
+    strm << QStringLiteral("LinkedNotebook: {\n");
+    strm << QStringLiteral("isDirty = ") << (isDirty() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral("\n");
+    strm << d->m_qecLinkedNotebook;
+    strm << QStringLiteral("};\n");
     return strm;
 }
 

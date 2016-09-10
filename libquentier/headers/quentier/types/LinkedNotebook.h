@@ -80,9 +80,9 @@ public:
     const QString & shardId() const;
     void setShardId(const QString & shardId);
 
-    bool hasShareKey() const;
-    const QString & shareKey() const;
-    void setShareKey(const QString & shareKey);
+    bool hasSharedNotebookGlobalId() const;
+    const QString & sharedNotebookGlobalId() const;
+    void setSharedNotebookGlobalId(const QString & sharedNotebookGlobalId);
 
     bool hasUri() const;
     const QString & uri() const;

@@ -683,6 +683,7 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::LinkedNotebook & 
     PRINT_FIELD(linkedNotebook, shareName);
     PRINT_FIELD(linkedNotebook, username);
     PRINT_FIELD(linkedNotebook, shardId);
+    PRINT_FIELD(linkedNotebook, sharedNotebookGlobalId);
     PRINT_FIELD(linkedNotebook, uri);
     PRINT_FIELD(linkedNotebook, guid);
     PRINT_FIELD(linkedNotebook, updateSequenceNum, QString::number);
