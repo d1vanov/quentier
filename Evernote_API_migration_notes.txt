@@ -1,0 +1,35 @@
+Evernote API 1.25 -> 1.28
+
+User:
+  added fields:
+    serviceLevel (new enum)
+    photoUrl
+    photoUrlLastUpdated
+    accountLimits (new struct)
+  removed fields:
+    premiumInfo (now the entire PremiumInfo struct seems completely useless for third-party Evernote clients)
+
+UserAttributes:
+  added fields:
+    emailAddressLastConfirmed
+    passwordUpdated
+    salesforcePushEnabled
+    shouldLogClientEvent
+  removed fields:
+    taxExempt
+
+Accounting:
+  added fields:
+    availablePoints
+  removed fields:
+    uploadLimit
+  deprecated fields:
+    businessId (use the one from BusinessUserInfo)
+    businessName (use the one from BusinessUserInfo)
+    businessRole (use the one from BusinessUserInfo)
+    
+LinkedNotebook:
+  added fields:
+    sharedNotebookGlobalId
+  removed fields:
+    shareKey
