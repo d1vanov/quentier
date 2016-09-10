@@ -108,8 +108,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceUserAttributesQueryPrepared(false),
     m_insertOrReplaceAccountingQuery(),
     m_insertOrReplaceAccountingQueryPrepared(false),
-    m_insertOrReplacePremiumUserInfoQuery(),
-    m_insertOrReplacePremiumUserInfoQueryPrepared(false),
+    m_insertOrReplaceAccountLimitsQuery(),
+    m_insertOrReplaceAccountLimitsQueryPrepared(false),
     m_insertOrReplaceBusinessUserInfoQuery(),
     m_insertOrReplaceBusinessUserInfoQueryPrepared(false),
     m_insertOrReplaceUserAttributesViewedPromotionsQuery(),
@@ -156,19 +156,19 @@ bool LocalStorageManagerPrivate::addUser(const IUser & user, QNLocalizedString &
     bool res = user.checkParameters(error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
-        QNWARNING("Found invalid user: " << user << "\nError: " << error);
+        QNWARNING(QStringLiteral("Found invalid user: ") << user << QStringLiteral("\nError: ") << error);
         return false;
     }
 
     QString userId = QString::number(user.id());
-    bool exists = rowExists("Users", "id", QVariant(userId));
+    bool exists = rowExists(QStringLiteral("Users"), QStringLiteral("id"), QVariant(userId));
     if (exists) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("user with the same id already exists");
-        QNWARNING(errorDescription << ", id: " << userId);
+        QNWARNING(errorDescription << QStringLiteral(", id: ") << userId);
         return false;
     }
 
@@ -176,7 +176,7 @@ bool LocalStorageManagerPrivate::addUser(const IUser & user, QNLocalizedString &
     res = insertOrReplaceUser(user, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -193,19 +193,19 @@ bool LocalStorageManagerPrivate::updateUser(const IUser & user, QNLocalizedStrin
     bool res = user.checkParameters(error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
-        QNWARNING("Found invalid user: " << user << "\nError: " << error);
+        QNWARNING(QStringLiteral("Found invalid user: ") << user << QStringLiteral("\nError: ") << error);
         return false;
     }
 
     QString userId = QString::number(user.id());
-    bool exists = rowExists("Users", "id", QVariant(userId));
+    bool exists = rowExists(QStringLiteral("Users"), QStringLiteral("id"), QVariant(userId));
     if (!exists) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("user id was not found");
-        QNWARNING(errorDescription << ", id: " << userId);
+        QNWARNING(errorDescription << QStringLiteral(", id: ") << userId);
         return false;
     }
 
@@ -213,7 +213,7 @@ bool LocalStorageManagerPrivate::updateUser(const IUser & user, QNLocalizedStrin
     res = insertOrReplaceUser(user, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -224,13 +224,13 @@ bool LocalStorageManagerPrivate::updateUser(const IUser & user, QNLocalizedStrin
 
 bool LocalStorageManagerPrivate::findUser(IUser & user, QNLocalizedString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::findUser");
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::findUser"));
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't find user data in the local storage database");
 
     if (!user.hasId()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("user id is not set");
         QNWARNING(errorDescription);
         return false;
@@ -238,7 +238,7 @@ bool LocalStorageManagerPrivate::findUser(IUser & user, QNLocalizedString & erro
 
     qint32 id = user.id();
     QString userId = QString::number(id);
-    QNDEBUG("Looking for user with id = " << userId);
+    QNDEBUG(QStringLiteral("Looking for user with id = ") << userId);
 
     QString queryString = QString("SELECT * FROM Users LEFT OUTER JOIN UserAttributes "
                                   "ON Users.id = UserAttributes.id "
@@ -247,7 +247,7 @@ bool LocalStorageManagerPrivate::findUser(IUser & user, QNLocalizedString & erro
                                   "LEFT OUTER JOIN UserAttributesRecentMailedAddresses "
                                   "ON Users.id = UserAttributesRecentMailedAddresses.id "
                                   "LEFT OUTER JOIN Accounting ON Users.id = Accounting.id "
-                                  "LEFT OUTER JOIN PremiumInfo ON Users.id = PremiumInfo.id "
+                                  "LEFT OUTER JOIN AccountLimits ON Users.id = AccountLimits.id "
                                   "LEFT OUTER JOIN BusinessUserInfo ON Users.id = BusinessUserInfo.id "
                                   "WHERE Users.id = %1").arg(userId);
     QSqlQuery query(m_sqlDatabase);
@@ -278,7 +278,7 @@ bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QNLocalizedStrin
 
     if (!user.hasDeletionTimestamp()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("deletion timestamp is not set");
         QNWARNING(errorDescription);
@@ -287,7 +287,7 @@ bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QNLocalizedStrin
 
     if (!user.hasId()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("user id is not set");
         QNWARNING(errorDescription);
@@ -298,9 +298,9 @@ bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QNLocalizedStrin
     QSqlQuery & query = m_deleteUserQuery;
     DATABASE_CHECK_AND_SET_ERROR();
 
-    query.bindValue(":userDeletionTimestamp", user.deletionTimestamp());
-    query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
-    query.bindValue(":id", user.id());
+    query.bindValue(QStringLiteral(":userDeletionTimestamp"), user.deletionTimestamp());
+    query.bindValue(QStringLiteral(":userIsLocal"), (user.isLocal() ? 1 : 0));
+    query.bindValue(QStringLiteral(":id"), user.id());
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
@@ -315,7 +315,7 @@ bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QNLocalizedStri
 
     if (!user.hasId()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("user id is not set");
         QNWARNING(errorDescription);
@@ -332,21 +332,21 @@ bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QNLocalizedStri
 
 #define SET_ERROR() \
     errorDescription = errorPrefix; \
-    errorDescription += ": "; \
+    errorDescription += QStringLiteral(": "); \
     errorDescription += QT_TR_NOOP("last error"); \
-    errorDescription += ": "; \
-    QNCRITICAL(errorDescription << query.lastError() << ", last query: " << query.lastQuery()); \
+    errorDescription += QStringLiteral(": "); \
+    QNCRITICAL(errorDescription << query.lastError() << QStringLiteral(", last query: ") << query.lastQuery()); \
     errorDescription += query.lastError().text()
 
 #define SET_INT_CONVERSION_ERROR() \
     errorDescription = errorPrefix; \
-    errorDescription += ": "; \
+    errorDescription += QStringLiteral(": "); \
     errorDescription += QT_TR_NOOP("can't convert the fetched data to int"); \
-    QNCRITICAL(errorDescription << ": " << query.value(0))
+    QNCRITICAL(errorDescription << QStringLiteral(": ") << query.value(0))
 
 #define SET_NO_DATA_FOUND() \
     errorDescription = errorPrefix; \
-    errorDescription += ": "; \
+    errorDescription += QStringLiteral(": "); \
     errorDescription += QT_TR_NOOP("no data found"); \
     QNWARNING(errorDescription)
 
@@ -370,7 +370,7 @@ int LocalStorageManagerPrivate::notebookCount(QNLocalizedString & errorDescripti
     }
 
     if (!query.next()) {
-        QNDEBUG("Found no notebooks in local storage database");
+        QNDEBUG(QStringLiteral("Found no notebooks in local storage database"));
         query.finish();
         return 0;
     }
@@ -403,7 +403,7 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     m_currentUserId = userId;
 
     m_applicationPersistenceStoragePath = applicationPersistentStoragePath();
-    m_applicationPersistenceStoragePath.append("/" + m_currentUsername + QString::number(m_currentUserId));
+    m_applicationPersistenceStoragePath.append(QStringLiteral("/") + m_currentUsername + QString::number(m_currentUserId));
 
     QDir databaseFolder(m_applicationPersistenceStoragePath);
     if (!databaseFolder.exists())
@@ -413,26 +413,26 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         }
     }
 
-    QString sqlDriverName = "QSQLITE";
+    QString sqlDriverName = QStringLiteral("QSQLITE");
     bool isSqlDriverAvailable = QSqlDatabase::isDriverAvailable(sqlDriverName);
     if (!isSqlDriverAvailable)
     {
         QNLocalizedString error = QT_TR_NOOP("SQL driver");
-        error += " ";
+        error += QStringLiteral(" ");
         error += sqlDriverName;
-        error += " ";
+        error += QStringLiteral(" ");
         // TRANSLATOR: <SQL driver <smth> > is not available>
         error += QT_TR_NOOP("is not available. Available SQL drivers");
-        error += ": ";
+        error += QStringLiteral(": ");
         const QStringList drivers = QSqlDatabase::drivers();
         for(auto it = drivers.begin(), end = drivers.end(); it != end; ++it) {
             const QString & driver = *it;
-            error += QString("{" + driver + "} ");
+            error += QString(QStringLiteral("{") + driver + QStringLiteral("} "));
         }
         throw DatabaseSqlErrorException(error);
     }
 
-    QString sqlDatabaseConnectionName = "quentier_sqlite_connection";
+    QString sqlDatabaseConnectionName = QStringLiteral("quentier_sqlite_connection");
     if (!QSqlDatabase::contains(sqlDatabaseConnectionName)) {
         m_sqlDatabase = QSqlDatabase::addDatabase(sqlDriverName, sqlDatabaseConnectionName);
     }
@@ -440,7 +440,7 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         m_sqlDatabase = QSqlDatabase::database(sqlDatabaseConnectionName);
     }
 
-    m_databaseFilePath = m_applicationPersistenceStoragePath + "/" + QString(QUENTIER_DATABASE_NAME);
+    m_databaseFilePath = m_applicationPersistenceStoragePath + QStringLiteral("/") + QString(QUENTIER_DATABASE_NAME);
     QNDEBUG("Attempting to open or create database file: " + m_databaseFilePath);
 
     QFileInfo databaseFileInfo(m_databaseFilePath);
@@ -448,9 +448,9 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     {
         if (Q_UNLIKELY(!databaseFileInfo.isReadable())) {
             QNLocalizedString error = QT_TR_NOOP("local storage database file");
-            error += " ";
+            error += QStringLiteral(" ");
             error += m_databaseFilePath;
-            error += " ";
+            error += QStringLiteral(" ");
             // TRANSLATOR: local storage database file is not readable
             error += QT_TR_NOOP("is not readable");
             throw DatabaseOpeningException(error);
@@ -458,9 +458,9 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
 
         if (Q_UNLIKELY(!databaseFileInfo.isWritable())) {
             QNLocalizedString error = QT_TR_NOOP("local storage database file");
-            error += " ";
+            error += QStringLiteral(" ");
             error += m_databaseFilePath;
-            error += " ";
+            error += QStringLiteral(" ");
             // TRANSLATOR: local storage database file is not writable
             error += QT_TR_NOOP("is not writable");
             throw DatabaseOpeningException(error);
@@ -482,9 +482,9 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     }
     catch(boost::interprocess::interprocess_exception & exc) {
         QNLocalizedString error = QT_TR_NOOP("can't lock the database file: error code");
-        error += " = ";
+        error += QStringLiteral(" = ");
         error += QString::number(exc.get_error_code());
-        error += "; ";
+        error += QStringLiteral("; ");
         error += QString::fromUtf8(exc.what());
         throw DatabaseLockFailedException(error);
     }
@@ -493,25 +493,26 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     {
         if (!overrideLock) {
             QNLocalizedString error = QT_TR_NOOP("local storage database file");
-            error += " ";
+            error += QStringLiteral(" ");
             error += m_databaseFilePath;
-            error += " ";
+            error += QStringLiteral(" ");
             // TRANSLATOR: local storage database file is locked
             error += QT_TR_NOOP("is locked");
             throw DatabaseLockedException(error);
         }
         else {
-            QNINFO("Local storage database file " << m_databaseFilePath << " is locked but nobody cares");
+            QNINFO(QStringLiteral("Local storage database file ") << m_databaseFilePath
+                   << QStringLiteral(" is locked but nobody cares"));
         }
     }
 
     if (startFromScratch) {
-        QNDEBUG("Cleaning up the whole database for user with name " << m_currentUsername
-                << " and id " << QString::number(m_currentUserId));
+        QNDEBUG(QStringLiteral("Cleaning up the whole database for user with name ")
+                << m_currentUsername << QStringLiteral(" and id ") << QString::number(m_currentUserId));
         clearDatabaseFile();
     }
 
-    m_sqlDatabase.setHostName("localhost");
+    m_sqlDatabase.setHostName(QStringLiteral("localhost"));
     m_sqlDatabase.setUserName(username);
     m_sqlDatabase.setPassword(username);
     m_sqlDatabase.setDatabaseName(m_databaseFilePath);
@@ -520,16 +521,16 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     {
         QString lastErrorText = m_sqlDatabase.lastError().text();
         QNLocalizedString error = QT_TR_NOOP("can't open the local storage database");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += lastErrorText;
         throw DatabaseOpeningException(error);
     }
 
     QSqlQuery query(m_sqlDatabase);
-    if (!query.exec("PRAGMA foreign_keys = ON")) {
+    if (!query.exec(QStringLiteral("PRAGMA foreign_keys = ON"))) {
         QString lastErrorText = m_sqlDatabase.lastError().text();
         QNLocalizedString error = QT_TR_NOOP("can't set foreign_keys = ON pragma for the local storage database");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += lastErrorText;
         throw DatabaseSqlErrorException(error);
     }
@@ -539,16 +540,16 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     if (!query.exec(pageSizeQuery)) {
         QString lastErrorText = m_sqlDatabase.lastError().text();
         QNLocalizedString error = QT_TR_NOOP("can't set page_size pragma for the local storage database");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += lastErrorText;
         throw DatabaseSqlErrorException(error);
     }
 
-    QString writeAheadLoggingQuery = QString("PRAGMA journal_mode=WAL");
+    QString writeAheadLoggingQuery = QStringLiteral("PRAGMA journal_mode=WAL");
     if (!query.exec(writeAheadLoggingQuery)) {
         QString lastErrorText = m_sqlDatabase.lastError().text();
         QNLocalizedString error = QT_TR_NOOP("can't set journal_mode pragma to WAL for the local storage database");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += lastErrorText;
         throw DatabaseSqlErrorException(error);
     }
@@ -556,17 +557,17 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     QNLocalizedString errorDescription;
     if (!createTables(errorDescription)) {
         QNLocalizedString error = QT_TR_NOOP("can't initialize tables in the local storage database");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += errorDescription.localizedString();
         throw DatabaseSqlErrorException(error);
     }
 
     // TODO: in future should check whether the upgrade from the previous database version is necessary
 
-    if (!query.exec("INSERT INTO Auxiliary DEFAULT VALUES")) {
+    if (!query.exec(QStringLiteral("INSERT INTO Auxiliary DEFAULT VALUES"))) {
         QString lastErrorText = m_sqlDatabase.lastError().text();
         QNLocalizedString error = QT_TR_NOOP("can't initialize the auxiliary info table in the local storage database");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += lastErrorText;
         throw DatabaseSqlErrorException(error);
     }
@@ -592,7 +593,7 @@ int LocalStorageManagerPrivate::userCount(QNLocalizedString & errorDescription) 
     }
 
     if (!query.next()) {
-        QNDEBUG("Found no users in local storage database");
+        QNDEBUG(QStringLiteral("Found no users in local storage database"));
         query.finish();
         return 0;
     }
@@ -819,7 +820,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QNLocalizedSt
                                   "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
                                   "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
                                   "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                                  "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                                  "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
                                   "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                                   "WHERE (Notebooks.%1 = '%2'").arg(column,value);
 
@@ -876,7 +877,7 @@ bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QNLoca
                           "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
                           "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
                           "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                          "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                          "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
                           "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                           "WHERE isDefault = 1 LIMIT 1");
     DATABASE_CHECK_AND_SET_ERROR();
@@ -919,7 +920,7 @@ bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QNLoc
                           "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
                           "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
                           "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                          "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                          "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
                           "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
                           "WHERE isLastUsed = 1 LIMIT 1");
     DATABASE_CHECK_AND_SET_ERROR();
@@ -3737,141 +3738,144 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     QSqlQuery query(m_sqlDatabase);
     bool res;
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS Auxiliary("
-                     "  lock                        CHAR(1) PRIMARY KEY     NOT NULL DEFAULT 'X'    CHECK (lock='X'), "
-                     "  version                     INTEGER                 NOT NULL DEFAULT 1"
-                     ")");
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't create Auxiliary table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Auxiliary("
+                                    "  lock                        CHAR(1) PRIMARY KEY     NOT NULL DEFAULT 'X'    CHECK (lock='X'), "
+                                    "  version                     INTEGER                 NOT NULL DEFAULT 1"
+                                    ")"));
+    QNLocalizedString errorPrefix = QStringLiteral(QT_TR_NOOP("can't create Auxiliary table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS Users("
-                     "  id                          INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  username                    TEXT                    DEFAULT NULL, "
-                     "  email                       TEXT                    DEFAULT NULL, "
-                     "  name                        TEXT                    DEFAULT NULL, "
-                     "  timezone                    TEXT                    DEFAULT NULL, "
-                     "  privilege                   INTEGER                 DEFAULT NULL, "
-                     "  userCreationTimestamp       INTEGER                 DEFAULT NULL, "
-                     "  userModificationTimestamp   INTEGER                 DEFAULT NULL, "
-                     "  userIsDirty                 INTEGER                 NOT NULL, "
-                     "  userIsLocal                 INTEGER                 NOT NULL, "
-                     "  userDeletionTimestamp       INTEGER                 DEFAULT NULL, "
-                     "  userIsActive                INTEGER                 DEFAULT NULL, "
-                     "  userShardId                 TEXT                    DEFAULT NULL"
-                     ")");
-    errorPrefix = QT_TR_NOOP("can't create Users table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Users("
+                                    "  id                              INTEGER PRIMARY KEY     NOT NULL UNIQUE, "
+                                    "  username                        TEXT                    DEFAULT NULL, "
+                                    "  email                           TEXT                    DEFAULT NULL, "
+                                    "  name                            TEXT                    DEFAULT NULL, "
+                                    "  timezone                        TEXT                    DEFAULT NULL, "
+                                    "  privilege                       INTEGER                 DEFAULT NULL, "
+                                    "  serviceLevel                    INTEGER                 DEFAULT NULL, "
+                                    "  userCreationTimestamp           INTEGER                 DEFAULT NULL, "
+                                    "  userModificationTimestamp       INTEGER                 DEFAULT NULL, "
+                                    "  userIsDirty                     INTEGER                 NOT NULL, "
+                                    "  userIsLocal                     INTEGER                 NOT NULL, "
+                                    "  userDeletionTimestamp           INTEGER                 DEFAULT NULL, "
+                                    "  userIsActive                    INTEGER                 DEFAULT NULL, "
+                                    "  userShardId                     TEXT                    DEFAULT NULL, "
+                                    "  userPhotoUrl                    TEXT                    DEFAULT NULL, "
+                                    "  userPhotoLastUpdateTimestamp    INTEGER                 DEFAULT NULL)"
+                                    ")"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create Users table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributes("
-                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
-                     "  defaultLocationName         TEXT                    DEFAULT NULL, "
-                     "  defaultLatitude             REAL                    DEFAULT NULL, "
-                     "  defaultLongitude            REAL                    DEFAULT NULL, "
-                     "  preactivation               INTEGER                 DEFAULT NULL, "
-                     "  incomingEmailAddress        TEXT                    DEFAULT NULL, "
-                     "  comments                    TEXT                    DEFAULT NULL, "
-                     "  dateAgreedToTermsOfService  INTEGER                 DEFAULT NULL, "
-                     "  maxReferrals                INTEGER                 DEFAULT NULL, "
-                     "  referralCount               INTEGER                 DEFAULT NULL, "
-                     "  refererCode                 TEXT                    DEFAULT NULL, "
-                     "  sentEmailDate               INTEGER                 DEFAULT NULL, "
-                     "  sentEmailCount              INTEGER                 DEFAULT NULL, "
-                     "  dailyEmailLimit             INTEGER                 DEFAULT NULL, "
-                     "  emailOptOutDate             INTEGER                 DEFAULT NULL, "
-                     "  partnerEmailOptInDate       INTEGER                 DEFAULT NULL, "
-                     "  preferredLanguage           TEXT                    DEFAULT NULL, "
-                     "  preferredCountry            TEXT                    DEFAULT NULL, "
-                     "  clipFullPage                INTEGER                 DEFAULT NULL, "
-                     "  twitterUserName             TEXT                    DEFAULT NULL, "
-                     "  twitterId                   TEXT                    DEFAULT NULL, "
-                     "  groupName                   TEXT                    DEFAULT NULL, "
-                     "  recognitionLanguage         TEXT                    DEFAULT NULL, "
-                     "  referralProof               TEXT                    DEFAULT NULL, "
-                     "  educationalDiscount         INTEGER                 DEFAULT NULL, "
-                     "  businessAddress             TEXT                    DEFAULT NULL, "
-                     "  hideSponsorBilling          INTEGER                 DEFAULT NULL, "
-                     "  taxExempt                   INTEGER                 DEFAULT NULL, "
-                     "  useEmailAutoFiling          INTEGER                 DEFAULT NULL, "
-                     "  reminderEmailConfig         INTEGER                 DEFAULT NULL)");
-    errorPrefix = QT_TR_NOOP("can't create UserAttributes table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS UserAttributes("
+                                    "  id REFERENCES Users(id) ON UPDATE CASCADE, "
+                                    "  defaultLocationName         TEXT                    DEFAULT NULL, "
+                                    "  defaultLatitude             REAL                    DEFAULT NULL, "
+                                    "  defaultLongitude            REAL                    DEFAULT NULL, "
+                                    "  preactivation               INTEGER                 DEFAULT NULL, "
+                                    "  incomingEmailAddress        TEXT                    DEFAULT NULL, "
+                                    "  comments                    TEXT                    DEFAULT NULL, "
+                                    "  dateAgreedToTermsOfService  INTEGER                 DEFAULT NULL, "
+                                    "  maxReferrals                INTEGER                 DEFAULT NULL, "
+                                    "  referralCount               INTEGER                 DEFAULT NULL, "
+                                    "  refererCode                 TEXT                    DEFAULT NULL, "
+                                    "  sentEmailDate               INTEGER                 DEFAULT NULL, "
+                                    "  sentEmailCount              INTEGER                 DEFAULT NULL, "
+                                    "  dailyEmailLimit             INTEGER                 DEFAULT NULL, "
+                                    "  emailOptOutDate             INTEGER                 DEFAULT NULL, "
+                                    "  partnerEmailOptInDate       INTEGER                 DEFAULT NULL, "
+                                    "  preferredLanguage           TEXT                    DEFAULT NULL, "
+                                    "  preferredCountry            TEXT                    DEFAULT NULL, "
+                                    "  clipFullPage                INTEGER                 DEFAULT NULL, "
+                                    "  twitterUserName             TEXT                    DEFAULT NULL, "
+                                    "  twitterId                   TEXT                    DEFAULT NULL, "
+                                    "  groupName                   TEXT                    DEFAULT NULL, "
+                                    "  recognitionLanguage         TEXT                    DEFAULT NULL, "
+                                    "  referralProof               TEXT                    DEFAULT NULL, "
+                                    "  educationalDiscount         INTEGER                 DEFAULT NULL, "
+                                    "  businessAddress             TEXT                    DEFAULT NULL, "
+                                    "  hideSponsorBilling          INTEGER                 DEFAULT NULL, "
+                                    "  useEmailAutoFiling          INTEGER                 DEFAULT NULL, "
+                                    "  reminderEmailConfig         INTEGER                 DEFAULT NULL, "
+                                    "  emailAddressLastConfirmed   INTEGER                 DEFAULT NULL, "
+                                    "  passwordUpdated             INTEGER                 DEFAULT NULL, "
+                                    "  salesforcePushEnabled       INTEGER                 DEFAULT NULL, "
+                                    "  shouldLogClientEvent        INTEGER                 DEFAULT NULL)"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create UserAttributes table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributesViewedPromotions("
-                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
-                     "  promotion               TEXT                    DEFAULT NULL)");
-    errorPrefix = QT_TR_NOOP("can't create UserAttributesViewedPromotions table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS UserAttributesViewedPromotions("
+                                    "  id REFERENCES Users(id) ON UPDATE CASCADE, "
+                                    "  promotion               TEXT                    DEFAULT NULL)"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create UserAttributesViewedPromotions table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS UserAttributesRecentMailedAddresses("
-                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
-                     "  address                 TEXT                    DEFAULT NULL)");
-    errorPrefix = QT_TR_NOOP("can't create UserAttributesRecentMailedAddresses table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS UserAttributesRecentMailedAddresses("
+                                    "  id REFERENCES Users(id) ON UPDATE CASCADE, "
+                                    "  address                 TEXT                    DEFAULT NULL)"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create UserAttributesRecentMailedAddresses table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS Accounting("
-                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
-                     "  uploadLimit                 INTEGER             DEFAULT NULL, "
-                     "  uploadLimitEnd              INTEGER             DEFAULT NULL, "
-                     "  uploadLimitNextMonth        INTEGER             DEFAULT NULL, "
-                     "  premiumServiceStatus        INTEGER             DEFAULT NULL, "
-                     "  premiumOrderNumber          TEXT                DEFAULT NULL, "
-                     "  premiumCommerceService      TEXT                DEFAULT NULL, "
-                     "  premiumServiceStart         INTEGER             DEFAULT NULL, "
-                     "  premiumServiceSKU           TEXT                DEFAULT NULL, "
-                     "  lastSuccessfulCharge        INTEGER             DEFAULT NULL, "
-                     "  lastFailedCharge            INTEGER             DEFAULT NULL, "
-                     "  lastFailedChargeReason      TEXT                DEFAULT NULL, "
-                     "  nextPaymentDue              INTEGER             DEFAULT NULL, "
-                     "  premiumLockUntil            INTEGER             DEFAULT NULL, "
-                     "  updated                     INTEGER             DEFAULT NULL, "
-                     "  premiumSubscriptionNumber   TEXT                DEFAULT NULL, "
-                     "  lastRequestedCharge         INTEGER             DEFAULT NULL, "
-                     "  currency                    TEXT                DEFAULT NULL, "
-                     "  unitPrice                   INTEGER             DEFAULT NULL, "
-                     "  accountingBusinessId        INTEGER             DEFAULT NULL, "
-                     "  accountingBusinessName      TEXT                DEFAULT NULL, "
-                     "  accountingBusinessRole      INTEGER             DEFAULT NULL, "
-                     "  unitDiscount                INTEGER             DEFAULT NULL, "
-                     "  nextChargeDate              INTEGER             DEFAULT NULL)");
-    errorPrefix = QT_TR_NOOP("can't create Accounting table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Accounting("
+                                    "  id REFERENCES Users(id) ON UPDATE CASCADE, "
+                                    "  uploadLimitEnd              INTEGER             DEFAULT NULL, "
+                                    "  uploadLimitNextMonth        INTEGER             DEFAULT NULL, "
+                                    "  premiumServiceStatus        INTEGER             DEFAULT NULL, "
+                                    "  premiumOrderNumber          TEXT                DEFAULT NULL, "
+                                    "  premiumCommerceService      TEXT                DEFAULT NULL, "
+                                    "  premiumServiceStart         INTEGER             DEFAULT NULL, "
+                                    "  premiumServiceSKU           TEXT                DEFAULT NULL, "
+                                    "  lastSuccessfulCharge        INTEGER             DEFAULT NULL, "
+                                    "  lastFailedCharge            INTEGER             DEFAULT NULL, "
+                                    "  lastFailedChargeReason      TEXT                DEFAULT NULL, "
+                                    "  nextPaymentDue              INTEGER             DEFAULT NULL, "
+                                    "  premiumLockUntil            INTEGER             DEFAULT NULL, "
+                                    "  updated                     INTEGER             DEFAULT NULL, "
+                                    "  premiumSubscriptionNumber   TEXT                DEFAULT NULL, "
+                                    "  lastRequestedCharge         INTEGER             DEFAULT NULL, "
+                                    "  currency                    TEXT                DEFAULT NULL, "
+                                    "  unitPrice                   INTEGER             DEFAULT NULL, "
+                                    "  unitDiscount                INTEGER             DEFAULT NULL, "
+                                    "  nextChargeDate              INTEGER             DEFAULT NULL, "
+                                    "  availablePoints             INTEGER             DEFAULT NULL)"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create Accounting table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS PremiumInfo("
-                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
-                     "  currentTime                 INTEGER                 DEFAULT NULL, "
-                     "  premium                     INTEGER                 DEFAULT NULL, "
-                     "  premiumRecurring            INTEGER                 DEFAULT NULL, "
-                     "  premiumExpirationDate       INTEGER                 DEFAULT NULL, "
-                     "  premiumExtendable           INTEGER                 DEFAULT NULL, "
-                     "  premiumPending              INTEGER                 DEFAULT NULL, "
-                     "  premiumCancellationPending  INTEGER                 DEFAULT NULL, "
-                     "  canPurchaseUploadAllowance  INTEGER                 DEFAULT NULL, "
-                     "  sponsoredGroupName          INTEGER                 DEFAULT NULL, "
-                     "  sponsoredGroupRole          INTEGER                 DEFAULT NULL, "
-                     "  premiumUpgradable           INTEGER                 DEFAULT NULL)");
-    errorPrefix = QT_TR_NOOP("can't create PremiumInfo table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS AccountLimits("
+                                    "  id REFERENCES Users(id) ON UPDATE CASCADE, "
+                                    "  userMailLimitDaily          INTEGER             DEFAULT NULL, "
+                                    "  noteSizeMax                 INTEGER             DEFAULT NULL, "
+                                    "  resourceSizeMax             INTEGER             DEFAULT NULL, "
+                                    "  userLinkedNotebookMax       INTEGER             DEFAULT NULL, "
+                                    "  uploadLimit                 INTEGER             DEFAULT NULL, "
+                                    "  userNoteCountMax            INTEGER             DEFAULT NULL, "
+                                    "  userNotebookCountMax        INTEGER             DEFAULT NULL, "
+                                    "  userTagCountMax             INTEGER             DEFAULT NULL, "
+                                    "  noteTagCountMax             INTEGER             DEFAULT NULL, "
+                                    "  userSavedSearchesMax        INTEGER             DEFAULT NULL, "
+                                    "  noteResourceCountMax        INTEGER             DEFAULT NULL)"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create AccountLimits table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
-                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
-                     "  businessId              INTEGER                 DEFAULT NULL, "
-                     "  businessName            TEXT                    DEFAULT NULL, "
-                     "  role                    INTEGER                 DEFAULT NULL, "
-                     "  businessInfoEmail       TEXT                    DEFAULT NULL)");
-    errorPrefix = QT_TR_NOOP("can't create BusinessUserInfo table");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
+                                    "  id REFERENCES Users(id) ON UPDATE CASCADE, "
+                                    "  businessId              INTEGER                 DEFAULT NULL, "
+                                    "  businessName            TEXT                    DEFAULT NULL, "
+                                    "  role                    INTEGER                 DEFAULT NULL, "
+                                    "  businessInfoEmail       TEXT                    DEFAULT NULL)"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create BusinessUserInfo table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TRIGGER on_user_delete_trigger "
-                     "BEFORE DELETE ON Users "
-                     "BEGIN "
-                     "DELETE FROM UserAttributes WHERE id=OLD.id; "
-                     "DELETE FROM UserAttributesViewedPromotions WHERE id=OLD.id; "
-                     "DELETE FROM UserAttributesRecentMailedAddresses WHERE id=OLD.id; "
-                     "DELETE FROM Accounting WHERE id=OLD.id; "
-                     "DELETE FROM PremiumInfo WHERE id=OLD.id; "
-                     "DELETE FROM BusinessUserInfo WHERE id=OLD.id; "
-                     "END");
-    errorPrefix = QT_TR_NOOP("can't create trigger to fire on deletion from users table");
+    res = query.exec(QStringLiteral("CREATE TRIGGER on_user_delete_trigger "
+                                    "BEFORE DELETE ON Users "
+                                    "BEGIN "
+                                    "DELETE FROM UserAttributes WHERE id=OLD.id; "
+                                    "DELETE FROM UserAttributesViewedPromotions WHERE id=OLD.id; "
+                                    "DELETE FROM UserAttributesRecentMailedAddresses WHERE id=OLD.id; "
+                                    "DELETE FROM Accounting WHERE id=OLD.id; "
+                                    "DELETE FROM AccountLimits WHERE id=OLD.id; "
+                                    "DELETE FROM BusinessUserInfo WHERE id=OLD.id; "
+                                    "END"));
+    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create trigger to fire on deletion from users table"));
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
@@ -4452,19 +4456,22 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QNLocal
         QSqlQuery & query = m_insertOrReplaceUserQuery;
         DATABASE_CHECK_AND_SET_ERROR();
 
-        query.bindValue(":id", userId);
-        query.bindValue(":username", (user.hasUsername() ? user.username() : nullValue));
-        query.bindValue(":email", (user.hasEmail() ? user.email() : nullValue));
-        query.bindValue(":name", (user.hasName() ? user.name() : nullValue));
-        query.bindValue(":timezone", (user.hasTimezone() ? user.timezone() : nullValue));
-        query.bindValue(":privilege", (user.hasPrivilegeLevel() ? user.privilegeLevel() : nullValue));
-        query.bindValue(":userCreationTimestamp", (user.hasCreationTimestamp() ? user.creationTimestamp() : nullValue));
-        query.bindValue(":userModificationTimestamp", (user.hasModificationTimestamp() ? user.modificationTimestamp() : nullValue));
-        query.bindValue(":userIsDirty", (user.isDirty() ? 1 : 0));
-        query.bindValue(":userIsLocal", (user.isLocal() ? 1 : 0));
-        query.bindValue(":userDeletionTimestamp", (user.hasDeletionTimestamp() ? user.deletionTimestamp() : nullValue));
-        query.bindValue(":userIsActive", (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
-        query.bindValue(":userShardId", (user.hasShardId() ? user.shardId() : nullValue));
+        query.bindValue(QStringLiteral(":id"), userId);
+        query.bindValue(QStringLiteral(":username"), (user.hasUsername() ? user.username() : nullValue));
+        query.bindValue(QStringLiteral(":email"), (user.hasEmail() ? user.email() : nullValue));
+        query.bindValue(QStringLiteral(":name"), (user.hasName() ? user.name() : nullValue));
+        query.bindValue(QStringLiteral(":timezone"), (user.hasTimezone() ? user.timezone() : nullValue));
+        query.bindValue(QStringLiteral(":privilege"), (user.hasPrivilegeLevel() ? user.privilegeLevel() : nullValue));
+        query.bindValue(QStringLiteral(":serviceLevel"), (user.hasServiceLevel() ? user.serviceLevel() : nullValue));
+        query.bindValue(QStringLiteral(":userCreationTimestamp"), (user.hasCreationTimestamp() ? user.creationTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":userModificationTimestamp"), (user.hasModificationTimestamp() ? user.modificationTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":userIsDirty"), (user.isDirty() ? 1 : 0));
+        query.bindValue(QStringLiteral(":userIsLocal"), (user.isLocal() ? 1 : 0));
+        query.bindValue(QStringLiteral(":userDeletionTimestamp"), (user.hasDeletionTimestamp() ? user.deletionTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":userIsActive"), (user.hasActive() ? (user.active() ? 1 : 0) : nullValue));
+        query.bindValue(QStringLiteral(":userShardId"), (user.hasShardId() ? user.shardId() : nullValue));
+        query.bindValue(QStringLiteral(":userPhotoUrl"), (user.hasPhotoUrl() ? user.photoUrl() : nullValue));
+        query.bindValue(QStringLiteral(":userPhotoLastUpdateTimestamp"), (user.hasPhotoLastUpdateTimestamp() ? user.photoLastUpdateTimestamp() : nullValue));
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR();
@@ -4529,10 +4536,10 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QNLocal
         DATABASE_CHECK_AND_SET_ERROR();
     }
 
-    if (user.hasPremiumInfo())
+    if (user.hasAccountLimits())
     {
         QNLocalizedString error;
-        bool res = insertOrReplacePremiumInfo(user.id(), user.premiumInfo(), error);
+        bool res = insertOrReplaceAccountLimits(user.id(), user.accountLimits(), error);
         if (!res) {
             errorDescription = errorPrefix;
             errorDescription += ": ";
@@ -4542,7 +4549,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QNLocal
     }
     else
     {
-        QString queryString = QString("DELETE FROM PremiumInfo WHERE id=%1").arg(userId);
+        QString queryString = QString("DELETE FROM AccountLimits WHERE id=%1").arg(userId);
         QSqlQuery query(m_sqlDatabase);
         bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR();
@@ -4581,43 +4588,11 @@ bool LocalStorageManagerPrivate::insertOrReplaceBusinessUserInfo(const UserID id
 
     QVariant nullValue;
 
-    query.bindValue(":id", id);
-    query.bindValue(":businessId", (info.businessId.isSet() ? info.businessId.ref() : nullValue));
-    query.bindValue(":businessName", (info.businessName.isSet() ? info.businessName.ref() : nullValue));
-    query.bindValue(":role", (info.role.isSet() ? info.role.ref() : nullValue));
-    query.bindValue(":businessInfoEmail", (info.email.isSet() ? info.email.ref() : nullValue));
-
-    res = query.exec();
-    DATABASE_CHECK_AND_SET_ERROR();
-
-    query.finish();
-    return true;
-}
-
-bool LocalStorageManagerPrivate::insertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
-                                                            QNLocalizedString & errorDescription)
-{
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace premium info");
-
-    bool res = checkAndPrepareInsertOrReplacePremiumUserInfoQuery();
-    QSqlQuery & query = m_insertOrReplacePremiumUserInfoQuery;
-    DATABASE_CHECK_AND_SET_ERROR();
-
-    query.bindValue(":id", id);
-    query.bindValue(":currentTime", info.currentTime);
-    query.bindValue(":premium", (info.premium ? 1 : 0));
-    query.bindValue(":premiumRecurring", (info.premiumRecurring ? 1 : 0));
-    query.bindValue(":premiumExtendable", (info.premiumExtendable ? 1 : 0));
-    query.bindValue(":premiumPending", (info.premiumPending ? 1 : 0));
-    query.bindValue(":premiumCancellationPending", (info.premiumCancellationPending ? 1 : 0));
-    query.bindValue(":canPurchaseUploadAllowance", (info.canPurchaseUploadAllowance ? 1 : 0));
-
-    QVariant nullValue;
-
-    query.bindValue(":premiumExpirationDate", (info.premiumExpirationDate.isSet() ? info.premiumExpirationDate.ref() : nullValue));
-    query.bindValue(":sponsoredGroupName", (info.sponsoredGroupName.isSet() ? info.sponsoredGroupName.ref() : nullValue));
-    query.bindValue(":sponsoredGroupRole", (info.sponsoredGroupRole.isSet() ? info.sponsoredGroupRole.ref() : nullValue));
-    query.bindValue(":premiumUpgradable", (info.premiumUpgradable.isSet() ? (info.premiumUpgradable.ref() ? 1 : 0) : nullValue));
+    query.bindValue(QStringLiteral(":id"), id);
+    query.bindValue(QStringLiteral(":businessId"), (info.businessId.isSet() ? info.businessId.ref() : nullValue));
+    query.bindValue(QStringLiteral(":businessName"), (info.businessName.isSet() ? info.businessName.ref() : nullValue));
+    query.bindValue(QStringLiteral(":role"), (info.role.isSet() ? info.role.ref() : nullValue));
+    query.bindValue(QStringLiteral(":businessInfoEmail"), (info.email.isSet() ? info.email.ref() : nullValue));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
@@ -4635,14 +4610,13 @@ bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, cons
     QSqlQuery & query = m_insertOrReplaceAccountingQuery;
     DATABASE_CHECK_AND_SET_ERROR();
 
-    query.bindValue(":id", id);
+    query.bindValue(QStringLiteral(":id"), id);
 
     QVariant nullValue;
 
 #define CHECK_AND_BIND_VALUE(name) \
-    query.bindValue(":" #name, accounting.name.isSet() ? accounting.name.ref() : nullValue)
+    query.bindValue(QStringLiteral(":" #name), accounting.name.isSet() ? accounting.name.ref() : nullValue)
 
-    CHECK_AND_BIND_VALUE(uploadLimit);
     CHECK_AND_BIND_VALUE(uploadLimitEnd);
     CHECK_AND_BIND_VALUE(uploadLimitNextMonth);
     CHECK_AND_BIND_VALUE(premiumServiceStatus);
@@ -4662,15 +4636,44 @@ bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, cons
     CHECK_AND_BIND_VALUE(unitPrice);
     CHECK_AND_BIND_VALUE(unitDiscount);
     CHECK_AND_BIND_VALUE(nextChargeDate);
+    CHECK_AND_BIND_VALUE(availablePoints);
 
 #undef CHECK_AND_BIND_VALUE
 
-#define CHECK_AND_BIND_VALUE(name, columnName) \
-    query.bindValue(":" #columnName, accounting.name.isSet() ? accounting.name.ref() : nullValue)
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR();
 
-    CHECK_AND_BIND_VALUE(businessId, accountingBusinessId);
-    CHECK_AND_BIND_VALUE(businessName, accountingBusinessName);
-    CHECK_AND_BIND_VALUE(businessRole, accountingBusinessRole);
+    query.finish();
+    return true;
+}
+
+bool LocalStorageManagerPrivate::insertOrReplaceAccountLimits(const UserID id, const qevercloud::AccountLimits & accountLimits,
+                                                              QNLocalizedString & errorDescription)
+{
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace account limits");
+
+    bool res = checkAndPrepareInsertOrReplaceAccountLimitsQuery();
+    QSqlQuery & query = m_insertOrReplaceAccountLimitsQuery;
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    query.bindValue(QStringLiteral(":id"), id);
+
+    QVariant nullValue;
+
+#define CHECK_AND_BIND_VALUE(name) \
+    query.bindValue(QStringLiteral(":" #name), accountLimits.name.isSet() ? accountLimits.name.ref() : nullValue)
+
+    CHECK_AND_BIND_VALUE(userMailLimitDaily);
+    CHECK_AND_BIND_VALUE(noteSizeMax);
+    CHECK_AND_BIND_VALUE(resourceSizeMax);
+    CHECK_AND_BIND_VALUE(userLinkedNotebookMax);
+    CHECK_AND_BIND_VALUE(uploadLimit);
+    CHECK_AND_BIND_VALUE(userNoteCountMax);
+    CHECK_AND_BIND_VALUE(userNotebookCountMax);
+    CHECK_AND_BIND_VALUE(userTagCountMax);
+    CHECK_AND_BIND_VALUE(noteTagCountMax);
+    CHECK_AND_BIND_VALUE(userSavedSearchesMax);
+    CHECK_AND_BIND_VALUE(noteResourceCountMax);
 
 #undef CHECK_AND_BIND_VALUE
 
@@ -4694,10 +4697,10 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
         QSqlQuery & query = m_insertOrReplaceUserAttributesQuery;
         DATABASE_CHECK_AND_SET_ERROR();
 
-        query.bindValue(":id", id);
+        query.bindValue(QStringLiteral(":id"), id);
 
 #define CHECK_AND_BIND_VALUE(name) \
-    query.bindValue(":" #name, (attributes.name.isSet() ? attributes.name.ref() : nullValue))
+    query.bindValue(QStringLiteral(":" #name), (attributes.name.isSet() ? attributes.name.ref() : nullValue))
 
         CHECK_AND_BIND_VALUE(defaultLocationName);
         CHECK_AND_BIND_VALUE(defaultLatitude);
@@ -4722,18 +4725,21 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
         CHECK_AND_BIND_VALUE(referralProof);
         CHECK_AND_BIND_VALUE(businessAddress);
         CHECK_AND_BIND_VALUE(reminderEmailConfig);
+        CHECK_AND_BIND_VALUE(emailAddressLastConfirmed);
+        CHECK_AND_BIND_VALUE(passwordUpdated);
 
 #undef CHECK_AND_BIND_VALUE
 
 #define CHECK_AND_BIND_BOOLEAN_VALUE(name) \
-    query.bindValue(":" #name, (attributes.name.isSet() ? (attributes.name.ref() ? 1 : 0) : nullValue))
+    query.bindValue(QStringLiteral(":" #name), (attributes.name.isSet() ? (attributes.name.ref() ? 1 : 0) : nullValue))
 
         CHECK_AND_BIND_BOOLEAN_VALUE(preactivation);
         CHECK_AND_BIND_BOOLEAN_VALUE(clipFullPage);
         CHECK_AND_BIND_BOOLEAN_VALUE(educationalDiscount);
         CHECK_AND_BIND_BOOLEAN_VALUE(hideSponsorBilling);
-        CHECK_AND_BIND_BOOLEAN_VALUE(taxExempt);
         CHECK_AND_BIND_BOOLEAN_VALUE(useEmailAutoFiling);
+        CHECK_AND_BIND_BOOLEAN_VALUE(salesforcePushEnabled);
+        CHECK_AND_BIND_BOOLEAN_VALUE(shouldLogClientEvent);
 
 #undef CHECK_AND_BIND_BOOLEAN_VALUE
 
@@ -4757,11 +4763,11 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
         QSqlQuery & query = m_insertOrReplaceUserAttributesViewedPromotionsQuery;
         DATABASE_CHECK_AND_SET_ERROR();
 
-        query.bindValue(":id", id);
+        query.bindValue(QStringLiteral(":id"), id);
 
         const auto & viewedPromotions = attributes.viewedPromotions.ref();
         for(auto it = viewedPromotions.begin(), end = viewedPromotions.end(); it != end; ++it) {
-            query.bindValue(":promotion", *it);
+            query.bindValue(QStringLiteral(":promotion"), *it);
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR();
             query.finish();
@@ -4782,11 +4788,11 @@ bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, 
         QSqlQuery & query = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery;
         DATABASE_CHECK_AND_SET_ERROR();
 
-        query.bindValue(":id", id);
+        query.bindValue(QStringLiteral(":id"), id);
 
         const auto & recentMailedAddresses = attributes.recentMailedAddresses.ref();
         for(auto it = recentMailedAddresses.begin(), end = recentMailedAddresses.end(); it != end; ++it) {
-            query.bindValue(":address", *it);
+            query.bindValue(QStringLiteral(":address"), *it);
             res = query.exec();
             DATABASE_CHECK_AND_SET_ERROR();
             query.finish();
@@ -4802,10 +4808,10 @@ bool LocalStorageManagerPrivate::checkAndPrepareUserCountQuery() const
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to get the count of users");
+    QNDEBUG(QStringLiteral("Preparing SQL query to get the count of users"));
 
     m_getUserCountQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_getUserCountQuery.prepare("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL");
+    bool res = m_getUserCountQuery.prepare(QStringLiteral("SELECT COUNT(*) FROM Users WHERE userDeletionTimestamp IS NULL"));
     if (res) {
         m_getUserCountQueryPrepared = true;
     }
@@ -4819,18 +4825,18 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserQuery()
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace user");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace user"));
 
     m_insertOrReplaceUserQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceUserQuery.prepare("INSERT OR REPLACE INTO Users"
-                                                  "(id, username, email, name, timezone, "
-                                                  "privilege, userCreationTimestamp, "
-                                                  "userModificationTimestamp, userIsDirty, "
-                                                  "userIsLocal, userDeletionTimestamp, userIsActive, userShardId)"
-                                                  "VALUES(:id, :username, :email, :name, :timezone, "
-                                                  ":privilege, :userCreationTimestamp, "
-                                                  ":userModificationTimestamp, :userIsDirty, "
-                                                  ":userIsLocal, :userDeletionTimestamp, :userIsActive, :userShardId)");
+    bool res = m_insertOrReplaceUserQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO Users"
+                                                                 "(id, username, email, name, timezone, privilege, serviceLevel, "
+                                                                 "userCreationTimestamp, userModificationTimestamp, userIsDirty, "
+                                                                 "userIsLocal, userDeletionTimestamp, userIsActive, userShardId, "
+                                                                 "userPhotoUrl, userPhotoLastUpdateTimestamp) "
+                                                                 "VALUES(:id, :username, :email, :name, :timezone, : privilege, "
+                                                                 ":serviceLevel, :userCreationTimestamp, :userModificationTimestamp, "
+                                                                 ":userIsDirty, :userIsLocal, :userDeletionTimestamp, :userIsActive, "
+                                                                 ":userShardId, :userPhotoUrl, :userPhotoLastUpdateTimestamp)"));
     if (res) {
         m_insertOrReplaceUserQueryPrepared = true;
     }
@@ -4844,24 +4850,22 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceAccountingQuery()
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace accounting");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace accounting"));
 
     m_insertOrReplaceAccountingQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceAccountingQuery.prepare("INSERT OR REPLACE INTO Accounting"
-                                                        "(id, uploadLimit, uploadLimitEnd, uploadLimitNextMonth, "
-                                                        "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
-                                                        "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
-                                                        "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
-                                                        "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
-                                                        "unitPrice, unitDiscount, nextChargeDate, accountingBusinessId, "
-                                                        "accountingBusinessName, accountingBusinessRole) "
-                                                        "VALUES(:id, :uploadLimit, :uploadLimitEnd, :uploadLimitNextMonth, "
-                                                        ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
-                                                        ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
-                                                        ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
-                                                        ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
-                                                        ":unitPrice, :unitDiscount, :nextChargeDate, :accountingBusinessId, "
-                                                        ":accountingBusinessName, :accountingBusinessRole)");
+    bool res = m_insertOrReplaceAccountingQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO Accounting"
+                                                                       "(id, uploadLimitEnd, uploadLimitNextMonth, "
+                                                                       "premiumServiceStatus, premiumOrderNumber, premiumCommerceService, "
+                                                                       "premiumServiceStart, premiumServiceSKU, lastSuccessfulCharge, "
+                                                                       "lastFailedCharge, lastFailedChargeReason, nextPaymentDue, premiumLockUntil, "
+                                                                       "updated, premiumSubscriptionNumber, lastRequestedCharge, currency, "
+                                                                       "unitPrice, unitDiscount, nextChargeDate, availablePoints) "
+                                                                       "VALUES(:id, :uploadLimitEnd, :uploadLimitNextMonth, "
+                                                                       ":premiumServiceStatus, :premiumOrderNumber, :premiumCommerceService, "
+                                                                       ":premiumServiceStart, :premiumServiceSKU, :lastSuccessfulCharge, "
+                                                                       ":lastFailedCharge, :lastFailedChargeReason, :nextPaymentDue, :premiumLockUntil, "
+                                                                       ":updated, :premiumSubscriptionNumber, :lastRequestedCharge, :currency, "
+                                                                       ":unitPrice, :unitDiscount, :nextChargeDate, :availablePoints)"));
     if (res) {
         m_insertOrReplaceAccountingQueryPrepared = true;
     }
@@ -4869,27 +4873,29 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceAccountingQuery()
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplacePremiumUserInfoQuery()
+bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceAccountLimitsQuery()
 {
-    if (Q_LIKELY(m_insertOrReplacePremiumUserInfoQueryPrepared)) {
+    if (Q_LIKELY(m_insertOrReplaceAccountLimitsQueryPrepared)) {
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace premium user info");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace account limits"));
 
-    m_insertOrReplacePremiumUserInfoQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplacePremiumUserInfoQuery.prepare("INSERT OR REPLACE INTO PremiumInfo"
-                                                             "(id, currentTime, premium, premiumRecurring, premiumExtendable, "
-                                                             "premiumPending, premiumCancellationPending, canPurchaseUploadAllowance, "
-                                                             "premiumExpirationDate, sponsoredGroupName, sponsoredGroupRole, premiumUpgradable) "
-                                                             "VALUES(:id, :currentTime, :premium, :premiumRecurring, :premiumExtendable, "
-                                                             ":premiumPending, :premiumCancellationPending, :canPurchaseUploadAllowance, "
-                                                             ":premiumExpirationDate, :sponsoredGroupName, :sponsoredGroupRole, :premiumUpgradable)");
+    m_insertOrReplaceAccountLimitsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceAccountLimitsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO AccountLimits"
+                                                                          "(id, userMailLimitDaily, noteSizeMax, resourceSizeMax, "
+                                                                          "userLinkedNotebookMax, uploadLimit, userNoteCountMax, "
+                                                                          "userNotebookCountMax, userTagCountMax, noteTagCountMax, "
+                                                                          "userSavedSearchesMax, noteResourceCountMax) "
+                                                                          "VALUES(:id, :userMailLimitDaily, :noteSizeMax, :resourceSizeMax, "
+                                                                          ":userLinkedNotebookMax, :uploadLimit, :userNoteCountMax, "
+                                                                          ":userNotebookCountMax, :userTagCountMax, :noteTagCountMax, "
+                                                                          ":userSavedSearchesMax, :noteResourceCountMax)"));
     if (res) {
-        m_insertOrReplacePremiumUserInfoQueryPrepared = true;
+        m_insertOrReplaceAccountLimitsQueryPrepared = true;
     }
 
-    return res;
+    return true;
 }
 
 bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceBusinessUserInfoQuery()
@@ -4898,12 +4904,12 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceBusinessUserInfoQ
         return true;
     }
 
-    QNDEBUG("Preparing SQl query to insert or replace business user info");
+    QNDEBUG(QStringLiteral("Preparing SQl query to insert or replace business user info"));
 
     m_insertOrReplaceBusinessUserInfoQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceBusinessUserInfoQuery.prepare("INSERT OR REPLACE INTO BusinessUserInfo"
-                                                              "(id, businessId, businessName, role, businessInfoEmail) "
-                                                              "VALUES(:id, :businessId, :businessName, :role, :businessInfoEmail)");
+    bool res = m_insertOrReplaceBusinessUserInfoQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO BusinessUserInfo"
+                                                                             "(id, businessId, businessName, role, businessInfoEmail) "
+                                                                             "VALUES(:id, :businessId, :businessName, :role, :businessInfoEmail)"));
     if (res) {
         m_insertOrReplaceBusinessUserInfoQueryPrepared = true;
     }
@@ -4917,36 +4923,40 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesQue
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace user attributes");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace user attributes"));
 
     m_insertOrReplaceUserAttributesQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceUserAttributesQuery.prepare("INSERT OR REPLACE INTO UserAttributes"
-                                                            "(id, defaultLocationName, defaultLatitude, "
-                                                            "defaultLongitude, preactivation, "
-                                                            "incomingEmailAddress, comments, "
-                                                            "dateAgreedToTermsOfService, maxReferrals, "
-                                                            "referralCount, refererCode, sentEmailDate, "
-                                                            "sentEmailCount, dailyEmailLimit, "
-                                                            "emailOptOutDate, partnerEmailOptInDate, "
-                                                            "preferredLanguage, preferredCountry, "
-                                                            "clipFullPage, twitterUserName, twitterId, "
-                                                            "groupName, recognitionLanguage, "
-                                                            "referralProof, educationalDiscount, "
-                                                            "businessAddress, hideSponsorBilling, "
-                                                            "taxExempt, useEmailAutoFiling, reminderEmailConfig) "
-                                                            "VALUES(:id, :defaultLocationName, :defaultLatitude, "
-                                                            ":defaultLongitude, :preactivation, "
-                                                            ":incomingEmailAddress, :comments, "
-                                                            ":dateAgreedToTermsOfService, :maxReferrals, "
-                                                            ":referralCount, :refererCode, :sentEmailDate, "
-                                                            ":sentEmailCount, :dailyEmailLimit, "
-                                                            ":emailOptOutDate, :partnerEmailOptInDate, "
-                                                            ":preferredLanguage, :preferredCountry, "
-                                                            ":clipFullPage, :twitterUserName, :twitterId, "
-                                                            ":groupName, :recognitionLanguage, "
-                                                            ":referralProof, :educationalDiscount, "
-                                                            ":businessAddress, :hideSponsorBilling, "
-                                                            ":taxExempt, :useEmailAutoFiling, :reminderEmailConfig)");
+    bool res = m_insertOrReplaceUserAttributesQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO UserAttributes"
+                                                                           "(id, defaultLocationName, defaultLatitude, "
+                                                                           "defaultLongitude, preactivation, "
+                                                                           "incomingEmailAddress, comments, "
+                                                                           "dateAgreedToTermsOfService, maxReferrals, "
+                                                                           "referralCount, refererCode, sentEmailDate, "
+                                                                           "sentEmailCount, dailyEmailLimit, "
+                                                                           "emailOptOutDate, partnerEmailOptInDate, "
+                                                                           "preferredLanguage, preferredCountry, "
+                                                                           "clipFullPage, twitterUserName, twitterId, "
+                                                                           "groupName, recognitionLanguage, "
+                                                                           "referralProof, educationalDiscount, "
+                                                                           "businessAddress, hideSponsorBilling, "
+                                                                           "useEmailAutoFiling, reminderEmailConfig, "
+                                                                           "emailAddressLastConfirmed, passwordUpdated, "
+                                                                           "salesforcePushEnabled, shouldLogClientEvent) "
+                                                                           "VALUES(:id, :defaultLocationName, :defaultLatitude, "
+                                                                           ":defaultLongitude, :preactivation, "
+                                                                           ":incomingEmailAddress, :comments, "
+                                                                           ":dateAgreedToTermsOfService, :maxReferrals, "
+                                                                           ":referralCount, :refererCode, :sentEmailDate, "
+                                                                           ":sentEmailCount, :dailyEmailLimit, "
+                                                                           ":emailOptOutDate, :partnerEmailOptInDate, "
+                                                                           ":preferredLanguage, :preferredCountry, "
+                                                                           ":clipFullPage, :twitterUserName, :twitterId, "
+                                                                           ":groupName, :recognitionLanguage, "
+                                                                           ":referralProof, :educationalDiscount, "
+                                                                           ":businessAddress, :hideSponsorBilling, "
+                                                                           ":useEmailAutoFiling, :reminderEmailConfig, "
+                                                                           ":emailAddressLastConfirmed, :passwordUpdated, "
+                                                                           ":salesforcePushEnabled, :shouldLogClientEvent)"));
     if (res) {
         m_insertOrReplaceUserAttributesQueryPrepared = true;
     }
@@ -4960,11 +4970,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesVie
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace user attributes viewed promotions");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace user attributes viewed promotions"));
 
     m_insertOrReplaceUserAttributesViewedPromotionsQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceUserAttributesViewedPromotionsQuery.prepare("INSERT OR REPLACE INTO UserAttributesViewedPromotions"
-                                                                            "(id, promotion) VALUES(:id, :promotion)");
+    bool res = m_insertOrReplaceUserAttributesViewedPromotionsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO UserAttributesViewedPromotions"
+                                                                                           "(id, promotion) VALUES(:id, :promotion)"));
     if (res) {
         m_insertOrReplaceUserAttributesViewedPromotionsQueryPrepared = true;
     }
@@ -4978,11 +4988,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserAttributesRec
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace user attributes recent mailed addresses");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace user attributes recent mailed addresses"));
 
     m_insertOrReplaceUserAttributesRecentMailedAddressesQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery.prepare("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses"
-                                                                                 "(id, address) VALUES(:id, :address)");
+    bool res = m_insertOrReplaceUserAttributesRecentMailedAddressesQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO UserAttributesRecentMailedAddresses"
+                                                                                                "(id, address) VALUES(:id, :address)"));
     if (res) {
         m_insertOrReplaceUserAttributesRecentMailedAddressesQueryPrepared = true;
     }
@@ -4996,11 +5006,11 @@ bool LocalStorageManagerPrivate::checkAndPrepareDeleteUserQuery()
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to mark user deleted");
+    QNDEBUG(QStringLiteral("Preparing SQL query to mark user deleted"));
 
     m_deleteUserQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_deleteUserQuery.prepare("UPDATE Users SET userDeletionTimestamp = :userDeletionTimestamp, "
-                                         "userIsLocal = :userIsLocal WHERE id = :id");
+    bool res = m_deleteUserQuery.prepare(QStringLiteral("UPDATE Users SET userDeletionTimestamp = :userDeletionTimestamp, "
+                                                        "userIsLocal = :userIsLocal WHERE id = :id"));
     if (res) {
         m_deleteUserQueryPrepared = true;
     }
@@ -7214,14 +7224,15 @@ void LocalStorageManagerPrivate::fillNoteAttributesClassificationsFromSqlRecord(
     }
 }
 
-bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QNLocalizedString & errorDescription) const
+bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user,
+                                                       QNLocalizedString & errorDescription) const
 {
 #define FIND_AND_SET_USER_PROPERTY(column, setter, type, localType, isRequired) \
     { \
         bool valueFound = false; \
-        int index = rec.indexOf(#column); \
+        int index = rec.indexOf(QStringLiteral(#column)); \
         if (index >= 0) { \
-            QVariant value = rec.value(#column); \
+            QVariant value = rec.value(QStringLiteral(#column)); \
             if (!value.isNull()) { \
                 user.setter(static_cast<localType>(qvariant_cast<type>(value))); \
                 valueFound = true; \
@@ -7230,8 +7241,8 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
         \
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
-            errorDescription += ": "; \
-            errorDescription += #column; \
+            errorDescription += QStringLiteral(": "); \
+            errorDescription += QStringLiteral(#column); \
             QNCRITICAL(errorDescription); \
             return false; \
         } \
@@ -7254,6 +7265,8 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
                                qint64, qint64, !isRequired)
     FIND_AND_SET_USER_PROPERTY(userIsActive, setActive, int, bool, !isRequired)
     FIND_AND_SET_USER_PROPERTY(userShardId, setShardId, QString, QString, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(photoUrl, setPhotoUrl, QString, QString, !isRequired)
+    FIND_AND_SET_USER_PROPERTY(photoLastUpdated, setPhotoLastUpdateTimestamp, qint64, qint64, !isRequired)
 
 #undef FIND_AND_SET_USER_PROPERTY
 
@@ -7265,7 +7278,7 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
         attributes.recentMailedAddresses = userAttributes.recentMailedAddresses;
     }
 
-    int promotionIndex = rec.indexOf("promotion");
+    int promotionIndex = rec.indexOf(QStringLiteral("promotion"));
     if (promotionIndex >= 0) {
         QVariant value = rec.value(promotionIndex);
         if (!value.isNull()) {
@@ -7281,7 +7294,7 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
         }
     }
 
-    int addressIndex = rec.indexOf("address");
+    int addressIndex = rec.indexOf(QStringLiteral("address"));
     if (addressIndex >= 0) {
         QVariant value = rec.value(addressIndex);
         if (!value.isNull()) {
@@ -7299,9 +7312,9 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
 
 #define FIND_AND_SET_USER_ATTRIBUTE(column, property, type, localType) \
     { \
-        int index = rec.indexOf(#column); \
+        int index = rec.indexOf(QStringLiteral(#column)); \
         if (index >= 0) { \
-            QVariant value = rec.value(#column); \
+            QVariant value = rec.value(QStringLiteral(#column)); \
             if (!value.isNull()) { \
                 attributes.property = static_cast<localType>(qvariant_cast<type>(value)); \
                 foundSomeUserAttribute = true; \
@@ -7335,9 +7348,12 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
     FIND_AND_SET_USER_ATTRIBUTE(educationalDiscount, educationalDiscount, int, bool);
     FIND_AND_SET_USER_ATTRIBUTE(businessAddress, businessAddress, QString, QString);
     FIND_AND_SET_USER_ATTRIBUTE(hideSponsorBilling, hideSponsorBilling, int, bool);
-    FIND_AND_SET_USER_ATTRIBUTE(taxExempt, taxExempt, int, bool);
     FIND_AND_SET_USER_ATTRIBUTE(useEmailAutoFiling, useEmailAutoFiling, int, bool);
     FIND_AND_SET_USER_ATTRIBUTE(reminderEmailConfig, reminderEmailConfig, int, qevercloud::ReminderEmailConfig::type);
+    FIND_AND_SET_USER_ATTRIBUTE(emailAddressLastConfirmed, emailAddressLastConfirmed, qint64, qevercloud::Timestamp);
+    FIND_AND_SET_USER_ATTRIBUTE(passwordUpdated, passwordUpdated, qint64, qevercloud::Timestamp)
+    FIND_AND_SET_USER_ATTRIBUTE(salesforcePushEnabled, salesforcePushEnabled, int, bool)
+    FIND_AND_SET_USER_ATTRIBUTE(shouldLogClientEvent, shouldLogClientEvent, int, bool)
 
 #undef FIND_AND_SET_USER_ATTRIBUTE
 
@@ -7350,9 +7366,9 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
 
 #define FIND_AND_SET_ACCOUNTING_PROPERTY(column, property, type, localType) \
     { \
-        int index = rec.indexOf(#column); \
+        int index = rec.indexOf(QStringLiteral(#column)); \
         if (index >= 0) { \
-            QVariant value = rec.value(#column); \
+            QVariant value = rec.value(QStringLiteral(#column)); \
             if (!value.isNull()) { \
                 accounting.property = static_cast<localType>(qvariant_cast<type>(value)); \
                 foundSomeAccountingProperty = true; \
@@ -7360,7 +7376,6 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
         } \
     }
 
-    FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimit, uploadLimit, qint64, qint64);
     FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitEnd, uploadLimitEnd, qint64, qevercloud::Timestamp);
     FIND_AND_SET_ACCOUNTING_PROPERTY(uploadLimitNextMonth, uploadLimitNextMonth, qint64, qint64);
     FIND_AND_SET_ACCOUNTING_PROPERTY(premiumServiceStatus, premiumServiceStatus,
@@ -7381,9 +7396,6 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
                                      QString, QString);
     FIND_AND_SET_ACCOUNTING_PROPERTY(lastRequestedCharge, lastRequestedCharge, qint64, qevercloud::Timestamp);
     FIND_AND_SET_ACCOUNTING_PROPERTY(currency, currency, QString, QString);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessId, businessId, int, qint32);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessName, businessName, QString, QString);
-    FIND_AND_SET_ACCOUNTING_PROPERTY(accountingBusinessRole, businessRole, int, qevercloud::BusinessUserRole::type);
     FIND_AND_SET_ACCOUNTING_PROPERTY(unitPrice, unitPrice, int, qint32);
     FIND_AND_SET_ACCOUNTING_PROPERTY(unitDiscount, unitDiscount, int, qint32);
     FIND_AND_SET_ACCOUNTING_PROPERTY(nextChargeDate, nextChargeDate, qint64, qevercloud::Timestamp);
@@ -7394,37 +7406,37 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
         user.setAccounting(std::move(accounting));
     }
 
-    bool foundSomePremiumInfoProperty = false;
-    qevercloud::PremiumInfo premiumInfo;
+    bool foundSomeAccountLimit = false;
+    qevercloud::AccountLimits accountLimits;
 
-#define FIND_AND_SET_PREMIUM_INFO_PROPERTY(column, property, type, localType) \
+#define FIND_AND_SET_ACCOUNT_LIMIT(property, type, localType) \
     { \
-        int index = rec.indexOf(#column); \
+        int index = rec.indexOf(QStringLiteral(#property)); \
         if (index >= 0) { \
-            QVariant value = rec.value(#column); \
+            QVariant value = rec.value(QStringLiteral(#property)); \
             if (!value.isNull()) { \
-                premiumInfo.property = static_cast<localType>(qvariant_cast<type>(value)); \
-                foundSomePremiumInfoProperty = true; \
+                accountLimits.property = static_cast<localType>(qvariant_cast<type>(value)); \
+                foundSomeAccountLimit = true; \
             } \
         } \
     }
 
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(currentTime, currentTime, qint64, qevercloud::Timestamp);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premium, premium, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumRecurring, premiumRecurring, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExtendable, premiumExtendable, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumPending, premiumPending, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumCancellationPending, premiumCancellationPending, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(canPurchaseUploadAllowance, canPurchaseUploadAllowance, int, bool);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumExpirationDate, premiumExpirationDate, qint64, qevercloud::Timestamp);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupName, sponsoredGroupName, QString, QString);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(sponsoredGroupRole, sponsoredGroupRole, int, qevercloud::SponsoredGroupRole::type);
-    FIND_AND_SET_PREMIUM_INFO_PROPERTY(premiumUpgradable, premiumUpgradable, int, bool);
+    FIND_AND_SET_ACCOUNT_LIMIT(userMailLimitDaily, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(noteSizeMax, qint64, qint64)
+    FIND_AND_SET_ACCOUNT_LIMIT(resourceSizeMax, qint64, qint64)
+    FIND_AND_SET_ACCOUNT_LIMIT(userLinkedNotebookMax, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(uploadLimit, qint64, qint64)
+    FIND_AND_SET_ACCOUNT_LIMIT(userNoteCountMax, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(userNotebookCountMax, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(userTagCountMax, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(noteTagCountMax, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(userSavedSearchesMax, int, qint32)
+    FIND_AND_SET_ACCOUNT_LIMIT(noteResourceCountMax, int, qint32)
 
-#undef FIND_AND_SET_PREMIUM_INFO_PROPERTY
+#undef FIND_AND_SET_ACCOUNT_LIMIT
 
-    if (foundSomePremiumInfoProperty) {
-        user.setPremiumInfo(std::move(premiumInfo));
+    if (foundSomeAccountLimit) {
+        user.setAccountLimits(std::move(accountLimits));
     }
 
     bool foundSomeBusinessUserInfoProperty = false;
@@ -9435,7 +9447,7 @@ QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Notebook>() const
                      "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
                      "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
                      "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                     "LEFT OUTER JOIN PremiumInfo ON Notebooks.contactId = PremiumInfo.id "
+                     "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
                      "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id";
     return result;
 }

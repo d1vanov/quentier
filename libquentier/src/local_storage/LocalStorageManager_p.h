@@ -179,16 +179,16 @@ private:
     bool insertOrReplaceUser(const IUser & user, QNLocalizedString & errorDescription);
     bool insertOrReplaceBusinessUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
                                          QNLocalizedString & errorDescription);
-    bool insertOrReplacePremiumInfo(const UserID id, const qevercloud::PremiumInfo & info,
-                                    QNLocalizedString & errorDescription);
     bool insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
                                    QNLocalizedString & errorDescription);
+    bool insertOrReplaceAccountLimits(const UserID id, const qevercloud::AccountLimits & accountLimits,
+                                      QNLocalizedString & errorDescription);
     bool insertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
                                        QNLocalizedString & errorDescription);
     bool checkAndPrepareUserCountQuery() const;
     bool checkAndPrepareInsertOrReplaceUserQuery();
     bool checkAndPrepareInsertOrReplaceAccountingQuery();
-    bool checkAndPrepareInsertOrReplacePremiumUserInfoQuery();
+    bool checkAndPrepareInsertOrReplaceAccountLimitsQuery();
     bool checkAndPrepareInsertOrReplaceBusinessUserInfoQuery();
     bool checkAndPrepareInsertOrReplaceUserAttributesQuery();
     bool checkAndPrepareInsertOrReplaceUserAttributesViewedPromotionsQuery();
@@ -444,8 +444,8 @@ private:
     QSqlQuery           m_insertOrReplaceAccountingQuery;
     bool                m_insertOrReplaceAccountingQueryPrepared;
 
-    QSqlQuery           m_insertOrReplacePremiumUserInfoQuery;
-    bool                m_insertOrReplacePremiumUserInfoQueryPrepared;
+    QSqlQuery           m_insertOrReplaceAccountLimitsQuery;
+    bool                m_insertOrReplaceAccountLimitsQueryPrepared;
 
     QSqlQuery           m_insertOrReplaceBusinessUserInfoQuery;
     bool                m_insertOrReplaceBusinessUserInfoQueryPrepared;
