@@ -71,9 +71,8 @@ public:
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-private:
-    QString translateString(const char * nonLocalizedString, QObject * pTranslationContext,
-                            const char * disambiguation, const int plurals);
+    static QString translateString(const char * nonLocalizedString, QObject * pTranslationContext,
+                                   const char * disambiguation, const int plurals);
 
 private:
     QString         m_localizedString;
