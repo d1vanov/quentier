@@ -205,6 +205,12 @@ public:
     bool canCreateSharedNotebooks() const;
     void setCanCreateSharedNotebooks(const bool canCreateSharedNotebooks);
 
+    bool canShareNotesWithBusiness() const;
+    void setCanShareNotesWithBusiness(const bool canShareNotesWithBusiness);
+
+    bool canRenameNotebook() const;
+    void setCanRenameNotebook(const bool canRenameNotebook);
+
     bool hasUpdateWhichSharedNotebookRestrictions() const;
     qint8 updateWhichSharedNotebookRestrictions() const;
     void setUpdateWhichSharedNotebookRestrictions(const qint8 which);

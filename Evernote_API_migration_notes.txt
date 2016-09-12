@@ -33,3 +33,28 @@ LinkedNotebook:
     sharedNotebookGlobalId
   removed fields:
     shareKey
+
+Notebook:
+  added fields:
+    recipientSettings (new struct)
+
+NotebookRestrictions:
+  added fields:
+    noShareNotesWithBusiness
+    noRenameNotebook
+
+SharedNotebookInstanceRestrictions:
+  renamed enum items:
+    ASSIGNED,
+    NO_SHARED_NOTEBOOKS
+
+SharedNotebook:
+  added fields:
+    recipientIdentityId
+    globalId
+    sharerUserId
+    recipientUsername
+    recipientUserId
+    serviceAssigned
+  removed fields:
+    shareKey

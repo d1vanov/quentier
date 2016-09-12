@@ -96,6 +96,18 @@ public:
     qint32 recipientUserId() const;
     void setRecipientUserId(const qint32 userId);
 
+    bool hasRecipientIdentityId() const;
+    qint64 recipientIdentityId() const;
+    void setRecipientIdentityId(const qint64 recipientIdentityId);
+
+    bool hasGlobalId() const;
+    const QString & globalId() const;
+    void setGlobalId(const QString & globalId);
+
+    bool hasSharerUserId() const;
+    qint32 sharerUserId() const;
+    void setSharerUserId(qint32 sharerUserId);
+
     bool hasAssignmentTimestamp() const;
     qint64 assignmentTimestamp() const;
     void setAssignmentTimestamp(const qint64 timestamp);

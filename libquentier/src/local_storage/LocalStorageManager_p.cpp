@@ -618,9 +618,9 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QNLocalizedStr
     bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
-        QNWARNING("Found invalid notebook: " << notebook << "\nError: " << error);
+        QNWARNING(QStringLiteral("Found invalid notebook: ") << notebook << QStringLiteral("\nError: ") << error);
         return false;
     }
 
@@ -632,12 +632,12 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QNLocalizedStr
     bool notebookHasGuid = notebook.hasGuid();
     if (notebookHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         uid = notebook.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
@@ -649,9 +649,9 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QNLocalizedStr
             bool res = getNotebookLocalUidForGuid(uid, localUid, error);
             if (res || !localUid.isEmpty()) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += QT_TR_NOOP("found existing local uid corresponding to Notebook's guid");
-                QNWARNING(errorDescription << ", guid: " << uid);
+                QNWARNING(errorDescription << QStringLiteral(", guid: ") << uid);
                 return false;
             }
 
@@ -662,19 +662,19 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QNLocalizedStr
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         uid = localUid;
     }
 
-    if (shouldCheckRowExistence && rowExists("Notebooks", column, QVariant(uid))) {
+    if (shouldCheckRowExistence && rowExists(QStringLiteral("Notebooks"), column, QVariant(uid))) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook with specified ");
         errorDescription += column;
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         // TRANSLATOR previous part of the phrase was "notebook with specified "
         errorDescription += QT_TR_NOOP("already exists");
-        QNWARNING(errorDescription << ", " << column << ": " << uid);
+        QNWARNING(errorDescription << QStringLiteral(", ") << column << QStringLiteral(": ") << uid);
         return false;
     }
 
@@ -682,7 +682,7 @@ bool LocalStorageManagerPrivate::addNotebook(Notebook & notebook, QNLocalizedStr
     res = insertOrReplaceNotebook(notebook, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -699,9 +699,9 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QNLocalized
     bool res = notebook.checkParameters(error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
-        QNWARNING("Found invalid notebook: " << notebook << "\nError: " << error);
+        QNWARNING(QStringLiteral("Found invalid notebook: ") << notebook << QStringLiteral("\nError: ") << error);
         return false;
     }
 
@@ -713,12 +713,12 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QNLocalized
     bool notebookHasGuid = notebook.hasGuid();
     if (notebookHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         uid = notebook.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += " ";
+            errorDescription += QStringLiteral(" ");
             errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
@@ -730,7 +730,7 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QNLocalized
             res = getNotebookLocalUidForGuid(uid, localUid, error);
             if (!res || localUid.isEmpty()) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -746,17 +746,17 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QNLocalized
         uid = localUid;
     }
 
-    if (shouldCheckRowExistence && !rowExists("Notebooks", column, QVariant(uid))) {
+    if (shouldCheckRowExistence && !rowExists(QStringLiteral("Notebooks"), column, QVariant(uid))) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("notebook with specified");
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         errorDescription += column;
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         // TRANSLATOR previous part of the phrase was "notebook with specified "
         errorDescription += QT_TR_NOOP("was not found in local storage");
-        QNWARNING(errorDescription << ", " << column << ": " << uid);
+        QNWARNING(errorDescription << QStringLiteral(", ") << column << QStringLiteral(": ") << uid);
         return false;
     }
 
@@ -764,7 +764,7 @@ bool LocalStorageManagerPrivate::updateNotebook(Notebook & notebook, QNLocalized
     res = insertOrReplaceNotebook(notebook, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -781,12 +781,12 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QNLocalizedSt
     bool notebookHasGuid = notebook.hasGuid();
     if (notebookHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         value = notebook.guid();
 
         if (!checkGuid(value)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("guid is invalid");
             QNWARNING(errorDescription);
             return false;
@@ -796,19 +796,19 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QNLocalizedSt
     {
         if (!notebook.hasName()) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR: explaining why the notebook cannot be found in the local storage database
             errorDescription += QT_TR_NOOP("need either guid or local uid or name as search criteria");
             QNWARNING(errorDescription);
             return false;
         }
 
-        column = "notebookNameUpper";
+        column = QStringLiteral("notebookNameUpper");
         value = notebook.name().toUpper();
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         value = notebook.localUid();
     }
 
@@ -828,7 +828,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QNLocalizedSt
         queryString += QString(" AND Notebooks.linkedNotebookGuid = '%1')").arg(notebook.linkedNotebookGuid());
     }
     else {
-        queryString += " AND Notebooks.linkedNotebookGuid IS NULL)";
+        queryString += QStringLiteral(" AND Notebooks.linkedNotebookGuid IS NULL)");
     }
 
     notebook = Notebook();
@@ -845,7 +845,7 @@ bool LocalStorageManagerPrivate::findNotebook(Notebook & notebook, QNLocalizedSt
         res = fillNotebookFromSqlRecord(rec, notebook, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return false;
@@ -869,22 +869,22 @@ bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QNLoca
 
     notebook = Notebook();
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
-                          "ON Notebooks.localUid = NotebookRestrictions.localUid "
-                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
-                          "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
-                          "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
-                          "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
-                          "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
-                          "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                          "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
-                          "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
-                          "WHERE isDefault = 1 LIMIT 1");
+    bool res = query.exec(QStringLiteral("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                                         "ON Notebooks.localUid = NotebookRestrictions.localUid "
+                                         "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                                         "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                                         "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                                         "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                                         "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                                         "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                                         "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
+                                         "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
+                                         "WHERE isDefault = 1 LIMIT 1"));
     DATABASE_CHECK_AND_SET_ERROR();
 
     if (!query.next()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("no default notebook was found");
         QNDEBUG(errorDescription);
@@ -896,7 +896,7 @@ bool LocalStorageManagerPrivate::findDefaultNotebook(Notebook & notebook, QNLoca
     res = fillNotebookFromSqlRecord(rec, notebook, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -912,22 +912,22 @@ bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QNLoc
 
     notebook = Notebook();
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
-                          "ON Notebooks.localUid = NotebookRestrictions.localUid "
-                          "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
-                          "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
-                          "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
-                          "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
-                          "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
-                          "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                          "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
-                          "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
-                          "WHERE isLastUsed = 1 LIMIT 1");
+    bool res = query.exec(QStringLiteral("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                                         "ON Notebooks.localUid = NotebookRestrictions.localUid "
+                                         "LEFT OUTER JOIN SharedNotebooks ON Notebooks.guid = SharedNotebooks.notebookGuid "
+                                         "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                                         "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                                         "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                                         "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                                         "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                                         "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
+                                         "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id "
+                                         "WHERE isLastUsed = 1 LIMIT 1"));
     DATABASE_CHECK_AND_SET_ERROR();
 
     if (!query.next()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("no last used notebook exists in local storage");
         QNDEBUG(errorDescription);
@@ -939,7 +939,7 @@ bool LocalStorageManagerPrivate::findLastUsedNotebook(Notebook & notebook, QNLoc
     res = fillNotebookFromSqlRecord(rec, notebook, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -965,7 +965,7 @@ QList<Notebook> LocalStorageManagerPrivate::listAllNotebooks(QNLocalizedString &
                                                              const LocalStorageManager::OrderDirection::type & orderDirection,
                                                              const QString & linkedNotebookGuid) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listAllNotebooks");
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listAllNotebooks"));
     return listNotebooks(LocalStorageManager::ListAll, errorDescription, limit,
                          offset, order, orderDirection, linkedNotebookGuid);
 }
@@ -976,31 +976,33 @@ QList<Notebook> LocalStorageManagerPrivate::listNotebooks(const LocalStorageMana
                                                           const LocalStorageManager::OrderDirection::type & orderDirection,
                                                           const QString & linkedNotebookGuid) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listNotebooks: flag = " << flag);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listNotebooks: flag = ") << flag);
 
     QString linkedNotebookGuidSqlQueryCondition = (linkedNotebookGuid.isEmpty()
-                                                   ? "linkedNotebookGuid IS NULL"
+                                                   ? QStringLiteral("linkedNotebookGuid IS NULL")
                                                    : QString("linkedNotebookGuid = '%1'").arg(linkedNotebookGuid));
 
-    return listObjects<Notebook, LocalStorageManager::ListNotebooksOrder::type>(flag, errorDescription, limit, offset, order, orderDirection,
+    return listObjects<Notebook, LocalStorageManager::ListNotebooksOrder::type>(flag, errorDescription, limit,
+                                                                                offset, order, orderDirection,
                                                                                 linkedNotebookGuidSqlQueryCondition);
 }
 
 QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(QNLocalizedString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listAllSharedNotebooks");
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listAllSharedNotebooks"));
 
     QList<SharedNotebookWrapper> sharedNotebooks;
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't list all shared notebooks");
 
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec("SELECT * FROM SharedNotebooks");
+    bool res = query.exec(QStringLiteral("SELECT * FROM SharedNotebooks"));
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("last error");
-        errorDescription += ": ";
-        QNCRITICAL(errorDescription << "last error = " << query.lastError() << ", last query = " << query.lastQuery());
+        errorDescription += QStringLiteral(": ");
+        QNCRITICAL(errorDescription << QStringLiteral("last error = ") << query.lastError()
+                   << QStringLiteral(", last query = ") << query.lastQuery());
         errorDescription += query.lastError().text();
         return sharedNotebooks;
     }
@@ -1027,11 +1029,11 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(
     }
 
     int numSharedNotebooks = sharedNotebooks.size();
-    QNDEBUG("found " << numSharedNotebooks << " shared notebooks");
+    QNDEBUG(QStringLiteral("found ") << numSharedNotebooks << QStringLiteral(" shared notebooks"));
 
     if (numSharedNotebooks <= 0) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("no shared notebooks were found in the local storage database");
         QNDEBUG(errorDescription);
     }
@@ -1061,7 +1063,7 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listSharedNotebooksPerN
 QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                                                    QNLocalizedString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid: guid = " << notebookGuid);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid: guid = ") << notebookGuid);
 
     QList<qevercloud::SharedNotebook> sharedNotebooks;
 
@@ -1069,14 +1071,14 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
 
     if (!checkGuid(notebookGuid)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook guid is invalid");
         QNWARNING(errorDescription);
         return sharedNotebooks;
     }
 
     QSqlQuery query(m_sqlDatabase);
-    query.prepare("SELECT * FROM SharedNotebooks WHERE notebookGuid=?");
+    query.prepare(QStringLiteral("SELECT * FROM SharedNotebooks WHERE notebookGuid=?"));
     query.addBindValue(notebookGuid);
 
     bool res = query.exec();
@@ -1105,7 +1107,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
         res = fillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             sharedNotebooks.clear();
             return sharedNotebooks;
@@ -1119,7 +1121,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
     }
 
     numSharedNotebooks = sharedNotebooks.size();
-    QNDEBUG("found " << numSharedNotebooks << " shared notebooks");
+    QNDEBUG(QStringLiteral("found ") << numSharedNotebooks << QStringLiteral(" shared notebooks"));
 
     return sharedNotebooks;
 }
@@ -1136,12 +1138,12 @@ bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QNLocalize
     bool notebookHasGuid = notebook.hasGuid();
     if (notebookHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         uid = notebook.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR explaining the reason of error
             errorDescription += QT_TR_NOOP("notebook's guid is invalid");
             QNWARNING(errorDescription);
@@ -1154,7 +1156,7 @@ bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QNLocalize
             bool res = getNotebookLocalUidForGuid(uid, localUid, error);
             if (!res) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -1166,15 +1168,15 @@ bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QNLocalize
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         uid = notebook.localUid();
     }
 
-    if (shouldCheckRowExistence && !rowExists("Notebooks", column, QVariant(uid))) {
+    if (shouldCheckRowExistence && !rowExists(QStringLiteral("Notebooks"), column, QVariant(uid))) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook to be expunged was not found");
-        QNWARNING(errorDescription << ", " << column << ": " << uid);
+        QNWARNING(errorDescription << QStringLiteral(", ") << column << QStringLiteral(": ") << uid);
         return false;
     }
 
@@ -1206,7 +1208,7 @@ int LocalStorageManagerPrivate::linkedNotebookCount(QNLocalizedString & errorDes
     }
 
     if (!query.next()) {
-        QNDEBUG("Found no linked notebooks in local storage database");
+        QNDEBUG(QStringLiteral("Found no linked notebooks in local storage database"));
         query.finish();
         return 0;
     }
@@ -3744,7 +3746,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  lock                        CHAR(1) PRIMARY KEY     NOT NULL DEFAULT 'X'    CHECK (lock='X'), "
                                     "  version                     INTEGER                 NOT NULL DEFAULT 1"
                                     ")"));
-    QNLocalizedString errorPrefix = QStringLiteral(QT_TR_NOOP("can't create Auxiliary table"));
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't create Auxiliary table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Users("
@@ -3765,7 +3767,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  userPhotoUrl                    TEXT                    DEFAULT NULL, "
                                     "  userPhotoLastUpdateTimestamp    INTEGER                 DEFAULT NULL)"
                                     ")"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create Users table"));
+    errorPrefix = QT_TR_NOOP("can't create Users table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS UserAttributes("
@@ -3802,19 +3804,19 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  passwordUpdated             INTEGER                 DEFAULT NULL, "
                                     "  salesforcePushEnabled       INTEGER                 DEFAULT NULL, "
                                     "  shouldLogClientEvent        INTEGER                 DEFAULT NULL)"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create UserAttributes table"));
+    errorPrefix = QT_TR_NOOP("can't create UserAttributes table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS UserAttributesViewedPromotions("
                                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                                     "  promotion               TEXT                    DEFAULT NULL)"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create UserAttributesViewedPromotions table"));
+    errorPrefix = QT_TR_NOOP("can't create UserAttributesViewedPromotions table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS UserAttributesRecentMailedAddresses("
                                     "  id REFERENCES Users(id) ON UPDATE CASCADE, "
                                     "  address                 TEXT                    DEFAULT NULL)"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create UserAttributesRecentMailedAddresses table"));
+    errorPrefix = QT_TR_NOOP("can't create UserAttributesRecentMailedAddresses table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Accounting("
@@ -3839,7 +3841,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  unitDiscount                INTEGER             DEFAULT NULL, "
                                     "  nextChargeDate              INTEGER             DEFAULT NULL, "
                                     "  availablePoints             INTEGER             DEFAULT NULL)"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create Accounting table"));
+    errorPrefix = QT_TR_NOOP("can't create Accounting table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS AccountLimits("
@@ -3855,7 +3857,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  noteTagCountMax             INTEGER             DEFAULT NULL, "
                                     "  userSavedSearchesMax        INTEGER             DEFAULT NULL, "
                                     "  noteResourceCountMax        INTEGER             DEFAULT NULL)"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create AccountLimits table"));
+    errorPrefix = QT_TR_NOOP("can't create AccountLimits table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS BusinessUserInfo("
@@ -3864,7 +3866,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  businessName            TEXT                    DEFAULT NULL, "
                                     "  role                    INTEGER                 DEFAULT NULL, "
                                     "  businessInfoEmail       TEXT                    DEFAULT NULL)"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create BusinessUserInfo table"));
+    errorPrefix = QT_TR_NOOP("can't create BusinessUserInfo table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TRIGGER on_user_delete_trigger "
@@ -3877,7 +3879,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "DELETE FROM AccountLimits WHERE id=OLD.id; "
                                     "DELETE FROM BusinessUserInfo WHERE id=OLD.id; "
                                     "END"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create trigger to fire on deletion from users table"));
+    errorPrefix = QT_TR_NOOP("can't create trigger to fire on deletion from users table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS LinkedNotebooks("
@@ -3894,101 +3896,112 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  stack                           TEXT              DEFAULT NULL, "
                                     "  businessId                      INTEGER           DEFAULT NULL"
                                     ")"));
-    errorPrefix = QStringLiteral(QT_TR_NOOP("can't create LinkedNotebooks table"));
+    errorPrefix = QT_TR_NOOP("can't create LinkedNotebooks table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS Notebooks("
-                     "  localUid                        TEXT PRIMARY KEY  NOT NULL UNIQUE, "
-                     "  guid                            TEXT              DEFAULT NULL UNIQUE, "
-                     "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON UPDATE CASCADE, "
-                     "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
-                     "  notebookName                    TEXT              DEFAULT NULL, "
-                     "  notebookNameUpper               TEXT              DEFAULT NULL, "
-                     "  creationTimestamp               INTEGER           DEFAULT NULL, "
-                     "  modificationTimestamp           INTEGER           DEFAULT NULL, "
-                     "  isDirty                         INTEGER           NOT NULL, "
-                     "  isLocal                         INTEGER           NOT NULL, "
-                     "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
-                     "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
-                     "  isFavorited                     INTEGER           DEFAULT NULL, "
-                     "  publishingUri                   TEXT              DEFAULT NULL, "
-                     "  publishingNoteSortOrder         INTEGER           DEFAULT NULL, "
-                     "  publishingAscendingSort         INTEGER           DEFAULT NULL, "
-                     "  publicDescription               TEXT              DEFAULT NULL, "
-                     "  isPublished                     INTEGER           DEFAULT NULL, "
-                     "  stack                           TEXT              DEFAULT NULL, "
-                     "  businessNotebookDescription     TEXT              DEFAULT NULL, "
-                     "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT NULL, "
-                     "  businessNotebookIsRecommended   INTEGER           DEFAULT NULL, "
-                     "  contactId                       INTEGER           DEFAULT NULL, "
-                     "  UNIQUE(localUid, guid), "
-                     "  UNIQUE(linkedNotebookGuid), "
-                     "  UNIQUE(notebookNameUpper) "
-                     ")");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Notebooks("
+                                    "  localUid                        TEXT PRIMARY KEY  NOT NULL UNIQUE, "
+                                    "  guid                            TEXT              DEFAULT NULL UNIQUE, "
+                                    "  linkedNotebookGuid REFERENCES LinkedNotebooks(guid) ON UPDATE CASCADE, "
+                                    "  updateSequenceNumber            INTEGER           DEFAULT NULL, "
+                                    "  notebookName                    TEXT              DEFAULT NULL, "
+                                    "  notebookNameUpper               TEXT              DEFAULT NULL, "
+                                    "  creationTimestamp               INTEGER           DEFAULT NULL, "
+                                    "  modificationTimestamp           INTEGER           DEFAULT NULL, "
+                                    "  isDirty                         INTEGER           NOT NULL, "
+                                    "  isLocal                         INTEGER           NOT NULL, "
+                                    "  isDefault                       INTEGER           DEFAULT NULL UNIQUE, "
+                                    "  isLastUsed                      INTEGER           DEFAULT NULL UNIQUE, "
+                                    "  isFavorited                     INTEGER           DEFAULT NULL, "
+                                    "  publishingUri                   TEXT              DEFAULT NULL, "
+                                    "  publishingNoteSortOrder         INTEGER           DEFAULT NULL, "
+                                    "  publishingAscendingSort         INTEGER           DEFAULT NULL, "
+                                    "  publicDescription               TEXT              DEFAULT NULL, "
+                                    "  isPublished                     INTEGER           DEFAULT NULL, "
+                                    "  stack                           TEXT              DEFAULT NULL, "
+                                    "  businessNotebookDescription     TEXT              DEFAULT NULL, "
+                                    "  businessNotebookPrivilegeLevel  INTEGER           DEFAULT NULL, "
+                                    "  businessNotebookIsRecommended   INTEGER           DEFAULT NULL, "
+                                    "  contactId                       INTEGER           DEFAULT NULL, "
+                                    "  recipientReminderNotifyEmail    INTEGER           DEFAULT NULL, "
+                                    "  recipientReminderNotifyInApp    INTEGER           DEFAULT NULL, "
+                                    "  recipientInMyList               INTEGER           DEFAULT NULL, "
+                                    "  recipientStack                  TEXT              DEFAULT NULL, "
+                                    "  UNIQUE(localUid, guid), "
+                                    "  UNIQUE(linkedNotebookGuid), "
+                                    "  UNIQUE(notebookNameUpper) "
+                                    ")"));
     errorPrefix = QT_TR_NOOP("can't create Notebooks table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE VIRTUAL TABLE NotebookFTS USING FTS4(content=\"Notebooks\", "
-                     "localUid, guid, notebookName)");
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE NotebookFTS USING FTS4(content=\"Notebooks\", "
+                                    "localUid, guid, notebookName)"));
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 NotebookFTS table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TRIGGER NotebookFTS_BeforeDeleteTrigger BEFORE DELETE ON Notebooks "
-                     "BEGIN "
-                     "DELETE FROM NotebookFTS WHERE localUid=old.localUid; "
-                     "END");
+    res = query.exec(QStringLiteral("CREATE TRIGGER NotebookFTS_BeforeDeleteTrigger BEFORE DELETE ON Notebooks "
+                                    "BEGIN "
+                                    "DELETE FROM NotebookFTS WHERE localUid=old.localUid; "
+                                    "END"));
     errorPrefix = QT_TR_NOOP("can't create NotebookFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TRIGGER NotebookFTS_AfterInsertTrigger AFTER INSERT ON Notebooks "
-                     "BEGIN "
-                     "INSERT INTO NotebookFTS(NotebookFTS) VALUES('rebuild'); "
-                     "END");
+    res = query.exec(QStringLiteral("CREATE TRIGGER NotebookFTS_AfterInsertTrigger AFTER INSERT ON Notebooks "
+                                    "BEGIN "
+                                    "INSERT INTO NotebookFTS(NotebookFTS) VALUES('rebuild'); "
+                                    "END"));
     errorPrefix = QT_TR_NOOP("can't create NotebookFTS_AfterInsertTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
-                     "  localUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, "
-                     "  noReadNotes                 INTEGER      DEFAULT NULL, "
-                     "  noCreateNotes               INTEGER      DEFAULT NULL, "
-                     "  noUpdateNotes               INTEGER      DEFAULT NULL, "
-                     "  noExpungeNotes              INTEGER      DEFAULT NULL, "
-                     "  noShareNotes                INTEGER      DEFAULT NULL, "
-                     "  noEmailNotes                INTEGER      DEFAULT NULL, "
-                     "  noSendMessageToRecipients   INTEGER      DEFAULT NULL, "
-                     "  noUpdateNotebook            INTEGER      DEFAULT NULL, "
-                     "  noExpungeNotebook           INTEGER      DEFAULT NULL, "
-                     "  noSetDefaultNotebook        INTEGER      DEFAULT NULL, "
-                     "  noSetNotebookStack          INTEGER      DEFAULT NULL, "
-                     "  noPublishToPublic           INTEGER      DEFAULT NULL, "
-                     "  noPublishToBusinessLibrary  INTEGER      DEFAULT NULL, "
-                     "  noCreateTags                INTEGER      DEFAULT NULL, "
-                     "  noUpdateTags                INTEGER      DEFAULT NULL, "
-                     "  noExpungeTags               INTEGER      DEFAULT NULL, "
-                     "  noSetParentTag              INTEGER      DEFAULT NULL, "
-                     "  noCreateSharedNotebooks     INTEGER      DEFAULT NULL, "
-                     "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT NULL, "
-                     "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT NULL "
-                     ")");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS NotebookRestrictions("
+                                    "  localUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, "
+                                    "  noReadNotes                 INTEGER      DEFAULT NULL, "
+                                    "  noCreateNotes               INTEGER      DEFAULT NULL, "
+                                    "  noUpdateNotes               INTEGER      DEFAULT NULL, "
+                                    "  noExpungeNotes              INTEGER      DEFAULT NULL, "
+                                    "  noShareNotes                INTEGER      DEFAULT NULL, "
+                                    "  noEmailNotes                INTEGER      DEFAULT NULL, "
+                                    "  noSendMessageToRecipients   INTEGER      DEFAULT NULL, "
+                                    "  noUpdateNotebook            INTEGER      DEFAULT NULL, "
+                                    "  noExpungeNotebook           INTEGER      DEFAULT NULL, "
+                                    "  noSetDefaultNotebook        INTEGER      DEFAULT NULL, "
+                                    "  noSetNotebookStack          INTEGER      DEFAULT NULL, "
+                                    "  noPublishToPublic           INTEGER      DEFAULT NULL, "
+                                    "  noPublishToBusinessLibrary  INTEGER      DEFAULT NULL, "
+                                    "  noCreateTags                INTEGER      DEFAULT NULL, "
+                                    "  noUpdateTags                INTEGER      DEFAULT NULL, "
+                                    "  noExpungeTags               INTEGER      DEFAULT NULL, "
+                                    "  noSetParentTag              INTEGER      DEFAULT NULL, "
+                                    "  noCreateSharedNotebooks     INTEGER      DEFAULT NULL, "
+                                    "  noShareNotesWithBusiness    INTEGER      DEFAULT NULL, "
+                                    "  noRenameNotebook            INTEGER      DEFAULT NULL, "
+                                    "  updateWhichSharedNotebookRestrictions    INTEGER     DEFAULT NULL, "
+                                    "  expungeWhichSharedNotebookRestrictions   INTEGER     DEFAULT NULL "
+                                    ")"));
     errorPrefix = QT_TR_NOOP("can't create NotebookRestrictions table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS SharedNotebooks("
-                     "  shareId                             INTEGER PRIMARY KEY   NOT NULL UNIQUE, "
-                     "  userId                              INTEGER    DEFAULT NULL, "
-                     "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
-                     "  sharedNotebookEmail                 TEXT       DEFAULT NULL, "
-                     "  sharedNotebookCreationTimestamp     INTEGER    DEFAULT NULL, "
-                     "  sharedNotebookModificationTimestamp INTEGER    DEFAULT NULL, "
-                     "  shareKey                            TEXT       DEFAULT NULL, "
-                     "  sharedNotebookUsername              TEXT       DEFAULT NULL, "
-                     "  sharedNotebookPrivilegeLevel        INTEGER    DEFAULT NULL, "
-                     "  allowPreview                        INTEGER    DEFAULT NULL, "
-                     "  recipientReminderNotifyEmail        INTEGER    DEFAULT NULL, "
-                     "  recipientReminderNotifyInApp        INTEGER    DEFAULT NULL, "
-                     "  indexInNotebook                     INTEGER    DEFAULT NULL, "
-                     "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
-                     ")");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS SharedNotebooks("
+                                    "  shareId                             INTEGER PRIMARY KEY   NOT NULL UNIQUE, "
+                                    "  userId                              INTEGER    DEFAULT NULL, "
+                                    "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
+                                    "  sharedNotebookEmail                 TEXT       DEFAULT NULL, "
+                                    "  sharedNotebookIdentityId            INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookCreationTimestamp     INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookModificationTimestamp INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookGlobalId              TEXT       DEFAULT NULL, "
+                                    "  sharedNotebookUsername              TEXT       DEFAULT NULL, "
+                                    "  sharedNotebookPrivilegeLevel        INTEGER    DEFAULT NULL, "
+                                    "  recipientReminderNotifyEmail        INTEGER    DEFAULT NULL, "
+                                    "  recipientReminderNotifyInApp        INTEGER    DEFAULT NULL, "
+                                    "  sharerUserId                        INTEGER    DEFAULT NULL, "
+                                    "  recipientUsername                   TEXT       DEFAULT NULL, "
+                                    "  recipientUserId                     INTEGER    DEFAULT NULL, "
+                                    "  recipientIdentityId                 INTEGER    DEFAULT NULL, "
+                                    "  assignmentTimestamp                 INTEGER    DEFAULT NULL, "
+                                    "  indexInNotebook                     INTEGER    DEFAULT NULL, "
+                                    "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
+                                    ")"));
     errorPrefix = QT_TR_NOOP("can't create SharedNotebooks table");
     DATABASE_CHECK_AND_SET_ERROR();
 
@@ -4368,6 +4381,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const qever
     BIND_RESTRICTION(noExpungeTags);
     BIND_RESTRICTION(noSetParentTag);
     BIND_RESTRICTION(noCreateSharedNotebooks);
+    BIND_RESTRICTION(noShareNotesWithBusiness);
+    BIND_RESTRICTION(noRenameNotebook);
 
 #undef BIND_RESTRICTION
 
@@ -4396,19 +4411,23 @@ bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const ISharedNote
 
     QVariant nullValue;
 
-    query.bindValue(":shareId", sharedNotebook.id());
-    query.bindValue(":userId", (sharedNotebook.hasUserId() ? sharedNotebook.userId() : nullValue));
-    query.bindValue(":notebookGuid", (sharedNotebook.hasNotebookGuid() ? sharedNotebook.notebookGuid() : nullValue));
-    query.bindValue(":sharedNotebookEmail", (sharedNotebook.hasEmail() ? sharedNotebook.email() : nullValue));
-    query.bindValue(":sharedNotebookCreationTimestamp", (sharedNotebook.hasCreationTimestamp() ? sharedNotebook.creationTimestamp() : nullValue));
-    query.bindValue(":sharedNotebookModificationTimestamp", (sharedNotebook.hasModificationTimestamp() ? sharedNotebook.modificationTimestamp() : nullValue));
-    query.bindValue(":shareKey", (sharedNotebook.hasShareKey() ? sharedNotebook.shareKey() : nullValue));
-    query.bindValue(":sharedNotebookUsername", (sharedNotebook.hasUsername() ? sharedNotebook.username() : nullValue));
-    query.bindValue(":sharedNotebookPrivilegeLevel", (sharedNotebook.hasPrivilegeLevel() ? sharedNotebook.privilegeLevel() : nullValue));
-    query.bindValue(":allowPreview", (sharedNotebook.hasAllowPreview() ? (sharedNotebook.allowPreview() ? 1 : 0) : nullValue));
-    query.bindValue(":recipientReminderNotifyEmail", (sharedNotebook.hasReminderNotifyEmail() ? (sharedNotebook.reminderNotifyEmail() ? 1 : 0) : nullValue));
-    query.bindValue(":recipientReminderNotifyInApp", (sharedNotebook.hasReminderNotifyApp() ? (sharedNotebook.reminderNotifyApp() ? 1 : 0) : nullValue));
-    query.bindValue(":indexInNotebook", (sharedNotebook.indexInNotebook() >= 0 ? sharedNotebook.indexInNotebook() : nullValue));
+    query.bindValue(QStringLiteral(":shareId"), sharedNotebook.id());
+    query.bindValue(QStringLiteral(":userId"), (sharedNotebook.hasUserId() ? sharedNotebook.userId() : nullValue));
+    query.bindValue(QStringLiteral(":notebookGuid"), (sharedNotebook.hasNotebookGuid() ? sharedNotebook.notebookGuid() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookEmail"), (sharedNotebook.hasEmail() ? sharedNotebook.email() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookCreationTimestamp"), (sharedNotebook.hasCreationTimestamp() ? sharedNotebook.creationTimestamp() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookModificationTimestamp"), (sharedNotebook.hasModificationTimestamp() ? sharedNotebook.modificationTimestamp() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookGlobalId"), (sharedNotebook.hasGlobalId() ? sharedNotebook.globalId() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookUsername"), (sharedNotebook.hasUsername() ? sharedNotebook.username() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookPrivilegeLevel"), (sharedNotebook.hasPrivilegeLevel() ? sharedNotebook.privilegeLevel() : nullValue));
+    query.bindValue(QStringLiteral(":recipientReminderNotifyEmail"), (sharedNotebook.hasReminderNotifyEmail() ? (sharedNotebook.reminderNotifyEmail() ? 1 : 0) : nullValue));
+    query.bindValue(QStringLiteral(":recipientReminderNotifyInApp"), (sharedNotebook.hasReminderNotifyApp() ? (sharedNotebook.reminderNotifyApp() ? 1 : 0) : nullValue));
+    query.bindValue(QStringLiteral(":sharerUserId"), (sharedNotebook.hasSharerUserId() ? sharedNotebook.sharerUserId() : nullValue));
+    query.bindValue(QStringLiteral(":recipientUsername"), (sharedNotebook.hasRecipientUsername() ? sharedNotebook.recipientUsername() : nullValue));
+    query.bindValue(QStringLiteral(":recipientUserId"), (sharedNotebook.hasRecipientUserId() ? sharedNotebook.recipientUserId() : nullValue));
+    query.bindValue(QStringLiteral(":recipientIdentityId"), (sharedNotebook.hasRecipientIdentityId() ? sharedNotebook.recipientIdentityId() : nullValue));
+    query.bindValue(QStringLiteral(":assignmentTimestamp"), (sharedNotebook.hasAssignmentTimestamp() ? sharedNotebook.assignmentTimestamp() : nullValue));
+    query.bindValue(QStringLiteral(":indexInNotebook"), (sharedNotebook.indexInNotebook() >= 0 ? sharedNotebook.indexInNotebook() : nullValue));
 
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
@@ -5039,29 +5058,39 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
         QSqlQuery & query = m_insertOrReplaceNotebookQuery;
         DATABASE_CHECK_AND_SET_ERROR();
 
-        query.bindValue(":localUid", (localUid.isEmpty() ? nullValue : localUid));
-        query.bindValue(":guid", (notebook.hasGuid() ? notebook.guid() : nullValue));
-        query.bindValue(":linkedNotebookGuid", (notebook.hasLinkedNotebookGuid() ? notebook.linkedNotebookGuid() : nullValue));
-        query.bindValue(":updateSequenceNumber", (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
-        query.bindValue(":notebookName", (notebook.hasName() ? notebook.name() : nullValue));
-        query.bindValue(":notebookNameUpper", (notebook.hasName() ? notebook.name().toUpper() : nullValue));
-        query.bindValue(":creationTimestamp", (notebook.hasCreationTimestamp() ? notebook.creationTimestamp() : nullValue));
-        query.bindValue(":modificationTimestamp", (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
-        query.bindValue(":isDirty", (notebook.isDirty() ? 1 : 0));
-        query.bindValue(":isLocal", (notebook.isLocal() ? 1 : 0));
-        query.bindValue(":isDefault", (notebook.isDefaultNotebook() ? 1 : nullValue));
-        query.bindValue(":isLastUsed", (notebook.isLastUsed() ? 1 : nullValue));
-        query.bindValue(":isFavorited", (notebook.isFavorited() ? 1 : 0));
-        query.bindValue(":publishingUri", (notebook.hasPublishingUri() ? notebook.publishingUri() : nullValue));
-        query.bindValue(":publishingNoteSortOrder", (notebook.hasPublishingOrder() ? notebook.publishingOrder() : nullValue));
-        query.bindValue(":publishingAscendingSort", (notebook.hasPublishingAscending() ? (notebook.isPublishingAscending() ? 1 : 0) : nullValue));
-        query.bindValue(":publicDescription", (notebook.hasPublishingPublicDescription() ? notebook.publishingPublicDescription() : nullValue));
-        query.bindValue(":isPublished", (notebook.hasPublished() ? (notebook.isPublished() ? 1 : 0) : nullValue));
-        query.bindValue(":stack", (notebook.hasStack() ? notebook.stack() : nullValue));
-        query.bindValue(":businessNotebookDescription", (notebook.hasBusinessNotebookDescription() ? notebook.businessNotebookDescription() : nullValue));
-        query.bindValue(":businessNotebookPrivilegeLevel", (notebook.hasBusinessNotebookPrivilegeLevel() ? notebook.businessNotebookPrivilegeLevel() : nullValue));
-        query.bindValue(":businessNotebookIsRecommended", (notebook.hasBusinessNotebookRecommended() ? (notebook.isBusinessNotebookRecommended() ? 1 : 0) : nullValue));
-        query.bindValue(":contactId", (notebook.hasContact() && notebook.contact().hasId() ? notebook.contact().id() : nullValue));
+        query.bindValue(QStringLiteral(":localUid"), (localUid.isEmpty() ? nullValue : localUid));
+        query.bindValue(QStringLiteral(":guid"), (notebook.hasGuid() ? notebook.guid() : nullValue));
+        query.bindValue(QStringLiteral(":linkedNotebookGuid"), (notebook.hasLinkedNotebookGuid() ? notebook.linkedNotebookGuid() : nullValue));
+        query.bindValue(QStringLiteral(":updateSequenceNumber"), (notebook.hasUpdateSequenceNumber() ? notebook.updateSequenceNumber() : nullValue));
+        query.bindValue(QStringLiteral(":notebookName"), (notebook.hasName() ? notebook.name() : nullValue));
+        query.bindValue(QStringLiteral(":notebookNameUpper"), (notebook.hasName() ? notebook.name().toUpper() : nullValue));
+        query.bindValue(QStringLiteral(":creationTimestamp"), (notebook.hasCreationTimestamp() ? notebook.creationTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":modificationTimestamp"), (notebook.hasModificationTimestamp() ? notebook.modificationTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":isDirty"), (notebook.isDirty() ? 1 : 0));
+        query.bindValue(QStringLiteral(":isLocal"), (notebook.isLocal() ? 1 : 0));
+        query.bindValue(QStringLiteral(":isDefault"), (notebook.isDefaultNotebook() ? 1 : nullValue));
+        query.bindValue(QStringLiteral(":isLastUsed"), (notebook.isLastUsed() ? 1 : nullValue));
+        query.bindValue(QStringLiteral(":isFavorited"), (notebook.isFavorited() ? 1 : 0));
+        query.bindValue(QStringLiteral(":publishingUri"), (notebook.hasPublishingUri() ? notebook.publishingUri() : nullValue));
+        query.bindValue(QStringLiteral(":publishingNoteSortOrder"), (notebook.hasPublishingOrder() ? notebook.publishingOrder() : nullValue));
+        query.bindValue(QStringLiteral(":publishingAscendingSort"), (notebook.hasPublishingAscending() ? (notebook.isPublishingAscending() ? 1 : 0) : nullValue));
+        query.bindValue(QStringLiteral(":publicDescription"), (notebook.hasPublishingPublicDescription() ? notebook.publishingPublicDescription() : nullValue));
+        query.bindValue(QStringLiteral(":isPublished"), (notebook.hasPublished() ? (notebook.isPublished() ? 1 : 0) : nullValue));
+        query.bindValue(QStringLiteral(":stack"), (notebook.hasStack() ? notebook.stack() : nullValue));
+        query.bindValue(QStringLiteral(":businessNotebookDescription"), (notebook.hasBusinessNotebookDescription() ? notebook.businessNotebookDescription() : nullValue));
+        query.bindValue(QStringLiteral(":businessNotebookPrivilegeLevel"), (notebook.hasBusinessNotebookPrivilegeLevel() ? notebook.businessNotebookPrivilegeLevel() : nullValue));
+        query.bindValue(QStringLiteral(":businessNotebookIsRecommended"), (notebook.hasBusinessNotebookRecommended() ? (notebook.isBusinessNotebookRecommended() ? 1 : 0) : nullValue));
+        query.bindValue(QStringLiteral(":contactId"), (notebook.hasContact() && notebook.contact().hasId() ? notebook.contact().id() : nullValue));
+        query.bindValue(QStringLiteral(":recipientReminderNotifyEmail"), (notebook.hasRecipientReminderNotifyEmail()
+                                                                          ? (notebook.recipientReminderNotifyEmail() ? 1 : 0)
+                                                                          : nullValue));
+        query.bindValue(QStringLiteral(":recipientReminderNotifyInApp"), (notebook.hasRecipientReminderNotifyInApp()
+                                                                          ? (notebook.recipientReminderNotifyInApp() ? 1 : 0)
+                                                                          : nullValue));
+        query.bindValue(QStringLiteral(":recipientInMyList"), (notebook.hasRecipientInMyList()
+                                                               ? (notebook.recipientInMyList() ? 1 : 0)
+                                                               : nullValue));
+        query.bindValue(QStringLiteral(":recipientStack"), (notebook.hasRecipientStack() ? notebook.recipientStack() : nullValue));
 
         res = query.exec();
         DATABASE_CHECK_AND_SET_ERROR();
@@ -5141,23 +5170,27 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookQuery()
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace notebook");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace notebook"));
 
     m_insertOrReplaceNotebookQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceNotebookQuery.prepare("INSERT OR REPLACE INTO Notebooks"
-                                                      "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
-                                                      "notebookName, notebookNameUpper, creationTimestamp, "
-                                                      "modificationTimestamp, isDirty, isLocal, "
-                                                      "isDefault, isLastUsed, isFavorited, publishingUri, "
-                                                      "publishingNoteSortOrder, publishingAscendingSort, "
-                                                      "publicDescription, isPublished, stack, businessNotebookDescription, "
-                                                      "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId) "
-                                                      "VALUES(:localUid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
-                                                      ":notebookName, :notebookNameUpper, :creationTimestamp, "
-                                                      ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
-                                                      ":isFavorited, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
-                                                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
-                                                      ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId)");
+    bool res = m_insertOrReplaceNotebookQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO Notebooks"
+                                                                     "(localUid, guid, linkedNotebookGuid, updateSequenceNumber, "
+                                                                     "notebookName, notebookNameUpper, creationTimestamp, "
+                                                                     "modificationTimestamp, isDirty, isLocal, "
+                                                                     "isDefault, isLastUsed, isFavorited, publishingUri, "
+                                                                     "publishingNoteSortOrder, publishingAscendingSort, "
+                                                                     "publicDescription, isPublished, stack, businessNotebookDescription, "
+                                                                     "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId, "
+                                                                     "recipientReminderNotifyEmail, recipientReminderNotifyInApp, recipientInMyList, "
+                                                                     "recipientStack ) "
+                                                                     "VALUES(:localUid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
+                                                                     ":notebookName, :notebookNameUpper, :creationTimestamp, "
+                                                                     ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
+                                                                     ":isFavorited, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
+                                                                     ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
+                                                                     ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId"
+                                                                     ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, :recipientInMyList, "
+                                                                     ":recipientStack)"));
     if (res) {
         m_insertOrReplaceNotebookQueryPrepared = true;
     }
@@ -5171,24 +5204,24 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookRestricti
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace notebook restrictions");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace notebook restrictions"));
 
     m_insertOrReplaceNotebookRestrictionsQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceNotebookRestrictionsQuery.prepare("INSERT OR REPLACE INTO NotebookRestrictions"
-                                                                  "(localUid, noReadNotes, noCreateNotes, noUpdateNotes, "
-                                                                  "noExpungeNotes, noShareNotes, noEmailNotes, noSendMessageToRecipients, "
-                                                                  "noUpdateNotebook, noExpungeNotebook, noSetDefaultNotebook, "
-                                                                  "noSetNotebookStack, noPublishToPublic, noPublishToBusinessLibrary, "
-                                                                  "noCreateTags, noUpdateTags, noExpungeTags, noSetParentTag, "
-                                                                  "noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
-                                                                  "expungeWhichSharedNotebookRestrictions) "
-                                                                  "VALUES(:localUid, :noReadNotes, :noCreateNotes, :noUpdateNotes, "
-                                                                  ":noExpungeNotes, :noShareNotes, :noEmailNotes, :noSendMessageToRecipients, "
-                                                                  ":noUpdateNotebook, :noExpungeNotebook, :noSetDefaultNotebook, "
-                                                                  ":noSetNotebookStack, :noPublishToPublic, :noPublishToBusinessLibrary, "
-                                                                  ":noCreateTags, :noUpdateTags, :noExpungeTags, :noSetParentTag, "
-                                                                  ":noCreateSharedNotebooks, :updateWhichSharedNotebookRestrictions, "
-                                                                  ":expungeWhichSharedNotebookRestrictions)");
+    bool res = m_insertOrReplaceNotebookRestrictionsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO NotebookRestrictions"
+                                                                                 "(localUid, noReadNotes, noCreateNotes, noUpdateNotes, "
+                                                                                 "noExpungeNotes, noShareNotes, noEmailNotes, noSendMessageToRecipients, "
+                                                                                 "noUpdateNotebook, noExpungeNotebook, noSetDefaultNotebook, "
+                                                                                 "noSetNotebookStack, noPublishToPublic, noPublishToBusinessLibrary, "
+                                                                                 "noCreateTags, noUpdateTags, noExpungeTags, noSetParentTag, "
+                                                                                 "noCreateSharedNotebooks, updateWhichSharedNotebookRestrictions, "
+                                                                                 "expungeWhichSharedNotebookRestrictions) "
+                                                                                 "VALUES(:localUid, :noReadNotes, :noCreateNotes, :noUpdateNotes, "
+                                                                                 ":noExpungeNotes, :noShareNotes, :noEmailNotes, :noSendMessageToRecipients, "
+                                                                                 ":noUpdateNotebook, :noExpungeNotebook, :noSetDefaultNotebook, "
+                                                                                 ":noSetNotebookStack, :noPublishToPublic, :noPublishToBusinessLibrary, "
+                                                                                 ":noCreateTags, :noUpdateTags, :noExpungeTags, :noSetParentTag, "
+                                                                                 ":noCreateSharedNotebooks, :updateWhichSharedNotebookRestrictions, "
+                                                                                 ":expungeWhichSharedNotebookRestrictions)"));
     if (res) {
         m_insertOrReplaceNotebookRestrictionsQueryPrepared = true;
     }
@@ -5202,19 +5235,22 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNotebokQuer
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace shared notebook");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace shared notebook"));
 
     m_insertOrReplaceSharedNotebookQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceSharedNotebookQuery.prepare("INSERT OR REPLACE INTO SharedNotebooks"
-                                                            "(shareId, userId, notebookGuid, sharedNotebookEmail, "
-                                                            "sharedNotebookCreationTimestamp, sharedNotebookModificationTimestamp, "
-                                                            "shareKey, sharedNotebookUsername, sharedNotebookPrivilegeLevel, "
-                                                            "allowPreview, recipientReminderNotifyEmail, "
-                                                            "recipientReminderNotifyInApp, indexInNotebook)"
-                                                            "VALUES(:shareId, :userId, :notebookGuid, :sharedNotebookEmail, "
-                                                            ":sharedNotebookCreationTimestamp, :sharedNotebookModificationTimestamp, "
-                                                            ":shareKey, :sharedNotebookUsername, :sharedNotebookPrivilegeLevel, :allowPreview, "
-                                                            ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, :indexInNotebook)");
+    bool res = m_insertOrReplaceSharedNotebookQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO SharedNotebooks"
+                                                                           "(shareId, userId, notebookGuid, sharedNotebookEmail, "
+                                                                           "sharedNotebookCreationTimestamp, sharedNotebookModificationTimestamp, "
+                                                                           "sharedNotebookGlobalId, sharedNotebookUsername, sharedNotebookPrivilegeLevel, "
+                                                                           "recipientReminderNotifyEmail, recipientReminderNotifyInApp, "
+                                                                           "sharerUserId, recipientUsername, recipientUserId, recipientIdentityId, "
+                                                                           "assignmentTimestamp, indexInNotebook) "
+                                                                           "VALUES(:shareId, :userId, :notebookGuid, :sharedNotebookEmail, "
+                                                                           ":sharedNotebookCreationTimestamp, :sharedNotebookModificationTimestamp, "
+                                                                           ":sharedNotebookGlobalId, :sharedNotebookUsername, :sharedNotebookPrivilegeLevel, "
+                                                                           ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, "
+                                                                           ":sharerUserId, :recipientUsername, :recipientUserId, :recipientIdentityId, "
+                                                                           ":assignmentTimestamp, :indexInNotebook) "));
     if (res) {
         m_insertOrReplaceSharedNotebookQueryPrepared = true;
     }
@@ -7575,7 +7611,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
 #define CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(attribute, setter, dbType, trueType, isRequired) \
     { \
         bool valueFound = false; \
-        int index = record.indexOf(#attribute); \
+        int index = record.indexOf(QStringLiteral( #attribute )); \
         if (index >= 0) { \
             QVariant value = record.value(index); \
             if (!value.isNull()) { \
@@ -7586,7 +7622,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
         \
         if (!valueFound && isRequired) { \
             errorDescription += QT_TR_NOOP("missing field in the result of SQL query"); \
-            errorDescription += ": "; \
+            errorDescription += QStringLiteral(": "); \
             errorDescription += #attribute; \
             return false; \
         } \
@@ -7630,6 +7666,13 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
                                      int, qint8, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(businessNotebookIsRecommended, setBusinessNotebookRecommended,
                                      int, bool, isRequired);
+
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(recipientReminderNotifyEmail, setRecipientReminderNotifyEmail,
+                                     int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(recipientReminderNotifyInApp, setRecipientReminderNotifyInApp,
+                                     int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(recipientInMyList, setRecipientInMyList, int, bool, isRequired);
+    CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(recipientStack, setRecipientStack, QString, QString, isRequired);
 
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isLastUsed, setLastUsed, int, bool, isRequired);
     CHECK_AND_SET_NOTEBOOK_ATTRIBUTE(isDefault, setDefaultNotebook, int, bool, isRequired);
@@ -7692,6 +7735,8 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
     SET_EN_NOTEBOOK_RESTRICTION(noExpungeTags, setCanExpungeTags);
     SET_EN_NOTEBOOK_RESTRICTION(noSetParentTag, setCanSetParentTag);
     SET_EN_NOTEBOOK_RESTRICTION(noCreateSharedNotebooks, setCanCreateSharedNotebooks);
+    SET_EN_NOTEBOOK_RESTRICTION(noShareNotesWithBusiness, setCanShareNotesWithBusiness);
+    SET_EN_NOTEBOOK_RESTRICTION(noRenameNotebook, setCanRenameNotebook);
 
 #undef SET_EN_NOTEBOOK_RESTRICTION
 
@@ -7741,12 +7786,16 @@ bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecor
                                            qint64, setCreationTimestamp);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, qint64,
                                            qint64, setModificationTimestamp);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(globalId, QString, QString, setGlobalId);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookUsername, QString, QString, setUsername);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8, setPrivilegeLevel);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(allowPreview, int, bool, setAllowPreview);   // NOTE: int to bool cast
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail);  // NOTE: int to bool cast
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool, setReminderNotifyApp);  // NOTE: int to bool cast
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool, setReminderNotifyApp);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharerUserId, qint32, qint32, setSharerUserId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUsername, QString, QString, setRecipientUsername);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUserId, qint32, qint32, setRecipientUserId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientIdentityId, qint64, qint64, setRecipientIdentityId);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(assignmentTimestamp, qint64, qint64, setAssignmentTimestamp);
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid);
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY

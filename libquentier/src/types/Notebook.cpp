@@ -862,6 +862,30 @@ void Notebook::setCanCreateSharedNotebooks(const bool canCreateSharedNotebooks)
     d->m_qecNotebook.restrictions->noCreateSharedNotebooks = !canCreateSharedNotebooks;
 }
 
+bool Notebook::canShareNotesWithBusiness() const
+{
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noShareNotesWithBusiness.isSet() &&
+             d->m_qecNotebook.restrictions->noShareNotesWithBusiness);
+}
+
+void Notebook::setCanShareNotesWithBusiness(const bool canShareNotesWithBusiness)
+{
+    CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
+    d->m_qecNotebook.restrictions->noShareNotesWithBusiness = !canShareNotesWithBusiness;
+}
+
+bool Notebook::canRenameNotebook() const
+{
+    return !(d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->noRenameNotebook.isSet() &&
+             d->m_qecNotebook.restrictions->noRenameNotebook);
+}
+
+void Notebook::setCanRenameNotebook(const bool canRenameNotebook)
+{
+    CHECK_AND_SET_NOTEBOOK_RESTRICTIONS;
+    d->m_qecNotebook.restrictions->noRenameNotebook = !canRenameNotebook;
+}
+
 bool Notebook::hasUpdateWhichSharedNotebookRestrictions() const
 {
     return d->m_qecNotebook.restrictions.isSet() && d->m_qecNotebook.restrictions->updateWhichSharedNotebookRestrictions.isSet();

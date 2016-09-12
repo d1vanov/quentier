@@ -327,6 +327,56 @@ void ISharedNotebook::setRecipientUserId(const qint32 recipientUserId)
     GetEnSharedNotebook().recipientUserId = recipientUserId;
 }
 
+bool ISharedNotebook::hasRecipientIdentityId() const
+{
+    return GetEnSharedNotebook().recipientIdentityId.isSet();
+}
+
+qint64 ISharedNotebook::recipientIdentityId() const
+{
+    return GetEnSharedNotebook().recipientIdentityId.ref();
+}
+
+void ISharedNotebook::setRecipientIdentityId(const qint64 recipientIdentityId)
+{
+    GetEnSharedNotebook().recipientIdentityId = recipientIdentityId;
+}
+
+bool ISharedNotebook::hasGlobalId() const
+{
+    return GetEnSharedNotebook().globalId.isSet();
+}
+
+const QString & ISharedNotebook::globalId() const
+{
+    return GetEnSharedNotebook().globalId.ref();
+}
+
+void ISharedNotebook::setGlobalId(const QString & globalId)
+{
+    if (!globalId.isEmpty()) {
+        GetEnSharedNotebook().globalId = globalId;
+    }
+    else {
+        GetEnSharedNotebook().globalId.clear();
+    }
+}
+
+bool ISharedNotebook::hasSharerUserId() const
+{
+    return GetEnSharedNotebook().sharerUserId.isSet();
+}
+
+qint32 ISharedNotebook::sharerUserId() const
+{
+    return GetEnSharedNotebook().sharerUserId.ref();
+}
+
+void ISharedNotebook::setSharerUserId(const qint32 sharerUserId)
+{
+    GetEnSharedNotebook().sharerUserId = sharerUserId;
+}
+
 bool ISharedNotebook::hasAssignmentTimestamp() const
 {
     return GetEnSharedNotebook().serviceAssigned.isSet();

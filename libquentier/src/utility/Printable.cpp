@@ -482,6 +482,8 @@ QTextStream & operator <<(QTextStream & strm, const qevercloud::NotebookRestrict
     PRINT_FIELD(restrictions, noExpungeTags, boolToString);
     PRINT_FIELD(restrictions, noSetParentTag, boolToString);
     PRINT_FIELD(restrictions, noCreateSharedNotebooks, boolToString);
+    PRINT_FIELD(restrictions, noShareNotesWithBusiness, boolToString);
+    PRINT_FIELD(restrictions, noRenameNotebook, boolToString);
     PRINT_FIELD(restrictions, updateWhichSharedNotebookRestrictions, sharedNotebookInstanceRestrictionsToString);
     PRINT_FIELD(restrictions, expungeWhichSharedNotebookRestrictions, sharedNotebookInstanceRestrictionsToString);
 
@@ -757,8 +759,11 @@ QTextStream & operator<<(QTextStream & strm, const qevercloud::SharedNotebook & 
     PRINT_FIELD(sharedNotebook, serviceUpdated, quentier::printableDateTimeFromTimestamp);
     PRINT_FIELD(sharedNotebook, privilege, sharedNotebookPrivilegeLevelToString);
     PRINT_FIELD(sharedNotebook, recipientSettings, ToString);
+    PRINT_FIELD(sharedNotebook, recipientIdentityId, QString::number);
     PRINT_FIELD(sharedNotebook, recipientUsername);
     PRINT_FIELD(sharedNotebook, recipientUserId, QString::number);
+    PRINT_FIELD(sharedNotebook, globalId);
+    PRINT_FIELD(sharedNotebook, sharerUserId, QString::number);
     PRINT_FIELD(sharedNotebook, serviceAssigned, quentier::printableDateTimeFromTimestamp);
 
     strm << QStringLiteral("};\n");
