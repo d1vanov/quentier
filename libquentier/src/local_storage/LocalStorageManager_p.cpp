@@ -80,6 +80,8 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_getNoteCountQueryPrepared(false),
     m_insertOrReplaceNoteQuery(),
     m_insertOrReplaceNoteQueryPrepared(false),
+    m_insertOrReplaceSharedNoteQuery(),
+    m_insertOrReplaceSharedNoteQueryPrepared(false),
     m_canAddNoteToNotebookQuery(),
     m_canAddNoteToNotebookQueryPrepared(false),
     m_canUpdateNoteInNotebookQuery(),
@@ -1559,7 +1561,7 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
     bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1569,7 +1571,7 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
     res = canAddNoteToNotebook(notebookLocalUid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1582,7 +1584,7 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
     res = getNotebookGuidForNote(note, notebookGuid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1594,9 +1596,9 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
     res = note.checkParameters(error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
-        QNWARNING("Found invalid note: " << note);
+        QNWARNING(QStringLiteral("Found invalid note: ") << note);
         return false;
     }
 
@@ -1608,12 +1610,12 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         uid = note.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
             return false;
@@ -1625,9 +1627,9 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
             res = getNoteLocalUidForGuid(uid, localUid, error);
             if (res || !localUid.isEmpty()) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += QT_TR_NOOP("found already existing note with the same guid");
-                QNWARNING(errorDescription << ", guid: " << uid);
+                QNWARNING(errorDescription << QStringLiteral(", guid: ") << uid);
                 return false;
             }
 
@@ -1638,22 +1640,22 @@ bool LocalStorageManagerPrivate::addNote(Note & note, QNLocalizedString & errorD
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         uid = localUid;
     }
 
-    if (shouldCheckNoteExistence && rowExists("Notes", column, QVariant(uid)))
+    if (shouldCheckNoteExistence && rowExists(QStringLiteral("Notes"), column, QVariant(uid)))
     {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining the reason of error
         errorDescription += QT_TR_NOOP("note with specified");
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         errorDescription += column;
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         // TRANSLATOR previous part of the phrase was "note with specified guid/localUid "
         errorDescription += QT_TR_NOOP("already exists");
-        QNWARNING(errorDescription << ", " << column << ": " << uid);
+        QNWARNING(errorDescription << QStringLiteral(", ") << column << QStringLiteral(": ") << uid);
         return false;
     }
 
@@ -1670,7 +1672,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1680,7 +1682,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     res = canUpdateNoteInNotebook(notebookLocalUid, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1693,7 +1695,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     res = getNotebookGuidForNote(note, notebookGuid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -1705,9 +1707,9 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     res = note.checkParameters(error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
-        QNWARNING("Found invalid note: " << note);
+        QNWARNING(QStringLiteral("Found invalid note: ") << note);
         return false;
     }
 
@@ -1719,12 +1721,12 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         uid = note.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR explaining why the note cannot be expunged from local storage
             errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
@@ -1737,7 +1739,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
             res = getNoteLocalUidForGuid(uid, localUid, error);
             if (!res || localUid.isEmpty()) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 return false;
             }
@@ -1748,21 +1750,21 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         uid = localUid;
     }
 
-    if (shouldCheckNoteExistence && !rowExists("Notes", column, QVariant(uid))) {
+    if (shouldCheckNoteExistence && !rowExists(QStringLiteral("Notes"), column, QVariant(uid))) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         // TRANSLATOR explaining why the note cannot be expunged from the local storage database
         errorDescription += QT_TR_NOOP("note with specified");
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         errorDescription += column;
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         // TRANSLATOR previous part of the phrase was "note with specified guid|localUid"
         errorDescription += QT_TR_NOOP("was not found in the local storage database");
-        QNWARNING(errorDescription << ", " << column << ": " << uid);
+        QNWARNING(errorDescription << QStringLiteral(", ") << column << QStringLiteral(": ") << uid);
         return false;
     }
 
@@ -1772,7 +1774,7 @@ bool LocalStorageManagerPrivate::updateNote(Note & note, const bool updateResour
 bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & errorDescription,
                                           const bool withResourceBinaryData) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::findNote");
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::findNote"));
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't find note in the local storage database");
 
@@ -1780,12 +1782,12 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         guid = note.guid();
 
         if (!checkGuid(guid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR explaining why note cannot be found in the local storage database
             errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
@@ -1794,20 +1796,23 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         guid = note.localUid();
     }
 
     note = Note();
 
-    QString resourcesTable = "Resources";
+    QString resourcesTable = QStringLiteral("Resources");
     if (!withResourceBinaryData) {
-        resourcesTable += "WithoutBinaryData";
+        resourcesTable += QStringLiteral("WithoutBinaryData");
     }
 
-    QString resourceIndexColumn = (column == "localUid" ? "noteLocalUid" : "noteGuid");
+    QString resourceIndexColumn = (column == QStringLiteral("localUid") ? QStringLiteral("noteLocalUid") : QStringLiteral("noteGuid"));
 
     QString queryString = QString("SELECT * FROM Notes "
+                                  "LEFT OUTER JOIN SharedNotes ON ((Notes.guid IS NOT NULL) AND (Notes.guid = SharedNotes.sharedNoteNoteGuid)) "
+                                  "LEFT OUTER JOIN NoteRestrictions ON Notes.localUid = NoteRestrictions.localUid "
+                                  "LEFT OUTER JOIN NoteLimits ON Notes.localUid = NoteLimits.localUid "
                                   "LEFT OUTER JOIN %1 ON Notes.%3 = %1.%2 "
                                   "LEFT OUTER JOIN ResourceAttributes "
                                   "ON %1.resourceLocalUid = ResourceAttributes.resourceLocalUid "
@@ -1838,7 +1843,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
         fillNoteFromSqlRecord(rec, note);
         ++counter;
 
-        int resourceLocalUidIndex = rec.indexOf("resourceLocalUid");
+        int resourceLocalUidIndex = rec.indexOf(QStringLiteral("resourceLocalUid"));
         if (resourceLocalUidIndex >= 0)
         {
             QVariant value = rec.value(resourceLocalUidIndex);
@@ -1861,20 +1866,20 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
         }
 
         QNLocalizedString error;
-        bool res = fillNoteTagIdFromSqlRecord(rec, "tag", tagGuidsAndIndices, tagGuidIndexPerGuid, error);
+        bool res = fillNoteTagIdFromSqlRecord(rec, QStringLiteral("tag"), tagGuidsAndIndices, tagGuidIndexPerGuid, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return false;
         }
 
         error.clear();
-        res = fillNoteTagIdFromSqlRecord(rec, "localTag", tagLocalUidsAndIndices, tagLocalUidIndexPerUid, error);
+        res = fillNoteTagIdFromSqlRecord(rec, QStringLiteral("localTag"), tagLocalUidsAndIndices, tagLocalUidIndexPerUid, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return false;
@@ -1928,7 +1933,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
     res = note.checkParameters(error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription = QT_TR_NOOP("found note is invalid: ");
         errorDescription += error;
         QNWARNING(errorDescription);
@@ -1946,10 +1951,10 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
                                                              const LocalStorageManager::ListNotesOrder::type & order,
                                                              const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listNotesPerNotebook: notebook = " << notebook
-            << "\nWith resource binary data = " << (withResourceBinaryData ? "true" : "false")
-            << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
-            << ", order = " << order << ", order direction = " << orderDirection);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listNotesPerNotebook: notebook = ") << notebook
+            << QStringLiteral("\nWith resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", flag = ") << flag << QStringLiteral(", limit = ") << limit << QStringLiteral(", offset = ")
+            << offset << QStringLiteral(", order = ") << order << QStringLiteral(", order direction = ") << orderDirection);
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't list notes per notebook");
 
@@ -1957,21 +1962,24 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
 
     QString column, uid;
     bool notebookHasGuid = notebook.hasGuid();
-    if (notebookHasGuid) {
-        column = "notebookGuid";
+    if (notebookHasGuid)
+    {
+        column = QStringLiteral("notebookGuid");
         uid = notebook.guid();
 
-        if (!checkGuid(uid)) {
+        if (!checkGuid(uid))
+        {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR explaining why notes per notebook cannot be listed
             errorDescription += + QT_TR_NOOP("notebook guid is invalid");
             QNWARNING(errorDescription);
             return notes;
         }
     }
-    else {
-        column = "notebookLocalUid";
+    else
+    {
+        column = QStringLiteral("notebookLocalUid");
         uid = notebook.localUid();
     }
 
@@ -2001,7 +2009,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
         bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2012,7 +2020,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2022,9 +2030,9 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
         res = note.checkParameters(error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("found note is invalid");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2042,10 +2050,10 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
                                                         const LocalStorageManager::ListNotesOrder::type & order,
                                                         const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listNotesPerTag: tag = " << tag
-            << "\nWith resource binary data = " << (withResourceBinaryData ? "true" : "false")
-            << ", flag = " << flag << ", limit = " << limit << ", offset = " << offset
-            << ", order = " << order << ", order direction = " << orderDirection);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listNotesPerTag: tag = ") << tag
+            << QStringLiteral("\nWith resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", flag = ") << flag << QStringLiteral(", limit = ") << limit << QStringLiteral(", offset = ")
+            << offset << QStringLiteral(", order = ") << order << QStringLiteral(", order direction = ") << orderDirection);
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't list all notes with tag");
 
@@ -2053,21 +2061,23 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
 
     QString column, uid;
     bool tagHasGuid = tag.hasGuid();
-    if (tagHasGuid) {
-        column = "tag";
+    if (tagHasGuid)
+    {
+        column = QStringLiteral("tag");
         uid = tag.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR explaining why notes per tag cannot be listed
             errorDescription += QT_TR_NOOP("tag guid is invalid");
             QNWARNING(errorDescription);
             return notes;
         }
     }
-    else {
-        column = "localTag";
+    else
+    {
+        column = QStringLiteral("localTag");
         uid = tag.localUid();
     }
 
@@ -2084,7 +2094,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
     int numNotes = notes.size();
     if ((numNotes == 0) && !error.isEmpty()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return notes;
@@ -2098,7 +2108,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
         bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2109,7 +2119,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2119,9 +2129,9 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
         res = note.checkParameters(error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("found note is invalid");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2138,8 +2148,8 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
                                                   const LocalStorageManager::ListNotesOrder::type & order,
                                                   const LocalStorageManager::OrderDirection::type & orderDirection) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::listNotes: flag = " << flag << ", withResourceBinaryData = "
-            << (withResourceBinaryData ? "true" : "false"));
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listNotes: flag = ") << flag << QStringLiteral(", withResourceBinaryData = ")
+            << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")));
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't list notes from the local storage database");
 
@@ -2153,7 +2163,7 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
                                                                                      offset, order, orderDirection);
     if (notes.isEmpty()) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return notes;
@@ -2168,7 +2178,7 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
         bool res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2179,7 +2189,7 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2189,9 +2199,9 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
         res = note.checkParameters(error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("found note is invalid");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             notes.clear();
@@ -2211,7 +2221,7 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
     bool res = getNotebookLocalUidFromNote(note, notebookLocalUid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -2221,7 +2231,7 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
     res = canExpungeNoteInNotebook(notebookLocalUid, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -2234,7 +2244,7 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
     res = getNotebookGuidForNote(note, notebookGuid, error);
     if (Q_UNLIKELY(!res)) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return false;
@@ -2250,12 +2260,12 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
     bool noteHasGuid = note.hasGuid();
     if (noteHasGuid)
     {
-        column = "guid";
+        column = QStringLiteral("guid");
         uid = note.guid();
 
         if (!checkGuid(uid)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             // TRANSLATOR explaining why note cannot be expunged from local storage
             errorDescription += QT_TR_NOOP("note guid is invalid");
             QNWARNING(errorDescription);
@@ -2268,7 +2278,7 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
             res = getNoteLocalUidForGuid(uid, localUid, error);
             if (!res || localUid.isEmpty()) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -2280,15 +2290,15 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
     }
     else
     {
-        column = "localUid";
+        column = QStringLiteral("localUid");
         uid = note.localUid();
     }
 
-    if (shouldCheckNoteExistence && !rowExists("Notes", column, QVariant(uid))) {
+    if (shouldCheckNoteExistence && !rowExists(QStringLiteral("Notes"), column, QVariant(uid))) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("note to be expunged was not found");
-        QNWARNING(errorDescription << ", " << column << ": " << uid);
+        QNWARNING(errorDescription << QStringLiteral(", ") << column << QStringLiteral(": ") << uid);
         return false;
     }
 
@@ -2303,7 +2313,7 @@ bool LocalStorageManagerPrivate::expungeNote(Note & note, QNLocalizedString & er
 QStringList LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
                                                                          QNLocalizedString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery: " << noteSearchQuery);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery: ") << noteSearchQuery);
 
     if (!noteSearchQuery.isMatcheable()) {
         return QStringList();
@@ -2319,11 +2329,11 @@ QStringList LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery(const N
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't find notes with the note search query");
 
     QNLocalizedString error = errorPrefix;
-    error += ": ";
+    error += QStringLiteral(": ");
     bool res = noteSearchQueryToSQL(noteSearchQuery, queryString, error);
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += error;
         QNWARNING(errorDescription);
         return QStringList();
@@ -2333,7 +2343,7 @@ QStringList LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery(const N
     res = query.exec(queryString);
     if (!res) {
         SET_ERROR();
-        QNWARNING("Full executed SQL query: " << queryString);
+        QNWARNING(QStringLiteral("Full executed SQL query: ") << queryString);
         return QStringList();
     }
 
@@ -2341,7 +2351,7 @@ QStringList LocalStorageManagerPrivate::findNoteLocalUidsWithSearchQuery(const N
     while(query.next())
     {
         QSqlRecord rec = query.record();
-        int index = rec.indexOf("localUid");   // one way of selecting notes
+        int index = rec.indexOf(QStringLiteral("localUid"));   // one way of selecting notes
         if (index < 0) {
             continue;
         }
@@ -2367,7 +2377,7 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
                                                               QNLocalizedString & errorDescription,
                                                               const bool withResourceBinaryData) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::findNotesWithSearchQuery: " << noteSearchQuery);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::findNotesWithSearchQuery: ") << noteSearchQuery);
 
     QStringList foundLocalUids = findNoteLocalUidsWithSearchQuery(noteSearchQuery, errorDescription);
     if (foundLocalUids.isEmpty()) {
@@ -2380,12 +2390,12 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         const QString & item = *it;
 
         if (!joinedLocalUids.isEmpty()) {
-            joinedLocalUids += ", ";
+            joinedLocalUids += QStringLiteral(", ");
         }
 
-        joinedLocalUids += "'";
+        joinedLocalUids += QStringLiteral("'");
         joinedLocalUids += item;
-        joinedLocalUids += "'";
+        joinedLocalUids += QStringLiteral("'");
     }
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't find notes with the note search query");
@@ -2415,9 +2425,9 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         res = findAndSetTagIdsPerNote(note, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("can't fetch tag ids per note");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return NoteList();
@@ -2427,9 +2437,9 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         res = findAndSetResourcesPerNote(note, error, withResourceBinaryData);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("can't fetch resources per note");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return NoteList();
@@ -2439,9 +2449,9 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         res = note.checkParameters(error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("one of found notes is invalid");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return NoteList();
@@ -4005,92 +4015,150 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create SharedNotebooks table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TABLE IF NOT EXISTS Notes("
-                     "  localUid                        TEXT PRIMARY KEY     NOT NULL UNIQUE, "
-                     "  guid                            TEXT                 DEFAULT NULL UNIQUE, "
-                     "  updateSequenceNumber            INTEGER              DEFAULT NULL, "
-                     "  isDirty                         INTEGER              NOT NULL, "
-                     "  isLocal                         INTEGER              NOT NULL, "
-                     "  isFavorited                     INTEGER              NOT NULL, "
-                     "  title                           TEXT                 DEFAULT NULL, "
-                     "  titleNormalized                 TEXT                 DEFAULT NULL, "
-                     "  content                         TEXT                 DEFAULT NULL, "
-                     "  contentLength                   INTEGER              DEFAULT NULL, "
-                     "  contentHash                     TEXT                 DEFAULT NULL, "
-                     "  contentPlainText                TEXT                 DEFAULT NULL, "
-                     "  contentListOfWords              TEXT                 DEFAULT NULL, "
-                     "  contentContainsFinishedToDo     INTEGER              DEFAULT NULL, "
-                     "  contentContainsUnfinishedToDo   INTEGER              DEFAULT NULL, "
-                     "  contentContainsEncryption       INTEGER              DEFAULT NULL, "
-                     "  creationTimestamp               INTEGER              DEFAULT NULL, "
-                     "  modificationTimestamp           INTEGER              DEFAULT NULL, "
-                     "  deletionTimestamp               INTEGER              DEFAULT NULL, "
-                     "  isActive                        INTEGER              DEFAULT NULL, "
-                     "  hasAttributes                   INTEGER              NOT NULL, "
-                     "  thumbnail                       BLOB                 DEFAULT NULL, "
-                     "  notebookLocalUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, "
-                     "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
-                     "  subjectDate                     INTEGER              DEFAULT NULL, "
-                     "  latitude                        REAL                 DEFAULT NULL, "
-                     "  longitude                       REAL                 DEFAULT NULL, "
-                     "  altitude                        REAL                 DEFAULT NULL, "
-                     "  author                          TEXT                 DEFAULT NULL, "
-                     "  source                          TEXT                 DEFAULT NULL, "
-                     "  sourceURL                       TEXT                 DEFAULT NULL, "
-                     "  sourceApplication               TEXT                 DEFAULT NULL, "
-                     "  shareDate                       INTEGER              DEFAULT NULL, "
-                     "  reminderOrder                   INTEGER              DEFAULT NULL, "
-                     "  reminderDoneTime                INTEGER              DEFAULT NULL, "
-                     "  reminderTime                    INTEGER              DEFAULT NULL, "
-                     "  placeName                       TEXT                 DEFAULT NULL, "
-                     "  contentClass                    TEXT                 DEFAULT NULL, "
-                     "  lastEditedBy                    TEXT                 DEFAULT NULL, "
-                     "  creatorId                       INTEGER              DEFAULT NULL, "
-                     "  lastEditorId                    INTEGER              DEFAULT NULL, "
-                     "  applicationDataKeysOnly         TEXT                 DEFAULT NULL, "
-                     "  applicationDataKeysMap          TEXT                 DEFAULT NULL, "
-                     "  applicationDataValues           TEXT                 DEFAULT NULL, "
-                     "  classificationKeys              TEXT                 DEFAULT NULL, "
-                     "  classificationValues            TEXT                 DEFAULT NULL, "
-                     "  UNIQUE(localUid, guid)"
-                     ")");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS Notes("
+                                    "  localUid                        TEXT PRIMARY KEY     NOT NULL UNIQUE, "
+                                    "  guid                            TEXT                 DEFAULT NULL UNIQUE, "
+                                    "  updateSequenceNumber            INTEGER              DEFAULT NULL, "
+                                    "  isDirty                         INTEGER              NOT NULL, "
+                                    "  isLocal                         INTEGER              NOT NULL, "
+                                    "  isFavorited                     INTEGER              NOT NULL, "
+                                    "  title                           TEXT                 DEFAULT NULL, "
+                                    "  titleNormalized                 TEXT                 DEFAULT NULL, "
+                                    "  content                         TEXT                 DEFAULT NULL, "
+                                    "  contentLength                   INTEGER              DEFAULT NULL, "
+                                    "  contentHash                     TEXT                 DEFAULT NULL, "
+                                    "  contentPlainText                TEXT                 DEFAULT NULL, "
+                                    "  contentListOfWords              TEXT                 DEFAULT NULL, "
+                                    "  contentContainsFinishedToDo     INTEGER              DEFAULT NULL, "
+                                    "  contentContainsUnfinishedToDo   INTEGER              DEFAULT NULL, "
+                                    "  contentContainsEncryption       INTEGER              DEFAULT NULL, "
+                                    "  creationTimestamp               INTEGER              DEFAULT NULL, "
+                                    "  modificationTimestamp           INTEGER              DEFAULT NULL, "
+                                    "  deletionTimestamp               INTEGER              DEFAULT NULL, "
+                                    "  isActive                        INTEGER              DEFAULT NULL, "
+                                    "  hasAttributes                   INTEGER              NOT NULL, "
+                                    "  thumbnail                       BLOB                 DEFAULT NULL, "
+                                    "  notebookLocalUid REFERENCES Notebooks(localUid) ON UPDATE CASCADE, "
+                                    "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
+                                    "  subjectDate                     INTEGER              DEFAULT NULL, "
+                                    "  latitude                        REAL                 DEFAULT NULL, "
+                                    "  longitude                       REAL                 DEFAULT NULL, "
+                                    "  altitude                        REAL                 DEFAULT NULL, "
+                                    "  author                          TEXT                 DEFAULT NULL, "
+                                    "  source                          TEXT                 DEFAULT NULL, "
+                                    "  sourceURL                       TEXT                 DEFAULT NULL, "
+                                    "  sourceApplication               TEXT                 DEFAULT NULL, "
+                                    "  shareDate                       INTEGER              DEFAULT NULL, "
+                                    "  reminderOrder                   INTEGER              DEFAULT NULL, "
+                                    "  reminderDoneTime                INTEGER              DEFAULT NULL, "
+                                    "  reminderTime                    INTEGER              DEFAULT NULL, "
+                                    "  placeName                       TEXT                 DEFAULT NULL, "
+                                    "  contentClass                    TEXT                 DEFAULT NULL, "
+                                    "  lastEditedBy                    TEXT                 DEFAULT NULL, "
+                                    "  creatorId                       INTEGER              DEFAULT NULL, "
+                                    "  lastEditorId                    INTEGER              DEFAULT NULL, "
+                                    "  sharedWithBusiness              INTEGER              DEFAULT NULL, "
+                                    "  conflictSourceNoteGuid          TEXT                 DEFAULT NULL, "
+                                    "  noteTitleQuality                INTEGER              DEFAULT NULL, "
+                                    "  applicationDataKeysOnly         TEXT                 DEFAULT NULL, "
+                                    "  applicationDataKeysMap          TEXT                 DEFAULT NULL, "
+                                    "  applicationDataValues           TEXT                 DEFAULT NULL, "
+                                    "  classificationKeys              TEXT                 DEFAULT NULL, "
+                                    "  classificationValues            TEXT                 DEFAULT NULL, "
+                                    "  UNIQUE(localUid, guid)"
+                                    ")"));
     errorPrefix = QT_TR_NOOP("can't create Notes table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalUid)");
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS SharedNotes("
+                                    "  sharedNoteNoteGuid REFERENCES Notes(guid) ON UPDATE CASCADE, "
+                                    "  sharedNoteSharerUserId                               INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientIdentityId                        INTEGER     DEFAULT NULL UNIQUE, "
+                                    "  sharedNoteRecipientContactName                       TEXT        DEFAULT NULL, "
+                                    "  sharedNoteRecipientContactId                         TEXT        DEFAULT NULL, "
+                                    "  sharedNoteRecipientContactType                       INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientContactPhotoUrl                   TEXT        DEFAULT NULL, "
+                                    "  sharedNoteRecipientContactPhotoLastUpdated           INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientContactMessagingPermit            BLOB        DEFAULT NULL, "
+                                    "  sharedNoteRecipientContactMessagingPermitExpires     INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientUserId                            INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientDeactivated                       INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientSameBusiness                      INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientBlocked                           INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientUserConnected                     INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteRecipientEventId                           INTEGER     DEFAULT NULL, "
+                                    "  sharedNotePrivilegeLevel                             INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteCreationTimestamp                          INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteModificationTimestamp                      INTEGER     DEFAULT NULL, "
+                                    "  sharedNoteAssignmentTimestamp                        INTEGER     DEFAULT NULL, "
+                                    "  indexInNote                                          INTEGER     DEFAULT NULL, "
+                                    "  UNIQUE(sharedNoteNoteGuid, sharedNoteRecipientIdentityId) ON CONFLICT REPLACE)"));
+    errorPrefix = QT_TR_NOOP("can't create SharedNotes table");
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS NoteRestrictions("
+                                    "  localUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
+                                    "  noUpdateNoteTitle                INTEGER             DEFAULT NULL, "
+                                    "  noUpdateNoteContent              INTEGER             DEFAULT NULL, "
+                                    "  noEmailNote                      INTEGER             DEFAULT NULL, "
+                                    "  noShareNote                      INTEGER             DEFAULT NULL, "
+                                    "  noShareNotePublicly              INTEGER             DEFAULT NULL)"));
+    errorPrefix = QT_TR_NOOP("can't create NoteRestrictions table");
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS NoteLimits("
+                                    "  localUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
+                                    "  noteResourceCountMax             INTEGER             DEFAULT NULL, "
+                                    "  uploadLimit                      INTEGER             DEFAULT NULL, "
+                                    "  resourceSizeMax                  INTEGER             DEFAULT NULL, "
+                                    "  noteSizeMax                      INTEGER             DEFAULT NULL, "
+                                    "  uploaded                         INTEGER             DEFAULT NULL)"));
+    errorPrefix = QT_TR_NOOP("can't create NoteLimits table");
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    res = query.exec(QStringLiteral("CREATE TRIGGER on_note_delete_trigger "
+                                    "BEFORE DELETE ON Notes "
+                                    "BEGIN "
+                                    "DELETE FROM SharedNotes WHERE sharedNoteNoteGuid=OLD.guid; "
+                                    "DELETE FROM NoteRestrictions WHERE localUid=OLD.localUid; "
+                                    "END"));
+    errorPrefix = QT_TR_NOOP("can't create trigger to fire on deletion from notes table");
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    res = query.exec(QStringLiteral("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalUid)"));
     errorPrefix = QT_TR_NOOP("can't create index NotesNotebooks");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localUid, titleNormalized, "
-                     "contentListOfWords, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
-                     "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
-                     "isActive, notebookLocalUid, notebookGuid, subjectDate, latitude, longitude, "
-                     "altitude, author, source, sourceApplication, reminderOrder, reminderDoneTime, "
-                     "reminderTime, placeName, contentClass, applicationDataKeysOnly, "
-                     "applicationDataKeysMap, applicationDataValues)");
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localUid, titleNormalized, "
+                                    "contentListOfWords, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
+                                    "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
+                                    "isActive, notebookLocalUid, notebookGuid, subjectDate, latitude, longitude, "
+                                    "altitude, author, source, sourceApplication, reminderOrder, reminderDoneTime, "
+                                    "reminderTime, placeName, contentClass, applicationDataKeysOnly, "
+                                    "applicationDataKeysMap, applicationDataValues)"));
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 table NoteFTS");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TRIGGER NoteFTS_BeforeDeleteTrigger BEFORE DELETE ON Notes "
-                     "BEGIN "
-                     "DELETE FROM NoteFTS WHERE localUid=old.localUid; "
-                     "END");
+    res = query.exec(QStringLiteral("CREATE TRIGGER NoteFTS_BeforeDeleteTrigger BEFORE DELETE ON Notes "
+                                    "BEGIN "
+                                    "DELETE FROM NoteFTS WHERE localUid=old.localUid; "
+                                    "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger NoteFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TRIGGER NoteFTS_AfterInsertTrigger AFTER INSERT ON Notes "
-                     "BEGIN "
-                     "INSERT INTO NoteFTS(NoteFTS) VALUES('rebuild'); "
-                     "END");
+    res = query.exec(QStringLiteral("CREATE TRIGGER NoteFTS_AfterInsertTrigger AFTER INSERT ON Notes "
+                                    "BEGIN "
+                                    "INSERT INTO NoteFTS(NoteFTS) VALUES('rebuild'); "
+                                    "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger NoteFTS_AfterInsertTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec("CREATE TRIGGER on_notebook_delete_trigger BEFORE DELETE ON Notebooks "
-                     "BEGIN "
-                     "DELETE FROM NotebookRestrictions WHERE NotebookRestrictions.localUid=OLD.localUid; "
-                     "DELETE FROM SharedNotebooks WHERE SharedNotebooks.notebookGuid=OLD.guid; "
-                     "DELETE FROM Notes WHERE Notes.notebookLocalUid=OLD.localUid; "
-                     "END");
+    res = query.exec(QStringLiteral("CREATE TRIGGER on_notebook_delete_trigger BEFORE DELETE ON Notebooks "
+                                    "BEGIN "
+                                    "DELETE FROM NotebookRestrictions WHERE NotebookRestrictions.localUid=OLD.localUid; "
+                                    "DELETE FROM SharedNotebooks WHERE SharedNotebooks.notebookGuid=OLD.guid; "
+                                    "DELETE FROM Notes WHERE Notes.notebookLocalUid=OLD.localUid; "
+                                    "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger to fire on notebook deletion");
     DATABASE_CHECK_AND_SET_ERROR();
 
@@ -5657,20 +5725,20 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             m_stringUtils.removeDiacritics(titleNormalized);
         }
 
-        query.bindValue(":localUid", localUid);
-        query.bindValue(":guid", (note.hasGuid() ? note.guid() : nullValue));
-        query.bindValue(":updateSequenceNumber", (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
-        query.bindValue(":isDirty", (note.isDirty() ? 1 : 0));
-        query.bindValue(":isLocal", (note.isLocal() ? 1 : 0));
-        query.bindValue(":isFavorited", (note.isFavorited() ? 1 : 0));
-        query.bindValue(":title", (note.hasTitle() ? note.title() : nullValue));
-        query.bindValue(":titleNormalized", (titleNormalized.isEmpty() ? nullValue : titleNormalized));
-        query.bindValue(":content", (note.hasContent() ? note.content() : nullValue));
-        query.bindValue(":contentContainsUnfinishedToDo", (note.containsUncheckedTodo() ? 1 : nullValue));
-        query.bindValue(":contentContainsFinishedToDo", (note.containsCheckedTodo() ? 1 : nullValue));
-        query.bindValue(":contentContainsEncryption", (note.containsEncryption() ? 1 : nullValue));
-        query.bindValue(":contentLength", (note.hasContentLength() ? note.contentLength() : nullValue));
-        query.bindValue(":contentHash", (note.hasContentHash() ? note.contentHash() : nullValue));
+        query.bindValue(QStringLiteral(":localUid"), localUid);
+        query.bindValue(QStringLiteral(":guid"), (note.hasGuid() ? note.guid() : nullValue));
+        query.bindValue(QStringLiteral(":updateSequenceNumber"), (note.hasUpdateSequenceNumber() ? note.updateSequenceNumber() : nullValue));
+        query.bindValue(QStringLiteral(":isDirty"), (note.isDirty() ? 1 : 0));
+        query.bindValue(QStringLiteral(":isLocal"), (note.isLocal() ? 1 : 0));
+        query.bindValue(QStringLiteral(":isFavorited"), (note.isFavorited() ? 1 : 0));
+        query.bindValue(QStringLiteral(":title"), (note.hasTitle() ? note.title() : nullValue));
+        query.bindValue(QStringLiteral(":titleNormalized"), (titleNormalized.isEmpty() ? nullValue : titleNormalized));
+        query.bindValue(QStringLiteral(":content"), (note.hasContent() ? note.content() : nullValue));
+        query.bindValue(QStringLiteral(":contentContainsUnfinishedToDo"), (note.containsUncheckedTodo() ? 1 : nullValue));
+        query.bindValue(QStringLiteral(":contentContainsFinishedToDo"), (note.containsCheckedTodo() ? 1 : nullValue));
+        query.bindValue(QStringLiteral(":contentContainsEncryption"), (note.containsEncryption() ? 1 : nullValue));
+        query.bindValue(QStringLiteral(":contentLength"), (note.hasContentLength() ? note.contentLength() : nullValue));
+        query.bindValue(QStringLiteral(":contentHash"), (note.hasContentHash() ? note.contentHash() : nullValue));
 
         if (note.hasContent())
         {
@@ -5679,9 +5747,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             std::pair<QString, QStringList> plainTextAndListOfWords = note.plainTextAndListOfWords(&error);
             if (!error.isEmpty()) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += QT_TR_NOOP("can't get note's plain text and list of words");
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 query.finish();
@@ -5693,33 +5761,33 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             listOfWords = listOfWords.toLower();
             m_stringUtils.removeDiacritics(listOfWords);
 
-            query.bindValue(":contentPlainText", (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
-            query.bindValue(":contentListOfWords", (listOfWords.isEmpty() ? nullValue : listOfWords));
+            query.bindValue(QStringLiteral(":contentPlainText"), (plainTextAndListOfWords.first.isEmpty() ? nullValue : plainTextAndListOfWords.first));
+            query.bindValue(QStringLiteral(":contentListOfWords"), (listOfWords.isEmpty() ? nullValue : listOfWords));
         }
         else {
-            query.bindValue(":contentPlainText", nullValue);
-            query.bindValue(":contentListOfWords", nullValue);
+            query.bindValue(QStringLiteral(":contentPlainText"), nullValue);
+            query.bindValue(QStringLiteral(":contentListOfWords"), nullValue);
         }
 
-        query.bindValue(":creationTimestamp", (note.hasCreationTimestamp() ? note.creationTimestamp() : nullValue));
-        query.bindValue(":modificationTimestamp", (note.hasModificationTimestamp() ? note.modificationTimestamp() : nullValue));
-        query.bindValue(":deletionTimestamp", (note.hasDeletionTimestamp() ? note.deletionTimestamp() : nullValue));
-        query.bindValue(":isActive", (note.hasActive() ? (note.active() ? 1 : 0) : nullValue));
-        query.bindValue(":hasAttributes", (note.hasNoteAttributes() ? 1 : 0));
+        query.bindValue(QStringLiteral(":creationTimestamp"), (note.hasCreationTimestamp() ? note.creationTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":modificationTimestamp"), (note.hasModificationTimestamp() ? note.modificationTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":deletionTimestamp"), (note.hasDeletionTimestamp() ? note.deletionTimestamp() : nullValue));
+        query.bindValue(QStringLiteral(":isActive"), (note.hasActive() ? (note.active() ? 1 : 0) : nullValue));
+        query.bindValue(QStringLiteral(":hasAttributes"), (note.hasNoteAttributes() ? 1 : 0));
 
         QImage thumbnail = note.thumbnail();
         bool thumbnailIsNull = thumbnail.isNull();
 
-        query.bindValue(":thumbnail", (thumbnailIsNull ? nullValue : thumbnail));
-        query.bindValue(":notebookLocalUid", (notebookLocalUid.isEmpty() ? nullValue : notebookLocalUid));
-        query.bindValue(":notebookGuid", (note.hasNotebookGuid() ? note.notebookGuid() : nullValue));
+        query.bindValue(QStringLiteral(":thumbnail"), (thumbnailIsNull ? nullValue : thumbnail));
+        query.bindValue(QStringLiteral(":notebookLocalUid"), (notebookLocalUid.isEmpty() ? nullValue : notebookLocalUid));
+        query.bindValue(QStringLiteral(":notebookGuid"), (note.hasNotebookGuid() ? note.notebookGuid() : nullValue));
 
         if (note.hasNoteAttributes())
         {
             const qevercloud::NoteAttributes & attributes = note.noteAttributes();
 
 #define BIND_ATTRIBUTE(name) \
-    query.bindValue(":" #name, (attributes.name.isSet() ? attributes.name.ref() : nullValue))
+    query.bindValue(QStringLiteral(":" #name), (attributes.name.isSet() ? attributes.name.ref() : nullValue))
 
             BIND_ATTRIBUTE(subjectDate);
             BIND_ATTRIBUTE(latitude);
@@ -5738,6 +5806,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             BIND_ATTRIBUTE(lastEditedBy);
             BIND_ATTRIBUTE(creatorId);
             BIND_ATTRIBUTE(lastEditorId);
+            BIND_ATTRIBUTE(sharedWithBusiness);
+            BIND_ATTRIBUTE(conflictSourceNoteGuid);
+            BIND_ATTRIBUTE(noteTitleQuality);
 
 #undef BIND_ATTRIBUTE
 
@@ -5751,18 +5822,18 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
                     QString keysOnlyString;
 
                     for(auto it = keysOnly.begin(), end = keysOnly.end(); it != end; ++it) {
-                        keysOnlyString += "'";
+                        keysOnlyString += QStringLiteral("'");
                         keysOnlyString += *it;
-                        keysOnlyString += "'";
+                        keysOnlyString += QStringLiteral("'");
                     }
 
-                    QNDEBUG("Application data keys only string: " << keysOnlyString);
+                    QNDEBUG(QStringLiteral("Application data keys only string: ") << keysOnlyString);
 
-                    query.bindValue(":applicationDataKeysOnly", keysOnlyString);
+                    query.bindValue(QStringLiteral(":applicationDataKeysOnly"), keysOnlyString);
                 }
                 else
                 {
-                    query.bindValue(":applicationDataKeysOnly", nullValue);
+                    query.bindValue(QStringLiteral(":applicationDataKeysOnly"), nullValue);
                 }
 
                 if (lazyMap.fullMap.isSet())
@@ -5773,32 +5844,32 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
 
                     for(auto it = fullMap.begin(), end = fullMap.end(); it != end; ++it)
                     {
-                        fullMapKeysString += "'";
+                        fullMapKeysString += QStringLiteral("'");
                         fullMapKeysString += it.key();
-                        fullMapKeysString += "'";
+                        fullMapKeysString += QStringLiteral("'");
 
-                        fullMapValuesString += "'";
+                        fullMapValuesString += QStringLiteral("'");
                         fullMapValuesString += it.value();
-                        fullMapValuesString += "'";
+                        fullMapValuesString += QStringLiteral("'");
                     }
 
-                    QNDEBUG("Application data map keys: " << fullMapKeysString
-                            << ", application data map values: " << fullMapValuesString);
+                    QNDEBUG(QStringLiteral("Application data map keys: ") << fullMapKeysString
+                            << QStringLiteral(", application data map values: ") << fullMapValuesString);
 
-                    query.bindValue(":applicationDataKeysMap", fullMapKeysString);
-                    query.bindValue(":applicationDataValues", fullMapValuesString);
+                    query.bindValue(QStringLiteral(":applicationDataKeysMap"), fullMapKeysString);
+                    query.bindValue(QStringLiteral(":applicationDataValues"), fullMapValuesString);
                 }
                 else
                 {
-                    query.bindValue(":applicationDataKeysMap", nullValue);
-                    query.bindValue(":applicationDataValues", nullValue);
+                    query.bindValue(QStringLiteral(":applicationDataKeysMap"), nullValue);
+                    query.bindValue(QStringLiteral(":applicationDataValues"), nullValue);
                 }
             }
             else
             {
-                query.bindValue(":applicationDataKeysOnly", nullValue);
-                query.bindValue(":applicationDataKeysMap", nullValue);
-                query.bindValue(":applicationDataValues", nullValue);
+                query.bindValue(QStringLiteral(":applicationDataKeysOnly"), nullValue);
+                query.bindValue(QStringLiteral(":applicationDataKeysMap"), nullValue);
+                query.bindValue(QStringLiteral(":applicationDataValues"), nullValue);
             }
 
             if (attributes.classifications.isSet())
@@ -5807,31 +5878,31 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
                 QString classificationKeys, classificationValues;
                 for(auto it = classifications.begin(), end = classifications.end(); it != end; ++it)
                 {
-                    classificationKeys += "'";
+                    classificationKeys += QStringLiteral("'");
                     classificationKeys += it.key();
-                    classificationKeys += "'";
+                    classificationKeys += QStringLiteral("'");
 
-                    classificationValues += "'";
+                    classificationValues += QStringLiteral("'");
                     classificationValues += it.value();
-                    classificationValues += "'";
+                    classificationValues += QStringLiteral("'");
                 }
 
-                QNDEBUG("Classification keys: " << classificationKeys << ", classification values"
+                QNDEBUG(QStringLiteral("Classification keys: ") << classificationKeys << QStringLiteral(", classification values")
                         << classificationValues);
 
-                query.bindValue(":classificationKeys", classificationKeys);
-                query.bindValue(":classificationValues", classificationValues);
+                query.bindValue(QStringLiteral(":classificationKeys"), classificationKeys);
+                query.bindValue(QStringLiteral(":classificationValues"), classificationValues);
             }
             else
             {
-                query.bindValue(":classificationKeys", nullValue);
-                query.bindValue(":classificationValues", nullValue);
+                query.bindValue(QStringLiteral(":classificationKeys"), nullValue);
+                query.bindValue(QStringLiteral(":classificationValues"), nullValue);
             }
         }
         else
         {
 #define BIND_NULL_ATTRIBUTE(name) \
-    query.bindValue(":" #name, nullValue)
+    query.bindValue(QStringLiteral(":" #name), nullValue)
 
             BIND_NULL_ATTRIBUTE(subjectDate);
             BIND_NULL_ATTRIBUTE(latitude);
@@ -5850,6 +5921,9 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
             BIND_NULL_ATTRIBUTE(lastEditedBy);
             BIND_NULL_ATTRIBUTE(creatorId);
             BIND_NULL_ATTRIBUTE(lastEditorId);
+            BIND_NULL_ATTRIBUTE(sharedWithBusiness);
+            BIND_NULL_ATTRIBUTE(conflictSourceNoteGuid);
+            BIND_NULL_ATTRIBUTE(noteTitleQuality);
             BIND_NULL_ATTRIBUTE(applicationDataKeysOnly);
             BIND_NULL_ATTRIBUTE(applicationDataKeysMap);
             BIND_NULL_ATTRIBUTE(applicationDataValues);
@@ -5863,6 +5937,29 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
         DATABASE_CHECK_AND_SET_ERROR();
 
         query.finish();
+    }
+
+    if (note.hasGuid())
+    {
+        // Clear shared notes for a given note first, update them (if any) second
+        {
+            QString queryString = QString("DELETE FROM SharedNotes WHERE sharedNoteNoteGuid='%1'").arg(note.guid());
+            QSqlQuery query(m_sqlDatabase);
+            bool res = query.exec(queryString);
+            DATABASE_CHECK_AND_SET_ERROR();
+        }
+
+        if (note.hasSharedNotes())
+        {
+            QList<SharedNote> sharedNotes = note.sharedNotes();
+            for(auto it = sharedNotes.begin(), end = sharedNotes.end(); it != end; ++it)
+            {
+                bool res = insertOrReplaceSharedNote(*it, errorDescription);
+                if (!res) {
+                    return false;
+                }
+            }
+        }
     }
 
     if (updateTags)
@@ -5915,19 +6012,19 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
                 bool res = findTag(tag, error);
                 if (!res) {
                     errorDescription = errorPrefix;
-                    errorDescription += ": ";
+                    errorDescription += QStringLiteral(": ");
                     errorDescription += QT_TR_NOOP("failed to find one of note's tags");
-                    errorDescription += ": ";
+                    errorDescription += QStringLiteral(": ");
                     errorDescription += error;
                     QNWARNING(errorDescription);
                     return false;
                 }
 
-                query.bindValue(":localNote", localUid);
-                query.bindValue(":note", (note.hasGuid() ? note.guid() : nullValue));
-                query.bindValue(":localTag", tag.localUid());
-                query.bindValue(":tag", (tag.hasGuid() ? tag.guid() : nullValue));
-                query.bindValue(":tagIndexInNote", i);
+                query.bindValue(QStringLiteral(":localNote"), localUid);
+                query.bindValue(QStringLiteral(":note"), (note.hasGuid() ? note.guid() : nullValue));
+                query.bindValue(QStringLiteral(":localTag"), tag.localUid());
+                query.bindValue(QStringLiteral(":tag"), (tag.hasGuid() ? tag.guid() : nullValue));
+                query.bindValue(QStringLiteral(":tagIndexInNote"), i);
 
                 res = query.exec();
                 DATABASE_CHECK_AND_SET_ERROR();
@@ -5962,9 +6059,114 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
     return transaction.commit(errorDescription);
 }
 
+bool LocalStorageManagerPrivate::insertOrReplaceSharedNote(const SharedNote & sharedNote, QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::insertOrReplaceSharedNote: ") << sharedNote);
+
+    // NOTE: this method expects to be called after the shared note is already checked
+    // for sanity of its parameters!
+
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace shared note");
+
+    bool res = checkAndPrepareInsertOrReplaceSharedNoteQuery();
+    QSqlQuery & query = m_insertOrReplaceSharedNoteQuery;
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    QVariant nullValue;
+
+    query.bindValue(QStringLiteral(":sharedNoteNoteGuid"), sharedNote.noteGuid());
+    query.bindValue(QStringLiteral(":sharedNoteSharerUserId"), (sharedNote.hasSharerUserId() ? sharedNote.sharerUserId() : nullValue));
+
+    if (sharedNote.hasRecipientIdentity())
+    {
+        const qevercloud::Identity & recipientIdentity = sharedNote.recipientIdentity();
+
+        query.bindValue(QStringLiteral(":sharedNoteRecipientIdentityId"), recipientIdentity.id);
+
+        if (recipientIdentity.contact.isSet())
+        {
+            const qevercloud::Contact & contact = recipientIdentity.contact.ref();
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), (contact.name.isSet() ? contact.name.ref() : nullValue));
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), (contact.id.isSet() ? contact.id.ref() : nullValue));
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), (contact.type.isSet() ? contact.type.ref() : nullValue));
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), (contact.photoUrl.isSet() ? contact.photoUrl.ref() : nullValue));
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), (contact.photoLastUpdated.isSet() ? contact.photoLastUpdated.ref() : nullValue));
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), (contact.messagingPermit.isSet() ? contact.messagingPermit.ref() : nullValue));
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), (contact.messagingPermitExpires.isSet() ? contact.messagingPermitExpires.ref() : nullValue));
+        }
+        else
+        {
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), nullValue);
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), nullValue);
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), nullValue);
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), nullValue);
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), nullValue);
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), nullValue);
+            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), nullValue);
+        }
+
+        query.bindValue(QStringLiteral(":sharedNoteRecipientUserId"), (recipientIdentity.userId.isSet() ? recipientIdentity.userId.ref() : nullValue));
+        query.bindValue(QStringLiteral(":sharedNoteRecipientDeactivated"), (recipientIdentity.deactivated.isSet()
+                                                                            ? (recipientIdentity.deactivated.ref() ? 1 : 0)
+                                                                            : nullValue));
+        query.bindValue(QStringLiteral(":sharedNoteRecipientSameBusiness"), (recipientIdentity.sameBusiness.isSet()
+                                                                             ? (recipientIdentity.sameBusiness.ref() ? 1 : 0)
+                                                                             : nullValue));
+        query.bindValue(QStringLiteral(":sharedNoteRecipientBlocked"), (recipientIdentity.blocked.isSet()
+                                                                        ? (recipientIdentity.blocked.ref() ? 1 : 0)
+                                                                        : nullValue));
+        query.bindValue(QStringLiteral(":sharedNoteRecipientUserConnected"), (recipientIdentity.userConnected.isSet()
+                                                                              ? (recipientIdentity.userConnected.ref() ? 1 : 0)
+                                                                              : nullValue));
+        query.bindValue(QStringLiteral(":sharedNoteRecipientEventId"), (recipientIdentity.eventId.isSet() ? recipientIdentity.eventId.ref() : nullValue));
+    }
+    else
+    {
+        query.bindValue(QStringLiteral(":sharedNoteRecipientIdentityId"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientUserId"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientDeactivated"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientSameBusiness"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientBlocked"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientUserConnected"), nullValue);
+        query.bindValue(QStringLiteral(":sharedNoteRecipientEventId"), nullValue);
+    }
+
+    query.bindValue(QStringLiteral(":sharedNotePrivilegeLevel"), (sharedNote.hasPrivilegeLevel() ? sharedNote.privilegeLevel() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteCreationTimestamp"), (sharedNote.hasCreationTimestamp() ? sharedNote.creationTimestamp() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteModificationTimestamp"), (sharedNote.hasModificationTimestamp() ? sharedNote.modificationTimestamp() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteAssignmentTimestamp"), (sharedNote.hasAssignmentTimestamp() ? sharedNote.assignmentTimestamp() : nullValue));
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    query.finish();
+    return true;
+}
+
+bool LocalStorageManagerPrivate::insertOrReplaceNoteRestrictions(const QString & noteLocalUid,
+                                                                 const qevercloud::NoteRestrictions & noteRestrictions,
+                                                                 QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::insertOrReplaceNoteRestrictions: note local uid = ") << noteLocalUid);
+
+    // NOTE: this method expects to be called after the note is already checked
+    // for sanity of its parameters!
+
+    // TODO: implement
+
+    return true;
+}
+
 bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
-    QNDEBUG("LocalStorageManagerPrivate::canAddNoteToNotebook: notebook local uid = " << notebookLocalUid);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::canAddNoteToNotebook: notebook local uid = ") << notebookLocalUid);
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't check whether some note can be added to the notebook");
 
@@ -5972,13 +6174,13 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
     QSqlQuery & query = m_canAddNoteToNotebookQuery;
     DATABASE_CHECK_AND_SET_ERROR();
 
-    query.bindValue(":notebookLocalUid", notebookLocalUid);
+    query.bindValue(QStringLiteral(":notebookLocalUid"), notebookLocalUid);
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
 
     if (!query.next()) {
-        QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
-                << ", assuming it's possible to add the note to this notebook");
+        QNDEBUG(QStringLiteral("Found no notebook restrictions for notebook with local uid ") << notebookLocalUid
+                << QStringLiteral(", assuming it's possible to add the note to this notebook"));
         query.finish();
         return true;
     }
@@ -5986,7 +6188,7 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
     res = !(query.value(0).toBool());
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook restrictions forbid adding the note to it");
     }
 
@@ -5996,7 +6198,7 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
 
 bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
-    QNDEBUG("LocalStorageManagerPrivate::canUpdateNoteInNotebook: notebook local uid = " << notebookLocalUid);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::canUpdateNoteInNotebook: notebook local uid = ") << notebookLocalUid);
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't check whether some note in the notebook can be updated");
 
@@ -6004,13 +6206,13 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
     QSqlQuery & query = m_canUpdateNoteInNotebookQuery;
     DATABASE_CHECK_AND_SET_ERROR();
 
-    query.bindValue(":notebookLocalUid", notebookLocalUid);
+    query.bindValue(QStringLiteral(":notebookLocalUid"), notebookLocalUid);
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
 
     if (!query.next()) {
-        QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
-                << ", assuming it's possible to update the note in this notebook");
+        QNDEBUG(QStringLiteral("Found no notebook restrictions for notebook with local uid ") << notebookLocalUid
+                << QStringLiteral(", assuming it's possible to update the note in this notebook"));
         query.finish();
         return true;
     }
@@ -6018,7 +6220,7 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
     res = !(query.value(0).toBool());
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook restrictions forbid updating its notes");
     }
 
@@ -6028,7 +6230,7 @@ bool LocalStorageManagerPrivate::canUpdateNoteInNotebook(const QString & noteboo
 
 bool LocalStorageManagerPrivate::canExpungeNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription)
 {
-    QNDEBUG("LocalStorageManagerPrivate::canExpungeNoteInNotebook: notebook local uid = " << notebookLocalUid);
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::canExpungeNoteInNotebook: notebook local uid = ") << notebookLocalUid);
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't check whether some note can be expunged from the notebook");
 
@@ -6036,13 +6238,13 @@ bool LocalStorageManagerPrivate::canExpungeNoteInNotebook(const QString & notebo
     QSqlQuery & query = m_canExpungeNoteInNotebookQuery;
     DATABASE_CHECK_AND_SET_ERROR();
 
-    query.bindValue(":notebookLocalUid", notebookLocalUid);
+    query.bindValue(QStringLiteral(":notebookLocalUid"), notebookLocalUid);
     res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
 
     if (!query.next()) {
-        QNDEBUG("Found no notebook restrictions for notebook with local uid " << notebookLocalUid
-                << ", assuming it's possible to expunge the note from this notebook");
+        QNDEBUG(QStringLiteral("Found no notebook restrictions for notebook with local uid ") << notebookLocalUid
+                << QStringLiteral(", assuming it's possible to expunge the note from this notebook"));
         query.finish();
         return true;
     }
@@ -6050,7 +6252,7 @@ bool LocalStorageManagerPrivate::canExpungeNoteInNotebook(const QString & notebo
     res = !(query.value(0).toBool());
     if (!res) {
         errorDescription = errorPrefix;
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook restrictions forbid expunging its notes");
     }
 
@@ -6064,10 +6266,10 @@ bool LocalStorageManagerPrivate::checkAndPrepareNoteCountQuery() const
         return true;
     }
 
-    QNTRACE("Preparing SQL query to get the count of notes");
+    QNTRACE(QStringLiteral("Preparing SQL query to get the count of notes"));
 
     m_getNoteCountQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_getNoteCountQuery.prepare("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL");
+    bool res = m_getNoteCountQuery.prepare(QStringLiteral("SELECT COUNT(*) FROM Notes WHERE deletionTimestamp IS NULL"));
     if (res) {
         m_getNoteCountQueryPrepared = true;
     }
@@ -6081,33 +6283,35 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
         return true;
     }
 
-    QNTRACE("Preparing SQL query to insert or replace note");
+    QNTRACE(QStringLiteral("Preparing SQL query to insert or replace note"));
 
     m_insertOrReplaceNoteQuery = QSqlQuery(m_sqlDatabase);
 
-    QString columns = "localUid, guid, updateSequenceNumber, isDirty, isLocal, "
-                      "isFavorited, title, titleNormalized, content, contentLength, contentHash, "
-                      "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
-                      "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
-                      "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
-                      "thumbnail, notebookLocalUid, notebookGuid, subjectDate, latitude, "
-                      "longitude, altitude, author, source, sourceURL, sourceApplication, "
-                      "shareDate, reminderOrder, reminderDoneTime, reminderTime, placeName, "
-                      "contentClass, lastEditedBy, creatorId, lastEditorId, "
-                      "applicationDataKeysOnly, applicationDataKeysMap, "
-                      "applicationDataValues, classificationKeys, classificationValues";
+    QString columns = QStringLiteral("localUid, guid, updateSequenceNumber, isDirty, isLocal, "
+                                     "isFavorited, title, titleNormalized, content, contentLength, contentHash, "
+                                     "contentPlainText, contentListOfWords, contentContainsFinishedToDo, "
+                                     "contentContainsUnfinishedToDo, contentContainsEncryption, creationTimestamp, "
+                                     "modificationTimestamp, deletionTimestamp, isActive, hasAttributes, "
+                                     "thumbnail, notebookLocalUid, notebookGuid, subjectDate, latitude, "
+                                     "longitude, altitude, author, source, sourceURL, sourceApplication, "
+                                     "shareDate, reminderOrder, reminderDoneTime, reminderTime, placeName, "
+                                     "contentClass, lastEditedBy, creatorId, lastEditorId, "
+                                     "sharedWithBusiness, conflictSourceNoteGuid, noteTitleQuality, "
+                                     "applicationDataKeysOnly, applicationDataKeysMap, "
+                                     "applicationDataValues, classificationKeys, classificationValues");
 
-    QString values = ":localUid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
-                     ":isFavorited, :title, :titleNormalized, :content, :contentLength, :contentHash, "
-                     ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
-                     ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
-                     ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
-                     ":thumbnail, :notebookLocalUid, :notebookGuid, :subjectDate, :latitude, "
-                     ":longitude, :altitude, :author, :source, :sourceURL, :sourceApplication, "
-                     ":shareDate, :reminderOrder, :reminderDoneTime, :reminderTime, :placeName, "
-                     ":contentClass, :lastEditedBy, :creatorId, :lastEditorId, "
-                     ":applicationDataKeysOnly, :applicationDataKeysMap, "
-                     ":applicationDataValues, :classificationKeys, :classificationValues";
+    QString values = QStringLiteral(":localUid, :guid, :updateSequenceNumber, :isDirty, :isLocal, "
+                                    ":isFavorited, :title, :titleNormalized, :content, :contentLength, :contentHash, "
+                                    ":contentPlainText, :contentListOfWords, :contentContainsFinishedToDo, "
+                                    ":contentContainsUnfinishedToDo, :contentContainsEncryption, :creationTimestamp, "
+                                    ":modificationTimestamp, :deletionTimestamp, :isActive, :hasAttributes, "
+                                    ":thumbnail, :notebookLocalUid, :notebookGuid, :subjectDate, :latitude, "
+                                    ":longitude, :altitude, :author, :source, :sourceURL, :sourceApplication, "
+                                    ":shareDate, :reminderOrder, :reminderDoneTime, :reminderTime, :placeName, "
+                                    ":contentClass, :lastEditedBy, :creatorId, :lastEditorId, "
+                                    ":sharedWithBusiness, :conflictSourceNoteGuid, :noteTitleQuality, "
+                                    ":applicationDataKeysOnly, :applicationDataKeysMap, "
+                                    ":applicationDataValues, :classificationKeys, :classificationValues");
 
     QString queryString = QString("INSERT OR REPLACE INTO Notes(%1) VALUES(%2)").arg(columns,values);
 
@@ -6119,16 +6323,41 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteQuery()
     return res;
 }
 
+bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNoteQuery()
+{
+    if (Q_LIKELY(m_insertOrReplaceSharedNoteQueryPrepared)) {
+        return true;
+    }
+
+    QNTRACE(QStringLiteral("Preparing SQL query to insert or replace the shared note"));
+
+    m_insertOrReplaceSharedNoteQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceSharedNoteQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO SharedNotes "
+                                                                       "(sharedNoteNoteGuid, sharedNoteSharerUserId, "
+                                                                       "sharedNoteRecipientIdentity, sharedNotePrivilegeLevel, "
+                                                                       "sharedNoteCreationTimestamp, sharedNoteModificationTimestamp, "
+                                                                       "sharedNoteAssignmentTimestamp) "
+                                                                       "VALUES(:sharedNoteNoteGuid, :sharedNoteSharerUserId, "
+                                                                       ":sharedNoteRecipientIdentity, :sharedNotePrivilegeLevel, "
+                                                                       ":sharedNoteCreationTimestamp, :sharedNoteModificationTimestamp, "
+                                                                       ":sharedNoteAssignmentTimestamp)"));
+    if (res) {
+        m_insertOrReplaceSharedNoteQueryPrepared = true;
+    }
+
+    return res;
+}
+
 bool LocalStorageManagerPrivate::checkAndPrepareCanAddNoteToNotebookQuery() const
 {
     if (Q_LIKELY(m_canAddNoteToNotebookQueryPrepared)) {
         return true;
     }
 
-    QNTRACE("Preparing SQL query to get the noCreateNotes notebook restriction");
+    QNTRACE(QStringLiteral("Preparing SQL query to get the noCreateNotes notebook restriction"));
 
     m_canAddNoteToNotebookQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_canAddNoteToNotebookQuery.prepare("SELECT noCreateNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid");
+    bool res = m_canAddNoteToNotebookQuery.prepare(QStringLiteral("SELECT noCreateNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid"));
     if (res) {
         m_canAddNoteToNotebookQueryPrepared = true;
     }
@@ -6142,10 +6371,10 @@ bool LocalStorageManagerPrivate::checkAndPrepareCanUpdateNoteInNotebookQuery() c
         return true;
     }
 
-    QNTRACE("Preparing SQL query to get the noUpdateNotes notebook restriction");
+    QNTRACE(QStringLiteral("Preparing SQL query to get the noUpdateNotes notebook restriction"));
 
     m_canUpdateNoteInNotebookQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_canUpdateNoteInNotebookQuery.prepare("SELECT noUpdateNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid");
+    bool res = m_canUpdateNoteInNotebookQuery.prepare(QStringLiteral("SELECT noUpdateNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid"));
     if (res) {
         m_canUpdateNoteInNotebookQueryPrepared = true;
     }
@@ -6159,10 +6388,10 @@ bool LocalStorageManagerPrivate::checkAndPrepareCanExpungeNoteInNotebookQuery() 
         return true;
     }
 
-    QNTRACE("Preparing SQL query to get the noExpungeNotes notebook restriction");
+    QNTRACE(QStringLiteral("Preparing SQL query to get the noExpungeNotes notebook restriction"));
 
     m_canExpungeNoteInNotebookQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_canExpungeNoteInNotebookQuery.prepare("SELECT noExpungeNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid");
+    bool res = m_canExpungeNoteInNotebookQuery.prepare(QStringLiteral("SELECT noExpungeNotes FROM NotebookRestrictions WHERE localUid = :notebookLocalUid"));
     if (res) {
         m_canExpungeNoteInNotebookQueryPrepared = true;
     }
@@ -6176,12 +6405,12 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteIntoNoteTagsQ
         return true;
     }
 
-    QNDEBUG("Preparing SQL query to insert or replace note into NoteTags table");
+    QNDEBUG(QStringLiteral("Preparing SQL query to insert or replace note into NoteTags table"));
 
     m_insertOrReplaceNoteIntoNoteTagsQuery = QSqlQuery(m_sqlDatabase);
-    bool res = m_insertOrReplaceNoteIntoNoteTagsQuery.prepare("INSERT OR REPLACE INTO NoteTags"
-                                                              "(localNote, note, localTag, tag, tagIndexInNote) "
-                                                              "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)");
+    bool res = m_insertOrReplaceNoteIntoNoteTagsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO NoteTags"
+                                                                             "(localNote, note, localTag, tag, tagIndexInNote) "
+                                                                             "VALUES(:localNote, :note, :localTag, :tag, :tagIndexInNote)"));
     if (res) {
         m_insertOrReplaceNoteIntoNoteTagsQueryPrepared = true;
     }
@@ -7002,6 +7231,9 @@ void LocalStorageManagerPrivate::fillNoteAttributesFromSqlRecord(const QSqlRecor
     CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditedBy, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(creatorId, qint32, UserID);
     CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditorId, qint32, UserID);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(sharedWithBusiness, int, bool);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(conflictSourceNoteGuid, QString, QString);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(noteTitleQuality, qint32, qint32);
 
 #undef CHECK_AND_SET_NOTE_ATTRIBUTE
 }
@@ -7560,6 +7792,41 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
             }
         }
     }
+
+    if (note.hasGuid())
+    {
+        SharedNote sharedNote;
+        bool res = fillSharedNoteFromSqlRecord(record, sharedNote, errorDescription);
+        if (!res) {
+            return false;
+        }
+
+        if (!sharedNote.noteGuid().isEmpty()) {
+            note.addSharedNote(sharedNote);
+        }
+    }
+}
+
+bool LocalStorageManagerPrivate::fillSharedNoteFromSqlRecord(const QSqlRecord & record, SharedNote & sharedNote,
+                                                             QNLocalizedString & errorDescription) const
+{
+#define CHECK_AND_SET_SHARED_NOTE_PROPERTY(property, type, localType, setter) \
+    { \
+        int index = record.indexOf(QStringLiteral(#property)); \
+        if (index >= 0) { \
+            QVariant value = record.value(index); \
+            if (!value.isNull()) { \
+                sharedNote.setter(static_cast<localType>(qvariant_cast<type>(value))); \
+            } \
+        } \
+    }
+
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteNoteGuid, QString, QString, setNoteGuid)
+
+    // TODO: implement further
+#undef CHECK_AND_SET_SHARED_NOTE_PROPERTY
+
+    return true;
 }
 
 bool LocalStorageManagerPrivate::fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column,
@@ -7770,7 +8037,7 @@ bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecor
 {
 #define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter) \
     { \
-        int index = rec.indexOf(#property); \
+        int index = rec.indexOf(QStringLiteral(#property)); \
         if (index >= 0) { \
             QVariant value = rec.value(index); \
             if (!value.isNull()) { \
@@ -7779,24 +8046,24 @@ bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecor
         } \
     }
 
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, qint64, qint64, setId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, qint32, qint32, setUserId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookEmail, QString, QString, setEmail);
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, qint64, qint64, setId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, qint32, qint32, setUserId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookEmail, QString, QString, setEmail)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookCreationTimestamp, qint64,
-                                           qint64, setCreationTimestamp);
+                                           qint64, setCreationTimestamp)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, qint64,
-                                           qint64, setModificationTimestamp);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(globalId, QString, QString, setGlobalId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookUsername, QString, QString, setUsername);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8, setPrivilegeLevel);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool, setReminderNotifyApp);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharerUserId, qint32, qint32, setSharerUserId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUsername, QString, QString, setRecipientUsername);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUserId, qint32, qint32, setRecipientUserId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientIdentityId, qint64, qint64, setRecipientIdentityId);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(assignmentTimestamp, qint64, qint64, setAssignmentTimestamp);
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid);
+                                           qint64, setModificationTimestamp)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(globalId, QString, QString, setGlobalId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookUsername, QString, QString, setUsername)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8, setPrivilegeLevel)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool, setReminderNotifyApp)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharerUserId, qint32, qint32, setSharerUserId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUsername, QString, QString, setRecipientUsername)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUserId, qint32, qint32, setRecipientUserId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientIdentityId, qint64, qint64, setRecipientIdentityId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(assignmentTimestamp, qint64, qint64, setAssignmentTimestamp)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid)
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
 
@@ -8226,13 +8493,13 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't convert note search query string into SQL query");
 
     // 1) ============ Setting up initial templates
-    QString sqlPrefix = "SELECT DISTINCT localUid ";
+    QString sqlPrefix = QStringLiteral("SELECT DISTINCT localUid ");
     sql.resize(0);
 
     // 2) ============ Determining whether "any:" modifier takes effect ==============
 
     bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
-    QString uniteOperator = (queryHasAnyModifier ? "OR" : "AND");
+    QString uniteOperator = (queryHasAnyModifier ? QStringLiteral("OR") : QStringLiteral("AND"));
 
     // 3) ============ Processing notebook modifier (if present) ==============
 
@@ -8247,7 +8514,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         if (Q_UNLIKELY(!query.next())) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("notebook with the provided name was not found");
             return false;
         }
@@ -8256,7 +8523,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         int index = rec.indexOf("localUid");
         if (Q_UNLIKELY(index < 0)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("can't find notebook's local uid by notebook name: "
                                            "SQL query record doesn't contain the requested item");
             return false;
@@ -8265,7 +8532,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         QVariant value = rec.value(index);
         if (Q_UNLIKELY(value.isNull())) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("found null notebook's local uid corresponding to notebook's name");
             return false;
         }
@@ -8273,31 +8540,31 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         notebookLocalUid = value.toString();
         if (Q_UNLIKELY(notebookLocalUid.isEmpty())) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("found empty notebook's local uid corresponding to notebook's name");
             return false;
         }
     }
 
     if (!notebookLocalUid.isEmpty()) {
-        sql += "(notebookLocalUid = '";
+        sql += QStringLiteral("(notebookLocalUid = '");
         sql += notebookLocalUid;
-        sql += "') AND ";
+        sql += QStringLiteral("') AND ");
     }
 
     // 4) ============ Processing tag names and negated tag names, if any =============
 
     if (noteSearchQuery.hasAnyTag())
     {
-        sql += "(NoteTags.localTag IS NOT NULL) ";
+        sql += QStringLiteral("(NoteTags.localTag IS NOT NULL) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else if (noteSearchQuery.hasNegatedAnyTag())
     {
-        sql += "(NoteTags.localTag IS NULL) ";
+        sql += QStringLiteral("(NoteTags.localTag IS NULL) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else
     {
@@ -8311,7 +8578,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             bool res = tagNamesToTagLocalUids(tagNames, tagLocalUids, error);
             if (!res) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -8329,36 +8596,36 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 // as there are tag local uids in the query which the note is labeled with
 
                 const int numTagLocalUids = tagLocalUids.size();
-                sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
-                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                sql += QStringLiteral("(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                                      "FROM NoteTags WHERE NoteTags.localTag IN ('");
                 for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QStringLiteral(") GROUP BY localNote HAVING COUNT(*)=");
                 sql += QString::number(numTagLocalUids);
-                sql += "))) ";
+                sql += QStringLiteral("))) ");
             }
             else
             {
                 // With "any:" modifier the search doesn't care about the exactness of tag-to-note map,
                 // it would instead pick just any note corresponding to any of requested tags at least once
 
-                sql += "(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag "
-                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                sql += QStringLiteral("(NoteTags.localNote IN (SELECT localNote FROM (SELECT localNote, localTag "
+                                      "FROM NoteTags WHERE NoteTags.localTag IN ('");
                 for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ")))) ";
+                sql += QStringLiteral(")))) ");
             }
 
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
 
         const QStringList & negatedTagNames = noteSearchQuery.negatedTagNames();
@@ -8368,7 +8635,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             bool res = tagNamesToTagLocalUids(negatedTagNames, tagNegatedLocalUids, error);
             if (!res) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -8383,21 +8650,21 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 // then simply negate that condition
 
                 const int numTagNegatedLocalUids = tagNegatedLocalUids.size();
-                sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
-                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                sql += QStringLiteral("(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag, COUNT(*) "
+                                      "FROM NoteTags WHERE NoteTags.localTag IN ('");
                 for(auto it = tagNegatedLocalUids.begin(), end = tagNegatedLocalUids.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QStringLiteral(") GROUP BY localNote HAVING COUNT(*)=");
                 sql += QString::number(numTagNegatedLocalUids);
 
                 // Don't forget to account for the case of no tags used for note
                 // so it's not even present in NoteTags table
 
-                sql += ")) OR (NoteTags.localNote IS NULL)) ";
+                sql += QStringLiteral(")) OR (NoteTags.localNote IS NULL)) ");
             }
             else
             {
@@ -8405,22 +8672,22 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 // it would instead pick just any note not from the list of notes corresponding to
                 // any of requested tags at least once
 
-                sql += "(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag "
-                       "FROM NoteTags WHERE NoteTags.localTag IN ('";
+                sql += QStringLiteral("(NoteTags.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localTag "
+                                      "FROM NoteTags WHERE NoteTags.localTag IN ('");
                 for(auto it = tagNegatedLocalUids.begin(), end = tagNegatedLocalUids.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
                 // Don't forget to account for the case of no tags used for note
                 // so it's not even present in NoteTags table
 
-                sql += "))) OR (NoteTags.localNote IS NULL)) ";
+                sql += QStringLiteral("))) OR (NoteTags.localNote IS NULL)) ");
             }
 
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
     }
 
@@ -8428,15 +8695,15 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (noteSearchQuery.hasAnyResourceMimeType())
     {
-        sql += "(NoteResources.localResource IS NOT NULL) ";
+        sql += QStringLiteral("(NoteResources.localResource IS NOT NULL) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else if (noteSearchQuery.hasNegatedAnyResourceMimeType())
     {
-        sql += "(NoteResources.localResource IS NULL) ";
+        sql += QStringLiteral("(NoteResources.localResource IS NULL) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else
     {
@@ -8451,7 +8718,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             bool res = resourceMimeTypesToResourceLocalUids(resourceMimeTypes, resourceLocalUidsPerMime, error);
             if (!res) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -8470,36 +8737,36 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
                 // local uid in the sub-query result is present there exactly as many times
                 // as there are resource mime types in the query
 
-                sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                sql += QStringLiteral("(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+                                      "FROM NoteResources WHERE NoteResources.localResource IN ('");
                 for(auto it = resourceLocalUidsPerMime.begin(), end = resourceLocalUidsPerMime.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QStringLiteral(") GROUP BY localNote HAVING COUNT(*)=");
                 sql += QString::number(numResourceMimeTypes);
-                sql += "))) ";
+                sql += QStringLiteral("))) ");
             }
             else
             {
                 // With "any:" modifier the search doesn't care about the exactness of resource mime type-to-note map,
                 // it would instead pick just any note having at least one resource with requested mime type
 
-                sql += "(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                sql += QStringLiteral("(NoteResources.localNote IN (SELECT localNote FROM (SELECT localNote, localResource "
+                                      "FROM NoteResources WHERE NoteResources.localResource IN ('");
                 for(auto it = resourceLocalUidsPerMime.begin(), end = resourceLocalUidsPerMime.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ")))) ";
+                sql += QStringLiteral(")))) ");
             }
 
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
 
         const QStringList & negatedResourceMimeTypes = noteSearchQuery.negatedResourceMimeTypes();
@@ -8510,7 +8777,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
             bool res = resourceMimeTypesToResourceLocalUids(negatedResourceMimeTypes, resourceNegatedLocalUidsPerMime, error);
             if (!res) {
                 errorDescription = errorPrefix;
-                errorDescription += ": ";
+                errorDescription += QStringLiteral(": ");
                 errorDescription += error;
                 QNWARNING(errorDescription);
                 return false;
@@ -8521,36 +8788,36 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         {
             if (!queryHasAnyModifier)
             {
-                sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                sql += QStringLiteral("(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource, COUNT(*) "
+                                      "FROM NoteResources WHERE NoteResources.localResource IN ('");
                 for(auto it = resourceNegatedLocalUidsPerMime.begin(), end = resourceNegatedLocalUidsPerMime.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
-                sql += ") GROUP BY localNote HAVING COUNT(*)=";
+                sql += QStringLiteral(") GROUP BY localNote HAVING COUNT(*)=");
                 sql += QString::number(numNegatedResourceMimeTypes);
 
                 // Don't forget to account for the case of no resources existing in the note
                 // so it's not even present in NoteResources table
 
-                sql += ")) OR (NoteResources.localNote IS NULL)) ";
+                sql += QStringLiteral(")) OR (NoteResources.localNote IS NULL)) ");
             }
             else
             {
-                sql += "(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
-                       "FROM NoteResources WHERE NoteResources.localResource IN ('";
+                sql += QStringLiteral("(NoteResources.localNote NOT IN (SELECT localNote FROM (SELECT localNote, localResource "
+                                      "FROM NoteResources WHERE NoteResources.localResource IN ('");
                 for(auto it = resourceNegatedLocalUidsPerMime.begin(), end = resourceNegatedLocalUidsPerMime.end(); it != end; ++it) {
                     sql += *it;
-                    sql += "', '";
+                    sql += QStringLiteral("', '");
                 }
                 sql.chop(3);    // remove trailing comma, whitespace and single quotation mark
 
                 // Don't forget to account for the case of no resources existing in the note
                 // so it's not even present in NoteResources table
 
-                sql += "))) OR (NoteResources.localNote IS NULL)) ";
+                sql += QStringLiteral("))) OR (NoteResources.localNote IS NULL)) ");
             }
 
             sql += uniteOperator;
@@ -8562,41 +8829,41 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
 #define CHECK_AND_PROCESS_ANY_ITEM(hasAnyItem, hasNegatedAnyItem, column) \
     if (noteSearchQuery.hasAnyItem()) { \
-        sql += "(NoteFTS." #column " IS NOT NULL) "; \
+        sql += QStringLiteral("(NoteFTS." #column " IS NOT NULL) "); \
         sql += uniteOperator; \
-        sql += " "; \
+        sql += QStringLiteral(" "); \
     } \
     else if (noteSearchQuery.hasNegatedAnyItem()) { \
-        sql += "(NoteFTS." #column " IS NULL) "; \
+        sql += QStringLiteral("(NoteFTS." #column " IS NULL) "); \
         sql += uniteOperator; \
-        sql += " "; \
+        sql += QStringLiteral(" "); \
     }
 
 #define CHECK_AND_PROCESS_LIST(list, column, negated, ...) \
     const auto & noteSearchQuery##list##column = noteSearchQuery.list(); \
     if (!noteSearchQuery##list##column.isEmpty()) \
     { \
-        sql += "("; \
+        sql += QStringLiteral("("); \
         for(auto it = noteSearchQuery##list##column.begin(), end = noteSearchQuery##list##column.end(); it != end; ++it) \
         { \
             const auto & item = *it; \
             if (negated) { \
-                sql += "(localUid NOT IN "; \
+                sql += QStringLiteral("(localUid NOT IN "); \
             } \
             else { \
-                sql += "(localUid IN "; \
+                sql += QStringLiteral("(localUid IN "); \
             } \
             \
-            sql += "(SELECT localUid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"; \
+            sql += QStringLiteral("(SELECT localUid FROM NoteFTS WHERE NoteFTS." #column " MATCH \'"); \
             sql += __VA_ARGS__(item); \
-            sql += "\')) "; \
+            sql += QStringLiteral("\')) "); \
             sql += uniteOperator; \
-            sql += " "; \
+            sql += QStringLiteral(" "); \
         } \
         sql.chop(uniteOperator.length() + 1); \
-        sql += ")"; \
+        sql += QStringLiteral(")"); \
         sql += uniteOperator; \
-        sql += " "; \
+        sql += QStringLiteral(" "); \
     }
 
 #define CHECK_AND_PROCESS_NUMERIC_LIST(list, column, negated, ...) \
@@ -8629,17 +8896,17 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         \
         if (it != noteSearchQuery##list##column.constEnd()) \
         { \
-            sql += "(localUid IN (SELECT localUid FROM Notes WHERE Notes." #column; \
+            sql += QStringLiteral("(localUid IN (SELECT localUid FROM Notes WHERE Notes." #column); \
             if (negated) { \
-                sql += " < "; \
+                sql += QStringLiteral(" < "); \
             } \
             else { \
-                sql += " >= "; \
+                sql += QStringLiteral(" >= "); \
             } \
             sql += __VA_ARGS__(*it); \
-            sql += ")) "; \
+            sql += QStringLiteral(")) "); \
             sql += uniteOperator; \
-            sql += " "; \
+            sql += QStringLiteral(" "); \
         } \
     }
 
@@ -8700,53 +8967,53 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
     if (noteSearchQuery.hasAnyToDo())
     {
-        sql += "((NoteFTS.contentContainsFinishedToDo IS 1) OR (NoteFTS.contentContainsUnfinishedToDo IS 1)) ";
+        sql += QStringLiteral("((NoteFTS.contentContainsFinishedToDo IS 1) OR (NoteFTS.contentContainsUnfinishedToDo IS 1)) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else if (noteSearchQuery.hasNegatedAnyToDo())
     {
-        sql += "((NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL)) AND "
-               "((NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL)) ";
+        sql += QStringLiteral("((NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL)) AND "
+                              "((NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL)) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else
     {
         if (noteSearchQuery.hasFinishedToDo()) {
-            sql += "(NoteFTS.contentContainsFinishedToDo IS 1) " ;
+            sql += QStringLiteral("(NoteFTS.contentContainsFinishedToDo IS 1) ");
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
         else if (noteSearchQuery.hasNegatedFinishedToDo()) {
-            sql += "((NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL)) " ;
+            sql += QStringLiteral("((NoteFTS.contentContainsFinishedToDo IS 0) OR (NoteFTS.contentContainsFinishedToDo IS NULL)) ");
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
 
         if (noteSearchQuery.hasUnfinishedToDo()) {
-            sql += "(NoteFTS.contentContainsUnfinishedToDo IS 1) " ;
+            sql += QStringLiteral("(NoteFTS.contentContainsUnfinishedToDo IS 1) ");
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
         else if (noteSearchQuery.hasNegatedUnfinishedToDo()) {
-            sql += "((NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL)) " ;
+            sql += QStringLiteral("((NoteFTS.contentContainsUnfinishedToDo IS 0) OR (NoteFTS.contentContainsUnfinishedToDo IS NULL)) ");
             sql += uniteOperator;
-            sql += " ";
+            sql += QStringLiteral(" ");
         }
     }
 
     // 8) ============== Processing encryption item =================
 
     if (noteSearchQuery.hasNegatedEncryption()) {
-        sql += "((NoteFTS.contentContainsEncryption IS 0) OR (NoteFTS.contentContainsEncryption IS NULL)) ";
+        sql += QStringLiteral("((NoteFTS.contentContainsEncryption IS 0) OR (NoteFTS.contentContainsEncryption IS NULL)) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
     else if (noteSearchQuery.hasEncryption()) {
-        sql += "(NoteFTS.contentContainsEncryption IS 1) ";
+        sql += QStringLiteral("(NoteFTS.contentContainsEncryption IS 1) ");
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
 
     // 9) ============== Processing content search terms =================
@@ -8758,7 +9025,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
         bool res = noteSearchQueryContentSearchTermsToSQL(noteSearchQuery, contentSearchTermsSqlQueryPart, error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return false;
@@ -8766,54 +9033,54 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 
         sql += contentSearchTermsSqlQueryPart;
         sql += uniteOperator;
-        sql += " ";
+        sql += QStringLiteral(" ");
     }
 
     // 10) ============== Removing potentially left trailing unite operator from the SQL string =============
 
-    QString spareEnd = uniteOperator + QString(" ");
+    QString spareEnd = uniteOperator + QStringLiteral(" ");
     if (sql.endsWith(spareEnd)) {
         sql.chop(spareEnd.size());
     }
 
     // 11) ============= See whether we should bother anything regarding tags or resources ============
 
-    QString sqlPostfix = "FROM NoteFTS ";
-    if (sql.contains("NoteTags")) {
-        sqlPrefix += ", NoteTags.localTag ";
-        sqlPostfix += "LEFT OUTER JOIN NoteTags ON NoteFTS.localUid = NoteTags.localNote ";
+    QString sqlPostfix = QStringLiteral("FROM NoteFTS ");
+    if (sql.contains(QStringLiteral("NoteTags"))) {
+        sqlPrefix += QStringLiteral(", NoteTags.localTag ");
+        sqlPostfix += QStringLiteral("LEFT OUTER JOIN NoteTags ON NoteFTS.localUid = NoteTags.localNote ");
     }
 
-    if (sql.contains("NoteResources")) {
-        sqlPrefix += ", NoteResources.localResource ";
-        sqlPostfix += "LEFT OUTER JOIN NoteResources ON NoteFTS.localUid = NoteResources.localNote ";
+    if (sql.contains(QStringLiteral("NoteResources"))) {
+        sqlPrefix += QStringLiteral(", NoteResources.localResource ");
+        sqlPostfix += QStringLiteral("LEFT OUTER JOIN NoteResources ON NoteFTS.localUid = NoteResources.localNote ");
     }
 
     // 12) ============== Finalize the query composed of parts ===============
 
     sqlPrefix += sqlPostfix;
-    sqlPrefix += "WHERE ";
+    sqlPrefix += QStringLiteral("WHERE ");
     sql.prepend(sqlPrefix);
 
-    QNTRACE("Prepared SQL query for note search: " << sql);
+    QNTRACE(QStringLiteral("Prepared SQL query for note search: ") << sql);
     return true;
 }
 
 bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
                                                                         QString & sql, QNLocalizedString & errorDescription) const
 {
-    QNDEBUG("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL");
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL"));
 
     if (!noteSearchQuery.hasAnyContentSearchTerms()) {
         errorDescription += QT_TR_NOOP("note search query has no advanced search modifiers and no content search terms");
-        QNWARNING(errorDescription << ", query string: " << noteSearchQuery.queryString());
+        QNWARNING(errorDescription << QStringLiteral(", query string: ") << noteSearchQuery.queryString());
         return false;
     }
 
     sql.resize(0);
 
     bool queryHasAnyModifier = noteSearchQuery.hasAnyModifier();
-    QString uniteOperator = (queryHasAnyModifier ? "OR" : "AND");
+    QString uniteOperator = (queryHasAnyModifier ? QStringLiteral("OR") : QStringLiteral("AND"));
 
     QString positiveSqlPart;
     QString negatedSqlPart;
@@ -8843,7 +9110,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
 
             m_stringUtils.removeDiacritics(currentSearchTerm);
 
-            positiveSqlPart += "(";
+            positiveSqlPart += QStringLiteral("(");
             contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
             positiveSqlPart += QString("(localUid IN (SELECT localUid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) OR "
                                        "(localUid IN (SELECT localUid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) OR "
@@ -8851,16 +9118,16 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
                                        "(localUid IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS ON NoteTags.localTag=TagFTS.localUid WHERE "
                                        "(nameLower IN (SELECT nameLower FROM TagFTS WHERE nameLower %1 '%2%3%4'))))")
                                .arg(matchStatement, frontSearchTermModifier, currentSearchTerm, backSearchTermModifier);
-            positiveSqlPart += ")";
+            positiveSqlPart += QStringLiteral(")");
 
             if (i != (numContentSearchTerms - 1)) {
-                positiveSqlPart += " " + uniteOperator + " ";
+                positiveSqlPart += QStringLiteral(" ") + uniteOperator + QStringLiteral(" ");
             }
         }
 
         if (!positiveSqlPart.isEmpty()) {
-            positiveSqlPart.prepend("(");
-            positiveSqlPart += ")";
+            positiveSqlPart.prepend(QStringLiteral("("));
+            positiveSqlPart += QStringLiteral(")");
         }
     }
 
@@ -8878,7 +9145,7 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
 
             m_stringUtils.removeDiacritics(currentSearchTerm);
 
-            negatedSqlPart += "(";
+            negatedSqlPart += QStringLiteral("(");
             contentSearchTermToSQLQueryPart(frontSearchTermModifier, currentSearchTerm, backSearchTermModifier, matchStatement);
             negatedSqlPart += QString("(localUid NOT IN (SELECT localUid FROM NoteFTS WHERE contentListOfWords %1 '%2%3%4')) AND "
                                       "(localUid NOT IN (SELECT localUid FROM NoteFTS WHERE titleNormalized %1 '%2%3%4')) AND "
@@ -8886,22 +9153,22 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
                                       "(localUid NOT IN (SELECT localNote FROM NoteTags LEFT OUTER JOIN TagFTS on NoteTags.localTag=TagFTS.localUid WHERE "
                                       "(nameLower IN (SELECT nameLower FROM TagFTS WHERE nameLower %1 '%2%3%4'))))")
                               .arg(matchStatement, frontSearchTermModifier, currentSearchTerm, backSearchTermModifier);
-            negatedSqlPart += ")";
+            negatedSqlPart += QStringLiteral(")");
 
             if (i != (numNegatedContentSearchTerms - 1)) {
-                negatedSqlPart += " " + uniteOperator + " ";
+                negatedSqlPart += QStringLiteral(" ") + uniteOperator + QStringLiteral(" ");
             }
         }
 
         if (!negatedSqlPart.isEmpty()) {
-            negatedSqlPart.prepend("(");
-            negatedSqlPart += ")";
+            negatedSqlPart.prepend(QStringLiteral("("));
+            negatedSqlPart += QStringLiteral(")");
         }
     }
 
     // ======= First append all positive terms of the query =======
     if (!positiveSqlPart.isEmpty()) {
-        sql += "(" + positiveSqlPart + ") ";
+        sql += QStringLiteral("(") + positiveSqlPart + QStringLiteral(") ");
     }
 
     // ========== Now append all negative parts of the query (if any) =========
@@ -8909,10 +9176,10 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
     if (!negatedSqlPart.isEmpty())
     {
         if (!positiveSqlPart.isEmpty()) {
-            sql += " " + uniteOperator + " ";
+            sql += QStringLiteral(" ") + uniteOperator + QStringLiteral(" ");
         }
 
-        sql += "(" + negatedSqlPart + ")";
+        sql += QStringLiteral("(") + negatedSqlPart + QStringLiteral(")");
     }
 
     return true;
@@ -8921,13 +9188,13 @@ bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const No
 void LocalStorageManagerPrivate::contentSearchTermToSQLQueryPart(QString & frontSearchTermModifier, QString & searchTerm,
                                                                  QString & backSearchTermModifier, QString & matchStatement) const
 {
-    QRegExp whitespaceRegex("\\p{Z}");
+    QRegExp whitespaceRegex(QStringLiteral("\\p{Z}"));
 
     if ((whitespaceRegex.indexIn(searchTerm) >= 0) || (searchTerm.contains('*') && !searchTerm.endsWith('*')))
     {
         // FTS "MATCH" clause doesn't work for phrased search or search with asterisk somewhere but the end of the search term,
         // need to use the slow "LIKE" clause instead
-        matchStatement = "LIKE";
+        matchStatement = QStringLiteral("LIKE");
 
         while(searchTerm.startsWith('*')) {
             searchTerm.remove(0, 1);
@@ -8937,8 +9204,8 @@ void LocalStorageManagerPrivate::contentSearchTermToSQLQueryPart(QString & front
             searchTerm.chop(1);
         }
 
-        frontSearchTermModifier = "%";
-        backSearchTermModifier = "%";
+        frontSearchTermModifier = QStringLiteral("%");
+        backSearchTermModifier = QStringLiteral("%");
 
         int pos = -1;
         while((pos = searchTerm.indexOf('*')) >= 0) {
@@ -8947,9 +9214,9 @@ void LocalStorageManagerPrivate::contentSearchTermToSQLQueryPart(QString & front
     }
     else
     {
-        matchStatement = "MATCH";
-        frontSearchTermModifier = "";
-        backSearchTermModifier = "";
+        matchStatement = QStringLiteral("MATCH");
+        frontSearchTermModifier = QStringLiteral("");
+        backSearchTermModifier = QStringLiteral("");
     }
 }
 
@@ -8968,13 +9235,13 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
     bool singleTagName = (tagNames.size() == 1);
     if (singleTagName)
     {
-        bool res = query.prepare("SELECT localUid FROM TagFTS WHERE nameLower MATCH :names");
+        bool res = query.prepare(QStringLiteral("SELECT localUid FROM TagFTS WHERE nameLower MATCH :names"));
         DATABASE_CHECK_AND_SET_ERROR();
 
         QString names = tagNames.at(0).toLower();
-        names.prepend("\'");
-        names.append("\'");
-        query.bindValue(":names", names);
+        names.prepend(QStringLiteral("\'"));
+        names.append(QStringLiteral("\'"));
+        query.bindValue(QStringLiteral(":names"), names);
     }
     else
     {
@@ -8982,7 +9249,7 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
         for(auto it = tagNames.begin(), end = tagNames.end(); it != end; ++it)
         {
             const QString & tagName = *it;
-            if (tagName.contains(" ")) {
+            if (tagName.contains(QStringLiteral(" "))) {
                 someTagNameHasWhitespace = true;
                 break;
             }
@@ -8993,25 +9260,25 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            queryString = "SELECT localUid FROM Tags WHERE ";
+            queryString = QStringLiteral("SELECT localUid FROM Tags WHERE ");
 
             for(auto it = tagNames.begin(), end = tagNames.end(); it != end; ++it) {
                 const QString & tagName = *it;
-                queryString += "(nameLower = \'";
+                queryString += QStringLiteral("(nameLower = \'");
                 queryString += tagName.toLower();
-                queryString += "\') OR ";
+                queryString += QStringLiteral("\') OR ");
             }
             queryString.chop(4);    // remove trailing " OR "
         }
         else
         {
-            queryString = "SELECT localUid FROM TagFTS WHERE ";
+            queryString = QStringLiteral("SELECT localUid FROM TagFTS WHERE ");
 
             for(auto it = tagNames.begin(), end = tagNames.end(); it != end; ++it) {
                 const QString & tagName = *it;
-                queryString += "(localUid IN (SELECT localUid FROM TagFTS WHERE nameLower MATCH \'";
+                queryString += QStringLiteral("(localUid IN (SELECT localUid FROM TagFTS WHERE nameLower MATCH \'");
                 queryString += tagName.toLower();
-                queryString += "\')) OR ";
+                queryString += QStringLiteral("\')) OR ");
             }
             queryString.chop(4);    // remove trailing " OR "
         }
@@ -9029,10 +9296,10 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
     while (query.next())
     {
         QSqlRecord rec = query.record();
-        int index = rec.indexOf("localUid");
+        int index = rec.indexOf(QStringLiteral("localUid"));
         if (Q_UNLIKELY(index < 0)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("tag's local uid is not present in the result of SQL query");
             QNWARNING(errorDescription);
             return false;
@@ -9060,13 +9327,13 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     bool singleMimeType = (resourceMimeTypes.size() == 1);
     if (singleMimeType)
     {
-        bool res = query.prepare("SELECT resourceLocalUid FROM ResourceMimeFTS WHERE mime MATCH :mimeTypes");
+        bool res = query.prepare(QStringLiteral("SELECT resourceLocalUid FROM ResourceMimeFTS WHERE mime MATCH :mimeTypes"));
         DATABASE_CHECK_AND_SET_ERROR();
 
         QString mimeTypes = resourceMimeTypes.at(0);
-        mimeTypes.prepend("\'");
-        mimeTypes.append("\'");
-        query.bindValue(":mimeTypes", mimeTypes);
+        mimeTypes.prepend(QStringLiteral("\'"));
+        mimeTypes.append(QStringLiteral("\'"));
+        query.bindValue(QStringLiteral(":mimeTypes"), mimeTypes);
     }
     else
     {
@@ -9074,7 +9341,7 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
         for(auto it = resourceMimeTypes.begin(), end = resourceMimeTypes.end(); it != end; ++it)
         {
             const QString & mimeType = *it;
-            if (mimeType.contains(" ")) {
+            if (mimeType.contains(QStringLiteral(" "))) {
                 someMimeTypeHasWhitespace = true;
                 break;
             }
@@ -9085,13 +9352,13 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
             // Unfortunately, stardard SQLite at least from Qt 4.x has standard query syntax for FTS
             // which does not support whitespaces in search terms and therefore MATCH function is simply inapplicable here,
             // have to use brute-force "equal to X1 or equal to X2 or ... equal to XN
-            queryString = "SELECT resourceLocalUid FROM Resources WHERE ";
+            queryString = QStringLiteral("SELECT resourceLocalUid FROM Resources WHERE ");
 
             for(auto it = resourceMimeTypes.begin(), end = resourceMimeTypes.end(); it != end; ++it) {
                 const QString & mimeType = *it;
-                queryString += "(mime = \'";
+                queryString += QStringLiteral("(mime = \'");
                 queryString += mimeType;
-                queryString += "\') OR ";
+                queryString += QStringLiteral("\') OR ");
             }
             queryString.chop(4);    // remove trailing OR and two whitespaces
         }
@@ -9102,9 +9369,9 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
 
             for(auto it = resourceMimeTypes.begin(), end = resourceMimeTypes.end(); it != end; ++it) {
                 const QString & mimeType = *it;
-                queryString += "SELECT resourceLocalUid FROM ResourceMimeFTS WHERE mime MATCH \'";
+                queryString += QStringLiteral("SELECT resourceLocalUid FROM ResourceMimeFTS WHERE mime MATCH \'");
                 queryString += mimeType;
-                queryString += "\' UNION ";
+                queryString += QStringLiteral("\' UNION ");
             }
             queryString.chop(7);    // remove trailing characters
         }
@@ -9122,10 +9389,10 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     while (query.next())
     {
         QSqlRecord rec = query.record();
-        int index = rec.indexOf("resourceLocalUid");
+        int index = rec.indexOf(QStringLiteral("resourceLocalUid"));
         if (Q_UNLIKELY(index < 0)) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("resource's local uid is not present in the result of SQL query");
             return false;
         }
@@ -9149,7 +9416,7 @@ bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource,
         DATABASE_CHECK_AND_SET_ERROR();
 
         if (query.next()) {
-            resource.setNoteGuid(query.record().value("guid").toString());
+            resource.setNoteGuid(query.record().value(QStringLiteral("guid")).toString());
         }
     }
     else if (!resource.hasNoteLocalUid())
@@ -9160,7 +9427,7 @@ bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource,
         DATABASE_CHECK_AND_SET_ERROR();
 
         if (query.next()) {
-            resource.setNoteLocalUid(query.record().value("localUid").toString());
+            resource.setNoteLocalUid(query.record().value(QStringLiteral("localUid")).toString());
         }
     }
 
@@ -9195,7 +9462,7 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
 
     QList<ResourceWrapper> previousNoteResources;
 
-    QString resourceLocalUidProperty("resourceLocalUid");
+    QString resourceLocalUidProperty = QStringLiteral("resourceLocalUid");
     while(query.next())
     {
         QSqlRecord record = query.record();
@@ -9203,7 +9470,7 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
         int resourceLocalUidIndex = record.indexOf(resourceLocalUidProperty);
         if (resourceLocalUidIndex < 0) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("can't retrieve the resource local uid from the query result");
             QNWARNING(errorDescription);
             return false;
@@ -9299,7 +9566,8 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
     // Now delete the removed resources and add/update the added/updated ones
 
     if (!localUidsForResourcesRemovedFromNote.isEmpty()) {
-        QString removeResourcesQueryString = QString("DELETE FROM Resources WHERE resourceLocalUid IN ('%1')").arg(localUidsForResourcesRemovedFromNote.join(","));
+        QString removeResourcesQueryString = QString("DELETE FROM Resources WHERE resourceLocalUid IN ('%1')")
+                                             .arg(localUidsForResourcesRemovedFromNote.join(QStringLiteral(",")));
         res = query.exec(removeResourcesQueryString);
         DATABASE_CHECK_AND_SET_ERROR();
     }
@@ -9313,9 +9581,9 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
         bool res = resource.checkParameters(error);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("found invalid resource linked with note");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             QNWARNING(errorDescription);
             return false;
@@ -9325,9 +9593,9 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
         res = insertOrReplaceResource(resource, error, /* useSeparateTransaction = */ false);
         if (!res) {
             errorDescription = errorPrefix;
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += QT_TR_NOOP("can't add or update one of note's resources");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += error;
             return false;
         }
@@ -9341,7 +9609,7 @@ void LocalStorageManagerPrivate::clearDatabaseFile()
     QFile databaseFile(m_databaseFilePath);
     if (!databaseFile.open(QIODevice::ReadWrite)) {
         QNLocalizedString errorDescription = QT_TR_NOOP("can't open local storage database for both reading and writing");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += databaseFile.errorString();
         throw DatabaseOpeningException(errorDescription);
     }
@@ -9376,7 +9644,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
         !listLocal && !listNonLocal && !listFavoritedElements && !listNonFavoritedElements)
     {
         errorDescription = QT_TR_NOOP("can't list objects by filter: detected incorrect filter flag");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QString::number(static_cast<int>(options));
         return result;
     }
@@ -9384,44 +9652,44 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
     if (!(listDirty && listNonDirty))
     {
         if (listDirty) {
-            result += "(isDirty=1) AND ";
+            result += QStringLiteral("(isDirty=1) AND ");
         }
 
         if (listNonDirty) {
-            result += "(isDirty=0) AND ";
+            result += QStringLiteral("(isDirty=0) AND ");
         }
     }
 
     if (!(listElementsWithoutGuid && listElementsWithGuid))
     {
         if (listElementsWithoutGuid) {
-            result += "(guid IS NULL) AND ";
+            result += QStringLiteral("(guid IS NULL) AND ");
         }
 
         if (listElementsWithGuid) {
-            result += "(guid IS NOT NULL) AND ";
+            result += QStringLiteral("(guid IS NOT NULL) AND ");
         }
     }
 
     if (!(listLocal && listNonLocal))
     {
         if (listLocal) {
-            result += "(isLocal=1) AND ";
+            result += QStringLiteral("(isLocal=1) AND ");
         }
 
         if (listNonLocal) {
-            result += "(isLocal=0) AND ";
+            result += QStringLiteral("(isLocal=0) AND ");
         }
     }
 
     if (!(listFavoritedElements && listNonFavoritedElements))
     {
         if (listFavoritedElements) {
-            result += "(isFavorited=1) AND ";
+            result += QStringLiteral("(isFavorited=1) AND ");
         }
 
         if (listNonFavoritedElements) {
-            result += "(isFavorited=0) AND ";
+            result += QStringLiteral("(isFavorited=0) AND ");
         }
     }
 
@@ -9441,7 +9709,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<Linke
 
     if (!listAll && !listDirty && !listNonDirty) {
         errorDescription = QT_TR_NOOP("can't list linked notebooks by filter: detected incorrect filter flag");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QString::number(static_cast<int>(flag));
         return result;
     }
@@ -9449,11 +9717,11 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<Linke
     if (!(listDirty && listNonDirty))
     {
         if (listDirty) {
-            result += "(isDirty=1)";
+            result += QStringLiteral("(isDirty=1)");
         }
 
         if (listNonDirty) {
-            result += "(isDirty=0)";
+            result += QStringLiteral("(isDirty=0)");
         }
     }
 
@@ -9463,44 +9731,47 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<Linke
 template <>
 QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<SavedSearch>() const
 {
-    QString result = "SELECT * FROM SavedSearches";
+    QString result = QStringLiteral("SELECT * FROM SavedSearches");
     return result;
 }
 
 template <>
 QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Tag>() const
 {
-    QString result = "SELECT * FROM Tags";
+    QString result = QStringLiteral("SELECT * FROM Tags");
     return result;
 }
 
 template <>
 QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<LinkedNotebook>() const
 {
-    QString result = "SELECT * FROM LinkedNotebooks";
+    QString result = QStringLiteral("SELECT * FROM LinkedNotebooks");
     return result;
 }
 
 template <>
 QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Notebook>() const
 {
-    QString result = "SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
-                     "ON Notebooks.localUid = NotebookRestrictions.localUid "
-                     "LEFT OUTER JOIN SharedNotebooks ON ((Notebooks.guid IS NOT NULL) AND (Notebooks.guid = SharedNotebooks.notebookGuid)) "
-                     "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
-                     "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
-                     "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
-                     "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
-                     "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
-                     "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
-                     "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id";
+    QString result = QStringLiteral("SELECT * FROM Notebooks LEFT OUTER JOIN NotebookRestrictions "
+                                    "ON Notebooks.localUid = NotebookRestrictions.localUid "
+                                    "LEFT OUTER JOIN SharedNotebooks ON ((Notebooks.guid IS NOT NULL) AND (Notebooks.guid = SharedNotebooks.notebookGuid)) "
+                                    "LEFT OUTER JOIN Users ON Notebooks.contactId = Users.id "
+                                    "LEFT OUTER JOIN UserAttributes ON Notebooks.contactId = UserAttributes.id "
+                                    "LEFT OUTER JOIN UserAttributesViewedPromotions ON Notebooks.contactId = UserAttributesViewedPromotions.id "
+                                    "LEFT OUTER JOIN UserAttributesRecentMailedAddresses ON Notebooks.contactId = UserAttributesRecentMailedAddresses.id "
+                                    "LEFT OUTER JOIN Accounting ON Notebooks.contactId = Accounting.id "
+                                    "LEFT OUTER JOIN AccountLimits ON Notebooks.contactId = AccountLimits.id "
+                                    "LEFT OUTER JOIN BusinessUserInfo ON Notebooks.contactId = BusinessUserInfo.id");
     return result;
 }
 
 template <>
 QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Note>() const
 {
-    QString result = "SELECT * FROM Notes";
+    QString result = QStringLiteral("SELECT * FROM Notes LEFT OUTER JOIN SharedNotes "
+                                    "ON ((Note.guid IS NOT NULL) AND (Notes.guid = SharedNotes.sharedNoteNoteGuid)) "
+                                    "LEFT OUTER JOIN NoteRestrictions on Notes.localUid = NoteRestrictions.localUid "
+                                    "LEFT OUTER JOIN NoteLimits ON Notes.localUid = NoteLimits.localUid");
     return result;
 }
 
@@ -9512,34 +9783,34 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
     switch(order)
     {
     case LocalStorageManager::ListNotesOrder::ByUpdateSequenceNumber:
-        result = "updateSequenceNumber";
+        result = QStringLiteral("updateSequenceNumber");
         break;
     case LocalStorageManager::ListNotesOrder::ByTitle:
-        result = "title";
+        result = QStringLiteral("title");
         break;
     case LocalStorageManager::ListNotesOrder::ByCreationTimestamp:
-        result = "creationTimestamp";
+        result = QStringLiteral("creationTimestamp");
         break;
     case LocalStorageManager::ListNotesOrder::ByModificationTimestamp:
-        result = "modificationTimestamp";
+        result = QStringLiteral("modificationTimestamp");
         break;
     case LocalStorageManager::ListNotesOrder::ByDeletionTimestamp:
-        result = "deletionTimestamp";
+        result = QStringLiteral("deletionTimestamp");
         break;
     case LocalStorageManager::ListNotesOrder::ByAuthor:
-        result = "author";
+        result = QStringLiteral("author");
         break;
     case LocalStorageManager::ListNotesOrder::BySource:
-        result = "source";
+        result = QStringLiteral("source");
         break;
     case LocalStorageManager::ListNotesOrder::BySourceApplication:
-        result = "sourceApplication";
+        result = QStringLiteral("sourceApplication");
         break;
     case LocalStorageManager::ListNotesOrder::ByReminderTime:
-        result = "reminderTime";
+        result = QStringLiteral("reminderTime");
         break;
     case LocalStorageManager::ListNotesOrder::ByPlaceName:
-        result = "placeName";
+        result = QStringLiteral("placeName");
         break;
     default:
         break;
@@ -9556,16 +9827,16 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
     switch(order)
     {
     case LocalStorageManager::ListNotebooksOrder::ByUpdateSequenceNumber:
-        result = "updateSequenceNumber";
+        result = QStringLiteral("updateSequenceNumber");
         break;
     case LocalStorageManager::ListNotebooksOrder::ByNotebookName:
-        result = "notebookNameUpper";
+        result = QStringLiteral("notebookNameUpper");
         break;
     case LocalStorageManager::ListNotebooksOrder::ByCreationTimestamp:
-        result = "creationTimestamp";
+        result = QStringLiteral("creationTimestamp");
         break;
     case LocalStorageManager::ListNotebooksOrder::ByModificationTimestamp:
-        result = "modificationTimestamp";
+        result = QStringLiteral("modificationTimestamp");
         break;
     default:
         break;
@@ -9582,13 +9853,13 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
     switch(order)
     {
     case LocalStorageManager::ListLinkedNotebooksOrder::ByUpdateSequenceNumber:
-        result = "updateSequenceNumber";
+        result = QStringLiteral("updateSequenceNumber");
         break;
     case LocalStorageManager::ListLinkedNotebooksOrder::ByShareName:
-        result = "shareName";
+        result = QStringLiteral("shareName");
         break;
     case LocalStorageManager::ListLinkedNotebooksOrder::ByUsername:
-        result = "username";
+        result = QStringLiteral("username");
         break;
     default:
         break;
@@ -9605,10 +9876,10 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
     switch(order)
     {
     case LocalStorageManager::ListTagsOrder::ByUpdateSequenceNumber:
-        result = "updateSequenceNumber";
+        result = QStringLiteral("updateSequenceNumber");
         break;
     case LocalStorageManager::ListTagsOrder::ByName:
-        result = "nameLower";
+        result = QStringLiteral("nameLower");
         break;
     default:
         break;
@@ -9625,13 +9896,13 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
     switch(order)
     {
     case LocalStorageManager::ListSavedSearchesOrder::ByUpdateSequenceNumber:
-        result = "updateSequenceNumber";
+        result = QStringLiteral("updateSequenceNumber");
         break;
     case LocalStorageManager::ListSavedSearchesOrder::ByName:
-        result = "nameLower";
+        result = QStringLiteral("nameLower");
         break;
     case LocalStorageManager::ListSavedSearchesOrder::ByFormat:
-        result = "format";
+        result = QStringLiteral("format");
         break;
     default:
         break;
@@ -9671,7 +9942,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery que
     {
         QSqlRecord rec = query.record();
 
-        int localUidIndex = rec.indexOf("localUid");
+        int localUidIndex = rec.indexOf(QStringLiteral("localUid"));
         if (localUidIndex < 0) {
             errorDescription += QT_TR_NOOP("no localUid field in SQL record");
             QNWARNING(errorDescription);

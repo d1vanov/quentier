@@ -37,6 +37,7 @@ class SharedNote: public Printable
 {
 public:
     typedef qevercloud::SharedNotePrivilegeLevel::type SharedNotePrivilegeLevel;
+    typedef qevercloud::ContactType::type ContactType;
 
 public:
     SharedNote();
@@ -53,12 +54,44 @@ public:
     operator const qevercloud::SharedNote&() const;
     operator qevercloud::SharedNote&();
 
+    const QString & noteGuid() const;
+    void setNoteGuid(const QString & noteGuid);
+
     int indexInNote() const;
     void setIndexInNote(const int index);
 
     bool hasSharerUserId() const;
     qint32 sharerUserId() const;
     void setSharerUserId(const qint32 id);
+
+    bool hasRecipientIdentityId() const;
+    qint64 recipientIdentityId() const;
+    void setRecipientIdentityId(const qint64 identityId);
+
+    bool hasRecipientIdentityContactName() const;
+    const QString & recipientIdentityContactName() const;
+    void setRecipientIdentityContactName(const QString & recipientIdentityContactName);
+
+    bool hasRecipientIdentityContactId() const;
+    const QString & recipientIdentityContactId() const;
+    void setRecipientIdentityContactId(const QString & recipientIdentityContactId);
+
+    bool hasRecipientIdentityContactType() const;
+    ContactType recipientIdentityContactType() const;
+    void setRecipientIdentityContactType(const ContactType recipientIdentityContactType);
+    void setRecipientIdentityContactType(const qint32 recipientIdentityContactType);
+
+    bool hasRecipientIdentityContactPhotoUrl() const;
+    const QString & recipientIdentityContactPhotoUrl() const;
+    void setRecipientIdentityContactPhotoUrl(const QString & recipientIdentityPhotoUrl);
+
+    bool hasRecipientIdentityContactPhotoLastUpdated() const;
+    qint64 recipientIdentityContactPhotoLastUpdated() const;
+    void setRecipientIdentityContactPhotoLastUpdated(const qint64 recipientIdentityPhotoLastUpdated);
+
+    bool hasRecipientIdentityUserId() const;
+    qint32 recipientIdentityUserId() const;
+    void setRecipientIdentityUserId(const qint32 userId);
 
     bool hasRecipientIdentity() const;
     const qevercloud::Identity & recipientIdentity() const;

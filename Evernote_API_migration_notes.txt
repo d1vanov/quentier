@@ -58,3 +58,15 @@ SharedNotebook:
     serviceAssigned
   removed fields:
     shareKey
+
+Note:
+  added fields:
+    sharedNotes (new struct)
+    restrictions (new struct)
+    limits (new struct)
+
+NoteAttributes:
+  added fields:
+    sharedWithBusiness
+    conflictSourceNoteGuid
+    noteTitleQuality (new enum)

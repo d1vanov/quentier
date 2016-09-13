@@ -668,8 +668,12 @@ QList<SharedNote> Note::sharedNotes() const
     result.reserve(d->m_qecNote.sharedNotes->size());
 
     int noteIndex = 0;
-    for(auto it = d->m_qecNote.sharedNotes->begin(), end = d->m_qecNote.sharedNotes->end(); it != end; ++it) {
+    for(auto it = d->m_qecNote.sharedNotes->begin(), end = d->m_qecNote.sharedNotes->end(); it != end; ++it)
+    {
         SharedNote sharedNote(*it);
+        if (hasGuid()) {
+            sharedNote.setNoteGuid(guid());
+        }
         sharedNote.setIndexInNote(noteIndex++);
         result << sharedNote;
     }

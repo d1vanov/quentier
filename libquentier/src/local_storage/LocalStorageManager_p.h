@@ -215,12 +215,16 @@ private:
     bool getSavedSearchLocalUidForGuid(const QString & savedSearchGuid, QString & savedSearchLocalUid, QNLocalizedString & errorDescription);
 
     bool insertOrReplaceNote(const Note & note, const bool updateResources, const bool updateTags, QNLocalizedString & errorDescription);
+    bool insertOrReplaceSharedNote(const SharedNote & sharedNote, QNLocalizedString & errorDescription);
+    bool insertOrReplaceNoteRestrictions(const QString & noteLocalUid, const qevercloud::NoteRestrictions & noteRestrictions,
+                                         QNLocalizedString & errorDescription)
     bool canAddNoteToNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
     bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
     bool canExpungeNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
 
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();
+    bool checkAndPrepareInsertOrReplaceSharedNoteQuery();
     bool checkAndPrepareCanAddNoteToNotebookQuery() const;
     bool checkAndPrepareCanUpdateNoteInNotebookQuery() const;
     bool checkAndPrepareCanExpungeNoteInNotebookQuery() const;
@@ -263,6 +267,7 @@ private:
     void fillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     bool fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QNLocalizedString & errorDescription) const;
     void fillNoteFromSqlRecord(const QSqlRecord & record, Note & note) const;
+    bool fillSharedNoteFromSqlRecord(const QSqlRecord & record, SharedNote & sharedNote, QNLocalizedString & errorDescription) const;
     bool fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column, QList<QPair<QString, int> > & tagIdsAndIndices,
                                     QHash<QString, int> & tagIndexPerId, QNLocalizedString & errorDescription) const;
     bool fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QNLocalizedString & errorDescription) const;
@@ -401,6 +406,9 @@ private:
 
     QSqlQuery           m_insertOrReplaceNoteQuery;
     bool                m_insertOrReplaceNoteQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceSharedNoteQuery;
+    bool                m_insertOrReplaceSharedNoteQueryPrepared;
 
     mutable QSqlQuery   m_canAddNoteToNotebookQuery;
     mutable bool        m_canAddNoteToNotebookQueryPrepared;

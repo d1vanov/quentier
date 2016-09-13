@@ -40,6 +40,7 @@ public:
     SharedNoteData(const qevercloud::SharedNote & other);
     virtual ~SharedNoteData();
 
+    QString                 m_noteGuid;
     qevercloud::SharedNote  m_qecSharedNote;
     int                     m_indexInNote;
 
