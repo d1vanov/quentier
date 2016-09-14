@@ -168,8 +168,8 @@ private:
     void unlockDatabaseFile();
 
     bool createTables(QNLocalizedString & errorDescription);
-    bool insertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                             const QString & localUid, QNLocalizedString & errorDescription);
+    bool insertOrReplaceNotebookRestrictions(const QString & localUid, const qevercloud::NotebookRestrictions & notebookRestrictions,
+                                             QNLocalizedString & errorDescription);
     bool insertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
                                        QNLocalizedString & errorDescription);
 

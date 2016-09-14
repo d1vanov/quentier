@@ -693,7 +693,7 @@ QTextStream & IUser::print(QTextStream & strm) const
     }
 
     if (enUser.serviceLevel.isSet()) {
-        strm << "service level = " << enUser.serviceLevel << "; \n;
+        strm << "service level = " << enUser.serviceLevel << "; \n";
     }
     else {
         strm << "service level is not set; \n";

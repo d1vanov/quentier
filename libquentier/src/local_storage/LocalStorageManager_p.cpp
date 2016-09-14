@@ -4443,8 +4443,8 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     return true;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const qevercloud::NotebookRestrictions & notebookRestrictions,
-                                                                     const QString & localUid, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const QString & localUid, const qevercloud::NotebookRestrictions & notebookRestrictions,
+                                                                     QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace notebook restrictions");
 
@@ -5197,7 +5197,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
     if (notebook.hasRestrictions())
     {
         QNLocalizedString error;
-        bool res = insertOrReplaceNotebookRestrictions(notebook.restrictions(), localUid, error);
+        bool res = insertOrReplaceNotebookRestrictions(localUid, notebook.restrictions(), error);
         if (!res) {
             errorDescription = errorPrefix;
             errorDescription += ": ";
@@ -5970,7 +5970,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
     if (note.hasNoteRestrictions())
     {
         const qevercloud::NoteRestrictions & restrictions = note.noteRestrictions();
-        bool res = insertOrReplaceNotebookRestrictions(localUid, restrictions, errorDescription);
+        bool res = insertOrReplaceNoteRestrictions(localUid, restrictions, errorDescription);
         if (!res) {
             return false;
         }
