@@ -217,7 +217,9 @@ private:
     bool insertOrReplaceNote(const Note & note, const bool updateResources, const bool updateTags, QNLocalizedString & errorDescription);
     bool insertOrReplaceSharedNote(const SharedNote & sharedNote, QNLocalizedString & errorDescription);
     bool insertOrReplaceNoteRestrictions(const QString & noteLocalUid, const qevercloud::NoteRestrictions & noteRestrictions,
-                                         QNLocalizedString & errorDescription)
+                                         QNLocalizedString & errorDescription);
+    bool insertOrReplaceNoteLimits(const QString & noteLocalUid, const qevercloud::NoteLimits & noteLimits,
+                                   QNLocalizedString & errorDescription);
     bool canAddNoteToNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
     bool canUpdateNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
     bool canExpungeNoteInNotebook(const QString & notebookLocalUid, QNLocalizedString & errorDescription);
@@ -225,6 +227,8 @@ private:
     bool checkAndPrepareNoteCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNoteQuery();
     bool checkAndPrepareInsertOrReplaceSharedNoteQuery();
+    bool checkAndPrepareInsertOrReplaceNoteRestrictionsQuery();
+    bool checkAndPrepareInsertOrReplaceNoteLimitsQuery();
     bool checkAndPrepareCanAddNoteToNotebookQuery() const;
     bool checkAndPrepareCanUpdateNoteInNotebookQuery() const;
     bool checkAndPrepareCanExpungeNoteInNotebookQuery() const;
@@ -266,7 +270,7 @@ private:
     void fillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void fillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     bool fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QNLocalizedString & errorDescription) const;
-    void fillNoteFromSqlRecord(const QSqlRecord & record, Note & note) const;
+    bool fillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QNLocalizedString & errorDescription) const;
     bool fillSharedNoteFromSqlRecord(const QSqlRecord & record, SharedNote & sharedNote, QNLocalizedString & errorDescription) const;
     bool fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column, QList<QPair<QString, int> > & tagIdsAndIndices,
                                     QHash<QString, int> & tagIndexPerId, QNLocalizedString & errorDescription) const;
@@ -284,7 +288,9 @@ private:
     bool findAndSetTagIdsPerNote(Note & note, QNLocalizedString & errorDescription) const;
     bool findAndSetResourcesPerNote(Note & note, QNLocalizedString & errorDescription,
                                     const bool withBinaryData = true) const;
+
     void sortSharedNotebooks(Notebook & notebook) const;
+    void sortSharedNotes(Note & note) const;
 
     QList<qevercloud::SharedNotebook> listEnSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                            QNLocalizedString & errorDescription) const;
@@ -337,6 +343,11 @@ private:
     struct SharedNotebookAdapterCompareByIndex
     {
         bool operator()(const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs) const;
+    };
+
+    struct SharedNoteCompareByIndex
+    {
+        bool operator()(const SharedNote & lhs, const SharedNote & rhs) const;
     };
 
     struct ResourceWrapperCompareByIndex
@@ -409,6 +420,12 @@ private:
 
     QSqlQuery           m_insertOrReplaceSharedNoteQuery;
     bool                m_insertOrReplaceSharedNoteQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceNoteRestrictionsQuery;
+    bool                m_insertOrReplaceNoteRestrictionsQueryPrepared;
+
+    QSqlQuery           m_insertOrReplaceNoteLimitsQuery;
+    bool                m_insertOrReplaceNoteLimitsQueryPrepared;
 
     mutable QSqlQuery   m_canAddNoteToNotebookQuery;
     mutable bool        m_canAddNoteToNotebookQueryPrepared;

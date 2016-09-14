@@ -82,6 +82,10 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_insertOrReplaceNoteQueryPrepared(false),
     m_insertOrReplaceSharedNoteQuery(),
     m_insertOrReplaceSharedNoteQueryPrepared(false),
+    m_insertOrReplaceNoteRestrictionsQuery(),
+    m_insertOrReplaceNoteRestrictionsQueryPrepared(false),
+    m_insertOrReplaceNoteLimitsQuery(),
+    m_insertOrReplaceNoteLimitsQueryPrepared(false),
     m_canAddNoteToNotebookQuery(),
     m_canAddNoteToNotebookQueryPrepared(false),
     m_canUpdateNoteInNotebookQuery(),
@@ -1840,7 +1844,17 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
     while(query.next())
     {
         QSqlRecord rec = query.record();
-        fillNoteFromSqlRecord(rec, note);
+
+        QNLocalizedString error;
+        bool res = fillNoteFromSqlRecord(rec, note, error);
+        if (!res) {
+            errorDescription = errorPrefix;
+            errorDescription += QStringLiteral(": ");
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            return false;
+        }
+
         ++counter;
 
         int resourceLocalUidIndex = rec.indexOf(QStringLiteral("resourceLocalUid"));
@@ -1865,8 +1879,8 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
             }
         }
 
-        QNLocalizedString error;
-        bool res = fillNoteTagIdFromSqlRecord(rec, QStringLiteral("tag"), tagGuidsAndIndices, tagGuidIndexPerGuid, error);
+        error.clear();
+        res = fillNoteTagIdFromSqlRecord(rec, QStringLiteral("tag"), tagGuidsAndIndices, tagGuidIndexPerGuid, error);
         if (!res) {
             errorDescription = errorPrefix;
             errorDescription += QStringLiteral(": ");
@@ -1928,6 +1942,8 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
 
         note.setTagLocalUids(tagLocalUids);
     }
+
+    sortSharedNotes(note);
 
     QNLocalizedString error;
     res = note.checkParameters(error);
@@ -2419,7 +2435,18 @@ NoteList LocalStorageManagerPrivate::findNotesWithSearchQuery(const NoteSearchQu
         note.setLocalUid(QString());
 
         QSqlRecord rec = query.record();
-        fillNoteFromSqlRecord(rec, note);
+
+        error.clear();
+        res = fillNoteFromSqlRecord(rec, note, error);
+        if (!res) {
+            errorDescription = errorPrefix;
+            errorDescription += QStringLiteral(": ");
+            errorDescription += QT_TR_NOOP("can't fetch tag ids per note");
+            errorDescription += QStringLiteral(": ");
+            errorDescription += error;
+            QNWARNING(errorDescription);
+            return NoteList();
+        }
 
         error.clear();
         res = findAndSetTagIdsPerNote(note, error);
@@ -4121,6 +4148,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "BEGIN "
                                     "DELETE FROM SharedNotes WHERE sharedNoteNoteGuid=OLD.guid; "
                                     "DELETE FROM NoteRestrictions WHERE localUid=OLD.localUid; "
+                                    "DELETE FROM NoteLimits WHERE localUid=OLD.localUid; "
                                     "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger to fire on deletion from notes table");
     DATABASE_CHECK_AND_SET_ERROR();
@@ -4429,7 +4457,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const qever
     query.bindValue(":localUid", localUid);
 
 #define BIND_RESTRICTION(name) \
-    query.bindValue(":" #name, (notebookRestrictions.name.isSet() ? (notebookRestrictions.name.ref() ? 1 : 0) : nullValue))
+    query.bindValue(QStringLiteral(":" #name), (notebookRestrictions.name.isSet() ? (notebookRestrictions.name.ref() ? 1 : 0) : nullValue))
 
     BIND_RESTRICTION(noReadNotes);
     BIND_RESTRICTION(noCreateNotes);
@@ -5939,6 +5967,38 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
         query.finish();
     }
 
+    if (note.hasNoteRestrictions())
+    {
+        const qevercloud::NoteRestrictions & restrictions = note.noteRestrictions();
+        bool res = insertOrReplaceNotebookRestrictions(localUid, restrictions, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+    else
+    {
+        QString queryString = QString("DELETE FROM NoteRestrictions WHERE localUid='%1'").arg(localUid);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR();
+    }
+
+    if (note.hasNoteLimits())
+    {
+        const qevercloud::NoteLimits & limits = note.noteLimits();
+        bool res = insertOrReplaceNoteLimits(localUid, limits, errorDescription);
+        if (!res) {
+            return false;
+        }
+    }
+    else
+    {
+        QString queryString = QString("DELETE FROM NoteLimits WHERE localUid='%1'").arg(localUid);
+        QSqlQuery query(m_sqlDatabase);
+        bool res = query.exec(queryString);
+        DATABASE_CHECK_AND_SET_ERROR();
+    }
+
     if (note.hasGuid())
     {
         // Clear shared notes for a given note first, update them (if any) second
@@ -6076,67 +6136,46 @@ bool LocalStorageManagerPrivate::insertOrReplaceSharedNote(const SharedNote & sh
 
     query.bindValue(QStringLiteral(":sharedNoteNoteGuid"), sharedNote.noteGuid());
     query.bindValue(QStringLiteral(":sharedNoteSharerUserId"), (sharedNote.hasSharerUserId() ? sharedNote.sharerUserId() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientIdentityId"), (sharedNote.hasRecipientIdentityId()
+                                                                       ? sharedNote.recipientIdentityId()
+                                                                       : nullValue));
 
-    if (sharedNote.hasRecipientIdentity())
-    {
-        const qevercloud::Identity & recipientIdentity = sharedNote.recipientIdentity();
-
-        query.bindValue(QStringLiteral(":sharedNoteRecipientIdentityId"), recipientIdentity.id);
-
-        if (recipientIdentity.contact.isSet())
-        {
-            const qevercloud::Contact & contact = recipientIdentity.contact.ref();
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), (contact.name.isSet() ? contact.name.ref() : nullValue));
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), (contact.id.isSet() ? contact.id.ref() : nullValue));
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), (contact.type.isSet() ? contact.type.ref() : nullValue));
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), (contact.photoUrl.isSet() ? contact.photoUrl.ref() : nullValue));
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), (contact.photoLastUpdated.isSet() ? contact.photoLastUpdated.ref() : nullValue));
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), (contact.messagingPermit.isSet() ? contact.messagingPermit.ref() : nullValue));
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), (contact.messagingPermitExpires.isSet() ? contact.messagingPermitExpires.ref() : nullValue));
-        }
-        else
-        {
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), nullValue);
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), nullValue);
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), nullValue);
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), nullValue);
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), nullValue);
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), nullValue);
-            query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), nullValue);
-        }
-
-        query.bindValue(QStringLiteral(":sharedNoteRecipientUserId"), (recipientIdentity.userId.isSet() ? recipientIdentity.userId.ref() : nullValue));
-        query.bindValue(QStringLiteral(":sharedNoteRecipientDeactivated"), (recipientIdentity.deactivated.isSet()
-                                                                            ? (recipientIdentity.deactivated.ref() ? 1 : 0)
-                                                                            : nullValue));
-        query.bindValue(QStringLiteral(":sharedNoteRecipientSameBusiness"), (recipientIdentity.sameBusiness.isSet()
-                                                                             ? (recipientIdentity.sameBusiness.ref() ? 1 : 0)
-                                                                             : nullValue));
-        query.bindValue(QStringLiteral(":sharedNoteRecipientBlocked"), (recipientIdentity.blocked.isSet()
-                                                                        ? (recipientIdentity.blocked.ref() ? 1 : 0)
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), (sharedNote.hasRecipientIdentityContactName()
+                                                                        ? sharedNote.recipientIdentityContactName()
                                                                         : nullValue));
-        query.bindValue(QStringLiteral(":sharedNoteRecipientUserConnected"), (recipientIdentity.userConnected.isSet()
-                                                                              ? (recipientIdentity.userConnected.ref() ? 1 : 0)
-                                                                              : nullValue));
-        query.bindValue(QStringLiteral(":sharedNoteRecipientEventId"), (recipientIdentity.eventId.isSet() ? recipientIdentity.eventId.ref() : nullValue));
-    }
-    else
-    {
-        query.bindValue(QStringLiteral(":sharedNoteRecipientIdentityId"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactName"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientUserId"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientDeactivated"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientSameBusiness"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientBlocked"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientUserConnected"), nullValue);
-        query.bindValue(QStringLiteral(":sharedNoteRecipientEventId"), nullValue);
-    }
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactId"), (sharedNote.hasRecipientIdentityContactId()
+                                                                      ? sharedNote.recipientIdentityContactId()
+                                                                      : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactType"), (sharedNote.hasRecipientIdentityContactType()
+                                                                        ? sharedNote.recipientIdentityContactType()
+                                                                        : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoUrl"), (sharedNote.hasRecipientIdentityContactPhotoUrl()
+                                                                            ? sharedNote.recipientIdentityContactPhotoUrl()
+                                                                            : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactPhotoLastUpdated"), (sharedNote.hasRecipientIdentityContactPhotoLastUpdated()
+                                                                                    ? sharedNote.recipientIdentityContactPhotoLastUpdated()
+                                                                                    : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermit"), (sharedNote.hasRecipientIdentityContactMessagingPermit()
+                                                                                   ? sharedNote.recipientIdentityContactMessagingPermit()
+                                                                                   : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientContactMessagingPermitExpires"), (sharedNote.hasRecipientIdentityContactMessagingPermitExpires()
+                                                                                          ? sharedNote.recipientIdentityContactMessagingPermitExpires()
+                                                                                          : nullValue));
+
+    query.bindValue(QStringLiteral(":sharedNoteRecipientUserId"), (sharedNote.hasRecipientIdentityUserId() ? sharedNote.recipientIdentityUserId() : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientDeactivated"), (sharedNote.hasRecipientIdentityDeactivated()
+                                                                        ? (sharedNote.recipientIdentityDeactivated() ? 1 : 0)
+                                                                        : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientSameBusiness"), (sharedNote.hasRecipientIdentitySameBusiness()
+                                                                         ? (sharedNote.recipientIdentitySameBusiness() ? 1 : 0)
+                                                                         : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientBlocked"), (sharedNote.hasRecipientIdentityBlocked()
+                                                                    ? (sharedNote.recipientIdentityBlocked() ? 1 : 0)
+                                                                    : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientUserConnected"), (sharedNote.hasRecipientIdentityUserConnected()
+                                                                          ? (sharedNote.recipientIdentityUserConnected() ? 1 : 0)
+                                                                          : nullValue));
+    query.bindValue(QStringLiteral(":sharedNoteRecipientEventId"), (sharedNote.hasRecipientIdentityEventId() ? sharedNote.recipientIdentityEventId() : nullValue));
 
     query.bindValue(QStringLiteral(":sharedNotePrivilegeLevel"), (sharedNote.hasPrivilegeLevel() ? sharedNote.privilegeLevel() : nullValue));
     query.bindValue(QStringLiteral(":sharedNoteCreationTimestamp"), (sharedNote.hasCreationTimestamp() ? sharedNote.creationTimestamp() : nullValue));
@@ -6154,13 +6193,62 @@ bool LocalStorageManagerPrivate::insertOrReplaceNoteRestrictions(const QString &
                                                                  const qevercloud::NoteRestrictions & noteRestrictions,
                                                                  QNLocalizedString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::insertOrReplaceNoteRestrictions: note local uid = ") << noteLocalUid);
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace note restrictions");
 
-    // NOTE: this method expects to be called after the note is already checked
-    // for sanity of its parameters!
+    bool res = checkAndPrepareInsertOrReplaceNoteRestrictionsQuery();
+    QSqlQuery & query = m_insertOrReplaceNoteRestrictionsQuery;
+    DATABASE_CHECK_AND_SET_ERROR();
 
-    // TODO: implement
+    QVariant nullValue;
 
+    query.bindValue(QStringLiteral(":localUid"), noteLocalUid);
+
+#define BIND_RESTRICTION(column, name) \
+    query.bindValue(QStringLiteral(":" #column), (noteRestrictions.name.isSet() ? (noteRestrictions.name.ref() ? 1 : 0) : nullValue))
+
+    BIND_RESTRICTION(noUpdateNoteTitle, noUpdateTitle);
+    BIND_RESTRICTION(noUpdateNoteContent, noUpdateContent);
+    BIND_RESTRICTION(noEmailNote, noEmail);
+    BIND_RESTRICTION(noShareNote, noShare);
+    BIND_RESTRICTION(noShareNotePublicly, noSharePublicly);
+
+#undef BIND_RESTRICTION
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    query.finish();
+    return true;
+}
+
+bool LocalStorageManagerPrivate::insertOrReplaceNoteLimits(const QString & noteLocalUid, const qevercloud::NoteLimits & noteLimits,
+                                                           QNLocalizedString & errorDescription)
+{
+    QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace note limits");
+
+    bool res = checkAndPrepareInsertOrReplaceNoteLimitsQuery();
+    QSqlQuery & query = m_insertOrReplaceNoteLimitsQuery;
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    QVariant nullValue;
+
+    query.bindValue(QStringLiteral(":localUid"), noteLocalUid);
+
+#define BIND_LIMIT(limit) \
+    query.bindValue(QStringLiteral(":" #limit), (noteLimits.limit.isSet() ? (noteLimits.limit.ref() ? 1 : 0) : nullValue))
+
+    BIND_LIMIT(noteResourceCountMax);
+    BIND_LIMIT(uploadLimit);
+    BIND_LIMIT(resourceSizeMax);
+    BIND_LIMIT(noteSizeMax);
+    BIND_LIMIT(uploaded);
+
+#undef BIND_LIMIT
+
+    res = query.exec();
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    query.finish();
     return true;
 }
 
@@ -6343,6 +6431,49 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNoteQuery()
                                                                        ":sharedNoteAssignmentTimestamp)"));
     if (res) {
         m_insertOrReplaceSharedNoteQueryPrepared = true;
+    }
+
+    return res;
+}
+
+bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteRestrictionsQuery()
+{
+    if (Q_LIKELY(m_insertOrReplaceNoteRestrictionsQueryPrepared)) {
+        return true;
+    }
+
+    QNTRACE(QStringLiteral("Preparing SQL query to insert or replace note restrictions"));
+
+    m_insertOrReplaceNoteRestrictionsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceNoteRestrictionsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO NoteRestrictions "
+                                                                             "(localUid, noUpdateNoteTitle, noUpdateNoteContent, "
+                                                                             "noEmailNote, noShareNote, noShareNotePublicly) "
+                                                                             "VALUES(:localUid, :noUpdateNoteTitle, "
+                                                                             ":noUpdateNoteContent, :noEmailNote, "
+                                                                             ":noShareNote, :noShareNotePublicly)"));
+    if (res) {
+        m_insertOrReplaceNoteRestrictionsQueryPrepared = true;
+    }
+
+    return res;
+}
+
+bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteLimitsQuery()
+{
+    if (Q_LIKELY(m_insertOrReplaceNoteLimitsQueryPrepared)) {
+        return true;
+    }
+
+    QNTRACE(QStringLiteral("Preparing SQL query to insert or replace note limits"));
+
+    m_insertOrReplaceNoteLimitsQuery = QSqlQuery(m_sqlDatabase);
+    bool res = m_insertOrReplaceNoteLimitsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO NoteLimits "
+                                                                       "(localUid, noteResourceCountMax, uploadLimit, "
+                                                                       "resourceSizeMax, noteSizeMax, uploaded) "
+                                                                       "VALUES(:localUid, :noteResourceCountMax, :uploadLimit, "
+                                                                       ":resourceSizeMax, :noteSizeMax, :uploaded)"));
+    if (res) {
+        m_insertOrReplaceNoteLimitsQueryPrepared = true;
     }
 
     return res;
@@ -7732,10 +7863,10 @@ bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, I
     return true;
 }
 
-void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, Note & note) const
+bool LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, Note & note, QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_NOTE_PROPERTY(propertyLocalName, setter, type, localType) \
-    int propertyLocalName##index = rec.indexOf(#propertyLocalName); \
+    int propertyLocalName##index = rec.indexOf(QStringLiteral(#propertyLocalName)); \
     if (propertyLocalName##index >= 0) { \
         QVariant value = rec.value(propertyLocalName##index); \
         if (!value.isNull()) { \
@@ -7765,7 +7896,7 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
 
 #undef CHECK_AND_SET_NOTE_PROPERTY
 
-    int indexOfThumbnail = rec.indexOf("thumbnail");
+    int indexOfThumbnail = rec.indexOf(QStringLiteral("thumbnail"));
     if (indexOfThumbnail >= 0) {
         QVariant thumbnailValue = rec.value(indexOfThumbnail);
         if (!thumbnailValue.isNull()) {
@@ -7774,7 +7905,7 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
         }
     }
 
-    int hasAttributesIndex = rec.indexOf("hasAttributes");
+    int hasAttributesIndex = rec.indexOf(QStringLiteral("hasAttributes"));
     if (hasAttributesIndex >= 0)
     {
         QVariant hasAttributesValue = rec.value(hasAttributesIndex);
@@ -7793,10 +7924,60 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
         }
     }
 
+    bool foundSomeNoteRestriction = false;
+    qevercloud::NoteRestrictions restrictions;
+
+#define CHECK_AND_SET_NOTE_RESTRICTION(column, restriction) \
+    int restriction##Index = rec.indexOf(QStringLiteral(#column)); \
+    if (restriction##Index >= 0) { \
+        QVariant value = rec.value(restriction##Index); \
+        if (!value.isNull()) { \
+            restrictions.restriction = static_cast<bool>(qvariant_cast<qint32>(value)); \
+            foundSomeNoteRestriction = true; \
+        } \
+    }
+
+    CHECK_AND_SET_NOTE_RESTRICTION(noUpdateNoteTitle, noUpdateTitle)
+    CHECK_AND_SET_NOTE_RESTRICTION(noUpdateNoteContent, noUpdateContent)
+    CHECK_AND_SET_NOTE_RESTRICTION(noEmailNote, noEmail)
+    CHECK_AND_SET_NOTE_RESTRICTION(noShareNote, noShare)
+    CHECK_AND_SET_NOTE_RESTRICTION(noShareNotePublicly, noSharePublicly)
+
+#undef CHECK_AND_SET_NOTE_RESTRICTION
+
+    if (foundSomeNoteRestriction) {
+        note.setNoteRestrictions(std::move(restrictions));
+    }
+
+    bool foundSomeNoteLimit = false;
+    qevercloud::NoteLimits limits;
+
+#define CHECK_AND_SET_NOTE_LIMIT(limit, columnType, type) \
+    int limit##Index = rec.indexOf(QStringLiteral(#limit)); \
+    if (limit##Index >= 0) { \
+        QVariant value = rec.value(limit##Index); \
+        if (!value.isNull()) { \
+            limits.limit = static_cast<type>(qvariant_cast<columnType>(value)); \
+            foundSomeNoteLimit = true; \
+        } \
+    }
+
+    CHECK_AND_SET_NOTE_LIMIT(noteResourceCountMax, qint32, qint32)
+    CHECK_AND_SET_NOTE_LIMIT(uploadLimit, qint64, qint64)
+    CHECK_AND_SET_NOTE_LIMIT(resourceSizeMax, qint64, qint64)
+    CHECK_AND_SET_NOTE_LIMIT(noteSizeMax, qint64, qint64)
+    CHECK_AND_SET_NOTE_LIMIT(uploaded, qint64, qint64)
+
+#undef CHECK_AND_SET_NOTE_LIMIT
+
+    if (foundSomeNoteLimit) {
+        note.setNoteLimits(std::move(limits));
+    }
+
     if (note.hasGuid())
     {
         SharedNote sharedNote;
-        bool res = fillSharedNoteFromSqlRecord(record, sharedNote, errorDescription);
+        bool res = fillSharedNoteFromSqlRecord(rec, sharedNote, errorDescription);
         if (!res) {
             return false;
         }
@@ -7805,6 +7986,8 @@ void LocalStorageManagerPrivate::fillNoteFromSqlRecord(const QSqlRecord & rec, N
             note.addSharedNote(sharedNote);
         }
     }
+
+    return true;
 }
 
 bool LocalStorageManagerPrivate::fillSharedNoteFromSqlRecord(const QSqlRecord & record, SharedNote & sharedNote,
@@ -7822,9 +8005,44 @@ bool LocalStorageManagerPrivate::fillSharedNoteFromSqlRecord(const QSqlRecord & 
     }
 
     CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteNoteGuid, QString, QString, setNoteGuid)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteSharerUserId, qint32, qint32, setSharerUserId)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientIdentityId, qint64, qint64, setRecipientIdentityId)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactName, QString, QString, setRecipientIdentityContactName)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactId, QString, QString, setRecipientIdentityContactId)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactType, qint32, qint32, setRecipientIdentityContactType)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactPhotoUrl, QString, QString, setRecipientIdentityContactPhotoUrl)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactPhotoLastUpdated, qint64, qint64, setRecipientIdentityContactPhotoLastUpdated)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactMessagingPermit, QByteArray, QByteArray, setRecipientIdentityContactMessagingPermit)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientContactMessagingPermitExpires, qint64, qint64, setRecipientIdentityContactMessagingPermitExpires)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientUserId, qint32, qint32, setRecipientIdentityUserId)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientDeactivated, int, bool, setRecipientIdentityDeactivated)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientSameBusiness, int, bool, setRecipientIdentitySameBusiness)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientBlocked, int, bool, setRecipientIdentityBlocked)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientUserConnected, int, bool, setRecipientIdentityUserConnected)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteRecipientEventId, qint64, qint64, setRecipientIdentityEventId)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNotePrivileveLevel, qint8, qint8, setPrivilegeLevel)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteCreationTimestamp, qint64, qint64, setCreationTimestamp)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteModificationTimestamp, qint64, qint64, setModificationTimestamp)
+    CHECK_AND_SET_SHARED_NOTE_PROPERTY(sharedNoteAssignmentTimestamp, qint64, qint64, setAssignmentTimestamp)
 
-    // TODO: implement further
 #undef CHECK_AND_SET_SHARED_NOTE_PROPERTY
+
+    int recordIndex = record.indexOf(QStringLiteral("indexInNote"));
+    if (recordIndex >= 0)
+    {
+        QVariant value = record.value(recordIndex);
+        if (!value.isNull())
+        {
+            bool conversionResult = false;
+            int indexInNote = value.toInt(&conversionResult);
+            if (!conversionResult) {
+                errorDescription += QT_TR_NOOP("can't convert shared note's index in note to int");
+                QNCRITICAL(errorDescription);
+                return false;
+            }
+            sharedNote.setIndexInNote(indexInNote);
+        }
+    }
 
     return true;
 }
@@ -8067,7 +8285,7 @@ bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecor
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
 
-    int recordIndex = rec.indexOf("indexInNotebook");
+    int recordIndex = rec.indexOf(QStringLiteral("indexInNotebook"));
     if (recordIndex >= 0)
     {
         QVariant value = rec.value(recordIndex);
@@ -8485,6 +8703,18 @@ void LocalStorageManagerPrivate::sortSharedNotebooks(Notebook & notebook) const
     QList<SharedNotebookAdapter> sharedNotebookAdapters = notebook.sharedNotebooks();
 
     qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(), SharedNotebookAdapterCompareByIndex());
+}
+
+void LocalStorageManagerPrivate::sortSharedNotes(Note & note) const
+{
+    if (!note.hasSharedNotes()) {
+        return;
+    }
+
+    // Sort shared notes to ensure the correct order for proper work of comparison oeprators
+    QList<SharedNote> sharedNotes = note.sharedNotes();
+    qSort(sharedNotes.begin(), sharedNotes.end(), SharedNoteCompareByIndex());
+    note.setSharedNotes(sharedNotes);
 }
 
 bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & noteSearchQuery,
@@ -9933,6 +10163,51 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
 }
 
 template <>
+bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<Note> & notes,
+                                                         QNLocalizedString & errorDescription) const
+{
+    QMap<QString, int> indexForLocalUid;
+
+    while(query.next())
+    {
+        QSqlRecord rec = query.record();
+
+        int localUidIndex = rec.indexOf(QStringLiteral("localUid"));
+        if (localUidIndex < 0) {
+            errorDescription += QT_TR_NOOP("no localUid field in SQL record");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        QVariant localUidValue = rec.value(localUidIndex);
+        QString localUid = localUidValue.toString();
+        if (localUid.isEmpty()) {
+            errorDescription += QT_TR_NOOP("found empty localUid field for Note");
+            QNWARNING(errorDescription);
+            return false;
+        }
+
+        auto it = indexForLocalUid.find(localUid);
+        bool notFound = (it == indexForLocalUid.end());
+        if (notFound) {
+            indexForLocalUid[localUid] = notes.size();
+            notes << Notebook();
+        }
+
+        Note & note = (notFound ? notes.back() : notes[it.value()]);
+
+        bool res = fillNoteFromSqlRecord(rec, note, errorDescription);
+        if (!res) {
+            return false;
+        }
+
+        sortSharedNotes(note);
+    }
+
+    return true;
+}
+
+template <>
 bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery query, QList<Notebook> & notebooks,
                                                                    QNLocalizedString & errorDescription) const
 {
@@ -10002,15 +10277,25 @@ template <>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Notebook>(const QSqlRecord & rec, Notebook & notebook,
                                                                    QNLocalizedString & errorDescription) const
 {
-    return fillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    bool res = fillNotebookFromSqlRecord(rec, notebook, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    sortSharedNotebooks(notebook);
+    return true;
 }
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Note>(const QSqlRecord & rec, Note & note,
                                                                QNLocalizedString & errorDescription) const
 {
-    Q_UNUSED(errorDescription);
-    fillNoteFromSqlRecord(rec, note);
+    bool res = fillNoteFromSqlRecord(rec, note, errorDescription);
+    if (!res) {
+        return false;
+    }
+
+    sortSharedNotes(note);
     return true;
 }
 
@@ -10118,6 +10403,11 @@ bool LocalStorageManagerPrivate::SharedNotebookAdapterCompareByIndex::operator()
                                                                                  const SharedNotebookAdapter & rhs) const
 {
     return (lhs.indexInNotebook() < rhs.indexInNotebook());
+}
+
+bool LocalStorageManagerPrivate::SharedNoteCompareByIndex::operator()(const SharedNote & lhs, const SharedNote & rhs) const
+{
+    return (lhs.indexInNote() < rhs.indexInNote());
 }
 
 bool LocalStorageManagerPrivate::ResourceWrapperCompareByIndex::operator()(const ResourceWrapper & lhs,

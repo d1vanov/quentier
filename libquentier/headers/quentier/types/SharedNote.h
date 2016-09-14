@@ -89,9 +89,37 @@ public:
     qint64 recipientIdentityContactPhotoLastUpdated() const;
     void setRecipientIdentityContactPhotoLastUpdated(const qint64 recipientIdentityPhotoLastUpdated);
 
+    bool hasRecipientIdentityContactMessagingPermit() const;
+    const QByteArray & recipientIdentityContactMessagingPermit() const;
+    void setRecipientIdentityContactMessagingPermit(const QByteArray & messagingPermit);
+
+    bool hasRecipientIdentityContactMessagingPermitExpires() const;
+    qint64 recipientIdentityContactMessagingPermitExpires() const;
+    void setRecipientIdentityContactMessagingPermitExpires(const qint64 timestamp);
+
     bool hasRecipientIdentityUserId() const;
     qint32 recipientIdentityUserId() const;
     void setRecipientIdentityUserId(const qint32 userId);
+
+    bool hasRecipientIdentityDeactivated() const;
+    bool recipientIdentityDeactivated() const;
+    void setRecipientIdentityDeactivated(const bool deactivated);
+
+    bool hasRecipientIdentitySameBusiness() const;
+    bool recipientIdentitySameBusiness() const;
+    void setRecipientIdentitySameBusiness(const bool sameBusiness);
+
+    bool hasRecipientIdentityBlocked() const;
+    bool recipientIdentityBlocked() const;
+    void setRecipientIdentityBlocked(const bool blocked);
+
+    bool hasRecipientIdentityUserConnected() const;
+    bool recipientIdentityUserConnected() const;
+    void setRecipientIdentityUserConnected(const bool userConnected);
+
+    bool hasRecipientIdentityEventId() const;
+    qint64 recipientIdentityEventId() const;
+    void setRecipientIdentityEventId(const qint64 eventId);
 
     bool hasRecipientIdentity() const;
     const qevercloud::Identity & recipientIdentity() const;

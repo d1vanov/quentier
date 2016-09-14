@@ -153,10 +153,12 @@ public:
     bool hasNoteRestrictions() const;
     const qevercloud::NoteRestrictions & noteRestrictions() const;
     qevercloud::NoteRestrictions & noteRestrictions();
+    void setNoteRestrictions(qevercloud::NoteRestrictions && restrictions);
 
     bool hasNoteLimits() const;
     const qevercloud::NoteLimits & noteLimits() const;
     qevercloud::NoteLimits & noteLimits();
+    void setNoteLimits(qevercloud::NoteLimits && limits);
 
     QImage thumbnail() const;
     void setThumbnail(const QImage & thumbnail);

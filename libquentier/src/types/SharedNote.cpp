@@ -351,6 +351,84 @@ void SharedNote::setRecipientIdentityContactPhotoLastUpdated(const qint64 timest
     }
 }
 
+bool SharedNote::hasRecipientIdentityContactMessagingPermit() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->contact.isSet() &&
+           d->m_qecSharedNote.recipientIdentity->contact->messagingPermit.isSet();
+}
+
+const QByteArray & SharedNote::recipientIdentityContactMessagingPermit() const
+{
+    return d->m_qecSharedNote.recipientIdentity->contact->messagingPermit;
+}
+
+void SharedNote::setRecipientIdentityContactMessagingPermit(const QByteArray & messagingPermit)
+{
+    if (messagingPermit.isEmpty())
+    {
+        if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+            d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+        }
+
+        if (!d->m_qecSharedNote.recipientIdentity->contact.isSet()) {
+            d->m_qecSharedNote.recipientIdentity->contact = qevercloud::Contact();
+        }
+
+        d->m_qecSharedNote.recipientIdentity->contact->messagingPermit.clear();
+    }
+    else
+    {
+        if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+            return;
+        }
+
+        if (!d->m_qecSharedNote.recipientIdentity->contact.isSet()) {
+            return;
+        }
+
+        d->m_qecSharedNote.recipientIdentity->contact->messagingPermit = messagingPermit;
+    }
+}
+
+bool SharedNote::hasRecipientIdentityContactMessagingPermitExpires() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->contact.isSet() &&
+           d->m_qecSharedNote.recipientIdentity->contact->messagingPermitExpires.isSet();
+}
+
+qint64 SharedNote::recipientIdentityContactMessagingPermitExpires() const
+{
+    return d->m_qecSharedNote.recipientIdentity->contact->messagingPermitExpires;
+}
+
+void SharedNote::setRecipientIdentityContactMessagingPermitExpires(const qint64 timestamp)
+{
+    if (timestamp >= 0)
+    {
+        if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+            d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+        }
+
+        if (!d->m_qecSharedNote.recipientIdentity->contact.isSet()) {
+            d->m_qecSharedNote.recipientIdentity->contact = qevercloud::Contact();
+        }
+
+        d->m_qecSharedNote.recipientIdentity->contact->messagingPermitExpires = timestamp;
+    }
+    else
+    {
+        if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+            return;
+        }
+
+        if (!d->m_qecSharedNote.recipientIdentity->contact.isSet()) {
+            return;
+        }
+
+        d->m_qecSharedNote.recipientIdentity->contact->messagingPermitExpires.clear();
+    }
+}
+
 bool SharedNote::hasRecipientIdentityUserId() const
 {
     return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->userId.isSet();
@@ -368,6 +446,101 @@ void SharedNote::setRecipientIdentityUserId(const qint32 userId)
     }
 
     d->m_qecSharedNote.recipientIdentity->userId = userId;
+}
+
+bool SharedNote::hasRecipientIdentityDeactivated() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->deactivated.isSet();
+}
+
+bool SharedNote::recipientIdentityDeactivated() const
+{
+    return d->m_qecSharedNote.recipientIdentity->deactivated;
+}
+
+void SharedNote::setRecipientIdentityDeactivated(const bool deactivated)
+{
+    if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+        d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+    }
+
+    d->m_qecSharedNote.recipientIdentity->deactivated = deactivated;
+}
+
+bool SharedNote::hasRecipientIdentitySameBusiness() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->sameBusiness.isSet();
+}
+
+bool SharedNote::recipientIdentitySameBusiness() const
+{
+    return d->m_qecSharedNote.recipientIdentity->sameBusiness;
+}
+
+void SharedNote::setRecipientIdentitySameBusiness(const bool sameBusiness)
+{
+    if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+        d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+    }
+
+    d->m_qecSharedNote.recipientIdentity->sameBusiness = sameBusiness;
+}
+
+bool SharedNote::hasRecipientIdentityBlocked() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->blocked.isSet();
+}
+
+bool SharedNote::recipientIdentityBlocked() const
+{
+    return d->m_qecSharedNote.recipientIdentity->blocked;
+}
+
+void SharedNote::setRecipientIdentityBlocked(const bool blocked)
+{
+    if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+        d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+    }
+
+    d->m_qecSharedNote.recipientIdentity->blocked = blocked;
+}
+
+bool SharedNote::hasRecipientIdentityUserConnected() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->userConnected.isSet();
+}
+
+bool SharedNote::recipientIdentityUserConnected() const
+{
+    return d->m_qecSharedNote.recipientIdentity->userConnected;
+}
+
+void SharedNote::setRecipientIdentityUserConnected(const bool userConnected)
+{
+    if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+        d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+    }
+
+    d->m_qecSharedNote.recipientIdentity->userConnected = userConnected;
+}
+
+bool SharedNote::hasRecipientIdentityEventId() const
+{
+    return d->m_qecSharedNote.recipientIdentity.isSet() && d->m_qecSharedNote.recipientIdentity->eventId.isSet();
+}
+
+qint64 SharedNote::recipientIdentityEventId() const
+{
+    return d->m_qecSharedNote.recipientIdentity->eventId;
+}
+
+void SharedNote::setRecipientIdentityEventId(const qint64 eventId)
+{
+    if (!d->m_qecSharedNote.recipientIdentity.isSet()) {
+        d->m_qecSharedNote.recipientIdentity = qevercloud::Identity();
+    }
+
+    d->m_qecSharedNote.recipientIdentity->eventId = eventId;
 }
 
 bool SharedNote::hasRecipientIdentity() const

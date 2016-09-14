@@ -764,6 +764,11 @@ qevercloud::NoteRestrictions & Note::noteRestrictions()
     return d->m_qecNote.restrictions.ref();
 }
 
+void Note::setNoteRestrictions(qevercloud::NoteRestrictions && restrictions)
+{
+    d->m_qecNote.restrictions = std::move(restrictions);
+}
+
 bool Note::hasNoteLimits() const
 {
     return d->m_qecNote.limits.isSet();
@@ -777,6 +782,11 @@ const qevercloud::NoteLimits & Note::noteLimits() const
 qevercloud::NoteLimits & Note::noteLimits()
 {
     return d->m_qecNote.limits.ref();
+}
+
+void Note::setNoteLimits(qevercloud::NoteLimits && limits)
+{
+    d->m_qecNote.limits = std::move(limits);
 }
 
 QImage Note::thumbnail() const
