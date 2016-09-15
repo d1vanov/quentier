@@ -104,10 +104,9 @@ void NotebookLocalStorageManagerAsyncTester::onWorkerInitialized()
     sharedNotebook.setEmail("Fake shared notebook email");
     sharedNotebook.setCreationTimestamp(1);
     sharedNotebook.setModificationTimestamp(1);
-    sharedNotebook.setShareKey("Fake shared notebook share key");
+    sharedNotebook.setGlobalId("Fake shared notebook global id");
     sharedNotebook.setUsername("Fake shared notebook username");
     sharedNotebook.setPrivilegeLevel(1);
-    sharedNotebook.setAllowPreview(true);
     sharedNotebook.setReminderNotifyEmail(true);
     sharedNotebook.setReminderNotifyApp(false);
 
@@ -185,10 +184,9 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
         sharedNotebookOne.setEmail("Fake shared notebook email one");
         sharedNotebookOne.setCreationTimestamp(1);
         sharedNotebookOne.setModificationTimestamp(1);
-        sharedNotebookOne.setShareKey("Fake shared notebook share key one");
+        sharedNotebookOne.setGlobalId("Fake shared notebook global id one");
         sharedNotebookOne.setUsername("Fake shared notebook username one");
         sharedNotebookOne.setPrivilegeLevel(1);
-        sharedNotebookOne.setAllowPreview(true);
         sharedNotebookOne.setReminderNotifyEmail(true);
         sharedNotebookOne.setReminderNotifyApp(false);
 
@@ -201,10 +199,9 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
         sharedNotebookTwo.setEmail("Fake shared notebook email two");
         sharedNotebookTwo.setCreationTimestamp(1);
         sharedNotebookTwo.setModificationTimestamp(1);
-        sharedNotebookTwo.setShareKey("Fake shared notebook share key two");
+        sharedNotebookTwo.setGlobalId("Fake shared notebook global id two");
         sharedNotebookTwo.setUsername("Fake shared notebook username two");
         sharedNotebookTwo.setPrivilegeLevel(1);
-        sharedNotebookTwo.setAllowPreview(false);
         sharedNotebookTwo.setReminderNotifyEmail(false);
         sharedNotebookTwo.setReminderNotifyApp(true);
 
@@ -279,10 +276,9 @@ void NotebookLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         sharedNotebook.setEmail("Fake shared notebook email three");
         sharedNotebook.setCreationTimestamp(2);
         sharedNotebook.setModificationTimestamp(2);
-        sharedNotebook.setShareKey("Fake shared notebook share key three");
+        sharedNotebook.setGlobalId("Fake shared notebook global id three");
         sharedNotebook.setUsername("Fake shared notebook username three");
         sharedNotebook.setPrivilegeLevel(1);
-        sharedNotebook.setAllowPreview(true);
         sharedNotebook.setReminderNotifyEmail(true);
         sharedNotebook.setReminderNotifyApp(false);
 

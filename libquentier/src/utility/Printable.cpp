@@ -459,6 +459,24 @@ QString sharedNotebookInstanceRestrictionsToString(const qevercloud::SharedNoteb
     }
 }
 
+QTextStream & operator <<(QTextStream & strm, const qevercloud::QueryFormat::type & queryFormat)
+{
+    strm << queryFormatToString(queryFormat);
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::ServiceLevel::type & level)
+{
+    strm << serviceLevelToString(level);
+    return strm;
+}
+
+QTextStream & operator <<(QTextStream & strm, const qevercloud::PrivilegeLevel::type & level)
+{
+    strm << privilegeLevelToString(level);
+    return strm;
+}
+
 QTextStream & operator <<(QTextStream & strm, const qevercloud::NotebookRestrictions & restrictions)
 {
     strm << QStringLiteral("NotebookRestrictions: {\n");

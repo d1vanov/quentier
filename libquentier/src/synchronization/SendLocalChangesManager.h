@@ -56,7 +56,7 @@ Q_SIGNALS:
     void stopped();
 
     void requestAuthenticationToken();
-    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys);
+    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
 
     // progress information
     void receivedUserAccountDirtyObjects();
@@ -219,10 +219,10 @@ private:
     void handleAuthExpiration();
 
 private:
-    class CompareGuidAndShareKeyByGuid
+    class CompareGuidAndSharedNotebookGlobalIdByGuid
     {
     public:
-        CompareGuidAndShareKeyByGuid(const QString & guid) : m_guid(guid) {}
+        CompareGuidAndSharedNotebookGlobalIdByGuid(const QString & guid) : m_guid(guid) {}
 
         bool operator()(const QPair<QString, QString> & pair) const
         {
@@ -264,7 +264,7 @@ private:
     QList<Notebook>                         m_notebooks;
     QList<Note>                             m_notes;
 
-    QList<QPair<QString, QString> >         m_linkedNotebookGuidsAndShareKeys;
+    QList<QPair<QString, QString> >         m_linkedNotebookGuidsAndSharedNotebookGlobalIds;
 
     int                                     m_lastProcessedLinkedNotebookGuidIndex;
     QHash<QString,QPair<QString,QString> >  m_authenticationTokensAndShardIdsByLinkedNotebookGuid;

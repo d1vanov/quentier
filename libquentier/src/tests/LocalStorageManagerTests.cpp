@@ -199,7 +199,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     modifiedLinkedNotebook.setShareName(linkedNotebook.shareName() + "_modified");
     modifiedLinkedNotebook.setUsername(linkedNotebook.username() + "_modified");
     modifiedLinkedNotebook.setShardId(linkedNotebook.shardId() + "_modified");
-    modifiedLinkedNotebook.setShareKey(linkedNotebook.shareKey() + "_modified");
+    modifiedLinkedNotebook.setSharedNotebookGlobalId(linkedNotebook.sharedNotebookGlobalId() + "_modified");
     modifiedLinkedNotebook.setUri(linkedNotebook.uri() + "_modified");
     modifiedLinkedNotebook.setNoteStoreUrl(linkedNotebook.noteStoreUrl() + "_modified");
     modifiedLinkedNotebook.setWebApiUrlPrefix(linkedNotebook.webApiUrlPrefix() + "_modified");
@@ -1164,13 +1164,13 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     modifiedUser.setAccounting(std::move(modifiedAccounting));
 
-    qevercloud::PremiumInfo modifiedPremiumInfo;
-    modifiedPremiumInfo = user.premiumInfo();
-    modifiedPremiumInfo.sponsoredGroupName->append("_modified");
-    modifiedPremiumInfo.canPurchaseUploadAllowance = !modifiedPremiumInfo.canPurchaseUploadAllowance;
-    modifiedPremiumInfo.premiumExtendable = !modifiedPremiumInfo.premiumExtendable;
+    qevercloud::AccountLimits modifiedAccountLimits;
+    modifiedAccountLimits = user.accountLimits();
+    modifiedAccountLimits.noteTagCountMax = 2;
+    modifiedAccountLimits.userLinkedNotebookMax = 2;
+    modifiedAccountLimits.userNotebookCountMax = 2;
 
-    modifiedUser.setPremiumInfo(std::move(modifiedPremiumInfo));
+    modifiedUser.setAccountLimits(std::move(modifiedAccountLimits));
 
     res = localStorageManager.updateUser(modifiedUser, errorMessage);
     if (!res) {
@@ -1310,12 +1310,12 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     user.setBusinessUserInfo(std::move(businessUserInfo));
 
-    qevercloud::PremiumInfo premiumInfo;
-    premiumInfo.sponsoredGroupName = "Sponsored group name";
-    premiumInfo.canPurchaseUploadAllowance = true;
-    premiumInfo.premiumExtendable = true;
+    qevercloud::AccountLimits accountLimits;
+    accountLimits.noteResourceCountMax = 20;
+    accountLimits.userNoteCountMax = 200;
+    accountLimits.userSavedSearchesMax = 100;
 
-    user.setPremiumInfo(std::move(premiumInfo));
+    user.setAccountLimits(std::move(accountLimits));
 
     QNLocalizedString errorMessage;
 
@@ -1378,9 +1378,9 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
         return false;
     }
 
-    if (foundUser.hasPremiumInfo()) {
-        errorDescription = "Updated user found in local storage still has premium info "
-                           "while it shouldn't have it after the update";
+    if (foundUser.hasAccountLimits()) {
+        errorDescription = "Updated user found in local storage still has account limits "
+                           "while it shouldn't have them after the update";
         QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
                   << updatedUser << "\nFound user: " << foundUser);
         return false;
@@ -1435,10 +1435,9 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     sharedNotebook.setEmail("Fake shared notebook email");
     sharedNotebook.setCreationTimestamp(1);
     sharedNotebook.setModificationTimestamp(1);
-    sharedNotebook.setShareKey("Fake shared notebook share key");
+    sharedNotebook.setGlobalId("Fake shared notebook global id");
     sharedNotebook.setUsername("Fake shared notebook username");
     sharedNotebook.setPrivilegeLevel(1);
-    sharedNotebook.setAllowPreview(true);
     sharedNotebook.setReminderNotifyEmail(true);
     sharedNotebook.setReminderNotifyApp(false);
 

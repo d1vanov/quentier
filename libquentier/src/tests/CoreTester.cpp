@@ -400,7 +400,7 @@ void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
         linkedNotebook.setShareName("Fake linked notebook share name");
         linkedNotebook.setUsername("Fake linked notebook username");
         linkedNotebook.setShardId("Fake linked notebook shard id");
-        linkedNotebook.setShareKey("Fake linked notebook share key");
+        linkedNotebook.setSharedNotebookGlobalId("Fake linked notebook shared notebook global id");
         linkedNotebook.setUri("Fake linked notebook uri");
         linkedNotebook.setNoteStoreUrl("Fake linked notebook note store url");
         linkedNotebook.setWebApiUrlPrefix("Fake linked notebook web api url prefix");
@@ -428,7 +428,7 @@ void CoreTester::localStorageManagerIndividualTagTest()
         linkedNotebook.setShareName("Linked notebook share name");
         linkedNotebook.setUsername("Linked notebook username");
         linkedNotebook.setShardId("Linked notebook shard id");
-        linkedNotebook.setShareKey("Linked notebook share key");
+        linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id");
         linkedNotebook.setUri("Linked notebook uri");
         linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
         linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
@@ -678,7 +678,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         linkedNotebook.setShareName("Linked notebook share name");
         linkedNotebook.setUsername("Linked notebook username");
         linkedNotebook.setShardId("Linked notebook shard id");
-        linkedNotebook.setShareKey("Linked notebook share key");
+        linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id");
         linkedNotebook.setUri("Linked notebook uri");
         linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
         linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
@@ -734,10 +734,9 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         sharedNotebook.setEmail("Fake shared notebook email");
         sharedNotebook.setCreationTimestamp(1);
         sharedNotebook.setModificationTimestamp(1);
-        sharedNotebook.setShareKey("Fake shared notebook share key");
+        sharedNotebook.setGlobalId("Fake shared notebook global id");
         sharedNotebook.setUsername("Fake shared notebook username");
         sharedNotebook.setPrivilegeLevel(1);
-        sharedNotebook.setAllowPreview(true);
         sharedNotebook.setReminderNotifyEmail(true);
         sharedNotebook.setReminderNotifyApp(false);
 
@@ -843,7 +842,6 @@ void CoreTester::localStorageManagedIndividualUserTest()
         userAttributes.educationalDiscount = false;
         userAttributes.businessAddress = "fake_business_address";
         userAttributes.hideSponsorBilling = true;
-        userAttributes.taxExempt = true;
         userAttributes.useEmailAutoFiling = true;
         userAttributes.reminderEmailConfig = qevercloud::ReminderEmailConfig::DO_NOT_SEND;
 
@@ -858,7 +856,6 @@ void CoreTester::localStorageManagedIndividualUserTest()
         user.setBusinessUserInfo(std::move(businessUserInfo));
 
         qevercloud::Accounting accounting;
-        accounting.uploadLimit = 1000;
         accounting.uploadLimitEnd = 9;
         accounting.uploadLimitNextMonth = 1200;
         accounting.premiumServiceStatus = qevercloud::PremiumOrderStatus::PENDING;
@@ -881,19 +878,18 @@ void CoreTester::localStorageManagedIndividualUserTest()
 
         user.setAccounting(std::move(accounting));
 
-        qevercloud::PremiumInfo premiumInfo;
-        premiumInfo.currentTime = 1;
-        premiumInfo.premium = false;
-        premiumInfo.premiumRecurring = false;
-        premiumInfo.premiumExpirationDate = 11;
-        premiumInfo.premiumExtendable = true;
-        premiumInfo.premiumPending = true;
-        premiumInfo.premiumCancellationPending = false;
-        premiumInfo.canPurchaseUploadAllowance = true;
-        premiumInfo.sponsoredGroupName = "Fake sponsored group name";
-        premiumInfo.premiumUpgradable = true;
+        qevercloud::AccountLimits accountLimits;
+        accountLimits.userNotebookCountMax = 10;
+        accountLimits.uploadLimit = 2048;
+        accountLimits.noteResourceCountMax = 10;
+        accountLimits.userSavedSearchesMax = 100;
+        accountLimits.noteSizeMax = 4096;
+        accountLimits.userMailLimitDaily = 20;
+        accountLimits.noteTagCountMax = 20;
+        accountLimits.resourceSizeMax = 4096;
+        accountLimits.userTagCountMax = 200;
 
-        user.setPremiumInfo(std::move(premiumInfo));
+        user.setAccountLimits(std::move(accountLimits));
 
         QString error;
         bool res = TestUserAddFindUpdateDeleteExpungeInLocalStorage(user, localStorageManager, error);
@@ -1087,7 +1083,7 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
             linkedNotebook.setShareName("Linked notebook share name #" + QString::number(i));
             linkedNotebook.setUsername("Linked notebook username #" + QString::number(i));
             linkedNotebook.setShardId("Linked notebook shard id #" + QString::number(i));
-            linkedNotebook.setShareKey("Linked notebook share key #" + QString::number(i));
+            linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id #" + QString::number(i));
             linkedNotebook.setUri("Linked notebook uri #" + QString::number(i));
             linkedNotebook.setNoteStoreUrl("Linked notebook note store url #" + QString::number(i));
             linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix #" + QString::number(i));
@@ -1300,10 +1296,9 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
             sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i));
             sharedNotebook.setCreationTimestamp(i+1);
             sharedNotebook.setModificationTimestamp(i+1);
-            sharedNotebook.setShareKey("Fake shared notebook share key #" + QString::number(i));
+            sharedNotebook.setGlobalId("Fake shared notebook global id #" + QString::number(i));
             sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i));
             sharedNotebook.setPrivilegeLevel(1);
-            sharedNotebook.setAllowPreview(true);
             sharedNotebook.setReminderNotifyEmail(true);
             sharedNotebook.setReminderNotifyApp(false);
 
@@ -1803,10 +1798,9 @@ void CoreTester::localStorageManagerListNotebooksTest()
                 sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i+1));
                 sharedNotebook.setCreationTimestamp(i+1);
                 sharedNotebook.setModificationTimestamp(i+1);
-                sharedNotebook.setShareKey("Fake shared notebook share key #" + QString::number(i+1));
+                sharedNotebook.setGlobalId("Fake shared notebook global id #" + QString::number(i+1));
                 sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i+1));
                 sharedNotebook.setPrivilegeLevel(1);
-                sharedNotebook.setAllowPreview(true);
                 sharedNotebook.setReminderNotifyEmail(true);
                 sharedNotebook.setReminderNotifyApp(false);
 
@@ -1895,7 +1889,7 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
         linkedNotebook.setShareName("Linked notebook share name");
         linkedNotebook.setUsername("Linked notebook username");
         linkedNotebook.setShardId("Linked notebook shard id");
-        linkedNotebook.setShareKey("Linked notebook share key");
+        linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id");
         linkedNotebook.setUri("Linked notebook uri");
         linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
         linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");

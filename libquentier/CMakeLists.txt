@@ -70,6 +70,7 @@ set(TYPES_HEADERS
     headers/quentier/types/ResourceRecognitionIndexItem.h
     headers/quentier/types/ResourceRecognitionIndices.h
     headers/quentier/types/SavedSearch.h
+    headers/quentier/types/SharedNote.h
     headers/quentier/types/SharedNotebookAdapter.h
     headers/quentier/types/SharedNotebookWrapper.h
     headers/quentier/types/Tag.h
@@ -212,6 +213,7 @@ set(PRIVATE_HEADERS
     src/types/data/ResourceWrapperData.h
     src/types/data/SharedNotebookWrapperData.h
     src/types/data/TagData.h
+    src/types/data/SharedNoteData.h
     src/types/data/SavedSearchData.h
     src/types/data/UserWrapperData.h
     src/types/data/ResourceRecognitionIndexItemData.h
@@ -327,6 +329,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/ResourceRecognitionIndexItem.cpp
     src/types/ResourceRecognitionIndices.cpp
     src/types/SavedSearch.cpp
+    src/types/SharedNote.cpp
     src/types/SharedNotebookAdapter.cpp
     src/types/SharedNotebookWrapper.cpp
     src/types/Tag.cpp
@@ -346,6 +349,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/data/SharedNotebookWrapperData.cpp
     src/types/data/TagData.cpp
     src/types/data/SavedSearchData.cpp
+    src/types/data/SharedNoteData.cpp
     src/types/data/UserWrapperData.cpp
     src/enml/ENMLConverter.cpp
     src/enml/ENMLConverter_p.cpp

@@ -199,7 +199,7 @@ private:
     bool checkAndPrepareNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceNotebookQuery();
     bool checkAndPrepareInsertOrReplaceNotebookRestrictionsQuery();
-    bool checkAndPrepareInsertOrReplaceSharedNotebokQuery();
+    bool checkAndPrepareInsertOrReplaceSharedNotebookQuery();
 
     bool insertOrReplaceLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
     bool checkAndPrepareGetLinkedNotebookCountQuery() const;

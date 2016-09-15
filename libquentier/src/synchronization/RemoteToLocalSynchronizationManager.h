@@ -72,7 +72,7 @@ Q_SIGNALS:
     void stopped();
 
     void requestAuthenticationToken();
-    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndShareKeys);
+    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
     void requestLastSyncParameters();
 
 public Q_SLOTS:

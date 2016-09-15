@@ -230,7 +230,7 @@ bool ISharedNotebook::hasReminderNotifyEmail() const
 
 bool ISharedNotebook::reminderNotifyEmail() const
 {
-    return GetEnSharedNotebook().recipientSettings->reminderNotifyEmail;
+    return GetEnSharedNotebook().recipientSettings->reminderNotifyEmail.ref();
 }
 
 #define CHECK_AND_SET_RECIPIENT_SETTINGS \
@@ -253,7 +253,7 @@ bool ISharedNotebook::hasReminderNotifyApp() const
 
 bool ISharedNotebook::reminderNotifyApp() const
 {
-    return GetEnSharedNotebook().recipientSettings->reminderNotifyInApp;
+    return GetEnSharedNotebook().recipientSettings->reminderNotifyInApp.ref();
 }
 
 void ISharedNotebook::setReminderNotifyApp(const bool notifyApp)

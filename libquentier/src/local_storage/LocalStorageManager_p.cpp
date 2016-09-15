@@ -1815,8 +1815,8 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
 
     QString queryString = QString("SELECT * FROM Notes "
                                   "LEFT OUTER JOIN SharedNotes ON ((Notes.guid IS NOT NULL) AND (Notes.guid = SharedNotes.sharedNoteNoteGuid)) "
-                                  "LEFT OUTER JOIN NoteRestrictions ON Notes.localUid = NoteRestrictions.localUid "
-                                  "LEFT OUTER JOIN NoteLimits ON Notes.localUid = NoteLimits.localUid "
+                                  "LEFT OUTER JOIN NoteRestrictions ON Notes.localUid = NoteRestrictions.noteLocalUid "
+                                  "LEFT OUTER JOIN NoteLimits ON Notes.localUid = NoteLimits.noteLocalUid "
                                   "LEFT OUTER JOIN %1 ON Notes.%3 = %1.%2 "
                                   "LEFT OUTER JOIN ResourceAttributes "
                                   "ON %1.resourceLocalUid = ResourceAttributes.resourceLocalUid "
@@ -3802,7 +3802,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                                     "  userIsActive                    INTEGER                 DEFAULT NULL, "
                                     "  userShardId                     TEXT                    DEFAULT NULL, "
                                     "  userPhotoUrl                    TEXT                    DEFAULT NULL, "
-                                    "  userPhotoLastUpdateTimestamp    INTEGER                 DEFAULT NULL)"
+                                    "  userPhotoLastUpdateTimestamp    INTEGER                 DEFAULT NULL"
                                     ")"));
     errorPrefix = QT_TR_NOOP("can't create Users table");
     DATABASE_CHECK_AND_SET_ERROR();
@@ -4019,24 +4019,24 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS SharedNotebooks("
-                                    "  shareId                             INTEGER PRIMARY KEY   NOT NULL UNIQUE, "
-                                    "  userId                              INTEGER    DEFAULT NULL, "
+                                    "  shareId                                           INTEGER PRIMARY KEY   NOT NULL UNIQUE, "
+                                    "  userId                                            INTEGER    DEFAULT NULL, "
                                     "  notebookGuid REFERENCES Notebooks(guid) ON UPDATE CASCADE, "
-                                    "  sharedNotebookEmail                 TEXT       DEFAULT NULL, "
-                                    "  sharedNotebookIdentityId            INTEGER    DEFAULT NULL, "
-                                    "  sharedNotebookCreationTimestamp     INTEGER    DEFAULT NULL, "
-                                    "  sharedNotebookModificationTimestamp INTEGER    DEFAULT NULL, "
-                                    "  sharedNotebookGlobalId              TEXT       DEFAULT NULL, "
-                                    "  sharedNotebookUsername              TEXT       DEFAULT NULL, "
-                                    "  sharedNotebookPrivilegeLevel        INTEGER    DEFAULT NULL, "
-                                    "  recipientReminderNotifyEmail        INTEGER    DEFAULT NULL, "
-                                    "  recipientReminderNotifyInApp        INTEGER    DEFAULT NULL, "
-                                    "  sharerUserId                        INTEGER    DEFAULT NULL, "
-                                    "  recipientUsername                   TEXT       DEFAULT NULL, "
-                                    "  recipientUserId                     INTEGER    DEFAULT NULL, "
-                                    "  recipientIdentityId                 INTEGER    DEFAULT NULL, "
-                                    "  assignmentTimestamp                 INTEGER    DEFAULT NULL, "
-                                    "  indexInNotebook                     INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookEmail                               TEXT       DEFAULT NULL, "
+                                    "  sharedNotebookIdentityId                          INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookCreationTimestamp                   INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookModificationTimestamp               INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookGlobalId                            TEXT       DEFAULT NULL, "
+                                    "  sharedNotebookUsername                            TEXT       DEFAULT NULL, "
+                                    "  sharedNotebookPrivilegeLevel                      INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookRecipientReminderNotifyEmail        INTEGER    DEFAULT NULL, "
+                                    "  sharedNotebookRecipientReminderNotifyInApp        INTEGER    DEFAULT NULL, "
+                                    "  sharerUserId                                      INTEGER    DEFAULT NULL, "
+                                    "  recipientUsername                                 TEXT       DEFAULT NULL, "
+                                    "  recipientUserId                                   INTEGER    DEFAULT NULL, "
+                                    "  recipientIdentityId                               INTEGER    DEFAULT NULL, "
+                                    "  assignmentTimestamp                               INTEGER    DEFAULT NULL, "
+                                    "  indexInNotebook                                   INTEGER    DEFAULT NULL, "
                                     "  UNIQUE(shareId, notebookGuid) ON CONFLICT REPLACE"
                                     ")"));
     errorPrefix = QT_TR_NOOP("can't create SharedNotebooks table");
@@ -4124,7 +4124,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS NoteRestrictions("
-                                    "  localUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
+                                    "  noteLocalUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
                                     "  noUpdateNoteTitle                INTEGER             DEFAULT NULL, "
                                     "  noUpdateNoteContent              INTEGER             DEFAULT NULL, "
                                     "  noEmailNote                      INTEGER             DEFAULT NULL, "
@@ -4134,23 +4134,13 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE TABLE IF NOT EXISTS NoteLimits("
-                                    "  localUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
+                                    "  noteLocalUid REFERENCES Notes(localUid) ON UPDATE CASCADE, "
                                     "  noteResourceCountMax             INTEGER             DEFAULT NULL, "
                                     "  uploadLimit                      INTEGER             DEFAULT NULL, "
                                     "  resourceSizeMax                  INTEGER             DEFAULT NULL, "
                                     "  noteSizeMax                      INTEGER             DEFAULT NULL, "
                                     "  uploaded                         INTEGER             DEFAULT NULL)"));
     errorPrefix = QT_TR_NOOP("can't create NoteLimits table");
-    DATABASE_CHECK_AND_SET_ERROR();
-
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_note_delete_trigger "
-                                    "BEFORE DELETE ON Notes "
-                                    "BEGIN "
-                                    "DELETE FROM SharedNotes WHERE sharedNoteNoteGuid=OLD.guid; "
-                                    "DELETE FROM NoteRestrictions WHERE localUid=OLD.localUid; "
-                                    "DELETE FROM NoteLimits WHERE localUid=OLD.localUid; "
-                                    "END"));
-    errorPrefix = QT_TR_NOOP("can't create trigger to fire on deletion from notes table");
     DATABASE_CHECK_AND_SET_ERROR();
 
     res = query.exec(QStringLiteral("CREATE INDEX IF NOT EXISTS NotesNotebooks ON Notes(notebookLocalUid)"));
@@ -4400,6 +4390,9 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
                      "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.noteLocalUid=OLD.localUid; "
                      "DELETE FROM NoteTags WHERE NoteTags.localNote=OLD.localUid; "
                      "DELETE FROM NoteResources WHERE NoteResources.localNote=OLD.localUid; "
+                     "DELETE FROM SharedNotes WHERE SharedNotes.sharedNoteNoteGuid=OLD.guid; "
+                     "DELETE FROM NoteRestrictions WHERE NoteRestrictions.noteLocalUid=OLD.localUid; "
+                     "DELETE FROM NoteLimits WHERE NoteLimits.noteLocalUid=OLD.localUid; "
                      "END");
     errorPrefix = QT_TR_NOOP("can't create trigger to fire on note deletion");
     DATABASE_CHECK_AND_SET_ERROR();
@@ -4501,7 +4494,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const ISharedNote
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace shared notebook");
 
-    bool res = checkAndPrepareInsertOrReplaceSharedNotebokQuery();
+    bool res = checkAndPrepareInsertOrReplaceSharedNotebookQuery();
     QSqlQuery & query = m_insertOrReplaceSharedNotebookQuery;
     DATABASE_CHECK_AND_SET_ERROR();
 
@@ -4516,8 +4509,8 @@ bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const ISharedNote
     query.bindValue(QStringLiteral(":sharedNotebookGlobalId"), (sharedNotebook.hasGlobalId() ? sharedNotebook.globalId() : nullValue));
     query.bindValue(QStringLiteral(":sharedNotebookUsername"), (sharedNotebook.hasUsername() ? sharedNotebook.username() : nullValue));
     query.bindValue(QStringLiteral(":sharedNotebookPrivilegeLevel"), (sharedNotebook.hasPrivilegeLevel() ? sharedNotebook.privilegeLevel() : nullValue));
-    query.bindValue(QStringLiteral(":recipientReminderNotifyEmail"), (sharedNotebook.hasReminderNotifyEmail() ? (sharedNotebook.reminderNotifyEmail() ? 1 : 0) : nullValue));
-    query.bindValue(QStringLiteral(":recipientReminderNotifyInApp"), (sharedNotebook.hasReminderNotifyApp() ? (sharedNotebook.reminderNotifyApp() ? 1 : 0) : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookRecipientReminderNotifyEmail"), (sharedNotebook.hasReminderNotifyEmail() ? (sharedNotebook.reminderNotifyEmail() ? 1 : 0) : nullValue));
+    query.bindValue(QStringLiteral(":sharedNotebookRecipientReminderNotifyInApp"), (sharedNotebook.hasReminderNotifyApp() ? (sharedNotebook.reminderNotifyApp() ? 1 : 0) : nullValue));
     query.bindValue(QStringLiteral(":sharerUserId"), (sharedNotebook.hasSharerUserId() ? sharedNotebook.sharerUserId() : nullValue));
     query.bindValue(QStringLiteral(":recipientUsername"), (sharedNotebook.hasRecipientUsername() ? sharedNotebook.recipientUsername() : nullValue));
     query.bindValue(QStringLiteral(":recipientUserId"), (sharedNotebook.hasRecipientUserId() ? sharedNotebook.recipientUserId() : nullValue));
@@ -4950,7 +4943,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceUserQuery()
                                                                  "userCreationTimestamp, userModificationTimestamp, userIsDirty, "
                                                                  "userIsLocal, userDeletionTimestamp, userIsActive, userShardId, "
                                                                  "userPhotoUrl, userPhotoLastUpdateTimestamp) "
-                                                                 "VALUES(:id, :username, :email, :name, :timezone, : privilege, "
+                                                                 "VALUES(:id, :username, :email, :name, :timezone, :privilege, "
                                                                  ":serviceLevel, :userCreationTimestamp, :userModificationTimestamp, "
                                                                  ":userIsDirty, :userIsLocal, :userDeletionTimestamp, :userIsActive, "
                                                                  ":userShardId, :userPhotoUrl, :userPhotoLastUpdateTimestamp)"));
@@ -5278,13 +5271,13 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookQuery()
                                                                      "publicDescription, isPublished, stack, businessNotebookDescription, "
                                                                      "businessNotebookPrivilegeLevel, businessNotebookIsRecommended, contactId, "
                                                                      "recipientReminderNotifyEmail, recipientReminderNotifyInApp, recipientInMyList, "
-                                                                     "recipientStack ) "
+                                                                     "recipientStack) "
                                                                      "VALUES(:localUid, :guid, :linkedNotebookGuid, :updateSequenceNumber, "
                                                                      ":notebookName, :notebookNameUpper, :creationTimestamp, "
                                                                      ":modificationTimestamp, :isDirty, :isLocal, :isDefault, :isLastUsed, "
                                                                      ":isFavorited, :publishingUri, :publishingNoteSortOrder, :publishingAscendingSort, "
                                                                      ":publicDescription, :isPublished, :stack, :businessNotebookDescription, "
-                                                                     ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId"
+                                                                     ":businessNotebookPrivilegeLevel, :businessNotebookIsRecommended, :contactId, "
                                                                      ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, :recipientInMyList, "
                                                                      ":recipientStack)"));
     if (res) {
@@ -5325,7 +5318,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNotebookRestricti
     return res;
 }
 
-bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNotebokQuery()
+bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNotebookQuery()
 {
     if (Q_LIKELY(m_insertOrReplaceSharedNotebookQueryPrepared)) {
         return true;
@@ -5338,13 +5331,13 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceSharedNotebokQuer
                                                                            "(shareId, userId, notebookGuid, sharedNotebookEmail, "
                                                                            "sharedNotebookCreationTimestamp, sharedNotebookModificationTimestamp, "
                                                                            "sharedNotebookGlobalId, sharedNotebookUsername, sharedNotebookPrivilegeLevel, "
-                                                                           "recipientReminderNotifyEmail, recipientReminderNotifyInApp, "
+                                                                           "sharedNotebookRecipientReminderNotifyEmail, sharedNotebookRecipientReminderNotifyInApp, "
                                                                            "sharerUserId, recipientUsername, recipientUserId, recipientIdentityId, "
                                                                            "assignmentTimestamp, indexInNotebook) "
                                                                            "VALUES(:shareId, :userId, :notebookGuid, :sharedNotebookEmail, "
                                                                            ":sharedNotebookCreationTimestamp, :sharedNotebookModificationTimestamp, "
                                                                            ":sharedNotebookGlobalId, :sharedNotebookUsername, :sharedNotebookPrivilegeLevel, "
-                                                                           ":recipientReminderNotifyEmail, :recipientReminderNotifyInApp, "
+                                                                           ":sharedNotebookRecipientReminderNotifyEmail, :sharedNotebookRecipientReminderNotifyInApp, "
                                                                            ":sharerUserId, :recipientUsername, :recipientUserId, :recipientIdentityId, "
                                                                            ":assignmentTimestamp, :indexInNotebook) "));
     if (res) {
@@ -5977,7 +5970,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
     }
     else
     {
-        QString queryString = QString("DELETE FROM NoteRestrictions WHERE localUid='%1'").arg(localUid);
+        QString queryString = QString("DELETE FROM NoteRestrictions WHERE noteLocalUid='%1'").arg(localUid);
         QSqlQuery query(m_sqlDatabase);
         bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR();
@@ -5993,7 +5986,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
     }
     else
     {
-        QString queryString = QString("DELETE FROM NoteLimits WHERE localUid='%1'").arg(localUid);
+        QString queryString = QString("DELETE FROM NoteLimits WHERE noteLocalUid='%1'").arg(localUid);
         QSqlQuery query(m_sqlDatabase);
         bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR();
@@ -6201,7 +6194,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNoteRestrictions(const QString &
 
     QVariant nullValue;
 
-    query.bindValue(QStringLiteral(":localUid"), noteLocalUid);
+    query.bindValue(QStringLiteral(":noteLocalUid"), noteLocalUid);
 
 #define BIND_RESTRICTION(column, name) \
     query.bindValue(QStringLiteral(":" #column), (noteRestrictions.name.isSet() ? (noteRestrictions.name.ref() ? 1 : 0) : nullValue))
@@ -6232,7 +6225,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNoteLimits(const QString & noteL
 
     QVariant nullValue;
 
-    query.bindValue(QStringLiteral(":localUid"), noteLocalUid);
+    query.bindValue(QStringLiteral(":noteLocalUid"), noteLocalUid);
 
 #define BIND_LIMIT(limit) \
     query.bindValue(QStringLiteral(":" #limit), (noteLimits.limit.isSet() ? (noteLimits.limit.ref() ? 1 : 0) : nullValue))
@@ -6446,9 +6439,9 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteRestrictionsQ
 
     m_insertOrReplaceNoteRestrictionsQuery = QSqlQuery(m_sqlDatabase);
     bool res = m_insertOrReplaceNoteRestrictionsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO NoteRestrictions "
-                                                                             "(localUid, noUpdateNoteTitle, noUpdateNoteContent, "
+                                                                             "(noteLocalUid, noUpdateNoteTitle, noUpdateNoteContent, "
                                                                              "noEmailNote, noShareNote, noShareNotePublicly) "
-                                                                             "VALUES(:localUid, :noUpdateNoteTitle, "
+                                                                             "VALUES(:noteLocalUid, :noUpdateNoteTitle, "
                                                                              ":noUpdateNoteContent, :noEmailNote, "
                                                                              ":noShareNote, :noShareNotePublicly)"));
     if (res) {
@@ -6468,9 +6461,9 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceNoteLimitsQuery()
 
     m_insertOrReplaceNoteLimitsQuery = QSqlQuery(m_sqlDatabase);
     bool res = m_insertOrReplaceNoteLimitsQuery.prepare(QStringLiteral("INSERT OR REPLACE INTO NoteLimits "
-                                                                       "(localUid, noteResourceCountMax, uploadLimit, "
+                                                                       "(noteLocalUid, noteResourceCountMax, uploadLimit, "
                                                                        "resourceSizeMax, noteSizeMax, uploaded) "
-                                                                       "VALUES(:localUid, :noteResourceCountMax, :uploadLimit, "
+                                                                       "VALUES(:noteLocalUid, :noteResourceCountMax, :uploadLimit, "
                                                                        ":resourceSizeMax, :noteSizeMax, :uploaded)"));
     if (res) {
         m_insertOrReplaceNoteLimitsQueryPrepared = true;
@@ -8266,22 +8259,22 @@ bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecor
 
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(shareId, qint64, qint64, setId)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(userId, qint32, qint32, setUserId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookEmail, QString, QString, setEmail)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookCreationTimestamp, qint64,
                                            qint64, setCreationTimestamp)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookModificationTimestamp, qint64,
                                            qint64, setModificationTimestamp)
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(globalId, QString, QString, setGlobalId)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookGlobalId, QString, QString, setGlobalId)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookUsername, QString, QString, setUsername)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookPrivilegeLevel, int, qint8, setPrivilegeLevel)
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyEmail, int, bool, setReminderNotifyEmail)
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientReminderNotifyInApp, int, bool, setReminderNotifyApp)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookRecipientReminderNotifyEmail, int, bool, setReminderNotifyEmail)
+    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharedNotebookRecipientReminderNotifyInApp, int, bool, setReminderNotifyApp)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(sharerUserId, qint32, qint32, setSharerUserId)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUsername, QString, QString, setRecipientUsername)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientUserId, qint32, qint32, setRecipientUserId)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(recipientIdentityId, qint64, qint64, setRecipientIdentityId)
     CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(assignmentTimestamp, qint64, qint64, setAssignmentTimestamp)
-    CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(notebookGuid, QString, QString, setNotebookGuid)
 
 #undef CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY
 
@@ -8340,7 +8333,7 @@ bool LocalStorageManagerPrivate::fillLinkedNotebookFromSqlRecord(const QSqlRecor
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shareName, QString, QString, setShareName, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(username, QString, QString, setUsername, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shardId, QString, QString, setShardId, isRequired);
-    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(shareKey, QString, QString, setShareKey, isRequired);
+    CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(sharedNotebookGlobalId, QString, QString, setSharedNotebookGlobalId, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(uri, QString, QString, setUri, isRequired);
     CHECK_AND_SET_LINKED_NOTEBOOK_PROPERTY(noteStoreUrl, QString, QString,
                                            setNoteStoreUrl, isRequired);
@@ -9999,9 +9992,9 @@ template <>
 QString LocalStorageManagerPrivate::listObjectsGenericSqlQuery<Note>() const
 {
     QString result = QStringLiteral("SELECT * FROM Notes LEFT OUTER JOIN SharedNotes "
-                                    "ON ((Note.guid IS NOT NULL) AND (Notes.guid = SharedNotes.sharedNoteNoteGuid)) "
-                                    "LEFT OUTER JOIN NoteRestrictions on Notes.localUid = NoteRestrictions.localUid "
-                                    "LEFT OUTER JOIN NoteLimits ON Notes.localUid = NoteLimits.localUid");
+                                    "ON ((Notes.guid IS NOT NULL) AND (Notes.guid = SharedNotes.sharedNoteNoteGuid)) "
+                                    "LEFT OUTER JOIN NoteRestrictions on Notes.localUid = NoteRestrictions.noteLocalUid "
+                                    "LEFT OUTER JOIN NoteLimits ON Notes.localUid = NoteLimits.noteLocalUid");
     return result;
 }
 
@@ -10191,7 +10184,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
         bool notFound = (it == indexForLocalUid.end());
         if (notFound) {
             indexForLocalUid[localUid] = notes.size();
-            notes << Notebook();
+            notes << Note();
         }
 
         Note & note = (notFound ? notes.back() : notes[it.value()]);

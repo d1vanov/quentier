@@ -2833,7 +2833,7 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
 {
     QNDEBUG("RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks");
 
-    QList<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys;
+    QList<QPair<QString,QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds;
     const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
     for(int j = 0; j < numAllLinkedNotebooks; ++j)
     {
@@ -2846,17 +2846,17 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
             return;
         }
 
-        if (!currentLinkedNotebook.hasShareKey()) {
-            QNLocalizedString error = QT_TR_NOOP("found linked notebook without a share key");
+        if (!currentLinkedNotebook.hasSharedNotebookGlobalId()) {
+            QNLocalizedString error = QT_TR_NOOP("found linked notebook without shared notebook global id");
             QNWARNING(error << ", linked notebook: " << currentLinkedNotebook);
             emit failure(error);
             return;
         }
 
-        linkedNotebookGuidsAndShareKeys << QPair<QString,QString>(currentLinkedNotebook.guid(), currentLinkedNotebook.shareKey());
+        linkedNotebookGuidsAndSharedNotebookGlobalIds << QPair<QString,QString>(currentLinkedNotebook.guid(), currentLinkedNotebook.sharedNotebookGlobalId());
     }
 
-    emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndShareKeys);
+    emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndSharedNotebookGlobalIds);
     m_pendingAuthenticationTokensForLinkedNotebooks = true;
 }
 

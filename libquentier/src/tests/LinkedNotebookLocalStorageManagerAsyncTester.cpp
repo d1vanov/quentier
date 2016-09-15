@@ -85,7 +85,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onWorkerInitialized()
     m_initialLinkedNotebook.setShareName("Fake linked notebook share name");
     m_initialLinkedNotebook.setUsername("Fake linked notebook username");
     m_initialLinkedNotebook.setShardId("Fake linked notebook shard id");
-    m_initialLinkedNotebook.setShareKey("Fake linked notebook share key");
+    m_initialLinkedNotebook.setSharedNotebookGlobalId("Fake linked notebook shared notebook global id");
     m_initialLinkedNotebook.setUri("Fake linked notebook uri");
     m_initialLinkedNotebook.setNoteStoreUrl("Fake linked notebook note store url");
     m_initialLinkedNotebook.setWebApiUrlPrefix("Fake linked notebook web api url prefix");
@@ -144,7 +144,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountCompl
         extraLinkedNotebook.setUpdateSequenceNumber(1);
         extraLinkedNotebook.setUsername("Extra LinkedNotebook");
         extraLinkedNotebook.setShareName("Fake extra linked notebook share name");
-        extraLinkedNotebook.setShareKey("Fake extra linked notebook share key");
+        extraLinkedNotebook.setSharedNotebookGlobalId("Fake extra linked notebook shared notebook global id");
         extraLinkedNotebook.setShardId("Fake extra linked notebook shard id");
         extraLinkedNotebook.setStack("Fake extra linked notebook stack");
         extraLinkedNotebook.setNoteStoreUrl("Fake extra linked notebook note store url");
@@ -194,7 +194,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookCompleted(
         extraLinkedNotebook.setUpdateSequenceNumber(2);
         extraLinkedNotebook.setUsername("Fake linked notebook username two");
         extraLinkedNotebook.setShareName("Fake extra linked notebook share name two");
-        extraLinkedNotebook.setShareKey("Fake extra linked notebook share key two");
+        extraLinkedNotebook.setSharedNotebookGlobalId("Fake extra linked notebook shared notebook global id two");
         extraLinkedNotebook.setShardId("Fake extra linked notebook shard id two");
         extraLinkedNotebook.setStack("Fake extra linked notebook stack two");
         extraLinkedNotebook.setNoteStoreUrl("Fake extra linked notebook note store url two");

@@ -52,7 +52,7 @@ SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker
     m_savedSearches(),
     m_notebooks(),
     m_notes(),
-    m_linkedNotebookGuidsAndShareKeys(),
+    m_linkedNotebookGuidsAndSharedNotebookGlobalIds(),
     m_lastProcessedLinkedNotebookGuidIndex(-1),
     m_authenticationTokensAndShardIdsByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
@@ -450,9 +450,9 @@ void SendLocalChangesManager::onListLinkedNotebooksCompleted(LocalStorageManager
             << ", requestId = " << requestId);
 
     const int numLinkedNotebooks = linkedNotebooks.size();
-    m_linkedNotebookGuidsAndShareKeys.reserve(std::max(numLinkedNotebooks, 0));
+    m_linkedNotebookGuidsAndSharedNotebookGlobalIds.reserve(std::max(numLinkedNotebooks, 0));
 
-    QString shareKey;
+    QString sharedNotebookGlobalId;
     for(int i = 0; i < numLinkedNotebooks; ++i)
     {
         const LinkedNotebook & linkedNotebook = linkedNotebooks[i];
@@ -463,12 +463,12 @@ void SendLocalChangesManager::onListLinkedNotebooksCompleted(LocalStorageManager
             return;
         }
 
-        shareKey.resize(0);
-        if (linkedNotebook.hasShareKey()) {
-            shareKey = linkedNotebook.shareKey();
+        sharedNotebookGlobalId.resize(0);
+        if (linkedNotebook.hasSharedNotebookGlobalId()) {
+            sharedNotebookGlobalId = linkedNotebook.sharedNotebookGlobalId();
         }
 
-        m_linkedNotebookGuidsAndShareKeys << QPair<QString, QString>(linkedNotebook.guid(), shareKey);
+        m_linkedNotebookGuidsAndSharedNotebookGlobalIds << QPair<QString, QString>(linkedNotebook.guid(), sharedNotebookGlobalId);
     }
 
     m_listLinkedNotebooksRequestId = QUuid();
@@ -1127,20 +1127,20 @@ void SendLocalChangesManager::checkListLocalStorageObjectsCompletion()
     QNTRACE("Received all dirty objects from user's own account from local storage");
     emit receivedUserAccountDirtyObjects();
 
-    if ((m_lastProcessedLinkedNotebookGuidIndex < 0) && (m_linkedNotebookGuidsAndShareKeys.size() > 0))
+    if ((m_lastProcessedLinkedNotebookGuidIndex < 0) && (m_linkedNotebookGuidsAndSharedNotebookGlobalIds.size() > 0))
     {
-        QNTRACE("There are " << m_linkedNotebookGuidsAndShareKeys.size() << " linked notebook guids, need to receive the dirty objects from them as well");
+        QNTRACE("There are " << m_linkedNotebookGuidsAndSharedNotebookGlobalIds.size() << " linked notebook guids, need to receive the dirty objects from them as well");
 
-        const int numLinkedNotebookGuids = m_linkedNotebookGuidsAndShareKeys.size();
+        const int numLinkedNotebookGuids = m_linkedNotebookGuidsAndSharedNotebookGlobalIds.size();
         for(int i = 0; i < numLinkedNotebookGuids; ++i)
         {
-            const QPair<QString, QString> & guidAndShareKey = m_linkedNotebookGuidsAndShareKeys[i];
+            const QPair<QString, QString> & guidAndShareKey = m_linkedNotebookGuidsAndSharedNotebookGlobalIds[i];
             requestStuffFromLocalStorage(guidAndShareKey.first);
         }
 
         return;
     }
-    else if (m_linkedNotebookGuidsAndShareKeys.size() > 0)
+    else if (m_linkedNotebookGuidsAndSharedNotebookGlobalIds.size() > 0)
     {
         if (!m_listDirtyTagsFromLinkedNotebooksRequestIds.isEmpty()) {
             QNTRACE("There are pending requests to list tags from linked notebooks from local storage: "
@@ -1230,10 +1230,10 @@ void SendLocalChangesManager::sendTags()
                                               "to create or update a tag from it");
                 QNWARNING(errorDescription << ", tag: " << tag);
 
-                auto sit = std::find_if(m_linkedNotebookGuidsAndShareKeys.begin(),
-                                        m_linkedNotebookGuidsAndShareKeys.end(),
-                                        CompareGuidAndShareKeyByGuid(tag.linkedNotebookGuid()));
-                if (sit == m_linkedNotebookGuidsAndShareKeys.end()) {
+                auto sit = std::find_if(m_linkedNotebookGuidsAndSharedNotebookGlobalIds.begin(),
+                                        m_linkedNotebookGuidsAndSharedNotebookGlobalIds.end(),
+                                        CompareGuidAndSharedNotebookGlobalIdByGuid(tag.linkedNotebookGuid()));
+                if (sit == m_linkedNotebookGuidsAndSharedNotebookGlobalIds.end()) {
                     QNWARNING("The linked notebook the tag refers to was not found within the list of linked notebooks "
                               "received from local storage!");
                 }
@@ -1488,10 +1488,10 @@ void SendLocalChangesManager::sendNotebooks()
                                               "to create or update a notebook");
                 QNWARNING(errorDescription << ", notebook: " << notebook);
 
-                auto sit = std::find_if(m_linkedNotebookGuidsAndShareKeys.begin(),
-                                        m_linkedNotebookGuidsAndShareKeys.end(),
-                                        CompareGuidAndShareKeyByGuid(notebook.linkedNotebookGuid()));
-                if (sit == m_linkedNotebookGuidsAndShareKeys.end()) {
+                auto sit = std::find_if(m_linkedNotebookGuidsAndSharedNotebookGlobalIds.begin(),
+                                        m_linkedNotebookGuidsAndSharedNotebookGlobalIds.end(),
+                                        CompareGuidAndSharedNotebookGlobalIdByGuid(notebook.linkedNotebookGuid()));
+                if (sit == m_linkedNotebookGuidsAndSharedNotebookGlobalIds.end()) {
                     QNWARNING("The linked notebook the notebook refers to was not found within the list of linked notebooks "
                               "received from local storage");
                 }
@@ -1676,10 +1676,10 @@ void SendLocalChangesManager::sendNotes()
                                               "to create or update a notebook");
                 QNWARNING(errorDescription << ", notebook: " << notebook);
 
-                auto sit = std::find_if(m_linkedNotebookGuidsAndShareKeys.begin(),
-                                        m_linkedNotebookGuidsAndShareKeys.end(),
-                                        CompareGuidAndShareKeyByGuid(notebook.linkedNotebookGuid()));
-                if (sit == m_linkedNotebookGuidsAndShareKeys.end()) {
+                auto sit = std::find_if(m_linkedNotebookGuidsAndSharedNotebookGlobalIds.begin(),
+                                        m_linkedNotebookGuidsAndSharedNotebookGlobalIds.end(),
+                                        CompareGuidAndSharedNotebookGlobalIdByGuid(notebook.linkedNotebookGuid()));
+                if (sit == m_linkedNotebookGuidsAndSharedNotebookGlobalIds.end()) {
                     QNWARNING("The linked notebook the notebook refers to was not found within the list of linked notebooks "
                               "received from local storage");
                 }
@@ -1929,7 +1929,7 @@ void SendLocalChangesManager::clear()
     m_notebooks.clear();
     m_notes.clear();
 
-    m_linkedNotebookGuidsAndShareKeys.clear();
+    m_linkedNotebookGuidsAndSharedNotebookGlobalIds.clear();
     m_lastProcessedLinkedNotebookGuidIndex = -1;
     m_pendingAuthenticationTokensForLinkedNotebooks = false;
 
@@ -1976,15 +1976,15 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
 {
     QNDEBUG("SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebooks");
 
-    if (m_linkedNotebookGuidsAndShareKeys.isEmpty()) {
+    if (m_linkedNotebookGuidsAndSharedNotebookGlobalIds.isEmpty()) {
         QNDEBUG("The list of linked notebook guids and share keys is empty");
         return true;
     }
 
-    const int numLinkedNotebookGuids = m_linkedNotebookGuidsAndShareKeys.size();
+    const int numLinkedNotebookGuids = m_linkedNotebookGuidsAndSharedNotebookGlobalIds.size();
     for(int i = 0; i < numLinkedNotebookGuids; ++i)
     {
-        const QPair<QString, QString> & guidAndShareKey = m_linkedNotebookGuidsAndShareKeys[i];
+        const QPair<QString, QString> & guidAndShareKey = m_linkedNotebookGuidsAndSharedNotebookGlobalIds[i];
         const QString & guid = guidAndShareKey.first;
         if (guid.isEmpty()) {
             QNLocalizedString error = QT_TR_NOOP("found empty linked notebook guid within the list of linked notebook guids and share keys");
@@ -1997,7 +1997,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
         if (it == m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end()) {
             QNDEBUG("Authentication token for linked notebook with guid " << guid
                     << " was not found; will request authentication tokens for all linked notebooks at once");
-            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);
+            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndSharedNotebookGlobalIds);
             m_pendingAuthenticationTokensForLinkedNotebooks = true;
             return false;
         }
@@ -2017,7 +2017,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
                     << " is too close to expiration: its expiration time is " << printableDateTimeFromTimestamp(expirationTime)
                     << ", current time is " << printableDateTimeFromTimestamp(currentTime)
                     << "; will request new authentication tokens for all linked notebooks");
-            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndShareKeys);
+            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndSharedNotebookGlobalIds);
             m_pendingAuthenticationTokensForLinkedNotebooks = true;
             return false;
         }
