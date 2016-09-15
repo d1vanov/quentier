@@ -1,3 +1,21 @@
+/*
+ * Copyright 2016 Dmitry Ivanov
+ *
+ * This file is part of libquentier
+ *
+ * libquentier is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * libquentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "NoteThumbnailDownloader.h"
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -28,8 +46,8 @@ NoteThumbnailDownloader::NoteThumbnailDownloader(const QString & host, const QSt
 
 void NoteThumbnailDownloader::run()
 {
-    QNDEBUG("NoteThumbnailDownloader::run: host = " << m_host << ", note guid = "
-            << m_noteGuid << ", is public = " << (m_noteFromPublicLinkedNotebook ? "true" : "false"));
+    QNDEBUG(QStringLiteral("NoteThumbnailDownloader::run: host = ") << m_host << QStringLiteral(", note guid = ")
+            << m_noteGuid << QStringLiteral(", is public = ") << (m_noteFromPublicLinkedNotebook ? QStringLiteral("true") : QStringLiteral("false")));
 
 #define SET_ERROR(error) \
     QNLocalizedString errorDescription = QT_TR_NOOP(error); \
@@ -59,7 +77,7 @@ void NoteThumbnailDownloader::run()
         SET_ERROR("received empty note thumbnail data");
     }
 
-    QString folderPath = applicationPersistentStoragePath() + "/NoteEditorPage/thumbnails";
+    QString folderPath = applicationPersistentStoragePath() + QStringLiteral("/NoteEditorPage/thumbnails");
     QFileInfo folderPathInfo(folderPath);
     if (Q_UNLIKELY(!folderPathInfo.exists()))
     {
