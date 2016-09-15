@@ -204,7 +204,7 @@ private:
     RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
     SendLocalChangesManager                 m_sendLocalChangesManager;
 
-    QList<QPair<QString,QString> >          m_linkedNotebookGuidsAndShareKeysWaitingForAuth;
+    QList<QPair<QString,QString> >          m_linkedNotebookGuidsAndSharedNotebookGlobalIdsWaitingForAuth;
     QHash<QString,QPair<QString,QString> >  m_cachedLinkedNotebookAuthTokensAndShardIdsByGuid;
     QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid;
 
