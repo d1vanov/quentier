@@ -473,6 +473,11 @@ bool Note::hasResources() const
     return d->m_qecNote.resources.isSet();
 }
 
+int Note::numResources() const
+{
+    return (d->m_qecNote.resources.isSet() ? d->m_qecNote.resources->size() : 0);
+}
+
 QList<ResourceAdapter> Note::resourceAdapters() const
 {
     QList<ResourceAdapter> resources;

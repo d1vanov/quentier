@@ -129,6 +129,7 @@ public:
     void removeTagLocalUid(const QString & localUid);
 
     bool hasResources() const;
+    int numResources() const;
     QList<ResourceAdapter> resourceAdapters() const;
     QList<ResourceWrapper> resources() const;
     void setResources(const QList<ResourceAdapter> & resources);
