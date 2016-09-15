@@ -104,18 +104,33 @@ void AddResourceDelegate::doStart()
     }
 
     const Account * pAccount = m_noteEditor.accountPtr();
-    if (!pAccount) {
-        QNINFO("No account when adding the resource to note, can't check limits");
-    }
-
     if (pAccount)
     {
-        int numNoteResources = (pNote->hasResources() ? pNote->resources().size() : 0);
+        int numNoteResources = pNote->numResources();
         ++numNoteResources;
         if (numNoteResources > pAccount->noteResourceCountMax()) {
-            QNLocalizedString error = QT_TR_NOOP("Can't add resource: the note already has max allowed number of resources");
-            error += ": ";
+            QNLocalizedString error = QT_TR_NOOP("Can't add attachment: the note is already at max allowed number of attachments");
+            error += QStringLiteral(": ");
             error += QString::number(numNoteResources - 1);
+            emit notifyError(error);
+            return;
+        }
+    }
+    else
+    {
+        QNINFO(QStringLiteral("No account when adding the resource to note, can't check account-wise note limits"));
+    }
+
+    bool noteHasLimits = pNote->hasNoteLimits();
+
+    if (noteHasLimits)
+    {
+        const qevercloud::NoteLimits & limits = pNote->noteLimits();
+        if (limits.noteResourceCountMax.isSet() && (limits.noteResourceCountMax.ref() == pNote->numResources()))
+        {
+            QNLocalizedString error = QT_TR_NOOP("Can't add attachment: the note is already at max allowed number of attachments");
+            error += QStringLiteral(": ");
+            error += QString::number(pNote->numResources());
             emit notifyError(error);
             return;
         }
@@ -132,14 +147,30 @@ void AddResourceDelegate::doStart()
         return;
     }
 
-    if (pAccount)
+    if (pAccount || noteHasLimits)
     {
         const qint64 fileSize = fileInfo.size();
-        if (Q_UNLIKELY(fileSize > pAccount->resourceSizeMax())) {
+        bool violatesAccountWiseResourceSizeMax = (pAccount ? (fileSize > pAccount->resourceSizeMax()) : false);
+        bool violatesNoteResourceSizeMax = (noteHasLimits
+                                            ? (pNote->noteLimits().resourceSizeMax.isSet() && (fileSize > pNote->noteLimits().resourceSizeMax.ref()))
+                                            : false);
+
+        if (Q_UNLIKELY(violatesAccountWiseResourceSizeMax || violatesNoteResourceSizeMax))
+        {
             QNLocalizedString error = QT_TR_NOOP("can't add resource to note: the resource file is too large, "
                                                  "max resource size allowed is");
             error += " ";
-            error += humanReadableSize(static_cast<quint64>(pAccount->resourceSizeMax()));
+
+            if (violatesAccountWiseResourceSizeMax && violatesNoteResourceSizeMax) {
+                error += humanReadableSize(static_cast<quint64>(std::max(pAccount->resourceSizeMax(), pNote->noteLimits().resourceSizeMax.ref())));
+            }
+            else if (violatesAccountWiseResourceSizeMax) {
+                error += humanReadableSize(static_cast<quint64>(pAccount->resourceSizeMax()));
+            }
+            else {
+                error += humanReadableSize(static_cast<quint64>(pNote->noteLimits().resourceSizeMax.ref()));
+            }
+
             emit notifyError(error);
             return;
         }
