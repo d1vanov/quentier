@@ -69,7 +69,7 @@ AddResourceDelegate::AddResourceDelegate(const QString & filePath, NoteEditorPri
 
 void AddResourceDelegate::start()
 {
-    QNDEBUG("AddResourceDelegate::start");
+    QNDEBUG(QStringLiteral("AddResourceDelegate::start"));
 
     if (m_noteEditor.isModified()) {
         QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
@@ -83,7 +83,7 @@ void AddResourceDelegate::start()
 
 void AddResourceDelegate::onOriginalPageConvertedToNote(Note note)
 {
-    QNDEBUG("AddResourceDelegate::onOriginalPageConvertedToNote");
+    QNDEBUG(QStringLiteral("AddResourceDelegate::onOriginalPageConvertedToNote"));
 
     Q_UNUSED(note)
 
@@ -95,34 +95,15 @@ void AddResourceDelegate::onOriginalPageConvertedToNote(Note note)
 
 void AddResourceDelegate::doStart()
 {
-    QNDEBUG("AddResourceDelegate::doStart");
+    QNDEBUG(QStringLiteral("AddResourceDelegate::doStart"));
 
     const Note * pNote = m_noteEditor.notePtr();
     if (!pNote) {
-        QNINFO("Can't add resource: no note is set to the editor");
+        QNINFO(QStringLiteral("Can't add resource: no note is set to the editor"));
         return;
     }
 
-    const Account * pAccount = m_noteEditor.accountPtr();
-    if (pAccount)
-    {
-        int numNoteResources = pNote->numResources();
-        ++numNoteResources;
-        if (numNoteResources > pAccount->noteResourceCountMax()) {
-            QNLocalizedString error = QT_TR_NOOP("Can't add attachment: the note is already at max allowed number of attachments");
-            error += QStringLiteral(": ");
-            error += QString::number(numNoteResources - 1);
-            emit notifyError(error);
-            return;
-        }
-    }
-    else
-    {
-        QNINFO(QStringLiteral("No account when adding the resource to note, can't check account-wise note limits"));
-    }
-
     bool noteHasLimits = pNote->hasNoteLimits();
-
     if (noteHasLimits)
     {
         const qevercloud::NoteLimits & limits = pNote->noteLimits();
@@ -138,49 +119,39 @@ void AddResourceDelegate::doStart()
 
     QFileInfo fileInfo(m_filePath);
     if (!fileInfo.isFile()) {
-        QNINFO("Detected attempt to drop something else rather than file: " << m_filePath);
+        QNINFO(QStringLiteral("Detected attempt to drop something else rather than file: ") << m_filePath);
         return;
     }
 
     if (!fileInfo.isReadable()) {
-        QNINFO("Detected attempt to drop file which is not readable: " << m_filePath);
+        QNINFO(QStringLiteral("Detected attempt to drop file which is not readable: ") << m_filePath);
         return;
     }
 
-    if (pAccount || noteHasLimits)
+    if (noteHasLimits)
     {
+        const qevercloud::NoteLimits & limits = pNote->noteLimits();
         const qint64 fileSize = fileInfo.size();
-        bool violatesAccountWiseResourceSizeMax = (pAccount ? (fileSize > pAccount->resourceSizeMax()) : false);
-        bool violatesNoteResourceSizeMax = (noteHasLimits
-                                            ? (pNote->noteLimits().resourceSizeMax.isSet() && (fileSize > pNote->noteLimits().resourceSizeMax.ref()))
-                                            : false);
+        bool violatesNoteResourceSizeMax = limits.resourceSizeMax.isSet() && (fileSize > limits.resourceSizeMax.ref());
 
-        if (Q_UNLIKELY(violatesAccountWiseResourceSizeMax || violatesNoteResourceSizeMax))
+        if (Q_UNLIKELY(violatesNoteResourceSizeMax))
         {
             QNLocalizedString error = QT_TR_NOOP("can't add resource to note: the resource file is too large, "
                                                  "max resource size allowed is");
-            error += " ";
-
-            if (violatesAccountWiseResourceSizeMax && violatesNoteResourceSizeMax) {
-                error += humanReadableSize(static_cast<quint64>(std::max(pAccount->resourceSizeMax(), pNote->noteLimits().resourceSizeMax.ref())));
-            }
-            else if (violatesAccountWiseResourceSizeMax) {
-                error += humanReadableSize(static_cast<quint64>(pAccount->resourceSizeMax()));
-            }
-            else {
-                error += humanReadableSize(static_cast<quint64>(pNote->noteLimits().resourceSizeMax.ref()));
-            }
-
+            error += QStringLiteral(" ");
+            error += humanReadableSize(static_cast<quint64>(pNote->noteLimits().resourceSizeMax.ref()));
             emit notifyError(error);
             return;
         }
 
         const qint64 previousNoteSize = m_noteEditor.noteSize();
-        if (previousNoteSize + fileSize > pAccount->noteSizeMax()) {
+        bool violatesNoteSizeMax = limits.noteSizeMax.isSet() && limits.noteSizeMax.ref() > (previousNoteSize + fileSize);
+        if (violatesNoteSizeMax)
+        {
             QNLocalizedString error = QT_TR_NOOP("can't add resource to note: the addition of the resource file "
                                                  "would violate the max resource size which is");
-            error += " ";
-            error += humanReadableSize(static_cast<quint64>(pAccount->noteSizeMax()));
+            error += QStringLiteral(" ");
+            error += humanReadableSize(static_cast<quint64>(pNote->noteLimits().noteSizeMax.ref()));
             emit notifyError(error);
             return;
         }
@@ -190,7 +161,7 @@ void AddResourceDelegate::doStart()
     m_resourceFileMimeType = mimeDatabase.mimeTypeForFile(fileInfo);
 
     if (!m_resourceFileMimeType.isValid()) {
-        QNINFO("Detected invalid mime type for file " << m_filePath);
+        QNINFO(QStringLiteral("Detected invalid mime type for file ") << m_filePath);
         return;
     }
 
@@ -210,7 +181,8 @@ void AddResourceDelegate::onResourceFileRead(bool success, QNLocalizedString err
         return;
     }
 
-    QNDEBUG("AddResourceDelegate::onResourceFileRead: success = " << (success ? "true" : "false"));
+    QNDEBUG(QStringLiteral("AddResourceDelegate::onResourceFileRead: success = ")
+            << (success ? QStringLiteral("true") : QStringLiteral("false")));
 
     QObject::disconnect(this, QNSIGNAL(AddResourceDelegate,readFileData,QString,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
@@ -219,7 +191,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QNLocalizedString err
 
     if (Q_UNLIKELY(!success)) {
         QNLocalizedString error = QT_TR_NOOP("can't read the contents of the attachment file");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += errorDescription;
         emit notifyError(error);
         return;
@@ -241,7 +213,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QNLocalizedString err
         return;
     }
 
-    bool isImage = m_resourceFileMimeType.name().startsWith("image/");
+    bool isImage = m_resourceFileMimeType.name().startsWith(QStringLiteral("image/"));
     if (isImage) {
         m_resourceFileStoragePath = m_noteEditor.imageResourcesStoragePath();
     }
@@ -249,7 +221,7 @@ void AddResourceDelegate::onResourceFileRead(bool success, QNLocalizedString err
         m_resourceFileStoragePath = m_noteEditor.resourceLocalFileStoragePath();
     }
 
-    m_resourceFileStoragePath += "/" + pNote->localUid() + "/" + resourceLocalUid;
+    m_resourceFileStoragePath += QStringLiteral("/") + pNote->localUid() + QStringLiteral("/") + resourceLocalUid;
 
     QString fileInfoSuffix = fileInfo.completeSuffix();
     if (fileInfoSuffix.isEmpty())
@@ -267,9 +239,9 @@ void AddResourceDelegate::onResourceFileRead(bool success, QNLocalizedString err
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString),
                      this, QNSLOT(AddResourceDelegate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QNLocalizedString));
 
-    QNTRACE("Emitting the request to save the dropped resource to local file storage: generated local uid = "
-            << resourceLocalUid << ", data hash = " << dataHash.toHex() << ", request id = "
-            << m_saveResourceToStorageRequestId << ", mime type name = " << m_resourceFileMimeType.name());
+    QNTRACE(QStringLiteral("Emitting the request to save the dropped resource to local file storage: generated local uid = ")
+            << resourceLocalUid << QStringLiteral(", data hash = ") << dataHash.toHex() << QStringLiteral(", request id = ")
+            << m_saveResourceToStorageRequestId << QStringLiteral(", mime type name = ") << m_resourceFileMimeType.name());
     emit saveResourceToStorage(pNote->localUid(), resourceLocalUid, data, dataHash, fileInfoSuffix,
                                m_saveResourceToStorageRequestId, isImage);
 }
@@ -282,8 +254,8 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
         return;
     }
 
-    QNDEBUG("AddResourceDelegate::onResourceSavedToStorage: error code = " << errorCode
-            << ", file storage path = " << fileStoragePath << ", error description = "
+    QNDEBUG(QStringLiteral("AddResourceDelegate::onResourceSavedToStorage: error code = ") << errorCode
+            << QStringLiteral(", file storage path = ") << fileStoragePath << QStringLiteral(", error description = ")
             << errorDescription);
 
     m_resourceFileStoragePath = fileStoragePath;
@@ -295,7 +267,7 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
 
     if (Q_UNLIKELY(errorCode != 0)) {
         QNLocalizedString error = QT_TR_NOOP("can't write the resource to local file");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += errorDescription;
         QNWARNING(error);
         m_noteEditor.removeResourceFromNote(m_resource);
@@ -308,8 +280,8 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
         m_noteEditor.replaceResourceInNote(m_resource);
     }
 
-    if (m_resourceFileMimeType.name().startsWith("image/")) {
-        QNTRACE("Done adding the image resource to the note, moving on to adding it to the page");
+    if (m_resourceFileMimeType.name().startsWith(QStringLiteral("image/"))) {
+        QNTRACE(QStringLiteral("Done adding the image resource to the note, moving on to adding it to the page"));
         insertNewResourceHtml();
         return;
     }
@@ -337,10 +309,11 @@ void AddResourceDelegate::onResourceSavedToStorage(QUuid requestId, QByteArray d
     QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QNLocalizedString,QUuid),
                      this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QNLocalizedString,QUuid));
 
-    QNDEBUG("Emitting request to write generic resource image for new resource with local uid " << m_resource.localUid()
-            << ", request id " << m_saveResourceImageRequestId << ", note local uid = " << pNote->localUid());
-    emit saveGenericResourceImageToFile(pNote->localUid(), m_resource.localUid(), resourceImageData, "png", dataHash,
-                                        m_resourceFileStoragePath, m_saveResourceImageRequestId);
+    QNDEBUG(QStringLiteral("Emitting request to write generic resource image for new resource with local uid ")
+            << m_resource.localUid() << QStringLiteral(", request id ") << m_saveResourceImageRequestId
+            << QStringLiteral(", note local uid = ") << pNote->localUid());
+    emit saveGenericResourceImageToFile(pNote->localUid(), m_resource.localUid(), resourceImageData, QStringLiteral("png"),
+                                        dataHash, m_resourceFileStoragePath, m_saveResourceImageRequestId);
 }
 
 void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
@@ -356,17 +329,19 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
     QObject::disconnect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QNLocalizedString,QUuid),
                         this, QNSLOT(AddResourceDelegate,onGenericResourceImageSaved,bool,QByteArray,QString,QNLocalizedString,QUuid));
 
-    QNDEBUG("AddResourceDelegate::onGenericResourceImageSaved: success = " << (success ? "true" : "false")
-            << ", file path = " << filePath);
+    QNDEBUG(QStringLiteral("AddResourceDelegate::onGenericResourceImageSaved: success = ")
+            << (success ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", file path = ") << filePath);
 
     m_genericResourceImageFilePathsByResourceHash[m_resource.dataHash()] = filePath;
-    QNDEBUG("Cached generic resource image file path " << filePath << " for resource hash " << m_resource.dataHash().toHex());
+    QNDEBUG(QStringLiteral("Cached generic resource image file path ") << filePath << QStringLiteral(" for resource hash ")
+            << m_resource.dataHash().toHex());
 
     Q_UNUSED(resourceImageDataHash);
 
     if (Q_UNLIKELY(!success)) {
         QNLocalizedString error = QT_TR_NOOP("Can't write the image representing the resource to local file");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += errorDescription;
         QNWARNING(error);
         m_noteEditor.removeResourceFromNote(m_resource);
@@ -379,13 +354,13 @@ void AddResourceDelegate::onGenericResourceImageSaved(bool success, QByteArray r
 
 void AddResourceDelegate::insertNewResourceHtml()
 {
-    QNDEBUG("AddResourceDelegate::insertNewResourceHtml");
+    QNDEBUG(QStringLiteral("AddResourceDelegate::insertNewResourceHtml"));
 
     QNLocalizedString errorDescription;
     QString resourceHtml = ENMLConverter::resourceHtml(m_resource, errorDescription);
     if (Q_UNLIKELY(resourceHtml.isEmpty())) {
         QNLocalizedString error = QT_TR_NOOP("can't compose the html representation of the attachment");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += errorDescription;
         QNWARNING(error);
         m_noteEditor.removeResourceFromNote(m_resource);
@@ -393,20 +368,20 @@ void AddResourceDelegate::insertNewResourceHtml()
         return;
     }
 
-    QNTRACE("Resource html: " << resourceHtml);
+    QNTRACE(QStringLiteral("Resource html: ") << resourceHtml);
 
     GET_PAGE()
-    page->executeJavaScript("resourceManager.addResource('" + resourceHtml + "');",
+    page->executeJavaScript(QStringLiteral("resourceManager.addResource('") + resourceHtml + QStringLiteral("');"),
                             JsCallback(*this, &AddResourceDelegate::onNewResourceHtmlInserted));
 }
 
 void AddResourceDelegate::onNewResourceHtmlInserted(const QVariant & data)
 {
-    QNDEBUG("AddResourceDelegate::onNewResourceHtmlInserted");
+    QNDEBUG(QStringLiteral("AddResourceDelegate::onNewResourceHtmlInserted"));
 
     QMap<QString,QVariant> resultMap = data.toMap();
 
-    auto statusIt = resultMap.find("status");
+    auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't parse the result of new resource html insertion from JavaScript");
         QNWARNING(error);
@@ -419,13 +394,13 @@ void AddResourceDelegate::onNewResourceHtmlInserted(const QVariant & data)
     {
         QNLocalizedString error;
 
-        auto errorIt = resultMap.find("error");
+        auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
             error = QT_TR_NOOP("can't parse the error of new resource html insertion from JavaScript");
         }
         else {
             error = QT_TR_NOOP("can't insert resource html into the note editor");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += errorIt.value().toString();
         }
 
