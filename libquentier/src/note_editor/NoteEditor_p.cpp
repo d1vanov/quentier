@@ -2068,24 +2068,43 @@ bool NoteEditorPrivate::checkNoteSize(const QString & newNoteContent) const
         return false;
     }
 
-    if (Q_UNLIKELY(m_pAccount.isNull())) {
-        QNLocalizedString error = QT_TR_NOOP("Internal error: can't check the note size on note editor update: no account "
-                                             "is associated with the note editor; the note was not saved!");
-        QNWARNING(error);
-        emit notifyError(error);
-        return false;
-    }
-
     qint64 noteSize = noteResourcesSize();
     noteSize += newNoteContent.size();
 
-    if (Q_UNLIKELY(noteSize > m_pAccount->noteSizeMax())) {
-        QNLocalizedString error = QT_TR_NOOP("Can't save note: note size (text + resources) exceeds the allowed maximum");
-        error += ": ";
-        error += humanReadableSize(static_cast<quint64>(m_pAccount->noteSizeMax()));
-        QNINFO(error);
-        emit cantConvertToNote(error);
-        return false;
+    if (m_pNote->hasNoteLimits())
+    {
+        QNTRACE(QStringLiteral("Note has its own limits, will use them to check the note size"));
+
+        const qevercloud::NoteLimits & noteLimits = m_pNote->noteLimits();
+        if (noteLimits.noteSizeMax.isSet() && (Q_UNLIKELY(noteLimits.noteSizeMax.ref() > noteSize))) {
+            QNLocalizedString error = QT_TR_NOOP("Can't save note: note size (text + resources) exceeds the allowed maximum");
+            error += QStringLiteral(": ");
+            error += humanReadableSize(static_cast<quint64>(noteLimits.noteSizeMax.ref()));
+            QNINFO(error);
+            emit cantConvertToNote(error);
+            return false;
+        }
+    }
+    else
+    {
+        QNTRACE(QStringLiteral("Note has no its own limits, will use the account-wise limits to check the note size"));
+
+        if (Q_UNLIKELY(m_pAccount.isNull())) {
+            QNLocalizedString error = QT_TR_NOOP("Internal error: can't check the note size on note editor update: no account "
+                                                 "is associated with the note editor; the note was not saved!");
+            QNWARNING(error);
+            emit notifyError(error);
+            return false;
+        }
+
+        if (Q_UNLIKELY(noteSize > m_pAccount->noteSizeMax())) {
+            QNLocalizedString error = QT_TR_NOOP("Can't save note: note size (text + resources) exceeds the allowed maximum");
+            error += QStringLiteral(": ");
+            error += humanReadableSize(static_cast<quint64>(m_pAccount->noteSizeMax()));
+            QNINFO(error);
+            emit cantConvertToNote(error);
+            return false;
+        }
     }
 
     return true;
@@ -2093,12 +2112,12 @@ bool NoteEditorPrivate::checkNoteSize(const QString & newNoteContent) const
 
 void NoteEditorPrivate::pushNoteContentEditUndoCommand()
 {
-    QNDEBUG("NoteEditorPrivate::pushNoteTextEditUndoCommand");
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::pushNoteTextEditUndoCommand"));
 
-    QUENTIER_CHECK_PTR(m_pUndoStack, "Undo stack for note editor wasn't initialized");
+    QUENTIER_CHECK_PTR(m_pUndoStack, QStringLiteral("Undo stack for note editor wasn't initialized"));
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
-        QNINFO("Ignoring the content changed signal as the note pointer is null");
+        QNINFO(QStringLiteral("Ignoring the content changed signal as the note pointer is null"));
         return;
     }
 
@@ -2123,14 +2142,14 @@ void NoteEditorPrivate::pushTableActionUndoCommand(const QString & name, NoteEdi
 
 void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, const QVector<QPair<QString, QString> > & extraData)
 {
-    QNDEBUG("NoteEditorPrivate::onManagedPageActionFinished: " << result);
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::onManagedPageActionFinished: ") << result);
     Q_UNUSED(extraData)
 
     AUTO_SET_FOCUS()
 
     QMap<QString,QVariant> resultMap = result.toMap();
 
-    auto statusIt = resultMap.find("status");
+    auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't parse the result of managed page action execution attempt");
         QNWARNING(error);
@@ -2142,14 +2161,14 @@ void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, con
     if (!res)
     {
         QString errorMessage;
-        auto errorIt = resultMap.find("error");
+        auto errorIt = resultMap.find(QStringLiteral("error"));
         if (errorIt != resultMap.end()) {
             errorMessage = errorIt.value().toString();
         }
 
         QNLocalizedString error = QT_TR_NOOP("can't execute page action");
         if (!errorMessage.isEmpty()) {
-            error += ": ";
+            error += QStringLiteral(": ");
             error += errorMessage;
         }
 
@@ -2158,14 +2177,14 @@ void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, con
         return;
     }
 
-    auto commandIt = resultMap.find("command");
+    auto commandIt = resultMap.find(QStringLiteral("command"));
     if (commandIt != resultMap.end())
     {
         QString command = commandIt.value().toString();
-        if (command == "cut")
+        if (command == QStringLiteral("cut"))
         {
             QClipboard * pClipboard = QApplication::clipboard();
-            auto extraDataIt = resultMap.find("extraData");
+            auto extraDataIt = resultMap.find(QStringLiteral("extraData"));
             if (pClipboard && (extraDataIt != resultMap.end())) {
                 QMimeData * pMimeData = new QMimeData();
                 pMimeData->setHtml(extraDataIt.value().toString());
@@ -2181,7 +2200,7 @@ void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, con
 
 void NoteEditorPrivate::updateJavaScriptBindings()
 {
-    QNDEBUG("NoteEditorPrivate::updateJavaScriptBindings");
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::updateJavaScriptBindings"));
 
     updateColResizableTableBindings();
 
@@ -2200,26 +2219,26 @@ void NoteEditorPrivate::updateJavaScriptBindings()
 
 void NoteEditorPrivate::changeFontSize(const bool increase)
 {
-    QNDEBUG("NoteEditorPrivate::changeFontSize: increase = " << (increase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::changeFontSize: increase = ") << (increase ? QStringLiteral("true") : QStringLiteral("false")));
 
     int fontSize = m_font.pointSize();
     if (fontSize < 0) {
-        QNTRACE("Font size is negative which most likely means the font is not set yet, nothing to do. "
-                "Current font: " << m_font);
+        QNTRACE(QStringLiteral("Font size is negative which most likely means the font is not set yet, nothing to do. Current font: ") << m_font);
         return;
     }
 
     QFontDatabase fontDatabase;
     QList<int> fontSizes = fontDatabase.pointSizes(m_font.family(), m_font.styleName());
     if (fontSizes.isEmpty()) {
-        QNTRACE("Coulnd't find point sizes for font family " << m_font.family() << ", will use standard sizes instead");
+        QNTRACE(QStringLiteral("Coulnd't find point sizes for font family ") << m_font.family()
+                << QStringLiteral(", will use standard sizes instead"));
         fontSizes = fontDatabase.standardSizes();
     }
 
     int fontSizeIndex = fontSizes.indexOf(fontSize);
     if (fontSizeIndex < 0)
     {
-        QNTRACE("Couldn't find font size " << fontSize << " within the available sizes, will take the closest one instead");
+        QNTRACE(QStringLiteral("Couldn't find font size ") << fontSize << QStringLiteral(" within the available sizes, will take the closest one instead"));
         const int numFontSizes = fontSizes.size();
         int currentSmallestDiscrepancy = 1e5;
         int currentClosestIndex = -1;
@@ -2231,7 +2250,7 @@ void NoteEditorPrivate::changeFontSize(const bool increase)
             if (currentSmallestDiscrepancy > discrepancy) {
                 currentSmallestDiscrepancy = discrepancy;
                 currentClosestIndex = i;
-                QNTRACE("Updated current closest index to " << i << ": font size = " << value);
+                QNTRACE(QStringLiteral("Updated current closest index to ") << i << QStringLiteral(": font size = ") << value);
             }
         }
 
@@ -2249,19 +2268,22 @@ void NoteEditorPrivate::changeFontSize(const bool increase)
             fontSize = fontSizes.at(fontSizeIndex - 1);
         }
         else {
-            QNTRACE("Can't " << (increase ? "increase" : "decrease") << " the font size: hit the boundary of "
-                    "available font sizes");
+            QNTRACE(QStringLiteral("Can't ") << (increase ? QStringLiteral("increase") : QStringLiteral("decrease"))
+                    << QStringLiteral(" the font size: hit the boundary of available font sizes"));
             return;
         }
     }
     else
     {
-        QNTRACE("Wasn't able to find even the closest font size within the available ones, will simply "
-                << (increase ? "increase" : "decrease") << " the given font size by 1 pt and see what happens");
-        if (increase) {
+        QNTRACE(QStringLiteral("Wasn't able to find even the closest font size within the available ones, will simply ")
+                << (increase ? QStringLiteral("increase") : QStringLiteral("decrease"))
+                << QStringLiteral(" the given font size by 1 pt and see what happens"));
+        if (increase)
+        {
             ++fontSize;
         }
-        else {
+        else
+        {
             --fontSize;
             if (!fontSize) {
                 fontSize = 1;
@@ -2274,17 +2296,18 @@ void NoteEditorPrivate::changeFontSize(const bool increase)
 
 void NoteEditorPrivate::changeIndentation(const bool increase)
 {
-    QNDEBUG("NoteEditorPrivate::changeIndentation: increase = " << (increase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::changeIndentation: increase = ") << (increase ? QStringLiteral("true") : QStringLiteral("false")));
 
-    execJavascriptCommand(increase ? "indent" : "outdent");
+    execJavascriptCommand(increase ? QStringLiteral("indent") : QStringLiteral("outdent"));
     setFocus();
 }
 
 void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCase, const bool searchBackward,
                                  NoteEditorPage::Callback callback) const
 {
-    QNDEBUG("NoteEditorPrivate::findText: " << textToFind << "; match case = " << (matchCase ? "true" : "false")
-            << ", search backward = " << (searchBackward ? "true" : "false"));
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::findText: ") << textToFind << QStringLiteral("; match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", search backward = ") << (searchBackward ? QStringLiteral("true") : QStringLiteral("false")));
 
     GET_PAGE()
 
@@ -4465,6 +4488,15 @@ bool NoteEditorPrivate::isNoteReadOnly() const
     if (m_pNote.isNull()) {
         QNTRACE("No note is set to the editor");
         return true;
+    }
+
+    if (m_pNote->hasNoteRestrictions())
+    {
+        const qevercloud::NoteRestrictions & noteRestrictions = m_pNote->noteRestrictions();
+        if (noteRestrictions.noUpdateContent.isSet() && noteRestrictions.noUpdateContent.ref()) {
+            QNTRACE("Note has noUpdateContent restriction set to true");
+            return true;
+        }
     }
 
     if (m_pNotebook.isNull()) {
