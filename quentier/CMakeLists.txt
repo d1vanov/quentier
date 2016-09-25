@@ -1,14 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
-if(POLICY CMP0020)
-  cmake_policy(SET CMP0020 NEW)
-endif()
-if(POLICY CMP0042)
-  cmake_policy(SET CMP0042 NEW)
-endif()
-if(POLICY CMP0048)
-  cmake_policy(SET CMP0048 NEW)
-endif()
+include(QuentierCMakePolicies)
+SET_POLICIES()
 
 if("${CMAKE_MAJOR_VERSION}" GREATER "2")
   project(quentier VERSION 0.2.0)
