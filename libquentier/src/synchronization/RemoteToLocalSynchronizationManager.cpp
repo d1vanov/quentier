@@ -681,9 +681,6 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         const ResourceWrapper & resource = resourceWithFindRequestId.first;
         const QUuid & findResourceRequestId = resourceWithFindRequestId.second;
 
-        QString resourceGuid = (resource.hasGuid() ? resource.guid() : QString());
-        QString resourceLocalUid = resource.localUid();
-
         auto noteThumbnailDownloadIt = m_noteGuidsPendingThumbnailDownload.find(note.guid());
         if (noteThumbnailDownloadIt == m_noteGuidsPendingThumbnailDownload.end())
         {

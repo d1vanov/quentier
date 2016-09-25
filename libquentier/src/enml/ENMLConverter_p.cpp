@@ -604,7 +604,6 @@ bool ENMLConverterPrivate::noteContentToPlainText(const QString & noteContent, Q
     plainText.resize(0);
 
     QXmlStreamReader reader(noteContent);
-    QString lastElementName;
 
     bool skipIteration = false;
     while(!reader.atEnd())

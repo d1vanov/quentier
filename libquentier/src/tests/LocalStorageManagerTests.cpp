@@ -495,7 +495,6 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalS
     resourceAttributes.cameraMake = "Modified camera make";
     resourceAttributes.cameraModel = "Modified camera model";
 
-    QString resourceLocalUid = modifiedResource.localUid();
     modifiedResource.unsetLocalUid();
 
     res = localStorageManager.updateEnResource(modifiedResource, errorMessage);
