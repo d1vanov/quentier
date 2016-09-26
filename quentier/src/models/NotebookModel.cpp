@@ -573,6 +573,16 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             emit notifyError(error);
             return false;
         }
+        else if ((modelIndex.column() == Columns::Name) && !notebookItem->nameIsUpdatable()) {
+            QNLocalizedString error = QT_TR_NOOP("can't update name for notebook");
+            error += " \"";
+            error += notebookItem->name();
+            error += "\", ";
+            error += QT_TR_NOOP("notebook restrictions apply");
+            QNINFO(error << ", notebookItem = " << *notebookItem);
+            emit notifyError(error);
+            return false;
+        }
 
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
         auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
@@ -1923,9 +1933,11 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
     if (notebook.hasRestrictions()) {
         const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
         item.setUpdatable(!restrictions.noUpdateNotebook.isSet() || !restrictions.noUpdateNotebook.ref());
+        item.setNameIsUpdatable(!restrictions.noRenameNotebook.isSet() || !restrictions.noRenameNotebook.ref());
     }
     else {
         item.setUpdatable(true);
+        item.setNameIsUpdatable(true);
     }
 
     if (notebook.hasLinkedNotebookGuid()) {

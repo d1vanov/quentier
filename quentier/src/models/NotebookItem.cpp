@@ -26,6 +26,7 @@ NotebookItem::NotebookItem(const QString & localUid,
                            const QString & stack,
                            const bool isSynchronizable,
                            const bool isUpdatable,
+                           const bool nameIsUpdatable,
                            const bool isDirty,
                            const bool isDefault,
                            const bool isPublished,
@@ -36,6 +37,7 @@ NotebookItem::NotebookItem(const QString & localUid,
     m_stack(stack),
     m_isSynchronizable(isSynchronizable),
     m_isUpdatable(isUpdatable),
+    m_nameIsUpdatable(nameIsUpdatable),
     m_isDirty(isDirty),
     m_isDefault(isDefault),
     m_isPublished(isPublished),
@@ -47,13 +49,14 @@ NotebookItem::~NotebookItem()
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
-    strm << "Notebook item: local uid = " << m_localUid << ", guid = "
-         << m_guid << ", name = " << m_name << ", stack = " << m_stack
-         << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
-         << ", is updatable = " << (m_isUpdatable ? "true" : "false")
-         << ", is dirty = " << (m_isDirty ? "true" : "false")
-         << ", is published = " << (m_isPublished ? "true" : "false")
-         << ", is linked notebook = " << (m_isLinkedNotebook ? "true" : "false");
+    strm << QStringLiteral("Notebook item: local uid = ") << m_localUid << QStringLiteral(", guid = ")
+         << m_guid << QStringLiteral(", name = ") << m_name << QStringLiteral(", stack = ") << m_stack
+         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is updatable = ") << (m_isUpdatable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", name is updatable = ") << (m_nameIsUpdatable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is published = ") << (m_isPublished ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is linked notebook = ") << (m_isLinkedNotebook ? QStringLiteral("true") : QStringLiteral("false"));
     return strm;
 }
 

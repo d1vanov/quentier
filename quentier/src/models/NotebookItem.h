@@ -32,6 +32,7 @@ public:
                           const QString & stack = QString(),
                           const bool isSynchronizable = false,
                           const bool isUpdatable = false,
+                          const bool nameIsUpdatable = false,
                           const bool isDirty = false,
                           const bool isDefault = false,
                           const bool isPublished = false,
@@ -58,6 +59,9 @@ public:
     bool isUpdatable() const { return m_isUpdatable; }
     void setUpdatable(const bool updatable) { m_isUpdatable = updatable; }
 
+    bool nameIsUpdatable() const { return m_nameIsUpdatable; }
+    void setNameIsUpdatable(const bool updatable) { m_nameIsUpdatable = updatable; }
+
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
@@ -79,6 +83,7 @@ private:
     QString     m_stack;
     bool        m_isSynchronizable;
     bool        m_isUpdatable;
+    bool        m_nameIsUpdatable;
     bool        m_isDirty;
     bool        m_isDefault;
     bool        m_isPublished;
