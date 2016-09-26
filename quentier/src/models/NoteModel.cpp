@@ -391,6 +391,26 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
     {
     case Columns::Title:
         {
+            if (!item.canUpdateTitle())
+            {
+                QNLocalizedString error = QT_TR_NOOP("can't update title for note");
+
+                QString title = item.title();
+                if (!title.isEmpty()) {
+                    error += QStringLiteral(" \"");
+                    error += item.title();
+                    error += QStringLiteral("\", ");
+                }
+                else {
+                    error += QStringLiteral(", ");
+                }
+
+                error += QT_TR_NOOP("note restrictions apply");
+                QNINFO(error << QStringLiteral(", noteItem = ") << item);
+                emit notifyError(error);
+                return false;
+            }
+
             QString title = value.toString();
             dirty |= (title != item.title());
             item.setTitle(title);
@@ -1731,6 +1751,22 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 
     item.setSynchronizable(!note.isLocal());
     item.setDirty(note.isDirty());
+
+    if (note.hasNoteRestrictions()) {
+        const qevercloud::NoteRestrictions & restrictions = note.noteRestrictions();
+        item.setCanUpdateTitle(!restrictions.noUpdateTitle.isSet() || !restrictions.noUpdateTitle.ref());
+        item.setCanUpdateContent(!restrictions.noUpdateContent.isSet() || !restrictions.noUpdateContent.ref());
+        item.setCanEmail(!restrictions.noEmail.isSet() || !restrictions.noEmail.ref());
+        item.setCanShare(!restrictions.noShare.isSet() || !restrictions.noShare.ref());
+        item.setCanSharePublicly(!restrictions.noSharePublicly.isSet() || !restrictions.noSharePublicly.ref());
+    }
+    else {
+        item.setCanUpdateTitle(true);
+        item.setCanUpdateContent(true);
+        item.setCanEmail(true);
+        item.setCanShare(true);
+        item.setCanSharePublicly(true);
+    }
 
     qint64 sizeInBytes = 0;
     if (note.hasContent()) {

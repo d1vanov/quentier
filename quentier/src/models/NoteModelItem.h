@@ -110,6 +110,21 @@ public:
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
+    bool canUpdateTitle() const { return m_canUpdateTitle; }
+    void setCanUpdateTitle(const bool canUpdateTitle) { m_canUpdateTitle = canUpdateTitle; }
+
+    bool canUpdateContent() const { return m_canUpdateContent; }
+    void setCanUpdateContent(const bool canUpdateContent) { m_canUpdateContent = canUpdateContent; }
+
+    bool canEmail() const { return m_canEmail; }
+    void setCanEmail(const bool canEmail) { m_canEmail = canEmail; }
+
+    bool canShare() const { return m_canShare; }
+    void setCanShare(const bool canShare) { m_canShare = canShare; }
+
+    bool canSharePublicly() const { return m_canSharePublicly; }
+    void setCanSharePublicly(const bool canSharePublicly) { m_canSharePublicly = canSharePublicly; }
+
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
@@ -130,6 +145,11 @@ private:
     quint64     m_sizeInBytes;
     bool        m_isSynchronizable;
     bool        m_isDirty;
+    bool        m_canUpdateTitle;
+    bool        m_canUpdateContent;
+    bool        m_canEmail;
+    bool        m_canShare;
+    bool        m_canSharePublicly;
 };
 
 } // namespace quentier

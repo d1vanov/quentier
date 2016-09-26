@@ -152,17 +152,25 @@ int NoteModelItem::numTagNames() const
 
 QTextStream & NoteModelItem::print(QTextStream & strm) const
 {
-    strm << "NoteModelItem: local uid = " << m_localUid << ", guid = " << m_guid
-         << ", notebook local uid = " << m_notebookLocalUid << ", notebook guid = " << m_notebookGuid
-         << ", title = " << m_title << ", preview text = " << m_previewText << ", thumbnail "
-         << (m_thumbnail.isNull() ? "null" : "not null") << ", notebook name = " << m_notebookName
-         << ", tag local uids = " << m_tagLocalUids.join(", ") << ", tag guids = " << m_tagGuids.join(", ")
-         << ", tag name list = " << m_tagNameList.join(", ") << ", creation timestamp = " << m_creationTimestamp
-         << " (" << printableDateTimeFromTimestamp(m_creationTimestamp) << ")"
-         << ", modification timestamp = " << m_modificationTimestamp << " (" << printableDateTimeFromTimestamp(m_modificationTimestamp) << ")"
-         << ", deletion timestamp = " << m_deletionTimestamp << " (" << printableDateTimeFromTimestamp(m_deletionTimestamp) << ")"
-         << ", size in bytes = " << m_sizeInBytes << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
-         << ", is dirty = " << (m_isDirty ? "true" : "false");
+    strm << QStringLiteral("NoteModelItem: local uid = ") << m_localUid << QStringLiteral(", guid = ") << m_guid
+         << QStringLiteral(", notebook local uid = ") << m_notebookLocalUid << QStringLiteral(", notebook guid = ")
+         << m_notebookGuid << QStringLiteral(", title = ") << m_title << QStringLiteral(", preview text = ")
+         << m_previewText << QStringLiteral(", thumbnail ") << (m_thumbnail.isNull() ? QStringLiteral("null") : QStringLiteral("not null"))
+         << QStringLiteral(", notebook name = ") << m_notebookName << QStringLiteral(", tag local uids = ")
+         << m_tagLocalUids.join(QStringLiteral(", ")) << QStringLiteral(", tag guids = ") << m_tagGuids.join(QStringLiteral(", "))
+         << QStringLiteral(", tag name list = ") << m_tagNameList.join(QStringLiteral(", ")) << QStringLiteral(", creation timestamp = ")
+         << m_creationTimestamp << QStringLiteral(" (") << printableDateTimeFromTimestamp(m_creationTimestamp) << QStringLiteral(")")
+         << QStringLiteral(", modification timestamp = ") << m_modificationTimestamp << QStringLiteral(" (")
+         << printableDateTimeFromTimestamp(m_modificationTimestamp) << QStringLiteral(")") << QStringLiteral(", deletion timestamp = ")
+         << m_deletionTimestamp << QStringLiteral(" (") << printableDateTimeFromTimestamp(m_deletionTimestamp) << QStringLiteral(")")
+         << QStringLiteral(", size in bytes = ") << m_sizeInBytes << QStringLiteral(", is synchronizable = ")
+         << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", is dirty = ")
+         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can update title = ")
+         << (m_canUpdateTitle ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can update content = ")
+         << (m_canUpdateContent ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can email = ")
+         << (m_canEmail ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can share = ")
+         << (m_canShare ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can share publicly = ")
+         << (m_canSharePublicly ? QStringLiteral("true") : QStringLiteral("false"));
 
     return strm;
 }
