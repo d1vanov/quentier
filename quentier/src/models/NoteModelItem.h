@@ -28,23 +28,7 @@ namespace quentier {
 class NoteModelItem: public Printable
 {
 public:
-    explicit NoteModelItem(const QString & localUid = QString(),
-                           const QString & guid = QString(),
-                           const QString & notebookLocalUid = QString(),
-                           const QString & notebookGuid = QString(),
-                           const QString & title = QString(),
-                           const QString & previewText = QString(),
-                           const QImage & thumbnail = QImage(),
-                           const QString & notebookName = QString(),
-                           const QStringList & tagLocalUids = QStringList(),
-                           const QStringList & tagGuids = QStringList(),
-                           const QStringList & tagNameList = QStringList(),
-                           const qint64 creationTimestamp = 0,
-                           const qint64 modificationTimestamp = 0,
-                           const qint64 deletionTimestamp = 0,
-                           const quint64 sizeInBytes = 0,
-                           const bool isSynchronizable = false,
-                           const bool isDirty = false);
+    NoteModelItem();
     ~NoteModelItem();
 
     const QString & localUid() const { return m_localUid; }
