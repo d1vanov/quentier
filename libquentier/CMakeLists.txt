@@ -520,15 +520,7 @@ endif()
 add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES} ${${PROJECT_NAME}_TEST_RESOURCES_RCC})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
 
-if(USE_QT5)
-  qt5_use_modules(test_${PROJECT_NAME} Core)
-  qt5_use_modules(test_${PROJECT_NAME} Test)
-  qt5_use_modules(test_${PROJECT_NAME} Sql)
-else()
-  target_link_libraries(test_${PROJECT_NAME} ${QT_LIBRARIES})
-endif()
-
-target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${THIRDPARTY_LIBS})
+target_link_libraries(test_${PROJECT_NAME} ${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_DEFINITIONS "BUILDING_QUENTIER_DLL=1")
