@@ -35,34 +35,27 @@ namespace quentier {
 #define WRAP(x) \
     << x
 
-static const QSet<QString> forbiddenXhtmlTags = QSet<QString>()
-#include "forbiddenXhtmlTags.inl"
-;
-
-static const QSet<QString> forbiddenXhtmlAttributes = QSet<QString>()
-#include "forbiddenXhtmlAttributes.inl"
-;
-
-
-static const QSet<QString> evernoteSpecificXhtmlTags = QSet<QString>()
-#include "evernoteSpecificXhtmlTags.inl"
-;
-
-
-static const QSet<QString> allowedXhtmlTags = QSet<QString>()
-#include "allowedXhtmlTags.inl"
-;
-
-static const QSet<QString> allowedEnMediaAttributes = QSet<QString>()
-#include "allowedEnMediaAttributes.inl"
-;
-
-#undef WRAP
-
 ENMLConverterPrivate::ENMLConverterPrivate() :
+    m_forbiddenXhtmlTags(QSet<QString>()
+#include "forbiddenXhtmlTags.inl"
+    ),
+    m_forbiddenXhtmlAttributes(QSet<QString>()
+#include "forbiddenXhtmlAttributes.inl"
+    ),
+    m_evernoteSpecificXhtmlTags(QSet<QString>()
+#include "evernoteSpecificXhtmlTags.inl"
+    ),
+    m_allowedXhtmlTags(QSet<QString>()
+#include "allowedXhtmlTags.inl"
+    ),
+    m_allowedEnMediaAttributes(QSet<QString>()
+#include "allowedEnMediaAttributes.inl"
+    ),
     m_pHtmlCleaner(Q_NULLPTR),
     m_cachedConvertedXml()
 {}
+
+#undef WRAP
 
 ENMLConverterPrivate::~ENMLConverterPrivate()
 {
@@ -155,17 +148,17 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
                 QNTRACE("Found \"body\" HTML tag, will replace it with \"en-note\" tag for written ENML");
             }
 
-            auto tagIt = forbiddenXhtmlTags.find(lastElementName);
-            if ((tagIt != forbiddenXhtmlTags.end()) && (lastElementName != "object")) {
+            auto tagIt = m_forbiddenXhtmlTags.find(lastElementName);
+            if ((tagIt != m_forbiddenXhtmlTags.end()) && (lastElementName != "object")) {
                 QNTRACE("Skipping forbidden XHTML tag: " << lastElementName);
                 continue;
             }
 
-            tagIt = allowedXhtmlTags.find(lastElementName);
-            if (tagIt == allowedXhtmlTags.end())
+            tagIt = m_allowedXhtmlTags.find(lastElementName);
+            if (tagIt == m_allowedXhtmlTags.end())
             {
-                tagIt = evernoteSpecificXhtmlTags.find(lastElementName);
-                if (tagIt == evernoteSpecificXhtmlTags.end()) {
+                tagIt = m_evernoteSpecificXhtmlTags.find(lastElementName);
+                if (tagIt == m_evernoteSpecificXhtmlTags.end()) {
                     QNTRACE("Haven't found tag " << lastElementName << " within the list of allowed XHTML tags "
                             "or within Evernote-specific tags, skipping it");
                     continue;
@@ -276,11 +269,11 @@ bool ENMLConverterPrivate::htmlToNoteContent(const QString & html, const QVector
                             if (attributeQualifiedName == "resource-mime-type") {
                                 enMediaAttributes.append("type", attributeValue);
                             }
-                            else if (allowedEnMediaAttributes.contains(attributeQualifiedName) && (attributeQualifiedName != "type")) {
+                            else if (m_allowedEnMediaAttributes.contains(attributeQualifiedName) && (attributeQualifiedName != "type")) {
                                 enMediaAttributes.append(attributeQualifiedName, attributeValue);
                             }
                         }
-                        else if (allowedEnMediaAttributes.contains(attributeQualifiedName)) { // img
+                        else if (m_allowedEnMediaAttributes.contains(attributeQualifiedName)) { // img
                             enMediaAttributes.append(attributeQualifiedName, attributeValue);
                         }
                     }
@@ -800,10 +793,10 @@ void ENMLConverterPrivate::escapeString(QString & string, const bool simplify)
     QNTRACE("String after escaping: " << string);
 }
 
-bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
+bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName) const
 {
-    auto it = forbiddenXhtmlTags.find(tagName);
-    if (it == forbiddenXhtmlTags.constEnd()) {
+    auto it = m_forbiddenXhtmlTags.find(tagName);
+    if (it == m_forbiddenXhtmlTags.constEnd()) {
         return false;
     }
     else {
@@ -811,10 +804,10 @@ bool ENMLConverterPrivate::isForbiddenXhtmlTag(const QString & tagName)
     }
 }
 
-bool ENMLConverterPrivate::isForbiddenXhtmlAttribute(const QString & attributeName)
+bool ENMLConverterPrivate::isForbiddenXhtmlAttribute(const QString & attributeName) const
 {
-    auto it = forbiddenXhtmlAttributes.find(attributeName);
-    if (it == forbiddenXhtmlAttributes.constEnd()) {
+    auto it = m_forbiddenXhtmlAttributes.find(attributeName);
+    if (it == m_forbiddenXhtmlAttributes.constEnd()) {
         return false;
     }
     else {
@@ -822,10 +815,10 @@ bool ENMLConverterPrivate::isForbiddenXhtmlAttribute(const QString & attributeNa
     }
 }
 
-bool ENMLConverterPrivate::isEvernoteSpecificXhtmlTag(const QString & tagName)
+bool ENMLConverterPrivate::isEvernoteSpecificXhtmlTag(const QString & tagName) const
 {
-    auto it = evernoteSpecificXhtmlTags.find(tagName);
-    if (it == evernoteSpecificXhtmlTags.constEnd()) {
+    auto it = m_evernoteSpecificXhtmlTags.find(tagName);
+    if (it == m_evernoteSpecificXhtmlTags.constEnd()) {
         return false;
     }
     else {
@@ -833,10 +826,10 @@ bool ENMLConverterPrivate::isEvernoteSpecificXhtmlTag(const QString & tagName)
     }
 }
 
-bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName)
+bool ENMLConverterPrivate::isAllowedXhtmlTag(const QString & tagName) const
 {
-    auto it = allowedXhtmlTags.find(tagName);
-    if (it == allowedXhtmlTags.constEnd()) {
+    auto it = m_allowedXhtmlTags.find(tagName);
+    if (it == m_allowedXhtmlTags.constEnd()) {
         return false;
     }
     else {

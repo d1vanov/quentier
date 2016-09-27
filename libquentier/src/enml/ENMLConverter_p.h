@@ -80,10 +80,10 @@ public:
     static void escapeString(QString & string, const bool simplify);
 
 private:
-    static bool isForbiddenXhtmlTag(const QString & tagName);
-    static bool isForbiddenXhtmlAttribute(const QString & attributeName);
-    static bool isEvernoteSpecificXhtmlTag(const QString & tagName);
-    static bool isAllowedXhtmlTag(const QString & tagName);
+    bool isForbiddenXhtmlTag(const QString & tagName) const;
+    bool isForbiddenXhtmlAttribute(const QString & attributeName) const;
+    bool isEvernoteSpecificXhtmlTag(const QString & tagName) const;
+    bool isAllowedXhtmlTag(const QString & tagName) const;
 
     // convert <div> element with decrypted text to ENML <en-crypt> tag
     bool decryptedTextToEnml(QXmlStreamReader & reader,
@@ -129,6 +129,12 @@ private:
     Q_DISABLE_COPY(ENMLConverterPrivate)
 
 private:
+    const QSet<QString>     m_forbiddenXhtmlTags;
+    const QSet<QString>     m_forbiddenXhtmlAttributes;
+    const QSet<QString>     m_evernoteSpecificXhtmlTags;
+    const QSet<QString>     m_allowedXhtmlTags;
+    const QSet<QString>     m_allowedEnMediaAttributes;
+
     mutable HTMLCleaner *   m_pHtmlCleaner;
     mutable QString         m_cachedConvertedXml;   // Cached memory for the html converted to valid xml
 };
