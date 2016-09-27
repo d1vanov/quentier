@@ -8,6 +8,7 @@ namespace quentier {
 
 class RemoveHyperlinkUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     RemoveHyperlinkUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback, QUndoCommand * parent = Q_NULLPTR);

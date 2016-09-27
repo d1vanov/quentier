@@ -8,6 +8,7 @@ namespace quentier {
 
 class TableActionUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     TableActionUndoCommand(NoteEditorPrivate & noteEditorPrivate, Callback callback, QUndoCommand * parent = Q_NULLPTR);

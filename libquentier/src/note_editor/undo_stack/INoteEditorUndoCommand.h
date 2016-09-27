@@ -9,6 +9,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPrivate)
 
 class INoteEditorUndoCommand: public QuentierUndoCommand
 {
+    Q_OBJECT
 public:
     virtual ~INoteEditorUndoCommand();
 

@@ -1156,7 +1156,7 @@ void CoreTester::localStorageManagerListTagsTest()
         QNLocalizedString errorMessage;
 
         int nTags = 5;
-        QList<Tag> tags;
+        QVector<Tag> tags;
         tags.reserve(nTags);
         for(int i = 0; i < nTags; ++i)
         {

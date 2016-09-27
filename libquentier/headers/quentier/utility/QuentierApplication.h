@@ -26,6 +26,7 @@ namespace quentier {
 
 class QUENTIER_EXPORT QuentierApplication: public QApplication
 {
+    Q_OBJECT
 public:
     QuentierApplication(int & argc, char * argv[]);
     virtual ~QuentierApplication();

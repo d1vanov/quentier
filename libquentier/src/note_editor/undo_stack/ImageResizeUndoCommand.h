@@ -7,6 +7,7 @@ namespace quentier {
 
 class ImageResizeUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     ImageResizeUndoCommand(NoteEditorPrivate & noteEditor, QUndoCommand * parent = Q_NULLPTR);
     ImageResizeUndoCommand(NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);

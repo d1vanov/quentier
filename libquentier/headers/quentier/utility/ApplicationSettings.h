@@ -24,9 +24,10 @@
 
 namespace quentier {
 
-class QUENTIER_EXPORT ApplicationSettings: public Printable,
-                                            public QSettings
+class QUENTIER_EXPORT ApplicationSettings: public QSettings,
+                                           public Printable
 {
+    Q_OBJECT
 public:
     ApplicationSettings();
     ~ApplicationSettings();

@@ -8,6 +8,7 @@ namespace quentier {
 
 class UpdateResourceUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     UpdateResourceUndoCommand(const ResourceWrapper & resourceBefore, const ResourceWrapper & resourceAfter,
                              NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);

@@ -9,6 +9,7 @@ namespace quentier {
 
 class NoteEditorContentEditUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate,
                                      const QList<ResourceWrapper> & resources,

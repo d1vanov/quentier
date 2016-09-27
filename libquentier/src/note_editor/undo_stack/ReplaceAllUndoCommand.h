@@ -8,6 +8,7 @@ namespace quentier {
 
 class ReplaceAllUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     ReplaceAllUndoCommand(const QString & textToReplace, const bool matchCase, NoteEditorPrivate & noteEditorPrivate,

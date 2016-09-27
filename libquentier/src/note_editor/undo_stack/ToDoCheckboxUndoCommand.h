@@ -7,6 +7,7 @@ namespace quentier {
 
 class ToDoCheckboxUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     ToDoCheckboxUndoCommand(const quint64 enToDoCheckboxId, NoteEditorPrivate & noteEditorPrivate,
                             QUndoCommand * parent = Q_NULLPTR);

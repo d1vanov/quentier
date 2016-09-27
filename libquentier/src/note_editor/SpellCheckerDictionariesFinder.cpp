@@ -27,16 +27,15 @@ namespace quentier {
 #define WRAP(x) \
     << QString(x).toUpper()
 
-static const QSet<QString> localeList = QSet<QString>()
-#include "localeList.inl"
-;
-
-#undef WRAP
-
 SpellCheckerDictionariesFinder::SpellCheckerDictionariesFinder(QObject * parent) :
     QObject(parent),
-    m_files()
+    m_files(),
+    m_localeList(QSet<QString>()
+#include "localeList.inl"
+    )
 {}
+
+#undef WRAP
 
 void SpellCheckerDictionariesFinder::run()
 {
@@ -80,7 +79,7 @@ void SpellCheckerDictionariesFinder::run()
             }
 
             QString dictionaryName = fileInfo.baseName();
-            if (!localeList.contains(dictionaryName.toUpper())) {
+            if (!m_localeList.contains(dictionaryName.toUpper())) {
                 QNTRACE("Skipping dictionary which doesn't appear to correspond to any locale: " + dictionaryName);
                 continue;
             }

@@ -10,6 +10,7 @@ namespace quentier {
 
 class AddResourceUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     AddResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback, NoteEditorPrivate & noteEditorPrivate,

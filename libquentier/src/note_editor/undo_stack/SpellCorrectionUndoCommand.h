@@ -8,6 +8,7 @@ namespace quentier {
 
 class SpellCorrectionUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     SpellCorrectionUndoCommand(NoteEditorPrivate & noteEditor, const Callback & callback,

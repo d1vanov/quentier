@@ -13,6 +13,7 @@ QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 
 class DecryptUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     DecryptUndoCommand(const EncryptDecryptUndoCommandInfo & info, const QSharedPointer<DecryptedTextManager> & decryptedTextManager,

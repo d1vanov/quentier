@@ -11,6 +11,7 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceImageManager)
 
 class RenameResourceUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     RenameResourceUndoCommand(const ResourceWrapper & resource, const QString & previousResourceName,
                               NoteEditorPrivate & noteEditor, GenericResourceImageManager * pGenericResourceImageManager,

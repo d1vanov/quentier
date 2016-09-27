@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QRunnable>
 #include <QHash>
+#include <QSet>
 #include <QString>
 
 namespace quentier {
@@ -44,6 +45,7 @@ Q_SIGNALS:
 
 private:
     DicAndAffFilesByDictionaryName  m_files;
+    const QSet<QString>             m_localeList;
 };
 
 } // namespace quentier

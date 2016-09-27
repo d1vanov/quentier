@@ -10,6 +10,7 @@ QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 class SpellCheckAddToUserWordListUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     SpellCheckAddToUserWordListUndoCommand(NoteEditorPrivate & noteEditor, const QString & word,
                                            SpellChecker * pSpellChecker, QUndoCommand * parent = Q_NULLPTR);

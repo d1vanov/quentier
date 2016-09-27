@@ -8,6 +8,7 @@ namespace quentier {
 
 class EncryptUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
     EncryptUndoCommand(NoteEditorPrivate & noteEditorPrivate, const Callback & callback,

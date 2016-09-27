@@ -9,6 +9,7 @@ namespace quentier {
 
 class ImageResourceRotationUndoCommand: public INoteEditorUndoCommand
 {
+    Q_OBJECT
 public:
     ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                      const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
