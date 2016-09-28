@@ -36,6 +36,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
  */
 class INoteEditorResourcePlugin: public QWidget
 {
+    Q_OBJECT
 protected:
     explicit INoteEditorResourcePlugin(QWidget * parent = Q_NULLPTR);
 
