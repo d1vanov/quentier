@@ -83,6 +83,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_listAllLinkedNotebooksRequestId(),
     m_allLinkedNotebooksListed(false),
     m_authenticationToken(),
+    m_userId(-1),
     m_shardId(),
     m_authenticationTokenExpirationTime(0),
     m_pendingAuthenticationTokenAndShardId(false),
@@ -2045,15 +2046,16 @@ void RemoteToLocalSynchronizationManager::onNoteThumbnailDownloadingFinished(boo
     QNWARNING(errorDescription);
 }
 
-void RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived(QString authToken, QString shardId, qevercloud::Timestamp expirationTime)
+void RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived(QString authToken, qint32 userId, QString shardId, qevercloud::Timestamp expirationTime)
 {
-    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationTokenReceived: expiration time = ")
-            << printableDateTimeFromTimestamp(expirationTime));
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived: expiration time = ")
+            << printableDateTimeFromTimestamp(expirationTime) << QStringLiteral(", user id = ") << userId);
 
     bool wasPending = m_pendingAuthenticationTokenAndShardId;
 
     // NOTE: we only need this authentication information to download the thumbnails and ink note images
     m_authenticationToken = authToken;
+    m_userId = userId;
     m_shardId = shardId;
     m_authenticationTokenExpirationTime = expirationTime;
     m_pendingAuthenticationTokenAndShardId = false;
