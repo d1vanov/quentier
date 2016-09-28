@@ -1,7 +1,7 @@
 if(USE_QT5)
-  find_package(Qt5Keychain REQUIRED)
+  find_package(Qt5Keychain QUIET REQUIRED)
 else()
-  find_package(QtKeychain REQUIRED)
+  find_package(QtKeychain QUIET REQUIRED)
 endif()
 
 include_directories(${QTKEYCHAIN_INCLUDE_DIRS})
