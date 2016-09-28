@@ -26,7 +26,7 @@ ApplicationSettingsInitializationException::ApplicationSettingsInitializationExc
 
 const QString ApplicationSettingsInitializationException::exceptionDisplayName() const
 {
-    return QString("ApplicationSettingsInitializationException");
+    return QStringLiteral("ApplicationSettingsInitializationException");
 }
 
 } // namespace quentier

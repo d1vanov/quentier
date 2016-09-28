@@ -32,7 +32,7 @@ QuentierFileLogWriter::QuentierFileLogWriter(const MaxSizeBytes & maxSizeBytes,
     {
         if (Q_UNLIKELY(!logFileDir.mkpath(QStringLiteral(".")))) {
             QNLocalizedString error = QT_TR_NOOP("Can't create the log file path");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += logFileDirPath;
             throw LoggerInitializationException(error);
         }
@@ -45,11 +45,11 @@ QuentierFileLogWriter::QuentierFileLogWriter(const MaxSizeBytes & maxSizeBytes,
     bool opened = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered);
     if (Q_UNLIKELY(!opened)) {
         QNLocalizedString error = QT_TR_NOOP("Can't open the log file for writing/appending");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += m_logFile.errorString();
-        error += " (";
+        error += QStringLiteral(" (");
         error += QT_TR_NOOP("error code");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += QString::number(m_logFile.error());
         throw LoggerInitializationException(error);
     }
@@ -87,7 +87,7 @@ void QuentierFileLogWriter::write(QString message)
         rotate();
     }
 
-    m_stream << message << "\n";
+    m_stream << message << QStringLiteral("\n");
 }
 
 void QuentierFileLogWriter::rotate()

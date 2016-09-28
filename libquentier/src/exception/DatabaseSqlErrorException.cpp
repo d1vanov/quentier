@@ -26,7 +26,7 @@ DatabaseSqlErrorException::DatabaseSqlErrorException(const QNLocalizedString & m
 
 const QString DatabaseSqlErrorException::exceptionDisplayName() const
 {
-    return QString("DatabaseSqlErrorException");
+    return QStringLiteral("DatabaseSqlErrorException");
 }
 
-}
+} // namespace quentier

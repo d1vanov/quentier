@@ -58,8 +58,8 @@ const char * IQuentierException::what() const throw()
 
 QTextStream & IQuentierException::print(QTextStream & strm) const
 {
-    strm << "\n" << " " << "<" << exceptionDisplayName() << ">";
-    strm << "\n" << " " << " message: " << m_message.nonLocalizedString();
+    strm << QStringLiteral("\n <") << exceptionDisplayName() << QStringLiteral(">");
+    strm << QStringLiteral("\n message: ") << m_message.nonLocalizedString();
     return strm;
 }
 

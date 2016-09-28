@@ -72,7 +72,7 @@ const Type * LocalStorageCacheManager::find##Type(const QString & uid, const Loc
         return d->find##Type##ByGuid(uid); \
     default: \
     { \
-        QNCRITICAL("Detected incorrect local uid/remote guid qualifier in local storage cache manager"); \
+        QNCRITICAL(QStringLiteral("Detected incorrect local uid/remote guid qualifier in local storage cache manager")); \
         return Q_NULLPTR; \
     } \
     } \

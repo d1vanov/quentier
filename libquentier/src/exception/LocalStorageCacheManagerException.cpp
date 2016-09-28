@@ -26,7 +26,7 @@ LocalStorageCacheManagerException::LocalStorageCacheManagerException(const QNLoc
 
 const QString LocalStorageCacheManagerException::exceptionDisplayName() const
 {
-    return "LocalStorageCacheManagerException";
+    return QStringLiteral("LocalStorageCacheManagerException");
 }
 
 } // namespace quentier

@@ -26,7 +26,7 @@ ResourceLocalFileStorageFolderNotFoundException::ResourceLocalFileStorageFolderN
 
 const QString ResourceLocalFileStorageFolderNotFoundException::exceptionDisplayName() const
 {
-    return "ResourceLocalFileStorageFolderNotFoundException";
+    return QStringLiteral("ResourceLocalFileStorageFolderNotFoundException");
 }
 
 } // namespace quentier

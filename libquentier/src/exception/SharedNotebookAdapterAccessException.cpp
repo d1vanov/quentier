@@ -26,7 +26,7 @@ SharedNotebookAdapterAccessException::SharedNotebookAdapterAccessException(const
 
 const QString SharedNotebookAdapterAccessException::exceptionDisplayName() const
 {
-    return "SharedNotebookAdapterAccessException";
+    return QStringLiteral("SharedNotebookAdapterAccessException");
 }
 
 } // namespace quentier

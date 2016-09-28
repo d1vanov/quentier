@@ -87,9 +87,9 @@ void LocalStorageManagerThreadWorker::init()
     catch(const std::exception & e) { \
         QNLocalizedString error = QT_TR_NOOP("Caught exception"); \
         error += QString(e.what()); \
-        error += ", "; \
+        error += QStringLiteral(", "); \
         error += QT_TR_NOOP("backtrace"); \
-        error += ": "; \
+        error += QStringLiteral(": "); \
         error += SysInfo::GetSingleton().GetStackTrace(); \
         QNCRITICAL(error); \
         emit failure(error); \

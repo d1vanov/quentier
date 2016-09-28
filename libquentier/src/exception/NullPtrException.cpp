@@ -26,7 +26,7 @@ NullPtrException::NullPtrException(const QNLocalizedString & message) :
 
 const QString NullPtrException::exceptionDisplayName() const
 {
-    return QString("NullPtrException");
+    return QStringLiteral("NullPtrException");
 }
 
 } // namespace quentier

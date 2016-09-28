@@ -26,9 +26,7 @@ EmptyDataElementException::EmptyDataElementException(const QNLocalizedString & m
 
 const QString EmptyDataElementException::exceptionDisplayName() const
 {
-    return QString("EmptyDataElementException");
+    return QStringLiteral("EmptyDataElementException");
 }
 
-
-
-}
+} // namespace quentier

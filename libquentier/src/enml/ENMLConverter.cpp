@@ -37,7 +37,7 @@ bool ENMLConverter::htmlToNoteContent(const QString & html, QString & noteConten
                                       QNLocalizedString & errorDescription,
                                       const QVector<SkipHtmlElementRule> & skipRules) const
 {
-    QNDEBUG("ENMLConverter::htmlToNoteContent");
+    QNDEBUG(QStringLiteral("ENMLConverter::htmlToNoteContent"));
 
     Q_D(const ENMLConverter);
     return d->htmlToNoteContent(html, skipRules, noteContent, decryptedTextManager, errorDescription);
@@ -48,7 +48,7 @@ bool ENMLConverter::noteContentToHtml(const QString & noteContent, QString & htm
                                       DecryptedTextManager & decryptedTextManager,
                                       NoteContentToHtmlExtraData & extraData) const
 {
-    QNDEBUG("ENMLConverter::noteContentToHtml");
+    QNDEBUG(QStringLiteral("ENMLConverter::noteContentToHtml"));
 
     Q_D(const ENMLConverter);
     return d->noteContentToHtml(noteContent, html, errorDescription, decryptedTextManager, extraData);
@@ -113,45 +113,45 @@ QTextStream & ENMLConverter::SkipHtmlElementRule::print(QTextStream & strm) cons
     switch(rule) \
     { \
         case Equals: \
-            strm << "Equals"; \
+            strm << QStringLiteral("Equals"); \
             break; \
         case StartsWith: \
-            strm << "Starts with"; \
+            strm << QStringLiteral("Starts with"); \
             break; \
         case EndsWith: \
-            strm << "Ends with"; \
+            strm << QStringLiteral("Ends with"); \
             break; \
         case Contains: \
-            strm << "Contains"; \
+            strm << QStringLiteral("Contains"); \
             break; \
         default: \
-            strm << "unknown"; \
+            strm << QStringLiteral("unknown"); \
             break; \
     }
 
-    strm << "SkipHtmlElementRule: {\n";
-    strm << "  element name to skip = " << m_elementNameToSkip
-         << ", rule: ";
+    strm << QStringLiteral("SkipHtmlElementRule: {\n");
+    strm << QStringLiteral("  element name to skip = ") << m_elementNameToSkip
+         << QStringLiteral(", rule: ");
     PRINT_COMPARISON_RULE(m_elementNameComparisonRule)
-    strm << ", case " << (m_elementNameCaseSensitivity == Qt::CaseSensitive
-                          ? "sensitive"
-                          : "insensitive");
-    strm << "\n";
+    strm << QStringLiteral(", case ") << ((m_elementNameCaseSensitivity == Qt::CaseSensitive)
+                                          ? QStringLiteral("sensitive")
+                                          : QStringLiteral("insensitive"));
+    strm << QStringLiteral("\n");
 
-    strm << "  attribute name to skip = " << m_attributeNameToSkip
-         << ", rule: ";
+    strm << QStringLiteral("  attribute name to skip = ") << m_attributeNameToSkip
+         << QStringLiteral(", rule: ");
     PRINT_COMPARISON_RULE(m_attributeNameComparisonRule)
-    strm << ", case " << (m_attributeNameCaseSensitivity == Qt::CaseSensitive
-                          ? "sensitive"
-                          : "insensitive");
-    strm << "\n";
+    strm << QStringLiteral(", case ") << ((m_attributeNameCaseSensitivity == Qt::CaseSensitive)
+                                          ? QStringLiteral("sensitive")
+                                          : QStringLiteral("insensitive"));
+    strm << QStringLiteral("\n");
 
-    strm << "  attribute value to skip = " << m_attributeValueToSkip
-         << ", rule: ";
+    strm << QStringLiteral("  attribute value to skip = ") << m_attributeValueToSkip
+         << QStringLiteral(", rule: ");
     PRINT_COMPARISON_RULE(m_attributeValueComparisonRule)
-    strm << ", case " << (m_attributeValueCaseSensitivity == Qt::CaseSensitive
-                          ? "sensitive"
-                          : "insensitive");
+    strm << QStringLiteral(", case ") << ((m_attributeValueCaseSensitivity == Qt::CaseSensitive)
+                                          ? QStringLiteral("sensitive")
+                                          : QStringLiteral("insensitive"));
     strm << "\n}\n";
 
     return strm;

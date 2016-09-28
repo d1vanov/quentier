@@ -41,7 +41,7 @@ Transaction::~Transaction()
     if ((m_type != Selection) && !m_committed)
     {
         QSqlQuery query(m_db);
-        bool res = query.exec("ROLLBACK");
+        bool res = query.exec(QStringLiteral("ROLLBACK"));
         if (!res) {
             QNLocalizedString errorMessage = QT_TR_NOOP("can't rollback SQL transaction");
             QSqlError error = query.lastError();
@@ -53,7 +53,7 @@ Transaction::~Transaction()
     else if ((m_type == Selection) && !m_ended)
     {
         QSqlQuery query(m_db);
-        bool res = query.exec("END");
+        bool res = query.exec(QStringLiteral("END"));
         if (!res) {
             QNLocalizedString errorMessage = QT_TR_NOOP("can't end SQL transaction");
             QSqlError error = query.lastError();
@@ -72,12 +72,12 @@ bool Transaction::commit(QNLocalizedString & errorDescription)
     }
 
     QSqlQuery query(m_db);
-    bool res = query.exec("COMMIT");
+    bool res = query.exec(QStringLiteral("COMMIT"));
     if (!res) {
         errorDescription += QT_TR_NOOP("can't commit SQL transaction, error");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += query.lastError().text();
-        QNWARNING(errorDescription << ", full last query error: " << query.lastError());
+        QNWARNING(errorDescription << QStringLiteral(", full last query error: ") << query.lastError());
         return false;
     }
 
@@ -94,12 +94,12 @@ bool Transaction::end(QNLocalizedString & errorDescription)
     }
 
     QSqlQuery query(m_db);
-    bool res = query.exec("END");
+    bool res = query.exec(QStringLiteral("END"));
     if (!res) {
         errorDescription += QT_TR_NOOP("can't end SQL transaction, error");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += query.lastError().text();
-        QNWARNING(errorDescription << ", full last query error: " << query.lastError());
+        QNWARNING(errorDescription << QStringLiteral(", full last query error: ") << query.lastError());
         return false;
     }
 
@@ -109,20 +109,20 @@ bool Transaction::end(QNLocalizedString & errorDescription)
 
 void Transaction::init()
 {
-    QString queryString = "BEGIN";
+    QString queryString = QStringLiteral("BEGIN");
     if (m_type == Immediate) {
-        queryString += " IMMEDIATE";
+        queryString += QStringLiteral(" IMMEDIATE");
     }
     else if (m_type == Exclusive) {
-        queryString += " EXCLUSIVE";
+        queryString += QStringLiteral(" EXCLUSIVE");
     }
 
     QSqlQuery query(m_db);
     bool res = query.exec(queryString);
     if (!res) {
-        QNCRITICAL("Error beginning the SQL transaction: " << query.lastError());
+        QNCRITICAL(QStringLiteral("Error beginning the SQL transaction: ") << query.lastError());
         QNLocalizedString errorDescription = QT_TR_NOOP("can't begin SQL transaction, error");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += query.lastError().text();
         throw DatabaseSqlErrorException(errorDescription);
     }

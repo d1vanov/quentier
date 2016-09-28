@@ -26,7 +26,7 @@ DatabaseLockedException::DatabaseLockedException(const QNLocalizedString & messa
 
 const QString DatabaseLockedException::exceptionDisplayName() const
 {
-    return QString("DatabaseLockedException");
+    return QStringLiteral("DatabaseLockedException");
 }
 
 } // namespace quentier

@@ -26,7 +26,7 @@ LoggerInitializationException::LoggerInitializationException(const QNLocalizedSt
 
 const QString LoggerInitializationException::exceptionDisplayName() const
 {
-    return "LoggerInitializationException";
+    return QStringLiteral("LoggerInitializationException");
 }
 
-}
+} // namespace quentier

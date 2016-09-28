@@ -205,7 +205,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
 
     QStringList words = splitSearchQueryString(queryString);
 
-    QRegExp notebookModifierRegex("notebook:*");
+    QRegExp notebookModifierRegex(QStringLiteral("notebook:*"));
     notebookModifierRegex.setPatternSyntax(QRegExp::Wildcard);
 
     int notebookScopeModifierPosition = words.indexOf(notebookModifierRegex);
@@ -217,12 +217,12 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
     else if (notebookScopeModifierPosition == 0)
     {
         m_notebookModifier = words[notebookScopeModifierPosition];
-        m_notebookModifier = m_notebookModifier.remove("notebook:");
+        m_notebookModifier = m_notebookModifier.remove(QStringLiteral("notebook:"));
         removeBoundaryQuotesFromWord(m_notebookModifier);
     }
 
     // NOTE: "any:" scope modifier is not position dependent and affects the whole query
-    int anyScopeModifierPosition = words.indexOf("any:");
+    int anyScopeModifierPosition = words.indexOf(QStringLiteral("any:"));
     if (anyScopeModifierPosition >= 0) {
         m_hasAnyModifier = true;
     }
@@ -235,70 +235,70 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
         return false;
     }
 
-    parseStringValue("tag", words, m_tagNames, m_negatedTagNames, m_hasAnyTag, m_hasNegatedAnyTag);
-    parseStringValue("intitle", words, m_titleNames, m_negatedTitleNames, m_hasAnyTitleName, m_hasNegatedAnyTitleName);
-    parseStringValue("resource", words, m_resourceMimeTypes, m_negatedResourceMimeTypes,
+    parseStringValue(QStringLiteral("tag"), words, m_tagNames, m_negatedTagNames, m_hasAnyTag, m_hasNegatedAnyTag);
+    parseStringValue(QStringLiteral("intitle"), words, m_titleNames, m_negatedTitleNames, m_hasAnyTitleName, m_hasNegatedAnyTitleName);
+    parseStringValue(QStringLiteral("resource"), words, m_resourceMimeTypes, m_negatedResourceMimeTypes,
                      m_hasAnyResourceMimeType, m_hasNegatedAnyResourceMimeType);
-    parseStringValue("author", words, m_authors, m_negatedAuthors, m_hasAnyAuthor, m_hasNegatedAnyAuthor);
-    parseStringValue("source", words, m_sources, m_negatedSources, m_hasAnySource, m_hasNegatedAnySource);
-    parseStringValue("sourceApplication", words, m_sourceApplications, m_negatedSourceApplications,
+    parseStringValue(QStringLiteral("author"), words, m_authors, m_negatedAuthors, m_hasAnyAuthor, m_hasNegatedAnyAuthor);
+    parseStringValue(QStringLiteral("source"), words, m_sources, m_negatedSources, m_hasAnySource, m_hasNegatedAnySource);
+    parseStringValue(QStringLiteral("sourceApplication"), words, m_sourceApplications, m_negatedSourceApplications,
                      m_hasAnySourceApplication, m_hasNegatedAnySourceApplication);
-    parseStringValue("contentClass", words, m_contentClasses, m_negatedContentClasses,
+    parseStringValue(QStringLiteral("contentClass"), words, m_contentClasses, m_negatedContentClasses,
                      m_hasAnyContentClass, m_hasNegatedAnyContentClass);
-    parseStringValue("placeName", words, m_placeNames, m_negatedPlaceNames,
+    parseStringValue(QStringLiteral("placeName"), words, m_placeNames, m_negatedPlaceNames,
                      m_hasAnyPlaceName, m_hasNegatedAnyPlaceName);
-    parseStringValue("applicationData", words, m_applicationData, m_negatedApplicationData,
+    parseStringValue(QStringLiteral("applicationData"), words, m_applicationData, m_negatedApplicationData,
                      m_hasAnyApplicationData, m_hasNegatedAnyApplicationData);
 
-    res = parseIntValue("created", words, m_creationTimestamps, m_negatedCreationTimestamps,
+    res = parseIntValue(QStringLiteral("created"), words, m_creationTimestamps, m_negatedCreationTimestamps,
                         m_hasAnyCreationTimestamp, m_hasNegatedAnyCreationTimestamp, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("updated", words, m_modificationTimestamps, m_negatedModificationTimestamps,
+    res = parseIntValue(QStringLiteral("updated"), words, m_modificationTimestamps, m_negatedModificationTimestamps,
                         m_hasAnyModificationTimestamp, m_hasNegatedAnyModificationTimestamp, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("subjectDate", words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps,
+    res = parseIntValue(QStringLiteral("subjectDate"), words, m_subjectDateTimestamps, m_negatedSubjectDateTimestamps,
                         m_hasAnySubjectDateTimestamp, m_hasNegatedAnySubjectDateTimestamp, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("reminderTime", words, m_reminderTimes, m_negatedReminderTimes,
+    res = parseIntValue(QStringLiteral("reminderTime"), words, m_reminderTimes, m_negatedReminderTimes,
                         m_hasAnyReminderTime, m_hasNegatedAnyReminderTime, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("reminderDoneTime", words, m_reminderDoneTimes, m_negatedReminderDoneTimes,
+    res = parseIntValue(QStringLiteral("reminderDoneTime"), words, m_reminderDoneTimes, m_negatedReminderDoneTimes,
                         m_hasAnyReminderDoneTime, m_hasNegatedAnyReminderDoneTime, error);
     if (!res) {
         return false;
     }
 
-    res = parseIntValue("reminderOrder", words, m_reminderOrders, m_negatedReminderOrders,
+    res = parseIntValue(QStringLiteral("reminderOrder"), words, m_reminderOrders, m_negatedReminderOrders,
                         m_hasAnyReminderOrder, m_hasNegatedAnyReminderOrder, error);
     if (!res) {
         return false;
     }
 
-    res = parseDoubleValue("latitude", words, m_latitudes, m_negatedLatitudes,
+    res = parseDoubleValue(QStringLiteral("latitude"), words, m_latitudes, m_negatedLatitudes,
                            m_hasAnyLatitude, m_hasNegatedAnyLatitude, error);
     if (!res) {
         return false;
     }
 
-    res = parseDoubleValue("longitude", words, m_longitudes, m_negatedLongitudes,
+    res = parseDoubleValue(QStringLiteral("longitude"), words, m_longitudes, m_negatedLongitudes,
                            m_hasAnyLongitude, m_hasNegatedAnyLongitude, error);
     if (!res) {
         return false;
     }
 
-    res = parseDoubleValue("altitude", words, m_altitudes, m_negatedAltitudes,
+    res = parseDoubleValue(QStringLiteral("altitude"), words, m_altitudes, m_negatedAltitudes,
                            m_hasAnyAltitude, m_hasNegatedAnyAltitude, error);
     if (!res) {
         return false;
@@ -306,12 +306,12 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
 
     // Processing all possible variants of "todo:[true|false|*]" tags
 
-    QString negatedFinishedToDo = "-todo:true";
-    QString finishedToDo = "todo:true";
-    QString negatedUnfinishedToDo = "-todo:false";
-    QString unfinishedToDo = "todo:false";
-    QString negatedAnyToDo = "-todo:*";
-    QString anyToDo = "todo:*";
+    QString negatedFinishedToDo = QStringLiteral("-todo:true");
+    QString finishedToDo = QStringLiteral("todo:true");
+    QString negatedUnfinishedToDo = QStringLiteral("-todo:false");
+    QString unfinishedToDo = QStringLiteral("todo:false");
+    QString negatedAnyToDo = QStringLiteral("-todo:*");
+    QString anyToDo = QStringLiteral("todo:*");
 
     foreach(const QString & searchTerm, words)
     {
@@ -362,8 +362,8 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
 
     // Processing encryption tag
 
-    QString negatedEncryption = "-encryption:";
-    QString encryption = "encryption:";
+    QString negatedEncryption = QStringLiteral("-encryption:");
+    QString encryption = QStringLiteral("encryption:");
     foreach(const QString & searchTerm, words)
     {
         if (searchTerm == negatedEncryption) {
@@ -382,21 +382,21 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
     // In the Evernote search grammar the searches are case insensitive so forcing all words
     // to the lower case
 
-    QRegExp asteriskFilter("[*]");
+    QRegExp asteriskFilter(QStringLiteral("[*]"));
 
     for(int i = 0, size = words.size(); i < size; ++i)
     {
         QString searchTerm = words[i];
 
-        if (searchTerm.startsWith("notebook:")) {
+        if (searchTerm.startsWith(QStringLiteral("notebook:"))) {
             continue;
         }
 
-        if (searchTerm.startsWith("any:")) {
+        if (searchTerm.startsWith(QStringLiteral("any:"))) {
             continue;
         }
 
-        bool negated = searchTerm.startsWith("-");
+        bool negated = searchTerm.startsWith(QStringLiteral("-"));
         if (negated) {
             searchTerm.remove(0, 1);
         }
@@ -426,29 +426,32 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
 
 QTextStream & NoteSearchQueryPrivate::print(QTextStream & strm) const
 {
-    QString indent = "  ";
+    const char * indent = "  ";
 
-    strm << "NoteSearchQuery: { \n";
-    strm << indent << "query string: " << (m_queryString.isEmpty() ? "<empty>" : m_queryString) << "; \n";
-    strm << indent << "notebookModifier: " << (m_notebookModifier.isEmpty() ? "<empty>" : m_notebookModifier) << "; \n";
-    strm << indent << "hasAnyModifier: " << (m_hasAnyModifier ? "true" : "false")   << "\n";
+    strm << QStringLiteral("NoteSearchQuery: { \n");
+    strm << indent << QStringLiteral("query string: ") << (m_queryString.isEmpty() ? QStringLiteral("<empty>") : m_queryString)
+         << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("notebookModifier: ") << (m_notebookModifier.isEmpty() ? QStringLiteral("<empty>") : m_notebookModifier)
+         << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("hasAnyModifier: ") << (m_hasAnyModifier ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral("\n");
 
 #define CHECK_AND_PRINT_ANY_ITEM(name) \
     if (m_hasAny##name) { \
-        strm << indent << "hasAny" #name " is true; \n"; \
+        strm << indent << QStringLiteral("hasAny" #name " is true; \n"); \
     } \
     if (m_hasNegatedAny##name) { \
-        strm << indent << "hasNegatedAny" #name "is true; \n"; \
+        strm << indent << QStringLiteral("hasNegatedAny" #name "is true; \n"); \
     }
 
 #define CHECK_AND_PRINT_LIST(name, type, ...) \
     if (m_##name.isEmpty()) { \
-        strm << indent << #name " is empty; \n"; \
+        strm << indent << QStringLiteral( #name " is empty; \n"); \
     } \
     else { \
-        strm << indent << #name ": { \n"; \
+        strm << indent << QStringLiteral( #name ": { \n"); \
         foreach(const type & word, m_##name) { \
-            strm << indent << indent << __VA_ARGS__ (word) << "; \n"; \
+            strm << indent << indent << __VA_ARGS__ (word) << QStringLiteral("; \n"); \
         } \
         strm << indent << "}; \n"; \
     }
@@ -525,14 +528,16 @@ QTextStream & NoteSearchQueryPrivate::print(QTextStream & strm) const
     CHECK_AND_PRINT_LIST(reminderDoneTimes, qint64, QString::number);
     CHECK_AND_PRINT_LIST(negatedReminderDoneTimes, qint64, QString::number);
 
-    strm << indent << "hasUnfinishedToDo: " << (m_hasUnfinishedToDo ? "true" : "false") << "; \n";
-    strm << indent << "hasNegatedUnfinishedToDo: " << (m_hasNegatedUnfinishedToDo ? "true" : "false") << "; \n";
-    strm << indent << "hasFinishedToDo: " << (m_hasFinishedToDo ? "true" : "false") << "; \n";
-    strm << indent << "hasNegatedFinishedToDo: " << (m_hasNegatedFinishedToDo ? "true" : "false") << "; \n";
-    strm << indent << "hasAnyToDo: " << (m_hasAnyToDo ? "true" : "false") << "; \n";
-    strm << indent << "hasNegatedAnyTodo: " << (m_hasNegatedAnyToDo ? "true" : "false") << " \n";
-    strm << indent << "hasEncryption: " << (m_hasEncryption ? "true" : "false") << "\n";
-    strm << indent << "hasNegatedEncryption: " << (m_hasNegatedEncryption ? "true" : "false") << " \n";
+    strm << indent << QStringLiteral("hasUnfinishedToDo: ") << (m_hasUnfinishedToDo ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("hasNegatedUnfinishedToDo: ") << (m_hasNegatedUnfinishedToDo ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("hasFinishedToDo: ") << (m_hasFinishedToDo ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("hasNegatedFinishedToDo: ") << (m_hasNegatedFinishedToDo ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("hasAnyToDo: ") << (m_hasAnyToDo ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("hasNegatedAnyTodo: ") << (m_hasNegatedAnyToDo ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(" \n");
+    strm << indent << QStringLiteral("hasEncryption: ") << (m_hasEncryption ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("\n");
+    strm << indent << QStringLiteral("hasNegatedEncryption: ") << (m_hasNegatedEncryption ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(" \n");
 
     CHECK_AND_PRINT_LIST(contentSearchTerms, QString);
     CHECK_AND_PRINT_LIST(negatedContentSearchTerms, QString);
@@ -540,7 +545,7 @@ QTextStream & NoteSearchQueryPrivate::print(QTextStream & strm) const
 #undef CHECK_AND_PRINT_LIST
 #undef CHECK_AND_PRINT_ANY_ITEM
 
-    strm << "}; \n";
+    strm << QStringLiteral("}; \n");
 
     return strm;
 }
@@ -749,7 +754,7 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
 
     QString asterisk = "*";
 
-    QRegExp regexp(asterisk + key + QString(":*"));
+    QRegExp regexp(asterisk + key + QStringLiteral(":*"));
     regexp.setPatternSyntax(QRegExp::Wildcard);
 
     while(keyIndex >= 0)
@@ -766,7 +771,7 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
         else {
             processedWords << word;
         }
-        int positionInWord = word.indexOf(key + QString(":"));
+        int positionInWord = word.indexOf(key + QStringLiteral(":"));
         if (positionInWord < 0) {
             continue;
         }
@@ -780,10 +785,10 @@ void NoteSearchQueryPrivate::parseStringValue(const QString & key, QStringList &
         }
 
         if (isNegated) {
-            word = word.remove(QString("-") + key + QString(":"));
+            word = word.remove(QStringLiteral("-") + key + QStringLiteral(":"));
         }
         else {
-            word = word.remove(key + QString(":"));
+            word = word.remove(key + QStringLiteral(":"));
         }
         removeBoundaryQuotesFromWord(word);
 
@@ -821,7 +826,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
 
     QString asterisk = "*";
 
-    QRegExp regexp(asterisk + key + QString(":*"));
+    QRegExp regexp(asterisk + key + QStringLiteral(":*"));
     regexp.setPatternSyntax(QRegExp::Wildcard);
 
     while(keyIndex >= 0)
@@ -838,7 +843,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
         else {
             processedWords << word;
         }
-        int positionInWord = word.indexOf(key + QString(":"));
+        int positionInWord = word.indexOf(key + QStringLiteral(":"));
         if (positionInWord < 0) {
             continue;
         }
@@ -852,10 +857,10 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
         }
 
         if (isNegated) {
-            word = word.remove(QString("-") + key + QString(":"));
+            word = word.remove(QStringLiteral("-") + key + QStringLiteral(":"));
         }
         else {
-            word = word.remove(key + QString(":"));
+            word = word.remove(key + QStringLiteral(":"));
         }
         removeBoundaryQuotesFromWord(word);
 
@@ -877,7 +882,7 @@ bool NoteSearchQueryPrivate::parseIntValue(const QString & key, QStringList & wo
                 error += word;
                 error += QT_TR_NOOP("\", search term of parsed value is \"");
                 error += key;
-                error += "\"";
+                error += QStringLiteral("\"");
                 return false;
             }
 
@@ -905,9 +910,9 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
     QChar negation('-');
     QStringList processedWords;
 
-    QString asterisk = "*";
+    QString asterisk = QStringLiteral("*");
 
-    QRegExp regexp(asterisk + key + QString(":*"));
+    QRegExp regexp(asterisk + key + QStringLiteral(":*"));
     regexp.setPatternSyntax(QRegExp::Wildcard);
 
     while(keyIndex >= 0)
@@ -924,7 +929,7 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
         else {
             processedWords << word;
         }
-        int positionInWord = word.indexOf(key + QString(":"));
+        int positionInWord = word.indexOf(key + QStringLiteral(":"));
         if (positionInWord < 0) {
             continue;
         }
@@ -938,10 +943,10 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
         }
 
         if (isNegated) {
-            word = word.remove(QString("-") + key + QString(":"));
+            word = word.remove(QStringLiteral("-") + key + QStringLiteral(":"));
         }
         else {
-            word = word.remove(key + QString(":"));
+            word = word.remove(key + QStringLiteral(":"));
         }
         removeBoundaryQuotesFromWord(word);
 
@@ -963,7 +968,7 @@ bool NoteSearchQueryPrivate::parseDoubleValue(const QString & key, QStringList &
                 error += word;
                 error += QT_TR_NOOP("\", search term of parsed value is \"");
                 error += key;
-                error += "\"";
+                error += QStringLiteral("\"");
                 return false;
             }
 
@@ -992,11 +997,11 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     QDateTime dateTime = todayMidnight;
     bool relativeDateArgumentFound = false;
 
-    if (dateTimeString.startsWith("day"))
+    if (dateTimeString.startsWith(QStringLiteral("day")))
     {
         relativeDateArgumentFound = true;
 
-        QString offsetSubstr = dateTimeString.remove("day");
+        QString offsetSubstr = dateTimeString.remove(QStringLiteral("day"));
         if (!offsetSubstr.isEmpty())
         {
             bool conversionResult = false;
@@ -1009,14 +1014,14 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
             dateTime = dateTime.addDays(daysOffset);
         }
     }
-    else if (dateTimeString.startsWith("week"))
+    else if (dateTimeString.startsWith(QStringLiteral("week")))
     {
         relativeDateArgumentFound = true;
 
         int dayOfWeek = dateTime.date().dayOfWeek();
         dateTime = dateTime.addDays(-1 * dayOfWeek);   // go to week start
 
-        QString offsetSubstr = dateTimeString.remove("week");
+        QString offsetSubstr = dateTimeString.remove(QStringLiteral("week"));
         if (!offsetSubstr.isEmpty())
         {
             bool conversionResult = false;
@@ -1029,14 +1034,14 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
             dateTime = dateTime.addDays(7 * weekOffset);
         }
     }
-    else if (dateTimeString.startsWith("month"))
+    else if (dateTimeString.startsWith(QStringLiteral("month")))
     {
         relativeDateArgumentFound = true;
 
         int dayOfMonth = dateTime.date().day();
         dateTime = dateTime.addDays(-1 * (dayOfMonth - 1));   // go to month start
 
-        QString offsetSubstr = dateTimeString.remove("month");
+        QString offsetSubstr = dateTimeString.remove(QStringLiteral("month"));
         if (!offsetSubstr.isEmpty())
         {
             bool conversionResult = false;
@@ -1049,7 +1054,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
             dateTime = dateTime.addMonths(monthOffset);
         }
     }
-    else if (dateTimeString.startsWith("year"))
+    else if (dateTimeString.startsWith(QStringLiteral("year")))
     {
         relativeDateArgumentFound = true;
 
@@ -1059,7 +1064,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
         int currentMonth = dateTime.date().month();
         dateTime = dateTime.addMonths(-1 * (currentMonth - 1));    // go to year start
 
-        QString offsetSubstr = dateTimeString.remove("year");
+        QString offsetSubstr = dateTimeString.remove(QStringLiteral("year"));
         if (!offsetSubstr.isEmpty())
         {
             bool conversionResult = false;
@@ -1092,7 +1097,7 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
     if (!dateTime.isValid()) {
         error = QT_TR_NOOP("Invalid query string: cannot parse datetime from \"");
         error += dateTimeString;
-        error += "\"";
+        error += QStringLiteral("\"");
         QNDEBUG(error);
         return false;
     }
@@ -1104,11 +1109,11 @@ bool NoteSearchQueryPrivate::dateTimeStringToTimestamp(QString dateTimeString,
 bool NoteSearchQueryPrivate::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QNLocalizedString & error) const
 {
     QStringList dateTimePrefixes;
-    dateTimePrefixes << "created:" << "-created:" << "updated:" << "-updated:"
-                     << "subjectDate:" << "-subjectDate:" << "reminderTime:"
-                     << "-reminderTime:" << "reminderDoneTime:" << "-reminderDoneTime:";
+    dateTimePrefixes << QStringLiteral("created:") << QStringLiteral("-created:") << QStringLiteral("updated:") << QStringLiteral("-updated:")
+                     << QStringLiteral("subjectDate:") << QStringLiteral("-subjectDate:") << QStringLiteral("reminderTime:")
+                     << QStringLiteral("-reminderTime:") << QStringLiteral("reminderDoneTime:") << QStringLiteral("-reminderDoneTime:");
 
-    QString asterisk = "*";
+    QString asterisk = QStringLiteral("*");
     int numWords = words.size();
     QString wordCopy;
     for(int i = 0; i < numWords; ++i)

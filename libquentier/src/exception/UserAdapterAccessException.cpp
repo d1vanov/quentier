@@ -26,7 +26,7 @@ UserAdapterAccessException::UserAdapterAccessException(const QNLocalizedString &
 
 const QString UserAdapterAccessException::exceptionDisplayName() const
 {
-    return QString("UserAdapterAccessException");
+    return QStringLiteral("UserAdapterAccessException");
 }
 
 } // namespace quentier

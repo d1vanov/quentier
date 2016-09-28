@@ -26,7 +26,7 @@ NoteEditorPluginInitializationException::NoteEditorPluginInitializationException
 
 const QString NoteEditorPluginInitializationException::exceptionDisplayName() const
 {
-    return QString("NoteEditorPluginInitializationException");
+    return QStringLiteral("NoteEditorPluginInitializationException");
 }
 
 } // namespace quentier

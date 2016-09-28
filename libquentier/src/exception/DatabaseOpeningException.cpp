@@ -26,7 +26,7 @@ DatabaseOpeningException::DatabaseOpeningException(const QNLocalizedString & mes
 
 const QString DatabaseOpeningException::exceptionDisplayName() const
 {
-    return QString("DatabaseOpeningException");
+    return QStringLiteral("DatabaseOpeningException");
 }
 
-}
+} // namespace quentier

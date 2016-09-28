@@ -26,7 +26,7 @@ ResourceAdapterAccessException::ResourceAdapterAccessException(const QNLocalized
 
 const QString ResourceAdapterAccessException::exceptionDisplayName() const
 {
-    return QString("ResourceAdapterAccessException");
+    return QStringLiteral("ResourceAdapterAccessException");
 }
 
 } // namespace quentier

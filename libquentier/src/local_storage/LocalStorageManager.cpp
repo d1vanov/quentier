@@ -22,8 +22,6 @@
 
 namespace quentier {
 
-#define QUENTIER_DATABASE_NAME "qn.storage.sqlite"
-
 LocalStorageManager::LocalStorageManager(const QString & username, const UserID userId,
                                          const bool startFromScratch, const bool overrideLock) :
     d_ptr(new LocalStorageManagerPrivate(username, userId, startFromScratch, overrideLock))
