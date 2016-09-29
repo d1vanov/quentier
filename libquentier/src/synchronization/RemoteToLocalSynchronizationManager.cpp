@@ -23,10 +23,13 @@
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/types/ResourceAdapter.h>
 #include <quentier/utility/QuentierCheckPtr.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QTimerEvent>
 #include <QThreadPool>
 #include <algorithm>
+
+#define THIRTY_DAYS_IN_MSEC (2592000000)
 
 namespace quentier {
 
@@ -2526,6 +2529,8 @@ void RemoteToLocalSynchronizationManager::launchSync()
         return;
     }
 
+    checkAndSyncAccountLimits();
+
     launchSavedSearchSync();
     launchLinkedNotebookSync();
 
@@ -2558,6 +2563,52 @@ void RemoteToLocalSynchronizationManager::launchSync()
     }
 
     launchResourcesSync();
+}
+
+void RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits"));
+
+    ApplicationSettings appSettings;
+
+    const QString keyGroup = QStringLiteral("account_limits") + QStringLiteral("/");
+
+    QVariant accountLimitsLastSyncTime = appSettings.value(keyGroup + QStringLiteral("last_sync_time"));
+    if (!accountLimitsLastSyncTime.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null last sync time for account limits"));
+
+        bool conversionResult = false;
+        qint64 timestamp = accountLimitsLastSyncTime.toLongLong(&conversionResult);
+        if (conversionResult)
+        {
+            QNTRACE(QStringLiteral("Successfully read last sync time for account limits: ")
+                    << printableDateTimeFromTimestamp(timestamp));
+            qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+            qint64 diff = currentTimestamp - timestamp;
+            if ((diff > 0) && (diff < THIRTY_DAYS_IN_MSEC)) {
+                QNTRACE("The cached account limits appear to be still valid");
+                readSavedAccountLimits();
+                return;
+            }
+        }
+    }
+
+    syncAccountLimits();
+}
+
+void RemoteToLocalSynchronizationManager::syncAccountLimits()
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncAccountLimits"));
+
+    // TODO: implement
+}
+
+void RemoteToLocalSynchronizationManager::readSavedAccountLimits()
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::readSavedAccountLimits"));
+
+    // TODO: implement
 }
 
 void RemoteToLocalSynchronizationManager::launchTagsSync()

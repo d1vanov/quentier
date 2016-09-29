@@ -197,6 +197,10 @@ private:
 
     void launchSync();
 
+    void checkAndSyncAccountLimits();
+    void syncAccountLimits();
+    void readSavedAccountLimits();
+
     void launchTagsSync();
     void launchSavedSearchSync();
     void launchLinkedNotebookSync();
