@@ -76,12 +76,12 @@ const QString ToString(const QHash<TKey, TValue> & object)
 {
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
-    strm << "QHash: \n";
+    strm << QStringLiteral("QHash: \n");
 
     typedef typename QHash<TKey,TValue>::const_iterator CIter;
     CIter hashEnd = object.end();
     for(CIter it = object.begin(); it != hashEnd; ++it) {
-        strm << "[" << it.key() << "] = " << it.value() << ";\n";
+        strm << QStringLiteral("[") << it.key() << QStringLiteral("] = ") << it.value() << QStringLiteral(";\n");
     }
     return str;
 }
@@ -91,12 +91,12 @@ const QString ToString(const QSet<T> & object)
 {
     QString str;
     QTextStream strm(&str, QIODevice::WriteOnly);
-    strm << "QSet: \n";
+    strm << QStringLiteral("QSet: \n");
 
     typedef typename QSet<T>::const_iterator CIter;
     CIter setEnd = object.end();
     for(CIter it = object.begin(); it != setEnd; ++it) {
-        strm << "[" << *it << "];\n";
+        strm << QStringLiteral("[") << *it << QStringLiteral("];\n");
     }
     return str;
 }

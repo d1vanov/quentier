@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/Linkage.h>
+#include <quentier/utility/Printable.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <QWidget>
@@ -120,7 +121,7 @@ public:
             Counterclockwise
         };
 
-        friend std::ostream & operator<<(const type rotation, std::ostream & strm);
+        friend QTextStream & operator<<(QTextStream & strm, const type & rotation);
     };
 
     virtual void rotateImageAttachment(const QByteArray & resourceHash, const Rotation::type rotationDirection) = 0;

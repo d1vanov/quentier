@@ -41,19 +41,19 @@ NoteEditorPage::NoteEditorPage(NoteEditorPrivate & parent) :
 
 NoteEditorPage::~NoteEditorPage()
 {
-    QNDEBUG("NoteEditorPage::~NoteEditorPage");
+    QNDEBUG(QStringLiteral("NoteEditorPage::~NoteEditorPage"));
 }
 
 bool NoteEditorPage::javaScriptQueueEmpty() const
 {
-    QNDEBUG("NoteEditorPage::javaScriptQueueEmpty: "
-            << (m_pJavaScriptInOrderExecutor->empty() ? "true" : "false"));
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptQueueEmpty: ")
+            << (m_pJavaScriptInOrderExecutor->empty() ? QStringLiteral("true") : QStringLiteral("false")));
     return m_pJavaScriptInOrderExecutor->empty();
 }
 
 void NoteEditorPage::setInactive()
 {
-    QNDEBUG("NoteEditorPage::setInactive");
+    QNDEBUG(QStringLiteral("NoteEditorPage::setInactive"));
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
     NoteEditorPluginFactory * pPluginFactory = qobject_cast<NoteEditorPluginFactory*>(pluginFactory());
@@ -65,7 +65,7 @@ void NoteEditorPage::setInactive()
 
 void NoteEditorPage::setActive()
 {
-    QNDEBUG("NoteEditorPage::setActive");
+    QNDEBUG(QStringLiteral("NoteEditorPage::setActive"));
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
     NoteEditorPluginFactory * pPluginFactory = qobject_cast<NoteEditorPluginFactory*>(pluginFactory());
@@ -77,13 +77,13 @@ void NoteEditorPage::setActive()
 
 void NoteEditorPage::stopJavaScriptAutoExecution()
 {
-    QNDEBUG("NoteEditorPage::stopJavaScriptAutoExecution");
+    QNDEBUG(QStringLiteral("NoteEditorPage::stopJavaScriptAutoExecution"));
     m_javaScriptAutoExecution = false;
 }
 
 void NoteEditorPage::startJavaScriptAutoExecution()
 {
-    QNDEBUG("NoteEditorPage::startJavaScriptAutoExecution");
+    QNDEBUG(QStringLiteral("NoteEditorPage::startJavaScriptAutoExecution"));
     m_javaScriptAutoExecution = true;
     if (!m_pJavaScriptInOrderExecutor->inProgress()) {
         m_pJavaScriptInOrderExecutor->start();
@@ -92,7 +92,7 @@ void NoteEditorPage::startJavaScriptAutoExecution()
 
 bool NoteEditorPage::shouldInterruptJavaScript()
 {
-    QNDEBUG("NoteEditorPage::shouldInterruptJavaScript");
+    QNDEBUG(QStringLiteral("NoteEditorPage::shouldInterruptJavaScript"));
 
     QString title = tr("Note editor hanged");
     QString question = tr("Note editor seems hanged when loading or editing the note. "
@@ -101,12 +101,12 @@ bool NoteEditorPage::shouldInterruptJavaScript()
                                                               QMessageBox::Yes | QMessageBox::No,
                                                               QMessageBox::No);
     if (reply == QMessageBox::Yes) {
-        QNINFO("Note load was cancelled due to too long javascript evaluation");
+        QNINFO(QStringLiteral("Note load was cancelled due to too long javascript evaluation"));
         emit noteLoadCancelled();
         return true;
     }
     else {
-        QNINFO("Note load seems to take a lot of time but user wished to wait more");
+        QNINFO(QStringLiteral("Note load seems to take a lot of time but user wished to wait more"));
         return false;
     }
 }
@@ -126,49 +126,49 @@ void NoteEditorPage::executeJavaScript(const QString & script, Callback callback
 
 void NoteEditorPage::onJavaScriptQueueEmpty()
 {
-    QNDEBUG("NoteEditorPage::onJavaScriptQueueEmpty");
+    QNDEBUG(QStringLiteral("NoteEditorPage::onJavaScriptQueueEmpty"));
     emit javaScriptLoaded();
 }
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
 void NoteEditorPage::javaScriptAlert(QWebFrame * pFrame, const QString & message)
 {
-    QNDEBUG("NoteEditorPage::javaScriptAlert, message: " << message);
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptAlert, message: ") << message);
     QWebPage::javaScriptAlert(pFrame, message);
 }
 
 bool NoteEditorPage::javaScriptConfirm(QWebFrame * pFrame, const QString & message)
 {
-    QNDEBUG("NoteEditorPage::javaScriptConfirm, message: " << message);
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptConfirm, message: ") << message);
     return QWebPage::javaScriptConfirm(pFrame, message);
 }
 
 void NoteEditorPage::javaScriptConsoleMessage(const QString & message, int lineNumber, const QString & sourceID)
 {
-    QNDEBUG("NoteEditorPage::javaScriptConsoleMessage, message: " << message << ", line number: " << lineNumber
-            << ", sourceID = " << sourceID);
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptConsoleMessage, message: ") << message << QStringLiteral(", line number: ")
+            << lineNumber << QStringLiteral(", sourceID = ") << sourceID);
     QWebPage::javaScriptConsoleMessage(message, lineNumber, sourceID);
 }
 #else
 void NoteEditorPage::javaScriptAlert(const QUrl & securityOrigin, const QString & msg)
 {
-    QNDEBUG("NoteEditorPage::javaScriptAlert, message: " << msg);
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptAlert, message: ") << msg);
     QWebEnginePage::javaScriptAlert(securityOrigin, msg);
 }
 
 bool NoteEditorPage::javaScriptConfirm(const QUrl & securityOrigin, const QString & msg)
 {
-    QNDEBUG("NoteEditorPage::javaScriptConfirm, message: " << msg);
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptConfirm, message: ") << msg);
     return QWebEnginePage::javaScriptConfirm(securityOrigin, msg);
 }
 
 void NoteEditorPage::javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level,
                                               const QString & message, int lineNumber, const QString & sourceID)
 {
-    QNDEBUG("NoteEditorPage::javaScriptConsoleMessage, message: " << message << ", level = " << level
-            << ", line number: " << lineNumber << ", sourceID = " << sourceID);
+    QNDEBUG(QStringLiteral("NoteEditorPage::javaScriptConsoleMessage, message: ") << message << QStringLiteral(", level = ")
+            << level << QStringLiteral(", line number: ") << lineNumber << QStringLiteral(", sourceID = ") << sourceID);
     QWebEnginePage::javaScriptConsoleMessage(level, message, lineNumber, sourceID);
 }
-#endif
+#endif // QUENTIER_USE_QT_WEB_ENGINE
 
 } // namespace quentier

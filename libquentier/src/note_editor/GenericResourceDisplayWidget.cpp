@@ -65,7 +65,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
                                               const ResourceFileStorageManager & resourceFileStorageManager,
                                               const FileIOThreadWorker & fileIOThreadWorker)
 {
-    QNDEBUG("GenericResourceDisplayWidget::initialize: name = " << name << ", size = " << size);
+    QNDEBUG(QStringLiteral("GenericResourceDisplayWidget::initialize: name = ") << name << QStringLiteral(", size = ") << size);
 
     m_pResource = new ResourceWrapper(resource);
     m_pResourceFileStorageManager = &resourceFileStorageManager;
@@ -77,18 +77,18 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     updateResourceName(name);
     m_pUI->resourceDisplayNameLabel->setTextFormat(Qt::RichText);
 
-    m_pUI->resourceSizeLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" + size +
-                                      "</span></p></body></head></html>");
+    m_pUI->resourceSizeLabel->setText(QStringLiteral("<html><head/><body><p><span style=\" font-size:8pt;\">") + size +
+                                      QStringLiteral("</span></p></body></head></html>"));
     m_pUI->resourceSizeLabel->setTextFormat(Qt::RichText);
 
     m_pUI->resourceIconLabel->setPixmap(icon.pixmap(QSize(16,16)));
 
-    if (!QIcon::hasThemeIcon("document-open")) {
-        m_pUI->openResourceButton->setIcon(QIcon(":/generic_resource_icons/png/open_with.png"));
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
+        m_pUI->openResourceButton->setIcon(QIcon(QStringLiteral(":/generic_resource_icons/png/open_with.png")));
     }
 
-    if (!QIcon::hasThemeIcon("document-save-as")) {
-        m_pUI->saveResourceButton->setIcon(QIcon(":/generic_resource_icons/png/save.png"));
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-save-as"))) {
+        m_pUI->saveResourceButton->setIcon(QIcon(QStringLiteral(":/generic_resource_icons/png/save.png")));
     }
 
     QObject::connect(m_pUI->openResourceButton, QNSIGNAL(QPushButton,released),
@@ -107,7 +107,7 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
-        QNWARNING("Resource passed to GenericResourceDisplayWidget has no data: " << *m_pResource);
+        QNWARNING(QStringLiteral("Resource passed to GenericResourceDisplayWidget has no data: ") << *m_pResource);
         return;
     }
 
@@ -132,11 +132,11 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     QString preferredFileSuffix = m_pResource->preferredFileSuffix();
     m_saveResourceToStorageRequestId = QUuid::createUuid();
     bool isImage = (m_pResource->hasMime()
-                    ? m_pResource->mime().startsWith("image")
+                    ? m_pResource->mime().startsWith(QStringLiteral("image"))
                     : false);
 
-    QNTRACE("Emitting the request to save the attachment to own file storage location, request id = "
-            << m_saveResourceToStorageRequestId << ", resource local uid = " << m_pResource->localUid());
+    QNTRACE(QStringLiteral("Emitting the request to save the attachment to own file storage location, request id = ")
+            << m_saveResourceToStorageRequestId << QStringLiteral(", resource local uid = ") << m_pResource->localUid());
     emit saveResourceToStorage(m_pResource->noteLocalUid(), m_pResource->localUid(), data, *dataHash,
                                preferredFileSuffix, m_saveResourceToStorageRequestId, isImage);
 }
@@ -152,8 +152,8 @@ QString GenericResourceDisplayWidget::resourceLocalUid() const
 
 void GenericResourceDisplayWidget::updateResourceName(const QString & resourceName)
 {
-    m_pUI->resourceDisplayNameLabel->setText("<html><head/><body><p><span style=\" font-size:8pt;\">" +
-                                             resourceName + "</span></p></body></head></html>");
+    m_pUI->resourceDisplayNameLabel->setText(QStringLiteral("<html><head/><body><p><span style=\" font-size:8pt;\">") +
+                                             resourceName + QStringLiteral("</span></p></body></head></html>"));
 }
 
 void GenericResourceDisplayWidget::onOpenWithButtonPressed()
@@ -168,13 +168,13 @@ void GenericResourceDisplayWidget::onOpenWithButtonPressed()
 
 void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 {
-    QNDEBUG("GenericResourceDisplayWidget::onSaveAsButtonPressed");
+    QNDEBUG(QStringLiteral("GenericResourceDisplayWidget::onSaveAsButtonPressed"));
 
     QUENTIER_CHECK_PTR(m_pResource);
 
     if (!m_pResource->hasDataBody() && !m_pResource->hasAlternateDataBody()) {
-        QNWARNING("Can't save resource: no data body or alternate data body within the resource");
-        internalErrorMessageBox(this, "resource has neither data body nor alternate data body");
+        QNWARNING(QStringLiteral("Can't save resource: no data body or alternate data body within the resource"));
+        internalErrorMessageBox(this, tr("resource has neither data body nor alternate data body"));
         return;
     }
 
@@ -189,12 +189,12 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     {
         ApplicationSettings appSettings;
         QStringList childGroups = appSettings.childGroups();
-        int attachmentsSaveLocGroupIndex = childGroups.indexOf("AttachmentSaveLocations");
+        int attachmentsSaveLocGroupIndex = childGroups.indexOf(QStringLiteral("AttachmentSaveLocations"));
         if (attachmentsSaveLocGroupIndex >= 0)
         {
-            QNTRACE("Found cached attachment save location group within application settings");
+            QNTRACE(QStringLiteral("Found cached attachment save location group within application settings"));
 
-            appSettings.beginGroup("AttachmentSaveLocations");
+            appSettings.beginGroup(QStringLiteral("AttachmentSaveLocations"));
             QStringList cachedFileSuffixes = appSettings.childKeys();
             const int numPreferredSuffixes = m_preferredFileSuffixes.size();
             for(int i = 0; i < numPreferredSuffixes; ++i)
@@ -202,30 +202,30 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
                 preferredSuffix = m_preferredFileSuffixes[i];
                 int indexInCache = cachedFileSuffixes.indexOf(preferredSuffix);
                 if (indexInCache < 0) {
-                    QNTRACE("Haven't found cached attachment save directory for file suffix " << preferredSuffix);
+                    QNTRACE(QStringLiteral("Haven't found cached attachment save directory for file suffix ") << preferredSuffix);
                     continue;
                 }
 
                 QVariant dirValue = appSettings.value(preferredSuffix);
                 if (dirValue.isNull() || !dirValue.isValid()) {
-                    QNTRACE("Found inappropriate attachment save directory for file suffix " << preferredSuffix);
+                    QNTRACE(QStringLiteral("Found inappropriate attachment save directory for file suffix ") << preferredSuffix);
                     continue;
                 }
 
                 QFileInfo dirInfo(dirValue.toString());
                 if (!dirInfo.exists()) {
-                    QNTRACE("Cached attachment save directory for file suffix " << preferredSuffix
-                            << " does not exist: " << dirInfo.absolutePath());
+                    QNTRACE(QStringLiteral("Cached attachment save directory for file suffix ") << preferredSuffix
+                            << QStringLiteral(" does not exist: ") << dirInfo.absolutePath());
                     continue;
                 }
                 else if (!dirInfo.isDir()) {
-                    QNTRACE("Cached attachment save directory for file suffix " << preferredSuffix
-                            << " is not a directory: " << dirInfo.absolutePath());
+                    QNTRACE(QStringLiteral("Cached attachment save directory for file suffix ") << preferredSuffix
+                            << QStringLiteral(" is not a directory: ") << dirInfo.absolutePath());
                     continue;
                 }
                 else if (!dirInfo.isWritable()) {
-                    QNTRACE("Cached attachment save directory for file suffix " << preferredSuffix
-                            << " is not writable: " << dirInfo.absolutePath());
+                    QNTRACE(QStringLiteral("Cached attachment save directory for file suffix ") << preferredSuffix
+                            << QStringLiteral(" is not writable: ") << dirInfo.absolutePath());
                     continue;
                 }
 
@@ -240,7 +240,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save as..."),
                                                     preferredDirectory, m_filterString);
     if (fileName.isEmpty()) {
-        QNINFO("User cancelled writing to file");
+        QNINFO(QStringLiteral("User cancelled writing to file"));
         return;
     }
 
@@ -256,12 +256,12 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
     }
 
     if (!foundSuffix) {
-        fileName += "." + preferredSuffix;
+        fileName += QStringLiteral(".") + preferredSuffix;
     }
 
     m_saveResourceToFileRequestId = QUuid::createUuid();
     emit saveResourceToFile(fileName, data, m_saveResourceToFileRequestId, /* append = */ false);
-    QNDEBUG("Sent request to save resource to file, request id = " << m_saveResourceToFileRequestId);
+    QNDEBUG(QStringLiteral("Sent request to save resource to file, request id = ") << m_saveResourceToFileRequestId);
 }
 
 void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash,
@@ -272,8 +272,8 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
     {
         if (errorCode == 0)
         {
-            QNDEBUG("Successfully saved resource to storage, request id = " << requestId
-                    << ", file storage path = " << fileStoragePath);
+            QNDEBUG(QStringLiteral("Successfully saved resource to storage, request id = ") << requestId
+                    << QStringLiteral(", file storage path = ") << fileStoragePath);
             m_savedResourceToStorage = true;
             m_resourceHash = dataHash;
             if (m_pendingSaveResourceToStorage) {
@@ -283,12 +283,11 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
         }
         else
         {
-            QNWARNING("Could not save resource to storage: " << errorDescription
-                      << "; request id = " << requestId);
+            QNWARNING(QStringLiteral("Could not save resource to storage: ") << errorDescription << QStringLiteral("; request id = ") << requestId);
             warningMessageBox(this, tr("Error saving the resource to hidden file"),
                               tr("Could not save the resource to hidden file "
                                  "(in order to make it possible to open it with some application)"),
-                              tr("Error code") + " = " + QString::number(errorCode) + ": " + errorDescription.localizedString());
+                              tr("Error code") + QStringLiteral(" = ") + QString::number(errorCode) + QStringLiteral(": ") + errorDescription.localizedString());
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
             }
@@ -301,18 +300,17 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
                                                                         QNLocalizedString errorDescription,
                                                                         QUuid requestId)
 {
-    QNTRACE("GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed: success = "
-            << (success ? "true" : "false") << ", request id = " << requestId);
+    QNTRACE(QStringLiteral("GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed: success = ")
+            << (success ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", request id = ") << requestId);
 
     if (requestId == m_saveResourceToFileRequestId)
     {
         if (success) {
-            QNDEBUG("Successfully saved resource to file, request id = " << requestId);
+            QNDEBUG(QStringLiteral("Successfully saved resource to file, request id = ") << requestId);
             emit savedResourceToFile();
         }
         else {
-            QNWARNING("Could not save resource to file: " << errorDescription
-                      << "; request id = " << requestId);
+            QNWARNING(QStringLiteral("Could not save resource to file: ") << errorDescription << QStringLiteral("; request id = ") << requestId);
             warningMessageBox(this, tr("Error saving the resource to file"),
                               tr("Could not save the resource to file"),
                               errorDescription.localizedString());
@@ -322,8 +320,8 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
 
 void GenericResourceDisplayWidget::setPendingMode(const bool pendingMode)
 {
-    QNDEBUG("GenericResourceDisplayWidget::setPendingMode: pending mode = "
-            << (pendingMode ? "true" : "false"));
+    QNDEBUG(QStringLiteral("GenericResourceDisplayWidget::setPendingMode: pending mode = ")
+            << (pendingMode ? QStringLiteral("true") : QStringLiteral("false")));
 
     m_pendingSaveResourceToStorage = pendingMode;
     if (pendingMode) {
@@ -336,13 +334,13 @@ void GenericResourceDisplayWidget::setPendingMode(const bool pendingMode)
 
 void GenericResourceDisplayWidget::openResource()
 {
-    QNDEBUG("GenericResourceDisplayWidget::openResource: hash = " << m_resourceHash.toHex());
+    QNDEBUG(QStringLiteral("GenericResourceDisplayWidget::openResource: hash = ") << m_resourceHash.toHex());
     emit openResourceRequest(m_resourceHash);
 }
 
 void GenericResourceDisplayWidget::setupFilterString(const QString & defaultFilterString)
 {
-    QNDEBUG("GenericResourceDisplayWidget::setupFilterString: default = " << defaultFilterString);
+    QNDEBUG(QStringLiteral("GenericResourceDisplayWidget::setupFilterString: default = ") << defaultFilterString);
 
     m_filterString = defaultFilterString;
 
@@ -353,11 +351,11 @@ void GenericResourceDisplayWidget::setupFilterString(const QString & defaultFilt
     QString resourcePreferredSuffix = m_pResource->preferredFileSuffix();
     QString resourcePreferredFilterString;
     if (!resourcePreferredSuffix.isEmpty()) {
-        resourcePreferredFilterString = "(*." + resourcePreferredSuffix + ")";
+        resourcePreferredFilterString = QStringLiteral("(*.") + resourcePreferredSuffix + QStringLiteral(")");
     }
 
-    QNTRACE("Resource preferred file suffix = " << resourcePreferredSuffix
-            << ", resource preferred filter string = " << resourcePreferredFilterString);
+    QNTRACE(QStringLiteral("Resource preferred file suffix = ") << resourcePreferredSuffix
+            << QStringLiteral(", resource preferred filter string = ") << resourcePreferredFilterString);
 
     bool shouldSkipResourcePreferredSuffix = false;
     if (!resourcePreferredSuffix.isEmpty() && !m_preferredFileSuffixes.contains(resourcePreferredSuffix))
@@ -378,8 +376,8 @@ void GenericResourceDisplayWidget::setupFilterString(const QString & defaultFilt
     }
 
     if (!shouldSkipResourcePreferredSuffix && !resourcePreferredFilterString.isEmpty()) {
-        m_filterString = resourcePreferredFilterString + ";;" + m_filterString;
-        QNTRACE("m_filterString = " << m_filterString);
+        m_filterString = resourcePreferredFilterString + QStringLiteral(";;") + m_filterString;
+        QNTRACE(QStringLiteral("m_filterString = ") << m_filterString);
     }
 }
 
