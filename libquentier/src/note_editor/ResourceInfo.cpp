@@ -26,11 +26,11 @@ void ResourceInfo::cacheResourceInfo(const QByteArray & resourceHash,
                                      const QString & resourceDisplaySize,
                                      const QString & resourceLocalFilePath)
 {
-    QNDEBUG("ResourceInfo::cacheResourceInfo: resource hash = "
+    QNDEBUG(QStringLiteral("ResourceInfo::cacheResourceInfo: resource hash = ")
             << resourceHash.toHex()
-            << ", resource display name = " << resourceDisplayName
-            << ", resource display size = " << resourceDisplaySize
-            << ", resource local file path = " << resourceLocalFilePath);
+            << QStringLiteral(", resource display name = ") << resourceDisplayName
+            << QStringLiteral(", resource display size = ") << resourceDisplaySize
+            << QStringLiteral(", resource local file path = ") << resourceLocalFilePath);
 
     Info & info = m_resourceInfoHash[resourceHash];
     info.m_resourceDisplayName = resourceDisplayName;
@@ -49,11 +49,11 @@ bool ResourceInfo::findResourceInfo(const QByteArray & resourceHash,
                                     QString & resourceDisplaySize,
                                     QString & resourceLocalFilePath) const
 {
-    QNDEBUG("ResourceInfo::findResourceInfo: resource hash = " << resourceHash.toHex());
+    QNDEBUG(QStringLiteral("ResourceInfo::findResourceInfo: resource hash = ") << resourceHash.toHex());
 
     auto it = m_resourceInfoHash.find(resourceHash);
     if (it == m_resourceInfoHash.end()) {
-        QNTRACE("Resource info was not found");
+        QNTRACE(QStringLiteral("Resource info was not found"));
         return false;
     }
 
@@ -62,19 +62,19 @@ bool ResourceInfo::findResourceInfo(const QByteArray & resourceHash,
     resourceDisplaySize = info.m_resourceDisplaySize;
     resourceLocalFilePath = info.m_resourceLocalFilePath;
 
-    QNTRACE("Found resource info: name = " << resourceDisplayName
-            << ", size = " << resourceDisplaySize << ", local file path = "
+    QNTRACE(QStringLiteral("Found resource info: name = ") << resourceDisplayName
+            << QStringLiteral(", size = ") << resourceDisplaySize << QStringLiteral(", local file path = ")
             << resourceLocalFilePath);
     return true;
 }
 
 bool ResourceInfo::removeResourceInfo(const QByteArray & resourceHash)
 {
-    QNDEBUG("ResourceInfo::removeResourceInfo: resource hash = " << resourceHash.toHex());
+    QNDEBUG(QStringLiteral("ResourceInfo::removeResourceInfo: resource hash = ") << resourceHash.toHex());
 
     auto it = m_resourceInfoHash.find(resourceHash);
     if (it == m_resourceInfoHash.end()) {
-        QNTRACE("Resource info was not found hence not removed");
+        QNTRACE(QStringLiteral("Resource info was not found hence not removed"));
         return false;
     }
 
@@ -84,7 +84,7 @@ bool ResourceInfo::removeResourceInfo(const QByteArray & resourceHash)
 
 void ResourceInfo::clear()
 {
-    QNDEBUG("ResourceInfo::clear");
+    QNDEBUG(QStringLiteral("ResourceInfo::clear"));
     m_resourceInfoHash.clear();
 }
 

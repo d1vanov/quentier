@@ -95,7 +95,7 @@ void NoteThumbnailDownloader::run()
         SET_ERROR("folder to store note thumbnails in is not writable");
     }
 
-    QString filePath = folderPath + "/" + m_noteGuid;
+    QString filePath = folderPath + QStringLiteral("/") + m_noteGuid;
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QIODevice::WriteOnly))) {
         SET_ERROR("can't open file to write the note thumbnail into");

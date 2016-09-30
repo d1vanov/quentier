@@ -638,7 +638,7 @@ qint32 NoteStore::processEdamUserExceptionForSavedSearch(const SavedSearch & sea
             return userException.errorCode;
         }
 
-        if (userException.parameter.ref() == "SavedSearch.name") {
+        if (userException.parameter.ref() == QStringLiteral("SavedSearch.name")) {
             if (search.hasName()) {
                 errorDescription += QT_TR_NOOP("invalid length or pattern of saved search's name");
                 errorDescription += QStringLiteral(": ");
@@ -648,7 +648,7 @@ qint32 NoteStore::processEdamUserExceptionForSavedSearch(const SavedSearch & sea
                 errorDescription += QT_TR_NOOP("saved search has no name");
             }
         }
-        else if (userException.parameter.ref() == "SavedSearch.query") {
+        else if (userException.parameter.ref() == QStringLiteral("SavedSearch.query")) {
             if (search.hasQuery()) {
                 errorDescription += QT_TR_NOOP("invalid length of saved search's query");
                 errorDescription += QStringLiteral(": ");
@@ -685,7 +685,7 @@ qint32 NoteStore::processEdamUserExceptionForSavedSearch(const SavedSearch & sea
             return userException.errorCode;
         }
 
-        if (userException.parameter.ref() == "SavedSearch.name") {
+        if (userException.parameter.ref() == QStringLiteral("SavedSearch.name")) {
             if (search.hasName()) {
                 errorDescription += QT_TR_NOOP("saved search's name is already in use");
                 errorDescription += QStringLiteral(": ");

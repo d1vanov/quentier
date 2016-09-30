@@ -50,14 +50,14 @@ void WebSocketTransport::textMessageReceived(const QString & messageData)
 
 bool WebSocketTransport::parseMessage(QByteArray messageData, QJsonObject & object)
 {
-    QNTRACE("WebSocketTransport::parseMessage: " << messageData);
+    QNTRACE(QStringLiteral("WebSocketTransport::parseMessage: ") << messageData);
 
     QJsonParseError error;
     QJsonDocument document = QJsonDocument::fromJson(messageData, &error);
     if (!error.error)
     {
         if (!document.isObject()) {
-            QNWARNING("Failed to parse JSON message that is not an object: " << messageData);
+            QNWARNING(QStringLiteral("Failed to parse JSON message that is not an object: ") << messageData);
             return false;
         }
 
@@ -66,13 +66,13 @@ bool WebSocketTransport::parseMessage(QByteArray messageData, QJsonObject & obje
     }
 
     if (error.error != QJsonParseError::GarbageAtEnd) {
-        QNWARNING("Failed to parse text message as JSON object: " << messageData
-                  << "; error is: " << error.errorString());
+        QNWARNING(QStringLiteral("Failed to parse text message as JSON object: ") << messageData
+                  << QStringLiteral("; error is: ") << error.errorString());
         return false;
     }
 
-    QNTRACE("Detected \"garbage at the end\" JSON parsing error, trying to workaround; "
-            "message data: " << messageData);
+    QNTRACE(QStringLiteral("Detected \"garbage at the end\" JSON parsing error, trying to workaround; message data: ")
+            << messageData);
 
     // NOTE: for some reason which I can't fully comprehend yet the first part of the message
     // (i.e. the first JSON object) seems to always be the previous message which has already
@@ -80,7 +80,7 @@ bool WebSocketTransport::parseMessage(QByteArray messageData, QJsonObject & obje
     // FIXME: need to have a better understanding of how this thing is supposed to work
     int lastOpeningCurvyBraceIndex = messageData.lastIndexOf('{');
     if (lastOpeningCurvyBraceIndex <= 0) {
-        QNWARNING("Failed to workaround \"Garbage at the end\" error, message data: " << messageData);
+        QNWARNING(QStringLiteral("Failed to workaround \"Garbage at the end\" error, message data: ") << messageData);
         return false;
     }
 
