@@ -36,7 +36,7 @@ DecryptUndoCommand::~DecryptUndoCommand()
 
 void DecryptUndoCommand::redoImpl()
 {
-    QNDEBUG("DecryptUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("DecryptUndoCommand::redoImpl"));
 
     GET_PAGE()
 
@@ -46,12 +46,12 @@ void DecryptUndoCommand::redoImpl()
                                          m_info.m_cipher, m_info.m_keyLength);
     }
 
-    page->executeJavaScript("encryptDecryptManager.redo();", m_callback);
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.redo();"), m_callback);
 }
 
 void DecryptUndoCommand::undoImpl()
 {
-    QNDEBUG("DecryptUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("DecryptUndoCommand::undoImpl"));
 
     GET_PAGE()
 
@@ -59,7 +59,7 @@ void DecryptUndoCommand::undoImpl()
         m_decryptedTextManager->removeEntry(m_info.m_encryptedText);
     }
 
-    page->executeJavaScript("encryptDecryptManager.undo();", m_callback);
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.undo();"), m_callback);
 }
 
 } // namespace quentier

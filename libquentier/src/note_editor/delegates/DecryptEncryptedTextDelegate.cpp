@@ -35,7 +35,7 @@ namespace quentier {
 
 #define CHECK_NOTE_EDITOR() \
     if (Q_UNLIKELY(m_pNoteEditor.isNull())) { \
-        QNDEBUG("Note editor is null"); \
+        QNDEBUG(QStringLiteral("Note editor is null")); \
         return; \
     }
 
@@ -83,7 +83,7 @@ DecryptEncryptedTextDelegate::DecryptEncryptedTextDelegate(const QString & encry
 
 void DecryptEncryptedTextDelegate::start()
 {
-    QNDEBUG("DecryptEncryptedTextDelegate::start");
+    QNDEBUG(QStringLiteral("DecryptEncryptedTextDelegate::start"));
 
     CHECK_NOTE_EDITOR()
 
@@ -107,7 +107,7 @@ void DecryptEncryptedTextDelegate::start()
 
 void DecryptEncryptedTextDelegate::onOriginalPageConvertedToNote(Note note)
 {
-    QNDEBUG("DecryptEncryptedTextDelegate::onOriginalPageConvertedToNote");
+    QNDEBUG(QStringLiteral("DecryptEncryptedTextDelegate::onOriginalPageConvertedToNote"));
 
     CHECK_NOTE_EDITOR()
 
@@ -121,7 +121,7 @@ void DecryptEncryptedTextDelegate::onOriginalPageConvertedToNote(Note note)
 
 void DecryptEncryptedTextDelegate::raiseDecryptionDialog()
 {
-    QNDEBUG("DecryptEncryptedTextDelegate::raiseDecryptionDialog");
+    QNDEBUG(QStringLiteral("DecryptEncryptedTextDelegate::raiseDecryptionDialog"));
 
     if (m_cipher.isEmpty()) {
         m_cipher = "AES";
@@ -132,7 +132,7 @@ void DecryptEncryptedTextDelegate::raiseDecryptionDialog()
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,size_t,QString,QString,QString,bool,bool),
                      this, QNSLOT(DecryptEncryptedTextDelegate,onEncryptedTextDecrypted,QString,size_t,QString,QString,QString,bool,bool));
-    QNTRACE("Will exec decryption dialog now");
+    QNTRACE(QStringLiteral("Will exec decryption dialog now"));
     int res = pDecryptionDialog->exec();
     if (res == QDialog::Rejected) {
         emit cancelled();
@@ -144,9 +144,9 @@ void DecryptEncryptedTextDelegate::onEncryptedTextDecrypted(QString cipher, size
                                                             QString passphrase, QString decryptedText, bool rememberForSession,
                                                             bool decryptPermanently)
 {
-    QNDEBUG("DecryptEncryptedTextDelegate::onEncryptedTextDecrypted: encrypted text = " << encryptedText
-            << ", remember for session = " << (rememberForSession ? "true" : "false")
-            << ", decrypt permanently = " << (decryptPermanently ? "true" : "false"));
+    QNDEBUG(QStringLiteral("DecryptEncryptedTextDelegate::onEncryptedTextDecrypted: encrypted text = ") << encryptedText
+            << QStringLiteral(", remember for session = ") << (rememberForSession ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", decrypt permanently = ") << (decryptPermanently ? QStringLiteral("true") : QStringLiteral("false")));
 
     CHECK_NOTE_EDITOR()
 
@@ -170,17 +170,17 @@ void DecryptEncryptedTextDelegate::onEncryptedTextDecrypted(QString cipher, size
     ENMLConverter::escapeString(decryptedTextHtml);
 
     GET_PAGE()
-    page->executeJavaScript("encryptDecryptManager.decryptEncryptedText('" + m_encryptedTextId + "', '" +
-                            decryptedTextHtml + "');", JsCallback(*this, &DecryptEncryptedTextDelegate::onDecryptionScriptFinished));
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.decryptEncryptedText('") + m_encryptedTextId + QStringLiteral("', '") +
+                            decryptedTextHtml + QStringLiteral("');"), JsCallback(*this, &DecryptEncryptedTextDelegate::onDecryptionScriptFinished));
 }
 
 void DecryptEncryptedTextDelegate::onDecryptionScriptFinished(const QVariant & data)
 {
-    QNDEBUG("DecryptEncryptedTextDelegate::onDecryptionScriptFinished: " << data);
+    QNDEBUG(QStringLiteral("DecryptEncryptedTextDelegate::onDecryptionScriptFinished: ") << data);
 
     QMap<QString,QVariant> resultMap = data.toMap();
 
-    auto statusIt = resultMap.find("status");
+    auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't parse the result of text decryption script from JavaScript");
         QNWARNING(error);
@@ -193,13 +193,13 @@ void DecryptEncryptedTextDelegate::onDecryptionScriptFinished(const QVariant & d
     {
         QNLocalizedString error;
 
-        auto errorIt = resultMap.find("error");
+        auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
             error = QT_TR_NOOP("can't parse the error of text decryption from JavaScript");
         }
         else {
             error = QT_TR_NOOP("can't decrypt the encrypted text");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += errorIt.value().toString();
         }
 

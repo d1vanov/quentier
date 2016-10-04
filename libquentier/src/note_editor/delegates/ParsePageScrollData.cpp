@@ -29,7 +29,7 @@ bool parsePageScrollData(const QVariant & data, int & pageXOffset, int & pageYOf
     if (Q_UNLIKELY(numDataItems != 2)) {
         errorDescription = QT_TR_NOOP("can't find note editor page's scroll: unexpected number of items "
                                       "received from JavaScript side, expected 2, got");
-        errorDescription += " ";
+        errorDescription += QStringLiteral(" ");
         errorDescription += QString::number(numDataItems);
         return false;
     }
@@ -50,7 +50,7 @@ bool parsePageScrollData(const QVariant & data, int & pageXOffset, int & pageYOf
 
     pageXOffset = x;
     pageYOffset = y;
-    QNTRACE("Page scroll: x = " << pageXOffset << ", y = " << pageYOffset);
+    QNTRACE(QStringLiteral("Page scroll: x = ") << pageXOffset << QStringLiteral(", y = ") << pageYOffset);
 
     return true;
 }

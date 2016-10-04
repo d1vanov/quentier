@@ -35,23 +35,23 @@ RemoveResourceUndoCommand::~RemoveResourceUndoCommand()
 
 void RemoveResourceUndoCommand::undoImpl()
 {
-    QNDEBUG("RemoveResourceUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("RemoveResourceUndoCommand::undoImpl"));
 
     m_noteEditorPrivate.addResourceToNote(m_resource);
 
     GET_PAGE()
-    page->executeJavaScript("resourceManager.undo();");
-    page->executeJavaScript("setupGenericResourceOnClickHandler();", m_callback);
+    page->executeJavaScript(QStringLiteral("resourceManager.undo();"));
+    page->executeJavaScript(QStringLiteral("setupGenericResourceOnClickHandler();"), m_callback);
 }
 
 void RemoveResourceUndoCommand::redoImpl()
 {
-    QNDEBUG("RemoveResourceUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("RemoveResourceUndoCommand::redoImpl"));
 
     m_noteEditorPrivate.removeResourceFromNote(m_resource);
 
     GET_PAGE()
-    page->executeJavaScript("resourceManager.redo();", m_callback);
+    page->executeJavaScript(QStringLiteral("resourceManager.redo();"), m_callback);
 }
 
 } // namespace quentier

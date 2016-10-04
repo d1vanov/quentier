@@ -29,7 +29,7 @@ AttachmentStoragePathConfigDialog::AttachmentStoragePathConfigDialog(QWidget * p
 {
     m_pUI->setupUi(this);
 
-    m_pUI->infoLabel->setText("<html><head/><body><p><span style=\" font-size:14pt; font-weight:600;\">" +
+    m_pUI->infoLabel->setText(QStringLiteral("<html><head/><body><p><span style=\" font-size:14pt; font-weight:600;\">") +
                               QApplication::applicationName() + " " +
                               tr("needs some folder to store copies of attachments. Unfortunately, "
                                  "the automatic guess for such folder has not found the appropriate path. "

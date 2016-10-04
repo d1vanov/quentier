@@ -38,7 +38,7 @@ RenameResourceDialog::~RenameResourceDialog()
 
 void RenameResourceDialog::accept()
 {
-    QNDEBUG("RenameResourceDialog::accept");
+    QNDEBUG(QStringLiteral("RenameResourceDialog::accept"));
     emit accepted(m_pUI->lineEdit->text());
     QDialog::accept();
 }

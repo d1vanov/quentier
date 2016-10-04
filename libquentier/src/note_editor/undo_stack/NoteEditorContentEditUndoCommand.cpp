@@ -27,13 +27,13 @@ NoteEditorContentEditUndoCommand::~NoteEditorContentEditUndoCommand()
 
 void NoteEditorContentEditUndoCommand::redoImpl()
 {
-    QNDEBUG("NoteEditorContentEditUndoCommand::redoImpl (" << text() << ")");
+    QNDEBUG(QStringLiteral("NoteEditorContentEditUndoCommand::redoImpl (") << text() << QStringLiteral(")"));
     m_noteEditorPrivate.redoPageAction();
 }
 
 void NoteEditorContentEditUndoCommand::undoImpl()
 {
-    QNDEBUG("NoteEditorContentEditUndoCommand::undoImpl (" << text() << ")");
+    QNDEBUG(QStringLiteral("NoteEditorContentEditUndoCommand::undoImpl (") << text() << QStringLiteral(")"));
     m_noteEditorPrivate.undoPageAction();
     m_noteEditorPrivate.setNoteResources(m_resources);
 }

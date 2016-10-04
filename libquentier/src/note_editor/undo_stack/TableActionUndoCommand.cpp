@@ -30,21 +30,21 @@ TableActionUndoCommand::~TableActionUndoCommand()
 
 void TableActionUndoCommand::redoImpl()
 {
-    QNDEBUG("TableActionUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("TableActionUndoCommand::redoImpl"));
 
     GET_PAGE()
 
-    QString javascript = "tableManager.redo();";
+    QString javascript = QStringLiteral("tableManager.redo();");
     page->executeJavaScript(javascript, m_callback);
 }
 
 void TableActionUndoCommand::undoImpl()
 {
-    QNDEBUG("TableActionUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("TableActionUndoCommand::undoImpl"));
 
     GET_PAGE()
 
-    QString javascript = "tableManager.undo();";
+    QString javascript = QStringLiteral("tableManager.undo();");
     page->executeJavaScript(javascript, m_callback);
 }
 

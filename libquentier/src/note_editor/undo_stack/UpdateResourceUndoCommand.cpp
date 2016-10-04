@@ -27,7 +27,7 @@ UpdateResourceUndoCommand::~UpdateResourceUndoCommand()
 
 void UpdateResourceUndoCommand::undoImpl()
 {
-    QNDEBUG("UpdateResourceUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("UpdateResourceUndoCommand::undoImpl"));
 
     m_noteEditorPrivate.replaceResourceInNote(m_resourceBefore);
     m_noteEditorPrivate.updateFromNote();
@@ -35,7 +35,7 @@ void UpdateResourceUndoCommand::undoImpl()
 
 void UpdateResourceUndoCommand::redoImpl()
 {
-    QNDEBUG("UpdateResourceUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("UpdateResourceUndoCommand::redoImpl"));
 
     m_noteEditorPrivate.replaceResourceInNote(m_resourceAfter);
     m_noteEditorPrivate.updateFromNote();

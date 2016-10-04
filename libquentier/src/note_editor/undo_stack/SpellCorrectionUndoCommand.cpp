@@ -33,13 +33,13 @@ SpellCorrectionUndoCommand::~SpellCorrectionUndoCommand()
 void SpellCorrectionUndoCommand::redoImpl()
 {
     GET_PAGE()
-    page->executeJavaScript("spellChecker.redo();", m_callback);
+    page->executeJavaScript(QStringLiteral("spellChecker.redo();"), m_callback);
 }
 
 void SpellCorrectionUndoCommand::undoImpl()
 {
     GET_PAGE()
-    page->executeJavaScript("spellChecker.undo();", m_callback);
+    page->executeJavaScript(QStringLiteral("spellChecker.undo();"), m_callback);
 }
 
 } // namespace quentier

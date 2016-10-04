@@ -32,18 +32,18 @@ RemoveHyperlinkUndoCommand::~RemoveHyperlinkUndoCommand()
 
 void RemoveHyperlinkUndoCommand::redoImpl()
 {
-    QNDEBUG("RemoveHyperlinkUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("RemoveHyperlinkUndoCommand::redoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("hyperlinkManager.redo();", m_callback);
+    page->executeJavaScript(QStringLiteral("hyperlinkManager.redo();"), m_callback);
 }
 
 void RemoveHyperlinkUndoCommand::undoImpl()
 {
-    QNDEBUG("RemoveHyperlinkUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("RemoveHyperlinkUndoCommand::undoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("hyperlinkManager.undo();", m_callback);
+    page->executeJavaScript(QStringLiteral("hyperlinkManager.undo();"), m_callback);
 }
 
 } // namespace quentier

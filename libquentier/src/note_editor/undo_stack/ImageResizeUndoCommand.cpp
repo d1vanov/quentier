@@ -26,18 +26,18 @@ ImageResizeUndoCommand::~ImageResizeUndoCommand()
 
 void ImageResizeUndoCommand::redoImpl()
 {
-    QNDEBUG("ImageResizeUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("ImageResizeUndoCommand::redoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("resizableImageManager.redo();");
+    page->executeJavaScript(QStringLiteral("resizableImageManager.redo();"));
 }
 
 void ImageResizeUndoCommand::undoImpl()
 {
-    QNDEBUG("ImageResizeUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("ImageResizeUndoCommand::undoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("resizableImageManager.undo();");
+    page->executeJavaScript(QStringLiteral("resizableImageManager.undo();"));
 }
 
 } // namespace quentier

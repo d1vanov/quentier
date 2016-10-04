@@ -27,10 +27,10 @@ SpellCheckAddToUserWordListUndoCommand::~SpellCheckAddToUserWordListUndoCommand(
 
 void SpellCheckAddToUserWordListUndoCommand::redoImpl()
 {
-    QNDEBUG("SpellCheckAddToUserWordListUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("SpellCheckAddToUserWordListUndoCommand::redoImpl"));
 
     if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
-        QNTRACE("No spell checker");
+        QNTRACE(QStringLiteral("No spell checker"));
         return;
     }
 
@@ -44,10 +44,10 @@ void SpellCheckAddToUserWordListUndoCommand::redoImpl()
 
 void SpellCheckAddToUserWordListUndoCommand::undoImpl()
 {
-    QNDEBUG("SpellCheckAddToUserWordListUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("SpellCheckAddToUserWordListUndoCommand::undoImpl"));
 
     if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
-        QNTRACE("No spell checker");
+        QNTRACE(QStringLiteral("No spell checker"));
         return;
     }
 

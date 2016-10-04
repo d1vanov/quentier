@@ -27,10 +27,10 @@ SpellCheckIgnoreWordUndoCommand::~SpellCheckIgnoreWordUndoCommand()
 
 void SpellCheckIgnoreWordUndoCommand::redoImpl()
 {
-    QNDEBUG("SpellCheckIgnoreWordUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("SpellCheckIgnoreWordUndoCommand::redoImpl"));
 
     if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
-        QNTRACE("No spell checker");
+        QNTRACE(QStringLiteral("No spell checker"));
         return;
     }
 
@@ -44,10 +44,10 @@ void SpellCheckIgnoreWordUndoCommand::redoImpl()
 
 void SpellCheckIgnoreWordUndoCommand::undoImpl()
 {
-    QNDEBUG("SpellCheckIgnoreWordUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("SpellCheckIgnoreWordUndoCommand::undoImpl"));
 
     if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
-        QNTRACE("No spell checker");
+        QNTRACE(QStringLiteral("No spell checker"));
         return;
     }
 

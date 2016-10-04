@@ -31,18 +31,18 @@ EncryptUndoCommand::~EncryptUndoCommand()
 
 void EncryptUndoCommand::redoImpl()
 {
-    QNDEBUG("EncryptUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("EncryptUndoCommand::redoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("encryptDecryptManager.redo();", m_callback);
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.redo();"), m_callback);
 }
 
 void EncryptUndoCommand::undoImpl()
 {
-    QNDEBUG("EncryptUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("EncryptUndoCommand::undoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("encryptDecryptManager.undo();", m_callback);
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.undo();"), m_callback);
 }
 
 } // namespace quentier

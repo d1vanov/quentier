@@ -43,7 +43,7 @@ EditHyperlinkDelegate::EditHyperlinkDelegate(NoteEditorPrivate & noteEditor, con
 
 void EditHyperlinkDelegate::start()
 {
-    QNDEBUG("EditHyperlinkDelegate::start");
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::start"));
 
     if (m_noteEditor.isModified()) {
         QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
@@ -57,7 +57,7 @@ void EditHyperlinkDelegate::start()
 
 void EditHyperlinkDelegate::onOriginalPageConvertedToNote(Note note)
 {
-    QNDEBUG("EditHyperlinkDelegate::onOriginalPageConvertedToNote");
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::onOriginalPageConvertedToNote"));
 
     Q_UNUSED(note)
 
@@ -69,11 +69,11 @@ void EditHyperlinkDelegate::onOriginalPageConvertedToNote(Note note)
 
 void EditHyperlinkDelegate::onHyperlinkDataReceived(const QVariant & data)
 {
-    QNDEBUG("EditHyperlinkDelegate::onHyperlinkDataReceived: data = " << data);
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::onHyperlinkDataReceived: data = ") << data);
 
     QMap<QString,QVariant> resultMap = data.toMap();
 
-    auto statusIt = resultMap.find("status");
+    auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't parse the result of hyperlink data request from JavaScript");
         QNWARNING(error);
@@ -86,13 +86,13 @@ void EditHyperlinkDelegate::onHyperlinkDataReceived(const QVariant & data)
     {
         QNLocalizedString error;
 
-        auto errorIt = resultMap.find("error");
+        auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
             error = QT_TR_NOOP("can't parse the error of hyperlink data request from JavaScript");
         }
         else {
             error = QT_TR_NOOP("can't get hyperlink data from JavaScript");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += errorIt.value().toString();
         }
 
@@ -101,7 +101,7 @@ void EditHyperlinkDelegate::onHyperlinkDataReceived(const QVariant & data)
         return;
     }
 
-    auto dataIt = resultMap.find("data");
+    auto dataIt = resultMap.find(QStringLiteral("data"));
     if (Q_UNLIKELY(dataIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("no hyperlink data received from JavaScript");
         QNWARNING(error);
@@ -118,7 +118,7 @@ void EditHyperlinkDelegate::onHyperlinkDataReceived(const QVariant & data)
 
     if (hyperlinkDataList.size() != 2) {
         QNLocalizedString error = QT_TR_NOOP("can't edit hyperlink: can't parse hyperlink text and link");
-        QNWARNING(error << "; hyperlink data: " << hyperlinkDataList.join(","));
+        QNWARNING(error << QStringLiteral("; hyperlink data: ") << hyperlinkDataList.join(QStringLiteral(",")));
         emit notifyError(error);
         return;
     }
@@ -128,9 +128,9 @@ void EditHyperlinkDelegate::onHyperlinkDataReceived(const QVariant & data)
 
 void EditHyperlinkDelegate::doStart()
 {
-    QNDEBUG("EditHyperlinkDelegate::doStart");
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::doStart"));
 
-    QString javascript = "hyperlinkManager.getHyperlinkData(" + QString::number(m_hyperlinkId) + ");";
+    QString javascript = QStringLiteral("hyperlinkManager.getHyperlinkData(") + QString::number(m_hyperlinkId) + QStringLiteral(");");
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &EditHyperlinkDelegate::onHyperlinkDataReceived));
@@ -138,17 +138,17 @@ void EditHyperlinkDelegate::doStart()
 
 void EditHyperlinkDelegate::raiseEditHyperlinkDialog(const QString & startupHyperlinkText, const QString & startupHyperlinkUrl)
 {
-    QNDEBUG("EditHyperlinkDelegate::raiseEditHyperlinkDialog: original text = " << startupHyperlinkText
-            << ", original url: " << startupHyperlinkUrl);
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::raiseEditHyperlinkDialog: original text = ") << startupHyperlinkText
+            << QStringLiteral(", original url: ") << startupHyperlinkUrl);
 
     QScopedPointer<EditHyperlinkDialog> pEditHyperlinkDialog(new EditHyperlinkDialog(&m_noteEditor, startupHyperlinkText, startupHyperlinkUrl));
     pEditHyperlinkDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pEditHyperlinkDialog.data(), QNSIGNAL(EditHyperlinkDialog,accepted,QString,QUrl,quint64,bool),
                      this, QNSLOT(EditHyperlinkDelegate,onHyperlinkDataEdited,QString,QUrl,quint64,bool));
-    QNTRACE("Will exec edit hyperlink dialog now");
+    QNTRACE(QStringLiteral("Will exec edit hyperlink dialog now"));
     int res = pEditHyperlinkDialog->exec();
     if (res == QDialog::Rejected) {
-        QNTRACE("Cancelled editing the hyperlink");
+        QNTRACE(QStringLiteral("Cancelled editing the hyperlink"));
         emit cancelled();
         return;
     }
@@ -156,7 +156,8 @@ void EditHyperlinkDelegate::raiseEditHyperlinkDialog(const QString & startupHype
 
 void EditHyperlinkDelegate::onHyperlinkDataEdited(QString text, QUrl url, quint64 hyperlinkId, bool startupUrlWasEmpty)
 {
-    QNDEBUG("EditHyperlinkDelegate::onHyperlinkDataEdited: text = " << text << ", url = " << url << ", hyperlink id = " << hyperlinkId);
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::onHyperlinkDataEdited: text = ") << text << QStringLiteral(", url = ")
+            << url << QStringLiteral(", hyperlink id = ") << hyperlinkId);
 
     Q_UNUSED(hyperlinkId)
     Q_UNUSED(startupUrlWasEmpty)
@@ -167,8 +168,8 @@ void EditHyperlinkDelegate::onHyperlinkDataEdited(QString text, QUrl url, quint6
     QString urlString = url.toString(QUrl::None);
 #endif
 
-    QString javascript = "hyperlinkManager.setHyperlinkData('" + text + "', '" + urlString +
-                         "', " + QString::number(m_hyperlinkId) + ");";
+    QString javascript = QStringLiteral("hyperlinkManager.setHyperlinkData('") + text + QStringLiteral("', '") + urlString +
+                         QStringLiteral("', ") + QString::number(m_hyperlinkId) + QStringLiteral(");");
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &EditHyperlinkDelegate::onHyperlinkModified));
@@ -176,11 +177,11 @@ void EditHyperlinkDelegate::onHyperlinkDataEdited(QString text, QUrl url, quint6
 
 void EditHyperlinkDelegate::onHyperlinkModified(const QVariant & data)
 {
-    QNDEBUG("EditHyperlinkDelegate::onHyperlinkModified");
+    QNDEBUG(QStringLiteral("EditHyperlinkDelegate::onHyperlinkModified"));
 
     QMap<QString,QVariant> resultMap = data.toMap();
 
-    auto statusIt = resultMap.find("status");
+    auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't parse the result of hyperlink edit from JavaScript");
         QNWARNING(error);
@@ -193,13 +194,13 @@ void EditHyperlinkDelegate::onHyperlinkModified(const QVariant & data)
     {
         QNLocalizedString error;
 
-        auto errorIt = resultMap.find("error");
+        auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
             error = QT_TR_NOOP("can't parse the error of hyperlink editing from JavaScript");
         }
         else {
             error = QT_TR_NOOP("can't edit hyperlink: ");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += errorIt.value().toString();
         }
 

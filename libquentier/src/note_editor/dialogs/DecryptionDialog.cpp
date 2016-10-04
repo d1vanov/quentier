@@ -49,7 +49,7 @@ DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString 
 
     bool rememberPassphraseForSessionDefault = false;
     ApplicationSettings appSettings;
-    QVariant rememberPassphraseForSessionSetting = appSettings.value("General/rememberPassphraseForSession");
+    QVariant rememberPassphraseForSessionSetting = appSettings.value(QStringLiteral("General/rememberPassphraseForSession"));
     if (!rememberPassphraseForSessionSetting.isNull()) {
         rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
     }
@@ -113,10 +113,10 @@ void DecryptionDialog::onRememberPassphraseStateChanged(int checked)
 
     ApplicationSettings appSettings;
     if (!appSettings.isWritable()) {
-        QNINFO("Can't persist remember passphrase for session setting: settings are not writable");
+        QNINFO(QStringLiteral("Can't persist remember passphrase for session setting: settings are not writable"));
     }
     else {
-        appSettings.setValue("General/rememberPassphraseForSession",
+        appSettings.setValue(QStringLiteral("General/rememberPassphraseForSession"),
                              QVariant(m_pUI->rememberPasswordCheckBox->isChecked()));
     }
 }
@@ -140,16 +140,16 @@ void DecryptionDialog::accept()
     bool res = m_encryptionManager->decrypt(m_encryptedText, passphrase, m_cipher,
                                             m_keyLength, m_cachedDecryptedText,
                                             errorDescription);
-    if (!res && (m_cipher == "AES") && (m_keyLength == 128)) {
-        QNDEBUG("The initial attempt to decrypt the text using AES cipher and 128 bit key has failed; "
-                "checking whether it is old encrypted text area using RC2 encryption and 64 bit key");
+    if (!res && (m_cipher == QStringLiteral("AES")) && (m_keyLength == 128)) {
+        QNDEBUG(QStringLiteral("The initial attempt to decrypt the text using AES cipher and 128 bit key has failed; "
+                               "checking whether it is old encrypted text area using RC2 encryption and 64 bit key"));
         res = m_encryptionManager->decrypt(m_encryptedText, passphrase, "RC2", 64,
                                            m_cachedDecryptedText, errorDescription);
     }
 
     if (!res) {
         QNLocalizedString error = QT_TR_NOOP("failed to decrypt the text");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += errorDescription;
         setError(error);
         return;
@@ -160,9 +160,9 @@ void DecryptionDialog::accept()
 
     m_decryptedTextManager->addEntry(m_encryptedText, m_cachedDecryptedText, rememberForSession,
                                      passphrase, m_cipher, m_keyLength);
-    QNTRACE("Cached decrypted text for encryptedText: " << m_encryptedText
-            << "; remember for session = " << (rememberForSession ? "true" : "false")
-            << "; decrypt permanently = " << (decryptPermanently ? "true" : "false"));
+    QNTRACE(QStringLiteral("Cached decrypted text for encryptedText: ") << m_encryptedText
+            << QStringLiteral("; remember for session = ") << (rememberForSession ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral("; decrypt permanently = ") << (decryptPermanently ? QStringLiteral("true") : QStringLiteral("false")));
 
     emit accepted(m_cipher, m_keyLength, m_encryptedText, passphrase,  m_cachedDecryptedText,
                   rememberForSession, decryptPermanently);

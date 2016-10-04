@@ -42,7 +42,7 @@ EncryptionDialog::EncryptionDialog(const QString & textToEncrypt,
 
     bool rememberPassphraseForSessionDefault = false;
     ApplicationSettings appSettings;
-    QVariant rememberPassphraseForSessionSetting = appSettings.value("General/rememberPassphraseForSession");
+    QVariant rememberPassphraseForSessionSetting = appSettings.value(QStringLiteral("General/rememberPassphraseForSession"));
     if (!rememberPassphraseForSessionSetting.isNull()) {
         rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
     }
@@ -90,7 +90,7 @@ void EncryptionDialog::onRememberPassphraseStateChanged(int checked)
 
     ApplicationSettings appSettings;
     if (!appSettings.isWritable()) {
-        QNINFO("Can't persist remember passphrase for session setting: settings are not writable");
+        QNINFO(QStringLiteral("Can't persist remember passphrase for session setting: settings are not writable"));
     }
     else {
         appSettings.setValue("General/rememberPassphraseForSession",
@@ -104,7 +104,7 @@ void EncryptionDialog::accept()
     QString repeatedPassphrase = m_pUI->repeatEncryptionPasswordLineEdit->text();
 
     if (passphrase.isEmpty()) {
-        QNINFO("Attempted to press OK in EncryptionDialog without having a password set");
+        QNINFO(QStringLiteral("Attempted to press OK in EncryptionDialog without having a password set"));
         QNLocalizedString error = QT_TR_NOOP("Please choose the encryption password");
         setError(error);
         return;
@@ -119,7 +119,7 @@ void EncryptionDialog::accept()
 
     m_cachedEncryptedText.resize(0);
     QNLocalizedString errorDescription;
-    QString cipher = "AES";
+    QString cipher = QStringLiteral("AES");
     size_t keyLength = 128;
     bool res = m_encryptionManager->encrypt(m_textToEncrypt, passphrase, cipher, keyLength,
                                             m_cachedEncryptedText, errorDescription);

@@ -38,7 +38,7 @@ RemoveResourceDelegate::RemoveResourceDelegate(const ResourceWrapper & resourceT
 
 void RemoveResourceDelegate::start()
 {
-    QNDEBUG("RemoveResourceDelegate::start");
+    QNDEBUG(QStringLiteral("RemoveResourceDelegate::start"));
 
     if (m_noteEditor.isModified()) {
         QObject::connect(&m_noteEditor, QNSIGNAL(NoteEditorPrivate,convertedToNote,Note),
@@ -52,7 +52,7 @@ void RemoveResourceDelegate::start()
 
 void RemoveResourceDelegate::onOriginalPageConvertedToNote(Note note)
 {
-    QNDEBUG("RemoveResourceDelegate::onOriginalPageConvertedToNote");
+    QNDEBUG(QStringLiteral("RemoveResourceDelegate::onOriginalPageConvertedToNote"));
 
     Q_UNUSED(note)
 
@@ -64,7 +64,7 @@ void RemoveResourceDelegate::onOriginalPageConvertedToNote(Note note)
 
 void RemoveResourceDelegate::doStart()
 {
-    QNDEBUG("RemoveResourceDelegate::doStart");
+    QNDEBUG(QStringLiteral("RemoveResourceDelegate::doStart"));
 
     if (Q_UNLIKELY(!m_resource.hasDataHash())) {
         QNLocalizedString error = QT_TR_NOOP("can't remove the attachment: the data hash is missing");
@@ -73,7 +73,7 @@ void RemoveResourceDelegate::doStart()
         return;
     }
 
-    QString javascript = "resourceManager.removeResource('" + m_resource.dataHash().toHex() + "');";
+    QString javascript = QStringLiteral("resourceManager.removeResource('") + m_resource.dataHash().toHex() + QStringLiteral("');");
 
     GET_PAGE()
     page->executeJavaScript(javascript, JsCallback(*this, &RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent));
@@ -81,11 +81,11 @@ void RemoveResourceDelegate::doStart()
 
 void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVariant & data)
 {
-    QNDEBUG("RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent");
+    QNDEBUG(QStringLiteral("RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent"));
 
     QMap<QString,QVariant> resultMap = data.toMap();
 
-    auto statusIt = resultMap.find("status");
+    auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't parse the result of attachment reference removal from JavaScript");
         QNWARNING(error);
@@ -98,13 +98,13 @@ void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVa
     {
         QNLocalizedString error;
 
-        auto errorIt = resultMap.find("error");
+        auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
             error = QT_TR_NOOP("can't parse the error of attachment reference removal from JavaScript");
         }
         else {
             error = QT_TR_NOOP("can't remove the attachment reference from the note editor");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += errorIt.value().toString();
         }
 

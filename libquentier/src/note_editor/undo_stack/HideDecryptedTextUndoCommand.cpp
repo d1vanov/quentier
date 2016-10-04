@@ -30,18 +30,18 @@ HideDecryptedTextUndoCommand::~HideDecryptedTextUndoCommand()
 
 void HideDecryptedTextUndoCommand::redoImpl()
 {
-    QNDEBUG("HideDecryptedTextUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("HideDecryptedTextUndoCommand::redoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("encryptDecryptManager.redo();", m_callback);
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.redo();"), m_callback);
 }
 
 void HideDecryptedTextUndoCommand::undoImpl()
 {
-    QNDEBUG("HideDecryptedTextUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("HideDecryptedTextUndoCommand::undoImpl"));
 
     GET_PAGE()
-    page->executeJavaScript("encryptDecryptManager.undo();", m_callback);
+    page->executeJavaScript(QStringLiteral("encryptDecryptManager.undo();"), m_callback);
 }
 
 } // namespace quentier

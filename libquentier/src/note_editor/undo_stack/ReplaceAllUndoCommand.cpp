@@ -36,11 +36,11 @@ ReplaceAllUndoCommand::~ReplaceAllUndoCommand()
 
 void ReplaceAllUndoCommand::redoImpl()
 {
-    QNDEBUG("ReplaceAllUndoCommand::redoImpl");
+    QNDEBUG(QStringLiteral("ReplaceAllUndoCommand::redoImpl"));
 
     GET_PAGE()
 
-    QString javascript = "findReplaceManager.redoReplaceAll();";
+    QString javascript = QStringLiteral("findReplaceManager.redoReplaceAll();");
     page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {
@@ -50,11 +50,11 @@ void ReplaceAllUndoCommand::redoImpl()
 
 void ReplaceAllUndoCommand::undoImpl()
 {
-    QNDEBUG("ReplaceAllUndoCommand::undoImpl");
+    QNDEBUG(QStringLiteral("ReplaceAllUndoCommand::undoImpl"));
 
     GET_PAGE()
 
-    QString javascript = "findReplaceManager.undoReplaceAll();";
+    QString javascript = QStringLiteral("findReplaceManager.undoReplaceAll();");
     page->executeJavaScript(javascript, m_callback);
 
     if (m_noteEditorPrivate.searchHighlightEnabled()) {
