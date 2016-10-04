@@ -29,6 +29,20 @@
 #include <QThreadPool>
 #include <algorithm>
 
+#define ACCOUNT_LIMITS_KEY_GROUP QStringLiteral("account_limits/")
+#define ACCOUNT_LIMITS_LAST_SYNC_TIME_KEY QStringLiteral("last_sync_time")
+#define ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY QStringLiteral("user_mail_limit_daily")
+#define ACCOUNT_LIMITS_NOTE_SIZE_MAX_KEY QStringLiteral("note_size_max")
+#define ACCOUNT_LIMITS_RESOURCE_SIZE_MAX_KEY QStringLiteral("resource_size_max")
+#define ACCOUNT_LIMITS_USER_LINKED_NOTEBOOK_MAX_KEY QStringLiteral("user_linked_notebook_max")
+#define ACCOUNT_LIMITS_UPLOAD_LIMIT_KEY QStringLiteral("upload_limit")
+#define ACCOUNT_LIMITS_USER_NOTE_COUNT_MAX_KEY QStringLiteral("user_note_count_max")
+#define ACCOUNT_LIMITS_USER_NOTEBOOK_COUNT_MAX_KEY QStringLiteral("user_notebook_count_max")
+#define ACCOUNT_LIMITS_USER_TAG_COUNT_MAX_KEY QStringLiteral("user_tag_count_max")
+#define ACCOUNT_LIMITS_NOTE_TAG_COUNT_MAX_KEY QStringLiteral("note_tag_count_max")
+#define ACCOUNT_LIMITS_USER_SAVED_SEARCH_COUNT_MAX_KEY QStringLiteral("user_saved_search_count_max")
+#define ACCOUNT_LIMITS_NOTE_RESOURCE_COUNT_MAX_KEY QStringLiteral("note_resource_count_max")
+
 #define THIRTY_DAYS_IN_MSEC (2592000000)
 
 namespace quentier {
@@ -58,6 +72,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_syncChunks(),
     m_linkedNotebookSyncChunks(),
     m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded(),
+    m_accountLimits(),
     m_tags(),
     m_expungedTags(),
     m_tagsToAddPerRequestId(),
@@ -2586,13 +2601,12 @@ void RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits"));
 
     ApplicationSettings appSettings;
+    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_userId) + QStringLiteral("/");
 
-    const QString keyGroup = QStringLiteral("account_limits/");
-
-    QVariant accountLimitsLastSyncTime = appSettings.value(keyGroup + QStringLiteral("last_sync_time"));
+    QVariant accountLimitsLastSyncTime = appSettings.value(keyGroup + ACCOUNT_LIMITS_LAST_SYNC_TIME_KEY);
     if (!accountLimitsLastSyncTime.isNull())
     {
-        QNTRACE(QStringLiteral("Found non-null last sync time for account limits"));
+        QNTRACE(QStringLiteral("Found non-null last sync time for account limits: ") << accountLimitsLastSyncTime);
 
         bool conversionResult = false;
         qint64 timestamp = accountLimitsLastSyncTime.toLongLong(&conversionResult);
@@ -2624,7 +2638,166 @@ void RemoteToLocalSynchronizationManager::readSavedAccountLimits()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::readSavedAccountLimits"));
 
-    // TODO: implement
+    m_accountLimits = qevercloud::AccountLimits();
+
+    ApplicationSettings appSettings;
+    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_userId) + QStringLiteral("/");
+
+    QVariant userMailLimitDaily = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY);
+    if (!userMailLimitDaily.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null user mail limit daily account limit: ") << userMailLimitDaily);
+        bool conversionResult = false;
+        qint32 value = userMailLimitDaily.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.userMailLimitDaily = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert user mail limit daily account limit to qint32: ") << userMailLimitDaily);
+        }
+    }
+
+    QVariant noteSizeMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_NOTE_SIZE_MAX_KEY);
+    if (!noteSizeMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null note size max: ") << noteSizeMax);
+        bool conversionResult = false;
+        qint64 value = noteSizeMax.toLongLong(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.noteSizeMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert note size max account limit to qint64: ") << noteSizeMax);
+        }
+    }
+
+    QVariant resourceSizeMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_RESOURCE_SIZE_MAX_KEY);
+    if (!resourceSizeMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null resource size max: ") << resourceSizeMax);
+        bool conversionResult = false;
+        qint64 value = resourceSizeMax.toLongLong(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.resourceSizeMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert resource size max account limit to qint64: ") << resourceSizeMax);
+        }
+    }
+
+    QVariant userLinkedNotebookMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_LINKED_NOTEBOOK_MAX_KEY);
+    if (!userLinkedNotebookMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null user linked notebook max: ") << userLinkedNotebookMax);
+        bool conversionResult = false;
+        qint32 value = userLinkedNotebookMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.userLinkedNotebookMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert user linked notebook max account limit to qint32: ") << userLinkedNotebookMax);
+        }
+    }
+
+    QVariant uploadLimit = appSettings.value(keyGroup + ACCOUNT_LIMITS_UPLOAD_LIMIT_KEY);
+    if (!uploadLimit.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null upload limit: ") << uploadLimit);
+        bool conversionResult = false;
+        qint64 value = uploadLimit.toLongLong(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.uploadLimit = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert upload limit to qint64: ") << uploadLimit);
+        }
+    }
+
+    QVariant userNoteCountMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_NOTE_COUNT_MAX_KEY);
+    if (!userNoteCountMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null user note count max: ") << userNoteCountMax);
+        bool conversionResult = false;
+        qint32 value = userNoteCountMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.userNoteCountMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert user note count max to qint32: ") << userNoteCountMax);
+        }
+    }
+
+    QVariant userNotebookCountMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_NOTEBOOK_COUNT_MAX_KEY);
+    if (!userNotebookCountMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null user notebook count max: ") << userNotebookCountMax);
+        bool conversionResult = false;
+        qint32 value = userNotebookCountMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.userNotebookCountMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert user notebook count max to qint32: ") << userNotebookCountMax);
+        }
+    }
+
+    QVariant userTagCountMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_TAG_COUNT_MAX_KEY);
+    if (!userTagCountMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null user tag count max: ") << userTagCountMax);
+        bool conversionResult = false;
+        qint32 value = userTagCountMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.userTagCountMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert user tag count max to qint32: ") << userTagCountMax);
+        }
+    }
+
+    QVariant noteTagCountMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_NOTE_TAG_COUNT_MAX_KEY);
+    if (!noteTagCountMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null note tag cont max: ") << noteTagCountMax);
+        bool conversionResult = false;
+        qint32 value = noteTagCountMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.noteTagCountMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert note tag count max to qint32: ") << noteTagCountMax);
+        }
+    }
+
+    QVariant userSavedSearchesMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_SAVED_SEARCH_COUNT_MAX_KEY);
+    if (!userSavedSearchesMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null user saved search max: ") << userSavedSearchesMax);
+        bool conversionResult = false;
+        qint32 value = userSavedSearchesMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.userSavedSearchesMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert user saved search max to qint32: ") << userSavedSearchesMax);
+        }
+    }
+
+    QVariant noteResourceCountMax = appSettings.value(keyGroup + ACCOUNT_LIMITS_NOTE_RESOURCE_COUNT_MAX_KEY);
+    if (!noteResourceCountMax.isNull())
+    {
+        QNTRACE(QStringLiteral("Found non-null note resource count max: ") << noteResourceCountMax);
+        bool conversionResult = false;
+        qint32 value = noteResourceCountMax.toInt(&conversionResult);
+        if (conversionResult) {
+            m_accountLimits.noteResourceCountMax = value;
+        }
+        else {
+            QNWARNING(QStringLiteral("Failed to convert note resource count max to qint32: ") << noteResourceCountMax);
+        }
+    }
+
+    QNTRACE("Read account limits from application settings: " << m_accountLimits);
 }
 
 void RemoteToLocalSynchronizationManager::launchTagsSync()

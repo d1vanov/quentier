@@ -507,6 +507,8 @@ private:
     QVector<qevercloud::SyncChunk>          m_linkedNotebookSyncChunks;
     QSet<QString>                           m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded;
 
+    qevercloud::AccountLimits               m_accountLimits;
+
     TagsList                                m_tags;
     QList<QString>                          m_expungedTags;
     QHash<QUuid,Tag>                        m_tagsToAddPerRequestId;
