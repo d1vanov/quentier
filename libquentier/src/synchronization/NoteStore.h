@@ -38,8 +38,8 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 /**
  * @brief The NoteStore class in quentier namespace is a wrapper under NoteStore from QEverCloud.
  * The main difference from the underlying class is stronger exception safety: most QEverCloud's methods
- * throw exceptions to indicate errors (much like the native Evercloud API for supported languages do).
- * Using exceptions along with Qt is not simple and desireable. Therefore, this class' methods
+ * throw exceptions to indicate errors (much like the native Evernote API for supported languages do).
+ * Using exceptions along with Qt is not simple and desirable. Therefore, this class' methods
  * simply redirect the requests to methods of QEverCloud's NoteStore but catch the "expected" exceptions,
  * "parse" their internal error flags and return the textual representation of the error.
  *

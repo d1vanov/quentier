@@ -43,6 +43,8 @@ public:
     UserWrapper();
     UserWrapper(const UserWrapper & other);
     UserWrapper(UserWrapper && other);
+    UserWrapper(const qevercloud::User & qecUser);
+    UserWrapper(qevercloud::User && qecUser);
     UserWrapper & operator=(const UserWrapper & other);
     UserWrapper & operator=(UserWrapper && other);
     virtual ~UserWrapper();

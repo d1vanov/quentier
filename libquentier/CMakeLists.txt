@@ -217,6 +217,7 @@ set(PRIVATE_HEADERS
     src/local_storage/NoteSearchQuery_p.h
     src/synchronization/InkNoteImageDownloader.h
     src/synchronization/NoteStore.h
+    src/synchronization/UserStore.h
     src/synchronization/NoteThumbnailDownloader.h
     src/synchronization/RemoteToLocalSynchronizationManager.h
     src/synchronization/SendLocalChangesManager.h
@@ -359,6 +360,7 @@ set(${PROJECT_NAME}_SOURCES
     src/local_storage/Transaction.cpp
     src/synchronization/InkNoteImageDownloader.cpp
     src/synchronization/NoteStore.cpp
+    src/synchronization/UserStore.cpp
     src/synchronization/NoteThumbnailDownloader.cpp
     src/synchronization/SynchronizationManager.cpp
     src/synchronization/SynchronizationManager_p.cpp
