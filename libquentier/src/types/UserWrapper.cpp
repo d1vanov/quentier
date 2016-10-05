@@ -22,6 +22,7 @@
 namespace quentier {
 
 UserWrapper::UserWrapper() :
+    IUser(),
     d(new UserWrapperData)
 {}
 
@@ -34,6 +35,20 @@ UserWrapper::UserWrapper(UserWrapper && other) :
     IUser(std::move(other)),
     d(other.d)
 {}
+
+UserWrapper::UserWrapper(const qevercloud::User & qecUser) :
+    IUser(),
+    d(new UserWrapperData)
+{
+    d->m_qecUser = qecUser;
+}
+
+UserWrapper::UserWrapper(qevercloud::User && qecUser) :
+    IUser(),
+    d(new UserWrapperData)
+{
+    d->m_qecUser = std::move(qecUser);
+}
 
 UserWrapper & UserWrapper::operator=(const UserWrapper & other)
 {

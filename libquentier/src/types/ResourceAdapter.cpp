@@ -69,8 +69,8 @@ const qevercloud::Resource & ResourceAdapter::GetEnResource() const
 qevercloud::Resource & ResourceAdapter::GetEnResource()
 {
     if (m_isConst) {
-        throw ResourceAdapterAccessException("Attempt to access non-const reference "
-                                             "to resource from constant ResourceAdapter");
+        throw ResourceAdapterAccessException(QT_TR_NOOP("Attempt to access non-const reference "
+                                                        "to resource from constant ResourceAdapter"));
     }
 
     QUENTIER_CHECK_PTR(m_pEnResource, "Null pointer to external resource in ResourceAdapter");
@@ -79,9 +79,9 @@ qevercloud::Resource & ResourceAdapter::GetEnResource()
 
 QTextStream & ResourceAdapter::print(QTextStream & strm) const
 {
-    strm << "ResourceAdapter { \n";
+    strm << QStringLiteral("ResourceAdapter { \n");
     IResource::print(strm);
-    strm << "} \n";
+    strm << QStringLiteral("} \n");
 
     return strm;
 }

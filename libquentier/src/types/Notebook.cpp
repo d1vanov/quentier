@@ -317,7 +317,7 @@ const QString & Notebook::publishingUri() const
 void Notebook::setPublishingUri(const QString & uri)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set publishing uri for notebook: update is forbidden");
+        QNDEBUG(QStringLiteral("Can't set publishing uri for notebook: update is forbidden"));
         return;
     }
 
@@ -341,7 +341,7 @@ qint8 Notebook::publishingOrder() const
 void Notebook::setPublishingOrder(const qint8 order)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set publishing order for notebook: update is forbidden");
+        QNDEBUG(QStringLiteral("Can't set publishing order for notebook: update is forbidden"));
         return;
     }
 
@@ -367,7 +367,7 @@ bool Notebook::isPublishingAscending() const
 void Notebook::setPublishingAscending(const bool ascending)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set publishing ascending for notebook: update is forbidden");
+        QNDEBUG(QStringLiteral("Can't set publishing ascending for notebook: update is forbidden"));
         return;
     }
 
@@ -388,7 +388,7 @@ const QString & Notebook::publishingPublicDescription() const
 void Notebook::setPublishingPublicDescription(const QString & publicDescription)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set publishing public description for notebook: update is forbidden");
+        QNDEBUG(QStringLiteral("Can't set publishing public description for notebook: update is forbidden"));
         return;
     }
 
@@ -414,7 +414,7 @@ bool Notebook::isPublished() const
 void Notebook::setPublished(const bool published)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set published flag for notebook: update is forbidden");
+        QNDEBUG(QStringLiteral("Can't set published flag for notebook: update is forbidden"));
         return;
     }
 
@@ -434,7 +434,7 @@ const QString & Notebook::stack() const
 void Notebook::setStack(const QString & stack)
 {
     if (!canSetNotebookStack()) {
-        QNDEBUG("Can't set stack for notebook: setting stack is forbidden");
+        QNDEBUG(QStringLiteral("Can't set stack for notebook: setting stack is forbidden"));
         return;
     }
 
@@ -507,7 +507,7 @@ void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
     const auto & enSharedNotebook = sharedNotebook.GetEnSharedNotebook();
 
     if (sharedNotebooks.indexOf(enSharedNotebook) != -1) {
-        QNDEBUG("Can't add shared notebook: this shared notebook already exists within the notebook");
+        QNDEBUG(QStringLiteral("Can't add shared notebook: this shared notebook already exists within the notebook"));
         return;
     }
 
@@ -517,7 +517,7 @@ void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
 void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't remove shared notebook from notebook: updating is forbidden");
+        QNDEBUG(QStringLiteral("Can't remove shared notebook from notebook: updating is forbidden"));
         return;
     }
 
@@ -526,7 +526,7 @@ void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
 
     int index = sharedNotebooks->indexOf(enSharedNotebook);
     if (index == -1) {
-        QNDEBUG("Can't remove shared notebook: this shared notebook doesn't exists within the notebook");
+        QNDEBUG(QStringLiteral("Can't remove shared notebook: this shared notebook doesn't exists within the notebook"));
         return;
     }
 
@@ -551,7 +551,7 @@ const QString & Notebook::businessNotebookDescription() const
 void Notebook::setBusinessNotebookDescription(const QString & businessNotebookDescription)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set business notebook description for notebook: updating is forbidden");
+        QNDEBUG(QStringLiteral("Can't set business notebook description for notebook: updating is forbidden"));
         return;
     }
 
@@ -575,7 +575,7 @@ qint8 Notebook::businessNotebookPrivilegeLevel() const
 void Notebook::setBusinessNotebookPrivilegeLevel(const qint8 privilegeLevel)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set business notebook privilege level for notebook: updating is forbidden");
+        QNDEBUG(QStringLiteral("Can't set business notebook privilege level for notebook: updating is forbidden"));
         return;
     }
 
@@ -601,7 +601,7 @@ bool Notebook::isBusinessNotebookRecommended() const
 void Notebook::setBusinessNotebookRecommended(const bool recommended)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set business notebook recommended flag for notebook: updating is forbidden");
+        QNDEBUG(QStringLiteral("Can't set business notebook recommended flag for notebook: updating is forbidden"));
         return;
     }
 
@@ -624,7 +624,7 @@ const UserAdapter Notebook::contact() const
 void Notebook::setContact(const IUser & contact)
 {
     if (!canUpdateNotebook()) {
-        QNDEBUG("Can't set contact for notebook: updating if forbidden");
+        QNDEBUG(QStringLiteral("Can't set contact for notebook: updating is forbidden"));
         return;
     }
 

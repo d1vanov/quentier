@@ -390,14 +390,14 @@ const QByteArray & IResource::dataBody() const
 
 void IResource::setDataBody(const QByteArray & body)
 {
-    QNTRACE("IResource::setDataBody: body to set is " << (body.isEmpty() ? "empty" : "not empty"));
+    QNTRACE(QStringLiteral("IResource::setDataBody: body to set is ") << (body.isEmpty() ? QStringLiteral("empty") : QStringLiteral("not empty")));
 
     qevercloud::Resource & enResource = GetEnResource();
 
     if (!enResource.data.isSet())
     {
         if (body.isEmpty()) {
-            QNTRACE("Body to set is empty and resource's data is not set as well");
+            QNTRACE(QStringLiteral("Body to set is empty and resource's data is not set as well"));
             return;
         }
 
@@ -407,17 +407,17 @@ void IResource::setDataBody(const QByteArray & body)
     if (body.isEmpty())
     {
         enResource.data->body.clear();
-        QNTRACE("Cleared data body");
+        QNTRACE(QStringLiteral("Cleared data body"));
 
         if (!enResource.data->bodyHash.isSet() && !enResource.data->size.isSet()) {
             enResource.data.clear();
-            QNTRACE("Cleared the entire data field");
+            QNTRACE(QStringLiteral("Cleared the entire data field"));
         }
     }
     else
     {
         enResource.data->body = body;
-        QNTRACE("Set resource data body");
+        QNTRACE(QStringLiteral("Set resource data body"));
     }
 }
 
@@ -667,27 +667,28 @@ QTextStream & IResource::print(QTextStream & strm) const
 {
     const qevercloud::Resource & enResource = GetEnResource();
 
-    strm << "Resource: { \n";
+    strm << QStringLiteral("Resource: { \n");
 
-    QString indent = "  ";
+    QString indent = QStringLiteral("  ");
 
     const QString localUid_ = localUid();
     if (!localUid_.isEmpty()) {
-        strm << indent << "local uid = " << localUid_ << "; \n";
+        strm << indent << QStringLiteral("local uid = ") << localUid_ << QStringLiteral("; \n");
     }
     else {
-        strm << indent << "localUid is empty; \n";
+        strm << indent << QStringLiteral("localUid is empty; \n");
     }
 
-    strm << indent << "isDirty = " << (isDirty() ? "true" : "false") << "; \n";
-    strm << indent << "indexInNote = " << QString::number(m_indexInNote) << "; \n";
-    strm << indent << "note local uid = " << (m_noteLocalUid.isSet() ? m_noteLocalUid.ref() : QStringLiteral("<not set>")) << "; \n";
+    strm << indent << QStringLiteral("isDirty = ") << (isDirty() ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("indexInNote = ") << QString::number(m_indexInNote) << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("note local uid = ") << (m_noteLocalUid.isSet() ? m_noteLocalUid.ref() : QStringLiteral("<not set>"))
+         << QStringLiteral("; \n");
 
     strm << indent << enResource;
 
-    strm << "}; \n";
+    strm << QStringLiteral("}; \n");
 
     return strm;
 }
 
-}
+} // namespace quentier

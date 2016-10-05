@@ -450,112 +450,116 @@ bool ResourceRecognitionIndexItem::removeBarcodeItemAt(const int barcodeItemInde
 
 QTextStream & ResourceRecognitionIndexItem::print(QTextStream & strm) const
 {
-    strm << "ResourceRecognitionIndexItem: {\n";
+    strm << QStringLiteral("ResourceRecognitionIndexItem: {\n");
 
     if (d->m_x >= 0) {
-        strm << "  x = " << d->m_x << ";\n";
+        strm << QStringLiteral("  x = ") << d->m_x << QStringLiteral(";\n");
     }
     else {
-        strm << "  x is not set;\n";
+        strm << QStringLiteral("  x is not set;\n");
     }
 
     if (d->m_y >= 0) {
-        strm << "  y = " << d->m_y << ";\n";
+        strm << QStringLiteral("  y = ") << d->m_y << QStringLiteral(";\n");
     }
     else {
-        strm << "  y is not set;\n";
+        strm << QStringLiteral("  y is not set;\n");
     }
 
     if (d->m_h >= 0) {
-        strm << "  h = " << d->m_h << ";\n";
+        strm << QStringLiteral("  h = ") << d->m_h << QStringLiteral(";\n");
     }
     else {
-        strm << "  h is not set;\n";
+        strm << QStringLiteral("  h is not set;\n");
     }
 
     if (d->m_w >= 0) {
-        strm << "  w = " << d->m_w << ";\n";
+        strm << QStringLiteral("  w = ") << d->m_w << QStringLiteral(";\n");
     }
     else {
-        strm << "  w is not set;\n";
+        strm << QStringLiteral("  w is not set;\n");
     }
 
     if (d->m_offset >= 0) {
-        strm << "  offset = " << d->m_offset << ";\n";
+        strm << QStringLiteral("  offset = ") << d->m_offset << QStringLiteral(";\n");
     }
     else {
-        strm << "  offset is not set;\n";
+        strm << QStringLiteral("  offset is not set;\n");
     }
 
     if (d->m_duration >= 0) {
-        strm << "  duration = " << d->m_duration << ";\n";
+        strm << QStringLiteral("  duration = ") << d->m_duration << QStringLiteral(";\n");
     }
     else {
-        strm << "  duration is not set;\n";
+        strm << QStringLiteral("  duration is not set;\n");
     }
 
     if (!d->m_strokeList.isEmpty())
     {
-        strm << "  stroke list: ";
-        for(auto it = d->m_strokeList.begin(), end = d->m_strokeList.end(); it != end; ++it) {
-            strm << *it << " ";
+        strm << QStringLiteral("  stroke list: ");
+        for(auto it = d->m_strokeList.constBegin(), end = d->m_strokeList.constEnd(); it != end; ++it) {
+            strm << *it << QStringLiteral(" ");
         }
-        strm << ";\n";
+        strm << QStringLiteral(";\n");
     }
     else
     {
-        strm << "  stroke list is not set;\n";
+        strm << QStringLiteral("  stroke list is not set;\n");
     }
 
     if (!d->m_textItems.isEmpty())
     {
-        strm << "  text items: \n";
-        for(auto it = d->m_textItems.begin(), end = d->m_textItems.end(); it != end; ++it) {
-            strm << "    text: " << it->m_text << "; weight = " << it->m_weight << ";\n";
+        strm << QStringLiteral("  text items: \n");
+        for(auto it = d->m_textItems.constBegin(), end = d->m_textItems.constEnd(); it != end; ++it) {
+            strm << QStringLiteral("    text: ") << it->m_text << QStringLiteral("; weight = ") << it->m_weight
+                 << QStringLiteral(";\n");
         }
     }
     else
     {
-        strm << "  text items are not set;\n";
+        strm << QStringLiteral("  text items are not set;\n");
     }
 
     if (!d->m_objectItems.isEmpty())
     {
-        strm << "  object items: \n";
-        for(auto it = d->m_objectItems.begin(), end = d->m_objectItems.end(); it != end; ++it) {
-            strm << "    object type: " << it->m_objectType << "; weight: " << it->m_weight << ";\n";
+        strm << QStringLiteral("  object items: \n");
+        for(auto it = d->m_objectItems.constBegin(), end = d->m_objectItems.constEnd(); it != end; ++it) {
+            strm << QStringLiteral("    object type: ") << it->m_objectType << QStringLiteral("; weight: ")
+                 << it->m_weight << QStringLiteral(";\n");
         }
     }
     else
     {
-        strm << "  object items are not set;\n";
+        strm << QStringLiteral("  object items are not set;\n");
     }
 
     if (!d->m_shapeItems.isEmpty())
     {
-        strm << "  shape items: \n";
-        for(auto it = d->m_shapeItems.begin(), end = d->m_shapeItems.end(); it != end; ++it) {
-            strm << "    shape type: " << it->m_shapeType << "; weight: " << it->m_weight << ";\n";
+        strm << QStringLiteral("  shape items: \n");
+        for(auto it = d->m_shapeItems.constBegin(), end = d->m_shapeItems.constEnd(); it != end; ++it) {
+            strm << QStringLiteral("    shape type: ") << it->m_shapeType << QStringLiteral("; weight: ") << it->m_weight
+                 << QStringLiteral(";\n");
         }
     }
     else
     {
-        strm << "  shape items are not set;\n";
+        strm << QStringLiteral("  shape items are not set;\n");
     }
 
     if (!d->m_barcodeItems.isEmpty())
     {
-        strm << "  barcode items: \n";
-        for(auto it = d->m_barcodeItems.begin(), end = d->m_barcodeItems.end(); it != end; ++it) {
-            strm << "    barcode: " << it->m_barcode << "; weight: " << it->m_weight << ";\n";
+        strm << QStringLiteral("  barcode items: \n");
+        for(auto it = d->m_barcodeItems.constBegin(), end = d->m_barcodeItems.constEnd(); it != end; ++it) {
+            strm << QStringLiteral("    barcode: ") << it->m_barcode << QStringLiteral("; weight: ") << it->m_weight
+                 << QStringLiteral(";\n");
         }
     }
     else
     {
-        strm << "  barcode items are not set;\n";
+        strm << QStringLiteral("  barcode items are not set;\n");
     }
 
-    strm << "};\n";
+    strm << QStringLiteral("};\n");
 
     return strm;
 }

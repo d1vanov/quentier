@@ -100,56 +100,56 @@ qint32 Account::noteResourceCountMax() const
 
 QTextStream & Account::print(QTextStream & strm) const
 {
-    strm << "Account: {\n";
-    strm << "    name = " << d->m_name << ";\n";
+    strm << QStringLiteral("Account: {\n");
+    strm << QStringLiteral("    name = ") << d->m_name << QStringLiteral(";\n");
 
-    strm << "    type = ";
+    strm << QStringLiteral("    type = ");
     switch(d->m_accountType)
     {
     case Account::Type::Local:
-        strm << "Local";
+        strm << QStringLiteral("Local");
         break;
     case Account::Type::Evernote:
-        strm << "Evernote";
+        strm << QStringLiteral("Evernote");
         break;
     default:
-        strm << "Unknown";
+        strm << QStringLiteral("Unknown");
         break;
     }
-    strm << ";\n";
+    strm << QStringLiteral(";\n");
 
-    strm << "    Evernote account type = ";
+    strm << QStringLiteral("    Evernote account type = ");
     switch(d->m_evernoteAccountType)
     {
     case Account::EvernoteAccountType::Free:
-        strm << "Free";
+        strm << QStringLiteral("Free");
         break;
     case Account::EvernoteAccountType::Plus:
-        strm << "Plus";
+        strm << QStringLiteral("Plus");
         break;
     case Account::EvernoteAccountType::Premium:
-        strm << "Premium";
+        strm << QStringLiteral("Premium");
         break;
     case Account::EvernoteAccountType::Business:
-        strm << "Business";
+        strm << QStringLiteral("Business");
         break;
     default:
-        strm << "Unknown";
+        strm << QStringLiteral("Unknown");
         break;
     }
-    strm << ";\n";
+    strm << QStringLiteral(";\n");
 
-    strm << "    mail limit daily = " << d->m_mailLimitDaily << ";\n";
-    strm << "    note size max = " << d->m_noteSizeMax << ";\n";
-    strm << "    resource size max = " << d->m_resourceSizeMax << ";\n";
-    strm << "    linked notebook max = " << d->m_linkedNotebookMax << ";\n";
-    strm << "    note count max = " << d->m_noteCountMax << ";\n";
-    strm << "    notebook count max = " << d->m_notebookCountMax << ";\n";
-    strm << "    tag count max = " << d->m_tagCountMax << ";\n";
-    strm << "    note tag count max = " << d->m_noteTagCountMax << ";\n";
-    strm << "    saved search count max = " << d->m_savedSearchCountMax << ";\n";
-    strm << "    note resource count max = " << d->m_noteResourceCountMax << ";\n";
-    strm << "};\n";
+    strm << QStringLiteral("    mail limit daily = ") << d->m_mailLimitDaily << QStringLiteral(";\n");
+    strm << QStringLiteral("    note size max = ") << d->m_noteSizeMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    resource size max = ") << d->m_resourceSizeMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    linked notebook max = ") << d->m_linkedNotebookMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    note count max = ") << d->m_noteCountMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    notebook count max = ") << d->m_notebookCountMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    tag count max = ") << d->m_tagCountMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    note tag count max = ") << d->m_noteTagCountMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    saved search count max = ") << d->m_savedSearchCountMax << QStringLiteral(";\n");
+    strm << QStringLiteral("    note resource count max = ") << d->m_noteResourceCountMax << QStringLiteral(";\n");
+    strm << QStringLiteral("};\n");
 
     return strm;
 }
