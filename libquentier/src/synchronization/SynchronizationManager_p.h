@@ -194,6 +194,7 @@ private:
     bool                                    m_onceReadLastSyncParams;
 
     NoteStore                               m_noteStore;
+    UserStore                               m_userStore;
     AuthContext::type                       m_authContext;
 
     int                                     m_launchSyncPostponeTimerId;

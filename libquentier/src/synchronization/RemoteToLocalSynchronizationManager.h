@@ -20,6 +20,7 @@
 #define LIB_QUENTIER_SYNCHRONIZATION_REMOTE_TO_LOCAL_SYNCHRONIZATION_MANAGER_H
 
 #include "NoteStore.h"
+#include "UserStore.h"
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
@@ -47,6 +48,7 @@ class RemoteToLocalSynchronizationManager: public QObject
 public:
     explicit RemoteToLocalSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                                  const QString & host, QSharedPointer<qevercloud::NoteStore> pNoteStore,
+                                                 QSharedPointer<qevercloud::UserStore> pUserStore,
                                                  QObject * parent = Q_NULLPTR);
 
     bool active() const;
@@ -414,6 +416,8 @@ private:
                                       const Notebook & notebook);
     void setupNoteThumbnailDownloading(const QString & noteGuid, const Notebook & notebook);
 
+    QString clientNameForProtocolVersionCheck() const;
+
 private:
     RemoteToLocalSynchronizationManager() Q_DECL_EQ_DELETE;
 
@@ -484,6 +488,8 @@ private:
     QString                                 m_host;
 
     NoteStore                               m_noteStore;
+    UserStore                               m_userStore;
+
     qint32                                  m_maxSyncChunkEntries;
     SyncMode::type                          m_lastSyncMode;
     qevercloud::Timestamp                   m_lastSyncTime;

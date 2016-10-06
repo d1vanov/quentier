@@ -27,6 +27,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QTimerEvent>
 #include <QThreadPool>
+#include <QSysInfo>
 #include <algorithm>
 
 #define ACCOUNT_LIMITS_KEY_GROUP QStringLiteral("account_limits/")
@@ -49,12 +50,14 @@ namespace quentier {
 
 RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                                                          const QString & host, QSharedPointer<qevercloud::NoteStore> pNoteStore,
+                                                                         QSharedPointer<qevercloud::UserStore> pUserStore,
                                                                          QObject * parent) :
     QObject(parent),
     m_localStorageManagerThreadWorker(localStorageManagerThreadWorker),
     m_connectedToLocalStorage(false),
     m_host(host),
     m_noteStore(pNoteStore),
+    m_userStore(pUserStore),
     m_maxSyncChunkEntries(50),
     m_lastSyncMode(SyncMode::FullSync),
     m_lastSyncTime(0),
@@ -178,6 +181,36 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
 
     clear();
     m_active = true;
+
+    // Checking the protocol version first
+    QNLocalizedString errorDescription;
+    QString clientName = clientNameForProtocolVersionCheck();
+    qint16 edamProtocolVersionMajor = 1;
+    qint16 edamProtocolVersionMinor = 28;
+    bool protocolVersionChecked = m_userStore.checkVersion(clientName, edamProtocolVersionMajor, edamProtocolVersionMinor,
+                                                           errorDescription);
+    if (Q_UNLIKELY(!protocolVersionChecked))
+    {
+        if (!errorDescription.isEmpty()) {
+            QNLocalizedString fullErrorDescription = QT_TR_NOOP("EDAM protocol version check failed");
+            fullErrorDescription += QStringLiteral(": ");
+            fullErrorDescription += errorDescription;
+            errorDescription = fullErrorDescription;
+        }
+        else {
+            errorDescription = QT_TR_NOOP("Evernote service reports that the protocol version of");
+            errorDescription += QStringLiteral(" ");
+            errorDescription += QString::number(edamProtocolVersionMajor);
+            errorDescription += QStringLiteral(".");
+            errorDescription += QString::number(edamProtocolVersionMinor);
+            errorDescription += QStringLiteral(" ");
+            errorDescription += QT_TR_NOOP("can no longer be used for the communication with it");
+        }
+
+        QNWARNING(errorDescription);
+        emit failure(errorDescription);
+        return;
+    }
 
     m_lastSyncMode = ((afterUsn == 0)
                       ? SyncMode::FullSync
@@ -4226,6 +4259,85 @@ void RemoteToLocalSynchronizationManager::setupNoteThumbnailDownloading(const QS
     QObject::connect(pDownloader, QNSIGNAL(NoteThumbnailDownloader,finished,bool,QString,QNLocalizedString),
                      this, QNSLOT(RemoteToLocalSynchronizationManager,onNoteThumbnailDownloadingFinished,bool,QString,QNLocalizedString));
     QThreadPool::globalInstance()->start(pDownloader);
+}
+
+QString RemoteToLocalSynchronizationManager::clientNameForProtocolVersionCheck() const
+{
+    QString clientName = QCoreApplication::applicationName();
+    clientName += QStringLiteral("/");
+    clientName += QCoreApplication::applicationVersion();
+    clientName += QStringLiteral("; ");
+
+#if defined(Q_OS_WIN32)
+    OSVERSIONINFOEX info;
+    ZeroMemory(&info, sizeof(OSVERSIONINFOEX));
+    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    GetVersionEx(&info);
+    clientName += QStringLiteral("Windows/");
+    clientName += QString::number(info.dwMajorVersion);
+    clientName += QStringLiteral(".");
+    clientName += QString::number(info.dwMinorVersion);
+#elif defined(Q_OS_MAC)
+    switch(QSysInfo::MacintoshVersion)
+    {
+    case QSysInfo::MV_9:
+        clientName += QStringLiteral("Mac OS/9");
+        break;
+    case QSysInfo::MV_10_0:
+        clientName += QStringLiteral("Mac OS X/10.0");
+        break;
+    case QSysInfo::MV_10_1:
+        clientName += QStringLiteral("Mac OS X/10.1");
+        break;
+    case QSysInfo::MV_10_2:
+        clientName += QStringLiteral("Mac OS X/10.2");
+        break;
+    case QSysInfo::MV_10_3:
+        clientName += QStringLiteral("Mac OS X/10.3");
+        break;
+    case QSysInfo::MV_10_4:
+        clientName += QStringLiteral("Mac OS X/10.4");
+        break;
+    case QSysInfo::MV_10_5:
+        clientName += QStringLiteral("Mac OS X/10.5");
+        break;
+    case QSysInfo::MV_10_6:
+        clientName += QStringLiteral("Mac OS X/10.6");
+        break;
+    case QSysInfo::MV_10_7:
+        clientName += QStringLiteral("Mac OS X/10.7");
+        break;
+    case QSysInfo::MV_10_8:
+        clientName += QStringLiteral("OS X/10.8");
+        break;
+    case QSysInfo::MV_10_9:
+        clientName += QStringLiteral("OS X/10.9");
+        break;
+    case QSysInfo::MV_10_10:
+        clientName += QStringLiteral("OS X/10.10");
+        break;
+    case QSysInfo::MV_10_11:
+        clientName += QStringLiteral("OS X/10.11");
+        break;
+    // NOTE: intentional fall-through
+    case QSysInfo::MV_Unknown:
+    default:
+        clientName += QStringLiteral("Unknown Apple OS/unknown version");
+        break;
+    }
+#elif defined(Q_OS_LINUX)
+    // TODO: implement
+#elif defined(Q_OS_FREEBSD)
+    // TODO: implement
+#elif defined(Q_OS_NETBSD)
+    // TODO: implement
+#elif defined(Q_OS_OPENBSD)
+    // TODO: implement
+#else
+    clientName += QStringLiteral("Unknown OS/unknown version");
+#endif
+
+    return clientName;
 }
 
 QTextStream & operator<<(QTextStream & strm, const RemoteToLocalSynchronizationManager::SyncMode::type & obj)
