@@ -47,9 +47,9 @@ void StringUtilsPrivate::removePunctuation(QString & str, const QVector<QChar> &
 
 void StringUtilsPrivate::removeDiacritics(QString & str) const
 {
-    QNTRACE("str before normalizing by D form: " << str);
+    QNTRACE(QStringLiteral("str before normalizing by D form: ") << str);
     str = str.normalized(QString::NormalizationForm_KD);
-    QNTRACE("str after normalizing by KD form: " << str);
+    QNTRACE(QStringLiteral("str after normalizing by KD form: ") << str);
 
     for(int i = 0; i < str.length(); ++i)
     {
@@ -72,18 +72,31 @@ void StringUtilsPrivate::removeDiacritics(QString & str) const
         str.replace(i, 1, replacement);
     }
 
-    QNTRACE("str after removing diacritics: " << str);
+    QNTRACE(QStringLiteral("str after removing diacritics: ") << str);
 }
 
 void StringUtilsPrivate::initialize()
 {
     m_diacriticLetters = QString::fromUtf8("ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿ");
     m_noDiacriticLetters.reserve(m_diacriticLetters.size());
-    m_noDiacriticLetters << "S" << "OE" << "Z" << "s" << "oe" << "z" << "Y" << "Y" << "u" << "A" << "A" << "A" << "A" << "A"
-                         << "A" << "AE" << "C" << "E" << "E" << "E" << "E" << "I" << "I" << "I" << "I" << "D" << "N" << "O"
-                         << "O" << "O" << "O" << "O" << "O" << "U" << "U" << "U" << "U" << "Y" << "s" << "a" << "a" << "a"
-                         << "a" << "a" << "a" << "ae" << "c" << "e" << "e" << "e" << "e" << "i" << "i" << "i" << "i" << "o"
-                         << "n" << "o" << "o" << "o" << "o" << "o" << "o" << "u" << "u" << "u" << "u" << "y" << "y";
+    m_noDiacriticLetters << QStringLiteral("S") << QStringLiteral("OE") << QStringLiteral("Z") << QStringLiteral("s")
+                         << QStringLiteral("oe") << QStringLiteral("z") << QStringLiteral("Y") << QStringLiteral("Y")
+                         << QStringLiteral("u") << QStringLiteral("A") << QStringLiteral("A") << QStringLiteral("A")
+                         << QStringLiteral("A") << QStringLiteral("A") << QStringLiteral("A") << QStringLiteral("AE")
+                         << QStringLiteral("C") << QStringLiteral("E") << QStringLiteral("E") << QStringLiteral("E")
+                         << QStringLiteral("E") << QStringLiteral("I") << QStringLiteral("I") << QStringLiteral("I")
+                         << QStringLiteral("I") << QStringLiteral("D") << QStringLiteral("N") << QStringLiteral("O")
+                         << QStringLiteral("O") << QStringLiteral("O") << QStringLiteral("O") << QStringLiteral("O")
+                         << QStringLiteral("O") << QStringLiteral("U") << QStringLiteral("U") << QStringLiteral("U")
+                         << QStringLiteral("U") << QStringLiteral("Y") << QStringLiteral("s") << QStringLiteral("a")
+                         << QStringLiteral("a") << QStringLiteral("a") << QStringLiteral("a") << QStringLiteral("a")
+                         << QStringLiteral("a") << QStringLiteral("ae") << QStringLiteral("c") << QStringLiteral("e")
+                         << QStringLiteral("e") << QStringLiteral("e") << QStringLiteral("e") << QStringLiteral("i")
+                         << QStringLiteral("i") << QStringLiteral("i") << QStringLiteral("i") << QStringLiteral("o")
+                         << QStringLiteral("n") << QStringLiteral("o") << QStringLiteral("o") << QStringLiteral("o")
+                         << QStringLiteral("o") << QStringLiteral("o") << QStringLiteral("o") << QStringLiteral("u")
+                         << QStringLiteral("u") << QStringLiteral("u") << QStringLiteral("u") << QStringLiteral("y")
+                         << QStringLiteral("y");
 }
 
 } // namespace quentier

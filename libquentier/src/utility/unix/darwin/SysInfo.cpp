@@ -80,7 +80,7 @@ QString SysInfo::GetStackTrace()
     fpos_t pos;
 
     QString tmpFile = QDir::tempPath();
-    tmpFile += "/QuentierStackTrace.txt";
+    tmpFile += QStringLiteral("/QuentierStackTrace.txt");
 
     // flush existing stderr and reopen it as file
     fflush(stderr);

@@ -266,47 +266,47 @@ void Tag::setLinkedNotebookGuid(const QString & linkedNotebookGuid)
 
 QTextStream & Tag::print(QTextStream & strm) const
 {
-    strm << "Tag { \n";
+    strm << QStringLiteral("Tag { \n");
 
     if (d->m_qecTag.guid.isSet()) {
-        strm << "guid: " << d->m_qecTag.guid << "; \n";
+        strm << QStringLiteral("guid: ") << d->m_qecTag.guid << QStringLiteral("; \n");
     }
     else {
-        strm << "guid is not set; \n";
+        strm << QStringLiteral("guid is not set; \n");
     }
 
     if (d->m_linkedNotebookGuid.isSet()) {
-        strm << "linked notebook guid: " << d->m_linkedNotebookGuid << "; \n";
+        strm << QStringLiteral("linked notebook guid: ") << d->m_linkedNotebookGuid << QStringLiteral("; \n");
     }
     else {
-        strm << "linked notebook guid is not set; \n";
+        strm << QStringLiteral("linked notebook guid is not set; \n");
     }
 
     if (d->m_qecTag.name.isSet()) {
-        strm << "name: " << d->m_qecTag.name << "; \n";
+        strm << QStringLiteral("name: ") << d->m_qecTag.name << QStringLiteral("; \n");
     }
     else {
-        strm << "name is not set; \n";
+        strm << QStringLiteral("name is not set; \n");
     }
 
     if (d->m_qecTag.parentGuid.isSet()) {
-        strm << "parentGuid: " << d->m_qecTag.parentGuid << "; \n";
+        strm << QStringLiteral("parentGuid: ") << d->m_qecTag.parentGuid << QStringLiteral("; \n");
     }
     else {
-        strm << "parentGuid is not set; \n";
+        strm << QStringLiteral("parentGuid is not set; \n");
     }
 
     if (d->m_qecTag.updateSequenceNum.isSet()) {
-        strm << "updateSequenceNumber: " << QString::number(d->m_qecTag.updateSequenceNum) << "; \n";
+        strm << QStringLiteral("updateSequenceNumber: ") << QString::number(d->m_qecTag.updateSequenceNum) << QStringLiteral("; \n");
     }
     else {
-        strm << "updateSequenceNumber is not set; \n";
+        strm << QStringLiteral("updateSequenceNumber is not set; \n");
     }
 
-    strm << "isDirty: " << (isDirty() ? "true" : "false") << "; \n";
-    strm << "isLocal: " << (d->m_isLocal ? "true" : "false") << "; \n";
-    strm << "isFavorited = " << (isFavorited() ? "true" : "false") << "; \n";
-    strm << "}; \n";
+    strm << QStringLiteral("isDirty: ") << (isDirty() ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << QStringLiteral("isLocal: ") << (d->m_isLocal ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << QStringLiteral("isFavorited = ") << (isFavorited() ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << QStringLiteral("}; \n");
 
     return strm;
 }

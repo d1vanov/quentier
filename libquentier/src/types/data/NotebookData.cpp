@@ -64,21 +64,21 @@ bool NotebookData::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (m_qecNotebook.guid.isSet() && !checkGuid(m_qecNotebook.guid.ref())) {
         errorDescription = QT_TR_NOOP("notebook's guid is invalid");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += m_qecNotebook.guid;
         return false;
     }
 
     if (m_linkedNotebookGuid.isSet() && !checkGuid(m_linkedNotebookGuid.ref())) {
         errorDescription = QT_TR_NOOP("notebook's linked notebook guid is invalid");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += m_linkedNotebookGuid;
         return false;
     }
 
     if (m_qecNotebook.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecNotebook.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("notebook's update sequence number is invalid");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QString::number(m_qecNotebook.updateSequenceNum);
         return false;
     }

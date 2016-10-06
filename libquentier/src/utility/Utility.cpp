@@ -32,9 +32,9 @@ bool checkUpdateSequenceNumber(const int32_t updateSequenceNumber)
 const QString printableDateTimeFromTimestamp(const qint64 timestamp)
 {
     QString result = QString::number(timestamp);
-    result += " (";
+    result += QStringLiteral(" (");
     result += QDateTime::fromMSecsSinceEpoch(timestamp).toString(Qt::ISODate);
-    result += ")";
+    result += QStringLiteral(")");
 
     return result;
 }

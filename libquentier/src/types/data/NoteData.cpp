@@ -82,15 +82,15 @@ bool NoteData::containsToDoImpl(const bool checked) const
     {
         Q_UNUSED(reader.readNext());
 
-        if (reader.isStartElement() && (reader.name() == "en-todo"))
+        if (reader.isStartElement() && (reader.name() == QStringLiteral("en-todo")))
         {
             const QXmlStreamAttributes attributes = reader.attributes();
-            if (checked && attributes.hasAttribute("checked") && (attributes.value("checked") == "true")) {
+            if (checked && attributes.hasAttribute(QStringLiteral("checked")) && (attributes.value(QStringLiteral("checked")) == QStringLiteral("true"))) {
                 return true;
             }
 
             if ( !checked &&
-                 (!attributes.hasAttribute("checked") || (attributes.value("checked") == "false")) )
+                 (!attributes.hasAttribute(QStringLiteral("checked")) || (attributes.value(QStringLiteral("checked")) == QStringLiteral("false"))) )
             {
                 return true;
             }
@@ -111,7 +111,7 @@ bool NoteData::containsEncryption() const
     {
         Q_UNUSED(reader.readNext());
 
-        if (reader.isStartElement() && (reader.name() == "en-crypt")) {
+        if (reader.isStartElement() && (reader.name() == QStringLiteral("en-crypt"))) {
             return true;
         }
     }
@@ -224,8 +224,8 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
              (name##Size > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) ) \
         { \
             errorDescription = QT_TR_NOOP("Note attributes field has invalid size"); \
-            errorDescription += ": "; \
-            errorDescription += #name; \
+            errorDescription += QStringLiteral(": "); \
+            errorDescription += QStringLiteral( #name ); \
             return false; \
         } \
     }
@@ -303,7 +303,7 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
                 it != classifications.constEnd(); ++it)
             {
                 const QString & value = it.value();
-                if (!value.startsWith("CLASSIFICATION_")) {
+                if (!value.startsWith(QStringLiteral("CLASSIFICATION_"))) {
                     errorDescription = QT_TR_NOOP("Note's attributes classifications has invalid classification value");
                     return false;
                 }
@@ -318,7 +318,7 @@ QString NoteData::plainText(QNLocalizedString * pErrorMessage) const
 {
     if (!m_qecNote.content.isSet()) {
         if (pErrorMessage) {
-            *pErrorMessage = "Note content is not set";
+            *pErrorMessage = QT_TR_NOOP("Note content is not set");
         }
         return QString();
     }

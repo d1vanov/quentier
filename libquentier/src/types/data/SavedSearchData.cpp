@@ -60,7 +60,7 @@ bool SavedSearchData::checkParameters(QNLocalizedString & errorDescription) cons
 {
     if (m_qecSearch.guid.isSet() && !checkGuid(m_qecSearch.guid.ref())) {
         errorDescription = QT_TR_NOOP("saved search's guid is invalid");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += m_qecSearch.guid;
         return false;
     }
@@ -71,7 +71,7 @@ bool SavedSearchData::checkParameters(QNLocalizedString & errorDescription) cons
 
     if (m_qecSearch.updateSequenceNum.isSet() && !checkUpdateSequenceNumber(m_qecSearch.updateSequenceNum)) {
         errorDescription = QT_TR_NOOP("saved search's update sequence number is invalid");
-        errorDescription += ": ";
+        errorDescription += QStringLiteral(": ");
         errorDescription += QString::number(m_qecSearch.updateSequenceNum);
         return false;
     }
@@ -85,7 +85,7 @@ bool SavedSearchData::checkParameters(QNLocalizedString & errorDescription) cons
              (querySize > qevercloud::EDAM_SEARCH_QUERY_LEN_MAX) )
         {
             errorDescription = QT_TR_NOOP("saved search's query exceeds allowed size");
-            errorDescription += ": ";
+            errorDescription += QStringLiteral(": ");
             errorDescription += query;
             return false;
         }

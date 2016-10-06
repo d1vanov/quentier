@@ -88,9 +88,9 @@ qevercloud::Resource & ResourceWrapper::GetEnResource()
 
 QTextStream & ResourceWrapper::print(QTextStream & strm) const
 {
-    strm << "ResourceWrapper { \n";
+    strm << QStringLiteral("ResourceWrapper { \n");
     IResource::print(strm);
-    strm << "} \n";
+    strm << QStringLiteral("} \n");
 
     return strm;
 }

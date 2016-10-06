@@ -41,9 +41,9 @@ QTextStream & ApplicationSettings::print(QTextStream & strm) const
 {
     QStringList allStoredKeys = QSettings::allKeys();
 
-    foreach(const QString & key, allStoredKeys) {
-        QVariant value = QSettings::value(key);
-        strm << "Key: " << key << "; Value: " << value.toString() << "\n;";
+    for(auto it = allStoredKeys.constBegin(), end = allStoredKeys.constEnd(); it != end; ++it) {
+        QVariant value = QSettings::value(*it);
+        strm << QStringLiteral("Key: ") << *it << QStringLiteral("; Value: ") << value.toString() << QStringLiteral("\n;");
     }
 
     return strm;

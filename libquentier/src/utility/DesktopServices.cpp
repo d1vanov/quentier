@@ -104,7 +104,7 @@ QStyle * applicationStyle()
     const QStringList styleNames = QStyleFactory::keys();
 #if !defined(Q_OS_WIN) && !defined(Q_OS_MAC) && (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
     if (styleNames.isEmpty()) {
-        QNINFO("No valid styles were found in QStyleFactory! Fallback to the last resort of plastique style");
+        QNINFO(QStringLiteral("No valid styles were found in QStyleFactory! Fallback to the last resort of plastique style"));
         return new QPlastiqueStyle;
     }
 #elif QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -118,10 +118,10 @@ QStyle * applicationStyle()
 const QString humanReadableSize(const quint64 bytes)
 {
     QStringList list;
-    list << "Kb" << "Mb" << "Gb" << "Tb";
+    list << QStringLiteral("Kb") << QStringLiteral("Mb") << QStringLiteral("Gb") << QStringLiteral("Tb");
 
     QStringListIterator it(list);
-    QString unit("bytes");
+    QString unit = QStringLiteral("bytes");
 
     double num = static_cast<double>(bytes);
     while(num >= 1024.0 && it.hasNext()) {
@@ -130,7 +130,7 @@ const QString humanReadableSize(const quint64 bytes)
     }
 
     QString result = QString::number(num, 'f', 2);
-    result += " ";
+    result += QStringLiteral(" ");
     result += unit;
 
     return result;
@@ -222,7 +222,7 @@ const QString getExistingFolderDialog(QWidget * parent, const QString & title,
 
 const QString relativePathFromAbsolutePath(const QString & absolutePath, const QString & relativePathRootFolder)
 {
-    QNDEBUG("relativePathFromAbsolutePath: " << absolutePath);
+    QNDEBUG(QStringLiteral("relativePathFromAbsolutePath: ") << absolutePath);
 
     int position = absolutePath.indexOf(relativePathRootFolder, 0,
 #if defined(Q_OS_WIN) || defined(Q_OS_MAC)
@@ -232,7 +232,7 @@ const QString relativePathFromAbsolutePath(const QString & absolutePath, const Q
 #endif
                                         );
     if (position < 0) {
-        QNINFO("Can't find folder " << relativePathRootFolder << " within path " << absolutePath);
+        QNINFO(QStringLiteral("Can't find folder ") << relativePathRootFolder << QStringLiteral(" within path ") << absolutePath);
         return QString();
     }
 
@@ -241,32 +241,33 @@ const QString relativePathFromAbsolutePath(const QString & absolutePath, const Q
 
 void openUrl(const QUrl url)
 {
-    QNDEBUG("openUrl: " << url);
+    QNDEBUG(QStringLiteral("openUrl: ") << url);
     QDesktopServices::openUrl(url);
 }
 
 bool removeFile(const QString & filePath)
 {
-    QNDEBUG("removeFile: " << filePath);
+    QNDEBUG(QStringLiteral("removeFile: ") << filePath);
 
     QFile file(filePath);
     file.close();   // NOTE: this line seems to be mandatory on Windows
     bool res = file.remove();
     if (res) {
-        QNTRACE("Successfully removed file " << filePath);
+        QNTRACE(QStringLiteral("Successfully removed file ") << filePath);
         return true;
     }
 
 #ifdef Q_OS_WIN
-    if (filePath.endsWith(".lnk")) {
+    if (filePath.endsWith(QStringLiteral(".lnk"))) {
         // NOTE: there appears to be a bug in Qt for Windows, QFile::remove returns false
         // for any *.lnk files even though the files are actually getting removed
-        QNTRACE("Skipping the reported failure at removing the .lnk file");
+        QNTRACE(QStringLiteral("Skipping the reported failure at removing the .lnk file"));
         return true;
     }
 #endif
 
-    QNWARNING("Cannot remove file " << filePath << ": " << file.errorString() << ", error code " << file.error());
+    QNWARNING(QStringLiteral("Cannot remove file ") << filePath << QStringLiteral(": ") << file.errorString()
+              << QStringLiteral(", error code ") << file.error());
     return false;
 }
 

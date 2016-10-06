@@ -34,7 +34,7 @@ FileIOThreadWorkerPrivate::FileIOThreadWorkerPrivate(QObject * parent) :
 
 void FileIOThreadWorkerPrivate::setIdleTimePeriod(const qint32 seconds)
 {
-    QNDEBUG("FileIOThreadWorkerPrivate::setIdleTimePeriod: seconds = " << seconds);
+    QNDEBUG(QStringLiteral("FileIOThreadWorkerPrivate::setIdleTimePeriod: seconds = ") << seconds);
     m_idleTimePeriodSeconds = seconds;
 }
 
@@ -43,13 +43,14 @@ void FileIOThreadWorkerPrivate::setIdleTimePeriod(const qint32 seconds)
         killTimer(m_postOperationTimerId); \
     } \
     m_postOperationTimerId = startTimer(SEC_TO_MSEC(m_idleTimePeriodSeconds)); \
-    QNTRACE("FileIOThreadWorkerPrivate: started timer with id " << m_postOperationTimerId)
+    QNTRACE(QStringLiteral("FileIOThreadWorkerPrivate: started timer with id ") << m_postOperationTimerId)
 
 void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QByteArray data,
                                                    QUuid requestId, bool append)
 {
-    QNDEBUG("FileIOThreadWorkerPrivate::onWriteFileRequest: file path = " << absoluteFilePath
-            << ", request id = " << requestId << ", append = " << (append ? "true" : "false"));
+    QNDEBUG(QStringLiteral("FileIOThreadWorkerPrivate::onWriteFileRequest: file path = ") << absoluteFilePath
+            << QStringLiteral(", request id = ") << requestId << QStringLiteral(", append = ")
+            << (append ? QStringLiteral("true") : QStringLiteral("false")));
 
     QFileInfo fileInfo(absoluteFilePath);
     QDir folder = fileInfo.absoluteDir();
@@ -58,7 +59,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
         bool madeFolder = folder.mkpath(folder.absolutePath());
         if (!madeFolder) {
             QNLocalizedString error  = QT_TR_NOOP("can't create folder to write file into");
-            error += ": ";
+            error += QStringLiteral(": ");
             error += absoluteFilePath;
             QNWARNING(error);
             emit writeFileRequestProcessed(false, error, requestId);
@@ -80,7 +81,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     bool open = file.open(mode);
     if (Q_UNLIKELY(!open)) {
         QNLocalizedString error = QT_TR_NOOP("can't open file for writing/appending");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += absoluteFilePath;
         QNWARNING(error);
         emit writeFileRequestProcessed(false, error, requestId);
@@ -91,7 +92,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     qint64 writtenBytes = file.write(data);
     if (Q_UNLIKELY(writtenBytes < data.size())) {
         QNLocalizedString error = QT_TR_NOOP("can't write the whole data to file");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += absoluteFilePath;
         QNWARNING(error);
         emit writeFileRequestProcessed(false, error, requestId);
@@ -100,19 +101,19 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     }
 
     file.close();
-    QNDEBUG("Successfully wrote the file " + absoluteFilePath);
+    QNDEBUG(QStringLiteral("Successfully wrote the file ") + absoluteFilePath);
     emit writeFileRequestProcessed(true, QNLocalizedString(), requestId);
     RESTART_TIMER();
 }
 
 void FileIOThreadWorkerPrivate::onReadFileRequest(QString absoluteFilePath, QUuid requestId)
 {
-    QNDEBUG("FileIOThreadWorkerPrivate::onReadFileRequest: file path = " << absoluteFilePath
-            << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FileIOThreadWorkerPrivate::onReadFileRequest: file path = ") << absoluteFilePath
+            << QStringLiteral(", request id = ") << requestId);
 
     QFile file(absoluteFilePath);
     if (!file.exists()) {
-        QNTRACE("The file to read does not exist, sending empty data in return");
+        QNTRACE(QStringLiteral("The file to read does not exist, sending empty data in return"));
         emit readFileRequestProcessed(true, QNLocalizedString(), QByteArray(), requestId);
         RESTART_TIMER();
         return;
@@ -121,7 +122,7 @@ void FileIOThreadWorkerPrivate::onReadFileRequest(QString absoluteFilePath, QUui
     bool open = file.open(QIODevice::ReadOnly);
     if (!open) {
         QNLocalizedString error = QT_TR_NOOP("can't open file for reading");
-        error += ": ";
+        error += QStringLiteral(": ");
         error += absoluteFilePath;
         QNDEBUG(error);
         emit readFileRequestProcessed(false, error, QByteArray(), requestId);
@@ -137,14 +138,14 @@ void FileIOThreadWorkerPrivate::onReadFileRequest(QString absoluteFilePath, QUui
 void FileIOThreadWorkerPrivate::timerEvent(QTimerEvent * pEvent)
 {
     if (!pEvent) {
-        QNWARNING("Detected null pointer to QTimerEvent in FileIOThreadWorkerPrivate");
+        QNWARNING(QStringLiteral("Detected null pointer to QTimerEvent in FileIOThreadWorkerPrivate"));
         return;
     }
 
     qint32 timerId = pEvent->timerId();
 
     if (timerId != m_postOperationTimerId) {
-        QNTRACE("Received unidentified timer event for FileIOThreadWorkerPrivate");
+        QNTRACE(QStringLiteral("Received unidentified timer event for FileIOThreadWorkerPrivate"));
         return;
     }
 

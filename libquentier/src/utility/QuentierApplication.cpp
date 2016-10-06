@@ -38,8 +38,8 @@ bool QuentierApplication::notify(QObject * object, QEvent * event)
     }
     catch(const std::exception & e)
     {
-        QNCRITICAL("Caught unhandled properly exception: " << e.what()
-                   << ", backtrace: " << SysInfo::GetSingleton().GetStackTrace());
+        QNCRITICAL(QStringLiteral("Caught unhandled properly exception: ") << e.what()
+                   << QStringLiteral(", backtrace: ") << SysInfo::GetSingleton().GetStackTrace());
         return false;
     }
 }
