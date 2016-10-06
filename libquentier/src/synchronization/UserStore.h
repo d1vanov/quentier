@@ -52,7 +52,13 @@ public:
     QString authenticationToken() const;
     void setAuthenticationToken(const QString & authToken);
 
+    bool checkVersion(const QString & clientName, qint16 edamVersionMajor, qint16 edamVersionMinor,
+                      QNLocalizedString & errorDescription);
+
     qint32 getUser(UserWrapper & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+
+    qint32 getAccountLimits(const qevercloud::ServiceLevel::type serviceLevel, qevercloud::AccountLimits & limits,
+                            QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
 
 private:
     qint32 processEdamUserException(const qevercloud::EDAMUserException & userException, QNLocalizedString & errorDescription) const;

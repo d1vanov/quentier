@@ -23,13 +23,36 @@
 
 namespace quentier {
 
-#define SET_EDAM_USER_EXCEPTION_ERROR(userException) \
-    errorDescription = QT_TR_NOOP("caught EDAM user exception, error code"); \
-    errorDescription += QStringLiteral(" "); \
-    errorDescription += ToString(userException.errorCode); \
-    if (!userException.exceptionData().isNull()) { \
+#define CATCH_THRIFT_EXCEPTION() \
+    catch(const qevercloud::ThriftException & thriftException) \
+    { \
+        errorDescription = QT_TR_NOOP("Thrift exception, type"); \
+        errorDescription += QStringLiteral(" = "); \
+        errorDescription += QString::number(thriftException.type()); \
         errorDescription += QStringLiteral(": "); \
-        errorDescription += userException.exceptionData()->errorMessage; \
+        errorDescription += QString::fromUtf8(thriftException.what()); \
+        QNWARNING(errorDescription); \
+        return false; \
+    }
+
+#define CATCH_EVER_CLOUD_EXCEPTION() \
+    catch(const qevercloud::EverCloudException & everCloudException) \
+    { \
+        errorDescription = QT_TR_NOOP("QEverCloud exception"); \
+        errorDescription += QStringLiteral(": "); \
+        errorDescription += QString::fromUtf8(everCloudException.what()); \
+        QNWARNING(errorDescription); \
+        return false; \
+    }
+
+#define CATCH_STD_EXCEPTION() \
+    catch(const std::exception & e) \
+    { \
+        errorDescription = QT_TR_NOOP("std::exception"); \
+        errorDescription += QStringLiteral(": "); \
+        errorDescription += QString::fromUtf8(e.what()); \
+        QNWARNING(errorDescription); \
+        return false; \
     }
 
 UserStore::UserStore(QSharedPointer<qevercloud::UserStore> pQecUserStore) :
@@ -53,6 +76,20 @@ void UserStore::setAuthenticationToken(const QString & authToken)
     m_pQecUserStore->setAuthenticationToken(authToken);
 }
 
+bool UserStore::checkVersion(const QString & clientName, qint16 edamVersionMajor, qint16 edamVersionMinor,
+                             QNLocalizedString & errorDescription)
+{
+    try
+    {
+        return m_pQecUserStore->checkVersion(clientName, edamVersionMajor, edamVersionMinor);
+    }
+    CATCH_THRIFT_EXCEPTION()
+    CATCH_EVER_CLOUD_EXCEPTION()
+    CATCH_STD_EXCEPTION()
+
+    return false;
+}
+
 qint32 UserStore::getUser(UserWrapper & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds)
 {
     try
@@ -69,6 +106,33 @@ qint32 UserStore::getUser(UserWrapper & user, QNLocalizedString & errorDescripti
         return processEdamSystemException(systemException, errorDescription,
                                           rateLimitSeconds);
     }
+    CATCH_THRIFT_EXCEPTION()
+    CATCH_EVER_CLOUD_EXCEPTION()
+    CATCH_STD_EXCEPTION()
+
+    return qevercloud::EDAMErrorCode::UNKNOWN;
+}
+
+qint32 UserStore::getAccountLimits(const qevercloud::ServiceLevel::type serviceLevel, qevercloud::AccountLimits & limits,
+                                   QNLocalizedString & errorDescription, qint32 & rateLimitSeconds)
+{
+    try
+    {
+        limits = m_pQecUserStore->getAccountLimits(serviceLevel);
+        return 0;
+    }
+    catch(const qevercloud::EDAMUserException & userException)
+    {
+        return processEdamUserException(userException, errorDescription);
+    }
+    catch(const qevercloud::EDAMSystemException & systemException)
+    {
+        return processEdamSystemException(systemException, errorDescription,
+                                          rateLimitSeconds);
+    }
+    CATCH_THRIFT_EXCEPTION()
+    CATCH_EVER_CLOUD_EXCEPTION()
+    CATCH_STD_EXCEPTION()
 
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
