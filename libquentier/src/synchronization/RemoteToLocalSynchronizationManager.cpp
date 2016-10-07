@@ -30,8 +30,15 @@
 #include <QSysInfo>
 #include <algorithm>
 
+#if defined(Q_OS_WIN32)
+#include <windows.h>
+#elif defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_OPENBSD)
+#include <sys/utsname.h>
+#endif
+
 #define ACCOUNT_LIMITS_KEY_GROUP QStringLiteral("account_limits/")
 #define ACCOUNT_LIMITS_LAST_SYNC_TIME_KEY QStringLiteral("last_sync_time")
+#define ACCOUNT_LIMITS_SERVICE_LEVEL_KEY QStringLiteral("service_level")
 #define ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY QStringLiteral("user_mail_limit_daily")
 #define ACCOUNT_LIMITS_NOTE_SIZE_MAX_KEY QStringLiteral("note_size_max")
 #define ACCOUNT_LIMITS_RESOURCE_SIZE_MAX_KEY QStringLiteral("resource_size_max")
@@ -72,6 +79,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_active(false),
     m_paused(false),
     m_requestedToStop(false),
+    m_edamProtocolVersionChecked(false),
     m_syncChunks(),
     m_linkedNotebookSyncChunks(),
     m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded(),
@@ -108,6 +116,7 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_shardId(),
     m_authenticationTokenExpirationTime(0),
     m_pendingAuthenticationTokenAndShardId(false),
+    m_user(),
     m_authenticationTokensAndShardIdsByLinkedNotebookGuid(),
     m_authenticationTokenExpirationTimesByLinkedNotebookGuid(),
     m_pendingAuthenticationTokensForLinkedNotebooks(false),
@@ -151,6 +160,8 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId(),
     m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId(),
     m_getSyncStateBeforeStartAPICallPostponeTimerId(0),
+    m_syncUserPostponeTimerId(0),
+    m_syncAccountLimitsPostponeTimerId(0),
     m_gotLastSyncParameters(false)
 {}
 
@@ -183,32 +194,16 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
     m_active = true;
 
     // Checking the protocol version first
-    QNLocalizedString errorDescription;
-    QString clientName = clientNameForProtocolVersionCheck();
-    qint16 edamProtocolVersionMajor = 1;
-    qint16 edamProtocolVersionMinor = 28;
-    bool protocolVersionChecked = m_userStore.checkVersion(clientName, edamProtocolVersionMajor, edamProtocolVersionMinor,
-                                                           errorDescription);
-    if (Q_UNLIKELY(!protocolVersionChecked))
-    {
-        if (!errorDescription.isEmpty()) {
-            QNLocalizedString fullErrorDescription = QT_TR_NOOP("EDAM protocol version check failed");
-            fullErrorDescription += QStringLiteral(": ");
-            fullErrorDescription += errorDescription;
-            errorDescription = fullErrorDescription;
-        }
-        else {
-            errorDescription = QT_TR_NOOP("Evernote service reports that the protocol version of");
-            errorDescription += QStringLiteral(" ");
-            errorDescription += QString::number(edamProtocolVersionMajor);
-            errorDescription += QStringLiteral(".");
-            errorDescription += QString::number(edamProtocolVersionMinor);
-            errorDescription += QStringLiteral(" ");
-            errorDescription += QT_TR_NOOP("can no longer be used for the communication with it");
-        }
+    if (!checkProtocolVersion()) {
+        return;
+    }
 
-        QNWARNING(errorDescription);
-        emit failure(errorDescription);
+    // Retrieving the latest user info then, to figure out the service level and stuff like that
+    if (!syncUser()) {
+        return;
+    }
+
+    if (!checkAndSyncAccountLimits()) {
         return;
     }
 
@@ -2593,8 +2588,6 @@ void RemoteToLocalSynchronizationManager::launchSync()
         return;
     }
 
-    checkAndSyncAccountLimits();
-
     launchSavedSearchSync();
     launchLinkedNotebookSync();
 
@@ -2629,7 +2622,112 @@ void RemoteToLocalSynchronizationManager::launchSync()
     launchResourcesSync();
 }
 
-void RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
+bool RemoteToLocalSynchronizationManager::checkProtocolVersion()
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkProtocolVersion"));
+
+    if (m_edamProtocolVersionChecked) {
+        QNDEBUG(QStringLiteral("Already checked the protocol version, skipping it"));
+        return true;
+    }
+
+    QNLocalizedString errorDescription;
+    QString clientName = clientNameForProtocolVersionCheck();
+    qint16 edamProtocolVersionMajor = qevercloud::EDAM_VERSION_MAJOR;
+    qint16 edamProtocolVersionMinor = qevercloud::EDAM_VERSION_MINOR;
+    bool protocolVersionChecked = m_userStore.checkVersion(clientName, edamProtocolVersionMajor, edamProtocolVersionMinor,
+                                                           errorDescription);
+    if (Q_UNLIKELY(!protocolVersionChecked))
+    {
+        if (!errorDescription.isEmpty()) {
+            QNLocalizedString fullErrorDescription = QT_TR_NOOP("EDAM protocol version check failed");
+            fullErrorDescription += QStringLiteral(": ");
+            fullErrorDescription += errorDescription;
+            errorDescription = fullErrorDescription;
+        }
+        else {
+            errorDescription = QT_TR_NOOP("Evernote service reports that the protocol version of");
+            errorDescription += QStringLiteral(" ");
+            errorDescription += QString::number(edamProtocolVersionMajor);
+            errorDescription += QStringLiteral(".");
+            errorDescription += QString::number(edamProtocolVersionMinor);
+            errorDescription += QStringLiteral(" ");
+            errorDescription += QT_TR_NOOP("can no longer be used for the communication with it");
+        }
+
+        QNWARNING(errorDescription);
+        emit failure(errorDescription);
+        return false;
+    }
+
+    m_edamProtocolVersionChecked = true;
+    return true;
+}
+
+bool RemoteToLocalSynchronizationManager::syncUser()
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncUser"));
+
+    if (m_user.hasId() && m_user.hasServiceLevel()) {
+        QNDEBUG(QStringLiteral("User id and service level are set, that means the user info has already been synchronized once "
+                               "during the current session, won't do it again"));
+        return true;
+    }
+
+    QNLocalizedString errorDescription;
+    qint32 rateLimitSeconds = 0;
+    qint32 errorCode = m_userStore.getUser(m_user, errorDescription, rateLimitSeconds);
+    if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+    {
+        if (rateLimitSeconds <= 0) {
+            errorDescription += QStringLiteral("\n");
+            errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
+            errorDescription += QStringLiteral(": ");
+            errorDescription += QString::number(rateLimitSeconds);
+            emit failure(errorDescription);
+            return false;
+        }
+
+        int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+        if (Q_UNLIKELY(timerId == 0)) {
+            QNLocalizedString errorMessage = QT_TR_NOOP("can't start timer to postpone the Evernote API call due to rate limit exceeding");
+            errorMessage += QStringLiteral(": ");
+            errorMessage += errorDescription;
+            emit failure(errorMessage);
+            return false;
+        }
+
+        m_syncUserPostponeTimerId = timerId;
+
+        QNDEBUG(QStringLiteral("Rate limit exceeded, need to wait for ") << rateLimitSeconds << QStringLiteral(" seconds"));
+        emit rateLimitExceeded(rateLimitSeconds);
+        return false;
+    }
+    else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+    {
+        QNLocalizedString errorMessage = QT_TR_NOOP("unexpected AUTH_EXPIRED error when trying to download "
+                                                    "the latest information about the current user: ");
+        errorMessage += QStringLiteral(": ");
+        errorMessage += errorDescription;
+        QNDEBUG(errorMessage);
+        emit failure(errorMessage);
+        return false;
+    }
+    else if (errorCode != 0)
+    {
+        QNLocalizedString errorMessage = QT_TR_NOOP("can't download the latest user info");
+        errorMessage += QStringLiteral(": ");
+        errorMessage += errorDescription;
+        emit failure(errorMessage);
+        return false;
+    }
+
+    // TODO: should save this user info in the local storage
+
+    return true;
+}
+
+bool RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits"));
 
@@ -2652,19 +2750,74 @@ void RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
             if ((diff > 0) && (diff < THIRTY_DAYS_IN_MSEC)) {
                 QNTRACE("The cached account limits appear to be still valid");
                 readSavedAccountLimits();
-                return;
+                return true;
             }
         }
     }
 
-    syncAccountLimits();
+    return syncAccountLimits();
 }
 
-void RemoteToLocalSynchronizationManager::syncAccountLimits()
+bool RemoteToLocalSynchronizationManager::syncAccountLimits()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncAccountLimits"));
 
-    // TODO: implement
+    QNLocalizedString errorDescription;
+
+    if (Q_UNLIKELY(!m_user.hasServiceLevel())) {
+        errorDescription = QT_TR_NOOP("No Evernote service level was found for the current user");
+        QNDEBUG(errorDescription);
+        emit failure(errorDescription);
+        return false;
+    }
+
+    qint32 rateLimitSeconds = 0;
+    qint32 errorCode = m_userStore.getAccountLimits(m_user.serviceLevel(), m_accountLimits, errorDescription, rateLimitSeconds);
+    if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
+    {
+        if (rateLimitSeconds <= 0) {
+            errorDescription += QStringLiteral("\n");
+            errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
+            errorDescription += QStringLiteral(": ");
+            errorDescription += QString::number(rateLimitSeconds);
+            emit failure(errorDescription);
+            return false;
+        }
+
+        int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+        if (Q_UNLIKELY(timerId == 0)) {
+            QNLocalizedString errorMessage = QT_TR_NOOP("can't start timer to postpone the Evernote API call due to rate limit exceeding");
+            errorMessage += QStringLiteral(": ");
+            errorMessage += errorDescription;
+            emit failure(errorMessage);
+            return false;
+        }
+
+        m_syncAccountLimitsPostponeTimerId = timerId;
+
+        QNDEBUG(QStringLiteral("Rate limit exceeded, need to wait for ") << rateLimitSeconds << QStringLiteral(" seconds"));
+        emit rateLimitExceeded(rateLimitSeconds);
+        return false;
+    }
+    else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
+    {
+        QNLocalizedString errorMessage = QT_TR_NOOP("unexpected AUTH_EXPIRED error when trying to sync the current user's account limits");
+        errorMessage += QStringLiteral(": ");
+        errorMessage += errorDescription;
+        emit failure(errorMessage);
+        return false;
+    }
+    else if (errorCode != 0)
+    {
+        QNLocalizedString errorMessage = QT_TR_NOOP("can't get account limits for the current user");
+        errorMessage += QStringLiteral(": ");
+        errorMessage += errorDescription;
+        emit failure(errorMessage);
+        return false;
+    }
+
+    writeAccountLimitsToAppSettings();
+    return true;
 }
 
 void RemoteToLocalSynchronizationManager::readSavedAccountLimits()
@@ -2831,6 +2984,71 @@ void RemoteToLocalSynchronizationManager::readSavedAccountLimits()
     }
 
     QNTRACE("Read account limits from application settings: " << m_accountLimits);
+}
+
+void RemoteToLocalSynchronizationManager::writeAccountLimitsToAppSettings()
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::writeAccountLimitsToAppSettings"));
+
+    ApplicationSettings appSettings;
+    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_userId) + QStringLiteral("/");
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY,
+                         (m_accountLimits.userMailLimitDaily.isSet()
+                          ? QVariant(m_accountLimits.userMailLimitDaily.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_NOTE_SIZE_MAX_KEY,
+                         (m_accountLimits.noteSizeMax.isSet()
+                          ? QVariant(m_accountLimits.noteSizeMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_RESOURCE_SIZE_MAX_KEY,
+                         (m_accountLimits.resourceSizeMax.isSet()
+                          ? QVariant(m_accountLimits.resourceSizeMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_LINKED_NOTEBOOK_MAX_KEY,
+                         (m_accountLimits.userLinkedNotebookMax.isSet()
+                          ? QVariant(m_accountLimits.userLinkedNotebookMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_UPLOAD_LIMIT_KEY,
+                         (m_accountLimits.uploadLimit.isSet()
+                          ? QVariant(m_accountLimits.uploadLimit.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_NOTE_COUNT_MAX_KEY,
+                         (m_accountLimits.userNoteCountMax.isSet()
+                          ? QVariant(m_accountLimits.userNoteCountMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_NOTEBOOK_COUNT_MAX_KEY,
+                         (m_accountLimits.userNotebookCountMax.isSet()
+                          ? QVariant(m_accountLimits.userNotebookCountMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_TAG_COUNT_MAX_KEY,
+                         (m_accountLimits.userTagCountMax.isSet()
+                          ? QVariant(m_accountLimits.userTagCountMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_NOTE_TAG_COUNT_MAX_KEY,
+                         (m_accountLimits.noteTagCountMax.isSet()
+                          ? QVariant(m_accountLimits.noteTagCountMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_SAVED_SEARCH_COUNT_MAX_KEY,
+                         (m_accountLimits.userSavedSearchesMax.isSet()
+                          ? QVariant(m_accountLimits.userSavedSearchesMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_NOTE_RESOURCE_COUNT_MAX_KEY,
+                         (m_accountLimits.noteResourceCountMax.isSet()
+                          ? QVariant(m_accountLimits.noteResourceCountMax.ref())
+                          : QVariant()));
+
+    appSettings.setValue(keyGroup + ACCOUNT_LIMITS_LAST_SYNC_TIME_KEY, QVariant(QDateTime::currentMSecsSinceEpoch()));
 }
 
 void RemoteToLocalSynchronizationManager::launchTagsSync()
@@ -3190,6 +3408,8 @@ void RemoteToLocalSynchronizationManager::getLinkedNotebookSyncState(const Linke
         }
 
         m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId = timerId;
+
+        QNDEBUG(QStringLiteral("Rate limit exceeded, need to wait for ") << rateLimitSeconds << QStringLiteral(" seconds"));
         emit rateLimitExceeded(rateLimitSeconds);
         asyncWait = true;
         return;
@@ -3348,6 +3568,8 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
                 }
 
                 m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId = timerId;
+
+                QNDEBUG(QStringLiteral("Rate limit exceeded, need to wait for ") << rateLimitSeconds << QStringLiteral(" seconds"));
                 emit rateLimitExceeded(rateLimitSeconds);
                 return false;
             }
@@ -3357,6 +3579,7 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
                                                             "the linked notebook sync chunks: ");
                 errorMessage += QStringLiteral(": ");
                 errorMessage += errorDescription;
+                QNDEBUG(errorMessage);
                 emit failure(errorMessage);
                 return false;
             }
@@ -3365,6 +3588,7 @@ bool RemoteToLocalSynchronizationManager::downloadLinkedNotebooksSyncChunks()
                 QNLocalizedString errorMessage = QT_TR_NOOP("can't download the sync chunks for linked notebooks content");
                 errorMessage += QStringLiteral(": ");
                 errorMessage += errorDescription;
+                QNDEBUG(errorMessage);
                 emit failure(errorMessage);
                 return false;
             }
@@ -3890,6 +4114,18 @@ void RemoteToLocalSynchronizationManager::timerEvent(QTimerEvent * pEvent)
         start(m_lastUsnOnStart);
         return;
     }
+
+    if (m_syncUserPostponeTimerId == timerId) {
+        m_syncUserPostponeTimerId = 0;
+        start(m_lastUsnOnStart);
+        return;
+    }
+
+    if (m_syncAccountLimitsPostponeTimerId == timerId) {
+        m_syncAccountLimitsPostponeTimerId = 0;
+        start(m_lastUsnOnStart);
+        return;
+    }
 }
 
 qint32 RemoteToLocalSynchronizationManager::tryToGetFullNoteData(Note & note, QNLocalizedString & errorDescription)
@@ -4325,14 +4561,21 @@ QString RemoteToLocalSynchronizationManager::clientNameForProtocolVersionCheck()
         clientName += QStringLiteral("Unknown Apple OS/unknown version");
         break;
     }
-#elif defined(Q_OS_LINUX)
-    // TODO: implement
-#elif defined(Q_OS_FREEBSD)
-    // TODO: implement
-#elif defined(Q_OS_NETBSD)
-    // TODO: implement
-#elif defined(Q_OS_OPENBSD)
-    // TODO: implement
+#elif defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_OPENBSD)
+    utsname info;
+    int res = uname(&info);
+    if (Q_UNLIKELY(res != 0))
+    {
+        clientName += QStringLiteral("Unknown Unix/unknown version");
+    }
+    else
+    {
+        clientName += QString::fromUtf8(info.sysname);
+        clientName += QStringLiteral("/");
+        clientName += QString::fromUtf8(info.release);
+        clientName += QStringLiteral(" ");
+        clientName += QString::fromUtf8(info.version);
+    }
 #else
     clientName += QStringLiteral("Unknown OS/unknown version");
 #endif

@@ -199,9 +199,14 @@ private:
 
     void launchSync();
 
-    void checkAndSyncAccountLimits();
-    void syncAccountLimits();
+    // If any of these returns false, it is either due to error or due to API rate limit exceeding
+    bool checkProtocolVersion();
+    bool syncUser();
+
+    bool checkAndSyncAccountLimits();
+    bool syncAccountLimits();
     void readSavedAccountLimits();
+    void writeAccountLimitsToAppSettings();
 
     void launchTagsSync();
     void launchSavedSearchSync();
@@ -509,6 +514,8 @@ private:
     bool                                    m_paused;
     bool                                    m_requestedToStop;
 
+    bool                                    m_edamProtocolVersionChecked;
+
     QVector<qevercloud::SyncChunk>          m_syncChunks;
     QVector<qevercloud::SyncChunk>          m_linkedNotebookSyncChunks;
     QSet<QString>                           m_linkedNotebookGuidsForWhichSyncChunksWereDownloaded;
@@ -552,6 +559,7 @@ private:
     QString                                 m_shardId;
     qevercloud::Timestamp                   m_authenticationTokenExpirationTime;
     bool                                    m_pendingAuthenticationTokenAndShardId;
+    UserWrapper                             m_user;
 
     QHash<QString,QPair<QString,QString> >  m_authenticationTokensAndShardIdsByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
@@ -613,6 +621,8 @@ private:
     int                                     m_getLinkedNotebookSyncStateBeforeStartAPICallPostponeTimerId;
     int                                     m_downloadLinkedNotebookSyncChunkAPICallPostponeTimerId;
     int                                     m_getSyncStateBeforeStartAPICallPostponeTimerId;
+    int                                     m_syncUserPostponeTimerId;
+    int                                     m_syncAccountLimitsPostponeTimerId;
 
     bool                                    m_gotLastSyncParameters;
 };
