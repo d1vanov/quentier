@@ -28,8 +28,8 @@ using namespace quentier::test;
 int main(int argc, char *argv[])
 {
     quentier::QuentierApplication app(argc, argv);
-    app.setOrganizationName("d1vanov");
-    app.setApplicationName("QuentierCoreTests");
+    app.setOrganizationName(QStringLiteral("d1vanov"));
+    app.setApplicationName(QStringLiteral("QuentierCoreTests"));
 
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Warn);

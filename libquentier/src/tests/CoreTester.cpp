@@ -65,13 +65,13 @@ CoreTester::~CoreTester()
 #if QT_VERSION >= 0x050000
 void nullMessageHandler(QtMsgType type, const QMessageLogContext &, const QString & message) {
     if (type != QtDebugMsg) {
-        QTextStream(stdout) << message << "\n";
+        QTextStream(stdout) << message << QStringLiteral("\n");
     }
 }
 #else
 void nullMessageHandler(QtMsgType type, const char * message) {
     if (type != QtDebugMsg) {
-        QTextStream(stdout) << message << "\n";
+        QTextStream(stdout) << message << QStringLiteral("\n");
     }
 }
 #endif
@@ -89,8 +89,8 @@ void CoreTester::initTestCase()
 
 #define CATCH_EXCEPTION() \
     catch(const std::exception & exception) { \
-        QFAIL(qPrintable(QString("Caught exception: ") + QString(exception.what()) + \
-                         QString(", backtrace: ") + SysInfo::GetSingleton().GetStackTrace())); \
+        QFAIL(qPrintable(QStringLiteral("Caught exception: ") + QString(exception.what()) + \
+                         QStringLiteral(", backtrace: ") + SysInfo::GetSingleton().GetStackTrace())); \
     }
 
 
@@ -98,39 +98,39 @@ void CoreTester::noteContainsToDoTest()
 {
     try
     {
-        QString noteContent = "<en-note><h1>Hello, world!</h1><en-todo checked = \"true\"/>"
-                              "Completed item<en-todo/>Not yet completed item</en-note>";
+        QString noteContent = QStringLiteral("<en-note><h1>Hello, world!</h1><en-todo checked = \"true\"/>"
+                                             "Completed item<en-todo/>Not yet completed item</en-note>");
         Note note;
         note.setContent(noteContent);
 
-        QString error = "Wrong result of Note's containsToDo method";
+        QString error = QStringLiteral("Wrong result of Note's containsToDo method");
         QVERIFY2(note.containsCheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsUncheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsTodo(), qPrintable(error));
 
-        noteContent = "<en-note><h1>Hello, world!</h1><en-todo checked = \"true\"/>"
-                      "Completed item</en-note>";
+        noteContent = QStringLiteral("<en-note><h1>Hello, world!</h1><en-todo checked = \"true\"/>"
+                                     "Completed item</en-note>");
         note.setContent(noteContent);
 
         QVERIFY2(note.containsCheckedTodo(), qPrintable(error));
         QVERIFY2(!note.containsUncheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsTodo(), qPrintable(error));
 
-        noteContent = "<en-note><h1>Hello, world!</h1><en-todo/>Not yet completed item</en-note>";
+        noteContent = QStringLiteral("<en-note><h1>Hello, world!</h1><en-todo/>Not yet completed item</en-note>");
         note.setContent(noteContent);
 
         QVERIFY2(!note.containsCheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsUncheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsTodo(), qPrintable(error));
 
-        noteContent = "<en-note><h1>Hello, world!</h1><en-todo checked = \"false\"/>Not yet completed item</en-note>";
+        noteContent = QStringLiteral("<en-note><h1>Hello, world!</h1><en-todo checked = \"false\"/>Not yet completed item</en-note>");
         note.setContent(noteContent);
 
         QVERIFY2(!note.containsCheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsUncheckedTodo(), qPrintable(error));
         QVERIFY2(note.containsTodo(), qPrintable(error));
 
-        noteContent = "<en-note><h1>Hello, world!</h1></en-note>";
+        noteContent = QStringLiteral("<en-note><h1>Hello, world!</h1></en-note>");
         note.setContent(noteContent);
 
         QVERIFY2(!note.containsCheckedTodo(), qPrintable(error));
@@ -144,16 +144,16 @@ void CoreTester::noteContainsEncryptionTest()
 {
     try
     {
-        QString noteContent = "<en-note><h1>Hello, world!</h1><en-crypt hint = \"the hint\" "
-                              "cipher = \"RC2\" length = \"64\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>";
+        QString noteContent = QStringLiteral("<en-note><h1>Hello, world!</h1><en-crypt hint = \"the hint\" "
+                                             "cipher = \"RC2\" length = \"64\">NKLHX5yK1MlpzemJQijAN6C4545s2EODxQ8Bg1r==</en-crypt></en-note>");
 
         Note note;
         note.setContent(noteContent);
 
-        QString error = "Wrong result of Note's containsEncryption method";
+        QString error = QStringLiteral("Wrong result of Note's containsEncryption method");
         QVERIFY2(note.containsEncryption(), qPrintable(error));
 
-        QString noteContentWithoutEncryption = "<en-note><h1>Hello, world!</h1></en-note>";
+        QString noteContentWithoutEncryption = QStringLiteral("<en-note><h1>Hello, world!</h1></en-note>");
         note.setContent(noteContentWithoutEncryption);
 
         QVERIFY2(!note.containsEncryption(), qPrintable(error));
@@ -367,13 +367,13 @@ void CoreTester::localStorageManagerIndividualSavedSearchTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         SavedSearch search;
-        search.setGuid("00000000-0000-0000-c000-000000000046");
+        search.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         search.setUpdateSequenceNumber(1);
-        search.setName("Fake saved search name");
-        search.setQuery("Fake saved search query");
+        search.setName(QStringLiteral("Fake saved search name"));
+        search.setQuery(QStringLiteral("Fake saved search query"));
         search.setQueryFormat(1);
         search.setIncludeAccount(true);
         search.setIncludeBusinessLinkedNotebooks(false);
@@ -392,19 +392,19 @@ void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
-        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000046");
+        linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         linkedNotebook.setUpdateSequenceNumber(1);
-        linkedNotebook.setShareName("Fake linked notebook share name");
-        linkedNotebook.setUsername("Fake linked notebook username");
-        linkedNotebook.setShardId("Fake linked notebook shard id");
-        linkedNotebook.setSharedNotebookGlobalId("Fake linked notebook shared notebook global id");
-        linkedNotebook.setUri("Fake linked notebook uri");
-        linkedNotebook.setNoteStoreUrl("Fake linked notebook note store url");
-        linkedNotebook.setWebApiUrlPrefix("Fake linked notebook web api url prefix");
-        linkedNotebook.setStack("Fake linked notebook stack");
+        linkedNotebook.setShareName(QStringLiteral("Fake linked notebook share name"));
+        linkedNotebook.setUsername(QStringLiteral("Fake linked notebook username"));
+        linkedNotebook.setShardId(QStringLiteral("Fake linked notebook shard id"));
+        linkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Fake linked notebook shared notebook global id"));
+        linkedNotebook.setUri(QStringLiteral("Fake linked notebook uri"));
+        linkedNotebook.setNoteStoreUrl(QStringLiteral("Fake linked notebook note store url"));
+        linkedNotebook.setWebApiUrlPrefix(QStringLiteral("Fake linked notebook web api url prefix"));
+        linkedNotebook.setStack(QStringLiteral("Fake linked notebook stack"));
         linkedNotebook.setBusinessId(1);
 
         QString error;
@@ -420,26 +420,26 @@ void CoreTester::localStorageManagerIndividualTagTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
-        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
         linkedNotebook.setUpdateSequenceNumber(1);
-        linkedNotebook.setShareName("Linked notebook share name");
-        linkedNotebook.setUsername("Linked notebook username");
-        linkedNotebook.setShardId("Linked notebook shard id");
-        linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id");
-        linkedNotebook.setUri("Linked notebook uri");
-        linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
-        linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
-        linkedNotebook.setStack("Linked notebook stack");
+        linkedNotebook.setShareName(QStringLiteral("Linked notebook share name"));
+        linkedNotebook.setUsername(QStringLiteral("Linked notebook username"));
+        linkedNotebook.setShardId(QStringLiteral("Linked notebook shard id"));
+        linkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Linked notebook shared notebook global id"));
+        linkedNotebook.setUri(QStringLiteral("Linked notebook uri"));
+        linkedNotebook.setNoteStoreUrl(QStringLiteral("Linked notebook note store url"));
+        linkedNotebook.setWebApiUrlPrefix(QStringLiteral("Linked notebook web api url prefix"));
+        linkedNotebook.setStack(QStringLiteral("Linked notebook stack"));
         linkedNotebook.setBusinessId(1);
 
         Tag tag;
-        tag.setGuid("00000000-0000-0000-c000-000000000046");
+        tag.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         tag.setLinkedNotebookGuid(linkedNotebook.guid());
         tag.setUpdateSequenceNumber(1);
-        tag.setName("Fake tag name");
+        tag.setName(QStringLiteral("Fake tag name"));
 
         QNLocalizedString errorMessage;
         bool res = localStorageManager.addLinkedNotebook(linkedNotebook, errorMessage);
@@ -458,12 +458,12 @@ void CoreTester::localStorageManagerIndividualResourceTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
         notebook.setUpdateSequenceNumber(1);
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
@@ -472,10 +472,10 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Note note;
-        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         note.setUpdateSequenceNumber(1);
-        note.setTitle("Fake note title");
-        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        note.setTitle(QStringLiteral("Fake note title"));
+        note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -487,53 +487,53 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         ResourceWrapper resource;
-        resource.setGuid("00000000-0000-0000-c000-000000000046");
+        resource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         resource.setUpdateSequenceNumber(1);
         resource.setNoteGuid(note.guid());
-        resource.setDataBody("Fake resource data body");
+        resource.setDataBody(QByteArray("Fake resource data body"));
         resource.setDataSize(resource.dataBody().size());
-        resource.setDataHash("Fake hash      1");
+        resource.setDataHash(QByteArray("Fake hash      1"));
 
-        resource.setRecognitionDataBody("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
-                                        "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
-                                        "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                        "<t w=\"87\">EVER ?</t>"
-                                        "<t w=\"83\">EVER NOTE</t>"
-                                        "<t w=\"82\">EVERNOTE</t>"
-                                        "<t w=\"71\">EVER NaTE</t>"
-                                        "<t w=\"67\">EVER nine</t>"
-                                        "<t w=\"67\">EVER none</t>"
-                                        "<t w=\"66\">EVER not</t>"
-                                        "<t w=\"62\">over NOTE</t>"
-                                        "<t w=\"62\">even NOTE</t>"
-                                        "<t w=\"61\">EVER nose</t>"
-                                        "<t w=\"50\">EV£RNoTE</t>"
-                                        "</item>"
-                                        "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
-                                        "<t w=\"11\">et</t>"
-                                        "<t w=\"10\">TQ</t>"
-                                        "</item>"
-                                        "</recoIndex>");
+        resource.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                                   "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                                   "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                                   "<t w=\"87\">EVER ?</t>"
+                                                   "<t w=\"83\">EVER NOTE</t>"
+                                                   "<t w=\"82\">EVERNOTE</t>"
+                                                   "<t w=\"71\">EVER NaTE</t>"
+                                                   "<t w=\"67\">EVER nine</t>"
+                                                   "<t w=\"67\">EVER none</t>"
+                                                   "<t w=\"66\">EVER not</t>"
+                                                   "<t w=\"62\">over NOTE</t>"
+                                                   "<t w=\"62\">even NOTE</t>"
+                                                   "<t w=\"61\">EVER nose</t>"
+                                                   "<t w=\"50\">EV£RNoTE</t>"
+                                                   "</item>"
+                                                   "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                                   "<t w=\"11\">et</t>"
+                                                   "<t w=\"10\">TQ</t>"
+                                                   "</item>"
+                                                   "</recoIndex>"));
         resource.setRecognitionDataSize(resource.recognitionDataBody().size());
-        resource.setRecognitionDataHash("Fake hash      2");
+        resource.setRecognitionDataHash(QByteArray("Fake hash      2"));
 
-        resource.setAlternateDataBody("Fake alternate data body");
+        resource.setAlternateDataBody(QByteArray("Fake alternate data body"));
         resource.setAlternateDataSize(resource.alternateDataBody().size());
-        resource.setAlternateDataHash("Fake hash      3");
+        resource.setAlternateDataHash(QByteArray("Fake hash      3"));
 
-        resource.setMime("text/plain");
+        resource.setMime(QStringLiteral("text/plain"));
         resource.setWidth(1);
         resource.setHeight(1);
 
         qevercloud::ResourceAttributes & resourceAttributes = resource.resourceAttributes();
 
-        resourceAttributes.sourceURL = "Fake resource source URL";
+        resourceAttributes.sourceURL = QStringLiteral("Fake resource source URL");
         resourceAttributes.timestamp = 1;
         resourceAttributes.latitude = 0.0;
         resourceAttributes.longitude = 0.0;
         resourceAttributes.altitude = 0.0;
-        resourceAttributes.cameraMake = "Fake resource camera make";
-        resourceAttributes.cameraModel = "Fake resource camera model";
+        resourceAttributes.cameraMake = QStringLiteral("Fake resource camera make");
+        resourceAttributes.cameraModel = QStringLiteral("Fake resource camera model");
 
         note.unsetLocalUid();
 
@@ -550,12 +550,12 @@ void CoreTester::localStorageManagedIndividualNoteTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
         notebook.setUpdateSequenceNumber(1);
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
@@ -564,10 +564,10 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Note note;
-        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         note.setUpdateSequenceNumber(1);
-        note.setTitle("Fake note title");
-        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        note.setTitle(QStringLiteral("Fake note title"));
+        note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -579,10 +579,10 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         noteAttributes.latitude = 1.0;
         noteAttributes.longitude = 1.0;
         noteAttributes.altitude = 1.0;
-        noteAttributes.author = "author";
-        noteAttributes.source = "source";
-        noteAttributes.sourceURL = "source URL";
-        noteAttributes.sourceApplication = "source application";
+        noteAttributes.author = QStringLiteral("author");
+        noteAttributes.source = QStringLiteral("source");
+        noteAttributes.sourceURL = QStringLiteral("source URL");
+        noteAttributes.sourceApplication = QStringLiteral("source application");
         noteAttributes.shareDate = 2;
 
         note.unsetLocalUid();
@@ -592,9 +592,9 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Tag tag;
-        tag.setGuid("00000000-0000-0000-c000-000000000048");
+        tag.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000048"));
         tag.setUpdateSequenceNumber(1);
-        tag.setName("Fake tag name");
+        tag.setName(QStringLiteral("Fake tag name"));
 
         errorMessage.clear();
         res = localStorageManager.addTag(tag, errorMessage);
@@ -608,47 +608,47 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         ResourceWrapper resource;
-        resource.setGuid("00000000-0000-0000-c000-000000000049");
+        resource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000049"));
         resource.setUpdateSequenceNumber(1);
         resource.setNoteGuid(note.guid());
-        resource.setDataBody("Fake resource data body");
+        resource.setDataBody(QByteArray("Fake resource data body"));
         resource.setDataSize(resource.dataBody().size());
-        resource.setDataHash("Fake hash      1");
-        resource.setMime("text/plain");
+        resource.setDataHash(QByteArray("Fake hash      1"));
+        resource.setMime(QStringLiteral("text/plain"));
         resource.setWidth(1);
         resource.setHeight(1);
-        resource.setRecognitionDataBody("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
-                                        "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
-                                        "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                        "<t w=\"87\">EVER ?</t>"
-                                        "<t w=\"83\">EVER NOTE</t>"
-                                        "<t w=\"82\">EVERNOTE</t>"
-                                        "<t w=\"71\">EVER NaTE</t>"
-                                        "<t w=\"67\">EVER nine</t>"
-                                        "<t w=\"67\">EVER none</t>"
-                                        "<t w=\"66\">EVER not</t>"
-                                        "<t w=\"62\">over NOTE</t>"
-                                        "<t w=\"62\">even NOTE</t>"
-                                        "<t w=\"61\">EVER nose</t>"
-                                        "<t w=\"50\">EV£RNoTE</t>"
-                                        "</item>"
-                                        "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
-                                        "<t w=\"11\">et</t>"
-                                        "<t w=\"10\">TQ</t>"
-                                        "</item>"
-                                        "</recoIndex>");
+        resource.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                                   "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                                   "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                                   "<t w=\"87\">EVER ?</t>"
+                                                   "<t w=\"83\">EVER NOTE</t>"
+                                                   "<t w=\"82\">EVERNOTE</t>"
+                                                   "<t w=\"71\">EVER NaTE</t>"
+                                                   "<t w=\"67\">EVER nine</t>"
+                                                   "<t w=\"67\">EVER none</t>"
+                                                   "<t w=\"66\">EVER not</t>"
+                                                   "<t w=\"62\">over NOTE</t>"
+                                                   "<t w=\"62\">even NOTE</t>"
+                                                   "<t w=\"61\">EVER nose</t>"
+                                                   "<t w=\"50\">EV£RNoTE</t>"
+                                                   "</item>"
+                                                   "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                                   "<t w=\"11\">et</t>"
+                                                   "<t w=\"10\">TQ</t>"
+                                                   "</item>"
+                                                   "</recoIndex>"));
         resource.setRecognitionDataSize(resource.recognitionDataBody().size());
-        resource.setRecognitionDataHash("Fake hash      2");
+        resource.setRecognitionDataHash(QByteArray("Fake hash      2"));
 
         qevercloud::ResourceAttributes & resourceAttributes = resource.resourceAttributes();
 
-        resourceAttributes.sourceURL = "Fake resource source URL";
+        resourceAttributes.sourceURL = QStringLiteral("Fake resource source URL");
         resourceAttributes.timestamp = 1;
         resourceAttributes.latitude = 0.0;
         resourceAttributes.longitude = 0.0;
         resourceAttributes.altitude = 0.0;
-        resourceAttributes.cameraMake = "Fake resource camera make";
-        resourceAttributes.cameraModel = "Fake resource camera model";
+        resourceAttributes.cameraMake = QStringLiteral("Fake resource camera make");
+        resourceAttributes.cameraModel = QStringLiteral("Fake resource camera model");
 
         note.addResource(resource);
 
@@ -670,37 +670,37 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
-        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
         linkedNotebook.setUpdateSequenceNumber(1);
-        linkedNotebook.setShareName("Linked notebook share name");
-        linkedNotebook.setUsername("Linked notebook username");
-        linkedNotebook.setShardId("Linked notebook shard id");
-        linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id");
-        linkedNotebook.setUri("Linked notebook uri");
-        linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
-        linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
-        linkedNotebook.setStack("Linked notebook stack");
+        linkedNotebook.setShareName(QStringLiteral("Linked notebook share name"));
+        linkedNotebook.setUsername(QStringLiteral("Linked notebook username"));
+        linkedNotebook.setShardId(QStringLiteral("Linked notebook shard id"));
+        linkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Linked notebook shared notebook global id"));
+        linkedNotebook.setUri(QStringLiteral("Linked notebook uri"));
+        linkedNotebook.setNoteStoreUrl(QStringLiteral("Linked notebook note store url"));
+        linkedNotebook.setWebApiUrlPrefix(QStringLiteral("Linked notebook web api url prefix"));
+        linkedNotebook.setStack(QStringLiteral("Linked notebook stack"));
         linkedNotebook.setBusinessId(1);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
         notebook.setUpdateSequenceNumber(1);
         notebook.setLinkedNotebookGuid(linkedNotebook.guid());
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
         notebook.setDefaultNotebook(true);
         notebook.setLastUsed(false);
-        notebook.setPublishingUri("Fake publishing uri");
+        notebook.setPublishingUri(QStringLiteral("Fake publishing uri"));
         notebook.setPublishingOrder(1);
         notebook.setPublishingAscending(true);
-        notebook.setPublishingPublicDescription("Fake public description");
+        notebook.setPublishingPublicDescription(QStringLiteral("Fake public description"));
         notebook.setPublished(true);
-        notebook.setStack("Fake notebook stack");
-        notebook.setBusinessNotebookDescription("Fake business notebook description");
+        notebook.setStack(QStringLiteral("Fake notebook stack"));
+        notebook.setBusinessNotebookDescription(QStringLiteral("Fake business notebook description"));
         notebook.setBusinessNotebookPrivilegeLevel(1);
         notebook.setBusinessNotebookRecommended(true);
         // NotebookRestrictions
@@ -731,11 +731,11 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         sharedNotebook.setId(1);
         sharedNotebook.setUserId(1);
         sharedNotebook.setNotebookGuid(notebook.guid());
-        sharedNotebook.setEmail("Fake shared notebook email");
+        sharedNotebook.setEmail(QStringLiteral("Fake shared notebook email"));
         sharedNotebook.setCreationTimestamp(1);
         sharedNotebook.setModificationTimestamp(1);
-        sharedNotebook.setGlobalId("Fake shared notebook global id");
-        sharedNotebook.setUsername("Fake shared notebook username");
+        sharedNotebook.setGlobalId(QStringLiteral("Fake shared notebook global id"));
+        sharedNotebook.setUsername(QStringLiteral("Fake shared notebook username"));
         sharedNotebook.setPrivilegeLevel(1);
         sharedNotebook.setReminderNotifyEmail(true);
         sharedNotebook.setReminderNotifyApp(false);
@@ -751,10 +751,10 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Note note;
-        note.setGuid("00000000-0000-0000-c000-000000000049");
+        note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000049"));
         note.setUpdateSequenceNumber(1);
-        note.setTitle("Fake note title");
-        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        note.setTitle(QStringLiteral("Fake note title"));
+        note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -766,9 +766,9 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Tag tag;
-        tag.setGuid("00000000-0000-0000-c000-000000000048");
+        tag.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000048"));
         tag.setUpdateSequenceNumber(1);
-        tag.setName("Fake tag name");
+        tag.setName(QStringLiteral("Fake tag name"));
 
         errorMessage.clear();
         res = localStorageManager.addTag(tag, errorMessage);
@@ -794,53 +794,53 @@ void CoreTester::localStorageManagedIndividualUserTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         UserWrapper user;
         user.setId(1);
-        user.setUsername("fake_user_username");
-        user.setEmail("fake_user _mail");
-        user.setName("fake_user_name");
-        user.setTimezone("fake_user_timezone");
+        user.setUsername(QStringLiteral("fake_user_username"));
+        user.setEmail(QStringLiteral("fake_user _mail"));
+        user.setName(QStringLiteral("fake_user_name"));
+        user.setTimezone(QStringLiteral("fake_user_timezone"));
         user.setPrivilegeLevel(1);
         user.setCreationTimestamp(2);
         user.setModificationTimestamp(3);
         user.setActive(true);
 
         qevercloud::UserAttributes userAttributes;
-        userAttributes.defaultLocationName = "fake_default_location_name";
+        userAttributes.defaultLocationName = QStringLiteral("fake_default_location_name");
         userAttributes.defaultLatitude = 1.0;
         userAttributes.defaultLongitude = 2.0;
         userAttributes.preactivation = false;
         QList<QString> viewedPromotions;
-        viewedPromotions.push_back("Viewed promotion 1");
-        viewedPromotions.push_back("Viewed promotion 2");
-        viewedPromotions.push_back("Viewed promotion 3");
+        viewedPromotions.push_back(QStringLiteral("Viewed promotion 1"));
+        viewedPromotions.push_back(QStringLiteral("Viewed promotion 2"));
+        viewedPromotions.push_back(QStringLiteral("Viewed promotion 3"));
         userAttributes.viewedPromotions = viewedPromotions;
-        userAttributes.incomingEmailAddress = "fake_incoming_email_address";
+        userAttributes.incomingEmailAddress = QStringLiteral("fake_incoming_email_address");
         QList<QString> recentEmailAddresses;
-        recentEmailAddresses.push_back("recent_email_address_1");
-        recentEmailAddresses.push_back("recent_email_address_2");
+        recentEmailAddresses.push_back(QStringLiteral("recent_email_address_1"));
+        recentEmailAddresses.push_back(QStringLiteral("recent_email_address_2"));
         userAttributes.recentMailedAddresses = recentEmailAddresses;
-        userAttributes.comments = "Fake comments";
+        userAttributes.comments = QStringLiteral("Fake comments");
         userAttributes.dateAgreedToTermsOfService = 1;
         userAttributes.maxReferrals = 3;
-        userAttributes.refererCode = "fake_referer_code";
+        userAttributes.refererCode = QStringLiteral("fake_referer_code");
         userAttributes.sentEmailDate = 5;
         userAttributes.sentEmailCount = 4;
         userAttributes.dailyEmailLimit = 2;
         userAttributes.emailOptOutDate = 6;
         userAttributes.partnerEmailOptInDate = 7;
-        userAttributes.preferredLanguage = "ru";
-        userAttributes.preferredCountry = "Russia";
+        userAttributes.preferredLanguage = QStringLiteral("ru");
+        userAttributes.preferredCountry = QStringLiteral("Russia");
         userAttributes.clipFullPage = true;
-        userAttributes.twitterUserName = "fake_twitter_username";
-        userAttributes.twitterId = "fake_twitter_id";
-        userAttributes.groupName = "fake_group_name";
-        userAttributes.recognitionLanguage = "ru";
-        userAttributes.referralProof = "I_have_no_idea_what_this_means";
+        userAttributes.twitterUserName = QStringLiteral("fake_twitter_username");
+        userAttributes.twitterId = QStringLiteral("fake_twitter_id");
+        userAttributes.groupName = QStringLiteral("fake_group_name");
+        userAttributes.recognitionLanguage = QStringLiteral("ru");
+        userAttributes.referralProof = QStringLiteral("I_have_no_idea_what_this_means");
         userAttributes.educationalDiscount = false;
-        userAttributes.businessAddress = "fake_business_address";
+        userAttributes.businessAddress = QStringLiteral("fake_business_address");
         userAttributes.hideSponsorBilling = true;
         userAttributes.useEmailAutoFiling = true;
         userAttributes.reminderEmailConfig = qevercloud::ReminderEmailConfig::DO_NOT_SEND;
@@ -849,9 +849,9 @@ void CoreTester::localStorageManagedIndividualUserTest()
 
         qevercloud::BusinessUserInfo businessUserInfo;
         businessUserInfo.businessId = 1;
-        businessUserInfo.businessName = "Fake business name";
+        businessUserInfo.businessName = QStringLiteral("Fake business name");
         businessUserInfo.role = qevercloud::BusinessUserRole::NORMAL;
-        businessUserInfo.email = "Fake business email";
+        businessUserInfo.email = QStringLiteral("Fake business email");
 
         user.setBusinessUserInfo(std::move(businessUserInfo));
 
@@ -859,19 +859,19 @@ void CoreTester::localStorageManagedIndividualUserTest()
         accounting.uploadLimitEnd = 9;
         accounting.uploadLimitNextMonth = 1200;
         accounting.premiumServiceStatus = qevercloud::PremiumOrderStatus::PENDING;
-        accounting.premiumOrderNumber = "Fake premium order number";
-        accounting.premiumCommerceService = "Fake premium commerce service";
+        accounting.premiumOrderNumber = QStringLiteral("Fake premium order number");
+        accounting.premiumCommerceService = QStringLiteral("Fake premium commerce service");
         accounting.premiumServiceStart = 8;
-        accounting.premiumServiceSKU = "Fake code associated with the purchase";
+        accounting.premiumServiceSKU = QStringLiteral("Fake code associated with the purchase");
         accounting.lastSuccessfulCharge = 7;
         accounting.lastFailedCharge = 5;
-        accounting.lastFailedChargeReason = "No money, no honey";
+        accounting.lastFailedChargeReason = QStringLiteral("No money, no honey");
         accounting.nextPaymentDue = 12;
         accounting.premiumLockUntil = 11;
         accounting.updated = 10;
-        accounting.premiumSubscriptionNumber = "Fake premium subscription number";
+        accounting.premiumSubscriptionNumber = QStringLiteral("Fake premium subscription number");
         accounting.lastRequestedCharge = 9;
-        accounting.currency = "USD";
+        accounting.currency = QStringLiteral("USD");
         accounting.unitPrice = 100;
         accounting.unitDiscount = 2;
         accounting.nextChargeDate = 12;
@@ -915,7 +915,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -928,12 +928,12 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
             SavedSearch & search = searches.back();
 
             if (i > 1) {
-                search.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+                search.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             }
 
             search.setUpdateSequenceNumber(i);
-            search.setName("SavedSearch #" + QString::number(i));
-            search.setQuery("Fake saved search query #" + QString::number(i));
+            search.setName(QStringLiteral("SavedSearch #") + QString::number(i));
+            search.setQuery(QStringLiteral("Fake saved search query #") + QString::number(i));
             search.setQueryFormat(1);
             search.setIncludeAccount(true);
             search.setIncludeBusinessLinkedNotebooks(true);
@@ -972,9 +972,9 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
 
         int numFoundSearches = foundSearches.size();
         if (numFoundSearches != nSearches) {
-            QFAIL(qPrintable("Error: number of saved searches in the result of LocalStorageManager::ListAllSavedSearches (" +
-                             QString::number(numFoundSearches) + ") does not match the original number of added saved searches (" +
-                             QString::number(nSearches) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of saved searches in the result of LocalStorageManager::ListAllSavedSearches (") +
+                             QString::number(numFoundSearches) + QStringLiteral(") does not match the original number of added saved searches (") +
+                             QString::number(nSearches) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundSearches; ++i)
@@ -996,11 +996,11 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
             const SavedSearch & search = searches.at(i); \
             bool res = foundSearches.contains(search); \
             if ((true_condition) && !res) { \
-                QNWARNING("Not found saved search: " << search); \
+                QNWARNING(QStringLiteral("Not found saved search: ") << search); \
                 QFAIL("One of " flag_name " SavedSearches was not found by LocalStorageManager::ListSavedSearches"); \
             } \
             else if ((false_condition) && res) { \
-                QNWARNING("Found irrelevant saved search: " << search); \
+                QNWARNING(QStringLiteral("Found irrelevant saved search: ") << search); \
                 QFAIL("LocalStorageManager::ListSavedSearches with flag " flag_name " returned incorrect saved search"); \
             } \
         }
@@ -1035,25 +1035,25 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
         QVERIFY2(errorMessage.isEmpty(), qPrintable(errorMessage.nonLocalizedString()));
 
         if (foundSearches.size() != static_cast<int>(limit)) {
-            QFAIL(qPrintable("Unexpected number of found saved searches not corresponding to the specified limit: limit = " +
-                             QString::number(limit) + ", number of searches found is " + QString::number(foundSearches.size())));
+            QFAIL(qPrintable(QStringLiteral("Unexpected number of found saved searches not corresponding to the specified limit: limit = ") +
+                             QString::number(limit) + QStringLiteral(", number of searches found is ") + QString::number(foundSearches.size())));
         }
 
         const SavedSearch & firstSearch = foundSearches[0];
         const SavedSearch & secondSearch = foundSearches[1];
 
         if (!firstSearch.hasUpdateSequenceNumber() || !secondSearch.hasUpdateSequenceNumber()) {
-            QFAIL(qPrintable("One of found saved searches doesn't have the update sequence number which is unexpected: first search: " +
-                             firstSearch.toString() + "\nSecond search: " + secondSearch.toString()));
+            QFAIL(qPrintable(QStringLiteral("One of found saved searches doesn't have the update sequence number which is unexpected: first search: ") +
+                             firstSearch.toString() + QStringLiteral("\nSecond search: ") + secondSearch.toString()));
         }
 
         if (firstSearch.updateSequenceNumber() != 3) {
-            QFAIL(qPrintable("First saved search was expected to have update sequence number of 3, instead it is " +
+            QFAIL(qPrintable(QStringLiteral("First saved search was expected to have update sequence number of 3, instead it is ") +
                              QString::number(firstSearch.updateSequenceNumber())));
         }
 
         if (secondSearch.updateSequenceNumber() != 4) {
-            QFAIL(qPrintable("Second saved search was expected to have update sequence number of 4, instead it is " +
+            QFAIL(qPrintable(QStringLiteral("Second saved search was expected to have update sequence number of 4, instead it is ") +
                              QString::number(secondSearch.updateSequenceNumber())));
         }
     }
@@ -1066,7 +1066,7 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1078,16 +1078,16 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
             linkedNotebooks << LinkedNotebook();
             LinkedNotebook & linkedNotebook = linkedNotebooks.back();
 
-            linkedNotebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             linkedNotebook.setUpdateSequenceNumber(i);
-            linkedNotebook.setShareName("Linked notebook share name #" + QString::number(i));
-            linkedNotebook.setUsername("Linked notebook username #" + QString::number(i));
-            linkedNotebook.setShardId("Linked notebook shard id #" + QString::number(i));
-            linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id #" + QString::number(i));
-            linkedNotebook.setUri("Linked notebook uri #" + QString::number(i));
-            linkedNotebook.setNoteStoreUrl("Linked notebook note store url #" + QString::number(i));
-            linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix #" + QString::number(i));
-            linkedNotebook.setStack("Linked notebook stack #" + QString::number(i));
+            linkedNotebook.setShareName(QStringLiteral("Linked notebook share name #") + QString::number(i));
+            linkedNotebook.setUsername(QStringLiteral("Linked notebook username #") + QString::number(i));
+            linkedNotebook.setShardId(QStringLiteral("Linked notebook shard id #") + QString::number(i));
+            linkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Linked notebook shared notebook global id #") + QString::number(i));
+            linkedNotebook.setUri(QStringLiteral("Linked notebook uri #") + QString::number(i));
+            linkedNotebook.setNoteStoreUrl(QStringLiteral("Linked notebook note store url #") + QString::number(i));
+            linkedNotebook.setWebApiUrlPrefix(QStringLiteral("Linked notebook web api url prefix #") + QString::number(i));
+            linkedNotebook.setStack(QStringLiteral("Linked notebook stack #") + QString::number(i));
             linkedNotebook.setBusinessId(1);
 
             if (i > 2) {
@@ -1109,9 +1109,9 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
 
         int numFoundLinkedNotebooks = foundLinkedNotebooks.size();
         if (numFoundLinkedNotebooks != nLinkedNotebooks) {
-            QFAIL(qPrintable("Error: number of linked notebooks in the result of LocalStorageManager::ListAllLinkedNotebooks (" +
-                             QString::number(numFoundLinkedNotebooks) + ") does not match the original number of added linked notebooks (" +
-                             QString::number(nLinkedNotebooks) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of linked notebooks in the result of LocalStorageManager::ListAllLinkedNotebooks (") +
+                             QString::number(numFoundLinkedNotebooks) + QStringLiteral(") does not match the original number of added linked notebooks (") +
+                             QString::number(nLinkedNotebooks) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundLinkedNotebooks; ++i)
@@ -1133,11 +1133,11 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
             const LinkedNotebook & linkedNotebook = linkedNotebooks.at(i);
             bool res = foundLinkedNotebooks.contains(linkedNotebook);
             if ((i > 2) && !res) {
-                QNWARNING("Not found linked notebook: " << linkedNotebook);
+                QNWARNING(QStringLiteral("Not found linked notebook: ") << linkedNotebook);
                 QFAIL("One of dirty linked notebooks was not found by LocalStorageManager::ListLinkedNotebooks");
             }
             else if ((i <= 2) && res) {
-                QNWARNING("Found irrelevant linked notebook: " << linkedNotebook);
+                QNWARNING(QStringLiteral("Found irrelevant linked notebook: ") << linkedNotebook);
                 QFAIL("LocalStorageManager::ListLinkedNotebooks with flag ListDirty returned incorrect linked notebook");
             }
         }
@@ -1151,7 +1151,7 @@ void CoreTester::localStorageManagerListTagsTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1164,11 +1164,11 @@ void CoreTester::localStorageManagerListTagsTest()
             Tag & tag = tags.back();
 
             if (i > 1) {
-                tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+                tag.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             }
 
             tag.setUpdateSequenceNumber(i);
-            tag.setName("Tag name #" + QString::number(i));
+            tag.setName(QStringLiteral("Tag name #") + QString::number(i));
 
             if (i > 2) {
                 tag.setParentGuid(tags.at(i-1).guid());
@@ -1207,9 +1207,9 @@ void CoreTester::localStorageManagerListTagsTest()
 
         int numFoundTags = foundTags.size();
         if (numFoundTags != nTags) {
-            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTags (" +
-                             QString::number(numFoundTags) + ") does not match the original number of added tags (" +
-                             QString::number(nTags) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of tags in the result of LocalStorageManager::ListAllTags (") +
+                             QString::number(numFoundTags) + QStringLiteral(") does not match the original number of added tags (") +
+                             QString::number(nTags) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundTags; ++i)
@@ -1231,11 +1231,11 @@ void CoreTester::localStorageManagerListTagsTest()
             const Tag & tag = tags.at(i); \
             bool res = foundTags.contains(tag); \
             if ((true_condition) && !res) { \
-                QNWARNING("Not found tag: " << tag); \
+                QNWARNING(QStringLiteral("Not found tag: ") << tag); \
                 QFAIL("One of " flag_name " Tags was not found by LocalStorageManager::ListTags"); \
             } \
             else if ((false_condition) && res) { \
-                QNWARNING("Found irrelevant tag: " << tag); \
+                QNWARNING(QStringLiteral("Found irrelevant tag: ") << tag); \
                 QFAIL("LocalStorageManager::ListTags with flag " flag_name " returned incorrect tag"); \
             } \
         }
@@ -1269,17 +1269,17 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000000");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000000"));
         notebook.setUpdateSequenceNumber(1);
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
         notebook.setDefaultNotebook(true);
         notebook.setPublished(false);
-        notebook.setStack("Fake notebook stack");
+        notebook.setStack(QStringLiteral("Fake notebook stack"));
 
 
         int numSharedNotebooks = 5;
@@ -1293,11 +1293,11 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
             sharedNotebook.setId(i);
             sharedNotebook.setUserId(i);
             sharedNotebook.setNotebookGuid(notebook.guid());
-            sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i));
+            sharedNotebook.setEmail(QStringLiteral("Fake shared notebook email #") + QString::number(i));
             sharedNotebook.setCreationTimestamp(i+1);
             sharedNotebook.setModificationTimestamp(i+1);
-            sharedNotebook.setGlobalId("Fake shared notebook global id #" + QString::number(i));
-            sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i));
+            sharedNotebook.setGlobalId(QStringLiteral("Fake shared notebook global id #") + QString::number(i));
+            sharedNotebook.setUsername(QStringLiteral("Fake shared notebook username #") + QString::number(i));
             sharedNotebook.setPrivilegeLevel(1);
             sharedNotebook.setReminderNotifyEmail(true);
             sharedNotebook.setReminderNotifyApp(false);
@@ -1314,9 +1314,9 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
 
         int numFoundSharedNotebooks = foundSharedNotebooks.size();
         if (numFoundSharedNotebooks != numSharedNotebooks) {
-            QFAIL(qPrintable("Error: number of shared notebooks in the result of LocalStorageManager::ListAllSharedNotebooks (" +
-                             QString::number(numFoundSharedNotebooks) + ") does not match the original number of added shared notebooks (" +
-                             QString::number(numSharedNotebooks) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of shared notebooks in the result of LocalStorageManager::ListAllSharedNotebooks (") +
+                             QString::number(numFoundSharedNotebooks) + QStringLiteral(") does not match the original number of added shared notebooks (") +
+                             QString::number(numSharedNotebooks) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundSharedNotebooks; ++i)
@@ -1337,12 +1337,12 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
         notebook.setUpdateSequenceNumber(1);
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
@@ -1351,10 +1351,10 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Note note;
-        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         note.setUpdateSequenceNumber(1);
-        note.setTitle("Fake note title");
-        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        note.setTitle(QStringLiteral("Fake note title"));
+        note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -1372,9 +1372,9 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
             tags << Tag();
             Tag & tag = tags.back();
 
-            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            tag.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             tag.setUpdateSequenceNumber(i);
-            tag.setName("Tag name #" + QString::number(i));
+            tag.setName(QStringLiteral("Tag name #") + QString::number(i));
 
             if (i > 1) {
                 tag.setDirty(true);
@@ -1394,9 +1394,9 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         }
 
         Tag tagNotLinkedWithNote;
-        tagNotLinkedWithNote.setGuid("00000000-0000-0000-c000-000000000045");
+        tagNotLinkedWithNote.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000045"));
         tagNotLinkedWithNote.setUpdateSequenceNumber(9);
-        tagNotLinkedWithNote.setName("Tag not linked with note");
+        tagNotLinkedWithNote.setName(QStringLiteral("Tag not linked with note"));
 
         res = localStorageManager.addTag(tagNotLinkedWithNote, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
@@ -1409,9 +1409,9 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
 
         int numFoundTags = foundTags.size();
         if (numFoundTags != numTags) {
-            QFAIL(qPrintable("Error: number of tags in the result of LocalStorageManager::ListAllTagsPerNote (" +
-                             QString::number(numFoundTags) + ") does not match the original number of added tags (" +
-                             QString::number(numTags) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of tags in the result of LocalStorageManager::ListAllTagsPerNote (") +
+                             QString::number(numFoundTags) + QStringLiteral(") does not match the original number of added tags (") +
+                             QString::number(numTags) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundTags; ++i)
@@ -1439,8 +1439,8 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         foundTags = localStorageManager.listAllTagsPerNote(note, errorMessage, flag, limit, offset,
                                                            order, orderDirection);
         if (foundTags.size() != static_cast<int>(limit)) {
-            QFAIL(qPrintable("Found unexpected amount of tags: expected to find " + QString::number(limit) +
-                             " tags, found " + QString::number(foundTags.size()) + " tags"));
+            QFAIL(qPrintable(QStringLiteral("Found unexpected amount of tags: expected to find ") + QString::number(limit) +
+                             QStringLiteral(" tags, found ") + QString::number(foundTags.size()) + QStringLiteral(" tags")));
         }
 
         const Tag & firstTag = foundTags[0];
@@ -1455,8 +1455,8 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         }
 
         if ((firstTag.updateSequenceNumber() != 3) || (secondTag.updateSequenceNumber() != 2)) {
-            QFAIL(qPrintable("Unexpected order of found tags by update sequence number: first tag: " +
-                             firstTag.toString() + "\nSecond tag: " + secondTag.toString()));
+            QFAIL(qPrintable(QStringLiteral("Unexpected order of found tags by update sequence number: first tag: ") +
+                             firstTag.toString() + QStringLiteral("\nSecond tag: ") + secondTag.toString()));
         }
     }
     CATCH_EXCEPTION();
@@ -1468,12 +1468,12 @@ void CoreTester::localStorageManagerListNotesTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
         notebook.setUpdateSequenceNumber(1);
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
@@ -1482,9 +1482,9 @@ void CoreTester::localStorageManagerListNotesTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Notebook notebookNotLinkedWithNotes;
-        notebookNotLinkedWithNotes.setGuid("00000000-0000-0000-c000-000000000048");
+        notebookNotLinkedWithNotes.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000048"));
         notebookNotLinkedWithNotes.setUpdateSequenceNumber(1);
-        notebookNotLinkedWithNotes.setName("Fake notebook not linked with notes name name");
+        notebookNotLinkedWithNotes.setName(QStringLiteral("Fake notebook not linked with notes name name"));
         notebookNotLinkedWithNotes.setCreationTimestamp(1);
         notebookNotLinkedWithNotes.setModificationTimestamp(1);
 
@@ -1492,7 +1492,7 @@ void CoreTester::localStorageManagerListNotesTest()
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
         Tag testTag;
-        testTag.setName("My test tag");
+        testTag.setName(QStringLiteral("My test tag"));
         res = localStorageManager.addTag(testTag, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -1505,7 +1505,7 @@ void CoreTester::localStorageManagerListNotesTest()
             Note & note = notes.back();
 
             if (i > 1) {
-                note.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+                note.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             }
 
             if (i > 2) {
@@ -1534,8 +1534,8 @@ void CoreTester::localStorageManagerListNotesTest()
             }
 
             note.setUpdateSequenceNumber(i+1);
-            note.setTitle("Fake note title #" + QString::number(i));
-            note.setContent("<en-note><h1>Hello, world #" + QString::number(i) + "</h1></en-note>");
+            note.setTitle(QStringLiteral("Fake note title #") + QString::number(i));
+            note.setContent(QStringLiteral("<en-note><h1>Hello, world #") + QString::number(i) + QStringLiteral("</h1></en-note>"));
             note.setCreationTimestamp(i+1);
             note.setModificationTimestamp(i+1);
             note.setActive(true);
@@ -1554,9 +1554,9 @@ void CoreTester::localStorageManagerListNotesTest()
 
         int numFoundNotes = foundNotes.size();
         if (numFoundNotes != numNotes) {
-            QFAIL(qPrintable("Error: number of notes in the result of LocalStorageManager::ListNotesPerNotebook (" +
-                             QString::number(numFoundNotes) + ") does not match the original number of added notes (" +
-                             QString::number(numNotes) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of notes in the result of LocalStorageManager::ListNotesPerNotebook (") +
+                             QString::number(numFoundNotes) + QStringLiteral(") does not match the original number of added notes (") +
+                             QString::number(numNotes) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundNotes; ++i)
@@ -1575,9 +1575,9 @@ void CoreTester::localStorageManagerListNotesTest()
         QVERIFY2(errorMessage.isEmpty(), qPrintable(errorMessage.nonLocalizedString()));
 
         if (foundNotes.size() != 0) {
-            QFAIL(qPrintable("Found non-zero number of notes in the result of LocalStorageManager::ListNotesPerNotebook "
-                             "called with guid of notebook not containing any notes (found " +
-                             QString::number(foundNotes.size()) + " notes)"));
+            QFAIL(qPrintable(QStringLiteral("Found non-zero number of notes in the result of LocalStorageManager::ListNotesPerNotebook "
+                                            "called with guid of notebook not containing any notes (found ") +
+                             QString::number(foundNotes.size()) + QStringLiteral(" notes)")));
         }
 
         // 3) Test method listing notes per notebook considering only the notes with guid + with limit, offset,
@@ -1592,8 +1592,8 @@ void CoreTester::localStorageManagerListNotesTest()
                                                               LocalStorageManager::ListElementsWithGuid, limit, offset,
                                                               order, orderDirection);
         if (foundNotes.size() != static_cast<int>(limit)) {
-            QFAIL(qPrintable("Found unexpected amount of notes: expected to find " + QString::number(limit) +
-                             " notes, found " + QString::number(foundNotes.size()) + " notes"));
+            QFAIL(qPrintable(QStringLiteral("Found unexpected amount of notes: expected to find ") + QString::number(limit) +
+                             QStringLiteral(" notes, found ") + QString::number(foundNotes.size()) + QStringLiteral(" notes")));
         }
 
         const Note & firstNote = foundNotes[0];
@@ -1608,8 +1608,8 @@ void CoreTester::localStorageManagerListNotesTest()
         }
 
         if ((firstNote.updateSequenceNumber() != 4) || (secondNote.updateSequenceNumber() != 3)) {
-            QFAIL(qPrintable("Unexpected order of found notes by update sequence number: first note: " +
-                             firstNote.toString() + "\nSecond note: " + secondNote.toString()));
+            QFAIL(qPrintable(QStringLiteral("Unexpected order of found notes by update sequence number: first note: ") +
+                             firstNote.toString() + QStringLiteral("\nSecond note: ") + secondNote.toString()));
         }
 
         // 4) Test method listing notes per tag considering only the notes with guid + with limit, offset,
@@ -1623,8 +1623,8 @@ void CoreTester::localStorageManagerListNotesTest()
                                                          LocalStorageManager::ListElementsWithGuid, limit, offset,
                                                          order, orderDirection);
         if (foundNotes.size() != static_cast<int>(limit)) {
-            QFAIL(qPrintable("Found unexpected amount of notes: expected to find " + QString::number(limit) +
-                             " notes, found " + QString::number(foundNotes.size()) + " notes"));
+            QFAIL(qPrintable(QStringLiteral("Found unexpected amount of notes: expected to find ") + QString::number(limit) +
+                             QStringLiteral(" notes, found ") + QString::number(foundNotes.size()) + QStringLiteral(" notes")));
         }
 
         const Note & firstNotePerTag = foundNotes[0];
@@ -1653,9 +1653,9 @@ void CoreTester::localStorageManagerListNotesTest()
 
         numFoundNotes = foundNotes.size();
         if (numFoundNotes != numNotes) {
-            QFAIL(qPrintable("Error number of notes in the result of LocalStorageManager::ListNotes with flag ListAll (" +
-                             QString::number(numFoundNotes) + ") does not match the original number of added notes (" +
-                             QString::number(numNotes) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error number of notes in the result of LocalStorageManager::ListNotes with flag ListAll (") +
+                             QString::number(numFoundNotes) + QStringLiteral(") does not match the original number of added notes (") +
+                             QString::number(numNotes) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundNotes; ++i)
@@ -1677,11 +1677,11 @@ void CoreTester::localStorageManagerListNotesTest()
             const Note & note = notes[i]; \
             bool res = foundNotes.contains(note); \
             if ((true_condition) && !res) { \
-                QNWARNING("Not found note: " << note); \
+                QNWARNING(QStringLiteral("Not found note: ") << note); \
                 QFAIL("One of " flag_name " notes was not found by LocalStorageManager::ListNotes"); \
             } \
             else if ((false_condition) && res) { \
-                QNWARNING("Found irrelevant note: " << note); \
+                QNWARNING(QStringLiteral("Found irrelevant note: ") << note); \
                 QFAIL("LocalStorageManager::ListNotes with flag " flag_name " returned incorrect note"); \
             } \
         }
@@ -1715,7 +1715,7 @@ void CoreTester::localStorageManagerListNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1728,23 +1728,23 @@ void CoreTester::localStorageManagerListNotebooksTest()
             Notebook & notebook = notebooks.back();
 
             if (i > 1) {
-                notebook.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+                notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             }
 
             notebook.setUpdateSequenceNumber(i+1);
-            notebook.setName("Fake notebook name #" + QString::number(i+1));
+            notebook.setName(QStringLiteral("Fake notebook name #") + QString::number(i+1));
             notebook.setCreationTimestamp(i+1);
             notebook.setModificationTimestamp(i+1);
 
             notebook.setDefaultNotebook(false);
             notebook.setLastUsed(false);
-            notebook.setPublishingUri("Fake publishing uri #" + QString::number(i+1));
+            notebook.setPublishingUri(QStringLiteral("Fake publishing uri #") + QString::number(i+1));
             notebook.setPublishingOrder(1);
             notebook.setPublishingAscending(true);
-            notebook.setPublishingPublicDescription("Fake public description");
+            notebook.setPublishingPublicDescription(QStringLiteral("Fake public description"));
             notebook.setPublished(true);
-            notebook.setStack("Fake notebook stack");
-            notebook.setBusinessNotebookDescription("Fake business notebook description");
+            notebook.setStack(QStringLiteral("Fake notebook stack"));
+            notebook.setBusinessNotebookDescription(QStringLiteral("Fake business notebook description"));
             notebook.setBusinessNotebookPrivilegeLevel(1);
             notebook.setBusinessNotebookRecommended(true);
             // NotebookRestrictions
@@ -1795,11 +1795,11 @@ void CoreTester::localStorageManagerListNotebooksTest()
                 sharedNotebook.setId(i+1);
                 sharedNotebook.setUserId(i+1);
                 sharedNotebook.setNotebookGuid(notebook.guid());
-                sharedNotebook.setEmail("Fake shared notebook email #" + QString::number(i+1));
+                sharedNotebook.setEmail(QStringLiteral("Fake shared notebook email #") + QString::number(i+1));
                 sharedNotebook.setCreationTimestamp(i+1);
                 sharedNotebook.setModificationTimestamp(i+1);
-                sharedNotebook.setGlobalId("Fake shared notebook global id #" + QString::number(i+1));
-                sharedNotebook.setUsername("Fake shared notebook username #" + QString::number(i+1));
+                sharedNotebook.setGlobalId(QStringLiteral("Fake shared notebook global id #") + QString::number(i+1));
+                sharedNotebook.setUsername(QStringLiteral("Fake shared notebook username #") + QString::number(i+1));
                 sharedNotebook.setPrivilegeLevel(1);
                 sharedNotebook.setReminderNotifyEmail(true);
                 sharedNotebook.setReminderNotifyApp(false);
@@ -1818,9 +1818,9 @@ void CoreTester::localStorageManagerListNotebooksTest()
 
         int numFoundNotebooks = foundNotebooks.size();
         if (numFoundNotebooks != numNotebooks) {
-            QFAIL(qPrintable("Error: number of notebooks in the result of LocalStorageManager::ListAllNotebooks (" +
-                             QString::number(numFoundNotebooks) + ") does not match the original number of added notebooks (" +
-                             QString::number(numNotebooks) + ")"));
+            QFAIL(qPrintable(QStringLiteral("Error: number of notebooks in the result of LocalStorageManager::ListAllNotebooks (") +
+                             QString::number(numFoundNotebooks) + QStringLiteral(") does not match the original number of added notebooks (") +
+                             QString::number(numNotebooks) + QStringLiteral(")")));
         }
 
         for(int i = 0; i < numFoundNotebooks; ++i)
@@ -1842,11 +1842,11 @@ void CoreTester::localStorageManagerListNotebooksTest()
             const Notebook & notebook = notebooks.at(i); \
             bool res = foundNotebooks.contains(notebook); \
             if ((true_condition) && !res) { \
-                QNWARNING("Not found notebook: " << notebook); \
+                QNWARNING(QStringLiteral("Not found notebook: ") << notebook); \
                 QFAIL("One of " flag_name " notebooks was not found by LocalStorageManager::ListNotebooks"); \
             } \
             else if ((false_condition) && res) { \
-                QNWARNING("Found irrelevant notebook: " << notebook); \
+                QNWARNING(QStringLiteral("Found irrelevant notebook: ") << notebook); \
                 QFAIL("LocalStorageManager::ListNotebooks with flag " flag_name " returned incorrect notebook"); \
             } \
         }
@@ -1881,34 +1881,34 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager("CoreTesterFakeUser", 0, startFromScratch, overrideLock);
+        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
-        linkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
         linkedNotebook.setUpdateSequenceNumber(1);
-        linkedNotebook.setShareName("Linked notebook share name");
-        linkedNotebook.setUsername("Linked notebook username");
-        linkedNotebook.setShardId("Linked notebook shard id");
-        linkedNotebook.setSharedNotebookGlobalId("Linked notebook shared notebook global id");
-        linkedNotebook.setUri("Linked notebook uri");
-        linkedNotebook.setNoteStoreUrl("Linked notebook note store url");
-        linkedNotebook.setWebApiUrlPrefix("Linked notebook web api url prefix");
-        linkedNotebook.setStack("Linked notebook stack");
+        linkedNotebook.setShareName(QStringLiteral("Linked notebook share name"));
+        linkedNotebook.setUsername(QStringLiteral("Linked notebook username"));
+        linkedNotebook.setShardId(QStringLiteral("Linked notebook shard id"));
+        linkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Linked notebook shared notebook global id"));
+        linkedNotebook.setUri(QStringLiteral("Linked notebook uri"));
+        linkedNotebook.setNoteStoreUrl(QStringLiteral("Linked notebook note store url"));
+        linkedNotebook.setWebApiUrlPrefix(QStringLiteral("Linked notebook web api url prefix"));
+        linkedNotebook.setStack(QStringLiteral("Linked notebook stack"));
         linkedNotebook.setBusinessId(1);
 
         Notebook notebook;
-        notebook.setGuid("00000000-0000-0000-c000-000000000047");
+        notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
         notebook.setLinkedNotebookGuid(linkedNotebook.guid());
         notebook.setUpdateSequenceNumber(1);
-        notebook.setName("Fake notebook name");
+        notebook.setName(QStringLiteral("Fake notebook name"));
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
         Note note;
-        note.setGuid("00000000-0000-0000-c000-000000000046");
+        note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         note.setUpdateSequenceNumber(1);
-        note.setTitle("Fake note title");
-        note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        note.setTitle(QStringLiteral("Fake note title"));
+        note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
         note.setCreationTimestamp(1);
         note.setModificationTimestamp(1);
         note.setActive(true);
@@ -1935,9 +1935,9 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
             tags.push_back(Tag());
             Tag & tag = tags.back();
 
-            tag.setGuid("00000000-0000-0000-c000-00000000000" + QString::number(i+1));
+            tag.setGuid(QStringLiteral("00000000-0000-0000-c000-00000000000") + QString::number(i+1));
             tag.setUpdateSequenceNumber(i);
-            tag.setName("Tag name #" + QString::number(i));
+            tag.setName(QStringLiteral("Tag name #") + QString::number(i));
 
             if (i > 2) {
                 tag.setLinkedNotebookGuid(linkedNotebook.guid());
@@ -2273,5 +2273,5 @@ void CoreTester::localStorageCacheManagerTest()
 
 #undef CATCH_EXCEPTION
 
-}
-}
+} // namespace test
+} // namespace quentier
