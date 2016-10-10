@@ -92,6 +92,10 @@ public Q_SLOTS:
 
 // private signals
 Q_SIGNALS:
+    void addUser(UserWrapper user, QUuid requestId);
+    void updateUser(UserWrapper user, QUuid requestId);
+    void findUser(UserWrapper user, QUuid requestId);
+
     void addNotebook(Notebook notebook, QUuid requestId);
     void updateNotebook(Notebook notebook, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
@@ -126,6 +130,8 @@ Q_SIGNALS:
     void expungeSavedSearch(SavedSearch savedSearch, QUuid requestId);
 
 private Q_SLOTS:
+    void onFindUserCompleted(UserWrapper user, QUuid requestId);
+    void onFindUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
@@ -140,8 +146,12 @@ private Q_SLOTS:
     void onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
     void onFindSavedSearchFailed(SavedSearch savedSearch, QNLocalizedString errorDescription, QUuid requestId);
 
+    void onAddUserCompleted(UserWrapper user, QUuid requestId);
+    void onAddUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onAddTagCompleted(Tag tag, QUuid requestId);
     void onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateUserCompleted(UserWrapper user, QUuid requestId);
+    void onUpdateUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
     void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeTagCompleted(Tag tag, QUuid requestId);
@@ -560,6 +570,9 @@ private:
     qevercloud::Timestamp                   m_authenticationTokenExpirationTime;
     bool                                    m_pendingAuthenticationTokenAndShardId;
     UserWrapper                             m_user;
+
+    QUuid                                   m_findUserRequestId;
+    QUuid                                   m_addOrUpdateUserRequestId;
 
     QHash<QString,QPair<QString,QString> >  m_authenticationTokensAndShardIdsByLinkedNotebookGuid;
     QHash<QString,qevercloud::Timestamp>    m_authenticationTokenExpirationTimesByLinkedNotebookGuid;
