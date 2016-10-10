@@ -102,8 +102,7 @@ set(EXCEPTION_HEADERS
     headers/quentier/exception/NullPtrException.h
     headers/quentier/exception/ResourceAdapterAccessException.h
     headers/quentier/exception/ResourceLocalFileStorageFolderNotFoundException.h
-    headers/quentier/exception/SharedNotebookAdapterAccessException.h
-    headers/quentier/exception/UserAdapterAccessException.h)
+    headers/quentier/exception/SharedNotebookAdapterAccessException.h)
 
 set(UTILITY_HEADERS
     headers/quentier/utility/ApplicationSettings.h
@@ -377,7 +376,6 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/ResourceAdapterAccessException.cpp
     src/exception/ResourceLocalFileStorageFolderNotFoundException.cpp
     src/exception/SharedNotebookAdapterAccessException.cpp
-    src/exception/UserAdapterAccessException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/DesktopServices.cpp
     src/utility/EncryptionManager.cpp
