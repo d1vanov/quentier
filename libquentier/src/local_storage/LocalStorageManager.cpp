@@ -33,31 +33,31 @@ LocalStorageManager::LocalStorageManager(const QString & username, const UserID 
 LocalStorageManager::~LocalStorageManager()
 {}
 
-bool LocalStorageManager::addUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManager::addUser(const User & user, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addUser(user, errorDescription);
 }
 
-bool LocalStorageManager::updateUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManager::updateUser(const User & user, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->updateUser(user, errorDescription);
 }
 
-bool LocalStorageManager::findUser(IUser & user, QNLocalizedString & errorDescription) const
+bool LocalStorageManager::findUser(User & user, QNLocalizedString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
     return d->findUser(user, errorDescription);
 }
 
-bool LocalStorageManager::deleteUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManager::deleteUser(const User & user, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->deleteUser(user, errorDescription);
 }
 
-bool LocalStorageManager::expungeUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManager::expungeUser(const User & user, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeUser(user, errorDescription);

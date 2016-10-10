@@ -30,7 +30,7 @@ QT_FORWARD_DECLARE_CLASS(Tag)
 QT_FORWARD_DECLARE_CLASS(IResource)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
-QT_FORWARD_DECLARE_CLASS(IUser)
+QT_FORWARD_DECLARE_CLASS(User)
 
 namespace test {
 
@@ -56,7 +56,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription);
 
-bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user,
+bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user,
                                                       LocalStorageManager & localStorageManager,
                                                       QString & errorDescription);
 

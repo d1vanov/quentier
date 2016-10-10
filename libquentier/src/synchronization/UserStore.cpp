@@ -17,7 +17,7 @@
  */
 
 #include "UserStore.h"
-#include <quentier/types/UserWrapper.h>
+#include <quentier/types/User.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 
@@ -90,7 +90,7 @@ bool UserStore::checkVersion(const QString & clientName, qint16 edamVersionMajor
     return false;
 }
 
-qint32 UserStore::getUser(UserWrapper & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds)
+qint32 UserStore::getUser(User & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds)
 {
     try
     {

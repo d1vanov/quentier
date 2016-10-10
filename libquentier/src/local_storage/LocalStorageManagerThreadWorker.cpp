@@ -125,7 +125,7 @@ void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint
     emit switchUserComplete(userId, requestId);
 }
 
-void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user, QUuid requestId)
+void LocalStorageManagerThreadWorker::onAddUserRequest(User user, QUuid requestId)
 {
     try
     {
@@ -142,7 +142,7 @@ void LocalStorageManagerThreadWorker::onAddUserRequest(UserWrapper user, QUuid r
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user, QUuid requestId)
+void LocalStorageManagerThreadWorker::onUpdateUserRequest(User user, QUuid requestId)
 {
     try
     {
@@ -159,7 +159,7 @@ void LocalStorageManagerThreadWorker::onUpdateUserRequest(UserWrapper user, QUui
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user, QUuid requestId)
+void LocalStorageManagerThreadWorker::onFindUserRequest(User user, QUuid requestId)
 {
     try
     {
@@ -176,7 +176,7 @@ void LocalStorageManagerThreadWorker::onFindUserRequest(UserWrapper user, QUuid 
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user, QUuid requestId)
+void LocalStorageManagerThreadWorker::onDeleteUserRequest(User user, QUuid requestId)
 {
     try
     {
@@ -193,7 +193,7 @@ void LocalStorageManagerThreadWorker::onDeleteUserRequest(UserWrapper user, QUui
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeUserRequest(UserWrapper user, QUuid requestId)
+void LocalStorageManagerThreadWorker::onExpungeUserRequest(User user, QUuid requestId)
 {
     try
     {

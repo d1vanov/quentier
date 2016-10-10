@@ -20,7 +20,7 @@
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebookAdapter.h>
 #include <quentier/types/SharedNotebookWrapper.h>
-#include <quentier/types/UserAdapter.h>
+#include <quentier/types/User.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 
@@ -616,19 +616,19 @@ bool Notebook::hasContact() const
     return d->m_qecNotebook.contact.isSet();
 }
 
-const UserAdapter Notebook::contact() const
+const User Notebook::contact() const
 {
-    return UserAdapter(d->m_qecNotebook.contact);
+    return User(d->m_qecNotebook.contact.ref());
 }
 
-void Notebook::setContact(const IUser & contact)
+void Notebook::setContact(const User & contact)
 {
     if (!canUpdateNotebook()) {
         QNDEBUG(QStringLiteral("Can't set contact for notebook: updating is forbidden"));
         return;
     }
 
-    d->m_qecNotebook.contact = contact.GetEnUser();
+    d->m_qecNotebook.contact = static_cast<const qevercloud::User&>(contact);
 }
 
 bool Notebook::isLastUsed() const

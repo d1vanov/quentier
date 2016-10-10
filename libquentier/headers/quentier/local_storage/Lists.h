@@ -24,9 +24,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IUser)
-QT_FORWARD_DECLARE_CLASS(UserAdapter)
-QT_FORWARD_DECLARE_CLASS(UserWrapper)
+QT_FORWARD_DECLARE_CLASS(User)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
@@ -39,7 +37,7 @@ QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
 QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
-typedef QList<UserWrapper>            UserList;
+typedef QList<User>                   UserList;
 typedef QList<Notebook>               NotebookList;
 typedef QList<SharedNotebookWrapper>  SharedNotebookList;
 typedef QList<LinkedNotebook>         LinkedNotebookList;

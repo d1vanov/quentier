@@ -16,10 +16,10 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_TYPES_DATA_USER_WRAPPER_DATA_H
-#define LIB_QUENTIER_TYPES_DATA_USER_WRAPPER_DATA_H
+#ifndef LIB_QUENTIER_TYPES_DATA_USER_DATA_H
+#define LIB_QUENTIER_TYPES_DATA_USER_DATA_H
 
-#include <QSharedData>
+#include <quentier/utility/Qt4Helper.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
@@ -27,23 +27,28 @@
 #include <qt4qevercloud/QEverCloud.h>
 #endif
 
+#include <QSharedData>
+
 namespace quentier {
 
-class UserWrapperData : public QSharedData
+class UserData: public QSharedData
 {
 public:
-    UserWrapperData();
-    UserWrapperData(const UserWrapperData & other);
-    UserWrapperData(UserWrapperData && other);
-    virtual ~UserWrapperData();
+    UserData();
+    UserData(const UserData & other);
+    UserData(UserData && other);
+    UserData(const qevercloud::User & user);
+    virtual ~UserData();
 
     qevercloud::User    m_qecUser;
+    bool                m_isLocal;
+    bool                m_isDirty;
 
 private:
-    UserWrapperData & operator=(const UserWrapperData & other) Q_DECL_EQ_DELETE;
-    UserWrapperData & operator=(UserWrapperData && other) Q_DECL_EQ_DELETE;
+    UserData & operator=(const UserData & other) Q_DECL_EQ_DELETE;
+    UserData & operator=(UserData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_TYPES_DATA_USER_WRAPPER_DATA_H
+#endif // LIB_QUENTIER_TYPES_DATA_USER_DATA_H

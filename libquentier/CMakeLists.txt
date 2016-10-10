@@ -52,7 +52,6 @@ set(TYPES_HEADERS
     headers/quentier/types/IFavoritableDataElement.h
     headers/quentier/types/ISharedNotebook.h
     headers/quentier/types/IResource.h
-    headers/quentier/types/IUser.h
     headers/quentier/types/LinkedNotebook.h
     headers/quentier/types/ILocalStorageDataElement.h
     headers/quentier/types/Note.h
@@ -67,8 +66,7 @@ set(TYPES_HEADERS
     headers/quentier/types/SharedNotebookAdapter.h
     headers/quentier/types/SharedNotebookWrapper.h
     headers/quentier/types/Tag.h
-    headers/quentier/types/UserAdapter.h
-    headers/quentier/types/UserWrapper.h
+    headers/quentier/types/User.h
     headers/quentier/types/RegisterMetatypes.h)
 
 set(ENML_HEADERS
@@ -208,9 +206,9 @@ set(PRIVATE_HEADERS
     src/types/data/TagData.h
     src/types/data/SharedNoteData.h
     src/types/data/SavedSearchData.h
-    src/types/data/UserWrapperData.h
     src/types/data/ResourceRecognitionIndexItemData.h
     src/types/data/ResourceRecognitionIndicesData.h
+    src/types/data/UserData.h
     src/enml/ENMLConverter_p.h
     src/local_storage/LocalStorageCacheManager_p.h
     src/local_storage/LocalStorageManager_p.h
@@ -314,7 +312,6 @@ set(${PROJECT_NAME}_SOURCES
     src/types/Account.cpp
     src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
-    src/types/IUser.cpp
     src/types/LinkedNotebook.cpp
     src/types/Note.cpp
     src/types/Notebook.cpp
@@ -327,8 +324,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/SharedNotebookAdapter.cpp
     src/types/SharedNotebookWrapper.cpp
     src/types/Tag.cpp
-    src/types/UserAdapter.cpp
-    src/types/UserWrapper.cpp
+    src/types/User.cpp
     src/types/RegisterMetatypes.cpp
     src/types/data/AccountData.cpp
     src/types/data/FavoritableDataElementData.cpp
@@ -344,7 +340,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/data/TagData.cpp
     src/types/data/SavedSearchData.cpp
     src/types/data/SharedNoteData.cpp
-    src/types/data/UserWrapperData.cpp
+    src/types/data/UserData.cpp
     src/enml/ENMLConverter.cpp
     src/enml/ENMLConverter_p.cpp
     src/enml/HTMLCleaner.cpp

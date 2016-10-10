@@ -3,9 +3,7 @@
 
 #include <quentier/local_storage/Lists.h>
 #include <quentier/local_storage/LocalStorageManager.h>
-#include <quentier/types/IUser.h>
-#include <quentier/types/UserAdapter.h>
-#include <quentier/types/UserWrapper.h>
+#include <quentier/types/User.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/ISharedNotebook.h>
 #include <quentier/types/SharedNotebookAdapter.h>
@@ -48,11 +46,11 @@ public:
     void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false,
                     const bool overrideLock = false);
     int userCount(QNLocalizedString & errorDescription) const;
-    bool addUser(const IUser & user, QNLocalizedString & errorDescription);
-    bool updateUser(const IUser & user, QNLocalizedString & errorDescription);
-    bool findUser(IUser & user, QNLocalizedString & errorDescription) const;
-    bool deleteUser(const IUser & user, QNLocalizedString & errorDescription);
-    bool expungeUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool addUser(const User & user, QNLocalizedString & errorDescription);
+    bool updateUser(const User & user, QNLocalizedString & errorDescription);
+    bool findUser(User & user, QNLocalizedString & errorDescription) const;
+    bool deleteUser(const User & user, QNLocalizedString & errorDescription);
+    bool expungeUser(const User & user, QNLocalizedString & errorDescription);
 
     int notebookCount(QNLocalizedString & errorDescription) const;
     bool addNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
@@ -176,7 +174,7 @@ private:
     bool rowExists(const QString & tableName, const QString & uniqueKeyName,
                    const QVariant & uniqueKeyValue) const;
 
-    bool insertOrReplaceUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool insertOrReplaceUser(const User & user, QNLocalizedString & errorDescription);
     bool insertOrReplaceBusinessUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
                                          QNLocalizedString & errorDescription);
     bool insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
@@ -269,7 +267,7 @@ private:
     void fillNoteAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void fillNoteAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
     void fillNoteAttributesClassificationsFromSqlRecord(const QSqlRecord & rec, qevercloud::NoteAttributes & attributes) const;
-    bool fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user, QNLocalizedString & errorDescription) const;
+    bool fillUserFromSqlRecord(const QSqlRecord & rec, User & user, QNLocalizedString & errorDescription) const;
     bool fillNoteFromSqlRecord(const QSqlRecord & record, Note & note, QNLocalizedString & errorDescription) const;
     bool fillSharedNoteFromSqlRecord(const QSqlRecord & record, SharedNote & sharedNote, QNLocalizedString & errorDescription) const;
     bool fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column, QList<QPair<QString, int> > & tagIdsAndIndices,

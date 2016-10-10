@@ -23,7 +23,7 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/local_storage/LocalStorageCacheManager.h>
-#include <quentier/types/UserWrapper.h>
+#include <quentier/types/User.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebookWrapper.h>
 #include <quentier/types/LinkedNotebook.h>
@@ -60,16 +60,16 @@ Q_SIGNALS:
     void getUserCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
     void switchUserComplete(qint32 userId, QUuid requestId = QUuid());
     void switchUserFailed(qint32 userId, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void addUserComplete(UserWrapper user, QUuid requestId = QUuid());
-    void addUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void updateUserComplete(UserWrapper user, QUuid requestId = QUuid());
-    void updateUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void findUserComplete(UserWrapper foundUser, QUuid requestId = QUuid());
-    void findUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void deleteUserComplete(UserWrapper user, QUuid requestId = QUuid());
-    void deleteUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void expungeUserComplete(UserWrapper user, QUuid requestId = QUuid());
-    void expungeUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addUserComplete(User user, QUuid requestId = QUuid());
+    void addUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateUserComplete(User user, QUuid requestId = QUuid());
+    void updateUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findUserComplete(User foundUser, QUuid requestId = QUuid());
+    void findUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void deleteUserComplete(User user, QUuid requestId = QUuid());
+    void deleteUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeUserComplete(User user, QUuid requestId = QUuid());
+    void expungeUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
 
     // Notebook-related signals:
     void getNotebookCountComplete(int notebookCount, QUuid requestId = QUuid());
@@ -274,11 +274,11 @@ public Q_SLOTS:
     // User-related slots:
     void onGetUserCountRequest(QUuid requestId);
     void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch, QUuid requestId);
-    void onAddUserRequest(UserWrapper user, QUuid requestId);
-    void onUpdateUserRequest(UserWrapper user, QUuid requestId);
-    void onFindUserRequest(UserWrapper user, QUuid requestId);
-    void onDeleteUserRequest(UserWrapper user, QUuid requestId);
-    void onExpungeUserRequest(UserWrapper user, QUuid requestId);
+    void onAddUserRequest(User user, QUuid requestId);
+    void onUpdateUserRequest(User user, QUuid requestId);
+    void onFindUserRequest(User user, QUuid requestId);
+    void onDeleteUserRequest(User user, QUuid requestId);
+    void onExpungeUserRequest(User user, QUuid requestId);
 
     // Notebook-related slots:
     void onGetNotebookCountRequest(QUuid requestId);

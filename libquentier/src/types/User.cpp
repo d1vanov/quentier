@@ -16,81 +16,119 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <quentier/types/IUser.h>
+#include "data/UserData.h"
+#include <quentier/types/User.h>
 #include <quentier/utility/Utility.h>
 #include <QRegExp>
 
 namespace quentier {
 
-IUser::IUser() :
+User::User() :
     Printable(),
-    m_isDirty(true),
-    m_isLocal(true)
+    d(new UserData)
 {}
 
-IUser::~IUser()
+User::User(const qevercloud::User & user) :
+    Printable(),
+    d(new UserData(user))
 {}
 
-bool IUser::operator==(const IUser & other) const
+User::User(qevercloud::User && user) :
+    Printable(),
+    d(new UserData(std::move(user)))
+{}
+
+User::User(const User & other) :
+    Printable(),
+    d(other.d)
+{}
+
+User::User(User && other) :
+    Printable(),
+    d(std::move(other.d))
+{}
+
+User & User::operator=(const User & other)
 {
-    if (m_isDirty != other.m_isDirty) {
+    if (this != &other) {
+        d = other.d;
+    }
+
+    return *this;
+}
+
+User & User::operator=(User && other)
+{
+    if (this != &other) {
+        d = std::move(other.d);
+    }
+
+    return *this;
+}
+
+User::~User()
+{}
+
+bool User::operator==(const User & other) const
+{
+    if (d->m_isDirty != other.d->m_isDirty) {
         return false;
     }
-    else if (m_isLocal != other.m_isLocal) {
+    else if (d->m_isLocal != other.d->m_isLocal) {
         return false;
     }
-    else if (GetEnUser() != other.GetEnUser()) {
+    else if (d->m_qecUser != other.d->m_qecUser) {
         return false;
     }
 
     return true;
 }
 
-bool IUser::operator!=(const IUser & other) const
+bool User::operator!=(const User & other) const
 {
     return !(*this == other);
 }
 
-IUser::operator const qevercloud::User &() const
+User::operator const qevercloud::User &() const
 {
-    return GetEnUser();
+    return d->m_qecUser;
 }
 
-IUser::operator qevercloud::User &()
+User::operator qevercloud::User &()
 {
-    return GetEnUser();
+    return d->m_qecUser;
 }
 
-void IUser::clear()
+void User::clear()
 {
     setDirty(true);
     setLocal(true);
-    GetEnUser() = qevercloud::User();
+    d->m_qecUser = qevercloud::User();
 }
 
-bool IUser::isDirty() const
+bool User::isDirty() const
 {
-    return m_isDirty;
+    return d->m_isDirty;
 }
 
-void IUser::setDirty(const bool dirty)
+void User::setDirty(const bool dirty)
 {
-    m_isDirty = dirty;
+    d->m_isDirty = dirty;
 }
 
-bool IUser::isLocal() const
+bool User::isLocal() const
 {
-    return m_isLocal;
+    return d->m_isLocal;
 }
 
-void IUser::setLocal(const bool local)
+void User::setLocal(const bool local)
 {
-    m_isLocal = local;
+    d->m_isLocal = local;
 }
 
-bool IUser::checkParameters(QNLocalizedString & errorDescription) const
+bool User::checkParameters(QNLocalizedString & errorDescription) const
 {
-    const auto & enUser = GetEnUser();
+    const auto & enUser = d->m_qecUser;
 
     if (!enUser.id.isSet()) {
         errorDescription = QT_TR_NOOP("user id is not set");
@@ -280,109 +318,110 @@ bool IUser::checkParameters(QNLocalizedString & errorDescription) const
     return true;
 }
 
-bool IUser::hasId() const
+bool User::hasId() const
 {
-    return GetEnUser().id.isSet();
+    return d->m_qecUser.id.isSet();
 }
 
-qint32 IUser::id() const
+qint32 User::id() const
 {
-    return GetEnUser().id;
+    return d->m_qecUser.id;
 }
 
-void IUser::setId(const qint32 id)
+void User::setId(const qint32 id)
 {
-    GetEnUser().id = id;
+    d->m_qecUser.id = id;
 }
 
-bool IUser::hasUsername() const
+bool User::hasUsername() const
 {
-    return GetEnUser().username.isSet();
+    return d->m_qecUser.username.isSet();
 }
 
-const QString & IUser::username() const
+const QString & User::username() const
 {
-    return GetEnUser().username;
+    return d->m_qecUser.username;
 }
 
-void IUser::setUsername(const QString & username)
+void User::setUsername(const QString & username)
 {
     if (!username.isEmpty()) {
-        GetEnUser().username = username;
+        d->m_qecUser.username = username;
     }
     else {
-        GetEnUser().username.clear();
+        d->m_qecUser.username.clear();
     }
 }
 
-bool IUser::hasEmail() const
+bool User::hasEmail() const
 {
-    return GetEnUser().email.isSet();
+    return d->m_qecUser.email.isSet();
 }
 
-const QString & IUser::email() const
+const QString & User::email() const
 {
-    return GetEnUser().email;
+    return d->m_qecUser.email;
 }
 
-void IUser::setEmail(const QString & email)
+void User::setEmail(const QString & email)
 {
     if (!email.isEmpty()) {
-        GetEnUser().email = email;
+        d->m_qecUser.email = email;
     }
     else {
-        GetEnUser().email.clear();
+        d->m_qecUser.email.clear();
     }
 }
 
-bool IUser::hasName() const
+bool User::hasName() const
 {
-    return GetEnUser().name.isSet();
+    return d->m_qecUser.name.isSet();
 }
 
-const QString & IUser::name() const
+const QString & User::name() const
 {
-    return GetEnUser().name;
+    return d->m_qecUser.name;
 }
 
-void IUser::setName(const QString & name)
+void User::setName(const QString & name)
 {
     if (!name.isEmpty()) {
-        GetEnUser().name = name;
+        d->m_qecUser.name = name;
     }
     else {
-        GetEnUser().name.clear();
+        d->m_qecUser.name.clear();
     }
 }
 
-bool IUser::hasTimezone() const
+bool User::hasTimezone() const
 {
-    return GetEnUser().timezone.isSet();
+    return d->m_qecUser.timezone.isSet();
 }
 
-const QString & IUser::timezone() const
+const QString & User::timezone() const
 {
-    return GetEnUser().timezone;
+    return d->m_qecUser.timezone;
 }
 
-void IUser::setTimezone(const QString & timezone)
+void User::setTimezone(const QString & timezone)
 {
-    GetEnUser().timezone = timezone;
+    d->m_qecUser.timezone = timezone;
 }
 
-bool IUser::hasPrivilegeLevel() const
+bool User::hasPrivilegeLevel() const
 {
-    return GetEnUser().privilege.isSet();
+    return d->m_qecUser.privilege.isSet();
 }
 
-IUser::PrivilegeLevel IUser::privilegeLevel() const
+User::PrivilegeLevel User::privilegeLevel() const
 {
-    return GetEnUser().privilege;
+    return d->m_qecUser.privilege;
 }
 
-void IUser::setPrivilegeLevel(const qint8 level)
+void User::setPrivilegeLevel(const qint8 level)
 {
-    qevercloud::User & enUser = GetEnUser();
+    qevercloud::User & enUser = d->m_qecUser;
+
     if (level <= static_cast<qint8>(qevercloud::PrivilegeLevel::ADMIN)) {
         enUser.privilege = static_cast<PrivilegeLevel>(level);
     }
@@ -391,19 +430,20 @@ void IUser::setPrivilegeLevel(const qint8 level)
     }
 }
 
-bool IUser::hasServiceLevel() const
+bool User::hasServiceLevel() const
 {
-    return GetEnUser().serviceLevel.isSet();
+    return d->m_qecUser.serviceLevel.isSet();
 }
 
-IUser::ServiceLevel IUser::serviceLevel() const
+User::ServiceLevel User::serviceLevel() const
 {
-    return GetEnUser().serviceLevel;
+    return d->m_qecUser.serviceLevel;
 }
 
-void IUser::setServiceLevel(const qint8 level)
+void User::setServiceLevel(const qint8 level)
 {
-    qevercloud::User & enUser = GetEnUser();
+    qevercloud::User & enUser = d->m_qecUser;
+
     if (level <= static_cast<qint8>(qevercloud::ServiceLevel::PREMIUM)) {
         enUser.serviceLevel = static_cast<ServiceLevel>(level);
     }
@@ -412,243 +452,208 @@ void IUser::setServiceLevel(const qint8 level)
     }
 }
 
-bool IUser::hasCreationTimestamp() const
+bool User::hasCreationTimestamp() const
 {
-    return GetEnUser().created.isSet();
+    return d->m_qecUser.created.isSet();
 }
 
-qint64 IUser::creationTimestamp() const
+qint64 User::creationTimestamp() const
 {
-    return GetEnUser().created;
+    return d->m_qecUser.created;
 }
 
-void IUser::setCreationTimestamp(const qint64 timestamp)
+void User::setCreationTimestamp(const qint64 timestamp)
 {
-    // TODO: verify whether it really matters
     if (timestamp >= 0) {
-        GetEnUser().created = timestamp;
+        d->m_qecUser.created = timestamp;
     }
     else {
-        GetEnUser().created.clear();
+        d->m_qecUser.created.clear();
     }
 }
 
-bool IUser::hasModificationTimestamp() const
+bool User::hasModificationTimestamp() const
 {
-    return GetEnUser().updated.isSet();
+    return d->m_qecUser.updated.isSet();
 }
 
-qint64 IUser::modificationTimestamp() const
+qint64 User::modificationTimestamp() const
 {
-    return GetEnUser().updated;
+    return d->m_qecUser.updated;
 }
 
-void IUser::setModificationTimestamp(const qint64 timestamp)
+void User::setModificationTimestamp(const qint64 timestamp)
 {
-    // TODO: verify whether it really matters
     if (timestamp >= 0) {
-        GetEnUser().updated = timestamp;
+        d->m_qecUser.updated = timestamp;
     }
     else {
-        GetEnUser().updated.clear();
+        d->m_qecUser.updated.clear();
     }
 }
 
-bool IUser::hasDeletionTimestamp() const
+bool User::hasDeletionTimestamp() const
 {
-    return GetEnUser().deleted.isSet();
+    return d->m_qecUser.deleted.isSet();
 }
 
-qint64 IUser::deletionTimestamp() const
+qint64 User::deletionTimestamp() const
 {
-    return GetEnUser().deleted;
+    return d->m_qecUser.deleted;
 }
 
-void IUser::setDeletionTimestamp(const qint64 timestamp)
+void User::setDeletionTimestamp(const qint64 timestamp)
 {
-    // TODO: verify whether it really matters
     if (timestamp >= 0) {
-        GetEnUser().deleted = timestamp;
+        d->m_qecUser.deleted = timestamp;
     }
     else {
-        GetEnUser().deleted.clear();
+        d->m_qecUser.deleted.clear();
     }
 }
 
-bool IUser::hasActive() const
+bool User::hasActive() const
 {
-    return GetEnUser().active.isSet();
+    return d->m_qecUser.active.isSet();
 }
 
-bool IUser::active() const
+bool User::active() const
 {
-    return GetEnUser().active;
+    return d->m_qecUser.active;
 }
 
-void IUser::setActive(const bool active)
+void User::setActive(const bool active)
 {
-    GetEnUser().active = active;
+    d->m_qecUser.active = active;
 }
 
-bool IUser::hasShardId() const
+bool User::hasShardId() const
 {
-    return GetEnUser().shardId.isSet();
+    return d->m_qecUser.shardId.isSet();
 }
 
-const QString & IUser::shardId() const
+const QString & User::shardId() const
 {
-    return GetEnUser().shardId.ref();
+    return d->m_qecUser.shardId.ref();
 }
 
-void IUser::setShardId(const QString & shardId)
+void User::setShardId(const QString & shardId)
 {
     if (!shardId.isEmpty()) {
-        GetEnUser().shardId = shardId;
+        d->m_qecUser.shardId = shardId;
     }
     else {
-        GetEnUser().shardId.clear();
+        d->m_qecUser.shardId.clear();
     }
 }
 
-bool IUser::hasUserAttributes() const
+bool User::hasUserAttributes() const
 {
-    return GetEnUser().attributes.isSet();
+    return d->m_qecUser.attributes.isSet();
 }
 
-const qevercloud::UserAttributes & IUser::userAttributes() const
+const qevercloud::UserAttributes & User::userAttributes() const
 {
-    return GetEnUser().attributes;
+    return d->m_qecUser.attributes;
 }
 
-void IUser::setUserAttributes(qevercloud::UserAttributes && attributes)
+void User::setUserAttributes(qevercloud::UserAttributes && attributes)
 {
-    GetEnUser().attributes = std::move(attributes);
+    d->m_qecUser.attributes = std::move(attributes);
 }
 
-bool IUser::hasAccounting() const
+bool User::hasAccounting() const
 {
-    return GetEnUser().accounting.isSet();
+    return d->m_qecUser.accounting.isSet();
 }
 
-const qevercloud::Accounting & IUser::accounting() const
+const qevercloud::Accounting & User::accounting() const
 {
-    return GetEnUser().accounting;
+    return d->m_qecUser.accounting;
 }
 
-void IUser::setAccounting(qevercloud::Accounting && accounting)
+void User::setAccounting(qevercloud::Accounting && accounting)
 {
-    GetEnUser().accounting = std::move(accounting);
+    d->m_qecUser.accounting = std::move(accounting);
 }
 
-bool IUser::hasBusinessUserInfo() const
+bool User::hasBusinessUserInfo() const
 {
-    return GetEnUser().businessUserInfo.isSet();
+    return d->m_qecUser.businessUserInfo.isSet();
 }
 
-const qevercloud::BusinessUserInfo & IUser::businessUserInfo() const
+const qevercloud::BusinessUserInfo & User::businessUserInfo() const
 {
-    return GetEnUser().businessUserInfo;
+    return d->m_qecUser.businessUserInfo;
 }
 
-void IUser::setBusinessUserInfo(qevercloud::BusinessUserInfo && info)
+void User::setBusinessUserInfo(qevercloud::BusinessUserInfo && info)
 {
-    GetEnUser().businessUserInfo = std::move(info);
+    d->m_qecUser.businessUserInfo = std::move(info);
 }
 
-bool IUser::hasPhotoUrl() const
+bool User::hasPhotoUrl() const
 {
-    return GetEnUser().photoUrl.isSet();
+    return d->m_qecUser.photoUrl.isSet();
 }
 
-QString IUser::photoUrl() const
+QString User::photoUrl() const
 {
-    return GetEnUser().photoUrl;
+    return d->m_qecUser.photoUrl;
 }
 
-void IUser::setPhotoUrl(const QString & photoUrl)
+void User::setPhotoUrl(const QString & photoUrl)
 {
     if (photoUrl.isEmpty()) {
-        GetEnUser().photoUrl.clear();
+        d->m_qecUser.photoUrl.clear();
     }
     else {
-        GetEnUser().photoUrl = photoUrl;
+        d->m_qecUser.photoUrl = photoUrl;
     }
 }
 
-bool IUser::hasPhotoLastUpdateTimestamp() const
+bool User::hasPhotoLastUpdateTimestamp() const
 {
-    return GetEnUser().photoLastUpdated.isSet();
+    return d->m_qecUser.photoLastUpdated.isSet();
 }
 
-qint64 IUser::photoLastUpdateTimestamp() const
+qint64 User::photoLastUpdateTimestamp() const
 {
-    return GetEnUser().photoLastUpdated;
+    return d->m_qecUser.photoLastUpdated;
 }
 
-void IUser::setPhotoLastUpdateTimestamp(const qint64 timestamp)
+void User::setPhotoLastUpdateTimestamp(const qint64 timestamp)
 {
     if (timestamp >= 0) {
-        GetEnUser().photoLastUpdated = timestamp;
+        d->m_qecUser.photoLastUpdated = timestamp;
     }
     else {
-        GetEnUser().photoLastUpdated.clear();
+        d->m_qecUser.photoLastUpdated.clear();
     }
 }
 
-bool IUser::hasAccountLimits() const
+bool User::hasAccountLimits() const
 {
-    return GetEnUser().accountLimits.isSet();
+    return d->m_qecUser.accountLimits.isSet();
 }
 
-const qevercloud::AccountLimits & IUser::accountLimits() const
+const qevercloud::AccountLimits & User::accountLimits() const
 {
-    return GetEnUser().accountLimits;
+    return d->m_qecUser.accountLimits;
 }
 
-void IUser::setAccountLimits(qevercloud::AccountLimits && limits)
+void User::setAccountLimits(qevercloud::AccountLimits && limits)
 {
-    GetEnUser().accountLimits = std::move(limits);
+    d->m_qecUser.accountLimits = std::move(limits);
 }
 
-IUser::IUser(const IUser & other) :
-    Printable(other),
-    m_isDirty(other.m_isDirty),
-    m_isLocal(other.m_isLocal)
-{}
-
-IUser::IUser(IUser && other) :
-    Printable(std::move(other)),
-    m_isDirty(std::move(other.m_isDirty)),
-    m_isLocal(std::move(other.m_isLocal))
-{}
-
-IUser & IUser::operator=(const IUser & other)
+QTextStream & User::print(QTextStream & strm) const
 {
-    if (this != &other) {
-        m_isDirty = other.m_isDirty;
-        m_isLocal = other.m_isLocal;
-    }
+    strm << QStringLiteral("User { \n");
+    strm << QStringLiteral("isDirty = ") << (d->m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
+    strm << QStringLiteral("isLocal = ") << (d->m_isLocal ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
 
-    return *this;
-}
-
-IUser & IUser::operator=(IUser && other)
-{
-    if (this != &other) {
-        m_isDirty = std::move(other.m_isDirty);
-        m_isLocal = std::move(other.m_isLocal);
-    }
-
-    return *this;
-}
-
-QTextStream & IUser::print(QTextStream & strm) const
-{
-    strm << QStringLiteral("IUser { \n");
-    strm << QStringLiteral("isDirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
-    strm << QStringLiteral("isLocal = ") << (m_isLocal ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
-
-    const auto & enUser = GetEnUser();
+    const auto & enUser = d->m_qecUser;
 
     if (enUser.id.isSet()) {
         strm << QStringLiteral("User ID = ") << QString::number(enUser.id) << QStringLiteral("; \n");

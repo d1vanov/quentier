@@ -27,7 +27,7 @@
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebookWrapper.h>
-#include <quentier/types/UserWrapper.h>
+#include <quentier/types/User.h>
 #include <quentier/utility/Utility.h>
 
 namespace quentier {
@@ -1093,14 +1093,14 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     return true;
 }
 
-bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalStorageManager & localStorageManager,
+bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalStorageManager & localStorageManager,
                                                       QString & errorDescription)
 {
     QNLocalizedString errorMessage;
 
     if (!user.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid IUser: " << user);
+        QNWARNING("Found invalid User: " << user);
         return false;
     }
 
@@ -1112,7 +1112,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     }
 
     const qint32 initialUserId = user.id();
-    UserWrapper foundUser;
+    User foundUser;
     foundUser.setId(initialUserId);
     res = localStorageManager.findUser(foundUser, errorMessage);
     if (!res) {
@@ -1122,13 +1122,13 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     if (user != foundUser) {
         errorDescription = "Added and found users in local storage don't match";
-        QNWARNING(errorDescription << ": IUser added to LocalStorageManager: " << user
+        QNWARNING(errorDescription << ": User added to LocalStorageManager: " << user
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
     }
 
     // ========== Check Update + Find ==========
-    UserWrapper modifiedUser;
+    User modifiedUser;
     modifiedUser.setId(user.id());
     modifiedUser.setUsername(user.username() + "_modified");
     modifiedUser.setEmail(user.email() + "_modified");
@@ -1187,7 +1187,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     if (modifiedUser != foundUser) {
         errorDescription = "Updated and found users in local storage don't match";
-        QNWARNING(errorDescription << ": IUser updated in LocalStorageManager: " << modifiedUser
+        QNWARNING(errorDescription << ": User updated in LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
     }
@@ -1223,7 +1223,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
 
     if (modifiedUser != foundUser) {
         errorDescription = "Deleted and found users in local storage manager don't match";
-        QNWARNING(errorDescription << ": IUser marked deleted in LocalStorageManager: " << modifiedUser
+        QNWARNING(errorDescription << ": User marked deleted in LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
     }
@@ -1251,9 +1251,9 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const IUser & user, LocalS
     foundUser.setId(modifiedUser.id());
     res = localStorageManager.findUser(foundUser, errorMessage);
     if (res) {
-        errorDescription = "Error: found IUser which should have been expunged "
+        errorDescription = "Error: found User which should have been expunged "
                            "from LocalStorageManager";
-        QNWARNING(errorDescription << ": IUser expunged from LocalStorageManager: " << modifiedUser
+        QNWARNING(errorDescription << ": User expunged from LocalStorageManager: " << modifiedUser
                   << "\nIUser found in LocalStorageManager: " << foundUser);
         return false;
     }
@@ -1271,7 +1271,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
                                             0, startFromScratch, overrideLock);
 
     // 2) ========== Create User ============
-    UserWrapper   user;
+    User   user;
     user.setId(1);
     user.setUsername("checker");
     user.setEmail("mail@checker.com");
@@ -1327,7 +1327,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     // 4) ============ Create new user without all the supplementary data but with the same id
     //                 and update it in local storage ===================
-    UserWrapper updatedUser;
+    User updatedUser;
     updatedUser.setId(1);
     updatedUser.setUsername("checker");
     updatedUser.setEmail("mail@checker.com");
@@ -1344,7 +1344,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     // 5) =========== Find this user in local storage, check whether it has user attributes,
     //                accounting, business user info and premium info (it shouldn't) =========
-    UserWrapper foundUser;
+    User foundUser;
     foundUser.setId(1);
 
     res = localStorageManager.findUser(foundUser, errorMessage);

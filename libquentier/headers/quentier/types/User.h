@@ -16,8 +16,8 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_TYPES_I_USER_H
-#define LIB_QUENTIER_TYPES_I_USER_H
+#ifndef LIB_QUENTIER_TYPES_USER_H
+#define LIB_QUENTIER_TYPES_USER_H
 
 #include <quentier/utility/Printable.h>
 #include <quentier/utility/QNLocalizedString.h>
@@ -32,18 +32,26 @@
 
 namespace quentier {
 
-class QUENTIER_EXPORT IUser: public Printable
+QT_FORWARD_DECLARE_CLASS(UserData)
+
+class QUENTIER_EXPORT User: public Printable
 {
 public:
     typedef qevercloud::PrivilegeLevel::type    PrivilegeLevel;
     typedef qevercloud::ServiceLevel::type      ServiceLevel;
 
 public:
-    IUser();
-    virtual ~IUser();
+    User();
+    User(const qevercloud::User & user);
+    User(qevercloud::User && user);
+    User(const User & other);
+    User(User && other);
+    User & operator=(const User & other);
+    User & operator=(User && other);
+    virtual ~User();
 
-    bool operator==(const IUser & other) const;
-    bool operator!=(const IUser & other) const;
+    bool operator==(const User & other) const;
+    bool operator!=(const User & other) const;
 
     operator const qevercloud::User&() const;
     operator qevercloud::User&();
@@ -134,20 +142,10 @@ public:
 
     friend class Notebook;
 
-protected:
-    IUser(const IUser & other);
-    IUser(IUser && other);
-    IUser & operator=(const IUser & other);
-    IUser & operator=(IUser && other);
-
-    virtual const qevercloud::User & GetEnUser() const = 0;
-    virtual qevercloud::User & GetEnUser() = 0;
-
 private:
-    bool m_isDirty;
-    bool m_isLocal;
+    QSharedDataPointer<UserData> d;
 };
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_TYPES_I_USER_H
+#endif // LIB_QUENTIER_TYPES_USER_H

@@ -29,7 +29,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(UserWrapper)
+QT_FORWARD_DECLARE_CLASS(User)
 
 /**
  * @brief The UserStore class in quentier namespace is a wrapper under UserStore from QEverCloud.
@@ -55,7 +55,7 @@ public:
     bool checkVersion(const QString & clientName, qint16 edamVersionMajor, qint16 edamVersionMinor,
                       QNLocalizedString & errorDescription);
 
-    qint32 getUser(UserWrapper & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 getUser(User & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 getAccountLimits(const qevercloud::ServiceLevel::type serviceLevel, qevercloud::AccountLimits & limits,
                             QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);

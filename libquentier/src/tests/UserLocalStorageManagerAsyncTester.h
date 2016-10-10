@@ -21,7 +21,7 @@
 
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
-#include <quentier/types/UserWrapper.h>
+#include <quentier/types/User.h>
 #include <QUuid>
 
 namespace quentier {
@@ -46,26 +46,26 @@ Q_SIGNALS:
 
 // private signals:
     void getUserCountRequest(QUuid requestId = QUuid());
-    void addUserRequest(UserWrapper user, QUuid requestId = QUuid());
-    void updateUserRequest(UserWrapper user, QUuid requestId = QUuid());
-    void findUserRequest(UserWrapper user, QUuid requestId = QUuid());
-    void deleteUserRequest(UserWrapper user, QUuid requestId = QUuid());
-    void expungeUserRequest(UserWrapper user, QUuid requestId = QUuid());
+    void addUserRequest(User user, QUuid requestId = QUuid());
+    void updateUserRequest(User user, QUuid requestId = QUuid());
+    void findUserRequest(User user, QUuid requestId = QUuid());
+    void deleteUserRequest(User user, QUuid requestId = QUuid());
+    void expungeUserRequest(User user, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetUserCountCompleted(int count, QUuid requestId);
     void onGetUserCountFailed(QNLocalizedString errorDescription, QUuid requestId);
-    void onAddUserCompleted(UserWrapper user, QUuid requestId);
-    void onAddUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
-    void onUpdateUserCompleted(UserWrapper user, QUuid requestId);
-    void onUpdateUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindUserCompleted(UserWrapper user, QUuid requestId);
-    void onFindUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
-    void onDeleteUserCompleted(UserWrapper user, QUuid requestId);
-    void onDeleteUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
-    void onExpungeUserCompleted(UserWrapper user, QUuid requestId);
-    void onExpungeUserFailed(UserWrapper user, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddUserCompleted(User user, QUuid requestId);
+    void onAddUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateUserCompleted(User user, QUuid requestId);
+    void onUpdateUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindUserCompleted(User user, QUuid requestId);
+    void onFindUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onDeleteUserCompleted(User user, QUuid requestId);
+    void onDeleteUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeUserCompleted(User user, QUuid requestId);
+    void onExpungeUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
 
     void onFailure(QNLocalizedString errorDescription);
 
@@ -93,9 +93,9 @@ private:
 
     qint32                      m_userId;
 
-    UserWrapper                 m_initialUser;
-    UserWrapper                 m_foundUser;
-    UserWrapper                 m_modifiedUser;
+    User                 m_initialUser;
+    User                 m_foundUser;
+    User                 m_modifiedUser;
 };
 
 } // namespace test

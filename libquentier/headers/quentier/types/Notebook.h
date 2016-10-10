@@ -34,8 +34,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
 QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
-QT_FORWARD_DECLARE_CLASS(IUser)
-QT_FORWARD_DECLARE_CLASS(UserAdapter)
+QT_FORWARD_DECLARE_CLASS(User)
 QT_FORWARD_DECLARE_CLASS(NotebookData)
 
 class QUENTIER_EXPORT Notebook: public IFavoritableDataElement
@@ -144,8 +143,8 @@ public:
     void setBusinessNotebookRecommended(const bool recommended);
 
     bool hasContact() const;
-    const UserAdapter contact() const;
-    void setContact(const IUser & contact);
+    const User contact() const;
+    void setContact(const User & contact);
 
     bool isLastUsed() const;
     void setLastUsed(const bool lastUsed);

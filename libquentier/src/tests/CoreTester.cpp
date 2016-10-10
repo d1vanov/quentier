@@ -40,7 +40,7 @@
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebookWrapper.h>
-#include <quentier/types/UserWrapper.h>
+#include <quentier/types/User.h>
 #include <quentier/types/RegisterMetatypes.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
@@ -796,7 +796,7 @@ void CoreTester::localStorageManagedIndividualUserTest()
         const bool overrideLock = false;
         LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
 
-        UserWrapper user;
+        User user;
         user.setId(1);
         user.setUsername(QStringLiteral("fake_user_username"));
         user.setEmail(QStringLiteral("fake_user _mail"));
@@ -2121,13 +2121,13 @@ void CoreTester::localStorageManagerAsyncUsersTest()
     }
 
     if (userAsyncTestResult == -1) {
-        QFAIL("Internal error: incorrect return status from UserWrapper async tester");
+        QFAIL("Internal error: incorrect return status from User async tester");
     }
     else if (userAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QFAIL("Detected failure during the asynchronous loop processing in UserWrapper async tester");
+        QFAIL("Detected failure during the asynchronous loop processing in User async tester");
     }
     else if (userAsyncTestResult == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        QFAIL("UserWrapper async tester failed to finish in time");
+        QFAIL("User async tester failed to finish in time");
     }
 }
 

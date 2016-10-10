@@ -121,7 +121,7 @@ public:
     int userCount(QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief addUser - adds passed in by const reference IUser subclass object
+     * @brief addUser - adds passed in by const reference User object
      * to the local storage database; basically the table with Users is only involved
      * in operations with Notebooks which have "contact" field set which in turn is
      * intended to use with business accounts.
@@ -129,10 +129,10 @@ public:
      * @param errorDescription - error description if user could not be added
      * @return true if user was added successfully, false otherwise
      */
-    bool addUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool addUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
-     * @brief updateUser - updates passed in by const reference IUser subclass object
+     * @brief updateUser - updates passed in by const reference User object
      * in the local storage database; basically the table with Users is only involved
      * in operations with Notebooks which have "contact" field set which in turn is
      * intended to use with business accounts.
@@ -140,7 +140,7 @@ public:
      * @param errorDescription - error description if user could not be added
      * @return true if user was updated successfully, false otherwise
      */
-    bool updateUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool updateUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
      * @brief findUser - attempts to find and fill the fields of passed in user object which must have
@@ -149,7 +149,7 @@ public:
      * @param errorDescription - error description if user could not be found
      * @return true if user was found successfully, false otherwise
      */
-    bool findUser(IUser & user, QNLocalizedString & errorDescription) const;
+    bool findUser(User & user, QNLocalizedString & errorDescription) const;
 
     /**
      * @brief deleteUser - marks user as deleted in local storage.
@@ -157,7 +157,7 @@ public:
      * @param errorDescription - error description if user could not be deleted
      * @return true if user was deleted successfully, false otherwise
      */
-    bool deleteUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool deleteUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
      * @brief expungeUser - permanently deletes user from local storage database.
@@ -165,7 +165,7 @@ public:
      * @param errorDescription - error description if user could not be expunged
      * @return true if user was expunged successfully, false otherwise
      */
-    bool expungeUser(const IUser & user, QNLocalizedString & errorDescription);
+    bool expungeUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
      * @brief notebookCount returns the number of notebooks currently stored in local storage database

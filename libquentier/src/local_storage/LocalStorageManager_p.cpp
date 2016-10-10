@@ -154,7 +154,7 @@ LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
         return false; \
     }
 
-bool LocalStorageManagerPrivate::addUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::addUser(const User & user, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert user data into the local storage database");
 
@@ -191,7 +191,7 @@ bool LocalStorageManagerPrivate::addUser(const IUser & user, QNLocalizedString &
     return true;
 }
 
-bool LocalStorageManagerPrivate::updateUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::updateUser(const User & user, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't update user data in the local storage database");
 
@@ -228,7 +228,7 @@ bool LocalStorageManagerPrivate::updateUser(const IUser & user, QNLocalizedStrin
     return true;
 }
 
-bool LocalStorageManagerPrivate::findUser(IUser & user, QNLocalizedString & errorDescription) const
+bool LocalStorageManagerPrivate::findUser(User & user, QNLocalizedString & errorDescription) const
 {
     QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::findUser"));
 
@@ -278,7 +278,7 @@ bool LocalStorageManagerPrivate::findUser(IUser & user, QNLocalizedString & erro
     return true;
 }
 
-bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::deleteUser(const User & user, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't mark the user data as deleted in the local storage database");
 
@@ -315,7 +315,7 @@ bool LocalStorageManagerPrivate::deleteUser(const IUser & user, QNLocalizedStrin
     return true;
 }
 
-bool LocalStorageManagerPrivate::expungeUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::expungeUser(const User & user, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't expunge user data from the local storage database");
 
@@ -4549,7 +4549,7 @@ bool LocalStorageManagerPrivate::rowExists(const QString & tableName, const QStr
     return false;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceUser(const IUser & user, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::insertOrReplaceUser(const User & user, QNLocalizedString & errorDescription)
 {
     // NOTE: this method is expected to be called after the check of user object for sanity of its parameters!
 
@@ -7612,7 +7612,7 @@ void LocalStorageManagerPrivate::fillNoteAttributesClassificationsFromSqlRecord(
     }
 }
 
-bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, IUser & user,
+bool LocalStorageManagerPrivate::fillUserFromSqlRecord(const QSqlRecord & rec, User & user,
                                                        QNLocalizedString & errorDescription) const
 {
 #define FIND_AND_SET_USER_PROPERTY(column, setter, type, localType, isRequired) \
@@ -8167,17 +8167,17 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
     if (record.contains("contactId") && !record.isNull("contactId"))
     {
         if (notebook.hasContact()) {
-            UserAdapter contact = notebook.contact();
+            User contact = notebook.contact();
             contact.setId(qvariant_cast<qint32>(record.value("contactId")));
             notebook.setContact(contact);
         }
         else {
-            UserWrapper contact;
+            User contact;
             contact.setId(qvariant_cast<qint32>(record.value("contactId")));
             notebook.setContact(contact);
         }
 
-        UserAdapter user = notebook.contact();
+        User user = notebook.contact();
         bool res = fillUserFromSqlRecord(record, user, errorDescription);
         if (!res) {
             return false;

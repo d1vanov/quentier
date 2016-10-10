@@ -52,7 +52,7 @@ LinkedNotebookLocalStorageManagerAsyncTester::~LinkedNotebookLocalStorageManager
 
 void LinkedNotebookLocalStorageManagerAsyncTester::onInitTestCase()
 {
-    QString username = "LinkedNotebookLocalStorageManagerAsyncTester";
+    QString username = QStringLiteral("LinkedNotebookLocalStorageManagerAsyncTester");
     qint32 userId = 1;
     bool startFromScratch = true;
     bool overrideLock = false;
@@ -80,21 +80,21 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onInitTestCase()
 
 void LinkedNotebookLocalStorageManagerAsyncTester::onWorkerInitialized()
 {
-    m_initialLinkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+    m_initialLinkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
     m_initialLinkedNotebook.setUpdateSequenceNumber(1);
-    m_initialLinkedNotebook.setShareName("Fake linked notebook share name");
-    m_initialLinkedNotebook.setUsername("Fake linked notebook username");
-    m_initialLinkedNotebook.setShardId("Fake linked notebook shard id");
-    m_initialLinkedNotebook.setSharedNotebookGlobalId("Fake linked notebook shared notebook global id");
-    m_initialLinkedNotebook.setUri("Fake linked notebook uri");
-    m_initialLinkedNotebook.setNoteStoreUrl("Fake linked notebook note store url");
-    m_initialLinkedNotebook.setWebApiUrlPrefix("Fake linked notebook web api url prefix");
-    m_initialLinkedNotebook.setStack("Fake linked notebook stack");
+    m_initialLinkedNotebook.setShareName(QStringLiteral("Fake linked notebook share name"));
+    m_initialLinkedNotebook.setUsername(QStringLiteral("Fake linked notebook username"));
+    m_initialLinkedNotebook.setShardId(QStringLiteral("Fake linked notebook shard id"));
+    m_initialLinkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Fake linked notebook shared notebook global id"));
+    m_initialLinkedNotebook.setUri(QStringLiteral("Fake linked notebook uri"));
+    m_initialLinkedNotebook.setNoteStoreUrl(QStringLiteral("Fake linked notebook note store url"));
+    m_initialLinkedNotebook.setWebApiUrlPrefix(QStringLiteral("Fake linked notebook web api url prefix"));
+    m_initialLinkedNotebook.setStack(QStringLiteral("Fake linked notebook stack"));
     m_initialLinkedNotebook.setBusinessId(1);
 
     QNLocalizedString errorDescription;
     if (!m_initialLinkedNotebook.checkParameters(errorDescription)) {
-        QNWARNING("Found invalid LinkedNotebook: " << m_initialLinkedNotebook << ", error: "
+        QNWARNING(QStringLiteral("Found invalid LinkedNotebook: ") << m_initialLinkedNotebook << QStringLiteral(", error: ")
                   << errorDescription);
         emit failure(errorDescription.nonLocalizedString());
         return;
@@ -140,16 +140,16 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountCompl
         }
 
         LinkedNotebook extraLinkedNotebook;
-        extraLinkedNotebook.setGuid("00000000-0000-0000-c000-000000000001");
+        extraLinkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
         extraLinkedNotebook.setUpdateSequenceNumber(1);
-        extraLinkedNotebook.setUsername("Extra LinkedNotebook");
-        extraLinkedNotebook.setShareName("Fake extra linked notebook share name");
-        extraLinkedNotebook.setSharedNotebookGlobalId("Fake extra linked notebook shared notebook global id");
-        extraLinkedNotebook.setShardId("Fake extra linked notebook shard id");
-        extraLinkedNotebook.setStack("Fake extra linked notebook stack");
-        extraLinkedNotebook.setNoteStoreUrl("Fake extra linked notebook note store url");
-        extraLinkedNotebook.setWebApiUrlPrefix("Fake extra linked notebook web api url prefix");
-        extraLinkedNotebook.setUri("Fake extra linked notebook uri");
+        extraLinkedNotebook.setUsername(QStringLiteral("Extra LinkedNotebook"));
+        extraLinkedNotebook.setShareName(QStringLiteral("Fake extra linked notebook share name"));
+        extraLinkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Fake extra linked notebook shared notebook global id"));
+        extraLinkedNotebook.setShardId(QStringLiteral("Fake extra linked notebook shard id"));
+        extraLinkedNotebook.setStack(QStringLiteral("Fake extra linked notebook stack"));
+        extraLinkedNotebook.setNoteStoreUrl(QStringLiteral("Fake extra linked notebook note store url"));
+        extraLinkedNotebook.setWebApiUrlPrefix(QStringLiteral("Fake extra linked notebook web api url prefix"));
+        extraLinkedNotebook.setUri(QStringLiteral("Fake extra linked notebook uri"));
 
         m_state = STATE_SENT_ADD_EXTRA_LINKED_NOTEBOOK_ONE_REQUEST;
         emit addLinkedNotebookRequest(extraLinkedNotebook);
@@ -159,7 +159,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountCompl
 
 void LinkedNotebookLocalStorageManagerAsyncTester::onGetLinkedNotebookCountFailed(QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -190,16 +190,16 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookCompleted(
         m_initialLinkedNotebooks << notebook;
 
         LinkedNotebook extraLinkedNotebook;
-        extraLinkedNotebook.setGuid("00000000-0000-0000-c000-000000000002");
+        extraLinkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000002"));
         extraLinkedNotebook.setUpdateSequenceNumber(2);
-        extraLinkedNotebook.setUsername("Fake linked notebook username two");
-        extraLinkedNotebook.setShareName("Fake extra linked notebook share name two");
-        extraLinkedNotebook.setSharedNotebookGlobalId("Fake extra linked notebook shared notebook global id two");
-        extraLinkedNotebook.setShardId("Fake extra linked notebook shard id two");
-        extraLinkedNotebook.setStack("Fake extra linked notebook stack two");
-        extraLinkedNotebook.setNoteStoreUrl("Fake extra linked notebook note store url two");
-        extraLinkedNotebook.setWebApiUrlPrefix("Fake extra linked notebook web api url prefix two");
-        extraLinkedNotebook.setUri("Fake extra linked notebook uri two");
+        extraLinkedNotebook.setUsername(QStringLiteral("Fake linked notebook username two"));
+        extraLinkedNotebook.setShareName(QStringLiteral("Fake extra linked notebook share name two"));
+        extraLinkedNotebook.setSharedNotebookGlobalId(QStringLiteral("Fake extra linked notebook shared notebook global id two"));
+        extraLinkedNotebook.setShardId(QStringLiteral("Fake extra linked notebook shard id two"));
+        extraLinkedNotebook.setStack(QStringLiteral("Fake extra linked notebook stack two"));
+        extraLinkedNotebook.setNoteStoreUrl(QStringLiteral("Fake extra linked notebook note store url two"));
+        extraLinkedNotebook.setWebApiUrlPrefix(QStringLiteral("Fake extra linked notebook web api url prefix two"));
+        extraLinkedNotebook.setUri(QStringLiteral("Fake extra linked notebook uri two"));
 
         m_state = STATE_SENT_ADD_EXTRA_LINKED_NOTEBOOK_TWO_REQUEST;
         emit addLinkedNotebookRequest(extraLinkedNotebook);
@@ -220,7 +220,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookCompleted(
 void LinkedNotebookLocalStorageManagerAsyncTester::onAddLinkedNotebookFailed(LinkedNotebook notebook,
                                                                              QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", linked notebook: " << notebook);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", linked notebook: ") << notebook);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -248,7 +248,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onUpdateLinkedNotebookComplet
 
 void LinkedNotebookLocalStorageManagerAsyncTester::onUpdateLinkedNotebookFailed(LinkedNotebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", linked notebook: " << notebook);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", linked notebook: ") << notebook);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -262,8 +262,8 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
     {
         if (notebook != m_initialLinkedNotebook) {
             errorDescription = "Added and found linked notebooks in local storage don't match";
-            QNWARNING(errorDescription << ": LinkedNotebook added to LocalStorageManager: " << m_initialLinkedNotebook
-                      << "\nLinkedNotebook found in LocalStorageManager: " << notebook);
+            QNWARNING(errorDescription << QStringLiteral(": LinkedNotebook added to LocalStorageManager: ") << m_initialLinkedNotebook
+                      << QStringLiteral("\nLinkedNotebook found in LocalStorageManager: ") << notebook);
             emit failure(errorDescription.nonLocalizedString());
             return;
         }
@@ -271,9 +271,9 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
         // Ok, found linked notebook is good, updating it now
         m_modifiedLinkedNotebook = m_initialLinkedNotebook;
         m_modifiedLinkedNotebook.setUpdateSequenceNumber(m_initialLinkedNotebook.updateSequenceNumber() + 1);
-        m_modifiedLinkedNotebook.setUsername(m_initialLinkedNotebook.username() + "_modified");
-        m_modifiedLinkedNotebook.setStack(m_initialLinkedNotebook.stack() + "_modified");
-        m_modifiedLinkedNotebook.setShareName(m_initialLinkedNotebook.shareName() + "_modified");
+        m_modifiedLinkedNotebook.setUsername(m_initialLinkedNotebook.username() + QStringLiteral("_modified"));
+        m_modifiedLinkedNotebook.setStack(m_initialLinkedNotebook.stack() + QStringLiteral("_modified"));
+        m_modifiedLinkedNotebook.setShareName(m_initialLinkedNotebook.shareName() + QStringLiteral("_modified"));
 
         m_state = STATE_SENT_UPDATE_REQUEST;
         emit updateLinkedNotebookRequest(m_modifiedLinkedNotebook);
@@ -282,8 +282,8 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
     {
         if (notebook != m_modifiedLinkedNotebook) {
             errorDescription = "Updated and found linked notebooks in local storage don't match";
-            QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: "
-                      << m_modifiedLinkedNotebook << "\nLinkedNotebook found in LocalStorageManager: "
+            QNWARNING(errorDescription << QStringLiteral(": LinkedNotebook updated in LocalStorageManager: ")
+                      << m_modifiedLinkedNotebook << QStringLiteral("\nLinkedNotebook found in LocalStorageManager: ")
                       << notebook);
             emit failure(errorDescription.nonLocalizedString());
             return;
@@ -295,8 +295,8 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookCompleted
     else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
     {
         errorDescription = "Error: found linked notebook which should have been expunged from local storage";
-        QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << m_modifiedLinkedNotebook
-                  << "\nLinkedNotebook found in LocalStorageManager: " << notebook);
+        QNWARNING(errorDescription << QStringLiteral(": LinkedNotebook expunged from LocalStorageManager: ") << m_modifiedLinkedNotebook
+                  << QStringLiteral("\nLinkedNotebook found in LocalStorageManager: ") << notebook);
         emit failure(errorDescription.nonLocalizedString());
         return;
     }
@@ -311,7 +311,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onFindLinkedNotebookFailed(Li
         return;
     }
 
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", linked notebook: " << notebook);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", linked notebook: ") << notebook);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -361,7 +361,7 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onListAllLinkedNotebooksFaile
     Q_UNUSED(order)
     Q_UNUSED(orderDirection)
 
-    QNWARNING(errorDescription << ", requestId = " << requestId);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -387,13 +387,13 @@ void LinkedNotebookLocalStorageManagerAsyncTester::onExpungeLinkedNotebookComple
 void LinkedNotebookLocalStorageManagerAsyncTester::onExpungeLinkedNotebookFailed(LinkedNotebook notebook,
                                                                                  QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", linked notebook: " << notebook);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", linked notebook: ") << notebook);
     emit failure(errorDescription.nonLocalizedString());
 }
 
 void LinkedNotebookLocalStorageManagerAsyncTester::onFailure(QNLocalizedString errorDescription)
 {
-    QNWARNING("LinkedNotebookLocalStorageManagerAsyncTester::onFailure: " << errorDescription);
+    QNWARNING(QStringLiteral("LinkedNotebookLocalStorageManagerAsyncTester::onFailure: ") << errorDescription);
     emit failure(errorDescription.nonLocalizedString());
 }
 
