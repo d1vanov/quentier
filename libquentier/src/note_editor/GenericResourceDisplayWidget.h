@@ -32,10 +32,10 @@ QT_FORWARD_DECLARE_CLASS(GenericResourceDisplayWidget)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
+QT_FORWARD_DECLARE_CLASS(Resource)
 QT_FORWARD_DECLARE_CLASS(ResourceFileStorageManager)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
-QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(Resource)
 
 class GenericResourceDisplayWidget: public QWidget
 {
@@ -46,7 +46,7 @@ public:
 
     void initialize(const QIcon & icon, const QString & name,
                     const QString & size, const QStringList & preferredFileSuffixes,
-                    const QString & filterString, const IResource & resource,
+                    const QString & filterString, const Resource & resource,
                     const ResourceFileStorageManager & resourceFileStorageManager,
                     const FileIOThreadWorker & fileIOThreadWorker);
 
@@ -84,7 +84,7 @@ private:
 private:
     Ui::GenericResourceDisplayWidget *  m_pUI;
 
-    const ResourceWrapper *             m_pResource;
+    const Resource *                    m_pResource;
     const ResourceFileStorageManager *  m_pResourceFileStorageManager;
     const FileIOThreadWorker *          m_pFileIOThreadWorker;
     QStringList                         m_preferredFileSuffixes;

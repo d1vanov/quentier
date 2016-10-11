@@ -16,7 +16,7 @@ using quentier::NoteTagsWidget;
 
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <QFontDatabase>
 #include <QScopedPointer>
 
@@ -80,13 +80,13 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
     bool hasMissingResources = false;
     if (Q_LIKELY(pCachedNote))
     {
-        QList<ResourceAdapter> resourceAdapters = pCachedNote->resourceAdapters();
-        if (!resourceAdapters.isEmpty())
+        QList<Resource> resources = pCachedNote->resources();
+        if (!resources.isEmpty())
         {
-            for(int i = 0, size = resourceAdapters.size(); i < size; ++i)
+            for(int i = 0, size = resources.size(); i < size; ++i)
             {
-                const ResourceAdapter & resourceAdapter = resourceAdapters[i];
-                if (resourceAdapter.hasDataHash() && !resourceAdapter.hasDataBody()) {
+                const Resource & resource = resources[i];
+                if (resource.hasDataHash() && !resource.hasDataBody()) {
                     hasMissingResources = true;
                     break;
                 }
@@ -328,7 +328,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         Q_UNUSED(m_updateNoteRequestIds.erase(it))
     }
 
-    QList<ResourceWrapper> backupResources;
+    QList<Resource> backupResources;
     if (!updateResources) {
         backupResources = m_pCurrentNote->resources();
     }

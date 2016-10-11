@@ -13,7 +13,7 @@ namespace quentier {
         return; \
     }
 
-AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback,
+AddResourceUndoCommand::AddResourceUndoCommand(const Resource & resource, const Callback & callback,
                                                NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_resource(resource),
@@ -22,7 +22,7 @@ AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource,
     setText(tr("Add attachment"));
 }
 
-AddResourceUndoCommand::AddResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback,
+AddResourceUndoCommand::AddResourceUndoCommand(const Resource & resource, const Callback & callback,
                                                NoteEditorPrivate & noteEditorPrivate, const QString & text,
                                                QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),

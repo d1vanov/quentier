@@ -3,7 +3,7 @@
 
 #include "INoteEditorUndoCommand.h"
 #include "../NoteEditor_p.h"
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 
 namespace quentier {
 
@@ -13,11 +13,11 @@ class ImageResourceRotationUndoCommand: public INoteEditorUndoCommand
 public:
     ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                      const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
-                                     const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
+                                     const Resource & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                      NoteEditorPrivate & noteEditor, QUndoCommand * parent = Q_NULLPTR);
     ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                      const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
-                                     const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
+                                     const Resource & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                      NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~ImageResourceRotationUndoCommand();
 
@@ -29,7 +29,7 @@ private:
     const QByteArray                            m_resourceHashBefore;
     const QByteArray                            m_resourceRecognitionDataBefore;
     const QByteArray                            m_resourceRecognitionDataHashBefore;
-    const ResourceWrapper                       m_resourceAfter;
+    const Resource                              m_resourceAfter;
     const INoteEditorBackend::Rotation::type    m_rotationDirection;
 };
 

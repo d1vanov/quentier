@@ -210,7 +210,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
         m_currentNote = note;
     }
     else {
-        QList<ResourceWrapper> resources = m_currentNote.resources();
+        QList<Resource> resources = m_currentNote.resources();
         m_currentNote = note;
         m_currentNote.setResources(resources);
     }

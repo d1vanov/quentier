@@ -33,9 +33,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IResource)
-QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
-QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
+QT_FORWARD_DECLARE_CLASS(Resource)
 QT_FORWARD_DECLARE_CLASS(NoteData)
 
 class QUENTIER_EXPORT Note: public IFavoritableDataElement
@@ -130,13 +128,11 @@ public:
 
     bool hasResources() const;
     int numResources() const;
-    QList<ResourceAdapter> resourceAdapters() const;
-    QList<ResourceWrapper> resources() const;
-    void setResources(const QList<ResourceAdapter> & resources);
-    void setResources(const QList<ResourceWrapper> & resources);
-    void addResource(const IResource & resource);
-    bool updateResource(const IResource & resource);
-    bool removeResource(const IResource & resource);
+    QList<Resource> resources() const;
+    void setResources(const QList<Resource> & resources);
+    void addResource(const Resource & resource);
+    bool updateResource(const Resource & resource);
+    bool removeResource(const Resource & resource);
 
     bool hasNoteAttributes() const;
     const qevercloud::NoteAttributes & noteAttributes() const;

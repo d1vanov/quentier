@@ -2,7 +2,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_UNDO_STACK_UPDATE_RESOURCE_UNDO_COMMAND_H
 
 #include "INoteEditorUndoCommand.h"
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 
 namespace quentier {
 
@@ -10,9 +10,9 @@ class UpdateResourceUndoCommand: public INoteEditorUndoCommand
 {
     Q_OBJECT
 public:
-    UpdateResourceUndoCommand(const ResourceWrapper & resourceBefore, const ResourceWrapper & resourceAfter,
+    UpdateResourceUndoCommand(const Resource & resourceBefore, const Resource & resourceAfter,
                              NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent = Q_NULLPTR);
-    UpdateResourceUndoCommand(const ResourceWrapper & resourceBefore, const ResourceWrapper & resourceAfter,
+    UpdateResourceUndoCommand(const Resource & resourceBefore, const Resource & resourceAfter,
                               NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~UpdateResourceUndoCommand();
 
@@ -23,8 +23,8 @@ private:
     void init();
 
 private:
-    ResourceWrapper     m_resourceBefore;
-    ResourceWrapper     m_resourceAfter;
+    Resource     m_resourceBefore;
+    Resource     m_resourceAfter;
 };
 
 } // namespace quentier

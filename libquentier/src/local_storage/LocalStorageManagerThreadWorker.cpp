@@ -1151,7 +1151,7 @@ void LocalStorageManagerThreadWorker::onGetResourceCountRequest(QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resource, QUuid requestId)
+void LocalStorageManagerThreadWorker::onAddResourceRequest(Resource resource, QUuid requestId)
 {
     try
     {
@@ -1168,7 +1168,7 @@ void LocalStorageManagerThreadWorker::onAddResourceRequest(ResourceWrapper resou
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper resource, QUuid requestId)
+void LocalStorageManagerThreadWorker::onUpdateResourceRequest(Resource resource, QUuid requestId)
 {
     try
     {
@@ -1185,7 +1185,7 @@ void LocalStorageManagerThreadWorker::onUpdateResourceRequest(ResourceWrapper re
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId)
+void LocalStorageManagerThreadWorker::onFindResourceRequest(Resource resource, bool withBinaryData, QUuid requestId)
 {
     try
     {
@@ -1202,7 +1202,7 @@ void LocalStorageManagerThreadWorker::onFindResourceRequest(ResourceWrapper reso
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onExpungeResourceRequest(ResourceWrapper resource, QUuid requestId)
+void LocalStorageManagerThreadWorker::onExpungeResourceRequest(Resource resource, QUuid requestId)
 {
     try
     {

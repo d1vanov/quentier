@@ -800,7 +800,7 @@ public:
      * @param errorDescription - error description if resource could not be added
      * @return true if resource was added successfully, false otherwise
      */
-    bool addEnResource(IResource & resource, QNLocalizedString & errorDescription);
+    bool addEnResource(Resource & resource, QNLocalizedString & errorDescription);
 
     /**
      * @brief updateEnResource - updates passed in resource in the local storage database
@@ -809,7 +809,7 @@ public:
      * @param errorDescription - error description if resource could not be updated
      * @return true if resource was updated successfully, false otherwise
      */
-    bool updateEnResource(IResource & resource, QNLocalizedString & errorDescription);
+    bool updateEnResource(Resource & resource, QNLocalizedString & errorDescription);
 
     /**
      * @brief findEnResource - attempts to find resource in the local storage database
@@ -822,7 +822,7 @@ public:
      * By default this parameter is true.
      * @return true if resource was found successfully, false otherwise
      */
-    bool findEnResource(IResource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
+    bool findEnResource(Resource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'deleteEnResource' method for a reason: resources are deleted automatically
     // in remote storage so there's no need to mark some resource as deleted for synchronization procedure.
@@ -835,7 +835,7 @@ public:
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool expungeEnResource(IResource & resource, QNLocalizedString & errorDescription);
+    bool expungeEnResource(Resource & resource, QNLocalizedString & errorDescription);
 
     /**
      * @brief savedSearchCount returns the number of saved seacrhes currently stored in local storage database

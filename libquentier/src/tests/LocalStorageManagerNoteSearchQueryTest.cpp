@@ -22,7 +22,7 @@
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QCryptographicHash>
 
@@ -171,18 +171,18 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     // 3) ================= Create some resources ==================
 
     int numResources = 3;
-    QVector<ResourceWrapper> resources;
+    QVector<Resource> resources;
     resources.reserve(numResources);
 
     for(int i = 0; i < numResources; ++i)
     {
-        resources << ResourceWrapper();
-        ResourceWrapper & resource = resources.back();
+        resources << Resource();
+        Resource & resource = resources.back();
 
         resource.setUpdateSequenceNumber(i);
     }
 
-    ResourceWrapper & res0 = resources[0];
+    Resource & res0 = resources[0];
     res0.setMime("image/gif");
     res0.setDataBody(QByteArray("fake image/gif byte array"));
     res0.setDataSize(res0.dataBody().size());
@@ -207,7 +207,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res0.setRecognitionDataSize(res0.recognitionDataBody().size());
     res0.setRecognitionDataHash(QCryptographicHash::hash(res0.recognitionDataBody(), QCryptographicHash::Md5));
 
-    ResourceWrapper & res1 = resources[1];
+    Resource & res1 = resources[1];
     res1.setMime("audio/*");
     res1.setDataBody(QByteArray("fake audio/* byte array"));
     res1.setDataSize(res1.dataBody().size());
@@ -231,7 +231,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     res1.setRecognitionDataSize(res1.recognitionDataBody().size());
     res1.setRecognitionDataHash(QCryptographicHash::hash(res1.recognitionDataBody(), QCryptographicHash::Md5));
 
-    ResourceWrapper & res2 = resources[2];
+    Resource & res2 = resources[2];
     res2.setMime("application/vnd.evernote.ink");
     res2.setDataBody(QByteArray("fake application/vnd.evernote.ink byte array"));
     res2.setDataSize(res2.dataBody().size());
@@ -539,13 +539,13 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
         }
 
         if (i != 8) {
-            ResourceWrapper resource = resources[i/numResources];
+            Resource resource = resources[i/numResources];
             resource.setLocalUid(QUuid::createUuid().toString());
             note.addResource(resource);
         }
 
         if (i == 3) {
-            ResourceWrapper additionalResource = resources[0];
+            Resource additionalResource = resources[0];
             additionalResource.setLocalUid(QUuid::createUuid().toString());
             note.addResource(additionalResource);
         }

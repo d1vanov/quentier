@@ -22,7 +22,7 @@
 #include <quentier/utility/FileIOThreadWorker.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/DesktopServices.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <QHBoxLayout>
@@ -61,13 +61,13 @@ GenericResourceDisplayWidget::~GenericResourceDisplayWidget()
 void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString & name,
                                               const QString & size, const QStringList & preferredFileSuffixes,
                                               const QString & filterString,
-                                              const IResource & resource,
+                                              const Resource & resource,
                                               const ResourceFileStorageManager & resourceFileStorageManager,
                                               const FileIOThreadWorker & fileIOThreadWorker)
 {
     QNDEBUG(QStringLiteral("GenericResourceDisplayWidget::initialize: name = ") << name << QStringLiteral(", size = ") << size);
 
-    m_pResource = new ResourceWrapper(resource);
+    m_pResource = new Resource(resource);
     m_pResourceFileStorageManager = &resourceFileStorageManager;
     m_pFileIOThreadWorker = &fileIOThreadWorker;
     m_preferredFileSuffixes = preferredFileSuffixes;

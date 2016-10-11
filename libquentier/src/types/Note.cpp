@@ -18,8 +18,7 @@
 
 #include "data/NoteData.h"
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceAdapter.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <algorithm>
@@ -478,40 +477,9 @@ int Note::numResources() const
     return (d->m_qecNote.resources.isSet() ? d->m_qecNote.resources->size() : 0);
 }
 
-QList<ResourceAdapter> Note::resourceAdapters() const
+QList<Resource> Note::resources() const
 {
-    QList<ResourceAdapter> resources;
-
-    if (!d->m_qecNote.resources.isSet()) {
-        return resources;
-    }
-
-    const QList<qevercloud::Resource> & noteResources = d->m_qecNote.resources.ref();
-    int numResources = noteResources.size();
-    int numResourceAdditionalInfoEntries = d->m_resourcesAdditionalInfo.size();
-
-    QString noteLocalUid = localUid();
-    resources.reserve(std::max(numResources, 0));
-    for(int i = 0; i < numResources; ++i)
-    {
-        resources << ResourceAdapter(noteResources[i]);
-        ResourceAdapter & resource = resources.back();
-
-        if (i < numResourceAdditionalInfoEntries) {
-            const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
-            resource.setLocalUid(info.localUid);
-            resource.setNoteLocalUid(noteLocalUid);
-            resource.setDirty(info.isDirty);
-        }
-
-        resource.setIndexInNote(i);
-    }
-    return resources;
-}
-
-QList<ResourceWrapper> Note::resources() const
-{
-    QList<ResourceWrapper> resources;
+    QList<Resource> resources;
 
     if (!d->m_qecNote.resources.isSet()) {
         return resources;
@@ -525,8 +493,8 @@ QList<ResourceWrapper> Note::resources() const
     resources.reserve(qMax(numResources, 0));
     for(int i = 0; i < numResources; ++i)
     {
-        resources << ResourceWrapper(noteResources[i]);
-        ResourceWrapper & resource = resources.back();
+        resources << Resource(noteResources[i]);
+        Resource & resource = resources.back();
 
         if (i < numResourceAdditionalInfoEntries) {
             const NoteData::ResourceAdditionalInfo & info = d->m_resourcesAdditionalInfo[i];
@@ -540,47 +508,41 @@ QList<ResourceWrapper> Note::resources() const
     return resources;
 }
 
-#define SET_RESOURCES(resource_type) \
-    void Note::setResources(const QList<resource_type> & resources) \
-    { \
-        if (!resources.empty()) \
-        { \
-            d->m_qecNote.resources = QList<qevercloud::Resource>(); \
-            d->m_resourcesAdditionalInfo.clear(); \
-            NoteData::ResourceAdditionalInfo info; \
-            for(QList<resource_type>::const_iterator it = resources.constBegin(); \
-                it != resources.constEnd(); ++it) \
-            { \
-                d->m_qecNote.resources.ref() << it->GetEnResource(); \
-                info.localUid = it->localUid(); \
-                info.isDirty = it->isDirty(); \
-                d->m_resourcesAdditionalInfo.push_back(info); \
-            } \
-            QNDEBUG(QStringLiteral("Added ") << resources.size() << QStringLiteral(" resources to note")); \
-        } \
-        else \
-        { \
-            d->m_qecNote.resources.clear(); \
-        } \
+void Note::setResources(const QList<Resource> & resources)
+{
+    if (!resources.empty())
+    {
+        d->m_qecNote.resources = QList<qevercloud::Resource>();
+        d->m_resourcesAdditionalInfo.clear();
+        NoteData::ResourceAdditionalInfo info;
+        for(auto it = resources.constBegin(); it != resources.constEnd(); ++it)
+        {
+            d->m_qecNote.resources.ref() << static_cast<const qevercloud::Resource&>(*it);
+            info.localUid = it->localUid();
+            info.isDirty = it->isDirty();
+            d->m_resourcesAdditionalInfo.push_back(info);
+        }
+        QNDEBUG(QStringLiteral("Added ") << resources.size() << QStringLiteral(" resources to note"));
     }
+    else
+    {
+        d->m_qecNote.resources.clear();
+    }
+}
 
-SET_RESOURCES(ResourceWrapper)
-SET_RESOURCES(ResourceAdapter)
 
-#undef SET_RESOURCES
-
-void Note::addResource(const IResource & resource)
+void Note::addResource(const Resource & resource)
 {
     if (!d->m_qecNote.resources.isSet()) {
         d->m_qecNote.resources = QList<qevercloud::Resource>();
     }
 
-    if (d->m_qecNote.resources->contains(resource.GetEnResource())) {
+    if (d->m_qecNote.resources->contains(static_cast<const qevercloud::Resource&>(resource))) {
         QNDEBUG(QStringLiteral("Can't add resource to note: this note already has this resource"));
         return;
     }
 
-    d->m_qecNote.resources.ref() << resource.GetEnResource();
+    d->m_qecNote.resources.ref() << static_cast<const qevercloud::Resource&>(resource);
     NoteData::ResourceAdditionalInfo info;
     info.localUid = resource.localUid();
     info.isDirty = resource.isDirty();
@@ -588,7 +550,7 @@ void Note::addResource(const IResource & resource)
     QNDEBUG(QStringLiteral("Added resource to note, local uid = ") << resource.localUid());
 }
 
-bool Note::updateResource(const IResource & resource)
+bool Note::updateResource(const Resource & resource)
 {
     if (!d->m_qecNote.resources.isSet()) {
         QNDEBUG(QStringLiteral("Can't update resource in note: note has no attached resources"));
@@ -610,12 +572,12 @@ bool Note::updateResource(const IResource & resource)
         return false;
     }
 
-    d->m_qecNote.resources.ref()[targetResourceIndex] = resource.GetEnResource();
+    d->m_qecNote.resources.ref()[targetResourceIndex] = static_cast<const qevercloud::Resource&>(resource);
     d->m_resourcesAdditionalInfo[targetResourceIndex].isDirty = resource.isDirty();
     return true;
 }
 
-bool Note::removeResource(const IResource & resource)
+bool Note::removeResource(const Resource & resource)
 {
     if (!d->m_qecNote.resources.isSet()) {
         QNDEBUG(QStringLiteral("Can't remove resource from note: note has no attached resources"));
@@ -623,7 +585,7 @@ bool Note::removeResource(const IResource & resource)
     }
 
     QList<qevercloud::Resource> & resources = d->m_qecNote.resources.ref();
-    int removed = resources.removeAll(resource.GetEnResource());
+    int removed = resources.removeAll(static_cast<const qevercloud::Resource&>(resource));
     if (removed <= 0) {
         QNDEBUG(QStringLiteral("Haven't removed resource ") << resource << QStringLiteral(" because there was no such resource attached to the note"));
         return false;
@@ -699,7 +661,7 @@ void Note::setSharedNotes(const QList<SharedNote> & sharedNotes)
     QList<qevercloud::SharedNote> internalSharedNotes;
     internalSharedNotes.reserve(sortedSharedNotes.size());
 
-    for(auto it = sortedSharedNotes.begin(), end = sortedSharedNotes.end(); it != end; ++it) {
+    for(auto it = sortedSharedNotes.constBegin(), end = sortedSharedNotes.constEnd(); it != end; ++it) {
         const qevercloud::SharedNote & qecSharedNote = static_cast<const qevercloud::SharedNote&>(*it);
         internalSharedNotes << qecSharedNote;
     }

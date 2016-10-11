@@ -36,7 +36,7 @@ namespace quentier {
         return; \
     }
 
-RenameResourceDelegate::RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
+RenameResourceDelegate::RenameResourceDelegate(const Resource & resource, NoteEditorPrivate & noteEditor,
                                                GenericResourceImageManager * pGenericResourceImageManager,
                                                QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                                                const bool performingUndo) :

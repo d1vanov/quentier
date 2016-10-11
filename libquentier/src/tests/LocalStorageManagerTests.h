@@ -27,7 +27,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManager)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(Resource)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(User)
@@ -45,7 +45,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag, LocalStorageManager & localStorageManager,
                                                QString & errorDescription);
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalStorageManager & localStorageManager,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalStorageManager & localStorageManager,
                                                     QString & errorDescription);
 
 bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook & notebook,

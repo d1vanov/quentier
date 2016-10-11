@@ -34,7 +34,7 @@ using quentier::NoteEditor;
 
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -285,7 +285,7 @@ void MainWindow::prepareTestNoteWithResources()
     resourceFile.close();
 
     // Assemble the first resource data
-    quentier::ResourceWrapper resource;
+    quentier::Resource resource;
     resource.setLocalUid("{e2f201df-8718-499b-ac92-4c9970170cba}");
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setDataBody(resourceData);
@@ -319,7 +319,7 @@ void MainWindow::prepareTestNoteWithResources()
     resourceFile.close();
 
     // Assemble the second resource data
-    resource = quentier::ResourceWrapper();
+    resource = quentier::Resource();
     resource.setLocalUid("{c3acdcba-d6a4-407d-a85f-5fc3c15126df}");
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setDataBody(resourceData);
@@ -342,7 +342,7 @@ void MainWindow::prepareTestNoteWithResources()
     resourceFile.close();
 
     // Assemble the third resource data
-    resource = quentier::ResourceWrapper();
+    resource = quentier::Resource();
     resource.setLocalUid("{d44d85f4-d4e2-4788-a172-4d477741b233}");
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setDataBody(resourceData);
@@ -372,7 +372,7 @@ void MainWindow::prepareTestInkNote()
     QByteArray inkNoteImageData = inkNoteImageQrc.readAll();
     inkNoteImageQrc.close();
 
-    quentier::ResourceWrapper resource;
+    quentier::Resource resource;
     resource.setGuid("6bdf808c-7bd9-4a39-bef8-20b84779956e");
     resource.setDataBody("aaa");
     resource.setDataHash("2e0f79af4ca47b473e5105156a18c7cb");

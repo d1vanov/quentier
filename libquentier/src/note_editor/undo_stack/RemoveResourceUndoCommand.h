@@ -4,7 +4,7 @@
 #include "INoteEditorUndoCommand.h"
 #include "../NoteEditorPage.h"
 #include <quentier/utility/Qt4Helper.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 
 namespace quentier {
 
@@ -13,9 +13,9 @@ class RemoveResourceUndoCommand: public INoteEditorUndoCommand
     Q_OBJECT
     typedef NoteEditorPage::Callback Callback;
 public:
-    RemoveResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback, NoteEditorPrivate & noteEditorPrivate,
+    RemoveResourceUndoCommand(const Resource & resource, const Callback & callback, NoteEditorPrivate & noteEditorPrivate,
                               QUndoCommand * parent = Q_NULLPTR);
-    RemoveResourceUndoCommand(const ResourceWrapper & resource, const Callback & callback, NoteEditorPrivate & noteEditorPrivate,
+    RemoveResourceUndoCommand(const Resource & resource, const Callback & callback, NoteEditorPrivate & noteEditorPrivate,
                               const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~RemoveResourceUndoCommand();
 
@@ -23,8 +23,8 @@ public:
     virtual void redoImpl() Q_DECL_OVERRIDE;
 
 private:
-    ResourceWrapper     m_resource;
-    Callback            m_callback;
+    Resource     m_resource;
+    Callback     m_callback;
 };
 
 } // namespace quentier

@@ -1831,7 +1831,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
     bool res = query.exec(queryString);
     DATABASE_CHECK_AND_SET_ERROR();
 
-    QList<ResourceWrapper> resources;
+    QList<Resource> resources;
     QHash<QString, int> resourceIndexPerLocalUid;
 
     QList<QPair<QString, int> > tagGuidsAndIndices;
@@ -1869,10 +1869,10 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
                 if (resourceIndexNotFound) {
                     int resourceIndexInList = resources.size();
                     resourceIndexPerLocalUid[resourceLocalUid] = resourceIndexInList;
-                    resources << ResourceWrapper();
+                    resources << Resource();
                 }
 
-                ResourceWrapper & resource = (resourceIndexNotFound
+                Resource & resource = (resourceIndexNotFound
                                               ? resources.back()
                                               : resources[it.value()]);
                 fillResourceFromSqlRecord(rec, withResourceBinaryData, resource);
@@ -1907,7 +1907,7 @@ bool LocalStorageManagerPrivate::findNote(Note & note, QNLocalizedString & error
 
     int numResources = resources.size();
     if (numResources > 0) {
-        qSort(resources.begin(), resources.end(), ResourceWrapperCompareByIndex());
+        qSort(resources.begin(), resources.end(), ResourceCompareByIndex());
         note.setResources(resources);
     }
 
@@ -2985,7 +2985,7 @@ int LocalStorageManagerPrivate::enResourceCount(QNLocalizedString & errorDescrip
     return count;
 }
 
-bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QNLocalizedString & errorDescription,
+bool LocalStorageManagerPrivate::findEnResource(Resource & resource, QNLocalizedString & errorDescription,
                                                 const bool withBinaryData) const
 {
     QNDEBUG("LocalStorageManagerPrivate::findEnResource");
@@ -3044,7 +3044,7 @@ bool LocalStorageManagerPrivate::findEnResource(IResource & resource, QNLocalize
     return true;
 }
 
-bool LocalStorageManagerPrivate::expungeEnResource(IResource & resource, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::expungeEnResource(Resource & resource, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't expunge resource from the local storage database");
 
@@ -3491,7 +3491,7 @@ void LocalStorageManagerPrivate::processPostTransactionException(QNLocalizedStri
     throw DatabaseSqlErrorException(message);
 }
 
-bool LocalStorageManagerPrivate::addEnResource(IResource & resource, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::addEnResource(Resource & resource, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't add resource to the local storage database");
 
@@ -3633,7 +3633,7 @@ bool LocalStorageManagerPrivate::addEnResource(IResource & resource, QNLocalized
     return true;
 }
 
-bool LocalStorageManagerPrivate::updateEnResource(IResource & resource, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::updateEnResource(Resource & resource, QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("Can't update resource in local storage database");
 
@@ -5421,7 +5421,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceLinkedNotebookQue
     return res;
 }
 
-bool LocalStorageManagerPrivate::getNoteLocalUidFromResource(const IResource & resource, QString & noteLocalUid, QNLocalizedString & errorDescription)
+bool LocalStorageManagerPrivate::getNoteLocalUidFromResource(const Resource & resource, QString & noteLocalUid, QNLocalizedString & errorDescription)
 {
     QNDEBUG("LocalStorageManagerPrivate::getNoteLocalUidFromResource: resource = " << resource);
 
@@ -6102,7 +6102,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNote(const Note & note, const bo
         }
         else
         {
-            bool res = partialUpdateNoteResources(localUid, note.resourceAdapters(), errorDescription);
+            bool res = partialUpdateNoteResources(localUid, note.resources(), errorDescription);
             if (!res) {
                 return false;
             }
@@ -6619,7 +6619,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareInsertOrReplaceTagQuery()
     return res;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceResource(const IResource & resource, QNLocalizedString & errorDescription,
+bool LocalStorageManagerPrivate::insertOrReplaceResource(const Resource & resource, QNLocalizedString & errorDescription,
                                                          const bool useSeparateTransaction)
 {
     // NOTE: this method expects to be called after resource is already checked
@@ -7194,7 +7194,7 @@ bool LocalStorageManagerPrivate::checkAndPrepareGetSavedSearchCountQuery() const
 }
 
 void LocalStorageManagerPrivate::fillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData,
-                                                           IResource & resource) const
+                                                           Resource & resource) const
 {
 #define CHECK_AND_SET_RESOURCE_PROPERTY(property, type, localType, setter) \
     { \
@@ -8656,14 +8656,14 @@ bool LocalStorageManagerPrivate::findAndSetResourcesPerNote(Note & note, QNLocal
     QNDEBUG("Found " << numResources << " resources");
 
     QNLocalizedString error;
-    QList<ResourceWrapper> resources;
+    QList<Resource> resources;
     resources.reserve(std::max(numResources, 0));
     for(auto it = resourceLocalUids.begin(), end = resourceLocalUids.end(); it != end; ++it)
     {
         const QString & resourceLocalUid = *it;
 
-        resources << ResourceWrapper();
-        ResourceWrapper & resource = resources.back();
+        resources << Resource();
+        Resource & resource = resources.back();
         resource.setLocalUid(resourceLocalUid);
 
         error.clear();
@@ -8680,7 +8680,7 @@ bool LocalStorageManagerPrivate::findAndSetResourcesPerNote(Note & note, QNLocal
                 << " for note with local uid " << noteLocalUid);
     }
 
-    qSort(resources.begin(), resources.end(), ResourceWrapperCompareByIndex());
+    qSort(resources.begin(), resources.end(), ResourceCompareByIndex());
     note.setResources(resources);
 
     return true;
@@ -9627,7 +9627,7 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     return true;
 }
 
-bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource, QNLocalizedString & errorDescription) const
+bool LocalStorageManagerPrivate::complementResourceNoteIds(Resource & resource, QNLocalizedString & errorDescription) const
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't complement resource note ids");
 
@@ -9658,7 +9658,7 @@ bool LocalStorageManagerPrivate::complementResourceNoteIds(IResource & resource,
 }
 
 bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & noteLocalUid,
-                                                            const QList<ResourceAdapter> & updatedNoteResources,
+                                                            const QList<Resource> & updatedNoteResources,
                                                             QNLocalizedString & errorDescription)
 {
     QNDEBUG("LocalStorageManagerPrivate::partialUpdateNoteResources: note local uid = " << noteLocalUid);
@@ -9683,7 +9683,7 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
     bool res = query.exec(listNoteResourcesQueryString);
     DATABASE_CHECK_AND_SET_ERROR();
 
-    QList<ResourceWrapper> previousNoteResources;
+    QList<Resource> previousNoteResources;
 
     QString resourceLocalUidProperty = QStringLiteral("resourceLocalUid");
     while(query.next())
@@ -9699,7 +9699,7 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
             return false;
         }
 
-        ResourceWrapper resource;
+        Resource resource;
         resource.setLocalUid(record.value(resourceLocalUidIndex).toString());
 
         fillResourceFromSqlRecord(record, /* with binary data = */ false, resource);
@@ -9708,19 +9708,19 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
 
     // Now figure out which resources were removed from the note and which were added or updated
     QStringList localUidsForResourcesRemovedFromNote;
-    QList<ResourceAdapter> addedOrUpdatedResources;
+    QList<Resource> addedOrUpdatedResources;
 
     int numResources = updatedNoteResources.size();
     int numPreviousResources = previousNoteResources.size();
     for(int i = 0; i < numPreviousResources; ++i)
     {
-        const ResourceWrapper & previousNoteResource = previousNoteResources[i];
+        const Resource & previousNoteResource = previousNoteResources[i];
 
         bool foundResource = false;
         for(int j = 0; j < numResources; ++j)
         {
-            const ResourceAdapter & resourceAdapter = updatedNoteResources[j];
-            if (resourceAdapter.localUid() != previousNoteResource.localUid()) {
+            const Resource & resource = updatedNoteResources[j];
+            if (resource.localUid() != previousNoteResource.localUid()) {
                 continue;
             }
 
@@ -9729,8 +9729,8 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
             bool changed = false;
 
 #define COMPARE_RESOURCE_PROPERTY(hasProperty, property) \
-            changed = changed || ( (resourceAdapter.hasProperty() && previousNoteResource.hasProperty() && (resourceAdapter.property() != previousNoteResource.property())) || \
-                                   (resourceAdapter.hasProperty() != previousNoteResource.hasProperty()) )
+            changed = changed || ( (resource.hasProperty() && previousNoteResource.hasProperty() && (resource.property() != previousNoteResource.property())) || \
+                                   (resource.hasProperty() != previousNoteResource.hasProperty()) )
 
             COMPARE_RESOURCE_PROPERTY(hasGuid, guid);
             COMPARE_RESOURCE_PROPERTY(hasNoteGuid, noteGuid);
@@ -9749,12 +9749,12 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
 
 #undef COMPARE_RESOURCE_PROPERTY
 
-            changed |= (resourceAdapter.isDirty() != previousNoteResource.isDirty());
-            changed |= (resourceAdapter.isLocal() != previousNoteResource.isLocal());
-            changed |= (resourceAdapter.indexInNote() != previousNoteResource.indexInNote());
+            changed |= (resource.isDirty() != previousNoteResource.isDirty());
+            changed |= (resource.isLocal() != previousNoteResource.isLocal());
+            changed |= (resource.indexInNote() != previousNoteResource.indexInNote());
 
             if (changed) {
-                addedOrUpdatedResources << resourceAdapter;
+                addedOrUpdatedResources << resource;
             }
 
             break;
@@ -9767,13 +9767,13 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
 
     for(int j = 0; j < numResources; ++j)
     {
-        const ResourceAdapter & resourceAdapter = updatedNoteResources[j];
+        const Resource & resource = updatedNoteResources[j];
 
         bool foundResource = false;
         for(int i = 0; i < numPreviousResources; ++i)
         {
-            const ResourceWrapper & resource = previousNoteResources[i];
-            if (resource.localUid() != resourceAdapter.localUid()) {
+            const Resource & previousResource = previousNoteResources[i];
+            if (resource.localUid() != previousResource.localUid()) {
                 continue;
             }
 
@@ -9782,7 +9782,7 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
         }
 
         if (!foundResource) {
-            addedOrUpdatedResources << resourceAdapter;
+            addedOrUpdatedResources << resource;
         }
     }
 
@@ -9798,7 +9798,7 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
     int numAddedOrUpdatedResources = addedOrUpdatedResources.size();
     for(int i = 0; i < numAddedOrUpdatedResources; ++i)
     {
-        const ResourceAdapter & resource = addedOrUpdatedResources[i];
+        const Resource & resource = addedOrUpdatedResources[i];
 
         QNLocalizedString error;
         bool res = resource.checkParameters(error);
@@ -10403,8 +10403,8 @@ bool LocalStorageManagerPrivate::SharedNoteCompareByIndex::operator()(const Shar
     return (lhs.indexInNote() < rhs.indexInNote());
 }
 
-bool LocalStorageManagerPrivate::ResourceWrapperCompareByIndex::operator()(const ResourceWrapper & lhs,
-                                                                           const ResourceWrapper & rhs) const
+bool LocalStorageManagerPrivate::ResourceCompareByIndex::operator()(const Resource & lhs,
+                                                                           const Resource & rhs) const
 {
     return (lhs.indexInNote() < rhs.indexInNote());
 }

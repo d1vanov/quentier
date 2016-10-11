@@ -19,7 +19,7 @@
 #include "ImageResourceRotationDelegate.h"
 #include <quentier/note_editor/ResourceFileStorageManager.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/DesktopServices.h>
 #include <QDateTime>
@@ -98,11 +98,11 @@ void ImageResourceRotationDelegate::rotateImageResource()
     }
 
     int targetResourceIndex = -1;
-    QList<ResourceAdapter> resources = m_pNote->resourceAdapters();
+    QList<Resource> resources = m_pNote->resources();
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceAdapter & resource = resources[i];
+        const Resource & resource = resources[i];
         if (!resource.hasDataHash() || (resource.dataHash() != m_resourceHashBefore)) {
             continue;
         }

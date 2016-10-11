@@ -139,20 +139,20 @@ public:
 
     const Account * accountPtr() const;
 
-    const ResourceWrapper attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+    const Resource attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
                                                const QMimeType & mimeType, const QString & filename);
-    void addResourceToNote(const ResourceWrapper & resource);
-    void removeResourceFromNote(const ResourceWrapper & resource);
-    void replaceResourceInNote(const ResourceWrapper & resource);
-    void setNoteResources(const QList<ResourceWrapper> & resources);
+    void addResourceToNote(const Resource & resource);
+    void removeResourceFromNote(const Resource & resource);
+    void replaceResourceInNote(const Resource & resource);
+    void setNoteResources(const QList<Resource> & resources);
 
-    QImage buildGenericResourceImage(const IResource & resource);
-    void saveGenericResourceImage(const IResource & resource, const QImage & image);
+    QImage buildGenericResourceImage(const Resource & resource);
+    void saveGenericResourceImage(const Resource & resource, const QImage & image);
     void provideSrcForGenericResourceImages();
     void setupGenericResourceOnClickHandler();
 
     void updateResource(const QString & resourceLocalUid, const QByteArray & previousResourceHash,
-                        ResourceWrapper updatedResource);
+                        Resource updatedResource);
 
     bool isModified() const;
     Note * notePtr() { return m_pNote.data(); }
@@ -371,22 +371,22 @@ private Q_SLOTS:
     void onImageResourceResized(bool pushUndoCommand);
 
     // Slots for delegates
-    void onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath);
+    void onAddResourceDelegateFinished(Resource addedResource, QString resourceFileStoragePath);
     void onAddResourceDelegateError(QNLocalizedString error);
     void onAddResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
-    void onRemoveResourceDelegateFinished(ResourceWrapper removedResource);
+    void onRemoveResourceDelegateFinished(Resource removedResource);
     void onRemoveResourceDelegateError(QNLocalizedString error);
     void onRemoveResourceUndoRedoFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
 
     void onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
-                                          ResourceWrapper resource, bool performingUndo);
+                                          Resource resource, bool performingUndo);
     void onRenameResourceDelegateCancelled();
     void onRenameResourceDelegateError(QNLocalizedString error);
 
     void onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                                                  QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
-                                                 ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
+                                                 Resource resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
     void onImageResourceRotationDelegateError(QNLocalizedString error);
 
     void onHideDecryptedTextFinished(const QVariant & data, const QVector<QPair<QString,QString> > & extraData);
@@ -448,11 +448,11 @@ private:
     bool htmlToNoteContent(QNLocalizedString & errorDescription);
 
     void saveNoteResourcesToLocalFiles();
-    bool saveResourceToLocalFile(const IResource & resource);
+    bool saveResourceToLocalFile(const Resource & resource);
     void updateHashForResourceTag(const QByteArray & oldResourceHash, const QByteArray & newResourceHash);
     void provideSrcForResourceImgTags();
 
-    void manualSaveResourceToFile(const IResource & resource);
+    void manualSaveResourceToFile(const Resource & resource);
     void openResource(const QString & resourceAbsoluteFilePath);
 
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
@@ -461,7 +461,7 @@ private:
     void setupGenericResourceImages();
 
     // Returns true if the resource image gets built and is being saved to a file asynchronously
-    bool findOrBuildGenericResourceImage(const IResource & resource);
+    bool findOrBuildGenericResourceImage(const Resource & resource);
 
     void setupWebSocketServer();
     void setupJavaScriptObjects();
@@ -498,8 +498,7 @@ private:
 
     void onTableActionDone(const QVariant & dummy, const QVector<QPair<QString,QString> > & extraData);
 
-    int resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
-                            const QByteArray & resourceHash) const;
+    int resourceIndexByHash(const QList<Resource> & resources, const QByteArray & resourceHash) const;
 
     void writeNotePageFile(const QString & html);
 

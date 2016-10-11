@@ -8,9 +8,7 @@
 #include <quentier/types/SharedNotebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/IResource.h>
-#include <quentier/types/ResourceAdapter.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/SavedSearch.h>
 #include <quentier/utility/StringUtils.h>
@@ -136,10 +134,10 @@ public:
     bool expungeNotelessTagsFromLinkedNotebooks(QNLocalizedString & errorDescription);
 
     int enResourceCount(QNLocalizedString & errorDescription) const;
-    bool addEnResource(IResource & resource, QNLocalizedString & errorDescription);
-    bool updateEnResource(IResource & resource, QNLocalizedString & errorDescription);
-    bool findEnResource(IResource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
-    bool expungeEnResource(IResource & resource, QNLocalizedString & errorDescription);
+    bool addEnResource(Resource & resource, QNLocalizedString & errorDescription);
+    bool updateEnResource(Resource & resource, QNLocalizedString & errorDescription);
+    bool findEnResource(Resource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
+    bool expungeEnResource(Resource & resource, QNLocalizedString & errorDescription);
 
     int savedSearchCount(QNLocalizedString & errorDescription) const;
     bool addSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
@@ -201,7 +199,7 @@ private:
     bool checkAndPrepareGetLinkedNotebookCountQuery() const;
     bool checkAndPrepareInsertOrReplaceLinkedNotebookQuery();
 
-    bool getNoteLocalUidFromResource(const IResource & resource, QString & noteLocalUid, QNLocalizedString & errorDescription);
+    bool getNoteLocalUidFromResource(const Resource & resource, QString & noteLocalUid, QNLocalizedString & errorDescription);
     bool getNotebookLocalUidFromNote(const Note & note, QString & notebookLocalUid, QNLocalizedString & errorDescription);
     bool getNotebookGuidForNote(const Note & note, QString & notebookGuid, QNLocalizedString & errorDescription);
     bool getNotebookLocalUidForGuid(const QString & notebookGuid, QString & notebookLocalUid, QNLocalizedString & errorDescription);
@@ -235,7 +233,7 @@ private:
     bool checkAndPrepareInsertOrReplaceTagQuery();
     bool checkAndPrepareDeleteTagQuery();
 
-    bool insertOrReplaceResource(const IResource & resource, QNLocalizedString & errorDescription,
+    bool insertOrReplaceResource(const Resource & resource, QNLocalizedString & errorDescription,
                                  const bool useSeparateTransaction = true);
     bool insertOrReplaceResourceAttributes(const QString & localUid,
                                            const qevercloud::ResourceAttributes & attributes,
@@ -257,7 +255,7 @@ private:
     bool checkAndPrepareGetSavedSearchCountQuery() const;
     bool checkAndPrepareExpungeSavedSearchQuery();
 
-    void fillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData, IResource & resource) const;
+    void fillResourceFromSqlRecord(const QSqlRecord & rec, const bool withBinaryData, Resource & resource) const;
     bool fillResourceAttributesFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
     bool fillResourceAttributesApplicationDataKeysOnlyFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
     bool fillResourceAttributesApplicationDataFullMapFromSqlRecord(const QSqlRecord & rec, qevercloud::ResourceAttributes & attributes) const;
@@ -306,9 +304,9 @@ private:
                                               QStringList & resourceLocalUids,
                                               QNLocalizedString & errorDescription) const;
 
-    bool complementResourceNoteIds(IResource & resource, QNLocalizedString & errorDescription) const;
+    bool complementResourceNoteIds(Resource & resource, QNLocalizedString & errorDescription) const;
 
-    bool partialUpdateNoteResources(const QString & noteLocalUid, const QList<ResourceAdapter> & updatedNoteResources,
+    bool partialUpdateNoteResources(const QString & noteLocalUid, const QList<Resource> & updatedNoteResources,
                                     QNLocalizedString & errorDescription);
 
     template <class T>
@@ -346,9 +344,9 @@ private:
         bool operator()(const SharedNote & lhs, const SharedNote & rhs) const;
     };
 
-    struct ResourceWrapperCompareByIndex
+    struct ResourceCompareByIndex
     {
-        bool operator()(const ResourceWrapper & lhs, const ResourceWrapper & rhs) const;
+        bool operator()(const Resource & lhs, const Resource & rhs) const;
     };
 
     struct QStringIntPairCompareByInt

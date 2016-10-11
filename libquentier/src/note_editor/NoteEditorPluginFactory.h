@@ -138,7 +138,7 @@ public:
     void setInactive();
     void setActive();
 
-    void updateResource(const IResource & resource);
+    void updateResource(const Resource & resource);
 
 private:
     // QWebPluginFactory interface
@@ -160,7 +160,7 @@ private:
     class GenericResourceDisplayWidgetFinder
     {
     public:
-        GenericResourceDisplayWidgetFinder(const IResource & resource);
+        GenericResourceDisplayWidgetFinder(const Resource & resource);
         bool operator()(const QPointer<GenericResourceDisplayWidget> & ptr) const;
 
     private:

@@ -37,7 +37,7 @@
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebook.h>
 #include <quentier/types/User.h>
@@ -486,7 +486,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         res = localStorageManager.addNote(note, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
-        ResourceWrapper resource;
+        Resource resource;
         resource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
         resource.setUpdateSequenceNumber(1);
         resource.setNoteGuid(note.guid());
@@ -607,7 +607,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         res = localStorageManager.updateNote(note, /* updateResources = */ false, /* updateTags = */ true, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
-        ResourceWrapper resource;
+        Resource resource;
         resource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000049"));
         resource.setUpdateSequenceNumber(1);
         resource.setNoteGuid(note.guid());

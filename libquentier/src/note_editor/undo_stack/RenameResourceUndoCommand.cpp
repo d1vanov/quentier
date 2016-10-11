@@ -5,7 +5,7 @@
 
 namespace quentier {
 
-RenameResourceUndoCommand::RenameResourceUndoCommand(const ResourceWrapper & resource, const QString & previousResourceName,
+RenameResourceUndoCommand::RenameResourceUndoCommand(const Resource & resource, const QString & previousResourceName,
                                                      NoteEditorPrivate & noteEditor,
                                                      GenericResourceImageManager * pGenericResourceImageManager,
                                                      QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
@@ -20,7 +20,7 @@ RenameResourceUndoCommand::RenameResourceUndoCommand(const ResourceWrapper & res
     setText(tr("Rename attachment"));
 }
 
-RenameResourceUndoCommand::RenameResourceUndoCommand(const ResourceWrapper & resource,
+RenameResourceUndoCommand::RenameResourceUndoCommand(const Resource & resource,
                                                      const QString & previousResourceName,
                                                      NoteEditorPrivate & noteEditor,
                                                      GenericResourceImageManager * pGenericResourceImageManager,

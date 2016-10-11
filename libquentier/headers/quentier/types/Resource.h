@@ -16,17 +16,17 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_TYPES_I_RESOURCE_H
-#define LIB_QUENTIER_TYPES_I_RESOURCE_H
+#ifndef LIB_QUENTIER_TYPES_RESOURCE_H
+#define LIB_QUENTIER_TYPES_RESOURCE_H
 
 #include "INoteStoreDataElement.h"
 #include "Note.h"
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(NoteStoreDataElementData)
+QT_FORWARD_DECLARE_CLASS(ResourceData)
 
-class QUENTIER_EXPORT IResource: public INoteStoreDataElement
+class QUENTIER_EXPORT Resource: public INoteStoreDataElement
 {
 public:
     QN_DECLARE_LOCAL_UID
@@ -34,11 +34,16 @@ public:
     QN_DECLARE_LOCAL
 
 public:
-    IResource();
-    virtual ~IResource();
+    Resource();
+    Resource(const Resource & other);
+    Resource(Resource && other);
+    Resource(const qevercloud::Resource & resource);
+    Resource & operator=(const Resource & other);
+    Resource & operator=(Resource && other);
+    virtual ~Resource();
 
-    bool operator==(const IResource & other) const;
-    bool operator!=(const IResource & other) const;
+    bool operator==(const Resource & other) const;
+    bool operator!=(const Resource & other) const;
 
     operator const qevercloud::Resource&() const;
     operator qevercloud::Resource&();
@@ -132,25 +137,13 @@ public:
     void setResourceAttributes(qevercloud::ResourceAttributes && attributes);
 
     friend class Note;
-    friend class ResourceWrapper;
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
-protected:
-    IResource(const IResource & other);
-    IResource & operator=(const IResource & other);
-
-    virtual const qevercloud::Resource & GetEnResource() const = 0;
-    virtual qevercloud::Resource & GetEnResource() = 0;
-
 private:
-    QSharedDataPointer<NoteStoreDataElementData>  d;
-
-    bool m_isFreeAccount;
-    int  m_indexInNote;
-    qevercloud::Optional<QString> m_noteLocalUid;
+    QSharedDataPointer<ResourceData> d;
 };
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_TYPES_I_RESOURCE_H
+#endif // LIB_QUENTIER_TYPES_RESOURCE_H

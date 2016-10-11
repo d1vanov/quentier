@@ -18,7 +18,7 @@
 
 #include <quentier/enml/ENMLConverter.h>
 #include "ENMLConverter_p.h"
-#include <quentier/types/IResource.h>
+#include <quentier/types/Resource.h>
 #include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {
@@ -97,7 +97,7 @@ QString ENMLConverter::decryptedTextHtml(const QString & decryptedText, const QS
                                                    hint, cipher, keyLength, enDecryptedIndex);
 }
 
-QString ENMLConverter::resourceHtml(const IResource & resource, QNLocalizedString & errorDescription)
+QString ENMLConverter::resourceHtml(const Resource & resource, QNLocalizedString & errorDescription)
 {
     return ENMLConverterPrivate::resourceHtml(resource, errorDescription);
 }

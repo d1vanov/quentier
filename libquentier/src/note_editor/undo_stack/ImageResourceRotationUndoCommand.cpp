@@ -6,7 +6,7 @@ namespace quentier {
 
 ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                                                    const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
-                                                                   const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
+                                                                   const Resource & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                                                    NoteEditorPrivate & noteEditor, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, parent),
     m_resourceDataBefore(resourceDataBefore),
@@ -23,7 +23,7 @@ ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteAr
 
 ImageResourceRotationUndoCommand::ImageResourceRotationUndoCommand(const QByteArray & resourceDataBefore, const QByteArray & resourceHashBefore,
                                                                    const QByteArray & resourceRecognitionDataBefore, const QByteArray & resourceRecognitionDataHashBefore,
-                                                                   const ResourceWrapper & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
+                                                                   const Resource & resourceAfter, const INoteEditorBackend::Rotation::type rotationDirection,
                                                                    NoteEditorPrivate & noteEditor, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditor, text, parent),
     m_resourceDataBefore(resourceDataBefore),
@@ -60,7 +60,7 @@ void ImageResourceRotationUndoCommand::undoImpl()
         return;
     }
 
-    ResourceWrapper resource(m_resourceAfter);
+    Resource resource(m_resourceAfter);
     resource.setDataBody(m_resourceDataBefore);
     resource.setDataSize(m_resourceDataBefore.size());
     resource.setRecognitionDataBody(m_resourceRecognitionDataBefore);

@@ -21,7 +21,7 @@
 #include <quentier/utility/UidGenerator.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/utility/DesktopServices.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
@@ -1775,21 +1775,21 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 
     if (note.hasResources())
     {
-        QList<ResourceAdapter> resourceAdapters = note.resourceAdapters();
-        for(auto it = resourceAdapters.begin(), end = resourceAdapters.end(); it != end; ++it)
+        QList<Resource> resources = note.resources();
+        for(auto it = resources.constBegin(), end = resources.constEnd(); it != end; ++it)
         {
-            const ResourceAdapter & resourceAdapter = *it;
+            const Resource & resource = *it;
 
-            if (resourceAdapter.hasDataBody()) {
-                sizeInBytes += resourceAdapter.dataBody().size();
+            if (resource.hasDataBody()) {
+                sizeInBytes += resource.dataBody().size();
             }
 
-            if (resourceAdapter.hasRecognitionDataBody()) {
-                sizeInBytes += resourceAdapter.recognitionDataBody().size();
+            if (resource.hasRecognitionDataBody()) {
+                sizeInBytes += resource.recognitionDataBody().size();
             }
 
-            if (resourceAdapter.hasAlternateDataBody()) {
-                sizeInBytes += resourceAdapter.alternateDataBody().size();
+            if (resource.hasAlternateDataBody()) {
+                sizeInBytes += resource.alternateDataBody().size();
             }
         }
     }

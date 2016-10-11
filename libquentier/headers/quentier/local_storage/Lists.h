@@ -30,9 +30,7 @@ QT_FORWARD_DECLARE_CLASS(SharedNotebook)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
-QT_FORWARD_DECLARE_CLASS(IResource)
-QT_FORWARD_DECLARE_CLASS(ResourceWrapper)
-QT_FORWARD_DECLARE_CLASS(ResourceAdapter)
+QT_FORWARD_DECLARE_CLASS(Resource)
 QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
 typedef QList<User>                   UserList;
@@ -41,7 +39,7 @@ typedef QList<SharedNotebook>         SharedNotebookList;
 typedef QList<LinkedNotebook>         LinkedNotebookList;
 typedef QList<Note>                   NoteList;
 typedef QList<Tag>                    TagList;
-typedef QList<ResourceWrapper>        ResourceList;
+typedef QList<Resource>               ResourceList;
 typedef QList<SavedSearch>            SavedSearchList;
 
 } // namespace quentier

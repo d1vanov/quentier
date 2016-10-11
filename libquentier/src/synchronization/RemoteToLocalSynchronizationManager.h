@@ -28,7 +28,7 @@
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/SavedSearch.h>
 
@@ -113,9 +113,9 @@ Q_SIGNALS:
 
     void expungeNotelessTagsFromLinkedNotebooks(QUuid requestId);
 
-    void addResource(ResourceWrapper resource, QUuid requestId);
-    void updateResource(ResourceWrapper resource, QUuid requestId);
-    void findResource(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
+    void addResource(Resource resource, QUuid requestId);
+    void updateResource(Resource resource, QUuid requestId);
+    void findResource(Resource resource, bool withBinaryData, QUuid requestId);
 
     void addLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
     void updateLinkedNotebook(LinkedNotebook notebook, QUuid requestId);
@@ -138,8 +138,8 @@ private Q_SLOTS:
     void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
     void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindResourceCompleted(ResourceWrapper resource, bool withResourceBinaryData, QUuid requestId);
-    void onFindResourceFailed(ResourceWrapper resource, bool withResourceBinaryData,
+    void onFindResourceCompleted(Resource resource, bool withResourceBinaryData, QUuid requestId);
+    void onFindResourceFailed(Resource resource, bool withResourceBinaryData,
                               QNLocalizedString errorDescription, QUuid requestId);
     void onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
     void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId);
@@ -195,10 +195,10 @@ private Q_SLOTS:
     void onExpungeNoteCompleted(Note note, QUuid requestId);
     void onExpungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
 
-    void onAddResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onAddResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
-    void onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onUpdateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddResourceCompleted(Resource resource, QUuid requestId);
+    void onAddResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateResourceCompleted(Resource resource, QUuid requestId);
+    void onUpdateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
 
     void onInkNoteImageDownloadFinished(bool status, QString inkNoteImageFilePath, QNLocalizedString errorDescription);
     void onNoteThumbnailDownloadingFinished(bool status, QString noteGuid, QString downloadedThumbnailImageFilePath, QNLocalizedString errorDescription);
@@ -611,7 +611,7 @@ private:
     QSet<QUuid>                             m_addResourceRequestIds;
     QSet<QUuid>                             m_updateResourceRequestIds;
 
-    typedef QHash<QUuid,QPair<ResourceWrapper,QUuid> > ResourceDataPerFindNoteRequestId;
+    typedef QHash<QUuid,QPair<Resource,QUuid> > ResourceDataPerFindNoteRequestId;
     ResourceDataPerFindNoteRequestId        m_resourcesWithFindRequestIdsPerFindNoteRequestId;
 
     typedef QHash<QUuid,InkNoteResourceData> InkNoteResourceDataPerFindNotebookRequestId;

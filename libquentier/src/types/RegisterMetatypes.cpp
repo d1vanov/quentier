@@ -20,7 +20,7 @@
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/User.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/SavedSearch.h>
@@ -36,7 +36,7 @@ void registerMetatypes()
     qRegisterMetaType<Notebook>("Notebook");
     qRegisterMetaType<Note>("Note");
     qRegisterMetaType<Tag>("Tag");
-    qRegisterMetaType<ResourceWrapper>("ResourceWrapper");
+    qRegisterMetaType<Resource>("Resource");
     qRegisterMetaType<User>("User");
     qRegisterMetaType<LinkedNotebook>("LinkedNotebook");
     qRegisterMetaType<SavedSearch>("SavedSearch");
@@ -44,7 +44,7 @@ void registerMetatypes()
     qRegisterMetaType< QList<Notebook> >("QList<Notebook>");
     qRegisterMetaType< QList<Note> >("QList<Note>");
     qRegisterMetaType< QList<Tag> >("QList<Tag>");
-    qRegisterMetaType< QList<ResourceWrapper> >("QList<ResourceWrapper>");
+    qRegisterMetaType< QList<Resource> >("QList<Resource>");
     qRegisterMetaType< QList<User> >("QList<User>");
     qRegisterMetaType< QList<LinkedNotebook> >("QList<LinkedNotebook>");
     qRegisterMetaType< QList<SavedSearch> >("QList<SavedSearch>");

@@ -22,8 +22,7 @@
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/ResourceWrapper.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/SharedNotebook.h>
@@ -415,14 +414,14 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     return true;
 }
 
-bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalStorageManager & localStorageManager,
+bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalStorageManager & localStorageManager,
                                                     QString & errorDescription)
 {
     QNLocalizedString errorMessage;
 
     if (!resource.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid IResource: " << resource);
+        QNWARNING("Found invalid Resource: " << resource);
         return false;
     }
 
@@ -434,7 +433,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalS
     }
 
     const QString resourceGuid = resource.guid();
-    ResourceWrapper foundResource;
+    Resource foundResource;
     foundResource.setGuid(resourceGuid);
     res = localStorageManager.findEnResource(foundResource, errorMessage,
                                              /* withBinaryData = */ true);
@@ -445,13 +444,13 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalS
 
     if (resource != foundResource) {
         errorDescription = "Added and found in local storage resources don't match";
-        QNWARNING(errorDescription << ": IResource added to LocalStorageManager: " << resource
+        QNWARNING(errorDescription << ": Resource added to LocalStorageManager: " << resource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
     }
 
     // ========== Check Update + Find ==========
-    ResourceWrapper modifiedResource(resource);
+    Resource modifiedResource(resource);
     modifiedResource.setUpdateSequenceNumber(resource.updateSequenceNumber() + 1);
     modifiedResource.setDataBody(resource.dataBody() + "_modified");
     modifiedResource.setDataSize(modifiedResource.dataBody().size());
@@ -512,7 +511,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalS
 
     if (modifiedResource != foundResource) {
         errorDescription = "Updated and found in local storage resources don't match";
-        QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
+        QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
     }
@@ -533,7 +532,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalS
 
     if (modifiedResource != foundResource) {
         errorDescription = "Updated and found in local storage resources without binary data don't match";
-        QNWARNING(errorDescription << ": IResource updated in LocalStorageManager: " << modifiedResource
+        QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
     }
@@ -560,8 +559,8 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(IResource & resource, LocalS
 
     res = localStorageManager.findEnResource(foundResource, errorMessage);
     if (res) {
-        errorDescription = "Error: found IResource which should have been expunged from LocalStorageManager";
-        QNWARNING(errorDescription << ": IResource expunged from LocalStorageManager: " << modifiedResource
+        errorDescription = "Error: found Resource which should have been expunged from LocalStorageManager";
+        QNWARNING(errorDescription << ": Resource expunged from LocalStorageManager: " << modifiedResource
                   << "\nIResource found in LocalStorageManager: " << foundResource);
         return false;
     }
@@ -595,7 +594,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
 
     // ========== Check Find ==========
     const QString initialResourceGuid = "00000000-0000-0000-c000-000000000049";
-    ResourceWrapper foundResource;
+    Resource foundResource;
     foundResource.setGuid(initialResourceGuid);
     bool res = localStorageManager.findEnResource(foundResource, errorMessage,
                                                   /* withBinaryData = */ true);
@@ -664,7 +663,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     modifiedNote.addTagGuid(newTag.guid());
     modifiedNote.addTagLocalUid(newTag.localUid());
 
-    ResourceWrapper newResource;
+    Resource newResource;
     newResource.setGuid("00000000-0000-0000-c000-000000000051");
     newResource.setUpdateSequenceNumber(2);
     newResource.setNoteGuid(note.guid());
@@ -730,7 +729,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
         return false;
     }
 
-    foundResource = ResourceWrapper();
+    foundResource = Resource();
     foundResource.setGuid(newResource.guid());
     res = localStorageManager.findEnResource(foundResource, errorMessage,
                                              /* withBinaryData = */ true);
@@ -862,7 +861,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     }
 
     // ========== Try to find resource belonging to expunged note (failure expected) ==========
-    foundResource = ResourceWrapper();
+    foundResource = Resource();
     foundResource.setGuid(newResource.guid());
     res = localStorageManager.findEnResource(foundResource, errorMessage,
                                              /* withBinaryData = */ true);
@@ -1526,7 +1525,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     note.setActive(true);
     note.setNotebookGuid(notebook.guid());
 
-    ResourceWrapper resource;
+    Resource resource;
     resource.setGuid("00000000-0000-0000-c000-000000000044");
     resource.setUpdateSequenceNumber(1);
     resource.setNoteGuid(note.guid());
@@ -1610,7 +1609,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     }
 
     // 14) ================ Remove resource attributes from note's resource and update it again
-    QList<ResourceWrapper> resources = updatedNote.resources();
+    QList<Resource> resources = updatedNote.resources();
     if (resources.empty()) {
         errorDescription = "Note returned empty list of resource adapters while it should have "
                            "contained at least one entry";
@@ -1618,7 +1617,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
         return false;
     }
 
-    ResourceWrapper & resourceWrapper = resources[0];
+    Resource & resourceWrapper = resources[0];
     qevercloud::ResourceAttributes & underlyngResourceAttributes = resourceWrapper.resourceAttributes();
     underlyngResourceAttributes = qevercloud::ResourceAttributes();
 
@@ -1646,7 +1645,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
         return false;
     }
 
-    ResourceWrapper & foundResourceWrapper = resources[0];
+    Resource & foundResourceWrapper = resources[0];
     qevercloud::ResourceAttributes & foundResourceAttributes = foundResourceWrapper.resourceAttributes();
     if (foundResourceAttributes.applicationData.isSet()) {
         errorDescription = "Resource from updated note has application data while it shouldn't have it";

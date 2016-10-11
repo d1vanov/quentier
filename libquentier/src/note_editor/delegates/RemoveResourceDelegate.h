@@ -23,7 +23,7 @@
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <QObject>
 
 namespace quentier {
@@ -34,12 +34,12 @@ class RemoveResourceDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit RemoveResourceDelegate(const ResourceWrapper & resourceToRemove, NoteEditorPrivate & noteEditor);
+    explicit RemoveResourceDelegate(const Resource & resourceToRemove, NoteEditorPrivate & noteEditor);
 
     void start();
 
 Q_SIGNALS:
-    void finished(ResourceWrapper removedResource);
+    void finished(Resource removedResource);
     void notifyError(QNLocalizedString error);
 
 private Q_SLOTS:
@@ -54,8 +54,8 @@ private:
     typedef JsResultCallbackFunctor<RemoveResourceDelegate> JsCallback;
 
 private:
-    NoteEditorPrivate &             m_noteEditor;
-    ResourceWrapper                 m_resource;
+    NoteEditorPrivate &      m_noteEditor;
+    Resource                 m_resource;
 };
 
 } // namespace quentier

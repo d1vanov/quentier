@@ -218,7 +218,7 @@ void NoteLocalStorageManagerAsyncTester::onNoteCountCompleted(int count, QUuid r
         extraNote.setNotebookLocalUid(m_notebook.localUid());
         extraNote.setTitle("Fake note title one");
 
-        ResourceWrapper resource;
+        Resource resource;
         resource.setGuid("00000000-0000-0000-c000-000000000002");
         resource.setUpdateSequenceNumber(2);
         resource.setNoteGuid(extraNote.guid());
@@ -231,7 +231,7 @@ void NoteLocalStorageManagerAsyncTester::onNoteCountCompleted(int count, QUuid r
 
         extraNote.addResource(resource);
 
-        ResourceWrapper resource2;
+        Resource resource2;
         resource2.setGuid("00000000-0000-0000-c000-000000000009");
         resource2.setUpdateSequenceNumber(3);
         resource2.setNoteGuid(extraNote.guid());

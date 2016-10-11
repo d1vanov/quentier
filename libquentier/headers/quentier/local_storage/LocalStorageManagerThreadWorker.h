@@ -29,7 +29,7 @@
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/SavedSearch.h>
 #include <QObject>
 
@@ -229,14 +229,14 @@ Q_SIGNALS:
     // Resource-related signals:
     void getResourceCountComplete(int resourceCount, QUuid requestId = QUuid());
     void getResourceCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void addResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
-    void addResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void updateResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
-    void updateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void findResourceComplete(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
-    void findResourceFailed(ResourceWrapper resource, bool withBinaryData, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void expungeResourceComplete(ResourceWrapper resource, QUuid requestId = QUuid());
-    void expungeResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addResourceComplete(Resource resource, QUuid requestId = QUuid());
+    void addResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateResourceComplete(Resource resource, QUuid requestId = QUuid());
+    void updateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findResourceComplete(Resource resource, bool withBinaryData, QUuid requestId = QUuid());
+    void findResourceFailed(Resource resource, bool withBinaryData, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeResourceComplete(Resource resource, QUuid requestId = QUuid());
+    void expungeResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
 
     // Saved search-related signals:
     void getSavedSearchCountComplete(int savedSearchCount, QUuid requestId = QUuid());
@@ -367,10 +367,10 @@ public Q_SLOTS:
 
     // Resource-related slots:
     void onGetResourceCountRequest(QUuid requestId);
-    void onAddResourceRequest(ResourceWrapper resource, QUuid requestId);
-    void onUpdateResourceRequest(ResourceWrapper resource, QUuid requestId);
-    void onFindResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
-    void onExpungeResourceRequest(ResourceWrapper resource, QUuid requestId);
+    void onAddResourceRequest(Resource resource, QUuid requestId);
+    void onUpdateResourceRequest(Resource resource, QUuid requestId);
+    void onFindResourceRequest(Resource resource, bool withBinaryData, QUuid requestId);
+    void onExpungeResourceRequest(Resource resource, QUuid requestId);
 
     // Saved search-related slots:
     void onGetSavedSearchCountRequest(QUuid requestId);

@@ -16,8 +16,8 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "data/NoteStoreDataElementData.h"
-#include <quentier/types/IResource.h>
+#include "data/ResourceData.h"
+#include <quentier/types/Resource.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QFileInfo>
@@ -26,91 +26,124 @@
 
 namespace quentier {
 
-QN_DEFINE_LOCAL_UID(IResource)
-QN_DEFINE_DIRTY(IResource)
-QN_DEFINE_LOCAL(IResource)
+QN_DEFINE_LOCAL_UID(Resource)
+QN_DEFINE_DIRTY(Resource)
+QN_DEFINE_LOCAL(Resource)
 
-IResource::IResource() :
+Resource::Resource() :
     INoteStoreDataElement(),
-    d(new NoteStoreDataElementData),
-    m_indexInNote(-1),
-    m_noteLocalUid()
+    d(new ResourceData)
 {}
 
-IResource::~IResource()
+Resource::Resource(const Resource & other) :
+    INoteStoreDataElement(other),
+    d(other.d)
 {}
 
-bool IResource::operator==(const IResource & other) const
+Resource::Resource(Resource && other) :
+    INoteStoreDataElement(std::move(other)),
+    d(std::move(other.d))
+{}
+
+Resource::Resource(const qevercloud::Resource & resource) :
+    INoteStoreDataElement(),
+    d(new ResourceData(resource))
+{}
+
+Resource & Resource::operator=(const Resource & other)
 {
-    return (GetEnResource() == other.GetEnResource()) &&
+    if (this != &other) {
+        d = other.d;
+    }
+
+    return *this;
+}
+
+Resource & Resource::operator=(Resource && other)
+{
+    if (this != &other) {
+        d = std::move(other.d);
+    }
+
+    return *this;
+}
+
+Resource::~Resource()
+{}
+
+bool Resource::operator==(const Resource & other) const
+{
+    return (d->m_qecResource == other.d->m_qecResource) &&
            (isDirty() == other.isDirty()) &&
-           (m_noteLocalUid.isEqual(other.m_noteLocalUid)) &&
+           (d->m_noteLocalUid.isEqual(other.d->m_noteLocalUid)) &&
            (localUid() == other.localUid());
 
-    // NOTE: m_indexInNote does not take any part in comparison
+    // NOTE: d->m_indexInNote does not take any part in comparison
     // as it is by nature a helper parameter intended to preserve sorting of resources
     // in note between insertions and selections from the database
 }
 
-bool IResource::operator!=(const IResource & other) const
+bool Resource::operator!=(const Resource & other) const
 {
     return !(*this == other);
 }
 
-IResource::operator const qevercloud::Resource &() const
+Resource::operator const qevercloud::Resource &() const
 {
-    return GetEnResource();
+    return d->m_qecResource;
 }
 
-IResource::operator qevercloud::Resource &()
+Resource::operator qevercloud::Resource &()
 {
-    return GetEnResource();
+    return d->m_qecResource;
 }
 
-void IResource::clear()
+void Resource::clear()
 {
     setDirty(true);
-    GetEnResource() = qevercloud::Resource();
+    d->m_qecResource = qevercloud::Resource();
+    d->m_indexInNote = -1;
+    d->m_noteLocalUid.clear();
 }
 
-bool IResource::hasGuid() const
+bool Resource::hasGuid() const
 {
-    return GetEnResource().guid.isSet();
+    return d->m_qecResource.guid.isSet();
 }
 
-const QString & IResource::guid() const
+const QString & Resource::guid() const
 {
-    return GetEnResource().guid;
+    return d->m_qecResource.guid;
 }
 
-void IResource::setGuid(const QString & guid)
+void Resource::setGuid(const QString & guid)
 {
     if (!guid.isEmpty()) {
-        GetEnResource().guid = guid;
+        d->m_qecResource.guid = guid;
     }
     else {
-        GetEnResource().guid.clear();
+        d->m_qecResource.guid.clear();
     }
 }
 
-bool IResource::hasUpdateSequenceNumber() const
+bool Resource::hasUpdateSequenceNumber() const
 {
-    return GetEnResource().updateSequenceNum.isSet();
+    return d->m_qecResource.updateSequenceNum.isSet();
 }
 
-qint32 IResource::updateSequenceNumber() const
+qint32 Resource::updateSequenceNumber() const
 {
-    return GetEnResource().updateSequenceNum;
+    return d->m_qecResource.updateSequenceNum;
 }
 
-void IResource::setUpdateSequenceNumber(const qint32 updateSequenceNumber)
+void Resource::setUpdateSequenceNumber(const qint32 updateSequenceNumber)
 {
-    GetEnResource().updateSequenceNum = updateSequenceNumber;
+    d->m_qecResource.updateSequenceNum = updateSequenceNumber;
 }
 
-bool IResource::checkParameters(QNLocalizedString & errorDescription) const
+bool Resource::checkParameters(QNLocalizedString & errorDescription) const
 {
-    const qevercloud::Resource & enResource = GetEnResource();
+    const qevercloud::Resource & enResource = d->m_qecResource;
 
     if (localUid().isEmpty() && !enResource.guid.isSet()) {
         errorDescription = QT_TR_NOOP("both resource's local and remote guids are empty");
@@ -214,9 +247,9 @@ bool IResource::checkParameters(QNLocalizedString & errorDescription) const
     return true;
 }
 
-QString IResource::displayName() const
+QString Resource::displayName() const
 {
-    const qevercloud::Resource & enResource = GetEnResource();
+    const qevercloud::Resource & enResource = d->m_qecResource;
     if (enResource.attributes.isSet())
     {
         if (enResource.attributes->fileName.isSet()) {
@@ -230,9 +263,9 @@ QString IResource::displayName() const
     return QString();
 }
 
-void IResource::setDisplayName(const QString & displayName)
+void Resource::setDisplayName(const QString & displayName)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     if (!enResource.attributes.isSet()) {
         enResource.attributes = qevercloud::ResourceAttributes();
     }
@@ -240,9 +273,9 @@ void IResource::setDisplayName(const QString & displayName)
     enResource.attributes->fileName = displayName;
 }
 
-QString IResource::preferredFileSuffix() const
+QString Resource::preferredFileSuffix() const
 {
-    const qevercloud::Resource & enResource = GetEnResource();
+    const qevercloud::Resource & enResource = d->m_qecResource;
     if (enResource.attributes.isSet() && enResource.attributes->fileName.isSet())
     {
         QFileInfo fileInfo(enResource.attributes->fileName.ref());
@@ -261,73 +294,73 @@ QString IResource::preferredFileSuffix() const
     return QString();
 }
 
-int IResource::indexInNote() const
+int Resource::indexInNote() const
 {
-    return m_indexInNote;
+    return d->m_indexInNote;
 }
 
-void IResource::setIndexInNote(const int index)
+void Resource::setIndexInNote(const int index)
 {
-    m_indexInNote = index;
+    d->m_indexInNote = index;
 }
 
-bool IResource::hasNoteGuid() const
+bool Resource::hasNoteGuid() const
 {
-    return GetEnResource().noteGuid.isSet();
+    return d->m_qecResource.noteGuid.isSet();
 }
 
-const QString & IResource::noteGuid() const
+const QString & Resource::noteGuid() const
 {
-    return GetEnResource().noteGuid;
+    return d->m_qecResource.noteGuid;
 }
 
-void IResource::setNoteGuid(const QString & guid)
-{
-    if (!guid.isEmpty()) {
-        GetEnResource().noteGuid = guid;
-    }
-    else {
-        GetEnResource().noteGuid.clear();
-    }
-}
-
-bool IResource::hasNoteLocalUid() const
-{
-    return m_noteLocalUid.isSet();
-}
-
-const QString & IResource::noteLocalUid() const
-{
-    return m_noteLocalUid;
-}
-
-void IResource::setNoteLocalUid(const QString & guid)
+void Resource::setNoteGuid(const QString & guid)
 {
     if (!guid.isEmpty()) {
-        m_noteLocalUid = guid;
+        d->m_qecResource.noteGuid = guid;
     }
     else {
-        m_noteLocalUid.clear();
+        d->m_qecResource.noteGuid.clear();
     }
 }
 
-bool IResource::hasData() const
+bool Resource::hasNoteLocalUid() const
 {
-    return GetEnResource().data.isSet();
+    return d->m_noteLocalUid.isSet();
 }
 
-bool IResource::hasDataHash() const
+const QString & Resource::noteLocalUid() const
+{
+    return d->m_noteLocalUid.ref();
+}
+
+void Resource::setNoteLocalUid(const QString & guid)
+{
+    if (!guid.isEmpty()) {
+        d->m_noteLocalUid = guid;
+    }
+    else {
+        d->m_noteLocalUid.clear();
+    }
+}
+
+bool Resource::hasData() const
+{
+    return d->m_qecResource.data.isSet();
+}
+
+bool Resource::hasDataHash() const
 {
     if (!hasData()) {
         return false;
     }
 
-    return GetEnResource().data->bodyHash.isSet();
+    return d->m_qecResource.data->bodyHash.isSet();
 }
 
-const QByteArray & IResource::dataHash() const
+const QByteArray & Resource::dataHash() const
 {
-    return GetEnResource().data->bodyHash;
+    return d->m_qecResource.data->bodyHash;
 }
 
 #define CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(empty_condition, data_field, field, \
@@ -346,53 +379,53 @@ const QByteArray & IResource::dataHash() const
         enResource.data_field = qevercloud::Data(); \
     }
 
-void IResource::setDataHash(const QByteArray & hash)
+void Resource::setDataHash(const QByteArray & hash)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), data, bodyHash, body, size);
     enResource.data->bodyHash = hash;
 }
 
-bool IResource::hasDataSize() const
+bool Resource::hasDataSize() const
 {
     if (!hasData()) {
         return false;
     }
 
-    return GetEnResource().data->size.isSet();
+    return d->m_qecResource.data->size.isSet();
 }
 
-qint32 IResource::dataSize() const
+qint32 Resource::dataSize() const
 {
-    return GetEnResource().data->size;
+    return d->m_qecResource.data->size;
 }
 
-void IResource::setDataSize(const qint32 size)
+void Resource::setDataSize(const qint32 size)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), data, size, body, bodyHash);
     enResource.data->size = size;
 }
 
-bool IResource::hasDataBody() const
+bool Resource::hasDataBody() const
 {
     if (!hasData()) {
         return false;
     }
 
-    return GetEnResource().data->body.isSet();
+    return d->m_qecResource.data->body.isSet();
 }
 
-const QByteArray & IResource::dataBody() const
+const QByteArray & Resource::dataBody() const
 {
-    return GetEnResource().data->body;
+    return d->m_qecResource.data->body;
 }
 
-void IResource::setDataBody(const QByteArray & body)
+void Resource::setDataBody(const QByteArray & body)
 {
-    QNTRACE(QStringLiteral("IResource::setDataBody: body to set is ") << (body.isEmpty() ? QStringLiteral("empty") : QStringLiteral("not empty")));
+    QNTRACE(QStringLiteral("Resource::setDataBody: body to set is ") << (body.isEmpty() ? QStringLiteral("empty") : QStringLiteral("not empty")));
 
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
 
     if (!enResource.data.isSet())
     {
@@ -421,212 +454,212 @@ void IResource::setDataBody(const QByteArray & body)
     }
 }
 
-bool IResource::hasMime() const
+bool Resource::hasMime() const
 {
-    return GetEnResource().mime.isSet();
+    return d->m_qecResource.mime.isSet();
 }
 
-const QString & IResource::mime() const
+const QString & Resource::mime() const
 {
-    return GetEnResource().mime;
+    return d->m_qecResource.mime;
 }
 
-void IResource::setMime(const QString & mime)
+void Resource::setMime(const QString & mime)
 {
-    GetEnResource().mime = mime;
+    d->m_qecResource.mime = mime;
 }
 
-bool IResource::hasWidth() const
+bool Resource::hasWidth() const
 {
-    return GetEnResource().width.isSet();
+    return d->m_qecResource.width.isSet();
 }
 
-qint16 IResource::width() const
+qint16 Resource::width() const
 {
-    return GetEnResource().width;
+    return d->m_qecResource.width;
 }
 
-void IResource::setWidth(const qint16 width)
+void Resource::setWidth(const qint16 width)
 {
     if (width < 0) {
-        GetEnResource().width.clear();
+        d->m_qecResource.width.clear();
     }
     else {
-        GetEnResource().width = width;
+        d->m_qecResource.width = width;
     }
 }
 
-bool IResource::hasHeight() const
+bool Resource::hasHeight() const
 {
-    return GetEnResource().height.isSet();
+    return d->m_qecResource.height.isSet();
 }
 
-qint16 IResource::height() const
+qint16 Resource::height() const
 {
-    return GetEnResource().height;
+    return d->m_qecResource.height;
 }
 
-void IResource::setHeight(const qint16 height)
+void Resource::setHeight(const qint16 height)
 {
     if (height < 0) {
-        GetEnResource().height.clear();
+        d->m_qecResource.height.clear();
     }
     else {
-        GetEnResource().height = height;
+        d->m_qecResource.height = height;
     }
 }
 
-bool IResource::hasRecognitionData() const
+bool Resource::hasRecognitionData() const
 {
-    return GetEnResource().recognition.isSet();
+    return d->m_qecResource.recognition.isSet();
 }
 
-bool IResource::hasRecognitionDataHash() const
+bool Resource::hasRecognitionDataHash() const
 {
     if (!hasRecognitionData()) {
         return false;
     }
 
-    return GetEnResource().recognition->bodyHash.isSet();
+    return d->m_qecResource.recognition->bodyHash.isSet();
 }
 
-const QByteArray & IResource::recognitionDataHash() const
+const QByteArray & Resource::recognitionDataHash() const
 {
-    return GetEnResource().recognition->bodyHash;
+    return d->m_qecResource.recognition->bodyHash;
 }
 
-void IResource::setRecognitionDataHash(const QByteArray & hash)
+void Resource::setRecognitionDataHash(const QByteArray & hash)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), recognition, bodyHash, body, size);
     enResource.recognition->bodyHash = hash;
 }
 
-bool IResource::hasRecognitionDataSize() const
+bool Resource::hasRecognitionDataSize() const
 {
     if (!hasRecognitionData()) {
         return false;
     }
 
-    return GetEnResource().recognition->size.isSet();
+    return d->m_qecResource.recognition->size.isSet();
 }
 
-qint32 IResource::recognitionDataSize() const
+qint32 Resource::recognitionDataSize() const
 {
-    return GetEnResource().recognition->size;
+    return d->m_qecResource.recognition->size;
 }
 
-void IResource::setRecognitionDataSize(const qint32 size)
+void Resource::setRecognitionDataSize(const qint32 size)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), recognition, size, body, bodyHash);
     enResource.recognition->size = size;
 }
 
-bool IResource::hasRecognitionDataBody() const
+bool Resource::hasRecognitionDataBody() const
 {
     if (!hasRecognitionData()) {
         return false;
     }
 
-    return GetEnResource().recognition->body.isSet();
+    return d->m_qecResource.recognition->body.isSet();
 }
 
-const QByteArray & IResource::recognitionDataBody() const
+const QByteArray & Resource::recognitionDataBody() const
 {
-    return GetEnResource().recognition->body;
+    return d->m_qecResource.recognition->body;
 }
 
-void IResource::setRecognitionDataBody(const QByteArray & body)
+void Resource::setRecognitionDataBody(const QByteArray & body)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), recognition, body, size, bodyHash);
     enResource.recognition->body = body;
 }
 
-bool IResource::hasAlternateData() const
+bool Resource::hasAlternateData() const
 {
-    return GetEnResource().alternateData.isSet();
+    return d->m_qecResource.alternateData.isSet();
 }
 
-bool IResource::hasAlternateDataHash() const
+bool Resource::hasAlternateDataHash() const
 {
     if (!hasAlternateData()) {
         return false;
     }
 
-    return GetEnResource().alternateData->bodyHash.isSet();
+    return d->m_qecResource.alternateData->bodyHash.isSet();
 }
 
-const QByteArray & IResource::alternateDataHash() const
+const QByteArray & Resource::alternateDataHash() const
 {
-    return GetEnResource().alternateData->bodyHash;
+    return d->m_qecResource.alternateData->bodyHash;
 }
 
-void IResource::setAlternateDataHash(const QByteArray & hash)
+void Resource::setAlternateDataHash(const QByteArray & hash)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), alternateData, bodyHash, size, body);
     enResource.alternateData->bodyHash = hash;
 }
 
-bool IResource::hasAlternateDataSize() const
+bool Resource::hasAlternateDataSize() const
 {
     if (!hasAlternateData()) {
         return false;
     }
 
-    return GetEnResource().alternateData->size.isSet();
+    return d->m_qecResource.alternateData->size.isSet();
 }
 
-qint32 IResource::alternateDataSize() const
+qint32 Resource::alternateDataSize() const
 {
-    return GetEnResource().alternateData->size;
+    return d->m_qecResource.alternateData->size;
 }
 
-void IResource::setAlternateDataSize(const qint32 size)
+void Resource::setAlternateDataSize(const qint32 size)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), alternateData, size, body, bodyHash);
     enResource.alternateData->size = size;
 }
 
-bool IResource::hasAlternateDataBody() const
+bool Resource::hasAlternateDataBody() const
 {
     if (!hasAlternateData()) {
         return false;
     }
 
-    return GetEnResource().alternateData->body.isSet();
+    return d->m_qecResource.alternateData->body.isSet();
 }
 
-const QByteArray & IResource::alternateDataBody() const
+const QByteArray & Resource::alternateDataBody() const
 {
-    return GetEnResource().alternateData->body;
+    return d->m_qecResource.alternateData->body;
 }
 
-void IResource::setAlternateDataBody(const QByteArray & body)
+void Resource::setAlternateDataBody(const QByteArray & body)
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), alternateData, body, size, bodyHash);
     enResource.alternateData->body = body;
 }
 
 #undef CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD
 
-bool IResource::hasResourceAttributes() const
+bool Resource::hasResourceAttributes() const
 {
-    return GetEnResource().attributes.isSet();
+    return d->m_qecResource.attributes.isSet();
 }
 
-const qevercloud::ResourceAttributes & IResource::resourceAttributes() const
+const qevercloud::ResourceAttributes & Resource::resourceAttributes() const
 {
-    return GetEnResource().attributes;
+    return d->m_qecResource.attributes;
 }
 
-qevercloud::ResourceAttributes & IResource::resourceAttributes()
+qevercloud::ResourceAttributes & Resource::resourceAttributes()
 {
-    qevercloud::Resource & enResource = GetEnResource();
+    qevercloud::Resource & enResource = d->m_qecResource;
     if (!enResource.attributes.isSet()) {
         enResource.attributes = qevercloud::ResourceAttributes();
     }
@@ -634,38 +667,19 @@ qevercloud::ResourceAttributes & IResource::resourceAttributes()
     return enResource.attributes;
 }
 
-void IResource::setResourceAttributes(const qevercloud::ResourceAttributes & attributes)
+void Resource::setResourceAttributes(const qevercloud::ResourceAttributes & attributes)
 {
-    GetEnResource().attributes = attributes;
+    d->m_qecResource.attributes = attributes;
 }
 
-void IResource::setResourceAttributes(qevercloud::ResourceAttributes && attributes)
+void Resource::setResourceAttributes(qevercloud::ResourceAttributes && attributes)
 {
-    GetEnResource().attributes = std::move(attributes);
+    d->m_qecResource.attributes = std::move(attributes);
 }
 
-IResource::IResource(const IResource & other) :
-    INoteStoreDataElement(other),
-    d(other.d),
-    m_indexInNote(other.indexInNote()),
-    m_noteLocalUid(other.m_noteLocalUid)
-{}
-
-IResource & IResource::operator=(const IResource & other)
+QTextStream & Resource::print(QTextStream & strm) const
 {
-    if (this != &other)
-    {
-        d = other.d;
-        setIndexInNote(other.m_indexInNote);
-        setNoteLocalUid(other.m_noteLocalUid.isSet() ? other.m_noteLocalUid.ref() : QString());
-    }
-
-    return *this;
-}
-
-QTextStream & IResource::print(QTextStream & strm) const
-{
-    const qevercloud::Resource & enResource = GetEnResource();
+    const qevercloud::Resource & enResource = d->m_qecResource;
 
     strm << QStringLiteral("Resource: { \n");
 
@@ -680,8 +694,8 @@ QTextStream & IResource::print(QTextStream & strm) const
     }
 
     strm << indent << QStringLiteral("isDirty = ") << (isDirty() ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("; \n");
-    strm << indent << QStringLiteral("indexInNote = ") << QString::number(m_indexInNote) << QStringLiteral("; \n");
-    strm << indent << QStringLiteral("note local uid = ") << (m_noteLocalUid.isSet() ? m_noteLocalUid.ref() : QStringLiteral("<not set>"))
+    strm << indent << QStringLiteral("indexInNote = ") << QString::number(d->m_indexInNote) << QStringLiteral("; \n");
+    strm << indent << QStringLiteral("note local uid = ") << (d->m_noteLocalUid.isSet() ? d->m_noteLocalUid.ref() : QStringLiteral("<not set>"))
          << QStringLiteral("; \n");
 
     strm << indent << enResource;

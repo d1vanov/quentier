@@ -50,14 +50,12 @@ set(NOTE_EDITOR_HEADERS
 set(TYPES_HEADERS
     headers/quentier/types/Account.h
     headers/quentier/types/IFavoritableDataElement.h
-    headers/quentier/types/IResource.h
     headers/quentier/types/LinkedNotebook.h
     headers/quentier/types/ILocalStorageDataElement.h
     headers/quentier/types/Note.h
     headers/quentier/types/Notebook.h
     headers/quentier/types/INoteStoreDataElement.h
-    headers/quentier/types/ResourceWrapper.h
-    headers/quentier/types/ResourceAdapter.h
+    headers/quentier/types/Resource.h
     headers/quentier/types/ResourceRecognitionIndexItem.h
     headers/quentier/types/ResourceRecognitionIndices.h
     headers/quentier/types/SavedSearch.h
@@ -98,7 +96,6 @@ set(EXCEPTION_HEADERS
     headers/quentier/exception/NoteEditorInitializationException.h
     headers/quentier/exception/NoteEditorPluginInitializationException.h
     headers/quentier/exception/NullPtrException.h
-    headers/quentier/exception/ResourceAdapterAccessException.h
     headers/quentier/exception/ResourceLocalFileStorageFolderNotFoundException.h)
 
 set(UTILITY_HEADERS
@@ -197,7 +194,7 @@ set(PRIVATE_HEADERS
     src/types/data/NoteStoreDataElementData.h
     src/types/data/NoteData.h
     src/types/data/NotebookData.h
-    src/types/data/ResourceWrapperData.h
+    src/types/data/ResourceData.h
     src/types/data/SharedNotebookData.h
     src/types/data/TagData.h
     src/types/data/SharedNoteData.h
@@ -306,12 +303,10 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/TableActionUndoCommand.cpp
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.cpp
     src/types/Account.cpp
-    src/types/IResource.cpp
     src/types/LinkedNotebook.cpp
     src/types/Note.cpp
     src/types/Notebook.cpp
-    src/types/ResourceWrapper.cpp
-    src/types/ResourceAdapter.cpp
+    src/types/Resource.cpp
     src/types/ResourceRecognitionIndexItem.cpp
     src/types/ResourceRecognitionIndices.cpp
     src/types/SavedSearch.cpp
@@ -327,7 +322,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/data/NoteStoreDataElementData.cpp
     src/types/data/NoteData.cpp
     src/types/data/NotebookData.cpp
-    src/types/data/ResourceWrapperData.cpp
+    src/types/data/ResourceData.cpp
     src/types/data/ResourceRecognitionIndexItemData.cpp
     src/types/data/ResourceRecognitionIndicesData.cpp
     src/types/data/SharedNotebookData.cpp
@@ -368,7 +363,6 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/NullPtrException.cpp
     src/exception/LocalStorageCacheManagerException.cpp
     src/exception/LoggerInitializationException.cpp
-    src/exception/ResourceAdapterAccessException.cpp
     src/exception/ResourceLocalFileStorageFolderNotFoundException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/DesktopServices.cpp

@@ -28,7 +28,7 @@
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <QFileIconProvider>
 #include <QDir>
 #include <QRegExp>
@@ -285,7 +285,7 @@ void NoteEditorPluginFactory::setActive()
     }
 }
 
-void NoteEditorPluginFactory::updateResource(const IResource & resource)
+void NoteEditorPluginFactory::updateResource(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPluginFactory::updateResource: ") << resource);
 
@@ -349,14 +349,14 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
     QByteArray resourceHash = QByteArray::fromHex(argumentValues.at(resourceHashIndex).toLocal8Bit());
     QString resourceMimeType = argumentValues.at(resourceMimeTypeIndex);
 
-    QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
+    QList<Resource> resources = m_pCurrentNote->resources();
 
-    const ResourceAdapter * pCurrentResource = Q_NULLPTR;
+    const Resource * pCurrentResource = Q_NULLPTR;
 
-    const int numResources = resourceAdapters.size();
+    const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceAdapter & resource = resourceAdapters[i];
+        const Resource & resource = resources[i];
         if (!resource.hasDataHash()) {
             continue;
         }
@@ -661,7 +661,7 @@ QString NoteEditorPluginFactory::getFilterStringForMimeType(const QString & mime
     return mimeType.filterString();
 }
 
-NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::GenericResourceDisplayWidgetFinder(const IResource & resource) :
+NoteEditorPluginFactory::GenericResourceDisplayWidgetFinder::GenericResourceDisplayWidgetFinder(const Resource & resource) :
     m_resourceLocalUid(resource.localUid())
 {}
 

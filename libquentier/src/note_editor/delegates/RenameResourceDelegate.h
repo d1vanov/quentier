@@ -23,7 +23,7 @@
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <QObject>
 #include <QUuid>
 #include <QHash>
@@ -42,7 +42,7 @@ class RenameResourceDelegate: public QObject
 {
     Q_OBJECT
 public:
-    explicit RenameResourceDelegate(const ResourceWrapper & resource, NoteEditorPrivate & noteEditor,
+    explicit RenameResourceDelegate(const Resource & resource, NoteEditorPrivate & noteEditor,
                                     GenericResourceImageManager * pGenericResourceImageManager,
                                     QHash<QByteArray, QString> & genericResourceImageFilePathsByResourceHash,
                                     const bool performingUndo = false);
@@ -50,7 +50,7 @@ public:
     void startWithPresetNames(const QString & oldResourceName, const QString & newResourceName);
 
 Q_SIGNALS:
-    void finished(QString oldResourceName, QString newResourceName, ResourceWrapper resource, bool performingUndo);
+    void finished(QString oldResourceName, QString newResourceName, Resource resource, bool performingUndo);
     void cancelled();
     void notifyError(QNLocalizedString);
 
@@ -86,7 +86,7 @@ private:
     NoteEditorPrivate &             m_noteEditor;
     GenericResourceImageManager *   m_pGenericResourceImageManager;
     QHash<QByteArray, QString> &    m_genericResourceImageFilePathsByResourceHash;
-    ResourceWrapper                 m_resource;
+    Resource                        m_resource;
 
     QString                         m_oldResourceName;
     QString                         m_newResourceName;

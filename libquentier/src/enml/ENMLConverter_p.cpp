@@ -19,7 +19,7 @@
 #include "ENMLConverter_p.h"
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/enml/HTMLCleaner.h>
-#include <quentier/types/IResource.h>
+#include <quentier/types/Resource.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <libxml/xmlreader.h>
 #include <QString>
@@ -744,7 +744,7 @@ QString ENMLConverterPrivate::decryptedTextHtml(const QString & decryptedText, c
     return result;
 }
 
-QString ENMLConverterPrivate::resourceHtml(const IResource & resource, QNLocalizedString & errorDescription)
+QString ENMLConverterPrivate::resourceHtml(const Resource & resource, QNLocalizedString & errorDescription)
 {
     QNDEBUG(QStringLiteral("ENMLConverterPrivate::resourceHtml"));
 

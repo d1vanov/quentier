@@ -25,7 +25,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(Resource)
 QT_FORWARD_DECLARE_CLASS(NoteEditorPluginFactory)
 
 /**
@@ -65,7 +65,7 @@ public:
                             const QStringList & parameterNames,
                             const QStringList & parameterValues,
                             const NoteEditorPluginFactory & pluginFactory,
-                            const IResource & resource,
+                            const Resource & resource,
                             QNLocalizedString & errorDescription) = 0;
 
     /**

@@ -4,7 +4,7 @@
 
 namespace quentier {
 
-UpdateResourceUndoCommand::UpdateResourceUndoCommand(const ResourceWrapper & resourceBefore, const ResourceWrapper & resourceAfter,
+UpdateResourceUndoCommand::UpdateResourceUndoCommand(const Resource & resourceBefore, const Resource & resourceAfter,
                                                      NoteEditorPrivate & noteEditorPrivate, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_resourceBefore(resourceBefore),
@@ -13,7 +13,7 @@ UpdateResourceUndoCommand::UpdateResourceUndoCommand(const ResourceWrapper & res
     init();
 }
 
-UpdateResourceUndoCommand::UpdateResourceUndoCommand(const ResourceWrapper & resourceBefore, const ResourceWrapper & resourceAfter,
+UpdateResourceUndoCommand::UpdateResourceUndoCommand(const Resource & resourceBefore, const Resource & resourceAfter,
                                                      NoteEditorPrivate & noteEditorPrivate, const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_resourceBefore(resourceBefore),

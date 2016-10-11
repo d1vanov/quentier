@@ -5,7 +5,7 @@
 namespace quentier {
 
 NoteEditorContentEditUndoCommand::NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate,
-                                                                   const QList<ResourceWrapper> & resources,
+                                                                   const QList<Resource> & resources,
                                                                    QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, parent),
     m_resources(resources)
@@ -14,7 +14,7 @@ NoteEditorContentEditUndoCommand::NoteEditorContentEditUndoCommand(NoteEditorPri
 }
 
 NoteEditorContentEditUndoCommand::NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate,
-                                                                   const QList<ResourceWrapper> & resources,
+                                                                   const QList<Resource> & resources,
                                                                    const QString & text, QUndoCommand * parent) :
     INoteEditorUndoCommand(noteEditorPrivate, text, parent),
     m_resources(resources)

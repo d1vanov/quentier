@@ -16,8 +16,8 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_TYPES_DATA_RESOURCE_WRAPPER_DATA_H
-#define LIB_QUENTIER_TYPES_DATA_RESOURCE_WRAPPER_DATA_H
+#ifndef LIB_QUENTIER_TYPES_DATA_RESOURCE_DATA_H
+#define LIB_QUENTIER_TYPES_DATA_RESOURCE_DATA_H
 
 #include "NoteStoreDataElementData.h"
 
@@ -29,23 +29,25 @@
 
 namespace quentier {
 
-class ResourceWrapperData : public NoteStoreDataElementData
+class ResourceData: public NoteStoreDataElementData
 {
 public:
-    ResourceWrapperData();
-    ResourceWrapperData(const ResourceWrapperData & other);
-    ResourceWrapperData(ResourceWrapperData && other);
-    ResourceWrapperData(const qevercloud::Resource & other);
-    ResourceWrapperData(qevercloud::Resource && other);
-    virtual ~ResourceWrapperData();
+    ResourceData();
+    ResourceData(const ResourceData & other);
+    ResourceData(ResourceData && other);
+    ResourceData(const qevercloud::Resource & other);
+    ResourceData(qevercloud::Resource && other);
+    virtual ~ResourceData();
 
-    qevercloud::Resource    m_qecResource;
+    qevercloud::Resource            m_qecResource;
+    int                             m_indexInNote;
+    qevercloud::Optional<QString>   m_noteLocalUid;
 
 private:
-    ResourceWrapperData & operator=(const ResourceWrapperData & other) Q_DECL_EQ_DELETE;
-    ResourceWrapperData & operator=(ResourceWrapperData && other) Q_DECL_EQ_DELETE;
+    ResourceData & operator=(const ResourceData & other) Q_DECL_EQ_DELETE;
+    ResourceData & operator=(ResourceData && other) Q_DECL_EQ_DELETE;
 };
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_TYPES_DATA_RESOURCE_WRAPPER_DATA_H
+#endif // LIB_QUENTIER_TYPES_DATA_RESOURCE_DATA_H

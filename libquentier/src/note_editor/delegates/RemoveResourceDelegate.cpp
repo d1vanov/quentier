@@ -31,7 +31,7 @@ namespace quentier {
         return; \
     }
 
-RemoveResourceDelegate::RemoveResourceDelegate(const ResourceWrapper & resourceToRemove, NoteEditorPrivate & noteEditor) :
+RemoveResourceDelegate::RemoveResourceDelegate(const Resource & resourceToRemove, NoteEditorPrivate & noteEditor) :
     m_noteEditor(noteEditor),
     m_resource(resourceToRemove)
 {}

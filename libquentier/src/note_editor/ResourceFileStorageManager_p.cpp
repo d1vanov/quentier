@@ -20,7 +20,7 @@
 #include "dialogs/AttachmentStoragePathConfigDialog.h"
 #include <quentier/note_editor/ResourceFileStorageManager.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -545,8 +545,8 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
 
     const QString & noteLocalUid = m_pCurrentNote->localUid();
 
-    QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
-    const int numResources = resourceAdapters.size();
+    QList<Resource> resources = m_pCurrentNote->resources();
+    const int numResources = resources.size();
 
     QFileInfoList fileInfoList;
     int numFiles = -1;
@@ -599,11 +599,11 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
         int resourceIndex = -1;
         for(int j = 0; j < numResources; ++j)
         {
-            QNTRACE(QStringLiteral("checking against resource with local uid ") << resourceAdapters[j].localUid());
-            if (baseName.startsWith(resourceAdapters[j].localUid()))
+            QNTRACE(QStringLiteral("checking against resource with local uid ") << resources[j].localUid());
+            if (baseName.startsWith(resources[j].localUid()))
             {
                 QNTRACE(QStringLiteral("File ") << fileInfo.fileName() << QStringLiteral(" appears to correspond to resource ")
-                        << resourceAdapters[j].localUid());
+                        << resources[j].localUid());
                 resourceIndex = j;
                 break;
             }
@@ -611,11 +611,10 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
 
         if (resourceIndex >= 0)
         {
-            const ResourceAdapter & resourceAdapter = resourceAdapters[resourceIndex];
-            if (resourceAdapter.hasDataHash())
+            const Resource & resource = resources[resourceIndex];
+            if (resource.hasDataHash())
             {
-                bool actual = checkIfResourceFileExistsAndIsActual(noteLocalUid, resourceAdapter.localUid(),
-                                                                  filePath, resourceAdapter.dataHash());
+                bool actual = checkIfResourceFileExistsAndIsActual(noteLocalUid, resource.localUid(), filePath, resource.dataHash());
                 if (actual) {
                     QNTRACE(QStringLiteral("The resource file ") << filePath << QStringLiteral(" is still actual, will keep it"));
                     continue;

@@ -21,7 +21,7 @@
 #include "NoteThumbnailDownloader.h"
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -345,7 +345,7 @@ void RemoteToLocalSynchronizationManager::emitAddRequest<Note>(const Note & note
 }
 
 template <>
-void RemoteToLocalSynchronizationManager::emitAddRequest<ResourceWrapper>(const ResourceWrapper & resource)
+void RemoteToLocalSynchronizationManager::emitAddRequest<Resource>(const Resource & resource)
 {
     QString resourceGuid = (resource.hasGuid() ? resource.guid() : QString());
     QString resourceLocalUid = resource.localUid();
@@ -758,7 +758,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
     ResourceDataPerFindNoteRequestId::iterator rit = m_resourcesWithFindRequestIdsPerFindNoteRequestId.find(requestId);
     if (rit != m_resourcesWithFindRequestIdsPerFindNoteRequestId.end())
     {
-        QPair<ResourceWrapper,QUuid> resourceWithFindRequestId = rit.value();
+        QPair<Resource,QUuid> resourceWithFindRequestId = rit.value();
 
         Q_UNUSED(m_resourcesWithFindRequestIdsPerFindNoteRequestId.erase(rit))
 
@@ -774,7 +774,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
 
         const Notebook * pNotebook = getNotebookPerNote(note);
 
-        const ResourceWrapper & resource = resourceWithFindRequestId.first;
+        const Resource & resource = resourceWithFindRequestId.first;
         const QUuid & findResourceRequestId = resourceWithFindRequestId.second;
 
         auto noteThumbnailDownloadIt = m_noteGuidsPendingThumbnailDownload.find(note.guid());
@@ -890,16 +890,16 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         Note updatedNote(note);
         updatedNote.unsetLocalUid();
         bool hasResources = updatedNote.hasResources();
-        QList<ResourceAdapter> resources;
+        QList<Resource> resources;
         if (hasResources) {
-            resources = updatedNote.resourceAdapters();
+            resources = updatedNote.resources();
         }
 
         int numResources = resources.size();
         int resourceIndex = -1;
         for(int i = 0; i < numResources; ++i)
         {
-            const ResourceAdapter & existingResource = resources[i];
+            const Resource & existingResource = resources[i];
             if (existingResource.hasGuid() && (existingResource.guid() == resource.guid())) {
                 resourceIndex = i;
                 break;
@@ -912,7 +912,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
         }
         else
         {
-            QList<ResourceWrapper> noteResources = updatedNote.resources();
+            QList<Resource> noteResources = updatedNote.resources();
             noteResources[resourceIndex] = resource;
             updatedNote.setResources(noteResources);
         }
@@ -1065,7 +1065,7 @@ void RemoteToLocalSynchronizationManager::onFindTagFailed(Tag tag, QNLocalizedSt
     }
 }
 
-void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrapper resource,
+void RemoteToLocalSynchronizationManager::onFindResourceCompleted(Resource resource,
                                                                   bool withResourceBinaryData, QUuid requestId)
 {
     CHECK_PAUSED();
@@ -1102,7 +1102,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
 
         QUuid findNotePerResourceRequestId = QUuid::createUuid();
         m_resourcesWithFindRequestIdsPerFindNoteRequestId[findNotePerResourceRequestId] =
-            QPair<ResourceWrapper,QUuid>(resource, requestId);
+            QPair<Resource,QUuid>(resource, requestId);
 
         Note noteToFind;
         noteToFind.unsetLocalUid();
@@ -1113,7 +1113,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceCompleted(ResourceWrappe
     }
 }
 
-void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper resource,
+void RemoteToLocalSynchronizationManager::onFindResourceFailed(Resource resource,
                                                                bool withResourceBinaryData,
                                                                QNLocalizedString errorDescription, QUuid requestId)
 {
@@ -1149,7 +1149,7 @@ void RemoteToLocalSynchronizationManager::onFindResourceFailed(ResourceWrapper r
 
         QUuid findNotePerResourceRequestId = QUuid::createUuid();
         m_resourcesWithFindRequestIdsPerFindNoteRequestId[findNotePerResourceRequestId] =
-            QPair<ResourceWrapper,QUuid>(resource, requestId);
+            QPair<Resource,QUuid>(resource, requestId);
 
         Note noteToFind;
         noteToFind.unsetLocalUid();
@@ -1599,7 +1599,7 @@ void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<Note>()
 }
 
 template <>
-void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<ResourceWrapper>()
+void RemoteToLocalSynchronizationManager::performPostAddOrUpdateChecks<Resource>()
 {
     if (m_addResourceRequestIds.empty() && m_updateResourceRequestIds.empty() &&
         m_resourcesWithFindRequestIdsPerFindNoteRequestId.empty() &&
@@ -1935,9 +1935,9 @@ void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<Note>(const QStr
 }
 
 template <>
-void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<ResourceWrapper>(const QString & guid)
+void RemoteToLocalSynchronizationManager::emitFindByGuidRequest<Resource>(const QString & guid)
 {
-    ResourceWrapper resource;
+    Resource resource;
     resource.unsetLocalUid();
     resource.setGuid(guid);
 
@@ -2147,17 +2147,17 @@ void RemoteToLocalSynchronizationManager::onExpungeNoteFailed(Note note, QNLocal
     onExpungeDataElementFailed(note, requestId, errorDescription, QStringLiteral("Note"), m_expungeNoteRequestIds);
 }
 
-void RemoteToLocalSynchronizationManager::onAddResourceCompleted(ResourceWrapper resource, QUuid requestId)
+void RemoteToLocalSynchronizationManager::onAddResourceCompleted(Resource resource, QUuid requestId)
 {
     onAddDataElementCompleted(resource, requestId, QStringLiteral("Resource"), m_addResourceRequestIds);
 }
 
-void RemoteToLocalSynchronizationManager::onAddResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId)
+void RemoteToLocalSynchronizationManager::onAddResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId)
 {
     onAddDataElementFailed(resource, requestId, errorDescription, QStringLiteral("Resource"), m_addResourceRequestIds);
 }
 
-void RemoteToLocalSynchronizationManager::onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId)
+void RemoteToLocalSynchronizationManager::onUpdateResourceCompleted(Resource resource, QUuid requestId)
 {
     auto it = m_updateResourceRequestIds.find(requestId);
     if (it != m_updateResourceRequestIds.end())
@@ -2171,7 +2171,7 @@ void RemoteToLocalSynchronizationManager::onUpdateResourceCompleted(ResourceWrap
     }
 }
 
-void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId)
+void RemoteToLocalSynchronizationManager::onUpdateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto it = m_updateResourceRequestIds.find(requestId);
     if (it != m_updateResourceRequestIds.end())
@@ -2342,12 +2342,12 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,expungeNotelessTagsFromLinkedNotebooks,QUuid),
                      &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeNotelessTagsFromLinkedNotebooksRequest,QUuid));
 
-    QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,addResource,ResourceWrapper,QUuid),
-                     &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddResourceRequest,ResourceWrapper,QUuid));
-    QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,updateResource,ResourceWrapper,QUuid),
-                     &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateResourceRequest,ResourceWrapper,QUuid));
-    QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,findResource,ResourceWrapper,bool,QUuid),
-                     &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindResourceRequest,ResourceWrapper,bool,QUuid));
+    QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,addResource,Resource,QUuid),
+                     &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddResourceRequest,Resource,QUuid));
+    QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,updateResource,Resource,QUuid),
+                     &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateResourceRequest,Resource,QUuid));
+    QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,findResource,Resource,bool,QUuid),
+                     &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindResourceRequest,Resource,bool,QUuid));
 
     QObject::connect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,addLinkedNotebook,LinkedNotebook,QUuid),
                      &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddLinkedNotebookRequest,LinkedNotebook,QUuid));
@@ -2405,10 +2405,10 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
                      this, QNSLOT(RemoteToLocalSynchronizationManager,onFindSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceComplete,ResourceWrapper,bool,QUuid),
-                     this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceCompleted,ResourceWrapper,bool,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceFailed,ResourceWrapper,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceFailed,ResourceWrapper,bool,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceComplete,Resource,bool,QUuid),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceCompleted,Resource,bool,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceFailed,Resource,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceFailed,Resource,bool,QNLocalizedString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
                      this, QNSLOT(RemoteToLocalSynchronizationManager,onAddTagCompleted,Tag,QUuid));
@@ -2513,15 +2513,15 @@ void RemoteToLocalSynchronizationManager::createConnections()
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QNLocalizedString,QUuid),
                      this, QNSLOT(RemoteToLocalSynchronizationManager,onExpungeNoteFailed,Note,QNLocalizedString,QUuid));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceComplete,ResourceWrapper,QUuid),
-                     this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceCompleted,ResourceWrapper,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceFailed,ResourceWrapper,QNLocalizedString,QUuid),
-                     this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceFailed,ResourceWrapper,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceComplete,Resource,QUuid),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceCompleted,Resource,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceFailed,Resource,QNLocalizedString,QUuid),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceFailed,Resource,QNLocalizedString,QUuid));
 
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceComplete,ResourceWrapper,QUuid),
-                     this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceCompleted,ResourceWrapper,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceFailed,ResourceWrapper,QNLocalizedString,QUuid),
-                     this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceFailed,ResourceWrapper,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceComplete,Resource,QUuid),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceCompleted,Resource,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceFailed,Resource,QNLocalizedString,QUuid),
+                     this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceFailed,Resource,QNLocalizedString,QUuid));
 
     m_connectedToLocalStorage = true;
 }
@@ -2567,12 +2567,12 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotelessTagsFromLinkedNotebooksFailed,QNLocalizedString,QUUid),
                         this, QNSLOT(RemoteToLocalSynchronizationManager,onExpungeNotelessTagsFromLinkedNotebooksFailed,QNLocalizedString,QUuid));
 
-    QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,addResource,ResourceWrapper,QUuid),
-                        &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddResourceRequest,ResourceWrapper,QUuid));
-    QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,updateResource,ResourceWrapper,QUuid),
-                        &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateResourceRequest,ResourceWrapper,QUuid));
-    QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,findResource,ResourceWrapper,bool,QUuid),
-                        &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindResourceRequest,ResourceWrapper,bool,QUuid));
+    QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,addResource,Resource,QUuid),
+                        &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddResourceRequest,Resource,QUuid));
+    QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,updateResource,Resource,QUuid),
+                        &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onUpdateResourceRequest,Resource,QUuid));
+    QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,findResource,Resource,bool,QUuid),
+                        &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindResourceRequest,Resource,bool,QUuid));
 
     QObject::disconnect(this, QNSIGNAL(RemoteToLocalSynchronizationManager,addLinkedNotebook,LinkedNotebook,QUuid),
                         &m_localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddLinkedNotebookRequest,LinkedNotebook,QUuid));
@@ -2629,10 +2629,10 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
                         this, QNSLOT(RemoteToLocalSynchronizationManager,onFindSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
 
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceComplete,ResourceWrapper,bool,QUuid),
-                        this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceCompleted,ResourceWrapper,bool,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceFailed,ResourceWrapper,bool,QNLocalizedString,QUuid),
-                        this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceFailed,ResourceWrapper,bool,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceComplete,Resource,bool,QUuid),
+                        this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceCompleted,Resource,bool,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findResourceFailed,Resource,bool,QNLocalizedString,QUuid),
+                        this, QNSLOT(RemoteToLocalSynchronizationManager,onFindResourceFailed,Resource,bool,QNLocalizedString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
                         this, QNSLOT(RemoteToLocalSynchronizationManager,onAddTagCompleted,Tag,QUuid));
@@ -2729,15 +2729,15 @@ void RemoteToLocalSynchronizationManager::disconnectFromLocalStorage()
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QNLocalizedString,QUuid),
                         this, QNSLOT(RemoteToLocalSynchronizationManager,onExpungeNoteFailed,Note,QNLocalizedString,QUuid));
 
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceComplete,ResourceWrapper,QUuid),
-                        this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceCompleted,ResourceWrapper,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceFailed,ResourceWrapper,QNLocalizedString,QUuid),
-                        this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceFailed,ResourceWrapper,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceComplete,Resource,QUuid),
+                        this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceCompleted,Resource,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addResourceFailed,Resource,QNLocalizedString,QUuid),
+                        this, QNSLOT(RemoteToLocalSynchronizationManager,onAddResourceFailed,Resource,QNLocalizedString,QUuid));
 
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceComplete,ResourceWrapper,QUuid),
-                        this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceCompleted,ResourceWrapper,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceFailed,ResourceWrapper,QNLocalizedString,QUuid),
-                        this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceFailed,ResourceWrapper,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceComplete,Resource,QUuid),
+                        this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceCompleted,Resource,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateResourceFailed,Resource,QNLocalizedString,QUuid),
+                        this, QNSLOT(RemoteToLocalSynchronizationManager,onUpdateResourceFailed,Resource,QNLocalizedString,QUuid));
     m_connectedToLocalStorage = false;
 
     // With the disconnect from local storage the list of previously received linked notebooks (if any) + new additions/updates becomes invalidated
@@ -3316,7 +3316,7 @@ void RemoteToLocalSynchronizationManager::launchResourcesSync()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::launchResourcesSync"));
     QList<QString> dummyList;
-    launchDataElementSync<ResourcesList, ResourceWrapper>(ContentSource::UserAccount, QStringLiteral("Resource"), m_resources, dummyList);
+    launchDataElementSync<ResourcesList, Resource>(ContentSource::UserAccount, QStringLiteral("Resource"), m_resources, dummyList);
 }
 
 void RemoteToLocalSynchronizationManager::checkLinkedNotebooksSyncAndLaunchLinkedNotebookContentSync()

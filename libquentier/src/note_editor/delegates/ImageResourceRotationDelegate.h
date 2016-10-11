@@ -21,7 +21,7 @@
 
 #include "../NoteEditor_p.h"
 #include "JsResultCallbackFunctor.hpp"
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 
 namespace quentier {
 
@@ -38,7 +38,7 @@ public:
 Q_SIGNALS:
     void finished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                   QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
-                  ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
+                  Resource resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
     void notifyError(QNLocalizedString error);
 
 // private signals
@@ -77,7 +77,7 @@ private:
     QString                         m_resourceFileStoragePathBefore;
     QString                         m_resourceFileStoragePathAfter;
 
-    ResourceWrapper                 m_rotatedResource;
+    Resource                        m_rotatedResource;
     QUuid                           m_saveResourceRequestId;
 };
 

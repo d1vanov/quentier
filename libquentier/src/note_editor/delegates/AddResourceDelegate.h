@@ -23,7 +23,7 @@
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <QObject>
 #include <QByteArray>
 #include <QUuid>
@@ -51,7 +51,7 @@ public:
     void start();
 
 Q_SIGNALS:
-    void finished(ResourceWrapper addedResource, QString resourceFileStoragePath);
+    void finished(Resource addedResource, QString resourceFileStoragePath);
     void notifyError(QNLocalizedString error);
 
 // private signals
@@ -96,7 +96,7 @@ private:
 
     const QString                   m_filePath;
     QMimeType                       m_resourceFileMimeType;
-    ResourceWrapper                 m_resource;
+    Resource                        m_resource;
     QString                         m_resourceFileStoragePath;
 
     QUuid                           m_readResourceFileRequestId;

@@ -19,7 +19,7 @@
 #include "GenericResourceImageManager.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/DesktopServices.h>
-#include <quentier/types/ResourceAdapter.h>
+#include <quentier/types/Resource.h>
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
@@ -237,8 +237,8 @@ void GenericResourceImageManager::removeStaleGenericResourceImageFilesFromCurren
         return;
     }
 
-    QList<ResourceAdapter> resourceAdapters = m_pCurrentNote->resourceAdapters();
-    const int numResources = resourceAdapters.size();
+    QList<Resource> resources = m_pCurrentNote->resources();
+    const int numResources = resources.size();
 
     QFileInfoList fileInfoList = storageDir.entryInfoList(QDir::Files);
     int numFiles = fileInfoList.size();
@@ -262,10 +262,10 @@ void GenericResourceImageManager::removeStaleGenericResourceImageFilesFromCurren
         int resourceIndex = -1;
         for(int j = 0; j < numResources; ++j)
         {
-            QNTRACE(QStringLiteral("checking against resource with local uid ") << resourceAdapters[j].localUid());
-            if (baseName.startsWith(resourceAdapters[j].localUid())) {
+            QNTRACE(QStringLiteral("checking against resource with local uid ") << resources[j].localUid());
+            if (baseName.startsWith(resources[j].localUid())) {
                 QNTRACE(QStringLiteral("File ") << fileInfo.fileName() << QStringLiteral(" appears to correspond to resource ")
-                        << resourceAdapters[j].localUid());
+                        << resources[j].localUid());
                 resourceIndex = j;
                 break;
             }
@@ -273,22 +273,22 @@ void GenericResourceImageManager::removeStaleGenericResourceImageFilesFromCurren
 
         if (resourceIndex >= 0)
         {
-            const ResourceAdapter & resourceAdapter = resourceAdapters[resourceIndex];
-            if (resourceAdapter.hasDataHash())
+            const Resource & resource = resources[resourceIndex];
+            if (resource.hasDataHash())
             {
-                QFileInfo helperHashFileInfo(fileInfo.absolutePath() + QStringLiteral("/") + resourceAdapter.localUid() + QStringLiteral(".hash"));
+                QFileInfo helperHashFileInfo(fileInfo.absolutePath() + QStringLiteral("/") + resource.localUid() + QStringLiteral(".hash"));
                 if (helperHashFileInfo.exists())
                 {
                     QFile helperHashFile(helperHashFileInfo.absoluteFilePath());
                     Q_UNUSED(helperHashFile.open(QIODevice::ReadOnly))
                     QByteArray storedHash = helperHashFile.readAll();
-                    if (storedHash == resourceAdapter.dataHash()) {
+                    if (storedHash == resource.dataHash()) {
                         QNTRACE(QStringLiteral("Resource file ") << filePath << QStringLiteral(" appears to be still actual, will keep it"));
                         continue;
                     }
                     else {
                         QNTRACE(QStringLiteral("The stored hash doesn't match the actual resource data hash: stored = ")
-                                << storedHash.toHex() << QStringLiteral(", actual = ") << resourceAdapter.dataHash().toHex());
+                                << storedHash.toHex() << QStringLiteral(", actual = ") << resource.dataHash().toHex());
                     }
                 }
                 else

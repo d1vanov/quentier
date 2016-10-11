@@ -32,7 +32,7 @@ QT_FORWARD_DECLARE_CLASS(QXmlStreamAttributes)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(IResource)
+QT_FORWARD_DECLARE_CLASS(Resource)
 QT_FORWARD_DECLARE_CLASS(DecryptedTextManager)
 QT_FORWARD_DECLARE_CLASS(HTMLCleaner)
 
@@ -75,7 +75,7 @@ public:
                                      const QString & hint, const QString & cipher,
                                      const size_t keyLength, const quint64 enDecryptedIndex);
 
-    static QString resourceHtml(const IResource & resource, QNLocalizedString & errorDescription);
+    static QString resourceHtml(const Resource & resource, QNLocalizedString & errorDescription);
 
     static void escapeString(QString & string, const bool simplify);
 

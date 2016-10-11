@@ -16,36 +16,46 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ResourceWrapperData.h"
+#include "ResourceData.h"
 
 namespace quentier {
 
-ResourceWrapperData::ResourceWrapperData() :
+ResourceData::ResourceData() :
     NoteStoreDataElementData(),
-    m_qecResource()
+    m_qecResource(),
+    m_indexInNote(-1),
+    m_noteLocalUid()
 {}
 
-ResourceWrapperData::ResourceWrapperData(const ResourceWrapperData & other) :
+ResourceData::ResourceData(const ResourceData & other) :
     NoteStoreDataElementData(other),
-    m_qecResource(other.m_qecResource)
+    m_qecResource(other.m_qecResource),
+    m_indexInNote(other.m_indexInNote),
+    m_noteLocalUid(other.m_noteLocalUid)
 {}
 
-ResourceWrapperData::ResourceWrapperData(ResourceWrapperData && other) :
+ResourceData::ResourceData(ResourceData && other) :
     NoteStoreDataElementData(std::move(other)),
-    m_qecResource(std::move(other.m_qecResource))
+    m_qecResource(std::move(other.m_qecResource)),
+    m_indexInNote(std::move(other.m_indexInNote)),
+    m_noteLocalUid(std::move(other.m_noteLocalUid))
 {}
 
-ResourceWrapperData::ResourceWrapperData(const qevercloud::Resource & other) :
+ResourceData::ResourceData(const qevercloud::Resource & other) :
     NoteStoreDataElementData(),
-    m_qecResource(other)
+    m_qecResource(other),
+    m_indexInNote(-1),
+    m_noteLocalUid()
 {}
 
-ResourceWrapperData::ResourceWrapperData(qevercloud::Resource && other) :
+ResourceData::ResourceData(qevercloud::Resource && other) :
     NoteStoreDataElementData(),
-    m_qecResource(std::move(other))
+    m_qecResource(std::move(other)),
+    m_indexInNote(-1),
+    m_noteLocalUid()
 {}
 
-ResourceWrapperData::~ResourceWrapperData()
+ResourceData::~ResourceData()
 {}
 
 } // namespace quentier

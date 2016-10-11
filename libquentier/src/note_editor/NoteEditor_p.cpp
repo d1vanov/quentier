@@ -90,12 +90,11 @@ typedef QWebEngineSettings WebSettings;
 #include <quentier/exception/NoteEditorPluginInitializationException.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/ResourceRecognitionIndexItem.h>
 #include <quentier/types/Account.h>
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/utility/Utility.h>
-#include <quentier/types/ResourceAdapter.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/FileIOThreadWorker.h>
 #include <quentier/utility/QuentierCheckPtr.h>
@@ -581,11 +580,11 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
     if (!m_pNote.isNull())
     {
         bool shouldUpdateNoteResources = false;
-        QList<ResourceWrapper> resources = m_pNote->resources();
+        QList<Resource> resources = m_pNote->resources();
         const int numResources = resources.size();
         for(int i = 0; i < numResources; ++i)
         {
-            ResourceWrapper & resource = resources[i];
+            Resource & resource = resources[i];
 
             if (resource.localUid() != localUid) {
                 continue;
@@ -650,11 +649,11 @@ void NoteEditorPrivate::onResourceSavedToStorage(QUuid requestId, QByteArray dat
             return;
         }
 
-        QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-        int numResources = resourceAdapters.size();
+        QList<Resource> resources = m_pNote->resources();
+        int numResources = resources.size();
         for(int i = 0; i < numResources; ++i)
         {
-            const ResourceAdapter & resource = resourceAdapters[i];
+            const Resource & resource = resources[i];
             if (resource.localUid() == localUid) {
                 manualSaveResourceToFile(resource);
                 return;
@@ -688,13 +687,13 @@ void NoteEditorPrivate::onResourceFileChanged(QString resourceLocalUid, QString 
         return;
     }
 
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    const int numResources = resourceAdapters.size();
+    QList<Resource> resources = m_pNote->resources();
+    const int numResources = resources.size();
     int targetResourceIndex = -1;
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
-        if (resourceAdapter.localUid() == resourceLocalUid) {
+        const Resource & resource = resources[i];
+        if (resource.localUid() == resourceLocalUid) {
             targetResourceIndex = i;
             break;
         }
@@ -749,12 +748,12 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
     QString resourceDisplaySize;
     QString resourceMimeTypeName;
 
-    QList<ResourceWrapper> resources = m_pNote->resources();
+    QList<Resource> resources = m_pNote->resources();
     int targetResourceIndex = -1;
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        ResourceWrapper & resource = resources[i];
+        Resource & resource = resources[i];
         if (resource.localUid() != resourceLocalUid) {
             continue;
         }
@@ -783,7 +782,7 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         return;
     }
 
-    const ResourceWrapper & resource = resources[targetResourceIndex];
+    const Resource & resource = resources[targetResourceIndex];
     bool updated = m_pNote->updateResource(resource);
     if (Q_UNLIKELY(!updated)) {
         QNLocalizedString errorDescription = QT_TR_NOOP("failed to update resource within the note");
@@ -936,8 +935,8 @@ void NoteEditorPrivate::onOpenResourceRequest(const QByteArray & resourceHash)
 
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("open attachment"))
 
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
+    QList<Resource> resources = m_pNote->resources();
+    int resourceIndex = resourceIndexByHash(resources, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QNLocalizedString error = QT_TR_NOOP("resource to be opened was not found in the note");
         QNWARNING(error << QStringLiteral(", resource hash = ") << resourceHash);
@@ -945,7 +944,7 @@ void NoteEditorPrivate::onOpenResourceRequest(const QByteArray & resourceHash)
         return;
     }
 
-    const ResourceAdapter & resource = resourceAdapters[resourceIndex];
+    const Resource & resource = resources[resourceIndex];
     const QString resourceLocalUid = resource.localUid();
 
     // See whether this resource has already been written to file
@@ -971,15 +970,15 @@ void NoteEditorPrivate::onSaveResourceRequest(const QByteArray & resourceHash)
         return;
     }
 
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
+    QList<Resource> resources = m_pNote->resources();
+    int resourceIndex = resourceIndexByHash(resources, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QNLocalizedString error = QT_TR_NOOP("resource to be saved was not found in the note");
         QNINFO(error << QStringLiteral(", resource hash = ") << resourceHash.toHex());
         return;
     }
 
-    const ResourceAdapter & resource = resourceAdapters[resourceIndex];
+    const Resource & resource = resources[resourceIndex];
     const QString resourceLocalUid = resource.localUid();
 
     // See whether this resource has already been written to file
@@ -1295,7 +1294,7 @@ void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QNLocalizedStr
     }
 }
 
-void NoteEditorPrivate::onAddResourceDelegateFinished(ResourceWrapper addedResource, QString resourceFileStoragePath)
+void NoteEditorPrivate::onAddResourceDelegateFinished(Resource addedResource, QString resourceFileStoragePath)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onAddResourceDelegateFinished: resource file storage path = ") << resourceFileStoragePath);
 
@@ -1392,7 +1391,7 @@ void NoteEditorPrivate::onAddResourceUndoRedoFinished(const QVariant & data, con
     convertToNote();
 }
 
-void NoteEditorPrivate::onRemoveResourceDelegateFinished(ResourceWrapper removedResource)
+void NoteEditorPrivate::onRemoveResourceDelegateFinished(Resource removedResource)
 {
     QNDEBUG(QStringLiteral("onRemoveResourceDelegateFinished: removed resource = ") << removedResource);
 
@@ -1431,7 +1430,7 @@ void NoteEditorPrivate::onRemoveResourceUndoRedoFinished(const QVariant & data, 
 }
 
 void NoteEditorPrivate::onRenameResourceDelegateFinished(QString oldResourceName, QString newResourceName,
-                                                         ResourceWrapper resource, bool performingUndo)
+                                                         Resource resource, bool performingUndo)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onRenameResourceDelegateFinished: old resource name = ") << oldResourceName
             << QStringLiteral(", new resource name = ") << newResourceName << QStringLiteral(", performing undo = ")
@@ -1482,7 +1481,7 @@ void NoteEditorPrivate::onRenameResourceDelegateError(QNLocalizedString error)
 
 void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                                                                 QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
-                                                                ResourceWrapper resourceAfter, INoteEditorBackend::Rotation::type rotationDirection)
+                                                                Resource resourceAfter, INoteEditorBackend::Rotation::type rotationDirection)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onImageResourceRotationDelegateFinished: previous resource hash = ")
             << resourceHashBefore.toHex() << QStringLiteral(", resource local uid = ") << resourceAfter.localUid()
@@ -2142,7 +2141,7 @@ void NoteEditorPrivate::pushNoteContentEditUndoCommand()
         return;
     }
 
-    QList<ResourceWrapper> resources;
+    QList<Resource> resources;
     if (m_pNote->hasResources()) {
         resources = m_pNote->resources();
     }
@@ -2572,7 +2571,7 @@ void NoteEditorPrivate::inkNoteToEditorContent()
     m_lastFreeEnDecryptedIdNumber = 1;
 
     bool problemDetected = false;
-    QList<ResourceWrapper> resources = m_pNote->resources();
+    QList<Resource> resources = m_pNote->resources();
     const int numResources = resources.size();
 
     QString inkNoteHtml = m_pagePrefix;
@@ -2580,7 +2579,7 @@ void NoteEditorPrivate::inkNoteToEditorContent()
 
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceWrapper & resource = resources[i];
+        const Resource & resource = resources[i];
 
         if (!resource.hasGuid()) {
             QNWARNING(QStringLiteral("Detected ink note which has at least one resource without guid: note = ") << *m_pNote
@@ -2698,46 +2697,46 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
         return;
     }
 
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    if (resourceAdapters.isEmpty()) {
+    QList<Resource> resources = m_pNote->resources();
+    if (resources.isEmpty()) {
         QNTRACE(QStringLiteral("Note has no resources, nothing to do"));
         return;
     }
 
-    auto resourceAdaptersConstBegin = resourceAdapters.constBegin();
-    auto resourceAdaptersConstEnd = resourceAdapters.constEnd();
+    auto resourcesConstBegin = resources.constBegin();
+    auto resourcesConstEnd = resources.constEnd();
 
     size_t numPendingResourceWritesToLocalFiles = 0;
 
-    for(auto it = resourceAdaptersConstBegin; it != resourceAdaptersConstEnd; ++it)
+    for(auto it = resourcesConstBegin; it != resourcesConstEnd; ++it)
     {
-        const ResourceAdapter & resourceAdapter = *it;
+        const Resource & resource = *it;
 
-        if (!resourceAdapter.hasDataBody() && !resourceAdapter.hasAlternateDataBody()) {
-            QNINFO(QStringLiteral("Detected resource without data body: ") << resourceAdapter);
+        if (!resource.hasDataBody() && !resource.hasAlternateDataBody()) {
+            QNINFO(QStringLiteral("Detected resource without data body: ") << resource);
             continue;
         }
 
-        if (!resourceAdapter.hasDataHash() && !resourceAdapter.hasAlternateDataHash()) {
-            QNINFO(QStringLiteral("Detected resource without data hash: ") << resourceAdapter);
+        if (!resource.hasDataHash() && !resource.hasAlternateDataHash()) {
+            QNINFO(QStringLiteral("Detected resource without data hash: ") << resource);
             continue;
         }
 
-        if (!resourceAdapter.hasMime()) {
-            QNINFO(QStringLiteral("Detected resource without mime type: ") << resourceAdapter);
+        if (!resource.hasMime()) {
+            QNINFO(QStringLiteral("Detected resource without mime type: ") << resource);
             continue;
         }
 
-        const QByteArray & dataHash = (resourceAdapter.hasDataHash()
-                                       ? resourceAdapter.dataHash()
-                                       : resourceAdapter.alternateDataHash());
+        const QByteArray & dataHash = (resource.hasDataHash()
+                                       ? resource.dataHash()
+                                       : resource.alternateDataHash());
 
         QNTRACE(QStringLiteral("Found current note's resource corresponding to the data hash ")
-                << dataHash.toHex() << ": " << resourceAdapter);
+                << dataHash.toHex() << ": " << resource);
 
         if (!m_resourceInfo.contains(dataHash))
         {
-            bool res = saveResourceToLocalFile(resourceAdapter);
+            bool res = saveResourceToLocalFile(resource);
             if (res) {
                 ++numPendingResourceWritesToLocalFiles;
             }
@@ -2759,7 +2758,7 @@ void NoteEditorPrivate::saveNoteResourcesToLocalFiles()
                               "and add the src attributes to img resources when the files are ready"));
 }
 
-bool NoteEditorPrivate::saveResourceToLocalFile(const IResource & resource)
+bool NoteEditorPrivate::saveResourceToLocalFile(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::saveResourceToLocalFile: ") << resource);
 
@@ -2825,7 +2824,7 @@ void NoteEditorPrivate::provideSrcForResourceImgTags()
     page->executeJavaScript(QStringLiteral("provideSrcForResourceImgTags();"));
 }
 
-void NoteEditorPrivate::manualSaveResourceToFile(const IResource & resource)
+void NoteEditorPrivate::manualSaveResourceToFile(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::manualSaveResourceToFile"));
 
@@ -3019,7 +3018,7 @@ void NoteEditorPrivate::openResource(const QString & resourceAbsoluteFilePath)
     }
 }
 
-QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
+QImage NoteEditorPrivate::buildGenericResourceImage(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::buildGenericResourceImage"));
 
@@ -3161,7 +3160,7 @@ QImage NoteEditorPrivate::buildGenericResourceImage(const IResource & resource)
     return pixmap.toImage();
 }
 
-void NoteEditorPrivate::saveGenericResourceImage(const IResource & resource, const QImage & image)
+void NoteEditorPrivate::saveGenericResourceImage(const Resource & resource, const QImage & image)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::saveGenericResourceImage: resource local uid = ") << resource.localUid());
 
@@ -3234,22 +3233,22 @@ void NoteEditorPrivate::setupGenericResourceImages()
     size_t resourceImagesCounter = 0;
     bool shouldWaitForResourceImagesToSave = false;
 
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    const int numResources = resourceAdapters.size();
+    QList<Resource> resources = m_pNote->resources();
+    const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
+        const Resource & resource = resources[i];
 
-        if (resourceAdapter.hasMime())
+        if (resource.hasMime())
         {
-            mimeTypeName = resourceAdapter.mime();
+            mimeTypeName = resource.mime();
             if (mimeTypeName.startsWith(QStringLiteral("image/"))) {
-                QNTRACE(QStringLiteral("Skipping image resource ") << resourceAdapter);
+                QNTRACE(QStringLiteral("Skipping image resource ") << resource);
                 continue;
             }
         }
 
-        shouldWaitForResourceImagesToSave |= findOrBuildGenericResourceImage(resourceAdapter);
+        shouldWaitForResourceImagesToSave |= findOrBuildGenericResourceImage(resource);
         ++resourceImagesCounter;
     }
 
@@ -3268,7 +3267,7 @@ void NoteEditorPrivate::setupGenericResourceImages()
     setupGenericResourceOnClickHandler();
 }
 
-bool NoteEditorPrivate::findOrBuildGenericResourceImage(const IResource & resource)
+bool NoteEditorPrivate::findOrBuildGenericResourceImage(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::findOrBuildGenericResourceImage: ") << resource);
 
@@ -3393,7 +3392,7 @@ void NoteEditorPrivate::setupTextCursorPositionTracking()
 #endif // QUENTIER_USE_QT_WEB_ENGINE
 
 void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const QByteArray & previousResourceHash,
-                                       ResourceWrapper updatedResource)
+                                       Resource updatedResource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::updateResource: resource local uid = ") << resourceLocalUid
             << QStringLiteral(", previous hash = ") << previousResourceHash.toHex() << QStringLiteral(", updated resource: ")
@@ -4161,16 +4160,16 @@ void NoteEditorPrivate::onTableActionDone(const QVariant & dummy, const QVector<
     convertToNote();
 }
 
-int NoteEditorPrivate::resourceIndexByHash(const QList<ResourceAdapter> & resourceAdapters,
+int NoteEditorPrivate::resourceIndexByHash(const QList<Resource> & resources,
                                            const QByteArray & resourceHash) const
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::resourceIndexByHash: hash = ") << resourceHash.toHex());
 
-    const int numResources = resourceAdapters.size();
+    const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceAdapter & resourceAdapter = resourceAdapters[i];
-        if (resourceAdapter.hasDataHash() && (resourceAdapter.dataHash() == resourceHash)) {
+        const Resource & resource = resources[i];
+        if (resource.hasDataHash() && (resource.dataHash() == resourceHash)) {
             return i;
         }
     }
@@ -4333,11 +4332,11 @@ void NoteEditorPrivate::rebuildRecognitionIndicesCache()
         return;
     }
 
-    QList<ResourceAdapter> resources = m_pNote->resourceAdapters();
+    QList<Resource> resources = m_pNote->resources();
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceAdapter & resource = resources[i];
+        const Resource & resource = resources[i];
         if (Q_UNLIKELY(!resource.hasDataHash())) {
             QNDEBUG(QStringLiteral("Skipping the resource without the data hash: ") << resource);
             continue;
@@ -4660,8 +4659,8 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
 
             if (!noteChanged && m_pNote->hasResources() && note.hasResources())
             {
-                QList<ResourceWrapper> currentResources = m_pNote->resources();
-                QList<ResourceWrapper> updatedResources = note.resources();
+                QList<Resource> currentResources = m_pNote->resources();
+                QList<Resource> updatedResources = note.resources();
 
                 int size = currentResources.size();
                 noteChanged = (size != updatedResources.size());
@@ -4670,11 +4669,11 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
                     // NOTE: clearing out data bodies before comparing resources to speed up the comparison
                     for(int i = 0; i < size; ++i)
                     {
-                        ResourceWrapper currentResource = currentResources[i];
+                        Resource currentResource = currentResources[i];
                         currentResource.setDataBody(QByteArray());
                         currentResource.setAlternateDataBody(QByteArray());
 
-                        ResourceWrapper updatedResource = updatedResources[i];
+                        Resource updatedResource = updatedResources[i];
                         updatedResource.setDataBody(QByteArray());
                         updatedResource.setAlternateDataBody(QByteArray());
 
@@ -4809,7 +4808,7 @@ void NoteEditorPrivate::setNoteHtml(const QString & html)
     writeNotePageFile(html);
 }
 
-void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
+void NoteEditorPrivate::addResourceToNote(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::addResourceToNote"));
     QNTRACE(resource);
@@ -4837,7 +4836,7 @@ void NoteEditorPrivate::addResourceToNote(const ResourceWrapper & resource)
     saveResourceToLocalFile(resource);
 }
 
-void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
+void NoteEditorPrivate::removeResourceFromNote(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::removeResourceFromNote"));
     QNTRACE(resource);
@@ -4869,7 +4868,7 @@ void NoteEditorPrivate::removeResourceFromNote(const ResourceWrapper & resource)
     emit currentNoteChanged(*m_pNote);
 }
 
-void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
+void NoteEditorPrivate::replaceResourceInNote(const Resource & resource)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::replaceResourceInNote"));
     QNTRACE(resource);
@@ -4888,12 +4887,12 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
         return;
     }
 
-    QList<ResourceWrapper> resources = m_pNote->resources();
+    QList<Resource> resources = m_pNote->resources();
     int resourceIndex = -1;
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceWrapper & currentResource = resources[i];
+        const Resource & currentResource = resources[i];
         if (currentResource.localUid() == resource.localUid()) {
             resourceIndex = i;
             break;
@@ -4907,7 +4906,7 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
         return;
     }
 
-    const ResourceWrapper & targetResource = resources[resourceIndex];
+    const Resource & targetResource = resources[resourceIndex];
     QByteArray previousResourceHash;
     if (targetResource.hasDataHash()) {
         previousResourceHash = targetResource.dataHash();
@@ -4916,7 +4915,7 @@ void NoteEditorPrivate::replaceResourceInNote(const ResourceWrapper & resource)
     updateResource(targetResource.localUid(), previousResourceHash, resource);
 }
 
-void NoteEditorPrivate::setNoteResources(const QList<ResourceWrapper> & resources)
+void NoteEditorPrivate::setNoteResources(const QList<Resource> & resources)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setNoteResources"));
 
@@ -4947,8 +4946,8 @@ QString NoteEditorPrivate::noteEditorPagePath() const
 
 void NoteEditorPrivate::setRenameResourceDelegateSubscriptions(RenameResourceDelegate & delegate)
 {
-    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,ResourceWrapper,bool),
-                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,ResourceWrapper,bool));
+    QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,finished,QString,QString,Resource,bool),
+                     this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateFinished,QString,QString,Resource,bool));
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,notifyError,QNLocalizedString),
                      this, QNSLOT(NoteEditorPrivate,onRenameResourceDelegateError,QNLocalizedString));
     QObject::connect(&delegate, QNSIGNAL(RenameResourceDelegate,cancelled),
@@ -5070,13 +5069,13 @@ const Account * NoteEditorPrivate::accountPtr() const
     return m_pAccount.data();
 }
 
-const ResourceWrapper NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
+const Resource NoteEditorPrivate::attachResourceToNote(const QByteArray & data, const QByteArray & dataHash,
                                                               const QMimeType & mimeType, const QString & filename)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::attachResourceToNote: hash = ") << dataHash.toHex()
             << QStringLiteral(", mime type = ") << mimeType.name());
 
-    ResourceWrapper resource;
+    Resource resource;
     QString resourceLocalUid = resource.localUid();
     resource.setLocalUid(QString());   // Force the resource to have empty local uid for now
 
@@ -5226,21 +5225,21 @@ qint64 NoteEditorPrivate::noteResourcesSize() const
     }
 
     qint64 size = 0;
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    for(auto it = resourceAdapters.begin(), end = resourceAdapters.end(); it != end; ++it)
+    QList<Resource> resources = m_pNote->resources();
+    for(auto it = resources.constBegin(), end = resources.constEnd(); it != end; ++it)
     {
-        const ResourceAdapter & resourceAdapter = *it;
+        const Resource & resource = *it;
 
-        if (resourceAdapter.hasDataSize()) {
-            size += resourceAdapter.dataSize();
+        if (resource.hasDataSize()) {
+            size += resource.dataSize();
         }
 
-        if (resourceAdapter.hasAlternateDataSize()) {
-            size += resourceAdapter.alternateDataSize();
+        if (resource.hasAlternateDataSize()) {
+            size += resource.alternateDataSize();
         }
 
-        if (resourceAdapter.hasRecognitionDataSize()) {
-            size += resourceAdapter.recognitionDataSize();
+        if (resource.hasRecognitionDataSize()) {
+            size += resource.recognitionDataSize();
         }
     }
 
@@ -6183,8 +6182,8 @@ void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
         return;
     }
 
-    QList<ResourceAdapter> resourceAdapters = m_pNote->resourceAdapters();
-    int resourceIndex = resourceIndexByHash(resourceAdapters, resourceHash);
+    QList<Resource> resources = m_pNote->resources();
+    int resourceIndex = resourceIndexByHash(resources, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
         QNLocalizedString error = QT_TR_NOOP("attachment to be copied was not found in the note");
         QNWARNING(error << QStringLiteral(", resource hash = ") << resourceHash.toHex());
@@ -6192,7 +6191,7 @@ void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
         return;
     }
 
-    const ResourceAdapter & resource = resourceAdapters[resourceIndex];
+    const Resource & resource = resources[resourceIndex];
 
     if (Q_UNLIKELY(!resource.hasDataBody() && !resource.hasAlternateDataBody())) {
         QNLocalizedString error = QT_TR_NOOP("can't copy attachment as it has neither data body nor alternate data body");
@@ -6256,18 +6255,18 @@ void NoteEditorPrivate::removeAttachment(const QByteArray & resourceHash)
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("remove attachment"))
 
     bool foundResourceToRemove = false;
-    QList<ResourceWrapper> resources = m_pNote->resources();
+    QList<Resource> resources = m_pNote->resources();
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceWrapper & resource = resources[i];
+        const Resource & resource = resources[i];
         if (resource.hasDataHash() && (resource.dataHash() == resourceHash))
         {
             m_resourceInfo.removeResourceInfo(resource.dataHash());
 
             RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this);
-            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,ResourceWrapper),
-                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,ResourceWrapper));
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,Resource),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,Resource));
             QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QNLocalizedString),
                              this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QNLocalizedString));
             delegate->start();
@@ -6336,11 +6335,11 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
     }
 
     int targetResourceIndex = -1;
-    QList<ResourceWrapper> resources = m_pNote->resources();
+    QList<Resource> resources = m_pNote->resources();
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceWrapper & resource = resources[i];
+        const Resource & resource = resources[i];
         if (!resource.hasDataHash() || (resource.dataHash() != resourceHash)) {
             continue;
         }
@@ -6357,7 +6356,7 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
         return;
     }
 
-    ResourceWrapper & resource = resources[targetResourceIndex];
+    Resource & resource = resources[targetResourceIndex];
     if (Q_UNLIKELY(!resource.hasDataBody())) {
         QNLocalizedString error = errorPrefix;
         error += QT_TR_NOOP("the resource doesn't have the data body set");
@@ -6398,11 +6397,11 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
     }
 
     int targetResourceIndex = -1;
-    QList<ResourceWrapper> resources = m_pNote->resources();
+    QList<Resource> resources = m_pNote->resources();
     const int numResources = resources.size();
     for(int i = 0; i < numResources; ++i)
     {
-        const ResourceWrapper & resource = resources[i];
+        const Resource & resource = resources[i];
         if (!resource.hasDataHash() || (resource.dataHash() != resourceHash)) {
             continue;
         }
@@ -6435,7 +6434,7 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
         return;
     }
 
-    ResourceWrapper & resource = resources[targetResourceIndex];
+    Resource & resource = resources[targetResourceIndex];
     if (Q_UNLIKELY(!resource.hasDataBody())) {
         QNLocalizedString error = errorPrefix;
         error += QT_TR_NOOP("the resource doesn't have the data body set");
@@ -6456,8 +6455,8 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
                                                                                  *this, m_resourceInfo, *m_pResourceFileStorageManager,
                                                                                  m_resourceFileStoragePathsByResourceLocalUid);
 
-    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QByteArray,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type),
-                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QByteArray,QByteArray,QByteArray,ResourceWrapper,INoteEditorBackend::Rotation::type));
+    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QByteArray,QByteArray,QByteArray,Resource,INoteEditorBackend::Rotation::type),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QByteArray,QByteArray,QByteArray,Resource,INoteEditorBackend::Rotation::type));
     QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,QNLocalizedString),
                      this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,QNLocalizedString));
 
@@ -6740,8 +6739,8 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
                                                              m_pFileIOThreadWorker, m_pGenericResourceImageManager,
                                                              m_genericResourceImageFilePathsByResourceHash);
 
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,ResourceWrapper,QString),
-                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,ResourceWrapper,QString));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,Resource,QString),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,Resource,QString));
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QNLocalizedString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QNLocalizedString));
 

@@ -24,7 +24,7 @@
 #include <quentier/utility/FileIOThreadWorker.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <quentier/types/Account.h>
 #include <QImage>
 #include <QBuffer>

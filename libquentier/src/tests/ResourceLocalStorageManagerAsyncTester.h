@@ -23,7 +23,7 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 
 namespace quentier {
 
@@ -49,10 +49,10 @@ Q_SIGNALS:
     void addNotebookRequest(Notebook notebook, QUuid requestId = QUuid());
     void addNoteRequest(Note note, QUuid requestId = QUuid());
     void getResourceCountRequest(QUuid requestId = QUuid());
-    void addResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
-    void updateResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
-    void findResourceRequest(ResourceWrapper resource, bool withBinaryData, QUuid requestId = QUuid());
-    void expungeResourceRequest(ResourceWrapper resource, QUuid requestId = QUuid());
+    void addResourceRequest(Resource resource, QUuid requestId = QUuid());
+    void updateResourceRequest(Resource resource, QUuid requestId = QUuid());
+    void findResourceRequest(Resource resource, bool withBinaryData, QUuid requestId = QUuid());
+    void expungeResourceRequest(Resource resource, QUuid requestId = QUuid());
 
 private Q_SLOTS:
     void onWorkerInitialized();
@@ -62,15 +62,15 @@ private Q_SLOTS:
     void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
     void onGetResourceCountCompleted(int count, QUuid requestId);
     void onGetResourceCountFailed(QNLocalizedString errorDescription, QUuid requestId);
-    void onAddResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onAddResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
-    void onUpdateResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onUpdateResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindResourceCompleted(ResourceWrapper resource, bool withBinaryData, QUuid requestId);
-    void onFindResourceFailed(ResourceWrapper resource, bool withBinaryData,
+    void onAddResourceCompleted(Resource resource, QUuid requestId);
+    void onAddResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateResourceCompleted(Resource resource, QUuid requestId);
+    void onUpdateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindResourceCompleted(Resource resource, bool withBinaryData, QUuid requestId);
+    void onFindResourceFailed(Resource resource, bool withBinaryData,
                               QNLocalizedString errorDescription, QUuid requestId);
-    void onExpungeResourceCompleted(ResourceWrapper resource, QUuid requestId);
-    void onExpungeResourceFailed(ResourceWrapper resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeResourceCompleted(Resource resource, QUuid requestId);
+    void onExpungeResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
 
     void onFailure(QNLocalizedString errorDescription);
 
@@ -95,13 +95,13 @@ private:
     State m_state;
 
     LocalStorageManagerThreadWorker * m_pLocalStorageManagerThreadWorker;
-    QThread *                   m_pLocalStorageManagerThread;
+    QThread *            m_pLocalStorageManagerThread;
 
-    Notebook                    m_notebook;
-    Note                        m_note;
-    ResourceWrapper             m_initialResource;
-    ResourceWrapper             m_foundResource;
-    ResourceWrapper             m_modifiedResource;
+    Notebook             m_notebook;
+    Note                 m_note;
+    Resource             m_initialResource;
+    Resource             m_foundResource;
+    Resource             m_modifiedResource;
 };
 
 } // namespace test

@@ -2,7 +2,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_UNDO_STACK_NOTE_EDITOR_CONTENT_EDIT_UNDO_COMMAND_H
 
 #include "INoteEditorUndoCommand.h"
-#include <quentier/types/ResourceWrapper.h>
+#include <quentier/types/Resource.h>
 #include <QList>
 
 namespace quentier {
@@ -12,10 +12,10 @@ class NoteEditorContentEditUndoCommand: public INoteEditorUndoCommand
     Q_OBJECT
 public:
     NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate,
-                                     const QList<ResourceWrapper> & resources,
+                                     const QList<Resource> & resources,
                                      QUndoCommand * parent = Q_NULLPTR);
     NoteEditorContentEditUndoCommand(NoteEditorPrivate & noteEditorPrivate,
-                                     const QList<ResourceWrapper> & resources,
+                                     const QList<Resource> & resources,
                                      const QString & text, QUndoCommand * parent = Q_NULLPTR);
     virtual ~NoteEditorContentEditUndoCommand();
 
@@ -46,7 +46,7 @@ private:
      * of note's content. If the edit action was actually removing the resource
      * from the note's content via backspace, that fact would be figured out elsewhere
      */
-    QList<ResourceWrapper>  m_resources;
+    QList<Resource>  m_resources;
 };
 
 } // namespace quentier

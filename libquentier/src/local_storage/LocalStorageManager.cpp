@@ -368,26 +368,26 @@ int LocalStorageManager::enResourceCount(QNLocalizedString & errorDescription) c
     return d->enResourceCount(errorDescription);
 }
 
-bool LocalStorageManager::addEnResource(IResource & resource, QNLocalizedString & errorDescription)
+bool LocalStorageManager::addEnResource(Resource & resource, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->addEnResource(resource, errorDescription);
 }
 
-bool LocalStorageManager::updateEnResource(IResource & resource, QNLocalizedString & errorDescription)
+bool LocalStorageManager::updateEnResource(Resource & resource, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->updateEnResource(resource, errorDescription);
 }
 
-bool LocalStorageManager::findEnResource(IResource & resource, QNLocalizedString & errorDescription,
+bool LocalStorageManager::findEnResource(Resource & resource, QNLocalizedString & errorDescription,
                                          const bool withBinaryData) const
 {
     Q_D(const LocalStorageManager);
     return d->findEnResource(resource, errorDescription, withBinaryData);
 }
 
-bool LocalStorageManager::expungeEnResource(IResource & resource, QNLocalizedString & errorDescription)
+bool LocalStorageManager::expungeEnResource(Resource & resource, QNLocalizedString & errorDescription)
 {
     Q_D(LocalStorageManager);
     return d->expungeEnResource(resource, errorDescription);
