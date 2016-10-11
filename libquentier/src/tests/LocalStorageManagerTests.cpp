@@ -26,7 +26,7 @@
 #include <quentier/types/ResourceAdapter.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 #include <quentier/types/User.h>
 #include <quentier/utility/Utility.h>
 
@@ -1427,7 +1427,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     notebook.setUpdateWhichSharedNotebookRestrictions(1);
     notebook.setExpungeWhichSharedNotebookRestrictions(1);
 
-    SharedNotebookWrapper sharedNotebook;
+    SharedNotebook sharedNotebook;
     sharedNotebook.setId(1);
     sharedNotebook.setUserId(1);
     sharedNotebook.setNotebookGuid(notebook.guid());

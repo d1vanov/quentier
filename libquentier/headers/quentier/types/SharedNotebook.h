@@ -16,8 +16,8 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_TYPES_I_SHARED_NOTEBOOK_H
-#define LIB_QUENTIER_TYPES_I_SHARED_NOTEBOOK_H
+#ifndef LIB_QUENTIER_TYPES_SHARED_NOTEBOOK_H
+#define LIB_QUENTIER_TYPES_SHARED_NOTEBOOK_H
 
 #include <quentier/utility/Printable.h>
 
@@ -27,19 +27,28 @@
 #include <qt4qevercloud/QEverCloud.h>
 #endif
 
+#include <QSharedDataPointer>
+
 namespace quentier {
 
-class QUENTIER_EXPORT ISharedNotebook: public Printable
+QT_FORWARD_DECLARE_CLASS(SharedNotebookData)
+
+class QUENTIER_EXPORT SharedNotebook: public Printable
 {
 public:
     typedef qevercloud::SharedNotebookPrivilegeLevel::type SharedNotebookPrivilegeLevel;
 
 public:
-    ISharedNotebook();
-    virtual ~ISharedNotebook();
+    SharedNotebook();
+    SharedNotebook(const SharedNotebook & other);
+    SharedNotebook(SharedNotebook && other);
+    SharedNotebook(const qevercloud::SharedNotebook & qecSharedNotebook);
+    SharedNotebook & operator=(const SharedNotebook & other);
+    SharedNotebook & operator=(SharedNotebook && other);
+    virtual ~SharedNotebook();
 
-    bool operator==(const ISharedNotebook & other) const;
-    bool operator!=(const ISharedNotebook & other) const;
+    bool operator==(const SharedNotebook & other) const;
+    bool operator!=(const SharedNotebook & other) const;
 
     operator const qevercloud::SharedNotebook&() const;
     operator qevercloud::SharedNotebook&();
@@ -116,19 +125,10 @@ public:
 
     friend class Notebook;
 
-protected:
-    ISharedNotebook(const ISharedNotebook & other);
-    ISharedNotebook(ISharedNotebook && other);
-    ISharedNotebook & operator=(const ISharedNotebook & other);
-    ISharedNotebook & operator=(ISharedNotebook && other);
-
-    virtual qevercloud::SharedNotebook & GetEnSharedNotebook() = 0;
-    virtual const qevercloud::SharedNotebook & GetEnSharedNotebook() const = 0;
-
 private:
-    int  m_indexInNotebook;
+    QSharedDataPointer<SharedNotebookData> d;
 };
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_TYPES_I_SHARED_NOTEBOOK_H
+#endif // LIB_QUENTIER_TYPES_SHARED_NOTEBOOK_H

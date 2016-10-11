@@ -18,8 +18,7 @@
 
 #include "data/NotebookData.h"
 #include <quentier/types/Notebook.h>
-#include <quentier/types/SharedNotebookAdapter.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 #include <quentier/types/User.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -451,9 +450,9 @@ bool Notebook::hasSharedNotebooks()
     return d->m_qecNotebook.sharedNotebooks.isSet();
 }
 
-QList<SharedNotebookAdapter> Notebook::sharedNotebooks() const
+QList<SharedNotebook> Notebook::sharedNotebooks() const
 {
-    QList<SharedNotebookAdapter> notebooks;
+    QList<SharedNotebook> notebooks;
 
     if (!d->m_qecNotebook.sharedNotebooks.isSet()) {
         return notebooks;
@@ -463,9 +462,9 @@ QList<SharedNotebookAdapter> Notebook::sharedNotebooks() const
     int numSharedNotebooks = sharedNotebooks.size();
     notebooks.reserve(qMax(numSharedNotebooks, 0));
     for(int i = 0; i < numSharedNotebooks; ++i) {
-        const qevercloud::SharedNotebook & sharedNotebook = sharedNotebooks[i];
-        SharedNotebookAdapter sharedNotebookAdapter(sharedNotebook);
-        notebooks << sharedNotebookAdapter;
+        const qevercloud::SharedNotebook & qecSharedNotebook = sharedNotebooks[i];
+        SharedNotebook sharedNotebook(qecSharedNotebook);
+        notebooks << sharedNotebook;
         notebooks.back().setIndexInNotebook(i);
     }
 
@@ -477,34 +476,28 @@ void Notebook::setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebo
     d->m_qecNotebook.sharedNotebooks = sharedNotebooks;
 }
 
-#define SHARED_NOTEBOOKS_SETTER(type) \
-    void Notebook::setSharedNotebooks(QList<type> && notebooks) \
-    { \
-        if (!d->m_qecNotebook.sharedNotebooks.isSet()) { \
-            d->m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>(); \
-        } \
-        \
-        d->m_qecNotebook.sharedNotebooks->clear(); \
-        int numNotebooks = notebooks.size(); \
-        for(int i = 0; i < numNotebooks; ++i) { \
-            const type & sharedNotebook = notebooks[i]; \
-            d->m_qecNotebook.sharedNotebooks.ref() << sharedNotebook.GetEnSharedNotebook(); \
-        } \
+void Notebook::setSharedNotebooks(QList<SharedNotebook> && notebooks)
+{
+    if (!d->m_qecNotebook.sharedNotebooks.isSet()) {
+        d->m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>();
     }
 
-SHARED_NOTEBOOKS_SETTER(SharedNotebookAdapter)
-SHARED_NOTEBOOKS_SETTER(SharedNotebookWrapper)
+    d->m_qecNotebook.sharedNotebooks->clear();
+    int numNotebooks = notebooks.size();
+    for(int i = 0; i < numNotebooks; ++i) {
+        const SharedNotebook & sharedNotebook = notebooks[i];
+        d->m_qecNotebook.sharedNotebooks.ref() << static_cast<const qevercloud::SharedNotebook>(sharedNotebook);
+    }
+}
 
-#undef SHARED_NOTEBOOKS_SETTER
-
-void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
+void Notebook::addSharedNotebook(const SharedNotebook & sharedNotebook)
 {
     if (!d->m_qecNotebook.sharedNotebooks.isSet()) {
         d->m_qecNotebook.sharedNotebooks = QList<qevercloud::SharedNotebook>();
     }
 
     QList<qevercloud::SharedNotebook> & sharedNotebooks = d->m_qecNotebook.sharedNotebooks;
-    const auto & enSharedNotebook = sharedNotebook.GetEnSharedNotebook();
+    const auto & enSharedNotebook = static_cast<const qevercloud::SharedNotebook&>(sharedNotebook);
 
     if (sharedNotebooks.indexOf(enSharedNotebook) != -1) {
         QNDEBUG(QStringLiteral("Can't add shared notebook: this shared notebook already exists within the notebook"));
@@ -514,7 +507,7 @@ void Notebook::addSharedNotebook(const ISharedNotebook & sharedNotebook)
     sharedNotebooks << enSharedNotebook;
 }
 
-void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
+void Notebook::removeSharedNotebook(const SharedNotebook & sharedNotebook)
 {
     if (!canUpdateNotebook()) {
         QNDEBUG(QStringLiteral("Can't remove shared notebook from notebook: updating is forbidden"));
@@ -522,7 +515,7 @@ void Notebook::removeSharedNotebook(const ISharedNotebook & sharedNotebook)
     }
 
     auto & sharedNotebooks = d->m_qecNotebook.sharedNotebooks;
-    const auto & enSharedNotebook = sharedNotebook.GetEnSharedNotebook();
+    const auto & enSharedNotebook = static_cast<const qevercloud::SharedNotebook>(sharedNotebook);
 
     int index = sharedNotebooks->indexOf(enSharedNotebook);
     if (index == -1) {

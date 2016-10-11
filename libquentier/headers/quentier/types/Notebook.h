@@ -31,9 +31,7 @@
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
+QT_FORWARD_DECLARE_CLASS(SharedNotebook)
 QT_FORWARD_DECLARE_CLASS(User)
 QT_FORWARD_DECLARE_CLASS(NotebookData)
 
@@ -123,12 +121,11 @@ public:
     void setStack(const QString & stack);
 
     bool hasSharedNotebooks();
-    QList<SharedNotebookAdapter> sharedNotebooks() const;
+    QList<SharedNotebook> sharedNotebooks() const;
     void setSharedNotebooks(QList<qevercloud::SharedNotebook> sharedNotebooks);
-    void setSharedNotebooks(QList<SharedNotebookAdapter> && notebooks);
-    void setSharedNotebooks(QList<SharedNotebookWrapper> && notebooks);
-    void addSharedNotebook(const ISharedNotebook & sharedNotebook);
-    void removeSharedNotebook(const ISharedNotebook & sharedNotebook);
+    void setSharedNotebooks(QList<SharedNotebook> && notebooks);
+    void addSharedNotebook(const SharedNotebook & sharedNotebook);
+    void removeSharedNotebook(const SharedNotebook & sharedNotebook);
 
     bool hasBusinessNotebookDescription() const;
     const QString & businessNotebookDescription() const;

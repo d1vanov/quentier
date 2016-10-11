@@ -400,7 +400,7 @@ void LocalStorageManagerThreadWorker::onListAllSharedNotebooksRequest(QUuid requ
     try
     {
         QNLocalizedString errorDescription;
-        QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->listAllSharedNotebooks(errorDescription);
+        QList<SharedNotebook> sharedNotebooks = m_pLocalStorageManager->listAllSharedNotebooks(errorDescription);
         if (sharedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listAllSharedNotebooksFailed(errorDescription, requestId);
             return;
@@ -447,7 +447,7 @@ void LocalStorageManagerThreadWorker::onListSharedNotebooksPerNotebookGuidReques
     try
     {
         QNLocalizedString errorDescription;
-        QList<SharedNotebookWrapper> sharedNotebooks = m_pLocalStorageManager->listSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
+        QList<SharedNotebook> sharedNotebooks = m_pLocalStorageManager->listSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
         if (sharedNotebooks.isEmpty() && !errorDescription.isEmpty()) {
             emit listSharedNotebooksPerNotebookGuidFailed(notebookGuid, errorDescription, requestId);
             return;

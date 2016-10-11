@@ -50,7 +50,6 @@ set(NOTE_EDITOR_HEADERS
 set(TYPES_HEADERS
     headers/quentier/types/Account.h
     headers/quentier/types/IFavoritableDataElement.h
-    headers/quentier/types/ISharedNotebook.h
     headers/quentier/types/IResource.h
     headers/quentier/types/LinkedNotebook.h
     headers/quentier/types/ILocalStorageDataElement.h
@@ -63,8 +62,7 @@ set(TYPES_HEADERS
     headers/quentier/types/ResourceRecognitionIndices.h
     headers/quentier/types/SavedSearch.h
     headers/quentier/types/SharedNote.h
-    headers/quentier/types/SharedNotebookAdapter.h
-    headers/quentier/types/SharedNotebookWrapper.h
+    headers/quentier/types/SharedNotebook.h
     headers/quentier/types/Tag.h
     headers/quentier/types/User.h
     headers/quentier/types/RegisterMetatypes.h)
@@ -101,8 +99,7 @@ set(EXCEPTION_HEADERS
     headers/quentier/exception/NoteEditorPluginInitializationException.h
     headers/quentier/exception/NullPtrException.h
     headers/quentier/exception/ResourceAdapterAccessException.h
-    headers/quentier/exception/ResourceLocalFileStorageFolderNotFoundException.h
-    headers/quentier/exception/SharedNotebookAdapterAccessException.h)
+    headers/quentier/exception/ResourceLocalFileStorageFolderNotFoundException.h)
 
 set(UTILITY_HEADERS
     headers/quentier/utility/ApplicationSettings.h
@@ -201,7 +198,7 @@ set(PRIVATE_HEADERS
     src/types/data/NoteData.h
     src/types/data/NotebookData.h
     src/types/data/ResourceWrapperData.h
-    src/types/data/SharedNotebookWrapperData.h
+    src/types/data/SharedNotebookData.h
     src/types/data/TagData.h
     src/types/data/SharedNoteData.h
     src/types/data/SavedSearchData.h
@@ -309,7 +306,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/TableActionUndoCommand.cpp
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.cpp
     src/types/Account.cpp
-    src/types/ISharedNotebook.cpp
     src/types/IResource.cpp
     src/types/LinkedNotebook.cpp
     src/types/Note.cpp
@@ -320,8 +316,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/ResourceRecognitionIndices.cpp
     src/types/SavedSearch.cpp
     src/types/SharedNote.cpp
-    src/types/SharedNotebookAdapter.cpp
-    src/types/SharedNotebookWrapper.cpp
+    src/types/SharedNotebook.cpp
     src/types/Tag.cpp
     src/types/User.cpp
     src/types/RegisterMetatypes.cpp
@@ -335,7 +330,7 @@ set(${PROJECT_NAME}_SOURCES
     src/types/data/ResourceWrapperData.cpp
     src/types/data/ResourceRecognitionIndexItemData.cpp
     src/types/data/ResourceRecognitionIndicesData.cpp
-    src/types/data/SharedNotebookWrapperData.cpp
+    src/types/data/SharedNotebookData.cpp
     src/types/data/TagData.cpp
     src/types/data/SavedSearchData.cpp
     src/types/data/SharedNoteData.cpp
@@ -375,7 +370,6 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/LoggerInitializationException.cpp
     src/exception/ResourceAdapterAccessException.cpp
     src/exception/ResourceLocalFileStorageFolderNotFoundException.cpp
-    src/exception/SharedNotebookAdapterAccessException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/DesktopServices.cpp
     src/utility/EncryptionManager.cpp

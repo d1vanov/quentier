@@ -24,7 +24,7 @@
 #include <quentier/types/User.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/SavedSearch.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QMetaType>
@@ -49,7 +49,7 @@ void registerMetatypes()
     qRegisterMetaType< QList<LinkedNotebook> >("QList<LinkedNotebook>");
     qRegisterMetaType< QList<SavedSearch> >("QList<SavedSearch>");
 
-    qRegisterMetaType< QList<SharedNotebookWrapper> >("QList<SharedNotebookWrapper>");
+    qRegisterMetaType< QList<SharedNotebook> >("QList<SharedNotebook>");
 
     qRegisterMetaType<LocalStorageManager::ListObjectsOptions>("LocalStorageManager::ListObjectsOptions");
     qRegisterMetaType<LocalStorageManager::ListNotesOrder::type>("LocalStorageManager::ListNotesOrder::type");

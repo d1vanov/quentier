@@ -25,7 +25,7 @@
 #include <quentier/local_storage/LocalStorageCacheManager.h>
 #include <quentier/types/User.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 #include <quentier/types/LinkedNotebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
@@ -100,9 +100,9 @@ Q_SIGNALS:
                              LocalStorageManager::ListNotebooksOrder::type order,
                              LocalStorageManager::OrderDirection::type orderDirection,
                              QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void listAllSharedNotebooksComplete(QList<SharedNotebookWrapper> foundSharedNotebooks, QUuid requestId = QUuid());
+    void listAllSharedNotebooksComplete(QList<SharedNotebook> foundSharedNotebooks, QUuid requestId = QUuid());
     void listAllSharedNotebooksFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebookWrapper> foundSharedNotebooks,
+    void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebook> foundSharedNotebooks,
                                                     QUuid requestId = QUuid());
     void listSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QNLocalizedString errorDescription, QUuid requestId = QUuid());
     void expungeNotebookComplete(Notebook notebook, QUuid requestId = QUuid());

@@ -5,9 +5,7 @@
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/User.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/ISharedNotebook.h>
-#include <quentier/types/SharedNotebookAdapter.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
 #include <quentier/types/IResource.h>
@@ -68,9 +66,9 @@ public:
                                   const LocalStorageManager::ListNotebooksOrder::type & order,
                                   const LocalStorageManager::OrderDirection::type & orderDirection,
                                   const QString & linkedNotebookGuid) const;
-    QList<SharedNotebookWrapper> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
-    QList<SharedNotebookWrapper> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                    QNLocalizedString & errorDescription) const;
+    QList<SharedNotebook> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
+    QList<SharedNotebook> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                                             QNLocalizedString & errorDescription) const;
     bool expungeNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
 
     int linkedNotebookCount(QNLocalizedString & errorDescription) const;
@@ -168,7 +166,7 @@ private:
     bool createTables(QNLocalizedString & errorDescription);
     bool insertOrReplaceNotebookRestrictions(const QString & localUid, const qevercloud::NotebookRestrictions & notebookRestrictions,
                                              QNLocalizedString & errorDescription);
-    bool insertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
+    bool insertOrReplaceSharedNotebook(const SharedNotebook & sharedNotebook,
                                        QNLocalizedString & errorDescription);
 
     bool rowExists(const QString & tableName, const QString & uniqueKeyName,
@@ -273,7 +271,7 @@ private:
     bool fillNoteTagIdFromSqlRecord(const QSqlRecord & record, const QString & column, QList<QPair<QString, int> > & tagIdsAndIndices,
                                     QHash<QString, int> & tagIndexPerId, QNLocalizedString & errorDescription) const;
     bool fillNotebookFromSqlRecord(const QSqlRecord & record, Notebook & notebook, QNLocalizedString & errorDescription) const;
-    bool fillSharedNotebookFromSqlRecord(const QSqlRecord & record, ISharedNotebook & sharedNotebook,
+    bool fillSharedNotebookFromSqlRecord(const QSqlRecord & record, SharedNotebook & sharedNotebook,
                                          QNLocalizedString & errorDescription) const;
     bool fillLinkedNotebookFromSqlRecord(const QSqlRecord & record, LinkedNotebook & linkedNotebook,
                                          QNLocalizedString & errorDescription) const;
@@ -338,9 +336,9 @@ private:
 
     void clearDatabaseFile();
 
-    struct SharedNotebookAdapterCompareByIndex
+    struct SharedNotebookCompareByIndex
     {
-        bool operator()(const SharedNotebookAdapter & lhs, const SharedNotebookAdapter & rhs) const;
+        bool operator()(const SharedNotebook & lhs, const SharedNotebook & rhs) const;
     };
 
     struct SharedNoteCompareByIndex

@@ -138,13 +138,13 @@ QList<Notebook> LocalStorageManager::listNotebooks(const ListObjectsOptions flag
     return d->listNotebooks(flag, errorDescription, limit, offset, order, orderDirection, linkedNotebookGuid);
 }
 
-QList<SharedNotebookWrapper> LocalStorageManager::listAllSharedNotebooks(QNLocalizedString & errorDescription) const
+QList<SharedNotebook> LocalStorageManager::listAllSharedNotebooks(QNLocalizedString & errorDescription) const
 {
     Q_D(const LocalStorageManager);
     return d->listAllSharedNotebooks(errorDescription);
 }
 
-QList<SharedNotebookWrapper> LocalStorageManager::listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+QList<SharedNotebook> LocalStorageManager::listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                                      QNLocalizedString & errorDescription) const
 {
     Q_D(const LocalStorageManager);

@@ -314,7 +314,7 @@ public:
      * @return either list of all shared notebooks within the account or empty list in cases of
      * error or no shared notebooks presence within the account
      */
-    QList<SharedNotebookWrapper> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
+    QList<SharedNotebook> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
 
     /**
      * @brief listSharedNotebooksPerNotebookGuid - attempts to list all shared notebooks
@@ -327,8 +327,8 @@ public:
      * @return either list of shared notebooks per notebook guid or empy list
      * in case of error of no shared notebooks presence per given notebook guid
      */
-    QList<SharedNotebookWrapper> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                                    QNLocalizedString & errorDescription) const;
+    QList<SharedNotebook> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+                                                             QNLocalizedString & errorDescription) const;
 
     /**
      * @brief expungeNotebook - permanently deletes specified notebook from local storage.
@@ -552,11 +552,11 @@ public:
      * no notes presence in the given notebook
      */
     QList<Note> listNotesPerNotebook(const Notebook & notebook, QNLocalizedString & errorDescription,
-                                        const bool withResourceBinaryData = true,
-                                        const ListObjectsOptions & flag = ListAll,
-                                        const size_t limit = 0, const size_t offset = 0,
-                                        const ListNotesOrder::type & order = ListNotesOrder::NoOrder,
-                                        const OrderDirection::type & orderDirection = OrderDirection::Ascending) const;
+                                     const bool withResourceBinaryData = true,
+                                     const ListObjectsOptions & flag = ListAll,
+                                     const size_t limit = 0, const size_t offset = 0,
+                                     const ListNotesOrder::type & order = ListNotesOrder::NoOrder,
+                                     const OrderDirection::type & orderDirection = OrderDirection::Ascending) const;
 
     /**
      * @brief listNotesPerTag - attempts to list notes labeled with a given tag

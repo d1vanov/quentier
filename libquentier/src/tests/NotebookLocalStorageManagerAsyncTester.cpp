@@ -97,7 +97,7 @@ void NotebookLocalStorageManagerAsyncTester::onWorkerInitialized()
     m_initialNotebook.setBusinessNotebookPrivilegeLevel(1);
     m_initialNotebook.setBusinessNotebookRecommended(true);
 
-    SharedNotebookWrapper sharedNotebook;
+    SharedNotebook sharedNotebook;
     sharedNotebook.setId(1);
     sharedNotebook.setUserId(m_userId);
     sharedNotebook.setNotebookGuid(m_initialNotebook.guid());
@@ -177,7 +177,7 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
         extraNotebook.setBusinessNotebookPrivilegeLevel(1);
         extraNotebook.setBusinessNotebookRecommended(true);
 
-        SharedNotebookWrapper sharedNotebookOne;
+        SharedNotebook sharedNotebookOne;
         sharedNotebookOne.setId(1);
         sharedNotebookOne.setUserId(4);
         sharedNotebookOne.setNotebookGuid(extraNotebook.guid());
@@ -192,7 +192,7 @@ void NotebookLocalStorageManagerAsyncTester::onGetNotebookCountCompleted(int cou
 
         extraNotebook.addSharedNotebook(sharedNotebookOne);
 
-        SharedNotebookWrapper sharedNotebookTwo;
+        SharedNotebook sharedNotebookTwo;
         sharedNotebookTwo.setId(2);
         sharedNotebookTwo.setUserId(4);
         sharedNotebookTwo.setNotebookGuid(extraNotebook.guid());
@@ -269,7 +269,7 @@ void NotebookLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         extraNotebook.setBusinessNotebookPrivilegeLevel(1);
         extraNotebook.setBusinessNotebookRecommended(false);
 
-        SharedNotebookWrapper sharedNotebook;
+        SharedNotebook sharedNotebook;
         sharedNotebook.setId(3);
         sharedNotebook.setUserId(4);
         sharedNotebook.setNotebookGuid(extraNotebook.guid());
@@ -632,7 +632,7 @@ void NotebookLocalStorageManagerAsyncTester::onListAllNotebooksFailed(size_t lim
     emit failure(errorDescription.nonLocalizedString());
 }
 
-void NotebookLocalStorageManagerAsyncTester::onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks, QUuid requestId)
+void NotebookLocalStorageManagerAsyncTester::onListAllSharedNotebooksCompleted(QList<SharedNotebook> sharedNotebooks, QUuid requestId)
 {
     Q_UNUSED(requestId)
 
@@ -645,7 +645,9 @@ void NotebookLocalStorageManagerAsyncTester::onListAllSharedNotebooksCompleted(Q
         return;
     }
 
-    foreach(const SharedNotebookWrapper & sharedNotebook, m_allInitialSharedNotebooks) {
+    for(auto it = m_allInitialSharedNotebooks.constBegin(), end = m_allInitialSharedNotebooks.constEnd(); it != end; ++it)
+    {
+        const SharedNotebook & sharedNotebook = *it;
         if (!sharedNotebooks.contains(sharedNotebook)) {
             errorDescription = "One of initial shared notebooks is not found within listed shared notebooks";
             QNWARNING(errorDescription << ", shared notebook which was not found: " << sharedNotebook);
@@ -665,7 +667,7 @@ void NotebookLocalStorageManagerAsyncTester::onListAllSharedNotebooksFailed(QNLo
 }
 
 void NotebookLocalStorageManagerAsyncTester::onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid,
-                                                                                           QList<SharedNotebookWrapper> sharedNotebooks,
+                                                                                           QList<SharedNotebook> sharedNotebooks,
                                                                                            QUuid requestId)
 {
     Q_UNUSED(requestId)
@@ -679,7 +681,10 @@ void NotebookLocalStorageManagerAsyncTester::onListSharedNotebooksPerNotebookGui
         return;
     }
 
-    foreach(const SharedNotebookWrapper & sharedNotebook, m_initialSharedNotebooksPerNotebook) {
+    for(auto it = m_initialSharedNotebooksPerNotebook.constBegin(), end = m_initialSharedNotebooksPerNotebook.constEnd();
+        it != end; ++it)
+    {
+        const SharedNotebook & sharedNotebook = *it;
         if (!sharedNotebooks.contains(sharedNotebook)) {
             errorDescription = "One of initial shared notebooks is not found within listed shared notebooks";
             QNWARNING(errorDescription << ", shared notebook which was not found: " << sharedNotebook
@@ -816,15 +821,15 @@ void NotebookLocalStorageManagerAsyncTester::createConnections()
                             LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,
                             QString,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listAllSharedNotebooksComplete,
-                                                                  QList<SharedNotebookWrapper>,QUuid),
+                                                                  QList<SharedNotebook>,QUuid),
                      this, QNSLOT(NotebookLocalStorageManagerAsyncTester,onListAllSharedNotebooksCompleted,
-                                  QList<SharedNotebookWrapper>,QUuid));
+                                  QList<SharedNotebook>,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listAllSharedNotebooksFailed,QNLocalizedString,QUuid),
                      this, QNSLOT(NotebookLocalStorageManagerAsyncTester,onListAllSharedNotebooksFailed,QNLocalizedString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSharedNotebooksPerNotebookGuidComplete,
-                                                                  QString,QList<SharedNotebookWrapper>,QUuid),
+                                                                  QString,QList<SharedNotebook>,QUuid),
                      this, QNSLOT(NotebookLocalStorageManagerAsyncTester,onListSharedNotebooksPerNotebookGuidCompleted,
-                                  QString,QList<SharedNotebookWrapper>,QUuid));
+                                  QString,QList<SharedNotebook>,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSharedNotebooksPerNotebookGuidFailed,
                                                                   QString,QNLocalizedString,QUuid),
                      this, QNSLOT(NotebookLocalStorageManagerAsyncTester,onListSharedNotebooksPerNotebookGuidFailed,QString,QNLocalizedString,QUuid));

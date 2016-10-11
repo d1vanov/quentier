@@ -39,7 +39,7 @@
 #include <quentier/types/Tag.h>
 #include <quentier/types/ResourceWrapper.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 #include <quentier/types/User.h>
 #include <quentier/types/RegisterMetatypes.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -727,7 +727,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
         notebook.setUpdateWhichSharedNotebookRestrictions(1);
         notebook.setExpungeWhichSharedNotebookRestrictions(1);
 
-        SharedNotebookWrapper sharedNotebook;
+        SharedNotebook sharedNotebook;
         sharedNotebook.setId(1);
         sharedNotebook.setUserId(1);
         sharedNotebook.setNotebookGuid(notebook.guid());
@@ -1283,12 +1283,12 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
 
 
         int numSharedNotebooks = 5;
-        QList<SharedNotebookWrapper> sharedNotebooks;
+        QList<SharedNotebook> sharedNotebooks;
         sharedNotebooks.reserve(numSharedNotebooks);
         for(int i = 0; i < numSharedNotebooks; ++i)
         {
-            sharedNotebooks << SharedNotebookWrapper();
-            SharedNotebookWrapper & sharedNotebook = sharedNotebooks.back();
+            sharedNotebooks << SharedNotebook();
+            SharedNotebook & sharedNotebook = sharedNotebooks.back();
 
             sharedNotebook.setId(i);
             sharedNotebook.setUserId(i);
@@ -1309,7 +1309,7 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
         bool res = localStorageManager.addNotebook(notebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
-        QList<SharedNotebookWrapper> foundSharedNotebooks = localStorageManager.listAllSharedNotebooks(errorMessage);
+        QList<SharedNotebook> foundSharedNotebooks = localStorageManager.listAllSharedNotebooks(errorMessage);
         QVERIFY2(!foundSharedNotebooks.isEmpty(), qPrintable(errorMessage.nonLocalizedString()));
 
         int numFoundSharedNotebooks = foundSharedNotebooks.size();
@@ -1321,7 +1321,7 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
 
         for(int i = 0; i < numFoundSharedNotebooks; ++i)
         {
-            const SharedNotebookWrapper & foundSharedNotebook = foundSharedNotebooks.at(i);
+            const SharedNotebook & foundSharedNotebook = foundSharedNotebooks.at(i);
             if (!sharedNotebooks.contains(foundSharedNotebook)) {
                 QFAIL("One of shared notebooks from the result of LocalStorageManager::ListAllSharedNotebooks "
                       "was not found in the list of original shared notebooks");
@@ -1791,7 +1791,7 @@ void CoreTester::localStorageManagerListNotebooksTest()
             }
 
             if (i > 1) {
-                SharedNotebookWrapper sharedNotebook;
+                SharedNotebook sharedNotebook;
                 sharedNotebook.setId(i+1);
                 sharedNotebook.setUserId(i+1);
                 sharedNotebook.setNotebookGuid(notebook.guid());

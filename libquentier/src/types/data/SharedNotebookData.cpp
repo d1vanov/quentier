@@ -16,36 +16,41 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SharedNotebookWrapperData.h"
+#include "SharedNotebookData.h"
 
 namespace quentier {
 
-SharedNotebookWrapperData::SharedNotebookWrapperData() :
+SharedNotebookData::SharedNotebookData() :
     QSharedData(),
-    m_qecSharedNotebook()
+    m_qecSharedNotebook(),
+    m_indexInNotebook(-1)
 {}
 
-SharedNotebookWrapperData::SharedNotebookWrapperData(const SharedNotebookWrapperData & other) :
+SharedNotebookData::SharedNotebookData(const SharedNotebookData & other) :
     QSharedData(other),
-    m_qecSharedNotebook(other.m_qecSharedNotebook)
+    m_qecSharedNotebook(other.m_qecSharedNotebook),
+    m_indexInNotebook(other.m_indexInNotebook)
 {}
 
-SharedNotebookWrapperData::SharedNotebookWrapperData(SharedNotebookWrapperData && other) :
+SharedNotebookData::SharedNotebookData(SharedNotebookData && other) :
     QSharedData(std::move(other)),
-    m_qecSharedNotebook(std::move(other.m_qecSharedNotebook))
+    m_qecSharedNotebook(std::move(other.m_qecSharedNotebook)),
+    m_indexInNotebook(std::move(other.m_indexInNotebook))
 {}
 
-SharedNotebookWrapperData::SharedNotebookWrapperData(const qevercloud::SharedNotebook & other) :
+SharedNotebookData::SharedNotebookData(const qevercloud::SharedNotebook & other) :
     QSharedData(),
-    m_qecSharedNotebook(other)
+    m_qecSharedNotebook(other),
+    m_indexInNotebook(-1)
 {}
 
-SharedNotebookWrapperData::SharedNotebookWrapperData(qevercloud::SharedNotebook && other) :
+SharedNotebookData::SharedNotebookData(qevercloud::SharedNotebook && other) :
     QSharedData(),
-    m_qecSharedNotebook(std::move(other))
+    m_qecSharedNotebook(std::move(other)),
+    m_indexInNotebook(-1)
 {}
 
-SharedNotebookWrapperData::~SharedNotebookWrapperData()
+SharedNotebookData::~SharedNotebookData()
 {}
 
 } // namespace quentier

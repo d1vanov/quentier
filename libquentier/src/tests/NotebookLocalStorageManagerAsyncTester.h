@@ -23,7 +23,7 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Notebook.h>
-#include <quentier/types/SharedNotebookWrapper.h>
+#include <quentier/types/SharedNotebook.h>
 
 namespace quentier {
 
@@ -85,10 +85,9 @@ private Q_SLOTS:
                                   LocalStorageManager::ListNotebooksOrder::type order,
                                   LocalStorageManager::OrderDirection::type orderDirection,
                                   QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
-    void onListAllSharedNotebooksCompleted(QList<SharedNotebookWrapper> sharedNotebooks, QUuid requestId);
+    void onListAllSharedNotebooksCompleted(QList<SharedNotebook> sharedNotebooks, QUuid requestId);
     void onListAllSharedNotebooksFailed(QNLocalizedString errorDescription, QUuid requestId);
-    void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebookWrapper> sharedNotebooks,
-                                                       QUuid requestId);
+    void onListSharedNotebooksPerNotebookGuidCompleted(QString notebookGuid, QList<SharedNotebook> sharedNotebooks, QUuid requestId);
     void onListSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
     void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
@@ -135,8 +134,8 @@ private:
     Notebook                    m_foundNotebook;
     Notebook                    m_modifiedNotebook;
     QList<Notebook>             m_initialNotebooks;
-    QList<SharedNotebookWrapper>  m_allInitialSharedNotebooks;
-    QList<SharedNotebookWrapper>  m_initialSharedNotebooksPerNotebook;
+    QList<SharedNotebook>       m_allInitialSharedNotebooks;
+    QList<SharedNotebook>       m_initialSharedNotebooksPerNotebook;
 };
 
 } // namespace quentier

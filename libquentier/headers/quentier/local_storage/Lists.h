@@ -26,9 +26,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(User)
 QT_FORWARD_DECLARE_CLASS(Notebook)
-QT_FORWARD_DECLARE_CLASS(ISharedNotebook)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookWrapper)
-QT_FORWARD_DECLARE_CLASS(SharedNotebookAdapter)
+QT_FORWARD_DECLARE_CLASS(SharedNotebook)
 QT_FORWARD_DECLARE_CLASS(LinkedNotebook)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(Tag)
@@ -39,13 +37,13 @@ QT_FORWARD_DECLARE_CLASS(SavedSearch)
 
 typedef QList<User>                   UserList;
 typedef QList<Notebook>               NotebookList;
-typedef QList<SharedNotebookWrapper>  SharedNotebookList;
+typedef QList<SharedNotebook>         SharedNotebookList;
 typedef QList<LinkedNotebook>         LinkedNotebookList;
 typedef QList<Note>                   NoteList;
 typedef QList<Tag>                    TagList;
 typedef QList<ResourceWrapper>        ResourceList;
 typedef QList<SavedSearch>            SavedSearchList;
 
-}
+} // namespace quentier
 
 #endif // LIB_QUENTIER_LOCAL_STORAGE_LISTS_H

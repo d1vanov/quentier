@@ -993,11 +993,11 @@ QList<Notebook> LocalStorageManagerPrivate::listNotebooks(const LocalStorageMana
                                                                                 linkedNotebookGuidSqlQueryCondition);
 }
 
-QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(QNLocalizedString & errorDescription) const
+QList<SharedNotebook> LocalStorageManagerPrivate::listAllSharedNotebooks(QNLocalizedString & errorDescription) const
 {
     QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listAllSharedNotebooks"));
 
-    QList<SharedNotebookWrapper> sharedNotebooks;
+    QList<SharedNotebook> sharedNotebooks;
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't list all shared notebooks");
 
     QSqlQuery query(m_sqlDatabase);
@@ -1019,8 +1019,8 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(
     {
         QSqlRecord record = query.record();
 
-        sharedNotebooks << SharedNotebookWrapper();
-        SharedNotebookWrapper & sharedNotebook = sharedNotebooks.back();
+        sharedNotebooks << SharedNotebook();
+        SharedNotebook & sharedNotebook = sharedNotebooks.back();
 
         QNLocalizedString error;
         res = fillSharedNotebookFromSqlRecord(record, sharedNotebook, error);
@@ -1047,10 +1047,10 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listAllSharedNotebooks(
     return sharedNotebooks;
 }
 
-QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
+QList<SharedNotebook> LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                                                             QNLocalizedString & errorDescription) const
 {
-    QList<SharedNotebookWrapper> sharedNotebooks;
+    QList<SharedNotebook> sharedNotebooks;
 
     QList<qevercloud::SharedNotebook> enSharedNotebooks = listEnSharedNotebooksPerNotebookGuid(notebookGuid, errorDescription);
     if (enSharedNotebooks.isEmpty()) {
@@ -1059,7 +1059,7 @@ QList<SharedNotebookWrapper> LocalStorageManagerPrivate::listSharedNotebooksPerN
 
     sharedNotebooks.reserve(qMax(enSharedNotebooks.size(), 0));
 
-    for(auto it = enSharedNotebooks.begin(), end = enSharedNotebooks.end(); it != end; ++it) {
+    for(auto it = enSharedNotebooks.constBegin(), end = enSharedNotebooks.constEnd(); it != end; ++it) {
         sharedNotebooks << *it;
     }
 
@@ -1071,7 +1071,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
 {
     QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::listSharedNotebooksPerNotebookGuid: guid = ") << notebookGuid);
 
-    QList<qevercloud::SharedNotebook> sharedNotebooks;
+    QList<qevercloud::SharedNotebook> qecSharedNotebooks;
 
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't list shared notebooks per notebook guid");
 
@@ -1080,7 +1080,7 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
         errorDescription += QStringLiteral(": ");
         errorDescription += QT_TR_NOOP("notebook guid is invalid");
         QNWARNING(errorDescription);
-        return sharedNotebooks;
+        return qecSharedNotebooks;
     }
 
     QSqlQuery query(m_sqlDatabase);
@@ -1090,46 +1090,46 @@ QList<qevercloud::SharedNotebook> LocalStorageManagerPrivate::listEnSharedNotebo
     bool res = query.exec();
     if (!res) {
         SET_ERROR();
-        return sharedNotebooks;
+        return qecSharedNotebooks;
     }
 
     int numSharedNotebooks = query.size();
-    sharedNotebooks.reserve(qMax(numSharedNotebooks, 0));
+    qecSharedNotebooks.reserve(qMax(numSharedNotebooks, 0));
     QList<qevercloud::SharedNotebook> unsortedSharedNotebooks;
     unsortedSharedNotebooks.reserve(qMax(numSharedNotebooks, 0));
-    QList<SharedNotebookAdapter> sharedNotebookAdapters;
-    sharedNotebookAdapters.reserve(qMax(numSharedNotebooks, 0));
+    QList<SharedNotebook> sharedNotebooks;
+    sharedNotebooks.reserve(qMax(numSharedNotebooks, 0));
 
     while(query.next())
     {
         QSqlRecord record = query.record();
 
         unsortedSharedNotebooks << qevercloud::SharedNotebook();
-        qevercloud::SharedNotebook & sharedNotebook = unsortedSharedNotebooks.back();
-        sharedNotebookAdapters << SharedNotebookAdapter(sharedNotebook);
-        SharedNotebookAdapter & sharedNotebookAdapter = sharedNotebookAdapters.back();
+        qevercloud::SharedNotebook & qecSharedNotebook = unsortedSharedNotebooks.back();
+        sharedNotebooks << SharedNotebook(qecSharedNotebook);
+        SharedNotebook & sharedNotebook = sharedNotebooks.back();
 
         QNLocalizedString error;
-        res = fillSharedNotebookFromSqlRecord(record, sharedNotebookAdapter, error);
+        res = fillSharedNotebookFromSqlRecord(record, sharedNotebook, error);
         if (!res) {
             errorDescription = errorPrefix;
             errorDescription += QStringLiteral(": ");
             errorDescription += error;
-            sharedNotebooks.clear();
-            return sharedNotebooks;
+            qecSharedNotebooks.clear();
+            return qecSharedNotebooks;
         }
     }
 
-    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(), SharedNotebookAdapterCompareByIndex());
+    qSort(sharedNotebooks.begin(), sharedNotebooks.end(), SharedNotebookCompareByIndex());
 
-    for(auto it = sharedNotebookAdapters.begin(), end = sharedNotebookAdapters.end(); it != end; ++it) {
-        sharedNotebooks << it->GetEnSharedNotebook();
+    for(auto it = sharedNotebooks.constBegin(), end = sharedNotebooks.constEnd(); it != end; ++it) {
+        qecSharedNotebooks << static_cast<const qevercloud::SharedNotebook>(*it);
     }
 
-    numSharedNotebooks = sharedNotebooks.size();
+    numSharedNotebooks = qecSharedNotebooks.size();
     QNDEBUG(QStringLiteral("found ") << numSharedNotebooks << QStringLiteral(" shared notebooks"));
 
-    return sharedNotebooks;
+    return qecSharedNotebooks;
 }
 
 bool LocalStorageManagerPrivate::expungeNotebook(Notebook & notebook, QNLocalizedString & errorDescription)
@@ -4487,7 +4487,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebookRestrictions(const QStri
     return true;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const ISharedNotebook & sharedNotebook,
+bool LocalStorageManagerPrivate::insertOrReplaceSharedNotebook(const SharedNotebook & sharedNotebook,
                                                                QNLocalizedString & errorDescription)
 {
     // NOTE: this method is expected to be called after the sanity check of sharedNotebook object!
@@ -5213,10 +5213,10 @@ bool LocalStorageManagerPrivate::insertOrReplaceNotebook(const Notebook & notebo
         bool res = query.exec(queryString);
         DATABASE_CHECK_AND_SET_ERROR();
 
-        QList<SharedNotebookAdapter> sharedNotebooks = notebook.sharedNotebooks();
+        QList<SharedNotebook> sharedNotebooks = notebook.sharedNotebooks();
         for(int i = 0, size = sharedNotebooks.size(); i < size; ++i)
         {
-            const SharedNotebookAdapter & sharedNotebook = sharedNotebooks[i];
+            const SharedNotebook & sharedNotebook = sharedNotebooks[i];
             if (!sharedNotebook.hasId()) {
                 QNWARNING("Found shared notebook without primary identifier of the share set, skipping it: " << sharedNotebook);
                 continue;
@@ -8228,7 +8228,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
 
     if (notebook.hasGuid())
     {
-        SharedNotebookWrapper sharedNotebook;
+        SharedNotebook sharedNotebook;
         bool res = fillSharedNotebookFromSqlRecord(record, sharedNotebook, errorDescription);
         if (!res) {
             return false;
@@ -8243,7 +8243,7 @@ bool LocalStorageManagerPrivate::fillNotebookFromSqlRecord(const QSqlRecord & re
 }
 
 bool LocalStorageManagerPrivate::fillSharedNotebookFromSqlRecord(const QSqlRecord & rec,
-                                                                 ISharedNotebook & sharedNotebook,
+                                                                 SharedNotebook & sharedNotebook,
                                                                  QNLocalizedString & errorDescription) const
 {
 #define CHECK_AND_SET_SHARED_NOTEBOOK_PROPERTY(property, type, localType, setter) \
@@ -8693,9 +8693,9 @@ void LocalStorageManagerPrivate::sortSharedNotebooks(Notebook & notebook) const
     }
 
     // Sort shared notebooks to ensure the correct order for proper work of comparison operators
-    QList<SharedNotebookAdapter> sharedNotebookAdapters = notebook.sharedNotebooks();
+    QList<SharedNotebook> sharedNotebooks = notebook.sharedNotebooks();
 
-    qSort(sharedNotebookAdapters.begin(), sharedNotebookAdapters.end(), SharedNotebookAdapterCompareByIndex());
+    qSort(sharedNotebooks.begin(), sharedNotebooks.end(), SharedNotebookCompareByIndex());
 }
 
 void LocalStorageManagerPrivate::sortSharedNotes(Note & note) const
@@ -10392,8 +10392,8 @@ QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::List
     return objects;
 }
 
-bool LocalStorageManagerPrivate::SharedNotebookAdapterCompareByIndex::operator()(const SharedNotebookAdapter & lhs,
-                                                                                 const SharedNotebookAdapter & rhs) const
+bool LocalStorageManagerPrivate::SharedNotebookCompareByIndex::operator()(const SharedNotebook & lhs,
+                                                                          const SharedNotebook & rhs) const
 {
     return (lhs.indexInNotebook() < rhs.indexInNotebook());
 }
