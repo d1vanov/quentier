@@ -21,7 +21,7 @@
 
 #include "RemoteToLocalSynchronizationManager.h"
 #include "SendLocalChangesManager.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/types/Account.h>
 #include <quentier/utility/QNLocalizedString.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -31,7 +31,6 @@
 #include <qt4qevercloud/QEverCloud.h>
 #include <qt4qevercloud/QEverCloudOAuth.h>
 #endif
-
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5keychain/keychain.h>
@@ -57,7 +56,7 @@ public:
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
     void notifyRemoteToLocalSyncDone();
-    void notifyFinish();
+    void notifyFinish(Account account);
 
 // state signals
     void remoteToLocalSyncPaused(bool pendingAuthenticaton);

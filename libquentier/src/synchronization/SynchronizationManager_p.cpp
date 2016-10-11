@@ -500,7 +500,7 @@ void SynchronizationManagerPrivate::onLocalChangesSent(qint32 lastUpdateCount, Q
     }
 
     QNINFO(QStringLiteral("Finished the whole synchronization procedure!"));
-    emit notifyFinish();
+    emit notifyFinish(m_remoteToLocalSyncManager.account());
 }
 
 void SynchronizationManagerPrivate::onSendLocalChangesPaused(bool pendingAuthenticaton)

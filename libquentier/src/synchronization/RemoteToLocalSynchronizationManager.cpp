@@ -172,6 +172,37 @@ bool RemoteToLocalSynchronizationManager::active() const
     return m_active;
 }
 
+Account RemoteToLocalSynchronizationManager::account() const
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::account"));
+
+    QString name;
+    if (m_user.hasName()) {
+        name = m_user.name();
+    }
+
+    Account::EvernoteAccountType::type accountEnType = Account::EvernoteAccountType::Free;
+    if (m_user.hasServiceLevel())
+    {
+        switch(m_user.serviceLevel())
+        {
+        case qevercloud::ServiceLevel::PLUS:
+            accountEnType = Account::EvernoteAccountType::Plus;
+            break;
+        case qevercloud::ServiceLevel::PREMIUM:
+            accountEnType = Account::EvernoteAccountType::Premium;
+            break;
+        case qevercloud::ServiceLevel::BASIC:
+        default:
+            break;
+        }
+    }
+
+    Account account(name, Account::Type::Evernote, accountEnType);
+    account.setEvernoteAccountLimits(m_accountLimits);
+    return account;
+}
+
 void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::start: afterUsn = ") << afterUsn);

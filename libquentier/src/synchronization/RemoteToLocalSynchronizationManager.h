@@ -21,6 +21,7 @@
 
 #include "NoteStore.h"
 #include "UserStore.h"
+#include <quentier/types/Account.h>
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
@@ -52,6 +53,8 @@ public:
                                                  QObject * parent = Q_NULLPTR);
 
     bool active() const;
+
+    Account account() const;
 
 Q_SIGNALS:
     void failure(QNLocalizedString errorDescription);

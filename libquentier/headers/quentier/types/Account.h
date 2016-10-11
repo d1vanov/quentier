@@ -53,6 +53,8 @@ public:
 
     void setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType);
 
+    void setEvernoteAccountLimits(const qevercloud::AccountLimits & limits);
+
     QString name() const;
     Type::type type() const;
     EvernoteAccountType::type evernoteAccountType() const;

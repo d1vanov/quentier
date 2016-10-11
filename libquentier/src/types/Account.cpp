@@ -33,6 +33,12 @@ void Account::setEvernoteAccountType(const EvernoteAccountType::type evernoteAcc
     d->switchEvernoteAccountType(evernoteAccountType);
 }
 
+void Account::setEvernoteAccountLimits(const qevercloud::AccountLimits & limits)
+{
+    // TODO: implement
+    Q_UNUSED(limits)
+}
+
 QString Account::name() const
 {
     return d->m_name;

@@ -28,7 +28,7 @@ SynchronizationManager::SynchronizationManager(const QString & consumerKey, cons
     d_ptr(new SynchronizationManagerPrivate(consumerKey, consumerSecret, host, localStorageManagerThreadWorker))
 {
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString), this, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyFinish), this, QNSIGNAL(SynchronizationManager,finished));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyFinish,Account), this, QNSIGNAL(SynchronizationManager,finished,Account));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncPaused,bool), this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncStopped), this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,sendLocalChangesPaused,bool), this, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool));

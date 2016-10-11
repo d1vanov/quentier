@@ -19,6 +19,7 @@
 #ifndef LIB_QUENTIER_SYNCHRONIZATION_SYNCHRONIZATION_MANAGER_H
 #define LIB_QUENTIER_SYNCHRONIZATION_SYNCHRONIZATION_MANAGER_H
 
+#include <quentier/types/Account.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
@@ -48,7 +49,7 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void failed(QNLocalizedString errorDescription);
-    void finished();
+    void finished(Account account);
 
     // state signals
     void remoteToLocalSyncPaused(bool pendingAuthenticaton);
