@@ -25,23 +25,34 @@
 #include <QUrl>
 
 #ifdef Q_OS_WIN
+
 #include <qwindowdefs.h>
 #include <QtGui/qwindowdefs_win.h>
-#elif defined Q_OS_MAC
-#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
-#include <QMacStyle>
-#endif
+#include <windows.h>
+#include <Lmcons.h>
+
 #else
 
+#if defined Q_OS_MAC
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#include <QMacStyle>
+#endif // QT_VERSION
+#else // defined Q_OS_MAC
 #if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
 #include <QPlastiqueStyle>
 #endif
+#endif // defined Q_OS_MAX
 
-#endif
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #if QT_VERSION >= 0x050000
 #include <QStandardPaths>
 #endif
+
+#endif // defined Q_OS_WIN
+
 #include <QDesktopServices>
 #include <QFile>
 
@@ -237,6 +248,40 @@ const QString relativePathFromAbsolutePath(const QString & absolutePath, const Q
     }
 
     return absolutePath.mid(position + relativePathRootFolder.length() + 1);   // NOTE: additional symbol for slash
+}
+
+const QString getCurrentUserName()
+{
+    QNDEBUG(QStringLiteral("getCurrentUserName"));
+
+    QString userName;
+
+#if defined(Q_OS_WIN)
+    TCHAR acUserName[UNLEN+1];
+    DWORD nUserName = sizeof(acUserName);
+    if (GetUserName(acUserName, &nUserName)) {
+        userName = static_cast<LPSTR>(acUserName);
+    }
+#else
+    uid_t uid = geteuid();
+    struct passwd * pw = getpwuid(uid);
+    if (pw) {
+        userName = QString::fromLocal8Bit(pw->pw_name);
+    }
+#endif
+
+    if (userName.isEmpty())
+    {
+        QNTRACE(QStringLiteral("Native platform API failed to provide the username, trying environment variables fallback"));
+
+        userName = qgetenv("USER");
+        if (userName.isEmpty()) {
+            userName = qgetenv("USERNAME");
+        }
+    }
+
+    QNTRACE(QStringLiteral("Username = ") << userName);
+    return userName;
 }
 
 void openUrl(const QUrl url)
