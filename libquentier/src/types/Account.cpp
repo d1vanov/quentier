@@ -35,8 +35,7 @@ void Account::setEvernoteAccountType(const EvernoteAccountType::type evernoteAcc
 
 void Account::setEvernoteAccountLimits(const qevercloud::AccountLimits & limits)
 {
-    // TODO: implement
-    Q_UNUSED(limits)
+    d->setEvernoteAccountLimits(limits);
 }
 
 QString Account::name() const

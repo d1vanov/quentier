@@ -16,6 +16,7 @@ public:
     AccountData(AccountData && other);
 
     void switchEvernoteAccountType(const Account::EvernoteAccountType::type evernoteAccountType);
+    void setEvernoteAccountLimits(const qevercloud::AccountLimits & limits);
 
     QString                             m_name;
     Account::Type::type                 m_accountType;
@@ -31,16 +32,16 @@ public:
     qint32                              m_savedSearchCountMax;
     qint32                              m_noteResourceCountMax;
 
-    static qint32 mailLimitDaily(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint64 noteSizeMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint64 resourceSizeMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 linkedNotebookMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 noteCountMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 notebookCountMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 tagCountMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 noteTagCountMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 savedSearchCountMax(const Account::EvernoteAccountType::type evernoteAccountType);
-    static qint32 noteResourceCountMax(const Account::EvernoteAccountType::type evernoteAccountType);
+    qint32 mailLimitDaily() const;
+    qint64 noteSizeMax() const;
+    qint64 resourceSizeMax() const;
+    qint32 linkedNotebookMax() const;
+    qint32 noteCountMax() const;
+    qint32 notebookCountMax() const;
+    qint32 tagCountMax() const;
+    qint32 noteTagCountMax() const;
+    qint32 savedSearchCountMax() const;
+    qint32 noteResourceCountMax() const;
 
 private:
     AccountData & operator=(const AccountData & other) Q_DECL_EQ_DELETE;
