@@ -409,7 +409,8 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     m_currentUserId = userId;
 
     m_applicationPersistenceStoragePath = applicationPersistentStoragePath();
-    m_applicationPersistenceStoragePath.append(QStringLiteral("/") + m_currentUsername + QString::number(m_currentUserId));
+    m_applicationPersistenceStoragePath.append(QStringLiteral("/") + m_currentUsername +
+                                               QStringLiteral("_") + QString::number(m_currentUserId));
 
     QDir databaseFolder(m_applicationPersistenceStoragePath);
     if (!databaseFolder.exists())
