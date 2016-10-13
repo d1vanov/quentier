@@ -40,7 +40,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
 
     if (!search.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid SavedSearch: " << search << ", error: " << errorDescription);
+        QNWARNING(QStringLiteral("Found invalid SavedSearch: ") << search << QStringLiteral(", error: ") << errorDescription);
         return false;
     }
 
@@ -61,9 +61,9 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
     }
 
     if (search != foundSearch) {
-        errorDescription = "Added and found saved searches in local storage don't match";
-        QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << search
-                  << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
+        errorDescription = QStringLiteral("Added and found saved searches in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": SavedSearch added to LocalStorageManager: ") << search
+                  << QStringLiteral("\nSavedSearch found in LocalStorageManager: ") << foundSearch);
         return false;
     }
 
@@ -78,17 +78,17 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
     }
 
     if (search != foundByNameSearch) {
-        errorDescription = "Added and found by name saved searches in local storage don't match";
-        QNWARNING(errorDescription << ": SavedSearch added to LocalStorageManager: " << search
-                  << "\nSaved search found by name in LocalStorageManager: " << foundByNameSearch);
+        errorDescription = QStringLiteral("Added and found by name saved searches in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": SavedSearch added to LocalStorageManager: ") << search
+                  << QStringLiteral("\nSaved search found by name in LocalStorageManager: ") << foundByNameSearch);
         return false;
     }
 
     // ========= Check Update + Find =============
     SavedSearch modifiedSearch(search);
     modifiedSearch.setUpdateSequenceNumber(search.updateSequenceNumber() + 1);
-    modifiedSearch.setName(search.name() + "_modified");
-    modifiedSearch.setQuery(search.query() + "_modified");
+    modifiedSearch.setName(search.name() + QStringLiteral("_modified"));
+    modifiedSearch.setQuery(search.query() + QStringLiteral("_modified"));
     modifiedSearch.setFavorited(true);
     modifiedSearch.setDirty(true);
 
@@ -109,9 +109,9 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
 
     modifiedSearch.setLocalUid(localUid);
     if (modifiedSearch != foundSearch) {
-        errorDescription = "Updated and found saved searches in local storage don't match";
-        QNWARNING(errorDescription << ": SavedSearch updated in LocalStorageManager: " << modifiedSearch
-                  << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
+        errorDescription = QStringLiteral("Updated and found saved searches in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": SavedSearch updated in LocalStorageManager: ") << modifiedSearch
+                  << QStringLiteral("\nSavedSearch found in LocalStorageManager: ") << foundSearch);
         return false;
     }
 
@@ -122,7 +122,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
         return false;
     }
     else if (count != 1) {
-        errorDescription = "GetSavedSearchCount returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("GetSavedSearchCount returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -136,9 +136,9 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
 
     res = localStorageManager.findSavedSearch(foundSearch, errorMessage);
     if (res) {
-        errorDescription = "Error: found saved search which should have been expunged from local storage";
-        QNWARNING(errorDescription << ": SavedSearch expunged from LocalStorageManager: " << modifiedSearch
-                  << "\nSavedSearch found in LocalStorageManager: " << foundSearch);
+        errorDescription = QStringLiteral("Error: found saved search which should have been expunged from local storage");
+        QNWARNING(errorDescription << QStringLiteral(": SavedSearch expunged from LocalStorageManager: ") << modifiedSearch
+                  << QStringLiteral("\nSavedSearch found in LocalStorageManager: ") << foundSearch);
         return false;
     }
 
@@ -149,7 +149,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
         return false;
     }
     else if (count != 0) {
-        errorDescription = "savedSearchCount returned result different from the expected one (0): ";
+        errorDescription = QStringLiteral("savedSearchCount returned result different from the expected one (0): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -165,7 +165,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 
     if (!linkedNotebook.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid LinkedNotebook: " << linkedNotebook << ", error: " << errorDescription);
+        QNWARNING(QStringLiteral("Found invalid LinkedNotebook: ") << linkedNotebook << QStringLiteral(", error: ") << errorDescription);
         return false;
     }
 
@@ -186,23 +186,23 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     if (linkedNotebook != foundLinkedNotebook) {
-        errorDescription = "Added and found linked noteboks in local storage don't match";
-        QNWARNING(errorDescription << ": LinkedNotebook added to LocalStorageManager: " << linkedNotebook
-                  << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
+        errorDescription = QStringLiteral("Added and found linked noteboks in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": LinkedNotebook added to LocalStorageManager: ") << linkedNotebook
+                  << QStringLiteral("\nLinkedNotebook found in LocalStorageManager: ") << foundLinkedNotebook);
         return false;
     }
 
     // =========== Check Update + Find ===========
     LinkedNotebook modifiedLinkedNotebook(linkedNotebook);
     modifiedLinkedNotebook.setUpdateSequenceNumber(linkedNotebook.updateSequenceNumber() + 1);
-    modifiedLinkedNotebook.setShareName(linkedNotebook.shareName() + "_modified");
-    modifiedLinkedNotebook.setUsername(linkedNotebook.username() + "_modified");
-    modifiedLinkedNotebook.setShardId(linkedNotebook.shardId() + "_modified");
-    modifiedLinkedNotebook.setSharedNotebookGlobalId(linkedNotebook.sharedNotebookGlobalId() + "_modified");
-    modifiedLinkedNotebook.setUri(linkedNotebook.uri() + "_modified");
-    modifiedLinkedNotebook.setNoteStoreUrl(linkedNotebook.noteStoreUrl() + "_modified");
-    modifiedLinkedNotebook.setWebApiUrlPrefix(linkedNotebook.webApiUrlPrefix() + "_modified");
-    modifiedLinkedNotebook.setStack(linkedNotebook.stack() + "_modified");
+    modifiedLinkedNotebook.setShareName(linkedNotebook.shareName() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setUsername(linkedNotebook.username() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setShardId(linkedNotebook.shardId() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setSharedNotebookGlobalId(linkedNotebook.sharedNotebookGlobalId() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setUri(linkedNotebook.uri() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setNoteStoreUrl(linkedNotebook.noteStoreUrl() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setWebApiUrlPrefix(linkedNotebook.webApiUrlPrefix() + QStringLiteral("_modified"));
+    modifiedLinkedNotebook.setStack(linkedNotebook.stack() + QStringLiteral("_modified"));
     modifiedLinkedNotebook.setBusinessId(linkedNotebook.businessId() + 1);
 
     res = localStorageManager.updateLinkedNotebook(modifiedLinkedNotebook, errorMessage);
@@ -218,9 +218,9 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
     }
 
     if (modifiedLinkedNotebook != foundLinkedNotebook) {
-        errorDescription = "Updated and found linked notebooks in local storage don't match";
-        QNWARNING(errorDescription << ": LinkedNotebook updated in LocalStorageManager: " << modifiedLinkedNotebook
-                  << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
+        errorDescription = QStringLiteral("Updated and found linked notebooks in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": LinkedNotebook updated in LocalStorageManager: ") << modifiedLinkedNotebook
+                  << QStringLiteral("\nLinkedNotebook found in LocalStorageManager: ") << foundLinkedNotebook);
         return false;
     }
 
@@ -231,7 +231,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
     else if (count != 1) {
-        errorDescription = "linkedNotebookCount returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("linkedNotebookCount returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -245,9 +245,9 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
 
     res = localStorageManager.findLinkedNotebook(foundLinkedNotebook, errorMessage);
     if (res) {
-        errorDescription = "Error: found linked notebook which should have been expunged from local storage";
-        QNWARNING(errorDescription << ": LinkedNotebook expunged from LocalStorageManager: " << modifiedLinkedNotebook
-                  << "\nLinkedNotebook found in LocalStorageManager: " << foundLinkedNotebook);
+        errorDescription = QStringLiteral("Error: found linked notebook which should have been expunged from local storage");
+        QNWARNING(errorDescription << QStringLiteral(": LinkedNotebook expunged from LocalStorageManager: ") << modifiedLinkedNotebook
+                  << QStringLiteral("\nLinkedNotebook found in LocalStorageManager: ") << foundLinkedNotebook);
         return false;
     }
 
@@ -258,7 +258,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
         return false;
     }
     else if (count != 0) {
-        errorDescription = "GetLinkedNotebookCount returned result different from the expected one (0): ";
+        errorDescription = QStringLiteral("GetLinkedNotebookCount returned result different from the expected one (0): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -274,7 +274,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
 
     if (!tag.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid Tag: " << tag << ", error: " << errorDescription);
+        QNWARNING(QStringLiteral("Found invalid Tag: ") << tag << QStringLiteral(", error: ") << errorDescription);
         return false;
     }
 
@@ -299,9 +299,9 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     }
 
     if (tag != foundTag) {
-        errorDescription = "Added and found tags in local storage tags don't match";
-        QNWARNING(errorDescription << ": Tag added to LocalStorageManager: " << tag
-                  << "\nTag found in LocalStorageManager: " << foundTag);
+        errorDescription = QStringLiteral("Added and found tags in local storage tags don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Tag added to LocalStorageManager: ") << tag
+                  << QStringLiteral("\nTag found in LocalStorageManager: ") << foundTag);
         return false;
     }
 
@@ -320,16 +320,16 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     }
 
     if (tag != foundByNameTag) {
-        errorDescription = "Tag found by name in local storage doesn't match the original tag";
-        QNWARNING(errorDescription << ": Tag found by name: " << foundByNameTag << "\nOriginal tag: " << tag);
+        errorDescription = QStringLiteral("Tag found by name in local storage doesn't match the original tag");
+        QNWARNING(errorDescription << QStringLiteral(": Tag found by name: ") << foundByNameTag << QStringLiteral("\nOriginal tag: ") << tag);
         return false;
     }
 
     // ========== Check Update + Find ==========
     Tag modifiedTag(tag);
     modifiedTag.setUpdateSequenceNumber(tag.updateSequenceNumber() + 1);
-    modifiedTag.setLinkedNotebookGuid(QString(""));
-    modifiedTag.setName(tag.name() + "_modified");
+    modifiedTag.setLinkedNotebookGuid(QStringLiteral(""));
+    modifiedTag.setName(tag.name() + QStringLiteral("_modified"));
     modifiedTag.setFavorited(true);
     modifiedTag.unsetLocalUid();
 
@@ -340,7 +340,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     }
 
     if (!modifiedTag.hasLinkedNotebookGuid()) {
-        foundTag.setLinkedNotebookGuid(QString(""));
+        foundTag.setLinkedNotebookGuid(QStringLiteral(""));
     }
 
     res = localStorageManager.findTag(foundTag, errorMessage);
@@ -351,9 +351,9 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
 
     modifiedTag.setLocalUid(localTagGuid);
     if (modifiedTag != foundTag) {
-        errorDescription = "Updated and found tags in local storage don't match";
-        QNWARNING(errorDescription << ": Tag updated in LocalStorageManaged: " << modifiedTag
-                  << "\nTag found in LocalStorageManager: " << foundTag);
+        errorDescription = QStringLiteral("Updated and found tags in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Tag updated in LocalStorageManaged: ") << modifiedTag
+                  << QStringLiteral("\nTag found in LocalStorageManager: ") << foundTag);
         return false;
     }
 
@@ -364,14 +364,14 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
         return false;
     }
     else if (count != 1) {
-        errorDescription = "tagCount returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("tagCount returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
 
     // ========== Add another tag referencing the first tag as its parent =========
     Tag newTag;
-    newTag.setName("New tag");
+    newTag.setName(QStringLiteral("New tag"));
     newTag.setParentGuid(tag.guid());
     newTag.setParentLocalUid(tag.localUid());
 
@@ -390,9 +390,9 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
     }
 
     if (newTag != foundNewTag) {
-        errorDescription = "Second added tag and its found copy from the local storage don't match";
-        QNWARNING(errorDescription << ": the second tag added to LocalStorageManager: " << newTag
-                  << "\nTag found in LocalStorageManager: " << foundNewTag);
+        errorDescription = QStringLiteral("Second added tag and its found copy from the local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": the second tag added to LocalStorageManager: ") << newTag
+                  << QStringLiteral("\nTag found in LocalStorageManager: ") << foundNewTag);
         return false;
     }
 
@@ -405,9 +405,9 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
 
     res = localStorageManager.findTag(foundTag, errorMessage);
     if (res) {
-        errorDescription = "Error: found tag which should have been exounged from local storage";
-        QNWARNING(errorDescription << ": Tag expunged from LocalStorageManager: " << modifiedTag
-                  << "\nTag found in LocalStorageManager: " << foundTag);
+        errorDescription = QStringLiteral("Error: found tag which should have been exounged from local storage");
+        QNWARNING(errorDescription << QStringLiteral(": Tag expunged from LocalStorageManager: ") << modifiedTag
+                  << QStringLiteral("\nTag found in LocalStorageManager: ") << foundTag);
         return false;
     }
 
@@ -421,7 +421,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
 
     if (!resource.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid Resource: " << resource);
+        QNWARNING(QStringLiteral("Found invalid Resource: ") << resource);
         return false;
     }
 
@@ -443,56 +443,56 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
     }
 
     if (resource != foundResource) {
-        errorDescription = "Added and found in local storage resources don't match";
-        QNWARNING(errorDescription << ": Resource added to LocalStorageManager: " << resource
-                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        errorDescription = QStringLiteral("Added and found in local storage resources don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Resource added to LocalStorageManager: ") << resource
+                  << QStringLiteral("\nIResource found in LocalStorageManager: ") << foundResource);
         return false;
     }
 
     // ========== Check Update + Find ==========
     Resource modifiedResource(resource);
     modifiedResource.setUpdateSequenceNumber(resource.updateSequenceNumber() + 1);
-    modifiedResource.setDataBody(resource.dataBody() + "_modified");
+    modifiedResource.setDataBody(resource.dataBody() + QByteArray("_modified"));
     modifiedResource.setDataSize(modifiedResource.dataBody().size());
-    modifiedResource.setDataHash("Fake hash      3");
+    modifiedResource.setDataHash(QByteArray("Fake hash      3"));
 
     modifiedResource.setWidth(resource.width() + 1);
     modifiedResource.setHeight(resource.height() + 1);
-    modifiedResource.setRecognitionDataBody("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
-                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
-                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                            "<t w=\"87\">OVER ?</t>"
-                                            "<t w=\"83\">AVER NOTE</t>"
-                                            "<t w=\"82\">PVERNOTE</t>"
-                                            "<t w=\"71\">QVER NaTE</t>"
-                                            "<t w=\"67\">LVER nine</t>"
-                                            "<t w=\"67\">KVER none</t>"
-                                            "<t w=\"66\">JVER not</t>"
-                                            "<t w=\"62\">jver NOTE</t>"
-                                            "<t w=\"62\">hven NOTE</t>"
-                                            "<t w=\"61\">eVER nose</t>"
-                                            "<t w=\"50\">pV£RNoTE</t>"
-                                            "</item>"
-                                            "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
-                                            "<t w=\"11\">et</t>"
-                                            "<t w=\"10\">TQ</t>"
-                                            "</item>"
-                                            "</recoIndex>");
+    modifiedResource.setRecognitionDataBody(QByteArray("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                                       "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                                       "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                                       "<t w=\"87\">OVER ?</t>"
+                                                       "<t w=\"83\">AVER NOTE</t>"
+                                                       "<t w=\"82\">PVERNOTE</t>"
+                                                       "<t w=\"71\">QVER NaTE</t>"
+                                                       "<t w=\"67\">LVER nine</t>"
+                                                       "<t w=\"67\">KVER none</t>"
+                                                       "<t w=\"66\">JVER not</t>"
+                                                       "<t w=\"62\">jver NOTE</t>"
+                                                       "<t w=\"62\">hven NOTE</t>"
+                                                       "<t w=\"61\">eVER nose</t>"
+                                                       "<t w=\"50\">pV£RNoTE</t>"
+                                                       "</item>"
+                                                       "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
+                                                       "<t w=\"11\">et</t>"
+                                                       "<t w=\"10\">TQ</t>"
+                                                       "</item>"
+                                                       "</recoIndex>"));
     modifiedResource.setRecognitionDataSize(modifiedResource.recognitionDataBody().size());
-    modifiedResource.setRecognitionDataHash("Fake hash      4");
-    modifiedResource.setAlternateDataBody(resource.alternateDataBody() + "_modified");
+    modifiedResource.setRecognitionDataHash(QByteArray("Fake hash      4"));
+    modifiedResource.setAlternateDataBody(resource.alternateDataBody() + QByteArray("_modified"));
     modifiedResource.setAlternateDataSize(modifiedResource.alternateDataBody().size());
-    modifiedResource.setAlternateDataHash("Fake hash      5");
+    modifiedResource.setAlternateDataHash(QByteArray("Fake hash      5"));
 
     qevercloud::ResourceAttributes & resourceAttributes = modifiedResource.resourceAttributes();
 
-    resourceAttributes.sourceURL = "Modified source URL";
+    resourceAttributes.sourceURL = QStringLiteral("Modified source URL");
     resourceAttributes.timestamp += 1;
     resourceAttributes.latitude = 2.0;
     resourceAttributes.longitude = 2.0;
     resourceAttributes.altitude = 2.0;
-    resourceAttributes.cameraMake = "Modified camera make";
-    resourceAttributes.cameraModel = "Modified camera model";
+    resourceAttributes.cameraMake = QStringLiteral("Modified camera make");
+    resourceAttributes.cameraModel = QStringLiteral("Modified camera model");
 
     modifiedResource.unsetLocalUid();
 
@@ -510,9 +510,9 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
     }
 
     if (modifiedResource != foundResource) {
-        errorDescription = "Updated and found in local storage resources don't match";
-        QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << modifiedResource
-                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        errorDescription = QStringLiteral("Updated and found in local storage resources don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Resource updated in LocalStorageManager: ") << modifiedResource
+                  << QStringLiteral("\nIResource found in LocalStorageManager: ") << foundResource);
         return false;
     }
 
@@ -531,9 +531,9 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
     modifiedResource.setAlternateDataBody(QByteArray());
 
     if (modifiedResource != foundResource) {
-        errorDescription = "Updated and found in local storage resources without binary data don't match";
-        QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << modifiedResource
-                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        errorDescription = QStringLiteral("Updated and found in local storage resources without binary data don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Resource updated in LocalStorageManager: ") << modifiedResource
+                  << QStringLiteral("\nIResource found in LocalStorageManager: ") << foundResource);
         return false;
     }
 
@@ -545,7 +545,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
         return false;
     }
     else if (count != 1) {
-        errorDescription = "enResourceCount returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("enResourceCount returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -559,9 +559,9 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
 
     res = localStorageManager.findEnResource(foundResource, errorMessage);
     if (res) {
-        errorDescription = "Error: found Resource which should have been expunged from LocalStorageManager";
-        QNWARNING(errorDescription << ": Resource expunged from LocalStorageManager: " << modifiedResource
-                  << "\nIResource found in LocalStorageManager: " << foundResource);
+        errorDescription = QStringLiteral("Error: found Resource which should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << QStringLiteral(": Resource expunged from LocalStorageManager: ") << modifiedResource
+                  << QStringLiteral("\nIResource found in LocalStorageManager: ") << foundResource);
         return false;
     }
 
@@ -572,7 +572,7 @@ bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalSt
         return false;
     }
     else if (count != 0) {
-        errorDescription = "enResourceCount returned result different from the expected one (0): ";
+        errorDescription = QStringLiteral("enResourceCount returned result different from the expected one (0): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -588,12 +588,12 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
 
     if (!note.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid Note: " << note);
+        QNWARNING(QStringLiteral("Found invalid Note: ") << note);
         return false;
     }
 
     // ========== Check Find ==========
-    const QString initialResourceGuid = "00000000-0000-0000-c000-000000000049";
+    const QString initialResourceGuid = QStringLiteral("00000000-0000-0000-c000-000000000049");
     Resource foundResource;
     foundResource.setGuid(initialResourceGuid);
     bool res = localStorageManager.findEnResource(foundResource, errorMessage,
@@ -621,16 +621,16 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     }
 
     if (note != foundNote) {
-        errorDescription = "Added and found notes in local storage don't match";
-        QNWARNING(errorDescription << ": Note added to LocalStorageManager: " << note
-                  << "\nNote found in LocalStorageManager: " << foundNote);
+        errorDescription = QStringLiteral("Added and found notes in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Note added to LocalStorageManager: ") << note
+                  << QStringLiteral("\nNote found in LocalStorageManager: ") << foundNote);
         return false;
     }
 
     // ========== Check Update + Find ==========
     Note modifiedNote(note);
     modifiedNote.setUpdateSequenceNumber(note.updateSequenceNumber() + 1);
-    modifiedNote.setTitle(note.title() + "_modified");
+    modifiedNote.setTitle(note.title() + QStringLiteral("_modified"));
     modifiedNote.setCreationTimestamp(note.creationTimestamp() + 1);
     modifiedNote.setModificationTimestamp(note.modificationTimestamp() + 1);
     modifiedNote.setFavorited(true);
@@ -641,22 +641,21 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     noteAttributes.latitude = 2.0;
     noteAttributes.longitude = 2.0;
     noteAttributes.altitude = 2.0;
-    noteAttributes.author = "modified author";
-    noteAttributes.source = "modified source";
-    noteAttributes.sourceURL = "modified source URL";
-    noteAttributes.sourceApplication = "modified source application";
+    noteAttributes.author = QStringLiteral("modified author");
+    noteAttributes.source = QStringLiteral("modified source");
+    noteAttributes.sourceURL = QStringLiteral("modified source URL");
+    noteAttributes.sourceApplication = QStringLiteral("modified source application");
     noteAttributes.shareDate = 2;
 
     Tag newTag;
-    newTag.setGuid("00000000-0000-0000-c000-000000000050");
+    newTag.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000050"));
     newTag.setUpdateSequenceNumber(1);
-    newTag.setName("Fake new tag name");
+    newTag.setName(QStringLiteral("Fake new tag name"));
 
     res = localStorageManager.addTag(newTag, errorMessage);
     if (!res) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Can't add new tag to local storage manager: "
-                  << errorDescription);
+        QNWARNING(QStringLiteral("Can't add new tag to local storage manager: ") << errorDescription);
         return false;
     }
 
@@ -664,58 +663,58 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     modifiedNote.addTagLocalUid(newTag.localUid());
 
     Resource newResource;
-    newResource.setGuid("00000000-0000-0000-c000-000000000051");
+    newResource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000051"));
     newResource.setUpdateSequenceNumber(2);
     newResource.setNoteGuid(note.guid());
-    newResource.setDataBody("Fake new resource data body");
+    newResource.setDataBody(QByteArray("Fake new resource data body"));
     newResource.setDataSize(newResource.dataBody().size());
-    newResource.setDataHash("Fake hash      3");
-    newResource.setMime("text/plain");
+    newResource.setDataHash(QByteArray("Fake hash      3"));
+    newResource.setMime(QStringLiteral("text/plain"));
     newResource.setWidth(2);
     newResource.setHeight(2);
-    newResource.setRecognitionDataBody("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
-                                       "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
-                                       "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                       "<t w=\"87\">OVER ?</t>"
-                                       "<t w=\"83\">AVER NOTE</t>"
-                                       "<t w=\"82\">PVERNOTE</t>"
-                                       "<t w=\"71\">QVER NaTE</t>"
-                                       "<t w=\"67\">LVER nine</t>"
-                                       "<t w=\"67\">KVER none</t>"
-                                       "<t w=\"66\">JVER not</t>"
-                                       "<t w=\"62\">jver NOTE</t>"
-                                       "<t w=\"62\">hven NOTE</t>"
-                                       "<t w=\"61\">eVER nose</t>"
-                                       "<t w=\"50\">pV£RNoTE</t>"
-                                       "</item>"
-                                       "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
-                                       "<t w=\"11\">et</t>"
-                                       "<t w=\"10\">TQ</t>"
-                                       "</item>"
-                                       "</recoIndex>");
+    newResource.setRecognitionDataBody(QByteArray("<recoIndex docType=\"picture\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                                  "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                                  "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                                  "<t w=\"87\">OVER ?</t>"
+                                                  "<t w=\"83\">AVER NOTE</t>"
+                                                  "<t w=\"82\">PVERNOTE</t>"
+                                                  "<t w=\"71\">QVER NaTE</t>"
+                                                  "<t w=\"67\">LVER nine</t>"
+                                                  "<t w=\"67\">KVER none</t>"
+                                                  "<t w=\"66\">JVER not</t>"
+                                                  "<t w=\"62\">jver NOTE</t>"
+                                                  "<t w=\"62\">hven NOTE</t>"
+                                                  "<t w=\"61\">eVER nose</t>"
+                                                  "<t w=\"50\">pV£RNoTE</t>"
+                                                  "</item>"
+                                                  "<item x=\"1840\" y=\"1475\" w=\"14\" h=\"12\">"
+                                                  "<t w=\"11\">et</t>"
+                                                  "<t w=\"10\">TQ</t>"
+                                                  "</item>"
+                                                  "</recoIndex>"));
     newResource.setRecognitionDataSize(newResource.recognitionDataBody().size());
-    newResource.setRecognitionDataHash("Fake hash      4");
+    newResource.setRecognitionDataHash(QByteArray("Fake hash      4"));
 
     qevercloud::ResourceAttributes & resourceAttributes = newResource.resourceAttributes();
 
-    resourceAttributes.sourceURL = "Fake resource source URL";
+    resourceAttributes.sourceURL = QStringLiteral("Fake resource source URL");
     resourceAttributes.timestamp = 1;
     resourceAttributes.latitude = 0.0;
     resourceAttributes.longitude = 0.0;
     resourceAttributes.altitude = 0.0;
-    resourceAttributes.cameraMake = "Fake resource camera make";
-    resourceAttributes.cameraModel = "Fake resource camera model";
+    resourceAttributes.cameraMake = QStringLiteral("Fake resource camera make");
+    resourceAttributes.cameraModel = QStringLiteral("Fake resource camera model");
 
     resourceAttributes.applicationData = qevercloud::LazyMap();
 
     resourceAttributes.applicationData->keysOnly = QSet<QString>();
     auto & keysOnly = resourceAttributes.applicationData->keysOnly.ref();
     keysOnly.reserve(1);
-    keysOnly.insert("key 1");
+    keysOnly.insert(QStringLiteral("key 1"));
 
     resourceAttributes.applicationData->fullMap = QMap<QString, QString>();
     auto & fullMap = resourceAttributes.applicationData->fullMap.ref();
-    fullMap["key 1 map"] = "value 1";
+    fullMap[QStringLiteral("key 1 map")] = QStringLiteral("value 1");
 
     modifiedNote.addResource(newResource);
 
@@ -741,11 +740,11 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     foundResource.setNoteLocalUid(QString());
     if (foundResource != newResource)
     {
-        errorDescription = "Something is wrong with the new resource "
-                           "which should have been added to local storage "
-                           "along with note update: it is not equal to original resource";
-        QNWARNING(errorDescription << ": original resource: " << newResource
-                  << "\nfound resource: " << foundResource);
+        errorDescription = QStringLiteral("Something is wrong with the new resource "
+                                          "which should have been added to local storage "
+                                          "along with note update: it is not equal to original resource");
+        QNWARNING(errorDescription << QStringLiteral(": original resource: ") << newResource
+                  << QStringLiteral("\nfound resource: ") << foundResource);
         return false;
     }
 
@@ -764,9 +763,9 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     }
 
     if (modifiedNote != foundNote) {
-        errorDescription = "Updated and found in local storage notes don't match";
-        QNWARNING(errorDescription << ": Note updated in LocalStorageManager: " << modifiedNote
-                  << "\nNote found in LocalStorageManager: " << foundNote);
+        errorDescription = QStringLiteral("Updated and found in local storage notes don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Note updated in LocalStorageManager: ") << modifiedNote
+                  << QStringLiteral("\nNote found in LocalStorageManager: ") << foundNote);
         return false;
     }
 
@@ -777,7 +776,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
         return false;
     }
     else if (count != 1) {
-        errorDescription = "noteCount returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("noteCount returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -789,7 +788,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
         return false;
     }
     else if (count != 1) {
-        errorDescription = "noteCountPerNotebook returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("noteCountPerNotebook returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -801,7 +800,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
         return false;
     }
     else if (count != 1) {
-        errorDescription = "noteCountPerTag returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("noteCountPerTag returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -825,9 +824,9 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     }
 
     if (!foundNote.hasActive() || foundNote.active()) {
-        errorDescription = "Note which should have been marked non-active "
-                           "is not marked so after LocalStorageManager::FindNote";
-        QNWARNING(errorDescription << ": Note found in LocalStorageManager: " << foundNote);
+        errorDescription = QStringLiteral("Note which should have been marked non-active "
+                                          "is not marked so after LocalStorageManager::FindNote");
+        QNWARNING(errorDescription << QStringLiteral(": Note found in LocalStorageManager: ") << foundNote);
         return false;
     }
 
@@ -838,7 +837,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
         return false;
     }
     else if (count != 0) {
-        errorDescription = "noteCount returned result different from the expected one (0): ";
+        errorDescription = QStringLiteral("noteCount returned result different from the expected one (0): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -853,10 +852,10 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     res = localStorageManager.findNote(foundNote, errorMessage,
                                        /* withResourceBinaryData = */ true);
     if (res) {
-        errorDescription = "Error: found Note which should have been expunged "
-                           "from LocalStorageManager";
-        QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << modifiedNote
-                  << "\nNote found in LocalStorageManager: " << foundNote);
+        errorDescription = QStringLiteral("Error: found Note which should have been expunged "
+                                          "from LocalStorageManager");
+        QNWARNING(errorDescription << QStringLiteral(": Note expunged from LocalStorageManager: ") << modifiedNote
+                  << QStringLiteral("\nNote found in LocalStorageManager: ") << foundNote);
         return false;
     }
 
@@ -866,10 +865,10 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
     res = localStorageManager.findEnResource(foundResource, errorMessage,
                                              /* withBinaryData = */ true);
     if (res) {
-        errorDescription = "Error: found Resource which should have been expunged "
-                           "from LocalStorageManager along with Note owning it";
-        QNWARNING(errorDescription << ": Note expunged from LocalStorageManager: " << modifiedNote
-                  << "\nResource found in LocalStorageManager: " << foundResource);
+        errorDescription = QStringLiteral("Error: found Resource which should have been expunged "
+                                          "from LocalStorageManager along with Note owning it");
+        QNWARNING(errorDescription << QStringLiteral(": Note expunged from LocalStorageManager: ") << modifiedNote
+                  << QStringLiteral("\nResource found in LocalStorageManager: ") << foundResource);
         return false;
     }
 
@@ -884,12 +883,12 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
 
     if (!notebook.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid Notebook: " << notebook);
+        QNWARNING(QStringLiteral("Found invalid Notebook: ") << notebook);
         return false;
     }
 
     // =========== Check Find ============
-    const QString initialNoteGuid = "00000000-0000-0000-c000-000000000049";
+    const QString initialNoteGuid = QStringLiteral("00000000-0000-0000-c000-000000000049");
     Note foundNote;
     foundNote.setGuid(initialNoteGuid);
     bool res = localStorageManager.findNote(foundNote, errorMessage,
@@ -912,9 +911,9 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     }
 
     if (notebook != foundNotebook) {
-        errorDescription = "Added and found notebooks in local storage don't match";
-        QNWARNING(errorDescription << ": Notebook added to LocalStorageManager: " << notebook
-                  << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        errorDescription = QStringLiteral("Added and found notebooks in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Notebook added to LocalStorageManager: ") << notebook
+                  << QStringLiteral("\nNotebook found in LocalStorageManager: ") << foundNotebook);
         return false;
     }
 
@@ -933,9 +932,9 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     }
 
     if (notebook != foundByNameNotebook) {
-        errorDescription = "Notebook found by name in local storage doesn't match the original notebook";
-        QNWARNING(errorDescription << ": Notebook found by name: " << foundByNameNotebook
-                  << "\nOriginal notebook: " << notebook);
+        errorDescription = QStringLiteral("Notebook found by name in local storage doesn't match the original notebook");
+        QNWARNING(errorDescription << QStringLiteral(": Notebook found by name: ") << foundByNameNotebook
+                  << QStringLiteral("\nOriginal notebook: ") << notebook);
         return false;
     }
 
@@ -951,8 +950,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     Notebook lastUsedNotebook;
     res = localStorageManager.findLastUsedNotebook(lastUsedNotebook, errorMessage);
     if (res) {
-        errorDescription = "Found some last used notebook which shouldn't have been found";
-        QNWARNING(errorDescription << ": " << lastUsedNotebook);
+        errorDescription = QStringLiteral("Found some last used notebook which shouldn't have been found");
+        QNWARNING(errorDescription << QStringLiteral(": ") << lastUsedNotebook);
         return false;
     }
 
@@ -965,26 +964,26 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     }
 
     if (defaultOrLastUsedNotebook != defaultNotebook) {
-        errorDescription = "Found defaultOrLastUsed notebook which should be the same "
-                           "as default notebook right now but it is not";
-        QNWARNING(errorDescription << ". Default notebook: " << defaultNotebook
-                  << ", defaultOrLastUsedNotebook: " << defaultOrLastUsedNotebook);
+        errorDescription = QStringLiteral("Found defaultOrLastUsed notebook which should be the same "
+                                          "as default notebook right now but it is not");
+        QNWARNING(errorDescription << QStringLiteral(". Default notebook: ") << defaultNotebook
+                  << QStringLiteral(", defaultOrLastUsedNotebook: ") << defaultOrLastUsedNotebook);
         return false;
     }
 
     // ========== Check Update + Find ==========
     Notebook modifiedNotebook(notebook);
     modifiedNotebook.setUpdateSequenceNumber(notebook.updateSequenceNumber() + 1);
-    modifiedNotebook.setLinkedNotebookGuid(QString(""));
-    modifiedNotebook.setName(notebook.name() + "_modified");
+    modifiedNotebook.setLinkedNotebookGuid(QStringLiteral(""));
+    modifiedNotebook.setName(notebook.name() + QStringLiteral("_modified"));
     modifiedNotebook.setDefaultNotebook(false);
     modifiedNotebook.setLastUsed(true);
     modifiedNotebook.setModificationTimestamp(notebook.modificationTimestamp() + 1);
-    modifiedNotebook.setPublishingUri(notebook.publishingUri() + "_modified");
+    modifiedNotebook.setPublishingUri(notebook.publishingUri() + QStringLiteral("_modified"));
     modifiedNotebook.setPublishingAscending(!notebook.isPublishingAscending());
-    modifiedNotebook.setPublishingPublicDescription(notebook.publishingPublicDescription() + "_modified");
-    modifiedNotebook.setStack(notebook.stack() + "_modified");
-    modifiedNotebook.setBusinessNotebookDescription(notebook.businessNotebookDescription() + "_modified");
+    modifiedNotebook.setPublishingPublicDescription(notebook.publishingPublicDescription() + QStringLiteral("_modified"));
+    modifiedNotebook.setStack(notebook.stack() + QStringLiteral("_modified"));
+    modifiedNotebook.setBusinessNotebookDescription(notebook.businessNotebookDescription() + QStringLiteral("_modified"));
     modifiedNotebook.setBusinessNotebookRecommended(!notebook.isBusinessNotebookRecommended());
     modifiedNotebook.setCanExpungeNotes(false);
     modifiedNotebook.setCanEmailNotes(false);
@@ -1010,9 +1009,9 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     }
 
     if (modifiedNotebook != foundNotebook) {
-        errorDescription = "Updated and found notebooks in local storage don't match";
-        QNWARNING(errorDescription << ": Notebook updated in LocalStorageManager: " << modifiedNotebook
-                  << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        errorDescription = QStringLiteral("Updated and found notebooks in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": Notebook updated in LocalStorageManager: ") << modifiedNotebook
+                  << QStringLiteral("\nNotebook found in LocalStorageManager: ") << foundNotebook);
         return false;
     }
 
@@ -1020,8 +1019,8 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     defaultNotebook = Notebook();
     res = localStorageManager.findDefaultNotebook(defaultNotebook, errorMessage);
     if (res) {
-        errorDescription = "Found some default notebook which shouldn't have been found";
-        QNWARNING(errorDescription << ": " << defaultNotebook);
+        errorDescription = QStringLiteral("Found some default notebook which shouldn't have been found");
+        QNWARNING(errorDescription << QStringLiteral(": ") << defaultNotebook);
         return false;
     }
 
@@ -1042,10 +1041,10 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
     }
 
     if (defaultOrLastUsedNotebook != lastUsedNotebook) {
-        errorDescription = "Found defaultOrLastUsed notebook which should be the same "
-                           "as last used notebook right now but it is not";
-        QNWARNING(errorDescription << ". Last used notebook: " << lastUsedNotebook
-                  << ", defaultOrLastUsedNotebook: " << defaultOrLastUsedNotebook);
+        errorDescription = QStringLiteral("Found defaultOrLastUsed notebook which should be the same "
+                                          "as last used notebook right now but it is not");
+        QNWARNING(errorDescription << QStringLiteral(". Last used notebook: ") << lastUsedNotebook
+                  << QStringLiteral(", defaultOrLastUsedNotebook: ") << defaultOrLastUsedNotebook);
         return false;
     }
 
@@ -1056,7 +1055,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
         return false;
     }
     else if (count != 1) {
-        errorDescription = "notebookCount returned result different from the expected one (1): ";
+        errorDescription = QStringLiteral("notebookCount returned result different from the expected one (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -1070,10 +1069,9 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
 
     res = localStorageManager.findNotebook(foundNotebook, errorMessage);
     if (res) {
-        errorDescription = "Error: found Notebook which should have been expunged "
-                           "from LocalStorageManager";
-        QNWARNING(errorDescription << ": Notebook expunged from LocalStorageManager: " << modifiedNotebook
-                  << "\nNotebook found in LocalStorageManager: " << foundNotebook);
+        errorDescription = QStringLiteral("Error: found Notebook which should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << QStringLiteral(": Notebook expunged from LocalStorageManager: ") << modifiedNotebook
+                  << QStringLiteral("\nNotebook found in LocalStorageManager: ") << foundNotebook);
         return false;
     }
 
@@ -1084,7 +1082,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
         return false;
     }
     else if (count != 0) {
-        errorDescription = "notebookCount returned result different from the expected one (0): ";
+        errorDescription = QStringLiteral("notebookCount returned result different from the expected one (0): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -1099,7 +1097,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
 
     if (!user.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
-        QNWARNING("Found invalid User: " << user);
+        QNWARNING(QStringLiteral("Found invalid User: ") << user);
         return false;
     }
 
@@ -1120,19 +1118,19 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
     }
 
     if (user != foundUser) {
-        errorDescription = "Added and found users in local storage don't match";
-        QNWARNING(errorDescription << ": User added to LocalStorageManager: " << user
-                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        errorDescription = QStringLiteral("Added and found users in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": User added to LocalStorageManager: ") << user
+                  << QStringLiteral("\nIUser found in LocalStorageManager: ") << foundUser);
         return false;
     }
 
     // ========== Check Update + Find ==========
     User modifiedUser;
     modifiedUser.setId(user.id());
-    modifiedUser.setUsername(user.username() + "_modified");
-    modifiedUser.setEmail(user.email() + "_modified");
-    modifiedUser.setName(user.name() + "_modified");
-    modifiedUser.setTimezone(user.timezone() + "_modified");
+    modifiedUser.setUsername(user.username() + QStringLiteral("_modified"));
+    modifiedUser.setEmail(user.email() + QStringLiteral("_modified"));
+    modifiedUser.setName(user.name() + QStringLiteral("_modified"));
+    modifiedUser.setTimezone(user.timezone() + QStringLiteral("_modified"));
     modifiedUser.setPrivilegeLevel(user.privilegeLevel());
     modifiedUser.setCreationTimestamp(user.creationTimestamp());
     modifiedUser.setModificationTimestamp(user.modificationTimestamp() + 1);
@@ -1140,24 +1138,24 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
 
     qevercloud::UserAttributes modifiedUserAttributes;
     modifiedUserAttributes = user.userAttributes();
-    modifiedUserAttributes.defaultLocationName->append("_modified");
-    modifiedUserAttributes.comments->append("_modified");
-    modifiedUserAttributes.preferredCountry->append("_modified");
-    modifiedUserAttributes.businessAddress->append("_modified");
+    modifiedUserAttributes.defaultLocationName->append(QStringLiteral("_modified"));
+    modifiedUserAttributes.comments->append(QStringLiteral("_modified"));
+    modifiedUserAttributes.preferredCountry->append(QStringLiteral("_modified"));
+    modifiedUserAttributes.businessAddress->append(QStringLiteral("_modified"));
 
     modifiedUser.setUserAttributes(std::move(modifiedUserAttributes));
 
     qevercloud::BusinessUserInfo modifiedBusinessUserInfo;
     modifiedBusinessUserInfo = user.businessUserInfo();
-    modifiedBusinessUserInfo.businessName->append("_modified");
-    modifiedBusinessUserInfo.email->append("_modified");
+    modifiedBusinessUserInfo.businessName->append(QStringLiteral("_modified"));
+    modifiedBusinessUserInfo.email->append(QStringLiteral("_modified"));
 
     modifiedUser.setBusinessUserInfo(std::move(modifiedBusinessUserInfo));
 
     qevercloud::Accounting modifiedAccounting;
     modifiedAccounting = user.accounting();
-    modifiedAccounting.premiumOrderNumber->append("_modified");
-    modifiedAccounting.premiumSubscriptionNumber->append("_modified");
+    modifiedAccounting.premiumOrderNumber->append(QStringLiteral("_modified"));
+    modifiedAccounting.premiumSubscriptionNumber->append(QStringLiteral("_modified"));
     modifiedAccounting.updated += 1;
 
     modifiedUser.setAccounting(std::move(modifiedAccounting));
@@ -1185,9 +1183,9 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
     }
 
     if (modifiedUser != foundUser) {
-        errorDescription = "Updated and found users in local storage don't match";
-        QNWARNING(errorDescription << ": User updated in LocalStorageManager: " << modifiedUser
-                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        errorDescription = QStringLiteral("Updated and found users in local storage don't match");
+        QNWARNING(errorDescription << QStringLiteral(": User updated in LocalStorageManager: ") << modifiedUser
+                  << QStringLiteral("\nIUser found in LocalStorageManager: ") << foundUser);
         return false;
     }
 
@@ -1198,7 +1196,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
         return false;
     }
     else if (count != 1) {
-        errorDescription = "userCount returned value different from expected (1): ";
+        errorDescription = QStringLiteral("userCount returned value different from expected (1): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -1221,9 +1219,9 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
     }
 
     if (modifiedUser != foundUser) {
-        errorDescription = "Deleted and found users in local storage manager don't match";
-        QNWARNING(errorDescription << ": User marked deleted in LocalStorageManager: " << modifiedUser
-                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        errorDescription = QStringLiteral("Deleted and found users in local storage manager don't match");
+        QNWARNING(errorDescription << QStringLiteral(": User marked deleted in LocalStorageManager: ") << modifiedUser
+                  << QStringLiteral("\nIUser found in LocalStorageManager: ") << foundUser);
         return false;
     }
 
@@ -1234,7 +1232,7 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
         return false;
     }
     else if (count != 0) {
-        errorDescription = "userCount returned value different from expected (0): ";
+        errorDescription = QStringLiteral("userCount returned value different from expected (0): ");
         errorDescription += QString::number(count);
         return false;
     }
@@ -1250,10 +1248,9 @@ bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalSt
     foundUser.setId(modifiedUser.id());
     res = localStorageManager.findUser(foundUser, errorMessage);
     if (res) {
-        errorDescription = "Error: found User which should have been expunged "
-                           "from LocalStorageManager";
-        QNWARNING(errorDescription << ": User expunged from LocalStorageManager: " << modifiedUser
-                  << "\nIUser found in LocalStorageManager: " << foundUser);
+        errorDescription = QStringLiteral("Error: found User which should have been expunged from LocalStorageManager");
+        QNWARNING(errorDescription << QStringLiteral(": User expunged from LocalStorageManager: ") << modifiedUser
+                  << QStringLiteral("\nIUser found in LocalStorageManager: ") << foundUser);
         return false;
     }
 
@@ -1266,45 +1263,47 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     const bool startFromScratch = true;
     const bool overrideLock = false;
-    LocalStorageManager localStorageManager("LocalStorageManagerSequentialUpdatesTestFakeUser",
+    LocalStorageManager localStorageManager(QStringLiteral("LocalStorageManagerSequentialUpdatesTestFakeUser"),
                                             0, startFromScratch, overrideLock);
 
     // 2) ========== Create User ============
     User   user;
     user.setId(1);
-    user.setUsername("checker");
-    user.setEmail("mail@checker.com");
-    user.setTimezone("Europe/Moscow");
+    user.setUsername(QStringLiteral("checker"));
+    user.setEmail(QStringLiteral("mail@checker.com"));
+    user.setTimezone(QStringLiteral("Europe/Moscow"));
     user.setPrivilegeLevel(qevercloud::PrivilegeLevel::NORMAL);
     user.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
     user.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
     user.setActive(true);
 
     qevercloud::UserAttributes userAttributes;
-    userAttributes.defaultLocationName = "Default location";
-    userAttributes.comments = "My comment";
-    userAttributes.preferredLanguage = "English";
+    userAttributes.defaultLocationName = QStringLiteral("Default location");
+    userAttributes.comments = QStringLiteral("My comment");
+    userAttributes.preferredLanguage = QStringLiteral("English");
 
     userAttributes.viewedPromotions = QStringList();
-    userAttributes.viewedPromotions.ref() << "Promotion #1" << "Promotion #2" << "Promotion #3";
+    userAttributes.viewedPromotions.ref() << QStringLiteral("Promotion #1")
+                                          << QStringLiteral("Promotion #2")
+                                          << QStringLiteral("Promotion #3");
 
     userAttributes.recentMailedAddresses = QStringList();
-    userAttributes.recentMailedAddresses.ref() << "Recent mailed address #1"
-                                               << "Recent mailed address #2"
-                                               << "Recent mailed address #3";
+    userAttributes.recentMailedAddresses.ref() << QStringLiteral("Recent mailed address #1")
+                                               << QStringLiteral("Recent mailed address #2")
+                                               << QStringLiteral("Recent mailed address #3");
 
     user.setUserAttributes(std::move(userAttributes));
 
     qevercloud::Accounting accounting;
-    accounting.premiumOrderNumber = "Premium order number";
-    accounting.premiumSubscriptionNumber = "Premium subscription number";
+    accounting.premiumOrderNumber = QStringLiteral("Premium order number");
+    accounting.premiumSubscriptionNumber = QStringLiteral("Premium subscription number");
     accounting.updated = QDateTime::currentMSecsSinceEpoch();
 
     user.setAccounting(std::move(accounting));
 
     qevercloud::BusinessUserInfo businessUserInfo;
-    businessUserInfo.businessName = "Business name";
-    businessUserInfo.email = "Business email";
+    businessUserInfo.businessName = QStringLiteral("Business name");
+    businessUserInfo.email = QStringLiteral("Business email");
 
     user.setBusinessUserInfo(std::move(businessUserInfo));
 
@@ -1328,8 +1327,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     //                 and update it in local storage ===================
     User updatedUser;
     updatedUser.setId(1);
-    updatedUser.setUsername("checker");
-    updatedUser.setEmail("mail@checker.com");
+    updatedUser.setUsername(QStringLiteral("checker"));
+    updatedUser.setEmail(QStringLiteral("mail@checker.com"));
     updatedUser.setPrivilegeLevel(qevercloud::PrivilegeLevel::NORMAL);
     updatedUser.setCreationTimestamp(QDateTime::currentMSecsSinceEpoch());
     updatedUser.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
@@ -1353,53 +1352,53 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     }
 
     if (foundUser.hasUserAttributes()) {
-        errorDescription = "Updated user found in local storage still has user attributes "
-                           "while it shouldn't have them after the update";
-        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
-                  << updatedUser << "\nFound user: " << foundUser);
+        errorDescription = QStringLiteral("Updated user found in local storage still has user attributes "
+                                          "while it shouldn't have them after the update");
+        QNWARNING(errorDescription << QStringLiteral(": initial user: ") << user << QStringLiteral("\nUpdated user: ")
+                  << updatedUser << QStringLiteral("\nFound user: ") << foundUser);
         return false;
     }
 
     if (foundUser.hasAccounting()) {
-        errorDescription = "Updated user found in local storage still has accounting "
-                           "while it shouldn't have it after the update";
-        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
-                  << updatedUser << "\nFound user: " << foundUser);
+        errorDescription = QStringLiteral("Updated user found in local storage still has accounting "
+                                          "while it shouldn't have it after the update");
+        QNWARNING(errorDescription << QStringLiteral(": initial user: ") << user << QStringLiteral("\nUpdated user: ")
+                  << updatedUser << QStringLiteral("\nFound user: ") << foundUser);
         return false;
     }
 
     if (foundUser.hasBusinessUserInfo()) {
-        errorDescription = "Updated user found in local storage still has business user info "
-                           "while it shouldn't have it after the update";
-        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
-                  << updatedUser << "\nFound user: " << foundUser);
+        errorDescription = QStringLiteral("Updated user found in local storage still has business user info "
+                                          "while it shouldn't have it after the update");
+        QNWARNING(errorDescription << QStringLiteral(": initial user: ") << user << QStringLiteral("\nUpdated user: ")
+                  << updatedUser << QStringLiteral("\nFound user: ") << foundUser);
         return false;
     }
 
     if (foundUser.hasAccountLimits()) {
-        errorDescription = "Updated user found in local storage still has account limits "
-                           "while it shouldn't have them after the update";
-        QNWARNING(errorDescription << ": initial user: " << user << "\nUpdated user: "
-                  << updatedUser << "\nFound user: " << foundUser);
+        errorDescription = QStringLiteral("Updated user found in local storage still has account limits "
+                                          "while it shouldn't have them after the update");
+        QNWARNING(errorDescription << QStringLiteral(": initial user: ") << user << QStringLiteral("\nUpdated user: ")
+                  << updatedUser << QStringLiteral("\nFound user: ") << foundUser);
         return false;
     }
 
     // ============ 6) Create Notebook with restrictions and shared notebooks ==================
     Notebook notebook;
-    notebook.setGuid("00000000-0000-0000-c000-000000000049");
+    notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000049"));
     notebook.setUpdateSequenceNumber(1);
-    notebook.setName("Fake notebook name");
+    notebook.setName(QStringLiteral("Fake notebook name"));
     notebook.setCreationTimestamp(1);
     notebook.setModificationTimestamp(1);
     notebook.setDefaultNotebook(true);
     notebook.setLastUsed(false);
-    notebook.setPublishingUri("Fake publishing uri");
+    notebook.setPublishingUri(QStringLiteral("Fake publishing uri"));
     notebook.setPublishingOrder(1);
     notebook.setPublishingAscending(true);
-    notebook.setPublishingPublicDescription("Fake public description");
+    notebook.setPublishingPublicDescription(QStringLiteral("Fake public description"));
     notebook.setPublished(true);
-    notebook.setStack("Fake notebook stack");
-    notebook.setBusinessNotebookDescription("Fake business notebook description");
+    notebook.setStack(QStringLiteral("Fake notebook stack"));
+    notebook.setBusinessNotebookDescription(QStringLiteral("Fake business notebook description"));
     notebook.setBusinessNotebookPrivilegeLevel(1);
     notebook.setBusinessNotebookRecommended(true);
     // NotebookRestrictions
@@ -1430,11 +1429,11 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     sharedNotebook.setId(1);
     sharedNotebook.setUserId(1);
     sharedNotebook.setNotebookGuid(notebook.guid());
-    sharedNotebook.setEmail("Fake shared notebook email");
+    sharedNotebook.setEmail(QStringLiteral("Fake shared notebook email"));
     sharedNotebook.setCreationTimestamp(1);
     sharedNotebook.setModificationTimestamp(1);
-    sharedNotebook.setGlobalId("Fake shared notebook global id");
-    sharedNotebook.setUsername("Fake shared notebook username");
+    sharedNotebook.setGlobalId(QStringLiteral("Fake shared notebook global id"));
+    sharedNotebook.setUsername(QStringLiteral("Fake shared notebook username"));
     sharedNotebook.setPrivilegeLevel(1);
     sharedNotebook.setReminderNotifyEmail(true);
     sharedNotebook.setReminderNotifyApp(false);
@@ -1452,18 +1451,18 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     updatedNotebook.setLocalUid(notebook.localUid());
     updatedNotebook.setGuid(notebook.guid());
     updatedNotebook.setUpdateSequenceNumber(1);
-    updatedNotebook.setName("Fake notebook name");
+    updatedNotebook.setName(QStringLiteral("Fake notebook name"));
     updatedNotebook.setCreationTimestamp(1);
     updatedNotebook.setModificationTimestamp(1);
     updatedNotebook.setDefaultNotebook(true);
     updatedNotebook.setLastUsed(false);
-    updatedNotebook.setPublishingUri("Fake publishing uri");
+    updatedNotebook.setPublishingUri(QStringLiteral("Fake publishing uri"));
     updatedNotebook.setPublishingOrder(1);
     updatedNotebook.setPublishingAscending(true);
-    updatedNotebook.setPublishingPublicDescription("Fake public description");
+    updatedNotebook.setPublishingPublicDescription(QStringLiteral("Fake public description"));
     updatedNotebook.setPublished(true);
-    updatedNotebook.setStack("Fake notebook stack");
-    updatedNotebook.setBusinessNotebookDescription("Fake business notebook description");
+    updatedNotebook.setStack(QStringLiteral("Fake notebook stack"));
+    updatedNotebook.setBusinessNotebookDescription(QStringLiteral("Fake business notebook description"));
     updatedNotebook.setBusinessNotebookPrivilegeLevel(1);
     updatedNotebook.setBusinessNotebookRecommended(true);
 
@@ -1485,28 +1484,28 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     }
 
     if (foundNotebook.hasSharedNotebooks()) {
-        errorDescription = "Updated notebook found in local storage has shared notebooks "
-                           "while it shouldn't have them";
-        QNWARNING(errorDescription << ", original notebook: " << notebook
-                  << "\nUpdated notebook: " << updatedNotebook << "\nFound notebook: "
+        errorDescription = QStringLiteral("Updated notebook found in local storage has shared notebooks "
+                                          "while it shouldn't have them");
+        QNWARNING(errorDescription << QStringLiteral(", original notebook: ") << notebook
+                  << QStringLiteral("\nUpdated notebook: ") << updatedNotebook << QStringLiteral("\nFound notebook: ")
                   << foundNotebook);
         return false;
     }
 
     if (foundNotebook.hasRestrictions()) {
-        errorDescription = "Updated notebook found in local storage has restrictions "
-                           "while it shouldn't have them";
-        QNWARNING(errorDescription << ", original notebook: " << notebook
-                  << "\nUpdated notebook: " << updatedNotebook << "\nFound notebook: "
+        errorDescription = QStringLiteral("Updated notebook found in local storage has restrictions "
+                                          "while it shouldn't have them");
+        QNWARNING(errorDescription << QStringLiteral(", original notebook: ") << notebook
+                  << QStringLiteral("\nUpdated notebook: ") << updatedNotebook << QStringLiteral("\nFound notebook: ")
                   << foundNotebook);
         return false;
     }
 
     // 9) ============== Create tag =================
     Tag tag;
-    tag.setGuid("00000000-0000-0000-c000-000000000046");
+    tag.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
     tag.setUpdateSequenceNumber(1);
-    tag.setName("Fake tag name");
+    tag.setName(QStringLiteral("Fake tag name"));
 
     res = localStorageManager.addTag(tag, errorMessage);
     if (!res) {
@@ -1516,22 +1515,22 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     // 10) ============= Create note, add this tag to it along with some resource ===========
     Note note;
-    note.setGuid("00000000-0000-0000-c000-000000000045");
+    note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000045"));
     note.setUpdateSequenceNumber(1);
-    note.setTitle("Fake note title");
-    note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+    note.setTitle(QStringLiteral("Fake note title"));
+    note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
     note.setCreationTimestamp(1);
     note.setModificationTimestamp(1);
     note.setActive(true);
     note.setNotebookGuid(notebook.guid());
 
     Resource resource;
-    resource.setGuid("00000000-0000-0000-c000-000000000044");
+    resource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000044"));
     resource.setUpdateSequenceNumber(1);
     resource.setNoteGuid(note.guid());
-    resource.setDataBody("Fake resource data body");
+    resource.setDataBody(QByteArray("Fake resource data body"));
     resource.setDataSize(resource.dataBody().size());
-    resource.setDataHash("Fake hash      1");
+    resource.setDataHash(QByteArray("Fake hash      1"));
 
     note.addResource(resource);
     note.addTagGuid(tag.guid());
@@ -1546,10 +1545,10 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     // 11) ============ Update note, remove tag guid and resource ============
     Note updatedNote;
     updatedNote.setLocalUid(note.localUid());
-    updatedNote.setGuid("00000000-0000-0000-c000-000000000045");
+    updatedNote.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000045"));
     updatedNote.setUpdateSequenceNumber(1);
-    updatedNote.setTitle("Fake note title");
-    updatedNote.setContent("<en-note><h1>Hello, world</h1></en-note>");
+    updatedNote.setTitle(QStringLiteral("Fake note title"));
+    updatedNote.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
     updatedNote.setCreationTimestamp(1);
     updatedNote.setModificationTimestamp(1);
     updatedNote.setActive(true);
@@ -1575,16 +1574,16 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     }
 
     if (foundNote.hasTagGuids()) {
-        errorDescription = "Updated note found in local storage has tag guids while it shouldn't have them";
-        QNWARNING(errorDescription << ", original note: " << note << "\nUpdated note: "
-                  << updatedNote << "\nFound note: " << foundNote);
+        errorDescription = QStringLiteral("Updated note found in local storage has tag guids while it shouldn't have them");
+        QNWARNING(errorDescription << QStringLiteral(", original note: ") << note << QStringLiteral("\nUpdated note: ")
+                  << updatedNote << QStringLiteral("\nFound note: ") << foundNote);
         return false;
     }
 
     if (foundNote.hasResources()) {
-        errorDescription = "Updated note found in local storage has resources while it shouldn't have them";
-        QNWARNING(errorDescription << ", original note: " << note << "\nUpdated note: "
-                  << updatedNote << "\nFound note: " << foundNote);
+        errorDescription = QStringLiteral("Updated note found in local storage has resources while it shouldn't have them");
+        QNWARNING(errorDescription << QStringLiteral(", original note: ") << note << QStringLiteral("\nUpdated note: ")
+                  << updatedNote << QStringLiteral("\nFound note: ") << foundNote);
         return false;
     }
 
@@ -1594,10 +1593,10 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     resourceAttributes.applicationData->keysOnly = QSet<QString>();
     resourceAttributes.applicationData->fullMap = QMap<QString, QString>();
 
-    resourceAttributes.applicationData->keysOnly.ref() << "key_1" << "key_2" << "key_3";
-    resourceAttributes.applicationData->fullMap.ref()["key_1"] = "value_1";
-    resourceAttributes.applicationData->fullMap.ref()["key_2"] = "value_2";
-    resourceAttributes.applicationData->fullMap.ref()["key_3"] = "value_3";
+    resourceAttributes.applicationData->keysOnly.ref() << QStringLiteral("key_1") << QStringLiteral("key_2") << QStringLiteral("key_3");
+    resourceAttributes.applicationData->fullMap.ref()[QStringLiteral("key_1")] = QStringLiteral("value_1");
+    resourceAttributes.applicationData->fullMap.ref()[QStringLiteral("key_2")] = QStringLiteral("value_2");
+    resourceAttributes.applicationData->fullMap.ref()[QStringLiteral("key_3")] = QStringLiteral("value_3");
 
     updatedNote.addResource(resource);
 
@@ -1611,9 +1610,9 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     // 14) ================ Remove resource attributes from note's resource and update it again
     QList<Resource> resources = updatedNote.resources();
     if (resources.empty()) {
-        errorDescription = "Note returned empty list of resource adapters while it should have "
-                           "contained at least one entry";
-        QNWARNING(errorDescription << ", updated note: " << updatedNote);
+        errorDescription = QStringLiteral("Note returned empty list of resource adapters while it should have "
+                                          "contained at least one entry");
+        QNWARNING(errorDescription << QStringLiteral(", updated note: ") << updatedNote);
         return false;
     }
 
@@ -1639,8 +1638,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     resources = foundNote.resources();
     if (resources.empty()) {
-        errorDescription = "Note returned empty list of resource adapters while it should have "
-                           "contained at least one entry";
+        errorDescription = QStringLiteral("Note returned empty list of resource adapters while it should have "
+                                          "contained at least one entry");
         QNWARNING(errorDescription << ", found note: " << foundNote);
         return false;
     }
@@ -1648,8 +1647,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
     Resource & foundResourceWrapper = resources[0];
     qevercloud::ResourceAttributes & foundResourceAttributes = foundResourceWrapper.resourceAttributes();
     if (foundResourceAttributes.applicationData.isSet()) {
-        errorDescription = "Resource from updated note has application data while it shouldn't have it";
-        QNWARNING(errorDescription << ", found resource: " << foundResourceWrapper);
+        errorDescription = QStringLiteral("Resource from updated note has application data while it shouldn't have it");
+        QNWARNING(errorDescription << QStringLiteral(", found resource: ") << foundResourceWrapper);
         return false;
     }
 
