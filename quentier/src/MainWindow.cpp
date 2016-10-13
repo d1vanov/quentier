@@ -253,7 +253,6 @@ void MainWindow::addMenuActionsToMainWindow()
     // NOTE: adding the actions from the menu bar's menus is required for getting the shortcuts
     // of these actions to work properly; action shortcuts only fire when the menu is shown
     // which is not really the purpose behind those shortcuts
-
     QList<QMenu*> menus = m_pUI->menuBar->findChildren<QMenu*>();
     const int numMenus = menus.size();
     for(int i = 0; i < numMenus; ++i)
@@ -267,6 +266,79 @@ void MainWindow::addMenuActionsToMainWindow()
             addAction(action);
         }
     }
+
+    // Adding detected accounts
+    QActionGroup * actionGroup = m_pUI->ActionSwitchAccount->actionGroup();
+    if (!actionGroup) {
+        actionGroup = new QActionGroup(this);
+        m_pUI->ActionSwitchAccount->setActionGroup(actionGroup);
+    }
+
+    actionGroup->setExclusive(true);
+    QStringList detectedAccounts = detectAvailableAccounts();
+    int numDetectedAccounts = detectedAccounts.size();
+    for(int i = 0; i < numDetectedAccounts; ++i)
+    {
+        QAction * switchAccountAction = actionGroup->addAction(detectedAccounts[i]);
+        switchAccountAction->setCheckable(true);
+        addAction(switchAccountAction);
+        QObject::connect(switchAccountAction, QNSIGNAL(QAction,toggled,bool),
+                         this, QNSLOT(MainWindow,onSwitchAccountActionToggled,bool));
+    }
+
+    if (numDetectedAccounts != 0) {
+        QAction * separatorAction = actionGroup->addAction(QStringLiteral("separator"));
+        separatorAction->setSeparator(true);
+    }
+
+    QAction * addAccountAction = actionGroup->addAction(QT_TR_NOOP("Add account") + QStringLiteral("..."));
+    addAction(addAccountAction);
+    QObject::connect(addAccountAction, QNSIGNAL(QAction,triggered,bool),
+                     this, QNSLOT(MainWindow,onAddAccountActionTriggered,bool));
+
+    QAction * manageAccountsAction = actionGroup->addAction(QT_TR_NOOP("Manage accounts") + QStringLiteral("..."));
+    addAction(manageAccountsAction);
+    QObject::connect(manageAccountsAction, QNSIGNAL(QAction,triggered,bool),
+                     this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
+}
+
+QStringList MainWindow::detectAvailableAccounts()
+{
+    QNDEBUG(QStringLiteral("MainWindow::detectAvailableAccounts"));
+
+    QStringList result;
+
+    QString appPersistenceStoragePath = applicationPersistentStoragePath();
+    QDir appPersistenceStorageDir(appPersistenceStoragePath);
+
+    QFileInfoList accountDirInfos = appPersistenceStorageDir.entryInfoList(QDir::AllDirs);
+    int numPotentialAccountDirs = accountDirInfos.size();
+    result.reserve(numPotentialAccountDirs);
+
+    for(int i = 0; i < numPotentialAccountDirs; ++i)
+    {
+        const QFileInfo & accountDirInfo = accountDirInfos[i];
+        QDir accountDir = accountDirInfo.absoluteDir();
+        QFileInfo accountBasicInfoFileInfo(accountDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
+        if (!accountBasicInfoFileInfo.exists()) {
+            continue;
+        }
+
+        QString accountName = accountDir.dirName();
+        if (accountName.startsWith(QStringLiteral("local_"))) {
+            accountName.remove(0, 6);
+        }
+
+        int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
+        if (lastUnderlineIndex >= 0) {
+            int numCharsToRemove = accountName.length() - lastUnderlineIndex;
+            accountName.chop(numCharsToRemove);
+        }
+
+        result << accountName;
+    }
+
+    return result;
 }
 
 void MainWindow::prepareTestNoteWithResources()
@@ -1053,6 +1125,47 @@ void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
 
     QNTRACE("Parsed font size " << valueInt << " from value " << value);
     m_pNoteEditor->setFontHeight(valueInt);
+}
+
+void MainWindow::onAddAccountActionTriggered(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAddAccountActionTriggered"));
+
+    Q_UNUSED(checked)
+
+    // TODO: implement
+}
+
+void MainWindow::onManageAccountsActionTriggered(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onManageAccountsActionTriggered"));
+
+    Q_UNUSED(checked)
+
+    // TODO: implement
+}
+
+void MainWindow::onSwitchAccountActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchAccountActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (!checked) {
+        QNTRACE(QStringLiteral("Ignoring the unchecking of account"));
+        return;
+    }
+
+    QAction * action = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!action)) {
+        QNLocalizedString error = QT_TR_NOOP("Internal error: can't identify account to switch to");
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QString accountName = action->text();
+    Q_UNUSED(accountName);
+    // TODO: implement further
 }
 
 void MainWindow::checkThemeIconsAndSetFallbacks()

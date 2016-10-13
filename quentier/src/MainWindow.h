@@ -130,6 +130,10 @@ private Q_SLOTS:
     void onFontComboBoxFontChanged(QFont font);
     void onFontSizeComboBoxIndexChanged(int currentIndex);
 
+    void onAddAccountActionTriggered(bool checked);
+    void onManageAccountsActionTriggered(bool checked);
+    void onSwitchAccountActionToggled(bool checked);
+
 private:
     void checkThemeIconsAndSetFallbacks();
     void updateNoteHtmlView(QString html);
@@ -143,6 +147,8 @@ private:
     void connectActionsToEditorSlots();
     void connectEditorSignalsToSlots();
     void addMenuActionsToMainWindow();
+
+    QStringList detectAvailableAccounts();
 
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
