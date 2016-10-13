@@ -148,6 +148,9 @@ private:
     void connectEditorSignalsToSlots();
     void addMenuActionsToMainWindow();
 
+    // Returns the username for the default local account
+    QString createDefaultAccount();
+
     QStringList detectAvailableAccounts();
 
     void prepareTestNoteWithResources();

@@ -55,6 +55,10 @@ using quentier::NoteEditor;
 #include <QUndoStack>
 #include <QCryptographicHash>
 
+#define NOTIFY_ERROR(error) \
+    QNWARNING(error); \
+    onSetStatusBarText(error)
+
 using namespace quentier;
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
@@ -267,39 +271,86 @@ void MainWindow::addMenuActionsToMainWindow()
         }
     }
 
-    // Adding detected accounts
-    QActionGroup * actionGroup = m_pUI->ActionSwitchAccount->actionGroup();
-    if (!actionGroup) {
-        actionGroup = new QActionGroup(this);
-        m_pUI->ActionSwitchAccount->setActionGroup(actionGroup);
-    }
+    QMenu * switchAccountSubMenu = new QMenu(tr("Switch account"));
+    QAction * separatorAction = m_pUI->menuFile->insertSeparator(m_pUI->ActionQuit);
+    QAction * switchAccountSubMenuAction = m_pUI->menuFile->insertMenu(separatorAction, switchAccountSubMenu);
+    Q_UNUSED(m_pUI->menuFile->insertSeparator(switchAccountSubMenuAction));
 
-    actionGroup->setExclusive(true);
-    QStringList detectedAccounts = detectAvailableAccounts();
-    int numDetectedAccounts = detectedAccounts.size();
-    for(int i = 0; i < numDetectedAccounts; ++i)
+    QActionGroup * accountsActionGroup = new QActionGroup(this);
+    accountsActionGroup->setExclusive(true);
+
+    QStringList availableAccounts = detectAvailableAccounts();
+    if (availableAccounts.isEmpty())
     {
-        QAction * switchAccountAction = actionGroup->addAction(detectedAccounts[i]);
-        switchAccountAction->setCheckable(true);
-        addAction(switchAccountAction);
-        QObject::connect(switchAccountAction, QNSIGNAL(QAction,toggled,bool),
+        QNDEBUG(QStringLiteral("It appears the default user account doesn't exist yet, will add it"));
+        QString defaultAccount = createDefaultAccount();
+        if (Q_LIKELY(!defaultAccount.isEmpty())) {
+            // TRANSLATOR this "local" is meant for the name of the default account
+            availableAccounts << (defaultAccount + QStringLiteral(" (") + tr("local") + QStringLiteral(")"));
+        }
+    }
+
+    int numAvailableAccounts = availableAccounts.size();
+    for(int i = 0; i < numAvailableAccounts; ++i)
+    {
+        QAction * accountAction = new QAction(availableAccounts[i], Q_NULLPTR);
+        switchAccountSubMenu->addAction(accountAction);
+
+        accountAction->setCheckable(true);
+        addAction(accountAction);
+        QObject::connect(accountAction, QNSIGNAL(QAction,toggled,bool),
                          this, QNSLOT(MainWindow,onSwitchAccountActionToggled,bool));
+
+        accountsActionGroup->addAction(accountAction);
     }
 
-    if (numDetectedAccounts != 0) {
-        QAction * separatorAction = actionGroup->addAction(QStringLiteral("separator"));
-        separatorAction->setSeparator(true);
+    if (Q_LIKELY(numAvailableAccounts != 0)) {
+        Q_UNUSED(switchAccountSubMenu->addSeparator())
     }
 
-    QAction * addAccountAction = actionGroup->addAction(QT_TR_NOOP("Add account") + QStringLiteral("..."));
+    QAction * addAccountAction = switchAccountSubMenu->addAction(QT_TR_NOOP("Add account"));
     addAction(addAccountAction);
     QObject::connect(addAccountAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onAddAccountActionTriggered,bool));
 
-    QAction * manageAccountsAction = actionGroup->addAction(QT_TR_NOOP("Manage accounts") + QStringLiteral("..."));
+    QAction * manageAccountsAction = switchAccountSubMenu->addAction(QT_TR_NOOP("Manage accounts"));
     addAction(manageAccountsAction);
     QObject::connect(manageAccountsAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
+}
+
+QString MainWindow::createDefaultAccount()
+{
+    QNDEBUG(QStringLiteral("MainWindow::createDefaultAccount"));
+
+    QString username = getCurrentUserName();
+
+    QString appPersistenceStoragePath = applicationPersistentStoragePath();
+    QString userPersistenceStoragePath = appPersistenceStoragePath + QStringLiteral("/local_") + username;
+    QDir userPersistenceStorageDir(userPersistenceStoragePath);
+    if (!userPersistenceStorageDir.exists())
+    {
+        bool created = userPersistenceStorageDir.mkpath(userPersistenceStoragePath);
+        if (Q_UNLIKELY(!created)) {
+            NOTIFY_ERROR(QT_TR_NOOP("Can't create directory for the default account storage"));
+            return QString();
+        }
+    }
+
+    QFile accountInfo(userPersistenceStoragePath + QStringLiteral("/accountInfo.txt"));
+
+    bool open = accountInfo.open(QIODevice::WriteOnly);
+    if (Q_UNLIKELY(!open)) {
+        NOTIFY_ERROR(QT_TR_NOOP("Can't open the account info file for the default account for writing") +
+                     QStringLiteral(": ") + accountInfo.errorString());
+        return QString();
+    }
+
+    // TODO: write some account info into that file
+
+    accountInfo.close();
+
+    return username;
 }
 
 QStringList MainWindow::detectAvailableAccounts()

@@ -1245,8 +1245,6 @@ background-color: rgb(205, 221, 229);
     <addaction name="separator"/>
     <addaction name="ActionPrint"/>
     <addaction name="separator"/>
-    <addaction name="ActionSwitchAccount"/>
-    <addaction name="separator"/>
     <addaction name="ActionQuit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
