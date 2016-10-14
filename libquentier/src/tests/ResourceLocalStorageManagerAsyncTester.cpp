@@ -50,7 +50,7 @@ ResourceLocalStorageManagerAsyncTester::~ResourceLocalStorageManagerAsyncTester(
 
 void ResourceLocalStorageManagerAsyncTester::onInitTestCase()
 {
-    QString username = "ResourceLocalStorageManagerAsyncTester";
+    QString username = QStringLiteral("ResourceLocalStorageManagerAsyncTester");
     qint32 userId = 6;
     bool startFromScratch = true;
     bool overrideLock = false;
@@ -79,26 +79,26 @@ void ResourceLocalStorageManagerAsyncTester::onInitTestCase()
 void ResourceLocalStorageManagerAsyncTester::onWorkerInitialized()
 {
     m_notebook = Notebook();
-    m_notebook.setGuid("00000000-0000-0000-c000-000000000047");
+    m_notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
     m_notebook.setUpdateSequenceNumber(1);
-    m_notebook.setName("Fake notebook name");
+    m_notebook.setName(QStringLiteral("Fake notebook name"));
     m_notebook.setCreationTimestamp(1);
     m_notebook.setModificationTimestamp(1);
     m_notebook.setDefaultNotebook(true);
     m_notebook.setLastUsed(false);
-    m_notebook.setPublishingUri("Fake publishing uri");
+    m_notebook.setPublishingUri(QStringLiteral("Fake publishing uri"));
     m_notebook.setPublishingOrder(1);
     m_notebook.setPublishingAscending(true);
     m_notebook.setPublishingPublicDescription("Fake public description");
     m_notebook.setPublished(true);
-    m_notebook.setStack("Fake notebook stack");
-    m_notebook.setBusinessNotebookDescription("Fake business notebook description");
+    m_notebook.setStack(QStringLiteral("Fake notebook stack"));
+    m_notebook.setBusinessNotebookDescription(QStringLiteral("Fake business notebook description"));
     m_notebook.setBusinessNotebookPrivilegeLevel(1);
     m_notebook.setBusinessNotebookRecommended(true);
 
     QNLocalizedString errorDescription;
     if (!m_notebook.checkParameters(errorDescription)) {
-        QNWARNING("Found invalid notebook: " << m_notebook << ", error: " << errorDescription);
+        QNWARNING(QStringLiteral("Found invalid notebook: ") << m_notebook << QStringLiteral(", error: ") << errorDescription);
         emit failure(errorDescription.nonLocalizedString());
         return;
     }
@@ -133,10 +133,10 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
         }
 
         m_note = Note();
-        m_note.setGuid("00000000-0000-0000-c000-000000000048");
+        m_note.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000048"));
         m_note.setUpdateSequenceNumber(1);
-        m_note.setTitle("Fake note");
-        m_note.setContent("<en-note><h1>Hello, world</h1></en-note>");
+        m_note.setTitle(QStringLiteral("Fake note"));
+        m_note.setContent(QStringLiteral("<en-note><h1>Hello, world</h1></en-note>"));
         m_note.setCreationTimestamp(1);
         m_note.setModificationTimestamp(1);
         m_note.setNotebookGuid(m_notebook.guid());
@@ -151,7 +151,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNotebookCompleted(Notebook not
 
 void ResourceLocalStorageManagerAsyncTester::onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", Notebook: " << notebook);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", Notebook: ") << notebook);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -172,7 +172,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, QUuid
             return;
         }
 
-        m_initialResource.setGuid("00000000-0000-0000-c000-000000000048");
+        m_initialResource.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000048"));
         m_initialResource.setUpdateSequenceNumber(1);
         if (note.hasGuid()) {
             m_initialResource.setNoteGuid(note.guid());
@@ -181,63 +181,63 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, QUuid
             m_initialResource.setNoteLocalUid(note.localUid());
         }
         m_initialResource.setIndexInNote(0);
-        m_initialResource.setDataBody("Fake resource data body");
+        m_initialResource.setDataBody(QByteArray("Fake resource data body"));
         m_initialResource.setDataSize(m_initialResource.dataBody().size());
-        m_initialResource.setDataHash("Fake hash      1");
+        m_initialResource.setDataHash(QByteArray("Fake hash      1"));
 
-        m_initialResource.setRecognitionDataBody("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
-                                                 "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
-                                                 "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
-                                                 "<t w=\"87\">EVER ?</t>"
-                                                 "<t w=\"83\">EVER NOTE</t>"
-                                                 "<t w=\"82\">EVERNOTE</t>"
-                                                 "<t w=\"71\">EVER NaTE</t>"
-                                                 "<t w=\"67\">EVER nine</t>"
-                                                 "<t w=\"67\">EVER none</t>"
-                                                 "<t w=\"66\">EVER not</t>"
-                                                 "<t w=\"62\">over NOTE</t>"
-                                                 "<t w=\"62\">even NOTE</t>"
-                                                 "<t w=\"61\">EVER nose</t>"
-                                                 "<t w=\"50\">EV£RNoTE</t>"
-                                                 "</item>"
-                                                 "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
-                                                 "<t w=\"11\">et</t>"
-                                                 "<t w=\"10\">TQ</t>"
-                                                 "</item>"
-                                                 "</recoIndex>");
+        m_initialResource.setRecognitionDataBody(QByteArray("<recoIndex docType=\"handwritten\" objType=\"image\" objID=\"fc83e58282d8059be17debabb69be900\" "
+                                                            "engineVersion=\"5.5.22.7\" recoType=\"service\" lang=\"en\" objWidth=\"2398\" objHeight=\"1798\"> "
+                                                            "<item x=\"437\" y=\"589\" w=\"1415\" h=\"190\">"
+                                                            "<t w=\"87\">EVER ?</t>"
+                                                            "<t w=\"83\">EVER NOTE</t>"
+                                                            "<t w=\"82\">EVERNOTE</t>"
+                                                            "<t w=\"71\">EVER NaTE</t>"
+                                                            "<t w=\"67\">EVER nine</t>"
+                                                            "<t w=\"67\">EVER none</t>"
+                                                            "<t w=\"66\">EVER not</t>"
+                                                            "<t w=\"62\">over NOTE</t>"
+                                                            "<t w=\"62\">even NOTE</t>"
+                                                            "<t w=\"61\">EVER nose</t>"
+                                                            "<t w=\"50\">EV£RNoTE</t>"
+                                                            "</item>"
+                                                            "<item x=\"1850\" y=\"1465\" w=\"14\" h=\"12\">"
+                                                            "<t w=\"11\">et</t>"
+                                                            "<t w=\"10\">TQ</t>"
+                                                            "</item>"
+                                                            "</recoIndex>"));
         m_initialResource.setRecognitionDataSize(m_initialResource.recognitionDataBody().size());
-        m_initialResource.setRecognitionDataHash("Fake hash      2");
+        m_initialResource.setRecognitionDataHash(QByteArray("Fake hash      2"));
 
-        m_initialResource.setMime("text/plain");
+        m_initialResource.setMime(QStringLiteral("text/plain"));
         m_initialResource.setWidth(1);
         m_initialResource.setHeight(1);
 
         qevercloud::ResourceAttributes & attributes = m_initialResource.resourceAttributes();
 
-        attributes.sourceURL = "Fake resource source URL";
+        attributes.sourceURL = QStringLiteral("Fake resource source URL");
         attributes.timestamp = 1;
         attributes.latitude = 0.0;
         attributes.longitude = 38.0;
         attributes.altitude = 12.0;
-        attributes.cameraMake = "Fake resource camera make";
-        attributes.cameraModel = "Fake resource camera model";
-        attributes.fileName = "Fake resource file name";
+        attributes.cameraMake = QStringLiteral("Fake resource camera make");
+        attributes.cameraModel = QStringLiteral("Fake resource camera model");
+        attributes.fileName = QStringLiteral("Fake resource file name");
 
         attributes.applicationData = qevercloud::LazyMap();
         qevercloud::LazyMap & appData = attributes.applicationData.ref();
         appData.keysOnly = QSet<QString>();
         auto & keysOnly = appData.keysOnly.ref();
         keysOnly.reserve(3);
-        keysOnly.insert("key_1");
-        keysOnly.insert("key_2");
-        keysOnly.insert("key_3");
+        keysOnly.insert(QStringLiteral("key_1"));
+        keysOnly.insert(QStringLiteral("key_2"));
+        keysOnly.insert(QStringLiteral("key_3"));
 
         appData.fullMap = QMap<QString, QString>();
         auto & fullMap = appData.fullMap.ref();
         fullMap = QMap<QString, QString>();
-        fullMap["key_1"] = "value_1";
-        fullMap["key_2"] = "value_2";
-        fullMap["key_3"] = "value_3";
+        fullMap[QStringLiteral("key_1")] = QStringLiteral("value_1");
+        fullMap[QStringLiteral("key_2")] = QStringLiteral("value_2");
+        fullMap[QStringLiteral("key_3")] = QStringLiteral("value_3");
 
         m_state = STATE_SENT_ADD_REQUEST;
         emit addResourceRequest(m_initialResource);
@@ -247,7 +247,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddNoteCompleted(Note note, QUuid
 
 void ResourceLocalStorageManagerAsyncTester::onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", Note: " << note);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", Note: ") << note);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -287,7 +287,7 @@ void ResourceLocalStorageManagerAsyncTester::onGetResourceCountCompleted(int cou
 
 void ResourceLocalStorageManagerAsyncTester::onGetResourceCountFailed(QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -319,7 +319,7 @@ void ResourceLocalStorageManagerAsyncTester::onAddResourceCompleted(Resource res
 
 void ResourceLocalStorageManagerAsyncTester::onAddResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", Resource: " << resource);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", Resource: ") << resource);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -352,7 +352,7 @@ void ResourceLocalStorageManagerAsyncTester::onUpdateResourceCompleted(Resource 
 
 void ResourceLocalStorageManagerAsyncTester::onUpdateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", Resource: " << resource);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", Resource: ") << resource);
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -368,8 +368,8 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(Resource re
     {
         if (resource != m_initialResource) {
             errorDescription = "Added and found resources in local storage don't match";
-            QNWARNING(errorDescription << ": Resource added to LocalStorageManager: " << m_initialResource
-                      << "\nResource found in LocalStorageManager: " << resource);
+            QNWARNING(errorDescription << QStringLiteral(": Resource added to LocalStorageManager: ") << m_initialResource
+                      << QStringLiteral("\nResource found in LocalStorageManager: ") << resource);
             emit failure(errorDescription.nonLocalizedString());
             return;
         }
@@ -381,8 +381,8 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(Resource re
         m_modifiedResource.setWidth(m_initialResource.width() + 1);
 
         qevercloud::ResourceAttributes & attributes = m_modifiedResource.resourceAttributes();
-        attributes.cameraMake.ref() += "_modified";
-        attributes.cameraModel.ref() += "_modified";
+        attributes.cameraMake.ref() += QStringLiteral("_modified");
+        attributes.cameraModel.ref() += QStringLiteral("_modified");
 
         m_state = STATE_SENT_UPDATE_REQUEST;
         emit updateResourceRequest(m_modifiedResource);
@@ -401,8 +401,8 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(Resource re
 
         if (resource != m_modifiedResource) {
             errorDescription = "Updated and found resources in local storage don't match";
-            QNWARNING(errorDescription << ": Resource updated in LocalStorageManager: " << m_modifiedResource
-                      << "\nResource found in LocalStorageManager: " << resource);
+            QNWARNING(errorDescription << QStringLiteral(": Resource updated in LocalStorageManager: ") << m_modifiedResource
+                      << QStringLiteral("\nResource found in LocalStorageManager: ") << resource);
             emit failure(errorDescription.nonLocalizedString());
             return;
         }
@@ -413,8 +413,8 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceCompleted(Resource re
     else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
     {
         errorDescription = "Found resource which should have been expunged from local storage";
-        QNWARNING(errorDescription << ": Resource expunged from LocalStorageManager: " << m_modifiedResource
-                  << "\nResource fond in LocalStorageManager: " << resource);
+        QNWARNING(errorDescription << QStringLiteral(": Resource expunged from LocalStorageManager: ") << m_modifiedResource
+                  << QStringLiteral("\nResource fond in LocalStorageManager: ") << resource);
         emit failure(errorDescription.nonLocalizedString());
         return;
     }
@@ -430,8 +430,8 @@ void ResourceLocalStorageManagerAsyncTester::onFindResourceFailed(Resource resou
         return;
     }
 
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", Resource: " << resource << ", withBinaryData = "
-              << (withBinaryData ? "true" : "false"));
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", Resource: ") << resource
+              << QStringLiteral(", withBinaryData = ") << (withBinaryData ? QStringLiteral("true") : QStringLiteral("false")));
     emit failure(errorDescription.nonLocalizedString());
 }
 
@@ -457,13 +457,13 @@ void ResourceLocalStorageManagerAsyncTester::onExpungeResourceCompleted(Resource
 
 void ResourceLocalStorageManagerAsyncTester::onExpungeResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNWARNING(errorDescription << ", requestId = " << requestId << ", Resource: " << resource);
+    QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", Resource: ") << resource);
     emit failure(errorDescription.nonLocalizedString());
 }
 
 void ResourceLocalStorageManagerAsyncTester::onFailure(QNLocalizedString errorDescription)
 {
-    QNWARNING("ResourceLocalStorageManagerAsyncTester::onFailure: " << errorDescription);
+    QNWARNING(QStringLiteral("ResourceLocalStorageManagerAsyncTester::onFailure: ") << errorDescription);
     emit failure(errorDescription.nonLocalizedString());
 }
 

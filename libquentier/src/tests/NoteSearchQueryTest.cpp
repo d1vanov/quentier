@@ -34,20 +34,31 @@ bool NoteSearchQueryTest(QString & error)
     // of different keywords and scope modifiers within the search query. Due to that, only a subset
     // of a limited number of combinations of keywords would be tested
 
-    QString notebookName = "fake notebook name";
+    QString notebookName = QStringLiteral("fake notebook name");
 
     QStringList tagNames;
-    tagNames << "allowed tag 1" << "allowed_tag_2" << "allowed tag 3" << "*";
+    tagNames << QStringLiteral("allowed tag 1")
+             << QStringLiteral("allowed_tag_2")
+             << QStringLiteral("allowed tag 3")
+             << QStringLiteral("*");
 
     QStringList negatedTagNames;
-    negatedTagNames << "disallowed tag 1" << "disallowed_tag_2" << "disallowed tag 3" << "*";
+    negatedTagNames << QStringLiteral("disallowed tag 1")
+                    << QStringLiteral("disallowed_tag_2")
+                    << QStringLiteral("disallowed tag 3")
+                    << QStringLiteral("*");
 
     QStringList titleNames;
-    titleNames << "allowed title name 1" << "allowed_title_name_2" << "allowed title name 3" << "*";
+    titleNames << QStringLiteral("allowed title name 1")
+               << QStringLiteral("allowed_title_name_2")
+               << QStringLiteral("allowed title name 3")
+               << QStringLiteral("*");
 
     QStringList negatedTitleNames;
-    negatedTitleNames << "disallowed title name 1" << "disallowed_title_name_2"
-                      << "disallowed title name 3" << "*";
+    negatedTitleNames << QStringLiteral("disallowed title name 1")
+                      << QStringLiteral("disallowed_title_name_2")
+                      << QStringLiteral("disallowed title name 3")
+                      << QStringLiteral("*");
 
     // Adding the relative datetime attributes with their respective timestamps
     // for future comparison with query string parsing results
@@ -56,74 +67,74 @@ bool NoteSearchQueryTest(QString & error)
 
     QDateTime datetime = QDateTime::currentDateTime();
     datetime.setTime(QTime(0, 0, 0, 0));  // today midnight
-    timestampForDateTimeString["day"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-1);
-    timestampForDateTimeString["day-1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day-1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-1);
-    timestampForDateTimeString["day-2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day-2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-1);
-    timestampForDateTimeString["day-3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day-3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(4);
-    timestampForDateTimeString["day+1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day+1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(1);
-    timestampForDateTimeString["day+2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day+2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(1);
-    timestampForDateTimeString["day+3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("day+3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-3);   // return back to today midnight
 
     int dayOfWeek = datetime.date().dayOfWeek();
     datetime = datetime.addDays(-1 * dayOfWeek);   // go to the closest previous Sunday
 
-    timestampForDateTimeString["week"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-7);
-    timestampForDateTimeString["week-1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week-1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-7);
-    timestampForDateTimeString["week-2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week-2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-7);
-    timestampForDateTimeString["week-3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week-3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(28);
-    timestampForDateTimeString["week+1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week+1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(7);
-    timestampForDateTimeString["week+2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week+2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(7);
-    timestampForDateTimeString["week+3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("week+3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addDays(-21 + dayOfWeek);  // return to today midnight
 
     int dayOfMonth = datetime.date().day();
     datetime = datetime.addDays(-(dayOfMonth-1));
-    timestampForDateTimeString["month"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(-1);
-    timestampForDateTimeString["month-1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month-1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(-1);
-    timestampForDateTimeString["month-2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month-2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(-1);
-    timestampForDateTimeString["month-3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month-3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(4);
-    timestampForDateTimeString["month+1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month+1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(1);
-    timestampForDateTimeString["month+2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month+2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(1);
-    timestampForDateTimeString["month+3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("month+3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addMonths(-3);
     datetime = datetime.addDays(dayOfMonth-1);  // return back to today midnight
@@ -131,51 +142,67 @@ bool NoteSearchQueryTest(QString & error)
     int monthOfYear = datetime.date().month();
     datetime = datetime.addMonths(-(monthOfYear-1));
     datetime = datetime.addDays(-(dayOfMonth-1));
-    timestampForDateTimeString["year"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addYears(-1);
-    timestampForDateTimeString["year-1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year-1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addYears(-1);
-    timestampForDateTimeString["year-2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year-2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addYears(-1);
-    timestampForDateTimeString["year-3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year-3")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addYears(4);
-    timestampForDateTimeString["year+1"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year+1")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addYears(1);
-    timestampForDateTimeString["year+2"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year+2")] = datetime.toMSecsSinceEpoch();
 
     datetime = datetime.addYears(1);
-    timestampForDateTimeString["year+3"] = datetime.toMSecsSinceEpoch();
+    timestampForDateTimeString[QStringLiteral("year+3")] = datetime.toMSecsSinceEpoch();
 
     QStringList created;
-    created << "day-3" << "day-2" << "day-1";
+    created << QStringLiteral("day-3")
+            << QStringLiteral("day-2")
+            << QStringLiteral("day-1");
 
     QStringList negatedCreated;
-    negatedCreated << "day" << "day+1" << "day+2";
+    negatedCreated << QStringLiteral("day")
+                   << QStringLiteral("day+1")
+                   << QStringLiteral("day+2");
 
     QStringList updated;
-    updated << "day+3" << "week-3" << "week-2";
+    updated << QStringLiteral("day+3")
+            << QStringLiteral("week-3")
+            << QStringLiteral("week-2");
 
     QStringList negatedUpdated;
-    negatedUpdated << "week-1" << "week" << "week+1";
+    negatedUpdated << QStringLiteral("week-1")
+                   << QStringLiteral("week")
+                   << QStringLiteral("week+1");
 
     QStringList resourceMimeTypes;
-    resourceMimeTypes << "allowed resource mime type 1" << "allowed_resource_mime_type_2"
-                      << "allowed resource mime type 3" << "*";
+    resourceMimeTypes << QStringLiteral("allowed resource mime type 1")
+                      << QStringLiteral("allowed_resource_mime_type_2")
+                      << QStringLiteral("allowed resource mime type 3")
+                      << QStringLiteral("*");
 
     QStringList negatedResourceMimeTypes;
-    negatedResourceMimeTypes << "disallowed resource mime type 1" << "disallowed_resource_mime_type_2"
-                             << "disallowed resource mime type 3" << "*";
+    negatedResourceMimeTypes << QStringLiteral("disallowed resource mime type 1")
+                             << QStringLiteral("disallowed_resource_mime_type_2")
+                             << QStringLiteral("disallowed resource mime type 3")
+                             << QStringLiteral("*");
 
     QStringList subjectDate;
-    subjectDate << "week+2" << "week+3" << "month-3";
+    subjectDate << QStringLiteral("week+2")
+                << QStringLiteral("week+3")
+                << QStringLiteral("month-3");
 
     QStringList negatedSubjectDate;
-    negatedSubjectDate << "month-2" << "month-1" << "month";
+    negatedSubjectDate << QStringLiteral("month-2")
+                       << QStringLiteral("month-1")
+                       << QStringLiteral("month");
 
     QVector<double> latitudes;
     latitudes << 32.15 << 17.41 << 12.02;
@@ -196,41 +223,76 @@ bool NoteSearchQueryTest(QString & error)
     negatedAltitudes << -32.96 << -19.15 << -10.25;
 
     QStringList authors;
-    authors << "author 1" << "author_2" << "author 3" << "*";
+    authors << QStringLiteral("author 1")
+            << QStringLiteral("author_2")
+            << QStringLiteral("author 3")
+            << QStringLiteral("*");
 
     QStringList negatedAuthors;
-    negatedAuthors << "author 4" << "author_5" << "author 6" << "*";
+    negatedAuthors << QStringLiteral("author 4")
+                   << QStringLiteral("author_5")
+                   << QStringLiteral("author 6")
+                   << QStringLiteral("*");
 
     QStringList sources;
-    sources << "web.clip" << "mail.clip" << "mail.smpt" << "*";
+    sources << QStringLiteral("web.clip")
+            << QStringLiteral("mail.clip")
+            << QStringLiteral("mail.smpt")
+            << QStringLiteral("*");
 
     QStringList negatedSources;
-    negatedSources << "mobile.ios" << "mobile.android" << "mobile.*" << "*";
+    negatedSources << QStringLiteral("mobile.ios")
+                   << QStringLiteral("mobile.android")
+                   << QStringLiteral("mobile.*")
+                   << QStringLiteral("*");
 
     QStringList sourceApplications;
-    sourceApplications << "quentier" << "nixnote2" << "everpad" << "*";
+    sourceApplications << QStringLiteral("quentier")
+                       << QStringLiteral("nixnote2")
+                       << QStringLiteral("everpad")
+                       << QStringLiteral("*");
 
     QStringList negatedSourceApplications;
-    negatedSourceApplications << "food.*" << "hello.*" << "skitch.*" << "*";
+    negatedSourceApplications << QStringLiteral("food.*")
+                              << QStringLiteral("hello.*")
+                              << QStringLiteral("skitch.*")
+                              << QStringLiteral("*");
 
     QStringList contentClasses;
-    contentClasses << "content class 1" << "content_class_2" << "content class 3" << "*";
+    contentClasses << QStringLiteral("content class 1")
+                   << QStringLiteral("content_class_2")
+                   << QStringLiteral("content class 3")
+                   << QStringLiteral("*");
 
     QStringList negatedContentClasses;
-    negatedContentClasses << "content class 4" << "content_class_5" << "content class 6" << "*";
+    negatedContentClasses << QStringLiteral("content class 4")
+                          << QStringLiteral("content_class_5")
+                          << QStringLiteral("content class 6")
+                          << QStringLiteral("*");
 
     QStringList placeNames;
-    placeNames << "home" << "university" << "work" << "*";
+    placeNames << QStringLiteral("home")
+               << QStringLiteral("university")
+               << QStringLiteral("work")
+               << QStringLiteral("*");
 
     QStringList negatedPlaceNames;
-    negatedPlaceNames << "bus" << "caffee" << "shower" << "*";
+    negatedPlaceNames << QStringLiteral("bus")
+                      << QStringLiteral("caffee")
+                      << QStringLiteral("shower")
+                      << QStringLiteral("*");
 
     QStringList applicationData;
-    applicationData << "application data 1" << "application_data_2" << "applicationData 3" << "*";
+    applicationData << QStringLiteral("application data 1")
+                    << QStringLiteral("application_data_2")
+                    << QStringLiteral("applicationData 3")
+                    << QStringLiteral("*");
 
     QStringList negatedApplicationData;
-    negatedApplicationData << "negated application data 1" << "negated_application_data_2"
-                           << "negated application data 3" << "*";
+    negatedApplicationData << QStringLiteral("negated application data 1")
+                           << QStringLiteral("negated_application_data_2")
+                           << QStringLiteral("negated application data 3")
+                           << QStringLiteral("*");
 
     QVector<qint64> reminderOrders;
     reminderOrders << 1 << 2 << 3;
@@ -239,26 +301,43 @@ bool NoteSearchQueryTest(QString & error)
     negatedReminderOrders << 4 << 5 << 6;
 
     QStringList reminderTimes;
-    reminderTimes << "month+1" << "month+2" << "month+3";
+    reminderTimes << QStringLiteral("month+1")
+                  << QStringLiteral("month+2")
+                  << QStringLiteral("month+3");
 
     QStringList negatedReminderTimes;
-    negatedReminderTimes << "year" << "year-1" << "year-2";
+    negatedReminderTimes << QStringLiteral("year")
+                         << QStringLiteral("year-1")
+                         << QStringLiteral("year-2");
 
     QStringList reminderDoneTimes;
-    reminderDoneTimes << "year-3" << "year+1" << "year+2";
+    reminderDoneTimes << QStringLiteral("year-3")
+                      << QStringLiteral("year+1")
+                      << QStringLiteral("year+2");
 
     QStringList negatedReminderDoneTimes;
-    negatedReminderDoneTimes << "year+3" << datetime.addYears(-1).toString(Qt::ISODate)
+    negatedReminderDoneTimes << QStringLiteral("year+3") << datetime.addYears(-1).toString(Qt::ISODate)
                              << datetime.toString(Qt::ISODate);
 
     timestampForDateTimeString[datetime.toString(Qt::ISODate)] = datetime.toMSecsSinceEpoch();
     timestampForDateTimeString[datetime.addYears(-1).toString(Qt::ISODate)] = datetime.addYears(-1).toMSecsSinceEpoch();
 
     QStringList contentSearchTerms;
-    contentSearchTerms << "THINK[]!" << "[do! " << " act]!" << "*" << "a*t" << "*ct";
+    contentSearchTerms << QStringLiteral("THINK[]!")
+                       << QStringLiteral("[do! ")
+                       << QStringLiteral(" act]!")
+                       << QStringLiteral("*")
+                       << QStringLiteral("a*t")
+                       << QStringLiteral("*ct");
 
     QStringList negatedContentSearchTerms;
-    negatedContentSearchTerms << "BIRD[" << "*is" << "a" << "word*" << "***" << "w*rd" << "*ord";
+    negatedContentSearchTerms << QStringLiteral("BIRD[")
+                              << QStringLiteral("*is")
+                              << QStringLiteral("a")
+                              << QStringLiteral("word*")
+                              << QStringLiteral("***")
+                              << QStringLiteral("w*rd")
+                              << QStringLiteral("*ord");
 
     NoteSearchQuery noteSearchQuery;
 
@@ -275,40 +354,40 @@ bool NoteSearchQueryTest(QString & error)
         QString queryString;
 
         if (bits[0]) {
-            queryString += "notebook:";
-            queryString += "\"";
+            queryString += QStringLiteral("notebook:");
+            queryString += QStringLiteral("\"");
             queryString += notebookName;
-            queryString += "\" ";
+            queryString += QStringLiteral("\" ");
         }
 
         if (bits[1]) {
-            queryString += "any: ";
+            queryString += QStringLiteral("any: ");
         }
 
         if (bits[2]) {
-            queryString += "todo:false ";
+            queryString += QStringLiteral("todo:false ");
         }
         else {
-            queryString += "-todo:false ";
+            queryString += QStringLiteral("-todo:false ");
         }
 
         if (bits[3]) {
-            queryString += "todo:true ";
+            queryString += QStringLiteral("todo:true ");
         }
         else {
-            queryString += "-todo:true ";
+            queryString += QStringLiteral("-todo:true ");
         }
 
         if (bits[4]) {
-            queryString += "todo:* ";
+            queryString += QStringLiteral("todo:* ");
         }
 
         if (bits[5]) {
-            queryString += "-todo:* ";
+            queryString += QStringLiteral("-todo:* ");
         }
 
         if (bits[6]) {
-            queryString += "encryption: ";
+            queryString += QStringLiteral("encryption: ");
         }
 
         if (bits[7]) {
@@ -316,18 +395,19 @@ bool NoteSearchQueryTest(QString & error)
         }
 
 #define ADD_LIST_TO_QUERY_STRING(keyword, list, type, ...) \
-    foreach(const type & item, list) { \
-        queryString += #keyword ":"; \
+    for(int i = 0, size = list.size(); i < size; ++i) { \
+        const type & item = list[i]; \
+        queryString += QStringLiteral(#keyword ":"); \
         QString itemStr = __VA_ARGS__(item); \
-        bool itemContainsSpace = itemStr.contains(" "); \
+        bool itemContainsSpace = itemStr.contains(QStringLiteral(" ")); \
         if (itemContainsSpace) { \
-            queryString += "\""; \
+            queryString += QStringLiteral("\""); \
         } \
         queryString += itemStr; \
         if (itemContainsSpace) { \
-            queryString += "\""; \
+            queryString += QStringLiteral("\""); \
         } \
-        queryString += " "; \
+        queryString += QStringLiteral(" "); \
     } \
 
         ADD_LIST_TO_QUERY_STRING(tag, tagNames, QString);
@@ -369,36 +449,40 @@ bool NoteSearchQueryTest(QString & error)
 
 #undef ADD_LIST_TO_QUERY_STRING
 
-        queryString += "created:* -created:* ";
-        queryString += "updated:* -updated:* ";
-        queryString += "subjectDate:* -subjectDate:* ";
-        queryString += "latitude:* -latitude:* ";
-        queryString += "longitude:* -longitude:* ";
-        queryString += "altitude:* -altitude:* ";
-        queryString += "reminderOrder:* -reminderOrder:* ";
-        queryString += "reminderTime:* -reminderTime:* ";
-        queryString += "reminderDoneTime:* -reminderDoneTime:* ";
+        queryString += QStringLiteral("created:* -created:* ");
+        queryString += QStringLiteral("updated:* -updated:* ");
+        queryString += QStringLiteral("subjectDate:* -subjectDate:* ");
+        queryString += QStringLiteral("latitude:* -latitude:* ");
+        queryString += QStringLiteral("longitude:* -longitude:* ");
+        queryString += QStringLiteral("altitude:* -altitude:* ");
+        queryString += QStringLiteral("reminderOrder:* -reminderOrder:* ");
+        queryString += QStringLiteral("reminderTime:* -reminderTime:* ");
+        queryString += QStringLiteral("reminderDoneTime:* -reminderDoneTime:* ");
 
-        foreach(const QString & searchTerm, contentSearchTerms) {
-            bool searchTermContainsSpace = searchTerm.contains(" ");
+        for(int i = 0, size = contentSearchTerms.size(); i < size; ++i)
+        {
+            const QString & searchTerm = contentSearchTerms[i];
+            bool searchTermContainsSpace = searchTerm.contains(QStringLiteral(" "));
             if (searchTermContainsSpace) {
-                queryString += "\"";
+                queryString += QStringLiteral("\"");
             }
             queryString += searchTerm;
             if (searchTermContainsSpace) {
-                queryString += "\" ";
+                queryString += QStringLiteral("\" ");
             }
         }
 
-        foreach(const QString & negatedSearchTerm, negatedContentSearchTerms) {
-            bool negatedSearchTermContainsSpace = negatedSearchTerm.contains(" ");
+        for(int i = 0, size = negatedContentSearchTerms.size(); i < size; ++i)
+        {
+            const QString & negatedSearchTerm = negatedContentSearchTerms[i];
+            bool negatedSearchTermContainsSpace = negatedSearchTerm.contains(QStringLiteral(" "));
             if (negatedSearchTermContainsSpace) {
-                queryString += "\"";
+                queryString += QStringLiteral("\"");
             }
-            queryString += "-";
+            queryString += QStringLiteral("-");
             queryString += negatedSearchTerm;
             if (negatedSearchTermContainsSpace) {
-                queryString += "\" ";
+                queryString += QStringLiteral("\" ");
             }
         }
 
@@ -412,44 +496,44 @@ bool NoteSearchQueryTest(QString & error)
         const QString & noteSearchQueryString = noteSearchQuery.queryString();
         if (noteSearchQueryString != queryString)
         {
-            error = "NoteSearchQuery has query string not equal to original string: ";
-            error += "original string: " + queryString + "; NoteSearchQuery's internal query string: ";
+            error = QStringLiteral("NoteSearchQuery has query string not equal to original string: original string: ");
+            error += queryString + QStringLiteral("; NoteSearchQuery's internal query string: ");
             error += noteSearchQuery.queryString();
             return false;
         }
 
         if (!noteSearchQuery.hasAnyTag()) {
-            error = "NoteSearchQuery doesn't have any tag while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any tag while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyTag()) {
-            error = "NoteSearchQuery doesn't have negated any tag while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any tag while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyTitleName()) {
-            error = "NoteSearchQuery doesn't have any title name while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any title name while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyTitleName()) {
-            error = "NoteSearchQuery doesn't have negated any title name while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any title name while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyCreationTimestamp()) {
-            error = "NoteSearchQuery doesn't have any creation timestamp while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any creation timestamp while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyCreationTimestamp()) {
-            error = "NoteSearchQuery doesn't have negated any creation timestamp while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any creation timestamp while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyModificationTimestamp()) {
-            error = "NoteSearchQuery doesn't have any modification timestamp while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any modification timestamp while it should have one");
             return false;
         }
 
@@ -459,132 +543,132 @@ bool NoteSearchQueryTest(QString & error)
         }
 
         if (!noteSearchQuery.hasAnyResourceMimeType()) {
-            error = "NoteSearchQuery doesn't have any resource mime type while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any resource mime type while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyResourceMimeType()) {
-            error = "NoteSearchQuery doesn't have negated any resource mime type while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any resource mime type while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnySubjectDateTimestamp()) {
-            error = "NoteSearchQuery doesn't have any subject date timestamp while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any subject date timestamp while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnySubjectDateTimestamp()) {
-            error = "NoteSearchQuery doesn't have negated any subject date timestamp while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any subject date timestamp while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyLatitude()) {
-            error = "NoteSearchQuery doesn't have any latitude while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any latitude while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyLatitude()) {
-            error = "NoteSearchQuery doesn't have negated any latitude while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any latitude while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyLongitude()) {
-            error = "NoteSearchQuery doesn't have any longitude while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any longitude while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyLongitude()) {
-            error = "NoteSearchQuery doesn't have negated any longitude while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any longitude while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyAltitude()) {
-            error = "NoteSearchQuery doesn't have any altitude while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any altitude while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyAltitude()) {
-            error = "NoteSearchQuery doesn't have negated any altitude while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any altitude while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyAuthor()) {
-            error = "NoteSearchQuery doesn't have any author while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any author while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyAuthor()) {
-            error = "NoteSearchQuery doesn't have negated any author while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any author while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnySource()) {
-            error = "NoteSearchQuery doesn't have any source while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any source while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnySource()) {
-            error = "NoteSearchQuery doesn't have negated any source while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any source while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnySourceApplication()) {
-            error = "NoteSearchQuery doesn't have any source application while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any source application while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnySourceApplication()) {
-            error = "NoteSearchQuery doesn't have negated any source application while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any source application while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyContentClass()) {
-            error = "NoteSearchQuery doesn't have any content class while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any content class while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyContentClass()) {
-            error = "NoteSearchQuery doesn't have negated any content class while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any content class while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyPlaceName()) {
-            error = "NoteSearchQuery doesn't have any place name while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any place name while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyPlaceName()) {
-            error = "NoteSearchQuery doesn't have negated any place name while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any place name while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyApplicationData()) {
-            error = "NoteSearchQuery doesn't have any application data while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any application data while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyApplicationData()) {
-            error = "NoteSearchQuery doesn't have negated any application data while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any application data while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyReminderTime()) {
-            error = "NoteSearchQuery doesn't have any reminder time while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any reminder time while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyReminderTime()) {
-            error = "NoteSearchQuery doesn't have negated any reminder time while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any reminder time while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasAnyReminderDoneTime()) {
-            error = "NoteSearchQuery doesn't have any reminder done time while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have any reminder done time while it should have one");
             return false;
         }
 
         if (!noteSearchQuery.hasNegatedAnyReminderDoneTime()) {
-            error = "NoteSearchQuery doesn't have negated any reminder done time while it should have one";
+            error = QStringLiteral("NoteSearchQuery doesn't have negated any reminder done time while it should have one");
             return false;
         }
 
@@ -593,40 +677,40 @@ bool NoteSearchQueryTest(QString & error)
             const QString & noteSearchQueryNotebookModifier = noteSearchQuery.notebookModifier();
             if (noteSearchQueryNotebookModifier != notebookName)
             {
-                error = "NoteSearchQuery's notebook modifier is not equal to original notebook name: ";
-                error += "original notebook name: " + notebookName;
-                error += ", NoteSearchQuery's internal notebook modifier: ";
+                error = QStringLiteral("NoteSearchQuery's notebook modifier is not equal to original notebook name: original notebook name: ");
+                error += notebookName;
+                error += QStringLiteral(", NoteSearchQuery's internal notebook modifier: ");
                 error += noteSearchQuery.notebookModifier();
                 return false;
             }
         }
         else if (!noteSearchQuery.notebookModifier().isEmpty())
         {
-            error = "NoteSearchQuery's notebook modified is not empty while it should be!";
+            error = QStringLiteral("NoteSearchQuery's notebook modified is not empty while it should be!");
             return false;
         }
 
         if (bits[2])
         {
             if (!noteSearchQuery.hasUnfinishedToDo()) {
-                error = "NoteSearchQuery doesn't have unfinished todo while it should have one";
+                error = QStringLiteral("NoteSearchQuery doesn't have unfinished todo while it should have one");
                 return false;
             }
 
             if (noteSearchQuery.hasNegatedUnfinishedToDo()) {
-                error = "NoteSearchQUery has negated unfinished todo while it should have non-negated one";
+                error = QStringLiteral("NoteSearchQUery has negated unfinished todo while it should have non-negated one");
                 return false;
             }
         }
         else
         {
             if (!noteSearchQuery.hasNegatedUnfinishedToDo()) {
-                error = "NoteSearchQUery doesn't have negated unfinished todo while it should have one";
+                error = QStringLiteral("NoteSearchQUery doesn't have negated unfinished todo while it should have one");
                 return false;
             }
 
             if (noteSearchQuery.hasUnfinishedToDo()) {
-                error = "NoteSearchQuery has unfinished todo while it should have negated unfinished todo";
+                error = QStringLiteral("NoteSearchQuery has unfinished todo while it should have negated unfinished todo");
                 return false;
             }
         }
@@ -634,76 +718,76 @@ bool NoteSearchQueryTest(QString & error)
         if (bits[3])
         {
             if (!noteSearchQuery.hasFinishedToDo()) {
-                error = "NoteSearchQuery hasn't finished todo while it should have one";
+                error = QStringLiteral("NoteSearchQuery hasn't finished todo while it should have one");
                 return false;
             }
 
             if (noteSearchQuery.hasNegatedFinishedToDo()) {
-                error = "NoteSearchQuery has negated finished todo while it should have non-negated one";
+                error = QStringLiteral("NoteSearchQuery has negated finished todo while it should have non-negated one");
                 return false;
             }
         }
         else
         {
             if (!noteSearchQuery.hasNegatedFinishedToDo()) {
-                error = "NoteSearchQuery doesn't have negated finished todo while it should have one";
+                error = QStringLiteral("NoteSearchQuery doesn't have negated finished todo while it should have one");
                 return false;
             }
 
             if (noteSearchQuery.hasFinishedToDo()) {
-                error = "NoteSearchQuery has finished todo while it should have negated finished todo";
+                error = QStringLiteral("NoteSearchQuery has finished todo while it should have negated finished todo");
                 return false;
             }
         }
 
         if (bits[4]) {
             if (!noteSearchQuery.hasAnyToDo()) {
-                error = "NoteSearchQuery doesn't have \"any\" todo modifier while it should have one";
+                error = QStringLiteral("NoteSearchQuery doesn't have \"any\" todo modifier while it should have one");
                 return false;
             }
         }
         else {
             if (noteSearchQuery.hasAnyToDo()) {
-                error = "NoteSearchQuery has \"any\" todo modifier while it should not have one";
+                error = QStringLiteral("NoteSearchQuery has \"any\" todo modifier while it should not have one");
                 return false;
             }
         }
 
         if (bits[5]) {
             if (!noteSearchQuery.hasNegatedAnyToDo()) {
-                error = "NoteSearchQuery doesn't have negated \"any\" todo modifier while it should have one";
+                error = QStringLiteral("NoteSearchQuery doesn't have negated \"any\" todo modifier while it should have one");
                 return false;
             }
         }
         else {
             if (noteSearchQuery.hasNegatedAnyToDo()) {
-                error = "NoteSearchQuery has negated \"any\" todo modifier while it should not have one";
+                error = QStringLiteral("NoteSearchQuery has negated \"any\" todo modifier while it should not have one");
                 return false;
             }
         }
 
         if (bits[6]) {
             if (!noteSearchQuery.hasEncryption()) {
-                error = "NoteSearchQuery doesn't have encryption while it should have one";
+                error = QStringLiteral("NoteSearchQuery doesn't have encryption while it should have one");
                 return false;
             }
         }
         else {
             if (noteSearchQuery.hasEncryption()) {
-                error = "NoteSearchQuery has encryption while it should not have one";
+                error = QStringLiteral("NoteSearchQuery has encryption while it should not have one");
                 return false;
             }
         }
 
         if (bits[7]) {
             if (!noteSearchQuery.hasNegatedEncryption()) {
-                error = "NoteSearchQuery doesn't have negated encryption while it should have one";
+                error = QStringLiteral("NoteSearchQuery doesn't have negated encryption while it should have one");
                 return false;
             }
         }
         else {
             if (noteSearchQuery.hasNegatedEncryption()) {
-                error = "NoteSearchQuery has negated encryption while it should not have one";
+                error = QStringLiteral("NoteSearchQuery has negated encryption while it should not have one");
                 return false;
             }
         }
@@ -711,16 +795,17 @@ bool NoteSearchQueryTest(QString & error)
 #define CHECK_LIST(list, accessor, ...) \
     auto noteSearchQueryList##list = noteSearchQuery.accessor(); \
     if (noteSearchQueryList##list != list) { \
-        error = "NoteSearchQuery: " #list " doesn't match the one from the original list; "; \
-        error += "original " #list ": "; \
-        foreach(const auto & item, list) { \
+        error = QStringLiteral("NoteSearchQuery: " #list " doesn't match the one from the original list; original " #list ": "); \
+        for(int i = 0, size = list.size(); i < size; ++i) { \
+            const auto & item = list[i]; \
             error += __VA_ARGS__(item); \
-            error += "; "; \
+            error += QStringLiteral("; "); \
         } \
-        error += "; \nNoteSearchQuery's list: "; \
-        foreach(const auto & item, noteSearchQueryList##list) { \
+        error += QStringLiteral("; \nNoteSearchQuery's list: "); \
+        for(int i = 0, size = noteSearchQueryList##list.size(); i < size; ++i) { \
+            const auto & item = noteSearchQueryList##list[i]; \
             error += __VA_ARGS__(item); \
-            error += "; "; \
+            error += QStringLiteral("; "); \
         } \
         return false; \
     }
@@ -763,18 +848,17 @@ bool NoteSearchQueryTest(QString & error)
         const auto & strItem = list.at(i); \
         \
         if (!timestampForDateTimeString.contains(strItem)) { \
-            error = "Internal error in test: unknown datetime argument "; \
+            error = QStringLiteral("Internal error in test: unknown datetime argument "); \
             error += strItem; \
             return false; \
         } \
         \
         if (item != timestampForDateTimeString[strItem]) { \
-            error = "Timestamp from NoteSearchQuery is different from precalculated one "; \
-            error += "for string item \""; \
+            error = QStringLiteral("Timestamp from NoteSearchQuery is different from precalculated one for string item \""); \
             error += strItem; \
-            error += "\": precalculated timestamp = "; \
+            error += QStringLiteral("\": precalculated timestamp = "); \
             error += QString::number(timestampForDateTimeString[strItem]); \
-            error += ", timestamp from NoteSearchQuery: "; \
+            error += QStringLiteral(", timestamp from NoteSearchQuery: "); \
             error += QString::number(item); \
             return false; \
         } \
@@ -795,23 +879,23 @@ bool NoteSearchQueryTest(QString & error)
     }
 
     // Check that search terms and negated search terms are processed correctly
-    QString contentSearchTermsStr = contentSearchTerms.join(" ");
+    QString contentSearchTermsStr = contentSearchTerms.join(QStringLiteral(" "));
     QString negatedContentSearchTermsStr;
     for(int i = 0, numNegatedContentSearchTerms = negatedContentSearchTerms.size(); i < numNegatedContentSearchTerms; ++i) {
-        negatedContentSearchTermsStr += "-" + negatedContentSearchTerms[i] + " ";
+        negatedContentSearchTermsStr += QStringLiteral("-") + negatedContentSearchTerms[i] + QStringLiteral(" ");
     }
 
     QNLocalizedString errorMessage;
-    bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + " " + negatedContentSearchTermsStr, errorMessage);
+    bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + QStringLiteral(" ") + negatedContentSearchTermsStr, errorMessage);
     if (!res) {
-        error = "Internal error: can't set simple search query string without any search modifiers: " + errorMessage.nonLocalizedString();
+        error = QStringLiteral("Internal error: can't set simple search query string without any search modifiers: ") + errorMessage.nonLocalizedString();
         return false;
     }
 
     const QStringList & contentSearchTermsFromQuery = noteSearchQuery.contentSearchTerms();
     const int numContentSearchTermsFromQuery = contentSearchTermsFromQuery.size();
 
-    QRegExp asteriskFilter("[*]");
+    QRegExp asteriskFilter(QStringLiteral("[*]"));
 
     QStringList filteredContentSearchTerms;
     filteredContentSearchTerms.reserve(numContentSearchTermsFromQuery);
@@ -830,9 +914,10 @@ bool NoteSearchQueryTest(QString & error)
     }
 
     if (numContentSearchTermsFromQuery != filteredContentSearchTerms.size()) {
-        error = "Internal error: the number of content search terms doesn't match the expected one after parsing the note search query";
-        QNWARNING(error << "; original content search terms: " << contentSearchTerms.join("; ") << "; filtered content search terms: "
-                  << filteredContentSearchTerms.join("; ") << "; processed search query terms: " << contentSearchTermsFromQuery.join("; "));
+        error = QStringLiteral("Internal error: the number of content search terms doesn't match the expected one after parsing the note search query");
+        QNWARNING(error << QStringLiteral("; original content search terms: ") << contentSearchTerms.join(QStringLiteral("; "))
+                  << QStringLiteral("; filtered content search terms: ") << filteredContentSearchTerms.join(QStringLiteral("; "))
+                  << QStringLiteral("; processed search query terms: ") << contentSearchTermsFromQuery.join(QStringLiteral("; ")));
         return false;
     }
 
@@ -841,9 +926,9 @@ bool NoteSearchQueryTest(QString & error)
         const QString & contentSearchTermFromQuery = contentSearchTermsFromQuery[i];
         int index = filteredContentSearchTerms.indexOf(contentSearchTermFromQuery);
         if (index < 0) {
-            error = "Internal error: can't find one of original content search terms after parsing the note search query";
-            QNWARNING(error << "; filtered original content search terms: " << filteredContentSearchTerms.join("; ")
-                      << "; parsed content search terms: " << contentSearchTermsFromQuery.join("; "));
+            error = QStringLiteral("Internal error: can't find one of original content search terms after parsing the note search query");
+            QNWARNING(error << QStringLiteral("; filtered original content search terms: ") << filteredContentSearchTerms.join(QStringLiteral("; "))
+                      << QStringLiteral("; parsed content search terms: ") << contentSearchTermsFromQuery.join(QStringLiteral("; ")));
             return false;
         }
     }
@@ -868,9 +953,10 @@ bool NoteSearchQueryTest(QString & error)
     }
 
     if (numNegatedContentSearchTermsFromQuery != filteredNegatedContentSearchTerms.size()) {
-        error = "Internal error: the number of negated content search terms doesn't match the expected one after parsing the note search query";
-        QNWARNING(error << "; original negated content search terms: " << negatedContentSearchTerms.join(" ") << "; filtered negated content search terms: "
-                  << filteredNegatedContentSearchTerms.join(" ") << "; processed negated search query terms: " << negatedContentSearchTermsFromQuery.join(" "));
+        error = QStringLiteral("Internal error: the number of negated content search terms doesn't match the expected one after parsing the note search query");
+        QNWARNING(error << QStringLiteral("; original negated content search terms: ") << negatedContentSearchTerms.join(QStringLiteral(" "))
+                  << QStringLiteral("; filtered negated content search terms: ") << filteredNegatedContentSearchTerms.join(QStringLiteral(" "))
+                  << QStringLiteral("; processed negated search query terms: ") << negatedContentSearchTermsFromQuery.join(QStringLiteral(" ")));
         return false;
     }
 
@@ -879,9 +965,9 @@ bool NoteSearchQueryTest(QString & error)
         const QString & negatedContentSearchTermFromQuery = negatedContentSearchTermsFromQuery[i];
         int index = filteredNegatedContentSearchTerms.indexOf(negatedContentSearchTermFromQuery);
         if (index < 0) {
-            error = "Internal error: can't find one of original negated content search terms after parsing the note search query";
-            QNWARNING(error << "; filtered original negated content search terms: " << filteredNegatedContentSearchTerms.join(" ")
-                      << "; parsed negated content search terms: " << negatedContentSearchTermsFromQuery.join(" "));
+            error = QStringLiteral("Internal error: can't find one of original negated content search terms after parsing the note search query");
+            QNWARNING(error << QStringLiteral("; filtered original negated content search terms: ") << filteredNegatedContentSearchTerms.join(QStringLiteral(" "))
+                      << QStringLiteral("; parsed negated content search terms: ") << negatedContentSearchTermsFromQuery.join(QStringLiteral(" ")));
             return false;
         }
     }
