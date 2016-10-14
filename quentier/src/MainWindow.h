@@ -19,6 +19,8 @@
 #ifndef QUENTIER_MAINWINDOW_H
 #define QUENTIER_MAINWINDOW_H
 
+#include "AvailableAccount.h"
+
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Account.h>
@@ -165,6 +167,8 @@ private:
     quentier::Notebook      m_testNotebook;
     quentier::Note          m_testNote;
     QScopedPointer<quentier::Account>   m_pAccount;
+
+    QVector<AvailableAccount>   m_availableAccounts;
 
     int                     m_lastFontSizeComboBoxIndex;
     QString                 m_lastFontComboBoxFontFamily;

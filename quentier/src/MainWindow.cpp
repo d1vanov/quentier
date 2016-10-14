@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
+#include "dialogs/ManageAccountsDialog.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
 #include "tests/ManualTestingHelper.h"
@@ -54,6 +55,7 @@ using quentier::NoteEditor;
 #include <QKeySequence>
 #include <QUndoStack>
 #include <QCryptographicHash>
+#include <QXmlStreamWriter>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -70,6 +72,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNotebook(),
     m_testNote(),
     m_pAccount(),
+    m_availableAccounts(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_pUndoStack(new QUndoStack(this)),
@@ -346,9 +349,24 @@ QString MainWindow::createDefaultAccount()
         return QString();
     }
 
-    // TODO: write some account info into that file
+    QXmlStreamWriter writer(&accountInfo);
+
+    writer.writeStartDocument();
+
+    writer.writeStartElement(QStringLiteral("accountName"));
+    writer.writeCharacters(username);
+    writer.writeEndElement();
+
+    writer.writeStartElement(QStringLiteral("accountType"));
+    writer.writeCharacters(QStringLiteral("local"));
+    writer.writeEndElement();
+
+    writer.writeEndDocument();
 
     accountInfo.close();
+
+    AvailableAccount availableAccount(username, userPersistenceStoragePath, /* local = */ true);
+    m_availableAccounts << availableAccount;
 
     return username;
 }
@@ -376,9 +394,13 @@ QStringList MainWindow::detectAvailableAccounts()
         }
 
         QString accountName = accountDir.dirName();
-        if (accountName.startsWith(QStringLiteral("local_"))) {
+        bool isLocal = accountName.startsWith(QStringLiteral("local_"));
+        if (isLocal) {
             accountName.remove(0, 6);
         }
+
+        AvailableAccount availableAccount(accountName, accountDir.absolutePath(), isLocal);
+        m_availableAccounts << availableAccount;
 
         int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
         if (lastUnderlineIndex >= 0) {
@@ -1193,7 +1215,10 @@ void MainWindow::onManageAccountsActionTriggered(bool checked)
 
     Q_UNUSED(checked)
 
-    // TODO: implement
+    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, this));
+    manageAccountsDialog->setWindowModality(Qt::WindowModal);
+    // TODO: setup some signal-slot connections for doing the actual work via the dialog?
+    Q_UNUSED(manageAccountsDialog->exec())
 }
 
 void MainWindow::onSwitchAccountActionToggled(bool checked)
@@ -1208,9 +1233,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        QNLocalizedString error = QT_TR_NOOP("Internal error: can't identify account to switch to");
-        QNWARNING(error);
-        onSetStatusBarText(error.localizedString());
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: can't identify account to switch to"));
         return;
     }
 
