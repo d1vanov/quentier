@@ -27,17 +27,30 @@ SynchronizationManager::SynchronizationManager(const QString & consumerKey, cons
                                                LocalStorageManagerThreadWorker & localStorageManagerThreadWorker) :
     d_ptr(new SynchronizationManagerPrivate(consumerKey, consumerSecret, host, localStorageManagerThreadWorker))
 {
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString), this, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyFinish,Account), this, QNSIGNAL(SynchronizationManager,finished,Account));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncPaused,bool), this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncStopped), this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,sendLocalChangesPaused,bool), this, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,sendLocalChangesStopped), this, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,willRepeatRemoteToLocalSyncAfterSendingChanges), this, QNSIGNAL(SynchronizationManager,willRepeatRemoteToLocalSyncAfterSendingChanges));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,detectedConflictDuringLocalChangesSending), this, QNSIGNAL(SynchronizationManager,detectedConflictDuringLocalChangesSending));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,rateLimitExceeded,qint32), this, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyRemoteToLocalSyncDone), this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,progress,QNLocalizedString,double), this, QNSIGNAL(SynchronizationManager,progress,QNLocalizedString,double));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString),
+                     this, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyFinish,Account),
+                     this, QNSIGNAL(SynchronizationManager,finished,Account));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
+                     this, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncPaused,bool),
+                     this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncPaused,bool));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncStopped),
+                     this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,sendLocalChangesPaused,bool),
+                     this, QNSIGNAL(SynchronizationManager,sendLocalChangesPaused,bool));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,sendLocalChangesStopped),
+                     this, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,willRepeatRemoteToLocalSyncAfterSendingChanges),
+                     this, QNSIGNAL(SynchronizationManager,willRepeatRemoteToLocalSyncAfterSendingChanges));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,detectedConflictDuringLocalChangesSending),
+                     this, QNSIGNAL(SynchronizationManager,detectedConflictDuringLocalChangesSending));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,rateLimitExceeded,qint32),
+                     this, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyRemoteToLocalSyncDone),
+                     this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,progress,QNLocalizedString,double),
+                     this, QNSIGNAL(SynchronizationManager,progress,QNLocalizedString,double));
 }
 
 SynchronizationManager::~SynchronizationManager()
@@ -79,6 +92,12 @@ void SynchronizationManager::stop()
 {
     Q_D(SynchronizationManager);
     d->stop();
+}
+
+void SynchronizationManager::revokeAuthentication(const qevercloud::UserID userId)
+{
+    Q_D(SynchronizationManager);
+    d->revokeAuthentication(userId);
 }
 
 } // namespace quentier

@@ -78,6 +78,11 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(const QString & con
     m_writeShardIdJob(QApplication::applicationName() + QStringLiteral("_write_shard_id")),
     m_writingAuthToken(false),
     m_writingShardId(false),
+    m_deleteAuthTokenJob(QApplication::applicationName() + QStringLiteral("_delete_auth_token")),
+    m_deleteShardIdJob(QApplication::applicationName() + QStringLiteral("delete_shard_id")),
+    m_deletingAuthToken(false),
+    m_deletingShardId(false),
+    m_lastRevokedAuthenticationUserId(-1),
     m_readLinkedNotebookAuthTokenJobsByGuid(),
     m_readLinkedNotebookShardIdJobsByGuid(),
     m_writeLinkedNotebookAuthTokenJobsByGuid(),
@@ -88,13 +93,11 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(const QString & con
     m_remoteToLocalSyncWasActiveOnLastPause(false)
 {
     m_readAuthTokenJob.setAutoDelete(false);
-    m_readAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token"));
-
     m_readShardIdJob.setAutoDelete(false);
-    m_readShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id"));
-
     m_writeAuthTokenJob.setAutoDelete(false);
     m_writeShardIdJob.setAutoDelete(false);
+    m_deleteAuthTokenJob.setAutoDelete(false);
+    m_deleteShardIdJob.setAutoDelete(false);
 
     createConnections();
 }
@@ -162,6 +165,24 @@ void SynchronizationManagerPrivate::stop()
     emit stopSendingLocalChanges();
 }
 
+void SynchronizationManagerPrivate::revokeAuthentication(const qevercloud::UserID userId)
+{
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::revokeAuthentication: user id = ")
+            << userId);
+
+    m_lastRevokedAuthenticationUserId = userId;
+
+    m_deleteAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_") +
+                                QString::number(m_lastRevokedAuthenticationUserId));
+    m_deletingAuthToken = true;
+    m_deleteAuthTokenJob.start();
+
+    m_deleteShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_") +
+                              QString::number(m_lastRevokedAuthenticationUserId));
+    m_deletingShardId = true;
+    m_deleteShardIdJob.start();
+}
+
 void SynchronizationManagerPrivate::onOAuthResult(bool result)
 {
     if (result) {
@@ -217,6 +238,14 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
     else if (job == &m_writeShardIdJob)
     {
         onWriteShardIdFinished();
+    }
+    else if (job == &m_deleteAuthTokenJob)
+    {
+        onDeleteAuthTokenFinished();
+    }
+    else if (job == &m_deleteShardIdJob)
+    {
+        onDeleteShardIdFinished();
     }
     else
     {
@@ -557,17 +586,28 @@ void SynchronizationManagerPrivate::createConnections()
                      this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationToken));
     QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,requestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >),
                      this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,paused,bool), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncPaused,bool));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,stopped), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncStopped));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,requestLastSyncParameters), this, QNSLOT(SynchronizationManagerPrivate,onRequestLastSyncParameters));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,syncChunksDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncChunksDownloaded));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,fullNotesContentsDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncFullNotesContentDownloaded));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,expungedFromServerToClient), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncExpungedFromServerToClient));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,linkedNotebooksSyncChunksDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded));
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,linkedNotebooksFullNotesContentsDownloaded), this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded));
-    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,pauseRemoteToLocalSync), &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,pause));
-    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,resumeRemoteToLocalSync), &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,resume));
-    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,stopRemoteToLocalSync), &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,stop));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,paused,bool),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncPaused,bool));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,stopped),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncStopped));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,requestLastSyncParameters),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRequestLastSyncParameters));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,syncChunksDownloaded),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncChunksDownloaded));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,fullNotesContentsDownloaded),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncFullNotesContentDownloaded));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,expungedFromServerToClient),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncExpungedFromServerToClient));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,linkedNotebooksSyncChunksDownloaded),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,linkedNotebooksFullNotesContentsDownloaded),
+                     this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,pauseRemoteToLocalSync),
+                     &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,pause));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,resumeRemoteToLocalSync),
+                     &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,resume));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,stopRemoteToLocalSync),
+                     &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,stop));
     QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,sendAuthenticationTokenAndShardId,QString,qint32,QString,qevercloud::Timestamp),
                      &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,onAuthenticationInfoReceived,QString,qint32,QString,qevercloud::Timestamp));
     QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,sendAuthenticationTokensForLinkedNotebooks,QHash<QString,QPair<QString,QString> >,QHash<QString,qevercloud::Timestamp>),
@@ -576,7 +616,8 @@ void SynchronizationManagerPrivate::createConnections()
                      &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,onLastSyncParametersReceived,qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>));
 
     // Connections with send local changes manager
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,failure,QNLocalizedString), this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,failure,QNLocalizedString),
+                     this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString));
     QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,finished,qint32,QHash<QString,qint32>),
                      this, QNSLOT(SynchronizationManagerPrivate,onLocalChangesSent,qint32,QHash<QString,qint32>));
     QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,rateLimitExceeded,qint32),
@@ -585,23 +626,40 @@ void SynchronizationManagerPrivate::createConnections()
                      this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationToken));
     QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,requestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >),
                      this, QNSLOT(SynchronizationManagerPrivate,onRequestAuthenticationTokensForLinkedNotebooks,QList<QPair<QString,QString> >));
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,shouldRepeatIncrementalSync), this, QNSLOT(SynchronizationManagerPrivate,onShouldRepeatIncrementalSync));
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,conflictDetected), this, QNSLOT(SynchronizationManagerPrivate,onConflictDetectedDuringLocalChangesSending));
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,paused,bool), this, QNSLOT(SynchronizationManagerPrivate,onSendLocalChangesPaused,bool));
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,stopped), this, QNSLOT(SynchronizationManagerPrivate,onSendLocalChangesStopped));
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,receivedUserAccountDirtyObjects), this, QNSLOT(SynchronizationManagerPrivate,onSendingLocalChangesReceivedUsersDirtyObjects));
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,receivedAllDirtyObjects), this, QNSLOT(SynchronizationManagerPrivate,onSendingLocalChangesReceivedAllDirtyObjects));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,shouldRepeatIncrementalSync),
+                     this, QNSLOT(SynchronizationManagerPrivate,onShouldRepeatIncrementalSync));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,conflictDetected),
+                     this, QNSLOT(SynchronizationManagerPrivate,onConflictDetectedDuringLocalChangesSending));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,paused,bool),
+                     this, QNSLOT(SynchronizationManagerPrivate,onSendLocalChangesPaused,bool));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,stopped),
+                     this, QNSLOT(SynchronizationManagerPrivate,onSendLocalChangesStopped));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,receivedUserAccountDirtyObjects),
+                     this, QNSLOT(SynchronizationManagerPrivate,onSendingLocalChangesReceivedUsersDirtyObjects));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,receivedAllDirtyObjects),
+                     this, QNSLOT(SynchronizationManagerPrivate,onSendingLocalChangesReceivedAllDirtyObjects));
     QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,sendAuthenticationTokensForLinkedNotebooks,QHash<QString,QPair<QString,QString> >,QHash<QString,qevercloud::Timestamp>),
                      &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,onAuthenticationTokensForLinkedNotebooksReceived,QHash<QString,QPair<QString,QString> >,QHash<QString,qevercloud::Timestamp>));
-    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,pauseSendingLocalChanges), &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,pause));
-    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,resumeSendingLocalChanges), &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,resume));
-    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,stopSendingLocalChanges), &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,stop));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,pauseSendingLocalChanges),
+                     &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,pause));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,resumeSendingLocalChanges),
+                     &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,resume));
+    QObject::connect(this, QNSIGNAL(SynchronizationManagerPrivate,stopSendingLocalChanges),
+                     &m_sendLocalChangesManager, QNSLOT(SendLocalChangesManager,stop));
 
-    // Connections with read/write password jobs
-    QObject::connect(&m_readAuthTokenJob, QNSIGNAL(QKeychain::ReadPasswordJob,finished,QKeychain::Job*), this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
-    QObject::connect(&m_readShardIdJob, QNSIGNAL(QKeychain::ReadPasswordJob,finished,QKeychain::Job*), this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
-    QObject::connect(&m_writeAuthTokenJob, QNSIGNAL(QKeychain::WritePasswordJob,finished,QKeychain::Job*), this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
-    QObject::connect(&m_writeShardIdJob, QNSIGNAL(QKeychain::WritePasswordJob,finished,QKeychain::Job*), this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    // Connections with read/write/delete auth tokens/shard ids jobs
+    QObject::connect(&m_readAuthTokenJob, QNSIGNAL(QKeychain::ReadPasswordJob,finished,QKeychain::Job*),
+                     this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    QObject::connect(&m_readShardIdJob, QNSIGNAL(QKeychain::ReadPasswordJob,finished,QKeychain::Job*),
+                     this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    QObject::connect(&m_writeAuthTokenJob, QNSIGNAL(QKeychain::WritePasswordJob,finished,QKeychain::Job*),
+                     this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    QObject::connect(&m_writeShardIdJob, QNSIGNAL(QKeychain::WritePasswordJob,finished,QKeychain::Job*),
+                     this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    QObject::connect(&m_deleteAuthTokenJob, QNSIGNAL(QKeychain::DeletePasswordJob,finished,QKeychain::Job*),
+                     this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
+    QObject::connect(&m_deleteShardIdJob, QNSIGNAL(QKeychain::DeletePasswordJob,finished,QKeychain::Job*),
+                     this, QNSLOT(SynchronizationManagerPrivate,onKeychainJobFinished,QKeychain::Job*));
 }
 
 void SynchronizationManagerPrivate::readLastSyncParameters()
@@ -779,9 +837,13 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
     QNDEBUG(QStringLiteral("Trying to restore the authentication token and the shard id from the keychain"));
 
+    m_readAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token_") +
+                              QString::number(m_OAuthResult.userId));
     m_readingAuthToken = true;
     m_readAuthTokenJob.start();
 
+    m_readShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id_") +
+                            QString::number(m_OAuthResult.userId));
     m_readingShardId = true;
     m_readShardIdJob.start();
 }
@@ -831,10 +893,14 @@ void SynchronizationManagerPrivate::sendChanges()
 
 void SynchronizationManagerPrivate::launchStoreOAuthResult()
 {
+    m_writeAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token_") +
+                               QString::number(m_OAuthResult.userId));
     m_writeAuthTokenJob.setTextData(m_OAuthResult.authenticationToken);
     m_writingAuthToken = true;
     m_writeAuthTokenJob.start();
 
+    m_writeShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id_") +
+                             QString::number(m_OAuthResult.userId));
     m_writeShardIdJob.setTextData(m_OAuthResult.shardId);
     m_writingShardId = true;
     m_writeShardIdJob.start();
@@ -856,6 +922,40 @@ void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
             << m_OAuthResult.webApiUrlPrefix);
 
     finalizeAuthentication();
+}
+
+void SynchronizationManagerPrivate::finalizeRevokeAuthentication()
+{
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::finalizeRevokeAuthentication: user id = ")
+            << m_lastRevokedAuthenticationUserId);
+
+    QKeychain::Error errorCode = m_deleteAuthTokenJob.error();
+    if ((errorCode != QKeychain::NoError) && (errorCode != QKeychain::EntryNotFound)) {
+        QNWARNING(QStringLiteral("Attempt to delete the auth token returned with error: error code ")
+                  << errorCode << QStringLiteral(", ") << m_deleteAuthTokenJob.errorString());
+        QNLocalizedString error = QT_TR_NOOP("Can't delete auth token from the keychain");
+        error += QStringLiteral(": ");
+        error += m_deleteAuthTokenJob.errorString();
+        emit authenticationRevoked(/* success = */ false, error, m_lastRevokedAuthenticationUserId);
+        return;
+    }
+
+    errorCode = m_deleteShardIdJob.error();
+    if ((errorCode != QKeychain::NoError) && (errorCode != QKeychain::EntryNotFound)) {
+        QNWARNING(QStringLiteral("Attempt to delete the shard id returned with error: error code ")
+                  << errorCode << QStringLiteral(", ") << m_deleteShardIdJob.errorString());
+        QNLocalizedString error = QT_TR_NOOP("Can't delete shard id from the keychain");
+        error += QStringLiteral(": ");
+        error += m_deleteShardIdJob.errorString();
+        emit authenticationRevoked(/* success = */ false, error, m_lastRevokedAuthenticationUserId);
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Successfully revoked the authentication for user id ")
+            << m_lastRevokedAuthenticationUserId
+            << QStringLiteral(": both auth token and shard id either deleted or didn't exist"));
+    emit authenticationRevoked(/* success = */ true, QNLocalizedString(),
+                               m_lastRevokedAuthenticationUserId);
 }
 
 void SynchronizationManagerPrivate::finalizeAuthentication()
@@ -1209,6 +1309,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
 
 void SynchronizationManagerPrivate::onReadAuthTokenFinished()
 {
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onReadAuthTokenFinished"));
+
     m_readingAuthToken = false;
 
     QKeychain::Error errorCode = m_readAuthTokenJob.error();
@@ -1241,6 +1343,8 @@ void SynchronizationManagerPrivate::onReadAuthTokenFinished()
 
 void SynchronizationManagerPrivate::onReadShardIdFinished()
 {
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onReadShardIdFinished"));
+
     m_readingShardId = false;
 
     QKeychain::Error errorCode = m_readShardIdJob.error();
@@ -1273,6 +1377,8 @@ void SynchronizationManagerPrivate::onReadShardIdFinished()
 
 void SynchronizationManagerPrivate::onWriteAuthTokenFinished()
 {
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onWriteAuthTokenFinished"));
+
     m_writingAuthToken = false;
 
     QKeychain::Error errorCode = m_writeAuthTokenJob.error();
@@ -1295,6 +1401,8 @@ void SynchronizationManagerPrivate::onWriteAuthTokenFinished()
 
 void SynchronizationManagerPrivate::onWriteShardIdFinished()
 {
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onWriteShardIdFinished"));
+
     m_writingShardId = false;
 
     QKeychain::Error errorCode = m_writeShardIdJob.error();
@@ -1312,6 +1420,30 @@ void SynchronizationManagerPrivate::onWriteShardIdFinished()
 
     if (!m_writingAuthToken) {
         finalizeStoreOAuthResult();
+    }
+}
+
+void SynchronizationManagerPrivate::onDeleteAuthTokenFinished()
+{
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onDeleteAuthTokenFinished: user id = ")
+            << m_lastRevokedAuthenticationUserId);
+
+    m_deletingAuthToken = false;
+
+    if (!m_deletingShardId) {
+        finalizeRevokeAuthentication();
+    }
+}
+
+void SynchronizationManagerPrivate::onDeleteShardIdFinished()
+{
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onDeleteShardIdFinished: user id = ")
+            << m_lastRevokedAuthenticationUserId);
+
+    m_deletingShardId = false;
+
+    if (!m_deletingAuthToken) {
+        finalizeRevokeAuthentication();
     }
 }
 

@@ -46,10 +46,14 @@ public Q_SLOTS:
     void pause();
     void resume();
     void stop();
+    void revokeAuthentication(const qevercloud::UserID userId);
 
 Q_SIGNALS:
     void failed(QNLocalizedString errorDescription);
     void finished(Account account);
+
+    void authenticationRevoked(bool success, QNLocalizedString errorDescription,
+                               qevercloud::UserID userId);
 
     // state signals
     void remoteToLocalSyncPaused(bool pendingAuthenticaton);

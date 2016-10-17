@@ -65,6 +65,9 @@ Q_SIGNALS:
     void sendLocalChangesPaused(bool pendingAuthenticaton);
     void sendLocalChangesStopped();
 
+    void authenticationRevoked(bool success, QNLocalizedString errorDescription,
+                               qevercloud::UserID userId);
+
 // other informative signals
     void willRepeatRemoteToLocalSyncAfterSendingChanges();
     void detectedConflictDuringLocalChangesSending();
@@ -77,6 +80,8 @@ public Q_SLOTS:
     void pause();
     void resume();
     void stop();
+
+    void revokeAuthentication(const qevercloud::UserID userId);
 
 Q_SIGNALS:
 // private signals
@@ -159,6 +164,8 @@ private:
     void launchStoreOAuthResult();
     void finalizeStoreOAuthResult();
 
+    void finalizeRevokeAuthentication();
+
     void launchSync();
     void launchFullSync();
     void launchIncrementalSync();
@@ -176,6 +183,8 @@ private:
     void onReadShardIdFinished();
     void onWriteAuthTokenFinished();
     void onWriteShardIdFinished();
+    void onDeleteAuthTokenFinished();
+    void onDeleteShardIdFinished();
 
     void updatePersistentSyncSettings();
 
@@ -220,6 +229,12 @@ private:
     QKeychain::WritePasswordJob             m_writeShardIdJob;
     bool                                    m_writingAuthToken;
     bool                                    m_writingShardId;
+
+    QKeychain::DeletePasswordJob            m_deleteAuthTokenJob;
+    QKeychain::DeletePasswordJob            m_deleteShardIdJob;
+    bool                                    m_deletingAuthToken;
+    bool                                    m_deletingShardId;
+    qevercloud::UserID                      m_lastRevokedAuthenticationUserId;
 
     QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookAuthTokenJobsByGuid;
     QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >   m_readLinkedNotebookShardIdJobsByGuid;
