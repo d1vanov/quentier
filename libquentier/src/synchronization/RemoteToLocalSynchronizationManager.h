@@ -76,8 +76,8 @@ Q_SIGNALS:
     void paused(bool pendingAuthenticaton);
     void stopped();
 
-    void requestAuthenticationToken();
-    void requestAuthenticationTokensForLinkedNotebooks(QList<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
+    void requestAuthenticationToken(qevercloud::UserID);
+    void requestAuthenticationTokensForLinkedNotebooks(qevercloud::UserID, QVector<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
     void requestLastSyncParameters();
 
 public Q_SLOTS:
@@ -87,7 +87,8 @@ public Q_SLOTS:
     void resume();
 
     void onAuthenticationInfoReceived(QString authToken, qint32 userId, QString shardId, qevercloud::Timestamp expirationTime);
-    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
+    void onAuthenticationTokensForLinkedNotebooksReceived(qevercloud::UserID userId,
+                                                          QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                           QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
     void onLastSyncParametersReceived(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                       QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,

@@ -2291,10 +2291,12 @@ void RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived(QString a
     }
 }
 
-void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
+void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(qevercloud::UserID userId,
+                                                                                           QHash<QString, QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                                                            QHash<QString, qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
-    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived"));
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived: user id = ")
+            << userId);
 
     bool wasPending = m_pendingAuthenticationTokensForLinkedNotebooks;
 
@@ -2781,7 +2783,7 @@ void RemoteToLocalSynchronizationManager::launchSync()
 
     if (m_authenticationToken.isEmpty()) {
         m_pendingAuthenticationTokenAndShardId = true;
-        emit requestAuthenticationToken();
+        emit requestAuthenticationToken(m_userId);
         return;
     }
 
@@ -3537,8 +3539,10 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinkedNotebooks"));
 
-    QList<QPair<QString,QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds;
+    QVector<QPair<QString,QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds;
     const int numAllLinkedNotebooks = m_allLinkedNotebooks.size();
+    linkedNotebookGuidsAndSharedNotebookGlobalIds.reserve(numAllLinkedNotebooks);
+
     for(int j = 0; j < numAllLinkedNotebooks; ++j)
     {
         const LinkedNotebook & currentLinkedNotebook = m_allLinkedNotebooks[j];
@@ -3561,7 +3565,7 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
                                                                                 currentLinkedNotebook.sharedNotebookGlobalId());
     }
 
-    emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndSharedNotebookGlobalIds);
+    emit requestAuthenticationTokensForLinkedNotebooks(m_userId, linkedNotebookGuidsAndSharedNotebookGlobalIds);
     m_pendingAuthenticationTokensForLinkedNotebooks = true;
 }
 
@@ -4492,7 +4496,7 @@ void RemoteToLocalSynchronizationManager::handleAuthExpiration()
     emit paused(/* pending authentication = */ true);
 
     m_pendingAuthenticationTokenAndShardId = true;
-    emit requestAuthenticationToken();
+    emit requestAuthenticationToken(m_userId);
 }
 
 bool RemoteToLocalSynchronizationManager::checkUserAccountSyncState(bool & asyncWait, bool & error, qint32 & afterUsn)

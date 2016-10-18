@@ -42,7 +42,7 @@ public:
     bool paused() const;
 
 public Q_SLOTS:
-    void synchronize();
+    void synchronize(const qevercloud::UserID userId);
     void pause();
     void resume();
     void stop();

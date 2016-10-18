@@ -74,10 +74,15 @@ bool SendLocalChangesManager::active() const
     return m_active;
 }
 
-void SendLocalChangesManager::start(const qint32 updateCount, QHash<QString,qint32> updateCountByLinkedNotebookGuid)
+void SendLocalChangesManager::start(qevercloud::UserID userId, const qint32 updateCount,
+                                    QHash<QString,qint32> updateCountByLinkedNotebookGuid)
 {
-    QNDEBUG(QStringLiteral("SendLocalChangesManager::start: update count = ") << updateCount
-            << QStringLiteral(", update count by linked notebook guid = ") << updateCountByLinkedNotebookGuid);
+    QNDEBUG(QStringLiteral("SendLocalChangesManager::start: user id = ") << userId
+            << QStringLiteral("update count = ") << updateCount
+            << QStringLiteral(", update count by linked notebook guid = ")
+            << updateCountByLinkedNotebookGuid);
+
+    m_userId = userId;
 
     if (m_paused) {
         m_lastUpdateCount = updateCount;
@@ -127,15 +132,22 @@ void SendLocalChangesManager::resume()
             sendLocalChanges();
         }
         else {
-            start(m_lastUpdateCount, m_lastUpdateCountByLinkedNotebookGuid);
+            start(m_userId, m_lastUpdateCount, m_lastUpdateCountByLinkedNotebookGuid);
         }
     }
 }
 
-void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensByLinkedNotebookGuid,
+void SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived(qevercloud::UserID userId,
+                                                                               QHash<QString,QPair<QString,QString> > authenticationTokensByLinkedNotebookGuid,
                                                                                QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
-    QNDEBUG(QStringLiteral("SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived"));
+    QNDEBUG(QStringLiteral("SendLocalChangesManager::onAuthenticationTokensForLinkedNotebooksReceived: user id = ")
+            << userId);
+
+    if (userId != m_userId) {
+        QNDEBUG(QStringLiteral("Wrong user id, skipping"));
+        return;
+    }
 
     if (!m_pendingAuthenticationTokensForLinkedNotebooks) {
         QNDEBUG(QStringLiteral("Authenticaton tokens for linked notebooks were not requested by this object, won't do anything"));
@@ -2009,7 +2021,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
         if (it == m_authenticationTokensAndShardIdsByLinkedNotebookGuid.end()) {
             QNDEBUG(QStringLiteral("Authentication token for linked notebook with guid ") << guid
                     << QStringLiteral(" was not found; will request authentication tokens for all linked notebooks at once"));
-            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndSharedNotebookGlobalIds);
+            emit requestAuthenticationTokensForLinkedNotebooks(m_userId, m_linkedNotebookGuidsAndSharedNotebookGlobalIds);
             m_pendingAuthenticationTokensForLinkedNotebooks = true;
             return false;
         }
@@ -2029,7 +2041,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
                     << QStringLiteral(" is too close to expiration: its expiration time is ") << printableDateTimeFromTimestamp(expirationTime)
                     << QStringLiteral(", current time is ") << printableDateTimeFromTimestamp(currentTime)
                     << QStringLiteral("; will request new authentication tokens for all linked notebooks"));
-            emit requestAuthenticationTokensForLinkedNotebooks(m_linkedNotebookGuidsAndSharedNotebookGlobalIds);
+            emit requestAuthenticationTokensForLinkedNotebooks(m_userId, m_linkedNotebookGuidsAndSharedNotebookGlobalIds);
             m_pendingAuthenticationTokensForLinkedNotebooks = true;
             return false;
         }
@@ -2046,7 +2058,7 @@ void SendLocalChangesManager::handleAuthExpiration()
     QNINFO(QStringLiteral("Got AUTH_EXPIRED error, pausing and requesting new authentication token"));
     m_paused = true;
     emit paused(/* pending authentication = */ true);
-    emit requestAuthenticationToken();
+    emit requestAuthenticationToken(m_userId);
 }
 
 } // namespace quentier
