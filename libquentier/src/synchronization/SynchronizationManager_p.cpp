@@ -88,11 +88,13 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(const QString & con
     m_readLinkedNotebookShardIdJobsByGuidByUserId(),
     m_writeLinkedNotebookAuthTokenJobsByGuidByUserId(),
     m_writeLinkedNotebookShardIdJobsByGuidByUserId(),
-    m_linkedNotebookGuidsWithoutLocalAuthData(),
+    m_linkedNotebookGuidsWithoutLocalAuthDataByUserId(),
     m_shouldRepeatIncrementalSyncAfterSendingChanges(false),
     m_paused(false),
     m_remoteToLocalSyncWasActiveOnLastPause(false)
 {
+    m_OAuthResult.userId = -1;
+
     m_readAuthTokenJob.setAutoDelete(false);
     m_readShardIdJob.setAutoDelete(false);
     m_writeAuthTokenJob.setAutoDelete(false);
@@ -116,10 +118,10 @@ bool SynchronizationManagerPrivate::paused() const
     return m_paused;
 }
 
-void SynchronizationManagerPrivate::synchronize(const qevercloud::UserID userId)
+void SynchronizationManagerPrivate::synchronize()
 {
     clear();
-    authenticate(userId, AuthContext::SyncLaunch);
+    authenticate(AuthContext::SyncLaunch);
 }
 
 void SynchronizationManagerPrivate::pause()
@@ -328,7 +330,8 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                     {
                         QNDEBUG(QStringLiteral("Could not find authentication token for linked notebook in the keychain: "
                                                "linked notebook guid: ") << it.key());
-                        Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
+                        QSet<QString> & linkedNotebookGuidsWithoutLocalAuthData = m_linkedNotebookGuidsWithoutLocalAuthDataByUserId[userId];
+                        Q_UNUSED(linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                     }
                     else
                     {
@@ -342,7 +345,8 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
 
                         // Try to recover by making user to authenticate again in the blind hope that
                         // the next time the persistence of auth settings in the keychain would work
-                        Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
+                        QSet<QString> & linkedNotebookGuidsWithoutLocalAuthData = m_linkedNotebookGuidsWithoutLocalAuthDataByUserId[userId];
+                        Q_UNUSED(linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                     }
 
                     authenticateToLinkedNotebooks(userId);
@@ -376,7 +380,8 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                     {
                         QNDEBUG(QStringLiteral("Could not find shard id for linked notebook in the keychain: "
                                                "linked notebook guid: ") << it.key());
-                        Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
+                        QSet<QString> & linkedNotebookGuidsWithoutLocalAuthData = m_linkedNotebookGuidsWithoutLocalAuthDataByUserId[userId];
+                        Q_UNUSED(linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                     }
                     else
                     {
@@ -390,7 +395,8 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
 
                         // Try to recover by making user to authenticate again in the blind hope that
                         // the next time the persistence of auth settings in the keychain would work
-                        Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
+                        QSet<QString> & linkedNotebookGuidsWithoutLocalAuthData = m_linkedNotebookGuidsWithoutLocalAuthDataByUserId[userId];
+                        Q_UNUSED(linkedNotebookGuidsWithoutLocalAuthData.insert(it.key()))
                     }
 
                     authenticateToLinkedNotebooks(userId);
@@ -419,7 +425,7 @@ void SynchronizationManagerPrivate::onRequestAuthenticationToken(qevercloud::Use
         return;
     }
 
-    authenticate(userId, AuthContext::SyncLaunch);
+    authenticate(AuthContext::SyncLaunch);
 }
 
 void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks(qevercloud::UserID userId,
@@ -757,13 +763,17 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
     m_onceReadLastSyncParams = true;
 }
 
-void SynchronizationManagerPrivate::authenticate(const qevercloud::UserID userId, const AuthContext::type authContext)
+void SynchronizationManagerPrivate::authenticate(const AuthContext::type authContext)
 {
-    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticate: user id = ")
-            << userId << QStringLiteral("auth context = ") << authContext);
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticate: auth context = ") << authContext);
 
     m_authContext = authContext;
-    m_OAuthResult.userId = userId;
+
+    if (m_OAuthResult.userId < 0) {
+        QNDEBUG(QStringLiteral("No current user id, launching the OAuth procedure"));
+        launchOAuth();
+        return;
+    }
 
     if (validAuthentication()) {
         QNDEBUG(QStringLiteral("Found already valid authentication info"));
@@ -774,7 +784,7 @@ void SynchronizationManagerPrivate::authenticate(const qevercloud::UserID userId
     QNTRACE(QStringLiteral("Trying to restore persistent authentication settings..."));
 
     ApplicationSettings appSettings;
-    QString keyGroup = QStringLiteral("Authentication/") + QString::number(userId) +
+    QString keyGroup = QStringLiteral("Authentication/") + QString::number(m_OAuthResult.userId) +
                        QStringLiteral("/");
 
     QVariant tokenExpirationValue = appSettings.value(keyGroup + EXPIRATION_TIMESTAMP_KEY);
@@ -847,12 +857,12 @@ void SynchronizationManagerPrivate::authenticate(const qevercloud::UserID userId
     QNDEBUG(QStringLiteral("Trying to restore the authentication token and the shard id from the keychain"));
 
     m_readAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token_") +
-                              QString::number(userId));
+                              QString::number(m_OAuthResult.userId));
     m_readingAuthToken = true;
     m_readAuthTokenJob.start();
 
     m_readShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id_") +
-                            QString::number(userId));
+                            QString::number(m_OAuthResult.userId));
     m_readingShardId = true;
     m_readShardIdJob.start();
 }
@@ -1042,6 +1052,7 @@ void SynchronizationManagerPrivate::clear()
 
     // NOTE: don't do anything with m_OAuthWebView
     m_OAuthResult = qevercloud::EvernoteOAuthWebView::OAuthResult();
+    m_OAuthResult.userId = -1;
 
     m_remoteToLocalSyncManager.stop();
     m_sendLocalChangesManager.stop();
@@ -1058,7 +1069,7 @@ void SynchronizationManagerPrivate::clear()
     m_writeLinkedNotebookAuthTokenJobsByGuidByUserId.clear();
     m_writeLinkedNotebookShardIdJobsByGuidByUserId.clear();
 
-    m_linkedNotebookGuidsWithoutLocalAuthData.clear();
+    m_linkedNotebookGuidsWithoutLocalAuthDataByUserId.clear();
 
     m_shouldRepeatIncrementalSyncAfterSendingChanges = false;
 
@@ -1129,6 +1140,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks(const qeverclo
     ReadPasswordJobsByLinkedNotebookGuid & readLinkedNotebookShardIdJobsByGuid =
             m_readLinkedNotebookShardIdJobsByGuidByUserId[userId];
 
+    QSet<QString> & linkedNotebookGuidsWithoutLocalAuthData = m_linkedNotebookGuidsWithoutLocalAuthDataByUserId[userId];
+
     QString keyPrefix = QApplication::applicationName() + QStringLiteral("_") + QString::number(userId);
 
     for(auto it = linkedNotebookGuidsAndGlobalIdsWaitingForAuth.begin();
@@ -1143,11 +1156,11 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks(const qeverclo
         auto linkedNotebookAuthTokenIt = cachedLinkedNotebookAuthTokensAndShardIdsByGuid.find(guid);
         if (linkedNotebookAuthTokenIt == cachedLinkedNotebookAuthTokensAndShardIdsByGuid.end())
         {
-            auto noAuthDataIt = m_linkedNotebookGuidsWithoutLocalAuthData.find(guid);
-            if (noAuthDataIt != m_linkedNotebookGuidsWithoutLocalAuthData.end())
+            auto noAuthDataIt = linkedNotebookGuidsWithoutLocalAuthData.find(guid);
+            if (noAuthDataIt != linkedNotebookGuidsWithoutLocalAuthData.end())
             {
                 forceRemoteAuth = true;
-                Q_UNUSED(m_linkedNotebookGuidsWithoutLocalAuthData.erase(noAuthDataIt))
+                Q_UNUSED(linkedNotebookGuidsWithoutLocalAuthData.erase(noAuthDataIt))
             }
             else
             {
@@ -1255,7 +1268,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks(const qeverclo
                 emit notifyError(error);
             }
             else {
-                authenticate(userId, AuthContext::AuthToLinkedNotebooks);
+                authenticate(AuthContext::AuthToLinkedNotebooks);
             }
 
             ++it;

@@ -24,22 +24,20 @@
 
 namespace quentier {
 
-typedef qevercloud::UserID UserID;
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
 class LocalStorageManagerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    LocalStorageManagerPrivate(const QString & username, const UserID userId,
-                               const bool startFromScratch, const bool overrideLock);
+    LocalStorageManagerPrivate(const Account & account, const bool startFromScratch, const bool overrideLock);
     ~LocalStorageManagerPrivate();
 
 Q_SIGNALS:
     void upgradeProgress(double progress);
 
 public:
-    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false,
+    void switchUser(const Account & account, const bool startFromScratch = false,
                     const bool overrideLock = false);
     int userCount(QNLocalizedString & errorDescription) const;
     bool addUser(const User & user, QNLocalizedString & errorDescription);
@@ -171,13 +169,13 @@ private:
                    const QVariant & uniqueKeyValue) const;
 
     bool insertOrReplaceUser(const User & user, QNLocalizedString & errorDescription);
-    bool insertOrReplaceBusinessUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
+    bool insertOrReplaceBusinessUserInfo(const qevercloud::UserID id, const qevercloud::BusinessUserInfo & info,
                                          QNLocalizedString & errorDescription);
-    bool insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
+    bool insertOrReplaceAccounting(const qevercloud::UserID id, const qevercloud::Accounting & accounting,
                                    QNLocalizedString & errorDescription);
-    bool insertOrReplaceAccountLimits(const UserID id, const qevercloud::AccountLimits & accountLimits,
+    bool insertOrReplaceAccountLimits(const qevercloud::UserID id, const qevercloud::AccountLimits & accountLimits,
                                       QNLocalizedString & errorDescription);
-    bool insertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
+    bool insertOrReplaceUserAttributes(const qevercloud::UserID id, const qevercloud::UserAttributes & attributes,
                                        QNLocalizedString & errorDescription);
     bool checkAndPrepareUserCountQuery() const;
     bool checkAndPrepareInsertOrReplaceUserQuery();
@@ -354,9 +352,7 @@ private:
         bool operator()(const QPair<QString, int> & lhs, const QPair<QString, int> & rhs) const;
     };
 
-    QString             m_currentUsername;
-    qevercloud::UserID  m_currentUserId;
-    QString             m_applicationPersistenceStoragePath;
+    Account             m_currentAccount;
     QString             m_databaseFilePath;
     QSqlDatabase        m_sqlDatabase;
     boost::interprocess::file_lock  m_databaseFileLock;
@@ -448,8 +444,8 @@ private:
     QSqlQuery           m_insertOrReplaceNotebookRestrictionsQuery;
     bool                m_insertOrReplaceNotebookRestrictionsQueryPrepared;
 
-    QSqlQuery		    m_insertOrReplaceSharedNotebookQuery;
-    bool		        m_insertOrReplaceSharedNotebookQueryPrepared;
+    QSqlQuery           m_insertOrReplaceSharedNotebookQuery;
+    bool                m_insertOrReplaceSharedNotebookQueryPrepared;
 
     mutable QSqlQuery   m_getUserCountQuery;
     mutable bool        m_getUserCountQueryPrepared;

@@ -264,7 +264,7 @@ public Q_SLOTS:
     virtual void decryptEncryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString enCryptIndex) Q_DECL_OVERRIDE;
 
     virtual void hideDecryptedTextUnderCursor() Q_DECL_OVERRIDE;
-    virtual void hideDecryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString enDecryptedIndex) Q_DECL_OVERRIDE;
+    virtual void hideDecryptedText(QString encryptedText, QString decryptedText, QString cipher, QString keyLength, QString hint, QString enDecryptedIndex) Q_DECL_OVERRIDE;
 
     virtual void editHyperlinkDialog() Q_DECL_OVERRIDE;
     virtual void copyHyperlink() Q_DECL_OVERRIDE;
@@ -503,7 +503,7 @@ private:
     void writeNotePageFile(const QString & html);
 
     bool parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
-                                                QString & cipher, QString & keyLength, QString & hint,
+                                                QString & decryptedText, QString & cipher, QString & keyLength, QString & hint,
                                                 QString & id, QNLocalizedString & errorDescription) const;
     void setupPasteGenericTextMenuActions();
     void setupParagraphSubMenuForGenericTextMenu(const QString & selectedHtml);
@@ -623,6 +623,7 @@ private:
         CurrentContextMenuExtraData() :
             m_contentType(),
             m_encryptedText(),
+            m_decryptedText(),
             m_keyLength(),
             m_cipher(),
             m_hint(),
@@ -635,6 +636,7 @@ private:
 
         // Encrypted text extra data
         QString     m_encryptedText;
+        QString     m_decryptedText;
         QString     m_keyLength;
         QString     m_cipher;
         QString     m_hint;

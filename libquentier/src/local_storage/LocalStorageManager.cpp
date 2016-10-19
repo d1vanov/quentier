@@ -22,9 +22,9 @@
 
 namespace quentier {
 
-LocalStorageManager::LocalStorageManager(const QString & username, const UserID userId,
+LocalStorageManager::LocalStorageManager(const Account & account,
                                          const bool startFromScratch, const bool overrideLock) :
-    d_ptr(new LocalStorageManagerPrivate(username, userId, startFromScratch, overrideLock))
+    d_ptr(new LocalStorageManagerPrivate(account, startFromScratch, overrideLock))
 {
     QObject::connect(d_ptr.data(), QNSIGNAL(LocalStorageManagerPrivate,upgradeProgress,double),
                      this, QNSIGNAL(LocalStorageManager,upgradeProgress,double));
@@ -69,11 +69,11 @@ int LocalStorageManager::notebookCount(QNLocalizedString & errorDescription) con
     return d->notebookCount(errorDescription);
 }
 
-void LocalStorageManager::switchUser(const QString & username, const UserID userId,
+void LocalStorageManager::switchUser(const Account & account,
                                      const bool startFromScratch, const bool overrideLock)
 {
     Q_D(LocalStorageManager);
-    return d->switchUser(username, userId, startFromScratch, overrideLock);
+    return d->switchUser(account, startFromScratch, overrideLock);
 }
 
 int LocalStorageManager::userCount(QNLocalizedString & errorDescription) const

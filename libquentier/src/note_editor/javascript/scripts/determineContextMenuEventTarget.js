@@ -122,6 +122,7 @@ function determineContextMenuEventTarget(contextMenuSequenceNumber, x, y) {
                 extraData.push(encryptedText);
                 extraData.push(hint);
                 extraData.push(enDecryptedId);
+                extraData.push(element.innerHTML);
                 console.log("Found decrypted text fragment: encryptedText = " + encryptedText +
                             ", cipher = " + cipher + ", length = " + length << ", hint = " + hint +
                             ", en-decrypted-id = " + enDecryptedId);

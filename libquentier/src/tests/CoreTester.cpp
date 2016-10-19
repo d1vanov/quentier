@@ -367,7 +367,8 @@ void CoreTester::localStorageManagerIndividualSavedSearchTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         SavedSearch search;
         search.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
@@ -392,7 +393,8 @@ void CoreTester::localStorageManagerIndividualLinkedNotebookTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
         linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000046"));
@@ -420,7 +422,8 @@ void CoreTester::localStorageManagerIndividualTagTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
         linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
@@ -458,7 +461,8 @@ void CoreTester::localStorageManagerIndividualResourceTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         Notebook notebook;
         notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
@@ -550,7 +554,8 @@ void CoreTester::localStorageManagedIndividualNoteTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         Notebook notebook;
         notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
@@ -670,7 +675,8 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
         linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));
@@ -794,7 +800,8 @@ void CoreTester::localStorageManagedIndividualUserTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         User user;
         user.setId(1);
@@ -915,7 +922,8 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1066,7 +1074,8 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1151,7 +1160,8 @@ void CoreTester::localStorageManagerListTagsTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1269,7 +1279,8 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         Notebook notebook;
         notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000000"));
@@ -1337,7 +1348,8 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         Notebook notebook;
         notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
@@ -1468,7 +1480,8 @@ void CoreTester::localStorageManagerListNotesTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         Notebook notebook;
         notebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000047"));
@@ -1715,7 +1728,8 @@ void CoreTester::localStorageManagerListNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         QNLocalizedString errorMessage;
 
@@ -1881,7 +1895,8 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
     {
         const bool startFromScratch = true;
         const bool overrideLock = false;
-        LocalStorageManager localStorageManager(QStringLiteral("CoreTesterFakeUser"), 0, startFromScratch, overrideLock);
+        Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
+        LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
         LinkedNotebook linkedNotebook;
         linkedNotebook.setGuid(QStringLiteral("00000000-0000-0000-c000-000000000001"));

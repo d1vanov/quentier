@@ -1070,9 +1070,9 @@ void NoteEditorPrivate::onContextMenuEventReply(QString contentType, QString sel
     }
     else if (contentType == QStringLiteral("EncryptedText"))
     {
-        QString cipher, keyLength, encryptedText, hint, id;
+        QString cipher, keyLength, encryptedText, decryptedText, hint, id;
         QNLocalizedString error;
-        bool res = parseEncryptedTextContextMenuExtraData(extraData, encryptedText, cipher, keyLength, hint, id, error);
+        bool res = parseEncryptedTextContextMenuExtraData(extraData, encryptedText, decryptedText, cipher, keyLength, hint, id, error);
         if (Q_UNLIKELY(!res)) {
             QNLocalizedString errorDescription = QT_TR_NOOP("can't display context menu for encrypted text");
             errorDescription += QStringLiteral(": ");
@@ -3520,9 +3520,9 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
 
     if (insideDecryptedTextFragment)
     {
-        QString cipher, keyLength, encryptedText, hint, id;
+        QString cipher, keyLength, encryptedText, decryptedText, hint, id;
         QNLocalizedString error;
-        bool res = parseEncryptedTextContextMenuExtraData(extraData, encryptedText, cipher, keyLength, hint, id, error);
+        bool res = parseEncryptedTextContextMenuExtraData(extraData, encryptedText, decryptedText, cipher, keyLength, hint, id, error);
         if (Q_UNLIKELY(!res)) {
             QNLocalizedString errorDescription = QT_TR_NOOP("can't display context menu for encrypted text");
             errorDescription += QStringLiteral(": ");
@@ -3537,6 +3537,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
         m_currentContextMenuExtraData.m_cipher = cipher;
         m_currentContextMenuExtraData.m_hint = hint;
         m_currentContextMenuExtraData.m_id = id;
+        m_currentContextMenuExtraData.m_decryptedText = decryptedText;
     }
 
     if (!selectedHtml.isEmpty()) {
@@ -4188,15 +4189,16 @@ void NoteEditorPrivate::writeNotePageFile(const QString & html)
 }
 
 bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
-                                                               QString & cipher, QString & keyLength, QString & hint,
-                                                               QString & id, QNLocalizedString & errorDescription) const
+                                                               QString & decryptedText, QString & cipher, QString & keyLength,
+                                                               QString & hint, QString & id, QNLocalizedString & errorDescription) const
 {
     if (Q_UNLIKELY(extraData.empty())) {
         errorDescription = QT_TR_NOOP("extra data from JavaScript is empty");
         return false;
     }
 
-    if (Q_UNLIKELY(extraData.size() != 5)) {
+    int extraDataSize = extraData.size();
+    if (Q_UNLIKELY(extraDataSize != 5) && Q_UNLIKELY(extraDataSize != 6)) {
         errorDescription = QT_TR_NOOP("extra data from JavaScript has wrong size");
         return false;
     }
@@ -4206,6 +4208,14 @@ bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList
     encryptedText = extraData[2];
     hint = extraData[3];
     id = extraData[4];
+
+    if (extraDataSize == 6) {
+        decryptedText = extraData[5];
+    }
+    else {
+        decryptedText.clear();
+    }
+
     return true;
 }
 
@@ -6563,14 +6573,15 @@ void NoteEditorPrivate::hideDecryptedTextUnderCursor()
         return;
     }
 
-    hideDecryptedText(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_cipher,
-                      m_currentContextMenuExtraData.m_keyLength, m_currentContextMenuExtraData.m_hint,
-                      m_currentContextMenuExtraData.m_id);
+    hideDecryptedText(m_currentContextMenuExtraData.m_encryptedText, m_currentContextMenuExtraData.m_decryptedText,
+                      m_currentContextMenuExtraData.m_cipher, m_currentContextMenuExtraData.m_keyLength,
+                      m_currentContextMenuExtraData.m_hint, m_currentContextMenuExtraData.m_id);
 
     m_currentContextMenuExtraData.m_contentType.resize(0);
 }
 
-void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher, QString keyLength, QString hint, QString id)
+void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString decryptedText, QString cipher, QString keyLength,
+                                          QString hint, QString id)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::hideDecryptedText"));
 
@@ -6581,6 +6592,26 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString cipher,
         QNWARNING(error << QStringLiteral(", key length = ") << keyLength);
         emit notifyError(error);
         return;
+    }
+
+    bool rememberForSession = false;
+    QString originalDecryptedText;
+    bool foundOriginalDecryptedText = m_decryptedTextManager->findDecryptedTextByEncryptedText(encryptedText, originalDecryptedText,
+                                                                                               rememberForSession);
+    if (foundOriginalDecryptedText && (decryptedText != originalDecryptedText))
+    {
+        QNDEBUG(QStringLiteral("The original decrypted text doesn't match the newer one, will return-encrypt the decrypted text"));
+        QString newEncryptedText;
+        bool reEncryptedText = m_decryptedTextManager->modifyDecryptedText(encryptedText, decryptedText, newEncryptedText);
+        if (Q_UNLIKELY(!reEncryptedText)) {
+            QNLocalizedString error = QT_TR_NOOP("can't hide the decrypted text: the decrypted text was modified but it failed to get return-encrypted");
+            QNWARNING(error << QStringLiteral(", key length = ") << keyLength);
+            emit notifyError(error);
+            return;
+        }
+
+        QNDEBUG(QStringLiteral("Old encrypted text = ") << encryptedText << QStringLiteral(", new encrypted text = ") << newEncryptedText);
+        encryptedText = newEncryptedText;
     }
 
     quint64 enCryptIndex = m_lastFreeEnCryptIdNumber++;

@@ -46,18 +46,34 @@ public:
 
 public:
     explicit Account(const QString & name, const Type::type type,
+                     const qevercloud::UserID userId = -1,
                      const EvernoteAccountType::type evernoteAccountType = EvernoteAccountType::Free);
     Account(const Account & other);
     Account & operator=(const Account & other);
     virtual ~Account();
 
+    /**
+     * @return username for either local or Evernote account
+     */
+    QString name() const;
+
+    /**
+     * @return user id for Evernote accounts, -1 for local accounts (as the concept of user id is not defined for local accounts)
+     */
+    qevercloud::UserID id() const;
+
+    /**
+     * @return the type of the account: either local of Evernote
+     */
+    Type::type type() const;
+
+    /**
+     * @return the type of the Evernote account; if applied to free account, returns "Free"
+     */
+    EvernoteAccountType::type evernoteAccountType() const;
+
     void setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType);
 
-    void setEvernoteAccountLimits(const qevercloud::AccountLimits & limits);
-
-    QString name() const;
-    Type::type type() const;
-    EvernoteAccountType::type evernoteAccountType() const;
     qint32 mailLimitDaily() const;
     qint64 noteSizeMax() const;
     qint64 resourceSizeMax() const;
@@ -68,6 +84,7 @@ public:
     qint32 noteTagCountMax() const;
     qint32 savedSearchCountMax() const;
     qint32 noteResourceCountMax() const;
+    void setEvernoteAccountLimits(const qevercloud::AccountLimits & limits);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

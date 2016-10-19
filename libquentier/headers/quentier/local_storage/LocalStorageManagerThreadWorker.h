@@ -39,7 +39,7 @@ class QUENTIER_EXPORT LocalStorageManagerThreadWorker: public QObject
 {
     Q_OBJECT
 public:
-    explicit LocalStorageManagerThreadWorker(const QString & username, const qint32 userId,
+    explicit LocalStorageManagerThreadWorker(const Account & account,
                                              const bool startFromScratch, const bool overrideLock,
                                              QObject * parent = Q_NULLPTR);
     virtual ~LocalStorageManagerThreadWorker();
@@ -58,8 +58,8 @@ Q_SIGNALS:
     // User-related signals:
     void getUserCountComplete(int userCount, QUuid requestId = QUuid());
     void getUserCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
-    void switchUserComplete(qint32 userId, QUuid requestId = QUuid());
-    void switchUserFailed(qint32 userId, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void switchUserComplete(Account account, QUuid requestId = QUuid());
+    void switchUserFailed(Account account, QNLocalizedString errorDescription, QUuid requestId = QUuid());
     void addUserComplete(User user, QUuid requestId = QUuid());
     void addUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
     void updateUserComplete(User user, QUuid requestId = QUuid());
@@ -273,7 +273,7 @@ public Q_SLOTS:
 
     // User-related slots:
     void onGetUserCountRequest(QUuid requestId);
-    void onSwitchUserRequest(QString username, qint32 userId, bool startFromScratch, QUuid requestId);
+    void onSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
     void onAddUserRequest(User user, QUuid requestId);
     void onUpdateUserRequest(User user, QUuid requestId);
     void onFindUserRequest(User user, QUuid requestId);
@@ -392,8 +392,7 @@ private:
     LocalStorageManagerThreadWorker() Q_DECL_EQ_DELETE;
     Q_DISABLE_COPY(LocalStorageManagerThreadWorker)
 
-    QString                     m_username;
-    qint32                      m_userId;
+    Account                     m_account;
     bool                        m_startFromScratch;
     bool                        m_overrideLock;
     LocalStorageManager *       m_pLocalStorageManager;

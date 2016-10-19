@@ -76,7 +76,7 @@ Q_SIGNALS:
     void progress(QNLocalizedString message, double workDonePercentage);
 
 public Q_SLOTS:
-    void synchronize(const qevercloud::UserID userId);
+    void synchronize();
     void pause();
     void resume();
     void stop();
@@ -159,8 +159,8 @@ private:
         };
     };
 
-    void authenticate(const qevercloud::UserID userId, const AuthContext::type authContext);
     void launchOAuth();
+    void authenticate(const AuthContext::type authContext);
     void finalizeAuthentication();
 
     void launchStoreOAuthResult();
@@ -250,7 +250,7 @@ private:
     QHash<qevercloud::UserID, WritePasswordJobsByLinkedNotebookGuid>  m_writeLinkedNotebookAuthTokenJobsByGuidByUserId;
     QHash<qevercloud::UserID, WritePasswordJobsByLinkedNotebookGuid>  m_writeLinkedNotebookShardIdJobsByGuidByUserId;
 
-    QSet<QString>                           m_linkedNotebookGuidsWithoutLocalAuthData;
+    QHash<qevercloud::UserID, QSet<QString> >   m_linkedNotebookGuidsWithoutLocalAuthDataByUserId;
 
     bool                                    m_shouldRepeatIncrementalSyncAfterSendingChanges;
 

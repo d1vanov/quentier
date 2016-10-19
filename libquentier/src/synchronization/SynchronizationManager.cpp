@@ -70,10 +70,10 @@ bool SynchronizationManager::paused() const
     return d->paused();
 }
 
-void SynchronizationManager::synchronize(const qevercloud::UserID userId)
+void SynchronizationManager::synchronize()
 {
     Q_D(SynchronizationManager);
-    d->synchronize(userId);
+    d->synchronize();
 }
 
 void SynchronizationManager::pause()

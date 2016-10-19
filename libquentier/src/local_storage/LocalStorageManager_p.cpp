@@ -36,13 +36,10 @@ namespace quentier {
 
 #define QUENTIER_DATABASE_NAME "qn.storage.sqlite"
 
-LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username, const UserID userId,
-                                                       const bool startFromScratch, const bool overrideLock) :
+LocalStorageManagerPrivate::LocalStorageManagerPrivate(const Account & account, const bool startFromScratch, const bool overrideLock) :
     QObject(),
     // NOTE: don't initialize these! Otherwise SwitchUser won't work right
-    m_currentUsername(),
-    m_currentUserId(),
-    m_applicationPersistenceStoragePath(),
+    m_currentAccount(account),
     m_databaseFilePath(),
     m_sqlDatabase(),
     m_databaseFileLock(),
@@ -130,7 +127,7 @@ LocalStorageManagerPrivate::LocalStorageManagerPrivate(const QString & username,
     m_preservedAsterisk.reserve(1);
     m_preservedAsterisk.push_back('*');
 
-    switchUser(username, userId, startFromScratch, overrideLock);
+    switchUser(account, startFromScratch, overrideLock);
 }
 
 LocalStorageManagerPrivate::~LocalStorageManagerPrivate()
@@ -393,32 +390,27 @@ int LocalStorageManagerPrivate::notebookCount(QNLocalizedString & errorDescripti
     return count;
 }
 
-void LocalStorageManagerPrivate::switchUser(const QString & username, const UserID userId,
+void LocalStorageManagerPrivate::switchUser(const Account & account,
                                             const bool startFromScratch, const bool overrideLock)
 {
-    if ( (username == m_currentUsername) &&
-         (userId == m_currentUserId) )
+    QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::switchUser: start from scratch = ")
+            << (startFromScratch ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", override lock = ") << (overrideLock ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", account: ") << account);
+
+    if (!m_databaseFilePath.isEmpty() &&
+        (m_currentAccount.type() == account.type()) &&
+        (m_currentAccount.name() == account.name()) &&
+        (m_currentAccount.id() == account.id()))
     {
+        QNDEBUG(QStringLiteral("The same account and it has already been initialized once, skipping"));
         return;
     }
 
     // Unlocking the previous database file, if any
     unlockDatabaseFile();
 
-    m_currentUsername = username;
-    m_currentUserId = userId;
-
-    m_applicationPersistenceStoragePath = applicationPersistentStoragePath();
-    m_applicationPersistenceStoragePath.append(QStringLiteral("/") + m_currentUsername +
-                                               QStringLiteral("_") + QString::number(m_currentUserId));
-
-    QDir databaseFolder(m_applicationPersistenceStoragePath);
-    if (!databaseFolder.exists())
-    {
-        if (!databaseFolder.mkpath(m_applicationPersistenceStoragePath)) {
-            throw DatabaseOpeningException(QT_TR_NOOP("can't create folder for the local storage database file"));
-        }
-    }
+    m_currentAccount = account;
 
     QString sqlDriverName = QStringLiteral("QSQLITE");
     bool isSqlDriverAvailable = QSqlDatabase::isDriverAvailable(sqlDriverName);
@@ -447,10 +439,41 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         m_sqlDatabase = QSqlDatabase::database(sqlDatabaseConnectionName);
     }
 
-    m_databaseFilePath = m_applicationPersistenceStoragePath + QStringLiteral("/") + QString(QUENTIER_DATABASE_NAME);
+    QString accountName = account.name();
+    if (Q_UNLIKELY(accountName.isEmpty())) {
+        QNLocalizedString error = QT_TR_NOOP("Can't initialize local storage: account name is empty");
+        throw DatabaseOpeningException(error);
+    }
+
+    m_databaseFilePath = applicationPersistentStoragePath();
+    if (account.type() == Account::Type::Local)
+    {
+        m_databaseFilePath += QStringLiteral("/LocalAccounts/");
+        m_databaseFilePath += accountName;
+    }
+    else
+    {
+        m_databaseFilePath += QStringLiteral("/EvernoteAccounts/");
+        m_databaseFilePath += accountName;
+        m_databaseFilePath += QStringLiteral("_");
+        m_databaseFilePath += QString::number(account.id());
+    }
+
+    m_databaseFilePath += QStringLiteral("/") + QStringLiteral(QUENTIER_DATABASE_NAME);
     QNDEBUG("Attempting to open or create database file: " + m_databaseFilePath);
 
     QFileInfo databaseFileInfo(m_databaseFilePath);
+
+    QDir databaseFileDir = databaseFileInfo.absoluteDir();
+    if (Q_UNLIKELY(!databaseFileDir.exists()))
+    {
+        bool res = databaseFileDir.mkpath(databaseFileDir.absolutePath());
+        if (!res) {
+            QNLocalizedString error = QT_TR_NOOP("Can't create the folder for local storage database file");
+            throw DatabaseOpeningException(error);
+        }
+    }
+
     if (databaseFileInfo.exists())
     {
         if (Q_UNLIKELY(!databaseFileInfo.isReadable())) {
@@ -479,12 +502,18 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
         clearDatabaseFile();
     }
 
-    boost::interprocess::file_lock databaseLock(databaseFileInfo.canonicalFilePath().toUtf8().constData());
-    m_databaseFileLock.swap(databaseLock);
+    // WARNING: something strange is going on here: if no call is made to the below method,
+    // boost::interprocess::file_lock occasionally and sporadically thinks "there is no such file
+    // or directory"; that's what its exception message says
+    bool databaseFileExists = databaseFileInfo.exists();
+    QNDEBUG(QStringLiteral("Database file exists before locking: ")
+            << (databaseFileExists ? QStringLiteral("true") : QStringLiteral("false")));
 
     bool lockResult = false;
 
     try {
+        boost::interprocess::file_lock databaseLock(databaseFileInfo.canonicalFilePath().toUtf8().constData());
+        m_databaseFileLock.swap(databaseLock);
         lockResult = m_databaseFileLock.try_lock();
     }
     catch(boost::interprocess::interprocess_exception & exc) {
@@ -514,14 +543,13 @@ void LocalStorageManagerPrivate::switchUser(const QString & username, const User
     }
 
     if (startFromScratch) {
-        QNDEBUG(QStringLiteral("Cleaning up the whole database for user with name ")
-                << m_currentUsername << QStringLiteral(" and id ") << QString::number(m_currentUserId));
+        QNDEBUG(QStringLiteral("Cleaning up the whole database for account: ") << m_currentAccount);
         clearDatabaseFile();
     }
 
     m_sqlDatabase.setHostName(QStringLiteral("localhost"));
-    m_sqlDatabase.setUserName(username);
-    m_sqlDatabase.setPassword(username);
+    m_sqlDatabase.setUserName(accountName);
+    m_sqlDatabase.setPassword(accountName);
     m_sqlDatabase.setDatabaseName(m_databaseFilePath);
 
     if (!m_sqlDatabase.open())
@@ -4688,7 +4716,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceUser(const User & user, QNLocali
     return transaction.commit(errorDescription);
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceBusinessUserInfo(const UserID id, const qevercloud::BusinessUserInfo & info,
+bool LocalStorageManagerPrivate::insertOrReplaceBusinessUserInfo(const qevercloud::UserID id, const qevercloud::BusinessUserInfo & info,
                                                                  QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace business user info");
@@ -4712,7 +4740,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceBusinessUserInfo(const UserID id
     return true;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, const qevercloud::Accounting & accounting,
+bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const qevercloud::UserID id, const qevercloud::Accounting & accounting,
                                                            QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace accounting");
@@ -4758,7 +4786,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceAccounting(const UserID id, cons
     return true;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceAccountLimits(const UserID id, const qevercloud::AccountLimits & accountLimits,
+bool LocalStorageManagerPrivate::insertOrReplaceAccountLimits(const qevercloud::UserID id, const qevercloud::AccountLimits & accountLimits,
                                                               QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace account limits");
@@ -4795,7 +4823,7 @@ bool LocalStorageManagerPrivate::insertOrReplaceAccountLimits(const UserID id, c
     return true;
 }
 
-bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const UserID id, const qevercloud::UserAttributes & attributes,
+bool LocalStorageManagerPrivate::insertOrReplaceUserAttributes(const qevercloud::UserID id, const qevercloud::UserAttributes & attributes,
                                                                QNLocalizedString & errorDescription)
 {
     QNLocalizedString errorPrefix = QT_TR_NOOP("can't insert or replace user attributes");
@@ -7354,8 +7382,8 @@ void LocalStorageManagerPrivate::fillNoteAttributesFromSqlRecord(const QSqlRecor
     CHECK_AND_SET_NOTE_ATTRIBUTE(placeName, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(contentClass, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditedBy, QString, QString);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(creatorId, qint32, UserID);
-    CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditorId, qint32, UserID);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(creatorId, qint32, qevercloud::UserID);
+    CHECK_AND_SET_NOTE_ATTRIBUTE(lastEditorId, qint32, qevercloud::UserID);
     CHECK_AND_SET_NOTE_ATTRIBUTE(sharedWithBusiness, int, bool);
     CHECK_AND_SET_NOTE_ATTRIBUTE(conflictSourceNoteGuid, QString, QString);
     CHECK_AND_SET_NOTE_ATTRIBUTE(noteTitleQuality, qint32, qint32);

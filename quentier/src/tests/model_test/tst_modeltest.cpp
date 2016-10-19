@@ -382,9 +382,9 @@ void tst_ModelTest::testSavedSearchModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker("tst_ModelTest_saved_search_model_test_fake_user", 300,
-                                                                               /* start from scratch = */ true, /* override lock = */ false,
-                                                                               this);
+        Account account(QStringLiteral("tst_ModelTest_saved_search_model_test_fake_user"), Account::Type::Evernote, 300);
+        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
+                                                                              /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         SavedSearchModelTestHelper savedSearchModelTestHelper(m_pLocalStorageWorker);
@@ -425,9 +425,9 @@ void tst_ModelTest::testTagModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker("tst_ModelTest_tag_model_test_fake_user", 400,
-                                                                               /* start from scratch = */ true,
-                                                                               /* override lock = */ false, this);
+        Account account(QStringLiteral("tst_ModelTest_tag_model_test_fake_user"), Account::Type::Evernote, 400);
+        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
+                                                                              /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         TagModelTestHelper tagModelTestHelper(m_pLocalStorageWorker);
@@ -468,9 +468,9 @@ void tst_ModelTest::testNotebookModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker("tst_ModelTest_notebook_model_test_fake_user", 500,
-                                                                               /* start from scratch = */ true,
-                                                                               /* override lock = */ false, this);
+        Account account(QStringLiteral("tst_ModelTest_notebook_model_test_fake_user"), Account::Type::Evernote, 500);
+        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
+                                                                              /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         NotebookModelTestHelper notebookModelTestHelper(m_pLocalStorageWorker);
@@ -511,9 +511,9 @@ void tst_ModelTest::testNoteModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker("tst_ModelTest_note_model_test_fake_user", 700,
-                                                                               /* start from scratch = */ true,
-                                                                               /* override lock = */ false, this);
+        Account account(QStringLiteral("tst_ModelTest_note_model_test_fake_user"), Account::Type::Evernote, 700);
+        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
+                                                                              /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         NoteModelTestHelper noteModelTestHelper(m_pLocalStorageWorker);
@@ -554,9 +554,9 @@ void tst_ModelTest::testFavoritesModel()
         timer.setSingleShot(true);
 
         delete m_pLocalStorageWorker;
-        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker("tst_ModelTest_favorites_model_test_fake_user", 800,
-                                                                               /* start from scratch = */ true,
-                                                                               /* override lock = */ false, this);
+        Account account("tst_ModelTest_favorites_model_test_fake_user", Account::Type::Evernote, 800);
+        m_pLocalStorageWorker = new quentier::LocalStorageManagerThreadWorker(account, /* start from scratch = */ true,
+                                                                              /* override lock = */ false, this);
         m_pLocalStorageWorker->init();
 
         FavoritesModelTestHelper favoritesModelTestHelper(m_pLocalStorageWorker);

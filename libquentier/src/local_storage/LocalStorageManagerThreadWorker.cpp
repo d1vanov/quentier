@@ -22,12 +22,11 @@
 
 namespace quentier {
 
-LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const QString & username, const qint32 userId,
+LocalStorageManagerThreadWorker::LocalStorageManagerThreadWorker(const Account & account,
                                                                  const bool startFromScratch, const bool overrideLock,
                                                                  QObject * parent) :
     QObject(parent),
-    m_username(username),
-    m_userId(userId),
+    m_account(account),
     m_startFromScratch(startFromScratch),
     m_overrideLock(overrideLock),
     m_pLocalStorageManager(Q_NULLPTR),
@@ -72,7 +71,7 @@ void LocalStorageManagerThreadWorker::init()
         delete m_pLocalStorageManager;
     }
 
-    m_pLocalStorageManager = new LocalStorageManager(m_username, m_userId, m_startFromScratch, m_overrideLock);
+    m_pLocalStorageManager = new LocalStorageManager(m_account, m_startFromScratch, m_overrideLock);
 
     if (m_pLocalStorageCacheManager) {
         delete m_pLocalStorageCacheManager;
@@ -111,18 +110,18 @@ void LocalStorageManagerThreadWorker::onGetUserCountRequest(QUuid requestId)
     CATCH_EXCEPTION
 }
 
-void LocalStorageManagerThreadWorker::onSwitchUserRequest(QString username, qint32 userId,
+void LocalStorageManagerThreadWorker::onSwitchUserRequest(Account account,
                                                           bool startFromScratch, QUuid requestId)
 {
     try {
-        m_pLocalStorageManager->switchUser(username, userId, startFromScratch);
+        m_pLocalStorageManager->switchUser(account, startFromScratch);
     }
     catch(const std::exception & exception) {
-        emit switchUserFailed(userId, QNLocalizedString(exception.what()), requestId);
+        emit switchUserFailed(account, QNLocalizedString(exception.what()), requestId);
         return;
     }
 
-    emit switchUserComplete(userId, requestId);
+    emit switchUserComplete(account, requestId);
 }
 
 void LocalStorageManagerThreadWorker::onAddUserRequest(User user, QUuid requestId)

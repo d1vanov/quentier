@@ -561,8 +561,8 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
 
     const bool startFromScratch = true;
     const bool overrideLock = false;
-    LocalStorageManager localStorageManager(QStringLiteral("LocalStorageManagerNoteSearchQueryTestFakeUser"),
-                                            0, startFromScratch, overrideLock);
+    Account account(QStringLiteral("LocalStorageManagerNoteSearchQueryTestFakeUser"), Account::Type::Local);
+    LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
     QNLocalizedString errorMessage;
 

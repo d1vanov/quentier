@@ -1263,8 +1263,8 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     const bool startFromScratch = true;
     const bool overrideLock = false;
-    LocalStorageManager localStorageManager(QStringLiteral("LocalStorageManagerSequentialUpdatesTestFakeUser"),
-                                            0, startFromScratch, overrideLock);
+    Account account(QStringLiteral("LocalStorageManagerSequentialUpdatesTestFakeUser"), Account::Type::Evernote, 0);
+    LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
     // 2) ========== Create User ============
     User   user;

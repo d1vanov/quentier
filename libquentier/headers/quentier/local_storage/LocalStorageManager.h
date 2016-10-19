@@ -19,6 +19,7 @@
 #ifndef LIB_QUENTIER_LOCAL_STORAGE_LOCAL_STORAGE_MANAGER_H
 #define LIB_QUENTIER_LOCAL_STORAGE_LOCAL_STORAGE_MANAGER_H
 
+#include <quentier/types/Account.h>
 #include <quentier/local_storage/Lists.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
@@ -37,12 +38,9 @@ QT_FORWARD_DECLARE_STRUCT(PremiumInfo)
 QT_FORWARD_DECLARE_STRUCT(BusinessUserInfo)
 QT_FORWARD_DECLARE_STRUCT(SharedNotebook)
 QT_FORWARD_DECLARE_STRUCT(NotebookRestrictions)
-typedef int32_t UserID;
 }
 
 namespace quentier {
-
-typedef qevercloud::UserID UserID;
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
 QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
@@ -56,13 +54,14 @@ public:
      * for which the LocalStorageManager instance is created and some parameters
      * determining the startup behaviour
      *
-     * @param username
-     * @param userId
-     * @param startFromScratch - if set to true, the existing database file for this user (if any) would be purged (mostly used in tests)
+     * @param account - the account for which the local storage is being created or initialized
+     * @param startFromScratch - if set to true, the existing database file for this account (if any) would be purged
+     * during the local storage manager construction (mostly used in tests)
      * @param overrideLock - if set to true, the constructor would ignore the existing advisory lock (if any) put on the database file;
-     * otherwise the presence of advisory lock on the database file would cause the constructor to throw DatabaseLockedException
+     * otherwise the presence of advisory lock on the database file would cause the constructor to throw @link DatabaseLockedException @endlink
      */
-    LocalStorageManager(const QString & username, const UserID userId, const bool startFromScratch, const bool overrideLock);
+    LocalStorageManager(const Account & account, const bool startFromScratch, const bool overrideLock);
+
     virtual ~LocalStorageManager();
 
 Q_SIGNALS:
@@ -96,21 +95,20 @@ public:
 
     /**
      * @brief switchUser - switches to another local database file associated with passed in
-     * username and user id. If optional "startFromScratch" parameter is set to true (it is false
+     * account. If optional "startFromScratch" parameter is set to true (it is false
      * by default), the database file would be erased and only then - opened. If optional "overrideLock" parameter
      * is set to true, the advisory lock set on the database file (if any) would be forcefully removed;
      * otherwise, if this parameter if set to false, the presence of advisory lock on the database file woud cause
      * the method to throw DatabaseLockedException
      *
-     * @param username - name of user to which the local storage is switched
-     * @param userId - id of user to which the local storage is switched
+     * @param account - the account to which the local storage is to be switched
      * @param startFromScratch - optional, false by default; if true and database file
      * for this user existed previously, it is erased before open
      * @param overrideLock - optional, false by default; if true and database file has advisory lock put on it,
      * the lock would be forcefully removed; otherwise the presence of advisory lock on the database file
      * would cause the method to throw DatabaseLockedException
      */
-    void switchUser(const QString & username, const UserID userId, const bool startFromScratch = false,
+    void switchUser(const Account & account, const bool startFromScratch = false,
                     const bool overrideLock = false);
 
     /**

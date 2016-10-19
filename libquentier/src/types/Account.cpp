@@ -4,11 +4,13 @@
 namespace quentier {
 
 Account::Account(const QString & name, const Type::type type,
+                 const qevercloud::UserID userId,
                  const EvernoteAccountType::type evernoteAccountType) :
     d(new AccountData)
 {
     d->m_name = name;
     d->m_accountType = type;
+    d->m_userId = userId;
     d->switchEvernoteAccountType(evernoteAccountType);
 }
 
@@ -41,6 +43,11 @@ void Account::setEvernoteAccountLimits(const qevercloud::AccountLimits & limits)
 QString Account::name() const
 {
     return d->m_name;
+}
+
+qevercloud::UserID Account::id() const
+{
+    return d->m_userId;
 }
 
 Account::Type::type Account::type() const
