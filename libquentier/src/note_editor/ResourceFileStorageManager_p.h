@@ -38,10 +38,9 @@ class ResourceFileStorageManagerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    explicit ResourceFileStorageManagerPrivate(const QString & imageResourceFileStorageFolderPath,
+    explicit ResourceFileStorageManagerPrivate(const QString & nonImageResourceFileStorageFolderPath,
+                                               const QString & imageResourceFileStorageFolderPath,
                                                ResourceFileStorageManager & manager);
-
-    static QString resourceFileStorageLocation(QWidget * context);
 
 Q_SIGNALS:
     void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
@@ -82,8 +81,8 @@ private:
     void removeStaleResourceFilesFromCurrentNote();
 
 private:
+    QString     m_nonImageResourceFileStorageLocation;
     QString     m_imageResourceFileStorageLocation;
-    QString     m_resourceFileStorageLocation;
 
     QScopedPointer<Note>                m_pCurrentNote;
 

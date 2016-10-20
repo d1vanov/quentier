@@ -85,7 +85,6 @@ typedef QWebEngineSettings WebSettings;
 #endif
 
 #include <quentier/note_editor/ResourceFileStorageManager.h>
-#include <quentier/exception/ResourceLocalFileStorageFolderNotFoundException.h>
 #include <quentier/exception/NoteEditorInitializationException.h>
 #include <quentier/exception/NoteEditorPluginInitializationException.h>
 #include <quentier/types/Note.h>
@@ -311,14 +310,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_lastFreeEnDecryptedIdNumber(1),
     q_ptr(&noteEditor)
 {
-    QString initialHtml = m_pagePrefix + QStringLiteral("<body></body></html>");
-    m_noteEditorPageFolderPath = applicationPersistentStoragePath() + QStringLiteral("/NoteEditorPage");
-    m_noteEditorImageResourcesStoragePath = m_noteEditorPageFolderPath + QStringLiteral("/imageResources");
-    m_genericResourceImageFileStoragePath = m_noteEditorPageFolderPath + QStringLiteral("/genericResourceImages");
-
     setupSkipRulesForHtmlToEnmlConversion();
-    setupFileIO();
-    setupSpellChecker();
 
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
     setupWebSocketServer();
@@ -327,25 +319,15 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 
     setupTextCursorPositionJavaScriptHandlerConnections();
     setupGeneralSignalSlotConnections();
-    setupNoteEditorPage();
     setupScripts();
-
-    setAcceptDrops(true);
-
-    m_resourceLocalFileStorageFolder = ResourceFileStorageManager::resourceFileStorageLocation(this);
-    if (m_resourceLocalFileStorageFolder.isEmpty()) {
-        QNLocalizedString error = QT_TR_NOOP("can't get resource file storage folder");
-        QNWARNING(error);
-        throw ResourceLocalFileStorageFolderNotFoundException(error);
-    }
-    QNTRACE(QStringLiteral("Resource local file storage folder: ") << m_resourceLocalFileStorageFolder);
-
-    writeNotePageFile(initialHtml);
+    setAcceptDrops(false);
 }
 
 NoteEditorPrivate::~NoteEditorPrivate()
 {
-    m_pIOThread->quit();
+    if (m_pIOThread) {
+        m_pIOThread->quit();
+    }
 }
 
 void NoteEditorPrivate::onNoteLoadFinished(bool ok)
@@ -2076,6 +2058,54 @@ void NoteEditorPrivate::dropEvent(QDropEvent * pEvent)
     onDropEvent(pEvent);
 }
 
+void NoteEditorPrivate::initialize()
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::initialize"));
+
+    if (Q_UNLIKELY(m_pAccount.isNull())) {
+        QNLocalizedString error = QT_TR_NOOP("Can't initialize the note editor: account is not set");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString accountName = m_pAccount->name();
+    if (Q_UNLIKELY(accountName.isEmpty())) {
+        QNLocalizedString error = QT_TR_NOOP("Can't initialize the note editor: account name is empty");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_noteEditorPageFolderPath = applicationPersistentStoragePath();
+    if (m_pAccount->type() == Account::Type::Local)
+    {
+        m_noteEditorPageFolderPath += QStringLiteral("/LocalAccounts/");
+        m_noteEditorPageFolderPath += accountName;
+    }
+    else
+    {
+        m_noteEditorPageFolderPath += QStringLiteral("/EvernoteAccounts/");
+        m_noteEditorPageFolderPath += accountName;
+        m_noteEditorPageFolderPath += QStringLiteral("_");
+        m_noteEditorPageFolderPath += QString::number(m_pAccount->id());
+    }
+
+    m_noteEditorPageFolderPath += QStringLiteral("/NoteEditorPage");
+
+    m_resourceLocalFileStorageFolder = m_noteEditorPageFolderPath + QStringLiteral("/nonImageResources");
+    m_noteEditorImageResourcesStoragePath = m_noteEditorPageFolderPath + QStringLiteral("/imageResources");
+    m_genericResourceImageFileStoragePath = m_noteEditorPageFolderPath + QStringLiteral("/genericResourceImages");
+
+    setupFileIO();
+    setupSpellChecker();
+    setupNoteEditorPage();
+    setAcceptDrops(true);
+
+    QString initialHtml = m_pagePrefix + QStringLiteral("<body></body></html>");
+    writeNotePageFile(initialHtml);
+}
+
 bool NoteEditorPrivate::checkNoteSize(const QString & newNoteContent) const
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::checkNoteSize"));
@@ -3692,21 +3722,30 @@ void NoteEditorPrivate::setupFileIO()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setupFileIO"));
 
-    m_pIOThread = new QThread;
-    QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
-    m_pIOThread->start(QThread::LowPriority);
+    if (!m_pIOThread) {
+        m_pIOThread = new QThread;
+        QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
+        m_pIOThread->start(QThread::LowPriority);
+    }
 
-    m_pFileIOThreadWorker = new FileIOThreadWorker;
-    m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+    if (!m_pFileIOThreadWorker)
+    {
+        m_pFileIOThreadWorker = new FileIOThreadWorker;
+        m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+        QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid,bool),
+                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+        QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid,bool),
+                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
+                         this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
+    }
 
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid,bool),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid,bool),
-                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
+    if (m_pResourceFileStorageManager) {
+        m_pResourceFileStorageManager->deleteLater();
+        m_pResourceFileStorageManager = Q_NULLPTR;
+    }
 
-    m_pResourceFileStorageManager = new ResourceFileStorageManager(imageResourcesStoragePath());
+    m_pResourceFileStorageManager = new ResourceFileStorageManager(m_resourceLocalFileStorageFolder, m_noteEditorImageResourcesStoragePath);
     m_pResourceFileStorageManager->moveToThread(m_pIOThread);
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note),
@@ -3723,6 +3762,11 @@ void NoteEditorPrivate::setupFileIO()
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
     QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString),
                      this, QNSLOT(NoteEditorPrivate,onResourceSavedToStorage,QUuid,QByteArray,QString,int,QNLocalizedString));
+
+    if (m_pGenericResourceImageManager) {
+        m_pGenericResourceImageManager->deleteLater();
+        m_pGenericResourceImageManager = Q_NULLPTR;
+    }
 
     m_pGenericResourceImageManager = new GenericResourceImageManager;
     m_pGenericResourceImageManager->setStorageFolderPath(m_genericResourceImageFileStoragePath);
@@ -4626,7 +4670,26 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
 void NoteEditorPrivate::setAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setAccount: ") << account);
-    m_pAccount.reset(new Account(account));
+
+    if (!m_pAccount.isNull() && (m_pAccount->type() == account.type()) &&
+        (m_pAccount->name() == account.name()) && (m_pAccount->id() == account.id()))
+    {
+        QNDEBUG(QStringLiteral("The account's type, name and id were not updated so it's the update "
+                               "for the account currently set to the note editor"));
+        *m_pAccount = account;
+        return;
+    }
+
+    clear();
+
+    if (m_pAccount.isNull()) {
+        m_pAccount.reset(new Account(account));
+    }
+    else {
+        *m_pAccount = account;
+    }
+
+    initialize();
 }
 
 void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)

@@ -95,8 +95,7 @@ set(EXCEPTION_HEADERS
     headers/quentier/exception/LoggerInitializationException.h
     headers/quentier/exception/NoteEditorInitializationException.h
     headers/quentier/exception/NoteEditorPluginInitializationException.h
-    headers/quentier/exception/NullPtrException.h
-    headers/quentier/exception/ResourceLocalFileStorageFolderNotFoundException.h)
+    headers/quentier/exception/NullPtrException.h)
 
 set(UTILITY_HEADERS
     headers/quentier/utility/ApplicationSettings.h
@@ -140,7 +139,6 @@ set(PRIVATE_HEADERS
     src/note_editor/ResourceInfo.h
     src/note_editor/SpellChecker.h
     src/note_editor/SpellCheckerDictionariesFinder.h
-    src/note_editor/dialogs/AttachmentStoragePathConfigDialog.h
     src/note_editor/dialogs/EncryptionDialog.h
     src/note_editor/dialogs/DecryptionDialog.h
     src/note_editor/dialogs/EditHyperlinkDialog.h
@@ -258,7 +256,6 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/ResourceInfo.cpp
     src/note_editor/SpellChecker.cpp
     src/note_editor/SpellCheckerDictionariesFinder.cpp
-    src/note_editor/dialogs/AttachmentStoragePathConfigDialog.cpp
     src/note_editor/dialogs/EncryptionDialog.cpp
     src/note_editor/dialogs/DecryptionDialog.cpp
     src/note_editor/dialogs/EditHyperlinkDialog.cpp
@@ -363,7 +360,6 @@ set(${PROJECT_NAME}_SOURCES
     src/exception/NullPtrException.cpp
     src/exception/LocalStorageCacheManagerException.cpp
     src/exception/LoggerInitializationException.cpp
-    src/exception/ResourceLocalFileStorageFolderNotFoundException.cpp
     src/utility/ApplicationSettings.cpp
     src/utility/DesktopServices.cpp
     src/utility/EncryptionManager.cpp
@@ -431,7 +427,6 @@ else()
 endif()
 
 set(FORMS
-    src/note_editor/dialogs/AttachmentStoragePathConfigDialog.ui
     src/note_editor/dialogs/DecryptionDialog.ui
     src/note_editor/dialogs/EncryptionDialog.ui
     src/note_editor/dialogs/EditHyperlinkDialog.ui

@@ -17,7 +17,6 @@
  */
 
 #include "ResourceFileStorageManager_p.h"
-#include "dialogs/AttachmentStoragePathConfigDialog.h"
 #include <quentier/note_editor/ResourceFileStorageManager.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>
@@ -32,72 +31,18 @@
 
 namespace quentier {
 
-ResourceFileStorageManagerPrivate::ResourceFileStorageManagerPrivate(const QString & imageResourceFileStorageFolderPath,
+ResourceFileStorageManagerPrivate::ResourceFileStorageManagerPrivate(const QString & nonImageResourceFileStorageFolderPath,
+                                                                     const QString & imageResourceFileStorageFolderPath,
                                                                      ResourceFileStorageManager & manager) :
     QObject(&manager),
+    m_nonImageResourceFileStorageLocation(nonImageResourceFileStorageFolderPath),
     m_imageResourceFileStorageLocation(imageResourceFileStorageFolderPath),
-    m_resourceFileStorageLocation(),
     m_pCurrentNote(),
     m_resourceLocalUidByFilePath(),
     m_fileSystemWatcher(),
     q_ptr(&manager)
 {
     createConnections();
-    m_resourceFileStorageLocation = resourceFileStorageLocation(Q_NULLPTR);
-}
-
-QString ResourceFileStorageManagerPrivate::resourceFileStorageLocation(QWidget * context)
-{
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(QStringLiteral("AttachmentSaveLocations"));
-    QString resourceFileStorageLocation = appSettings.value(QStringLiteral("OwnFileStorageLocation")).toString();
-    if (resourceFileStorageLocation.isEmpty()) {
-        resourceFileStorageLocation = applicationPersistentStoragePath() + QStringLiteral("/attachments");
-        appSettings.setValue(QStringLiteral("OwnFileStorageLocation"), QVariant(resourceFileStorageLocation));
-    }
-
-    QFileInfo resourceFileStorageLocationInfo(resourceFileStorageLocation);
-    QString manualPath;
-    if (!resourceFileStorageLocationInfo.exists())
-    {
-        QDir resourceFileStorageLocationDir(resourceFileStorageLocation);
-        bool res = resourceFileStorageLocationDir.mkpath(resourceFileStorageLocation);
-        if (!res)
-        {
-            QNWARNING(QStringLiteral("Can't create directory for attachment tmp storage location: ")
-                      << resourceFileStorageLocation);
-            manualPath = getAttachmentStoragePath(context);
-        }
-    }
-    else if (!resourceFileStorageLocationInfo.isDir())
-    {
-        QNWARNING(QStringLiteral("Can't figure out where to save the temporary copies of attachments: path ")
-                  << resourceFileStorageLocation << QStringLiteral(" is not a directory"));
-        manualPath = getAttachmentStoragePath(context);
-    }
-    else if (!resourceFileStorageLocationInfo.isWritable())
-    {
-        QNWARNING(QStringLiteral("Can't save temporary copies of attachments: the suggested folder is not writable: ")
-                  << resourceFileStorageLocation);
-        manualPath = getAttachmentStoragePath(context);
-    }
-
-    if (!manualPath.isEmpty())
-    {
-        resourceFileStorageLocationInfo.setFile(manualPath);
-        if (!resourceFileStorageLocationInfo.exists() || !resourceFileStorageLocationInfo.isDir() ||
-            !resourceFileStorageLocationInfo.isWritable())
-        {
-            QNWARNING(QStringLiteral("Can't use manually selected attachment storage path"));
-            return QString();
-        }
-
-        appSettings.setValue(QStringLiteral("OwnFileStorageLocation"), QVariant(manualPath));
-        resourceFileStorageLocation = manualPath;
-    }
-
-    appSettings.endGroup();
-    return resourceFileStorageLocation;
 }
 
 void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray data,
@@ -112,43 +57,43 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write resource data for empty note local uid to local file");
         QNWARNING(errorDescription << QStringLiteral(", request id = ") << requestId);
-        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::EmptyLocalUid, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyLocalUid, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write data for empty resource local uid to local file");
         QNWARNING(errorDescription << QStringLiteral(", request id = ") << requestId);
-        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::EmptyLocalUid, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyLocalUid, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(requestId.isNull())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write data for resource to local file with empty request id");
         QNWARNING(errorDescription << QStringLiteral(", note local uid = ") << noteLocalUid << QStringLiteral(", resource local uid = ") << resourceLocalUid);
-        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::EmptyRequestId, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyRequestId, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(data.isEmpty())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write empty resource data to local file");
         QNWARNING(errorDescription << QStringLiteral(", note local uid = ") << noteLocalUid << QStringLiteral(", resource local uid = ") << resourceLocalUid);
-        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::EmptyData, errorDescription);
+        emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyData, errorDescription);
         return;
     }
 
-    if (!isImage && Q_UNLIKELY(m_resourceFileStorageLocation.isEmpty())) {
+    if (!isImage && Q_UNLIKELY(m_nonImageResourceFileStorageLocation.isEmpty())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("can't automatically choose resource file storage location");
         QNWARNING(errorDescription);
         emit writeResourceToFileCompleted(requestId, dataHash, QString(),
-                                          ResourceFileStorageManager::NoResourceFileStorageLocation,
+                                          ResourceFileStorageManager::Errors::NoResourceFileStorageLocation,
                                           errorDescription);
         return;
     }
 
     QString fileStoragePath = (isImage
                                ? m_imageResourceFileStorageLocation
-                               : m_resourceFileStorageLocation);
+                               : m_nonImageResourceFileStorageLocation);
     fileStoragePath += QStringLiteral("/") + noteLocalUid + QStringLiteral("/") + resourceLocalUid;
 
     if (!preferredFileSuffix.isEmpty()) {
@@ -237,13 +182,13 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fi
     QNDEBUG(QStringLiteral("ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest: resource local uid = ")
             << resourceLocalUid << QStringLiteral(", request id = ") << requestId);
 
-    if (Q_UNLIKELY(m_resourceFileStorageLocation.isEmpty()))
+    if (Q_UNLIKELY(m_nonImageResourceFileStorageLocation.isEmpty()))
     {
         QNLocalizedString errorDescription = QT_TR_NOOP("resource file storage location is empty");
         QNWARNING(errorDescription << QStringLiteral(", resource local uid = ") << resourceLocalUid
                   << QStringLiteral(", request id = ") << requestId);
         emit readResourceFromFileCompleted(requestId, QByteArray(), QByteArray(),
-                                           ResourceFileStorageManager::NoResourceFileStorageLocation,
+                                           ResourceFileStorageManager::Errors::NoResourceFileStorageLocation,
                                            errorDescription);
         return;
     }
@@ -560,7 +505,7 @@ void ResourceFileStorageManagerPrivate::removeStaleResourceFilesFromCurrentNote(
                 << m_pCurrentNote->localUid());
     }
 
-    QDir genericResourceImagesFolder(m_resourceFileStorageLocation + QStringLiteral("/") + m_pCurrentNote->localUid());
+    QDir genericResourceImagesFolder(m_nonImageResourceFileStorageLocation + QStringLiteral("/") + m_pCurrentNote->localUid());
     if (genericResourceImagesFolder.exists())
     {
         QFileInfoList genericResourceImageFileInfos = genericResourceImagesFolder.entryInfoList(QDir::Files);

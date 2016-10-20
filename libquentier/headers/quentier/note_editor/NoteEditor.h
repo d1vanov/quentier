@@ -33,6 +33,9 @@ QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
 
+/**
+ * @brief The NoteEditor class is a widget encapsulating all the functionality necessary for showing and editing notes
+ */
 class QUENTIER_EXPORT NoteEditor: public QWidget
 {
     Q_OBJECT
@@ -40,6 +43,10 @@ public:
     explicit NoteEditor(QWidget * parent = Q_NULLPTR, Qt::WindowFlags flags = 0);
     virtual ~NoteEditor();
 
+    /**
+     * This method can be used to set the backend to the note editor; the note editor has the default backend
+     * so this method is not obligatory to be called
+     */
     void setBackend(INoteEditorBackend * backend);
 
     void setAccount(const Account & account);

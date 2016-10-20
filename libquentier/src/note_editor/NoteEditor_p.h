@@ -422,6 +422,8 @@ private Q_SLOTS:
     void onUndoCommandError(QNLocalizedString error);
 
 private:
+    void initialize();
+
     bool checkNoteSize(const QString & newNoteContent) const;
 
     void pushNoteContentEditUndoCommand();
@@ -806,7 +808,7 @@ private:
 
     QVector<ENMLConverter::SkipHtmlElementRule>     m_skipRulesForHtmlToEnmlConversion;
 
-    QThread *   m_pIOThread;
+    QThread *                       m_pIOThread;
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 

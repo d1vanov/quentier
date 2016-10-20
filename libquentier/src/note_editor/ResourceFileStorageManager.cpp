@@ -22,15 +22,12 @@
 
 namespace quentier {
 
-ResourceFileStorageManager::ResourceFileStorageManager(const QString & imageResourceFileStorageFolderPath, QObject * parent) :
+ResourceFileStorageManager::ResourceFileStorageManager(const QString & nonImageResourceFileStorageFolderPath,
+                                                       const QString & imageResourceFileStorageFolderPath,
+                                                       QObject * parent) :
     QObject(parent),
-    d_ptr(new ResourceFileStorageManagerPrivate(imageResourceFileStorageFolderPath, *this))
+    d_ptr(new ResourceFileStorageManagerPrivate(nonImageResourceFileStorageFolderPath, imageResourceFileStorageFolderPath, *this))
 {}
-
-QString ResourceFileStorageManager::resourceFileStorageLocation(QWidget * context)
-{
-    return ResourceFileStorageManagerPrivate::resourceFileStorageLocation(context);
-}
 
 void ResourceFileStorageManager::onWriteResourceToFileRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray data,
                                                               QByteArray dataHash, QString preferredSuffix, QUuid requestId, bool isImage)
