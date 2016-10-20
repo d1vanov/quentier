@@ -62,6 +62,17 @@ public:
     bool paused() const;
 
 public Q_SLOTS:
+
+    /**
+     * Use this slot to set the current account for the synchronization manager. If the slot is called during the synchronization running,
+     * it would stop, any internal caches belonging to previously selected account (if any) would be purged (but persistent settings
+     * like the authentication token saved in the system keychain would remain). Setting the current account won't automatically start
+     * the synchronization for it, use @link synchronize @endling slot for this.
+     *
+     * The attempt to set the current account of "Local" type would just clean up the synchronization manager as if it was just created
+     */
+    void setAccount(Account account);
+
     /**
      * Use this slot to launch the synchronization of data
      */

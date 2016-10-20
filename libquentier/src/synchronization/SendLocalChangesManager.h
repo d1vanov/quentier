@@ -55,21 +55,20 @@ Q_SIGNALS:
     void paused(bool pendingAuthenticaton);
     void stopped();
 
-    void requestAuthenticationToken(qevercloud::UserID);
-    void requestAuthenticationTokensForLinkedNotebooks(qevercloud::UserID, QVector<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
+    void requestAuthenticationToken();
+    void requestAuthenticationTokensForLinkedNotebooks(QVector<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
 
     // progress information
     void receivedUserAccountDirtyObjects();
     void receivedAllDirtyObjects();
 
 public Q_SLOTS:
-    void start(qevercloud::UserID userId, qint32 updateCount, QHash<QString,qint32> updateCountByLinkedNotebookGuid);
+    void start(qint32 updateCount, QHash<QString,qint32> updateCountByLinkedNotebookGuid);
     void stop();
     void pause();
     void resume();
 
-    void onAuthenticationTokensForLinkedNotebooksReceived(qevercloud::UserID userId,
-                                                          QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                           QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
 
 // private signals:
@@ -239,7 +238,6 @@ private:
     NoteStore                               m_noteStore;
     qint32                                  m_lastUpdateCount;
     QHash<QString,qint32>                   m_lastUpdateCountByLinkedNotebookGuid;
-    qevercloud::UserID                      m_userId;
 
     bool                                    m_shouldRepeatIncrementalSync;
 

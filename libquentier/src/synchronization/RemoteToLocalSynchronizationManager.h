@@ -54,6 +54,7 @@ public:
 
     bool active() const;
 
+    void setAccount(const Account & account);
     Account account() const;
 
 Q_SIGNALS:
@@ -76,8 +77,8 @@ Q_SIGNALS:
     void paused(bool pendingAuthenticaton);
     void stopped();
 
-    void requestAuthenticationToken(qevercloud::UserID);
-    void requestAuthenticationTokensForLinkedNotebooks(qevercloud::UserID, QVector<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
+    void requestAuthenticationToken();
+    void requestAuthenticationTokensForLinkedNotebooks(QVector<QPair<QString, QString> > linkedNotebookGuidsAndSharedNotebookGlobalIds);
     void requestLastSyncParameters();
 
 public Q_SLOTS:
@@ -86,9 +87,8 @@ public Q_SLOTS:
     void pause();
     void resume();
 
-    void onAuthenticationInfoReceived(QString authToken, qint32 userId, QString shardId, qevercloud::Timestamp expirationTime);
-    void onAuthenticationTokensForLinkedNotebooksReceived(qevercloud::UserID userId,
-                                                          QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
+    void onAuthenticationInfoReceived(QString authToken, QString shardId, qevercloud::Timestamp expirationTime);
+    void onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                           QHash<QString,qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid);
     void onLastSyncParametersReceived(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                       QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
@@ -569,7 +569,6 @@ private:
     bool                                    m_allLinkedNotebooksListed;
 
     QString                                 m_authenticationToken;
-    qint32                                  m_userId;
     QString                                 m_shardId;
     qevercloud::Timestamp                   m_authenticationTokenExpirationTime;
     bool                                    m_pendingAuthenticationTokenAndShardId;

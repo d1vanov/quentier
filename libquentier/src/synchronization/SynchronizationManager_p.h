@@ -76,6 +76,7 @@ Q_SIGNALS:
     void progress(QNLocalizedString message, double workDonePercentage);
 
 public Q_SLOTS:
+    void setAccount(const Account & account);
     void synchronize();
     void pause();
     void resume();
@@ -85,9 +86,8 @@ public Q_SLOTS:
 
 Q_SIGNALS:
 // private signals
-    void sendAuthenticationTokenAndShardId(QString authToken, qint32 userId, QString shardId, qevercloud::Timestamp expirationTime);
-    void sendAuthenticationTokensForLinkedNotebooks(qevercloud::UserID userId,
-                                                    QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuids,
+    void sendAuthenticationTokenAndShardId(QString authToken, QString shardId, qevercloud::Timestamp expirationTime);
+    void sendAuthenticationTokensForLinkedNotebooks(QHash<QString,QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuids,
                                                     QHash<QString,qevercloud::Timestamp> authenticatonTokenExpirationTimesByLinkedNotebookGuids);
     void sendLastSyncParameters(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime,
                                 QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
@@ -108,9 +108,8 @@ private Q_SLOTS:
 
     void onKeychainJobFinished(QKeychain::Job * job);
 
-    void onRequestAuthenticationToken(qevercloud::UserID userId);
-    void onRequestAuthenticationTokensForLinkedNotebooks(qevercloud::UserID userId,
-                                                         QVector<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
+    void onRequestAuthenticationToken();
+    void onRequestAuthenticationTokensForLinkedNotebooks(QVector<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys);
 
     void onRequestLastSyncParameters();
 
@@ -179,7 +178,7 @@ private:
 
     bool validAuthentication() const;
     bool checkIfTimestampIsAboutToExpireSoon(const qevercloud::Timestamp timestamp) const;
-    void authenticateToLinkedNotebooks(const qevercloud::UserID userId);
+    void authenticateToLinkedNotebooks();
 
     void onReadAuthTokenFinished();
     void onReadShardIdFinished();
@@ -215,16 +214,11 @@ private:
     RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
     SendLocalChangesManager                 m_sendLocalChangesManager;
 
-    typedef QHash<QString,QPair<QString,QString> > LinkedNotebookAuthTokensAndShardIdsByGuid;
-    typedef QHash<QString,qevercloud::Timestamp>   LinkedNotebookAuthTokenExpirationTimeByGuid;
-    typedef QVector<QPair<QString,QString> >       LinkedNotebookGuidsAndGlobalIds;
-
-    QHash<qevercloud::UserID, LinkedNotebookGuidsAndGlobalIds>              m_linkedNotebookGuidsAndGlobalIdsWaitingForAuthByUserId;
-    QHash<qevercloud::UserID, LinkedNotebookAuthTokensAndShardIdsByGuid>    m_cachedLinkedNotebookAuthTokensAndShardIdsByGuidByUserId;
-    QHash<qevercloud::UserID, LinkedNotebookAuthTokenExpirationTimeByGuid>  m_cachedLinkedNotebookAuthTokenExpirationTimeByGuidByUserId;
+    QHash<QString,QPair<QString,QString> >  m_cachedLinkedNotebookAuthTokensAndShardIdsByGuid;
+    QHash<QString,qevercloud::Timestamp>    m_cachedLinkedNotebookAuthTokenExpirationTimeByGuid;
+    QVector<QPair<QString,QString> >        m_linkedNotebookGuidsAndGlobalIdsWaitingForAuth;
 
     int                                     m_authenticateToLinkedNotebooksPostponeTimerId;
-    qevercloud::UserID                      m_authenticateToLinkedNotebooksLastUserId;
 
     QKeychain::ReadPasswordJob              m_readAuthTokenJob;
     QKeychain::ReadPasswordJob              m_readShardIdJob;
@@ -242,15 +236,12 @@ private:
     bool                                    m_deletingShardId;
     qevercloud::UserID                      m_lastRevokedAuthenticationUserId;
 
-    typedef QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >  ReadPasswordJobsByLinkedNotebookGuid;
-    typedef QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> > WritePasswordJobsByLinkedNotebookGuid;
+    QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >      m_readLinkedNotebookAuthTokenJobsByGuid;
+    QHash<QString,QSharedPointer<QKeychain::ReadPasswordJob> >      m_readLinkedNotebookShardIdJobsByGuid;
+    QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >     m_writeLinkedNotebookAuthTokenJobsByGuid;
+    QHash<QString,QSharedPointer<QKeychain::WritePasswordJob> >     m_writeLinkedNotebookShardIdJobsByGuid;
 
-    QHash<qevercloud::UserID, ReadPasswordJobsByLinkedNotebookGuid>   m_readLinkedNotebookAuthTokenJobsByGuidByUserId;
-    QHash<qevercloud::UserID, ReadPasswordJobsByLinkedNotebookGuid>   m_readLinkedNotebookShardIdJobsByGuidByUserId;
-    QHash<qevercloud::UserID, WritePasswordJobsByLinkedNotebookGuid>  m_writeLinkedNotebookAuthTokenJobsByGuidByUserId;
-    QHash<qevercloud::UserID, WritePasswordJobsByLinkedNotebookGuid>  m_writeLinkedNotebookShardIdJobsByGuidByUserId;
-
-    QHash<qevercloud::UserID, QSet<QString> >   m_linkedNotebookGuidsWithoutLocalAuthDataByUserId;
+    QSet<QString>                           m_linkedNotebookGuidsWithoutLocalAuthData;
 
     bool                                    m_shouldRepeatIncrementalSyncAfterSendingChanges;
 

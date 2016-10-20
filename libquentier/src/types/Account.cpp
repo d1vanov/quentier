@@ -114,6 +114,7 @@ QTextStream & Account::print(QTextStream & strm) const
 {
     strm << QStringLiteral("Account: {\n");
     strm << QStringLiteral("    name = ") << d->m_name << QStringLiteral(";\n");
+    strm << QStringLiteral("    id = ") << d->m_userId << QStringLiteral(";\n");
 
     strm << QStringLiteral("    type = ");
     switch(d->m_accountType)

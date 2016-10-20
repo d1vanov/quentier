@@ -112,7 +112,6 @@ RemoteToLocalSynchronizationManager::RemoteToLocalSynchronizationManager(LocalSt
     m_listAllLinkedNotebooksRequestId(),
     m_allLinkedNotebooksListed(false),
     m_authenticationToken(),
-    m_userId(-1),
     m_shardId(),
     m_authenticationTokenExpirationTime(0),
     m_pendingAuthenticationTokenAndShardId(false),
@@ -172,6 +171,42 @@ bool RemoteToLocalSynchronizationManager::active() const
     return m_active;
 }
 
+void RemoteToLocalSynchronizationManager::setAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::setAccount"));
+
+    m_user.setId(account.id());
+    m_user.setName(account.name());
+
+    Account::EvernoteAccountType::type accountEnType = account.evernoteAccountType();
+    switch(accountEnType)
+    {
+    case Account::EvernoteAccountType::Plus:
+        m_user.setServiceLevel(qevercloud::ServiceLevel::PLUS);
+        break;
+    case Account::EvernoteAccountType::Premium:
+        m_user.setServiceLevel(qevercloud::ServiceLevel::PREMIUM);
+        break;
+    default:
+        m_user.setServiceLevel(qevercloud::ServiceLevel::BASIC);
+        break;
+    }
+
+    qevercloud::AccountLimits accountLimits;
+    accountLimits.userMailLimitDaily = account.mailLimitDaily();
+    accountLimits.noteSizeMax = account.noteSizeMax();
+    accountLimits.resourceSizeMax = account.resourceSizeMax();
+    accountLimits.userLinkedNotebookMax = account.linkedNotebookMax();
+    accountLimits.userNoteCountMax = account.noteCountMax();
+    accountLimits.userNotebookCountMax = account.notebookCountMax();
+    accountLimits.userTagCountMax = account.tagCountMax();
+    accountLimits.noteTagCountMax = account.noteTagCountMax();
+    accountLimits.userSavedSearchesMax = account.savedSearchCountMax();
+    accountLimits.noteResourceCountMax = account.noteResourceCountMax();
+
+    m_user.setAccountLimits(std::move(accountLimits));
+}
+
 Account RemoteToLocalSynchronizationManager::account() const
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::account"));
@@ -198,7 +233,12 @@ Account RemoteToLocalSynchronizationManager::account() const
         }
     }
 
-    Account account(name, Account::Type::Evernote, accountEnType);
+    qevercloud::UserID userId = -1;
+    if (m_user.hasId()) {
+        userId = m_user.id();
+    }
+
+    Account account(name, Account::Type::Evernote, userId, accountEnType);
     account.setEvernoteAccountLimits(m_accountLimits);
     return account;
 }
@@ -1380,7 +1420,7 @@ void RemoteToLocalSynchronizationManager::onUpdateUserCompleted(User user, QUuid
 
     if (requestId != m_addOrUpdateUserRequestId)
     {
-        if (user.hasId() && (user.id() == m_userId)) {
+        if (user.hasId() && m_user.hasId() && (user.id() == m_user.id())) {
             QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onUpdateUserCompleted: external update of current user, request id = ")
                     << requestId);
             m_user = user;
@@ -2264,17 +2304,16 @@ void RemoteToLocalSynchronizationManager::onNoteThumbnailDownloadingFinished(boo
     QNWARNING(errorDescription);
 }
 
-void RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived(QString authToken, qint32 userId, QString shardId,
+void RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived(QString authToken, QString shardId,
                                                                        qevercloud::Timestamp expirationTime)
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived: expiration time = ")
-            << printableDateTimeFromTimestamp(expirationTime) << QStringLiteral(", user id = ") << userId);
+            << printableDateTimeFromTimestamp(expirationTime));
 
     bool wasPending = m_pendingAuthenticationTokenAndShardId;
 
     // NOTE: we only need this authentication information to download the thumbnails and ink note images
     m_authenticationToken = authToken;
-    m_userId = userId;
     m_shardId = shardId;
     m_authenticationTokenExpirationTime = expirationTime;
     m_pendingAuthenticationTokenAndShardId = false;
@@ -2291,12 +2330,10 @@ void RemoteToLocalSynchronizationManager::onAuthenticationInfoReceived(QString a
     }
 }
 
-void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(qevercloud::UserID userId,
-                                                                                           QHash<QString, QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
+void RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived(QHash<QString, QPair<QString,QString> > authenticationTokensAndShardIdsByLinkedNotebookGuid,
                                                                                            QHash<QString, qevercloud::Timestamp> authenticationTokenExpirationTimesByLinkedNotebookGuid)
 {
-    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived: user id = ")
-            << userId);
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::onAuthenticationTokensForLinkedNotebooksReceived:"));
 
     bool wasPending = m_pendingAuthenticationTokensForLinkedNotebooks;
 
@@ -2783,7 +2820,7 @@ void RemoteToLocalSynchronizationManager::launchSync()
 
     if (m_authenticationToken.isEmpty()) {
         m_pendingAuthenticationTokenAndShardId = true;
-        emit requestAuthenticationToken(m_userId);
+        emit requestAuthenticationToken();
         return;
     }
 
@@ -2939,8 +2976,15 @@ bool RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits"));
 
+    if (Q_UNLIKELY(!m_user.hasId())) {
+        QNLocalizedString error = QT_TR_NOOP("Detected attempt to synchronize the account limits before the user id was set");
+        QNWARNING(error);
+        emit failure(error);
+        return false;
+    }
+
     ApplicationSettings appSettings;
-    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_userId) + QStringLiteral("/");
+    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_user.id()) + QStringLiteral("/");
 
     QVariant accountLimitsLastSyncTime = appSettings.value(keyGroup + ACCOUNT_LIMITS_LAST_SYNC_TIME_KEY);
     if (!accountLimitsLastSyncTime.isNull())
@@ -3032,10 +3076,17 @@ void RemoteToLocalSynchronizationManager::readSavedAccountLimits()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::readSavedAccountLimits"));
 
+    if (Q_UNLIKELY(!m_user.hasId())) {
+        QNLocalizedString error = QT_TR_NOOP("Detected attempt to read the saved account limits before the user id was set");
+        QNWARNING(error);
+        emit failure(error);
+        return;
+    }
+
     m_accountLimits = qevercloud::AccountLimits();
 
     ApplicationSettings appSettings;
-    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_userId) + QStringLiteral("/");
+    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_user.id()) + QStringLiteral("/");
 
     QVariant userMailLimitDaily = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY);
     if (!userMailLimitDaily.isNull())
@@ -3198,8 +3249,15 @@ void RemoteToLocalSynchronizationManager::writeAccountLimitsToAppSettings()
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::writeAccountLimitsToAppSettings"));
 
+    if (Q_UNLIKELY(!m_user.hasId())) {
+        QNLocalizedString error = QT_TR_NOOP("Detected attempt to save the account limits to app settings before the user id was set");
+        QNWARNING(error);
+        emit failure(error);
+        return;
+    }
+
     ApplicationSettings appSettings;
-    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_userId) + QStringLiteral("/");
+    const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_user.id()) + QStringLiteral("/");
 
     appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY,
                          (m_accountLimits.userMailLimitDaily.isSet()
@@ -3565,7 +3623,7 @@ void RemoteToLocalSynchronizationManager::requestAuthenticationTokensForAllLinke
                                                                                 currentLinkedNotebook.sharedNotebookGlobalId());
     }
 
-    emit requestAuthenticationTokensForLinkedNotebooks(m_userId, linkedNotebookGuidsAndSharedNotebookGlobalIds);
+    emit requestAuthenticationTokensForLinkedNotebooks(linkedNotebookGuidsAndSharedNotebookGlobalIds);
     m_pendingAuthenticationTokensForLinkedNotebooks = true;
 }
 
@@ -4496,7 +4554,7 @@ void RemoteToLocalSynchronizationManager::handleAuthExpiration()
     emit paused(/* pending authentication = */ true);
 
     m_pendingAuthenticationTokenAndShardId = true;
-    emit requestAuthenticationToken(m_userId);
+    emit requestAuthenticationToken();
 }
 
 bool RemoteToLocalSynchronizationManager::checkUserAccountSyncState(bool & asyncWait, bool & error, qint32 & afterUsn)

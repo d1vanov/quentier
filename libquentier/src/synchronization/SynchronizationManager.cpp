@@ -70,6 +70,12 @@ bool SynchronizationManager::paused() const
     return d->paused();
 }
 
+void SynchronizationManager::setAccount(Account account)
+{
+    Q_D(SynchronizationManager);
+    d->setAccount(account);
+}
+
 void SynchronizationManager::synchronize()
 {
     Q_D(SynchronizationManager);
