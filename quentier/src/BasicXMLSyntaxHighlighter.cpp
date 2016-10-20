@@ -17,6 +17,7 @@
  */
 
 #include "BasicXMLSyntaxHighlighter.h"
+#include <quentier/utility/Qt4Helper.h>
 
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
     QSyntaxHighlighter(parent)
@@ -39,9 +40,7 @@ void BasicXMLSyntaxHighlighter::highlightBlock(const QString & text)
     }
 
     // Highlight xml keywords *after* xml elements to fix any occasional / captured into the enclosing element
-    typedef QList<QRegExp>::const_iterator Iter;
-    Iter xmlKeywordRegexesEnd = m_xmlKeywordRegexes.end();
-    for(Iter it = m_xmlKeywordRegexes.begin(); it != xmlKeywordRegexesEnd; ++it) {
+    for(auto it = m_xmlKeywordRegexes.begin(), end = m_xmlKeywordRegexes.end(); it != end; ++it) {
         const QRegExp & regex = *it;
         highlightByRegex(m_xmlKeywordFormat, regex, text);
     }
@@ -67,14 +66,14 @@ void BasicXMLSyntaxHighlighter::highlightByRegex(const QTextCharFormat & format,
 
 void BasicXMLSyntaxHighlighter::setRegexes()
 {
-    m_xmlElementRegex.setPattern("<[\\s]*[/]?[\\s]*([^\\n]\\w*)(?=[\\s/>])");
-    m_xmlAttributeRegex.setPattern("\\w+(?=\\=)");
-    m_xmlValueRegex.setPattern("\"[^\\n\"]+\"(?=[\\s/>])");
-    m_xmlCommentRegex.setPattern("<!--[^\\n]*-->");
+    m_xmlElementRegex.setPattern(QStringLiteral("<[\\s]*[/]?[\\s]*([^\\n]\\w*)(?=[\\s/>])"));
+    m_xmlAttributeRegex.setPattern(QStringLiteral("\\w+(?=\\=)"));
+    m_xmlValueRegex.setPattern(QStringLiteral("\"[^\\n\"]+\"(?=[\\s/>])"));
+    m_xmlCommentRegex.setPattern(QStringLiteral("<!--[^\\n]*-->"));
 
-    m_xmlKeywordRegexes = QList<QRegExp>() << QRegExp("<\\?") << QRegExp("/>")
-                                           << QRegExp(">") << QRegExp("<") << QRegExp("</")
-                                           << QRegExp("\\?>");
+    m_xmlKeywordRegexes = QList<QRegExp>() << QRegExp(QStringLiteral("<\\?")) << QRegExp(QStringLiteral("/>"))
+                                           << QRegExp(QStringLiteral(">")) << QRegExp(QStringLiteral("<"))
+                                           << QRegExp(QStringLiteral("</")) << QRegExp(QStringLiteral("\\?>"));
 }
 
 void BasicXMLSyntaxHighlighter::setFormats()
