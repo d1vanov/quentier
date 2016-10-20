@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pUndoStack(new QUndoStack(this)),
     m_shortcutManager(this)
 {
-    QNTRACE("MainWindow constructor");
+    QNTRACE(QStringLiteral("MainWindow constructor"));
 
     m_pUI->setupUi(this);
     m_pUI->findAndReplaceWidget->setHidden(true);
@@ -97,10 +97,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pUI->noteSourceView->setHidden(true);
 
     m_pUI->fontSizeComboBox->clear();
-    QNTRACE("fontSizeComboBox num items: " << m_pUI->fontSizeComboBox->count());
+    QNTRACE(QStringLiteral("fontSizeComboBox num items: ") << m_pUI->fontSizeComboBox->count());
     for(int i = 0; i < m_pUI->fontSizeComboBox->count(); ++i) {
         QVariant value = m_pUI->fontSizeComboBox->itemData(i, Qt::UserRole);
-        QNTRACE("Font size value for index[" << i << "] = " << value);
+        QNTRACE(QStringLiteral("Font size value for index[") << i << QStringLiteral("] = ") << value);
     }
 
     BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUI->noteSourceView->document());
@@ -255,7 +255,7 @@ void MainWindow::connectEditorSignalsToSlots()
 
 void MainWindow::addMenuActionsToMainWindow()
 {
-    QNDEBUG("MainWindow::addMenuActionsToMainWindow");
+    QNDEBUG(QStringLiteral("MainWindow::addMenuActionsToMainWindow"));
 
     // NOTE: adding the actions from the menu bar's menus is required for getting the shortcuts
     // of these actions to work properly; action shortcuts only fire when the menu is shown
@@ -311,12 +311,12 @@ void MainWindow::addMenuActionsToMainWindow()
         Q_UNUSED(switchAccountSubMenu->addSeparator())
     }
 
-    QAction * addAccountAction = switchAccountSubMenu->addAction(QT_TR_NOOP("Add account"));
+    QAction * addAccountAction = switchAccountSubMenu->addAction(tr("Add account"));
     addAction(addAccountAction);
     QObject::connect(addAccountAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onAddAccountActionTriggered,bool));
 
-    QAction * manageAccountsAction = switchAccountSubMenu->addAction(QT_TR_NOOP("Manage accounts"));
+    QAction * manageAccountsAction = switchAccountSubMenu->addAction(tr("Manage accounts"));
     addAction(manageAccountsAction);
     QObject::connect(manageAccountsAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
@@ -335,7 +335,7 @@ QString MainWindow::createDefaultAccount()
     {
         bool created = userPersistenceStorageDir.mkpath(userPersistenceStoragePath);
         if (Q_UNLIKELY(!created)) {
-            NOTIFY_ERROR(QT_TR_NOOP("Can't create directory for the default account storage"));
+            NOTIFY_ERROR(tr("Can't create directory for the default account storage"));
             return QString();
         }
     }
@@ -344,7 +344,7 @@ QString MainWindow::createDefaultAccount()
 
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open)) {
-        NOTIFY_ERROR(QT_TR_NOOP("Can't open the account info file for the default account for writing") +
+        NOTIFY_ERROR(tr("Can't open the account info file for the default account for writing") +
                      QStringLiteral(": ") + accountInfo.errorString());
         return QString();
     }
@@ -416,7 +416,7 @@ QStringList MainWindow::detectAvailableAccounts()
 
 void MainWindow::prepareTestNoteWithResources()
 {
-    QNDEBUG("MainWindow::prepareTestNoteWithResources");
+    QNDEBUG(QStringLiteral("MainWindow::prepareTestNoteWithResources"));
 
     m_testNote = Note();
 
@@ -424,28 +424,28 @@ void MainWindow::prepareTestNoteWithResources()
     m_testNote.setContent(noteContent);
 
     // Read the first result from qrc
-    QFile resourceFile(":/test_notes/Architecture_whats_the_architecture.png");
+    QFile resourceFile(QStringLiteral(":/test_notes/Architecture_whats_the_architecture.png"));
     Q_UNUSED(resourceFile.open(QIODevice::ReadOnly))
     QByteArray resourceData = resourceFile.readAll();
     resourceFile.close();
 
     // Assemble the first resource data
     quentier::Resource resource;
-    resource.setLocalUid("{e2f201df-8718-499b-ac92-4c9970170cba}");
+    resource.setLocalUid(QStringLiteral("{e2f201df-8718-499b-ac92-4c9970170cba}"));
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setDataBody(resourceData);
     resource.setDataSize(resourceData.size());
     resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
     resource.setNoteLocalUid(m_testNote.localUid());
-    resource.setMime("image/png");
+    resource.setMime(QStringLiteral("image/png"));
 
     qevercloud::ResourceAttributes resourceAttributes;
-    resourceAttributes.fileName = "Architecture_whats_the_architecture.png";
+    resourceAttributes.fileName = QStringLiteral("Architecture_whats_the_architecture.png");
 
     resource.setResourceAttributes(resourceAttributes);
 
     // Gather the recognition data as well
-    resourceFile.setFileName(":/test_notes/Architecture_whats_the_architecture_recognition_data.xml");
+    resourceFile.setFileName(QStringLiteral(":/test_notes/Architecture_whats_the_architecture_recognition_data.xml"));
     resourceFile.open(QIODevice::ReadOnly);
     QByteArray resourceRecognitionData = resourceFile.readAll();
     resourceFile.close();
@@ -458,22 +458,22 @@ void MainWindow::prepareTestNoteWithResources()
     m_testNote.addResource(resource);
 
     // Read the second resource from qrc
-    resourceFile.setFileName(":/test_notes/cDock_v8.2.zip");
+    resourceFile.setFileName(QStringLiteral(":/test_notes/cDock_v8.2.zip"));
     resourceFile.open(QIODevice::ReadOnly);
     resourceData = resourceFile.readAll();
     resourceFile.close();
 
     // Assemble the second resource data
     resource = quentier::Resource();
-    resource.setLocalUid("{c3acdcba-d6a4-407d-a85f-5fc3c15126df}");
+    resource.setLocalUid(QStringLiteral("{c3acdcba-d6a4-407d-a85f-5fc3c15126df}"));
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setDataBody(resourceData);
     resource.setDataSize(resourceData.size());
     resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
-    resource.setMime("application/zip");
+    resource.setMime(QStringLiteral("application/zip"));
 
     resourceAttributes = qevercloud::ResourceAttributes();
-    resourceAttributes.fileName = "cDock_v8.2.zip";
+    resourceAttributes.fileName = QStringLiteral("cDock_v8.2.zip");
 
     resource.setResourceAttributes(resourceAttributes);
 
@@ -481,22 +481,22 @@ void MainWindow::prepareTestNoteWithResources()
     m_testNote.addResource(resource);
 
     // Read the third resource from qrc
-    resourceFile.setFileName(":/test_notes/GrowlNotify.pkg");
+    resourceFile.setFileName(QStringLiteral(":/test_notes/GrowlNotify.pkg"));
     resourceFile.open(QIODevice::ReadOnly);
     resourceData = resourceFile.readAll();
     resourceFile.close();
 
     // Assemble the third resource data
     resource = quentier::Resource();
-    resource.setLocalUid("{d44d85f4-d4e2-4788-a172-4d477741b233}");
+    resource.setLocalUid(QStringLiteral("{d44d85f4-d4e2-4788-a172-4d477741b233}"));
     resource.setNoteLocalUid(m_testNote.localUid());
     resource.setDataBody(resourceData);
     resource.setDataSize(resourceData.size());
     resource.setDataHash(QCryptographicHash::hash(resource.dataBody(), QCryptographicHash::Md5));
-    resource.setMime("application/octet-stream");
+    resource.setMime(QStringLiteral("application/octet-stream"));
 
     resourceAttributes = qevercloud::ResourceAttributes();
-    resourceAttributes.fileName = "GrowlNotify.pkg";
+    resourceAttributes.fileName = QStringLiteral("GrowlNotify.pkg");
 
     resource.setResourceAttributes(resourceAttributes);
 
@@ -506,42 +506,42 @@ void MainWindow::prepareTestNoteWithResources()
 
 void MainWindow::prepareTestInkNote()
 {
-    QNDEBUG("MainWindow::prepareTestInkNote");
+    QNDEBUG(QStringLiteral("MainWindow::prepareTestInkNote"));
 
     m_testNote = Note();
-    m_testNote.setGuid("a458d0ac-5c0b-446d-bc39-5b069148f66a");
+    m_testNote.setGuid(QStringLiteral("a458d0ac-5c0b-446d-bc39-5b069148f66a"));
 
     // Read the ink note image data from qrc
-    QFile inkNoteImageQrc(":/test_notes/inknoteimage.png");
+    QFile inkNoteImageQrc(QStringLiteral(":/test_notes/inknoteimage.png"));
     Q_UNUSED(inkNoteImageQrc.open(QIODevice::ReadOnly))
     QByteArray inkNoteImageData = inkNoteImageQrc.readAll();
     inkNoteImageQrc.close();
 
     quentier::Resource resource;
-    resource.setGuid("6bdf808c-7bd9-4a39-bef8-20b84779956e");
-    resource.setDataBody("aaa");
-    resource.setDataHash("2e0f79af4ca47b473e5105156a18c7cb");
-    resource.setMime("application/vnd.evernote.ink");
+    resource.setGuid(QStringLiteral("6bdf808c-7bd9-4a39-bef8-20b84779956e"));
+    resource.setDataBody(QByteArray("aaa"));
+    resource.setDataHash(QByteArray("2e0f79af4ca47b473e5105156a18c7cb"));
+    resource.setMime(QStringLiteral("application/vnd.evernote.ink"));
     resource.setHeight(308);
     resource.setWidth(602);
     resource.setNoteGuid(m_testNote.guid());
 
     m_testNote.addResource(resource);
 
-    QString inkNoteImageFilePath = quentier::applicationPersistentStoragePath() + "/NoteEditorPage/inkNoteImages";
+    QString inkNoteImageFilePath = quentier::applicationPersistentStoragePath() + QStringLiteral("/NoteEditorPage/inkNoteImages");
     QDir inkNoteImageFileDir(inkNoteImageFilePath);
     if (!inkNoteImageFileDir.exists())
     {
         if (Q_UNLIKELY(!inkNoteImageFileDir.mkpath(inkNoteImageFilePath))) {
-            onSetStatusBarText("Can't set test ink note to the editor: can't create folder to hold the ink note resource images");
+            onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't create folder to hold the ink note resource images"));
             return;
         }
     }
 
-    inkNoteImageFilePath += "/" + resource.guid() + ".png";
+    inkNoteImageFilePath += QStringLiteral("/") + resource.guid() + QStringLiteral(".png");
     QFile inkNoteImageFile(inkNoteImageFilePath);
     if (Q_UNLIKELY(!inkNoteImageFile.open(QIODevice::WriteOnly))) {
-        onSetStatusBarText("Can't set test ink note to the editor: can't open file meant to hold the ink note resource image for writing");
+        onSetStatusBarText(QStringLiteral("Can't set test ink note to the editor: can't open file meant to hold the ink note resource image for writing"));
         return;
     }
 
@@ -720,7 +720,7 @@ void MainWindow::onNoteTextInsertTableDialogAction()
     TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
     if (tableSettingsDialog->exec() == QDialog::Accepted)
     {
-        QNTRACE("Returned from TableSettingsDialog::exec: accepted");
+        QNTRACE(QStringLiteral("Returned from TableSettingsDialog::exec: accepted"));
         int numRows = tableSettingsDialog->numRows();
         int numColumns = tableSettingsDialog->numColumns();
         double tableWidth = tableSettingsDialog->tableWidth();
@@ -737,7 +737,7 @@ void MainWindow::onNoteTextInsertTableDialogAction()
         return;
     }
 
-    QNTRACE("Returned from TableSettingsDialog::exec: rejected");
+    QNTRACE(QStringLiteral("Returned from TableSettingsDialog::exec: rejected"));
 }
 
 void MainWindow::onNoteTextInsertTable(int rows, int columns, double width, bool relativeWidth)
@@ -753,24 +753,25 @@ void MainWindow::onNoteTextInsertTable(int rows, int columns, double width, bool
         m_pNoteEditor->insertFixedWidthTable(rows, columns, static_cast<int>(width));
     }
 
-    QNTRACE("Inserted table: rows = " << rows << ", columns = " << columns
-            << ", width = " << width << ", relative width = " << (relativeWidth ? "true" : "false"));
+    QNTRACE(QStringLiteral("Inserted table: rows = ") << rows << QStringLiteral(", columns = ") << columns
+            << QStringLiteral(", width = ") << width << QStringLiteral(", relative width = ")
+            << (relativeWidth ? QStringLiteral("true") : QStringLiteral("false")));
     m_pNoteEditor->setFocus();
 }
 
 void MainWindow::onShowNoteSource()
 {
-    QNDEBUG("MainWindow::onShowNoteSource");
+    QNDEBUG(QStringLiteral("MainWindow::onShowNoteSource"));
     updateNoteHtmlView(m_lastNoteEditorHtml);
     m_pUI->noteSourceView->setHidden(m_pUI->noteSourceView->isVisible());
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()
 {
-    QNDEBUG("MainWindow::onSetTestNoteWithEncryptedData");
+    QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
 
     m_testNote = Note();
-    m_testNote.setLocalUid("{7ae26137-9b62-4c30-85a9-261b435f6db3}");
+    m_testNote.setLocalUid(QStringLiteral("{7ae26137-9b62-4c30-85a9-261b435f6db3}"));
 
     QString noteContent = test::ManualTestingHelper::noteContentWithEncryption();
     m_testNote.setContent(noteContent);
@@ -780,11 +781,11 @@ void MainWindow::onSetTestNoteWithEncryptedData()
 
 void MainWindow::onSetTestNoteWithResources()
 {
-    QNDEBUG("MainWindow::onSetTestNoteWithResources");
+    QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithResources"));
 
     prepareTestNoteWithResources();
 
-    m_testNote.setLocalUid("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe6}");
+    m_testNote.setLocalUid(QStringLiteral("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe6}"));
     m_testNotebook.setCanUpdateNotes(true);
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
@@ -795,7 +796,7 @@ void MainWindow::onSetTestReadOnlyNote()
 {
     prepareTestNoteWithResources();
 
-    m_testNote.setLocalUid("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}");
+    m_testNote.setLocalUid(QStringLiteral("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}"));
     m_testNotebook.setCanUpdateNotes(false);
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
@@ -806,7 +807,7 @@ void MainWindow::onSetInkNote()
 {
     prepareTestInkNote();
 
-    m_testNote.setLocalUid("{96c747e2-7bdc-4805-a704-105cbfcc7fbe}");
+    m_testNote.setLocalUid(QStringLiteral("{96c747e2-7bdc-4805-a704-105cbfcc7fbe}"));
     m_testNotebook.setCanUpdateNotes(true);
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
@@ -815,7 +816,7 @@ void MainWindow::onSetInkNote()
 
 void MainWindow::onFindInsideNoteAction()
 {
-    QNDEBUG("MainWindow::onFindInsideNoteAction");
+    QNDEBUG(QStringLiteral("MainWindow::onFindInsideNoteAction"));
 
     if (m_pUI->findAndReplaceWidget->isHidden())
     {
@@ -836,7 +837,7 @@ void MainWindow::onFindInsideNoteAction()
 
 void MainWindow::onFindPreviousInsideNoteAction()
 {
-    QNDEBUG("MainWindow::onFindPreviousInsideNoteAction");
+    QNDEBUG(QStringLiteral("MainWindow::onFindPreviousInsideNoteAction"));
 
     if (m_pUI->findAndReplaceWidget->isHidden())
     {
@@ -857,11 +858,11 @@ void MainWindow::onFindPreviousInsideNoteAction()
 
 void MainWindow::onReplaceInsideNoteAction()
 {
-    QNDEBUG("MainWindow::onReplaceInsideNoteAction");
+    QNDEBUG(QStringLiteral("MainWindow::onReplaceInsideNoteAction"));
 
     if (m_pUI->findAndReplaceWidget->isHidden() || !m_pUI->findAndReplaceWidget->replaceEnabled())
     {
-        QNTRACE("At least the replacement part of find and replace widget is hidden, will only show it and do nothing else");
+        QNTRACE(QStringLiteral("At least the replacement part of find and replace widget is hidden, will only show it and do nothing else"));
 
         QString textToFind = m_pNoteEditor->selectedText();
         if (textToFind.isEmpty()) {
@@ -882,13 +883,13 @@ void MainWindow::onReplaceInsideNoteAction()
 
 void MainWindow::onFindAndReplaceWidgetClosed()
 {
-    QNDEBUG("MainWindow::onFindAndReplaceWidgetClosed");
+    QNDEBUG(QStringLiteral("MainWindow::onFindAndReplaceWidgetClosed"));
     onFindNextInsideNote(QString(), false);
 }
 
 void MainWindow::onTextToFindInsideNoteEdited(const QString & textToFind)
 {
-    QNDEBUG("MainWindow::onTextToFindInsideNoteEdited: " << textToFind);
+    QNDEBUG(QStringLiteral("MainWindow::onTextToFindInsideNoteEdited: ") << textToFind);
 
     bool matchCase = m_pUI->findAndReplaceWidget->matchCase();
     onFindNextInsideNote(textToFind, matchCase);
@@ -896,13 +897,14 @@ void MainWindow::onTextToFindInsideNoteEdited(const QString & textToFind)
 
 #define CHECK_FIND_AND_REPLACE_WIDGET_STATE() \
     if (Q_UNLIKELY(m_pUI->findAndReplaceWidget->isHidden())) { \
-        QNTRACE("Find and replace widget is not shown, nothing to do"); \
+        QNTRACE(QStringLiteral("Find and replace widget is not shown, nothing to do")); \
         return; \
     }
 
 void MainWindow::onFindNextInsideNote(const QString & textToFind, const bool matchCase)
 {
-    QNDEBUG("MainWindow::onFindNextInsideNote: text to find = " << textToFind << ", match case = " << (matchCase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onFindNextInsideNote: text to find = ") << textToFind << QStringLiteral(", match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pNoteEditor->findNext(textToFind, matchCase);
@@ -910,7 +912,8 @@ void MainWindow::onFindNextInsideNote(const QString & textToFind, const bool mat
 
 void MainWindow::onFindPreviousInsideNote(const QString & textToFind, const bool matchCase)
 {
-    QNDEBUG("MainWindow::onFindPreviousInsideNote: text to find = " << textToFind << ", match case = " << (matchCase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onFindPreviousInsideNote: text to find = ") << textToFind << QStringLiteral(", match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pNoteEditor->findPrevious(textToFind, matchCase);
@@ -918,7 +921,8 @@ void MainWindow::onFindPreviousInsideNote(const QString & textToFind, const bool
 
 void MainWindow::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
 {
-    QNDEBUG("MainWindow::onFindInsideNoteCaseSensitivityChanged: match case = " << (matchCase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onFindInsideNoteCaseSensitivityChanged: match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
 
@@ -928,8 +932,8 @@ void MainWindow::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
 
 void MainWindow::onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
 {
-    QNDEBUG("MainWindow::onReplaceInsideNote: text to replace = " << textToReplace << ", replacement text = " << replacementText
-            << ", match case = " << (matchCase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onReplaceInsideNote: text to replace = ") << textToReplace << QStringLiteral(", replacement text = ")
+            << replacementText << QStringLiteral(", match case = ") << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
@@ -939,8 +943,8 @@ void MainWindow::onReplaceInsideNote(const QString & textToReplace, const QStrin
 
 void MainWindow::onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
 {
-    QNDEBUG("MainWindow::onReplaceAllInsideNote: text to replace = " << textToReplace << ", replacement text = " << replacementText
-            << ", match case = " << (matchCase ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onReplaceAllInsideNote: text to replace = ") << textToReplace << QStringLiteral(", replacement text = ")
+            << replacementText << QStringLiteral(", match case = ") << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
 
     CHECK_FIND_AND_REPLACE_WIDGET_STATE()
     m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
@@ -952,8 +956,8 @@ void MainWindow::onReplaceAllInsideNote(const QString & textToReplace, const QSt
 
 void MainWindow::onNoteEditorHtmlUpdate(QString html)
 {
-    QNDEBUG("MainWindow::onNoteEditorHtmlUpdate");
-    QNTRACE("Html: " << html);
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorHtmlUpdate"));
+    QNTRACE(QStringLiteral("Html: ") << html);
 
     m_lastNoteEditorHtml = html;
 
@@ -966,51 +970,49 @@ void MainWindow::onNoteEditorHtmlUpdate(QString html)
 
 void MainWindow::onNoteEditorError(QNLocalizedString error)
 {
-    QNINFO("MainWindow::onNoteEditorError: " << error);
+    QNINFO(QStringLiteral("MainWindow::onNoteEditorError: ") << error);
     onSetStatusBarText(error.localizedString(), 20000);
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
 {
-    QNDEBUG("MainWindow::onNoteEditorSpellCheckerNotReady");
-
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorSpellCheckerNotReady"));
     onSetStatusBarText(tr("Spell checker is loading dictionaries, please wait"));
 }
 
 void MainWindow::onNoteEditorSpellCheckerReady()
 {
-    QNDEBUG("MainWindow::onNoteEditorSpellCheckerReady");
-
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorSpellCheckerReady"));
     onSetStatusBarText(QString());
 }
 
 void MainWindow::onNoteEditorBoldStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorBoldStateChanged: " << (state ? "bold" : "not bold"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorBoldStateChanged: ") << (state ? QStringLiteral("bold") : QStringLiteral("not bold")));
     m_pUI->fontBoldPushButton->setChecked(state);
 }
 
 void MainWindow::onNoteEditorItalicStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorItalicStateChanged: " << (state ? "italic" : "not italic"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorItalicStateChanged: ") << (state ? QStringLiteral("italic") : QStringLiteral("not italic")));
     m_pUI->fontItalicPushButton->setChecked(state);
 }
 
 void MainWindow::onNoteEditorUnderlineStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorUnderlineStateChanged: " << (state ? "underline" : "not underline"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorUnderlineStateChanged: ") << (state ? QStringLiteral("underline") : QStringLiteral("not underline")));
     m_pUI->fontUnderlinePushButton->setChecked(state);
 }
 
 void MainWindow::onNoteEditorStrikethroughStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorStrikethroughStateChanged: " << (state ? "strikethrough" : "not strikethrough"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorStrikethroughStateChanged: ") << (state ? QStringLiteral("strikethrough") : QStringLiteral("not strikethrough")));
     m_pUI->fontStrikethroughPushButton->setChecked(state);
 }
 
 void MainWindow::onNoteEditorAlignLeftStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorAlignLeftStateChanged: " << (state ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorAlignLeftStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUI->formatJustifyLeftPushButton->setChecked(state);
 
     if (state) {
@@ -1021,7 +1023,7 @@ void MainWindow::onNoteEditorAlignLeftStateChanged(bool state)
 
 void MainWindow::onNoteEditorAlignCenterStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorAlignCenterStateChanged: " << (state ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorAlignCenterStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUI->formatJustifyCenterPushButton->setChecked(state);
 
     if (state) {
@@ -1032,7 +1034,7 @@ void MainWindow::onNoteEditorAlignCenterStateChanged(bool state)
 
 void MainWindow::onNoteEditorAlignRightStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorAlignRightStateChanged: " << (state ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorAlignRightStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUI->formatJustifyRightPushButton->setChecked(state);
 
     if (state) {
