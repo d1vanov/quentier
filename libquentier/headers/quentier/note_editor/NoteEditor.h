@@ -49,13 +49,34 @@ public:
      */
     void setBackend(INoteEditorBackend * backend);
 
+    /**
+     * Set the current account to the note editor
+     */
     void setAccount(const Account & account);
 
+    /**
+     * Get the undo stack serving to the note editor
+     */
     const QUndoStack * undoStack() const;
+
+    /**
+     * Set the undo stack for the note editor to use
+     */
     void setUndoStack(QUndoStack * pUndoStack);
 
+    /**
+     * Get the local uid of the note currently set to the note editor
+     */
+    QString currentNoteLocalUid() const;
+
+    /**
+     * Set the note and its respective notebook to the note editor
+     */
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
 
+    /**
+     * Clear the contents of the note editor
+     */
     void clear();
 
 Q_SIGNALS:
@@ -90,7 +111,13 @@ Q_SIGNALS:
     void insertTableDialogRequested();
 
 public Q_SLOTS:
+
+    /**
+     * Invoke this slot to launch the asynchronous procedure of converting the current contents of the note editor
+     * to note; the @link convertedToNote @endlink signal would be emitted in response when the conversion is done
+     */
     void convertToNote();
+
     void undo();
     void redo();
     void cut();
