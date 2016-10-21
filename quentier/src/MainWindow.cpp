@@ -21,6 +21,7 @@
 #include "dialogs/ManageAccountsDialog.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
+#include "widgets/NoteEditorWidget.h"
 #include "tests/ManualTestingHelper.h"
 #include "BasicXMLSyntaxHighlighter.h"
 
