@@ -59,6 +59,15 @@ NoteEditorWidget::~NoteEditorWidget()
     delete m_pUi;
 }
 
+QString NoteEditorWidget::noteLocalUid() const
+{
+    if (m_pCurrentNote.isNull()) {
+        return QString();
+    }
+
+    return m_pCurrentNote->localUid();
+}
+
 void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 {
     QNDEBUG("NoteEditorWidget::setNoteLocalUid: " << noteLocalUid);

@@ -38,6 +38,7 @@ public:
                               QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditorWidget();
 
+    QString noteLocalUid() const;
     void setNoteLocalUid(const QString & noteLocalUid);
 
 Q_SIGNALS:
