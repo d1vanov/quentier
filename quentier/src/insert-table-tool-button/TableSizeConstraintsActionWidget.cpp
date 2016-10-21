@@ -17,6 +17,7 @@
  */
 
 #include "TableSizeConstraintsActionWidget.h"
+#include <quentier/utility/Qt4Helper.h>
 #include <QHBoxLayout>
 #include <QDoubleSpinBox>
 #include <QComboBox>
@@ -69,7 +70,7 @@ void TableSizeConstraintsActionWidget::onWidthChange(double width)
 
 void TableSizeConstraintsActionWidget::onWidthTypeChange(QString widthType)
 {
-    if (widthType == "%") {
+    if (widthType == QStringLiteral("%")) {
         m_currentWidthTypeIsRelative = true;
     }
     else {

@@ -1045,7 +1045,7 @@ void MainWindow::onNoteEditorAlignRightStateChanged(bool state)
 
 void MainWindow::onNoteEditorInsideOrderedListStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorInsideOrderedListStateChanged: " << (state ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorInsideOrderedListStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUI->formatListOrderedPushButton->setChecked(state);
 
     if (state) {
@@ -1055,7 +1055,7 @@ void MainWindow::onNoteEditorInsideOrderedListStateChanged(bool state)
 
 void MainWindow::onNoteEditorInsideUnorderedListStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorInsideUnorderedListStateChanged: " << (state ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorInsideUnorderedListStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUI->formatListUnorderedPushButton->setChecked(state);
 
     if (state) {
@@ -1065,16 +1065,16 @@ void MainWindow::onNoteEditorInsideUnorderedListStateChanged(bool state)
 
 void MainWindow::onNoteEditorInsideTableStateChanged(bool state)
 {
-    QNDEBUG("MainWindow::onNoteEditorInsideTableStateChanged: " << (state ? "true" : "false"));
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorInsideTableStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
     m_pUI->insertTableToolButton->setEnabled(!state);
 }
 
 void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
 {
-    QNDEBUG("MainWindow::onNoteEditorFontFamilyChanged: font family = " << fontFamily);
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorFontFamilyChanged: font family = ") << fontFamily);
 
     if (m_lastFontComboBoxFontFamily == fontFamily) {
-        QNTRACE("Font family didn't change");
+        QNTRACE(QStringLiteral("Font family didn't change"));
         return;
     }
 
@@ -1082,46 +1082,48 @@ void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
 
     QFont currentFont(fontFamily);
     m_pUI->fontComboBox->setCurrentFont(currentFont);
-    QNTRACE("Font family from combo box: " << m_pUI->fontComboBox->currentFont().family()
-            << ", font family set by QFont's constructor from it: " << currentFont.family());
+    QNTRACE(QStringLiteral("Font family from combo box: ") << m_pUI->fontComboBox->currentFont().family()
+            << QStringLiteral(", font family set by QFont's constructor from it: ") << currentFont.family());
 
     QFontDatabase fontDatabase;
     QList<int> fontSizes = fontDatabase.pointSizes(currentFont.family(), currentFont.styleName());
     // NOTE: it is important to use currentFont.family() in the call above instead of fontFamily variable
     // because the two can be different by presence/absence of apostrophes around the font family name
     if (fontSizes.isEmpty()) {
-        QNTRACE("Coulnd't find point sizes for font family " << currentFont.family() << ", will use standard sizes instead");
+        QNTRACE(QStringLiteral("Coulnd't find point sizes for font family ") << currentFont.family()
+                << QStringLiteral(", will use standard sizes instead"));
         fontSizes = fontDatabase.standardSizes();
     }
 
     m_lastFontSizeComboBoxIndex = 0;    // NOTE: clearing out font sizes combo box causes unwanted update of its index to 0, workarounding it
     m_pUI->fontSizeComboBox->clear();
     int numFontSizes = fontSizes.size();
-    QNTRACE("Found " << numFontSizes << " font sizes for font family " << currentFont.family());
+    QNTRACE(QStringLiteral("Found ") << numFontSizes << QStringLiteral(" font sizes for font family ") << currentFont.family());
 
     for(int i = 0; i < numFontSizes; ++i) {
         m_pUI->fontSizeComboBox->addItem(QString::number(fontSizes[i]), QVariant(fontSizes[i]));
-        QNTRACE("Added item " << fontSizes[i] << "pt for index " << i);
+        QNTRACE(QStringLiteral("Added item ") << fontSizes[i] << QStringLiteral("pt for index ") << i);
     }
     m_lastFontSizeComboBoxIndex = -1;
 }
 
 void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
 {
-    QNDEBUG("MainWindow::onNoteEditorFontSizeChanged: font size = " << fontSize);
+    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorFontSizeChanged: font size = ") << fontSize);
     int fontSizeIndex = m_pUI->fontSizeComboBox->findData(QVariant(fontSize), Qt::UserRole);
     if (fontSizeIndex >= 0)
     {
         m_lastFontSizeComboBoxIndex = fontSizeIndex;
         if (m_pUI->fontSizeComboBox->currentIndex() != fontSizeIndex) {
             m_pUI->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
-            QNTRACE("fontSizeComboBox: set current index to " << fontSizeIndex << ", found font size = " << QVariant(fontSize));
+            QNTRACE(QStringLiteral("fontSizeComboBox: set current index to ") << fontSizeIndex
+                    << QStringLiteral(", found font size = ") << QVariant(fontSize));
         }
     }
     else
     {
-        QNDEBUG("Can't find font size " << fontSize << " within those listed in font size combobox, "
-                "will try to choose the closest one instead");
+        QNDEBUG(QStringLiteral("Can't find font size ") << fontSize
+                << QStringLiteral(" within those listed in font size combobox, will try to choose the closest one instead"));
         const int numFontSizes = m_pUI->fontSizeComboBox->count();
         int currentSmallestDiscrepancy = 1e5;
         int currentClosestIndex = -1;
@@ -1131,7 +1133,7 @@ void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
             bool conversionResult = false;
             int valueInt = value.toInt(&conversionResult);
             if (!conversionResult) {
-                QNWARNING("Can't convert value from font size combo box to int: " << value);
+                QNWARNING(QStringLiteral("Can't convert value from font size combo box to int: ") << value);
                 continue;
             }
 
@@ -1139,26 +1141,26 @@ void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
             if (currentSmallestDiscrepancy > discrepancy) {
                 currentSmallestDiscrepancy = discrepancy;
                 currentClosestIndex = i;
-                QNTRACE("Updated current closest index to " << i << ": font size = " << valueInt);
+                QNTRACE(QStringLiteral("Updated current closest index to ") << i << QStringLiteral(": font size = ") << valueInt);
             }
         }
 
         if (currentClosestIndex >= 0) {
-            QNTRACE("Setting current font size index to " << currentClosestIndex);
+            QNTRACE(QStringLiteral("Setting current font size index to ") << currentClosestIndex);
             m_lastFontSizeComboBoxIndex = currentClosestIndex;
             if (m_pUI->fontSizeComboBox->currentIndex() != currentClosestIndex) {
                 m_pUI->fontSizeComboBox->setCurrentIndex(currentClosestIndex);
             }
         }
         else {
-            QNDEBUG("Couldn't find closest font size to " << fontSize);
+            QNDEBUG(QStringLiteral("Couldn't find closest font size to ") << fontSize);
         }
     }
 }
 
 void MainWindow::onFontComboBoxFontChanged(QFont font)
 {
-    QNDEBUG("MainWindow::onFontComboBoxFontChanged: font family = " << font.family());
+    QNDEBUG(QStringLiteral("MainWindow::onFontComboBoxFontChanged: font family = ") << font.family());
 
     m_pNoteEditor->setFont(font);
     m_pNoteEditor->setFocus();
@@ -1166,25 +1168,25 @@ void MainWindow::onFontComboBoxFontChanged(QFont font)
 
 void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
 {
-    QNDEBUG("MainWindow::onFontSizeComboBoxIndexChanged: current index = " << currentIndex);
+    QNDEBUG(QStringLiteral("MainWindow::onFontSizeComboBoxIndexChanged: current index = ") << currentIndex);
 
     if (currentIndex == m_lastFontSizeComboBoxIndex) {
-        QNTRACE("Already cached that index");
+        QNTRACE(QStringLiteral("Already cached that index"));
         return;
     }
 
     if (Q_UNLIKELY(!m_pNoteEditor)) {
-        QNDEBUG("Note editor is not set");
+        QNDEBUG(QStringLiteral("Note editor is not set"));
         return;
     }
 
     if (Q_UNLIKELY(currentIndex < 0)) {
-        QNDEBUG("Invalid font size combo box index = " << currentIndex);
+        QNDEBUG(QStringLiteral("Invalid font size combo box index = ") << currentIndex);
         return;
     }
 
     if (m_pUI->fontSizeComboBox->count() == 0) {
-        QNDEBUG("Font size combo box is empty");
+        QNDEBUG(QStringLiteral("Font size combo box is empty"));
         return;
     }
 
@@ -1192,13 +1194,13 @@ void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
     bool conversionResult = false;
     int valueInt = value.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        QNWARNING("Can't convert font size combo box value to int: " << value);
+        QNWARNING(QStringLiteral("Can't convert font size combo box value to int: ") << value);
         return;
     }
 
     m_lastFontSizeComboBoxIndex = currentIndex;
 
-    QNTRACE("Parsed font size " << valueInt << " from value " << value);
+    QNTRACE(QStringLiteral("Parsed font size ") << valueInt << QStringLiteral(" from value ") << value);
     m_pNoteEditor->setFontHeight(valueInt);
 }
 
@@ -1246,238 +1248,238 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
 void MainWindow::checkThemeIconsAndSetFallbacks()
 {
-    QNTRACE("MainWindow::checkThemeIconsAndSetFallbacks");
+    QNTRACE(QStringLiteral("MainWindow::checkThemeIconsAndSetFallbacks"));
 
-    if (!QIcon::hasThemeIcon("checkbox")) {
-        m_pUI->insertToDoCheckboxPushButton->setIcon(QIcon(":/fallback_icons/png/checkbox-2.png"));
-        QNTRACE("set fallback checkbox icon");
+    if (!QIcon::hasThemeIcon(QStringLiteral("checkbox"))) {
+        m_pUI->insertToDoCheckboxPushButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/checkbox-2.png")));
+        QNTRACE(QStringLiteral("set fallback checkbox icon"));
     }
 
-    if (!QIcon::hasThemeIcon("dialog-information")) {
-        m_pUI->ActionShowNoteAttributesButton->setIcon(QIcon(":/fallback_icons/png/dialog-information-4.png"));
-        QNTRACE("set fallback dialog-information icon");
+    if (!QIcon::hasThemeIcon(QStringLiteral("dialog-information"))) {
+        m_pUI->ActionShowNoteAttributesButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/dialog-information-4.png")));
+        QNTRACE(QStringLiteral("set fallback dialog-information icon"));
     }
 
-    if (!QIcon::hasThemeIcon("document-new")) {
-        m_pUI->ActionNoteAdd->setIcon(QIcon(":/fallback_icons/png/document-new-6.png"));
-        QNTRACE("set fallback document-new icon");
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-new"))) {
+        m_pUI->ActionNoteAdd->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/document-new-6.png")));
+        QNTRACE(QStringLiteral("set fallback document-new icon"));
     }
 
-    if (!QIcon::hasThemeIcon("printer")) {
-        m_pUI->ActionPrint->setIcon(QIcon(":/fallback_icons/png/document-print-5.png"));
-        QNTRACE("set fallback printer icon");
+    if (!QIcon::hasThemeIcon(QStringLiteral("printer"))) {
+        m_pUI->ActionPrint->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/document-print-5.png")));
+        QNTRACE(QStringLiteral("set fallback printer icon"));
     }
 
-    if (!QIcon::hasThemeIcon("document-save")) {
-        QIcon documentSaveIcon(":/fallback_icons/png/document-save-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-save"))) {
+        QIcon documentSaveIcon(QStringLiteral(":/fallback_icons/png/document-save-5.png"));
         m_pUI->saveSearchPushButton->setIcon(documentSaveIcon);
         m_pUI->ActionSaveImage->setIcon(documentSaveIcon);
-        QNTRACE("set fallback document-save icon");
+        QNTRACE(QStringLiteral("set fallback document-save icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-copy")) {
-        QIcon editCopyIcon(":/fallback_icons/png/edit-copy-6.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-copy"))) {
+        QIcon editCopyIcon(QStringLiteral(":/fallback_icons/png/edit-copy-6.png"));
         m_pUI->copyPushButton->setIcon(editCopyIcon);
         m_pUI->ActionCopy->setIcon(editCopyIcon);
-        QNTRACE("set fallback edit-copy icon");
+        QNTRACE(QStringLiteral("set fallback edit-copy icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-cut")) {
-        QIcon editCutIcon(":/fallback_icons/png/edit-cut-6.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-cut"))) {
+        QIcon editCutIcon(QStringLiteral(":/fallback_icons/png/edit-cut-6.png"));
         m_pUI->cutPushButton->setIcon(editCutIcon);
         m_pUI->ActionCut->setIcon(editCutIcon);
-        QNTRACE("set fallback edit-cut icon");
+        QNTRACE(QStringLiteral("set fallback edit-cut icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-delete")) {
-        QIcon editDeleteIcon(":/fallback_icons/png/edit-delete-6.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-delete"))) {
+        QIcon editDeleteIcon(QStringLiteral(":/fallback_icons/png/edit-delete-6.png"));
         m_pUI->ActionNoteDelete->setIcon(editDeleteIcon);
         m_pUI->deleteTagButton->setIcon(editDeleteIcon);
-        QNTRACE("set fallback edit-delete icon");
+        QNTRACE(QStringLiteral("set fallback edit-delete icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-find")) {
-        m_pUI->ActionFindInsideNote->setIcon(QIcon(":/fallback_icons/png/edit-find-7.png"));
-        QNTRACE("set fallback edit-find icon");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-find"))) {
+        m_pUI->ActionFindInsideNote->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/edit-find-7.png")));
+        QNTRACE(QStringLiteral("set fallback edit-find icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-paste")) {
-        QIcon editPasteIcon(":/fallback_icons/png/edit-paste-6.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-paste"))) {
+        QIcon editPasteIcon(QStringLiteral(":/fallback_icons/png/edit-paste-6.png"));
         m_pUI->pastePushButton->setIcon(editPasteIcon);
         m_pUI->ActionPaste->setIcon(editPasteIcon);
-        QNTRACE("set fallback edit-paste icon");
+        QNTRACE(QStringLiteral("set fallback edit-paste icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-redo")) {
-        QIcon editRedoIcon(":/fallback_icons/png/edit-redo-7.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-redo"))) {
+        QIcon editRedoIcon(QStringLiteral(":/fallback_icons/png/edit-redo-7.png"));
         m_pUI->redoPushButton->setIcon(editRedoIcon);
         m_pUI->ActionRedo->setIcon(editRedoIcon);
-        QNTRACE("set fallback edit-redo icon");
+        QNTRACE(QStringLiteral("set fallback edit-redo icon"));
     }
 
-    if (!QIcon::hasThemeIcon("edit-undo")) {
-        QIcon editUndoIcon(":/fallback_icons/png/edit-undo-7.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-undo"))) {
+        QIcon editUndoIcon(QStringLiteral(":/fallback_icons/png/edit-undo-7.png"));
         m_pUI->undoPushButton->setIcon(editUndoIcon);
         m_pUI->ActionUndo->setIcon(editUndoIcon);
-        QNTRACE("set fallback edit-undo icon");
+        QNTRACE(QStringLiteral("set fallback edit-undo icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-indent-less")) {
-        QIcon formatIndentLessIcon(":/fallback_icons/png/format-indent-less-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-less"))) {
+        QIcon formatIndentLessIcon(QStringLiteral(":/fallback_icons/png/format-indent-less-5.png"));
         m_pUI->formatIndentLessPushButton->setIcon(formatIndentLessIcon);
         m_pUI->ActionDecreaseIndentation->setIcon(formatIndentLessIcon);
-        QNTRACE("set fallback format-indent-less icon");
+        QNTRACE(QStringLiteral("set fallback format-indent-less icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-indent-more")) {
-        QIcon formatIndentMoreIcon(":/fallback_icons/png/format-indent-more-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-more"))) {
+        QIcon formatIndentMoreIcon(QStringLiteral(":/fallback_icons/png/format-indent-more-5.png"));
         m_pUI->formatIndentMorePushButton->setIcon(formatIndentMoreIcon);
         m_pUI->ActionIncreaseIndentation->setIcon(formatIndentMoreIcon);
-        QNTRACE("set fallback format-indent-more icon");
+        QNTRACE(QStringLiteral("set fallback format-indent-more icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-justify-center")) {
-        QIcon formatJustifyCenterIcon(":/fallback_icons/png/format-justify-center-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-center"))) {
+        QIcon formatJustifyCenterIcon(QStringLiteral(":/fallback_icons/png/format-justify-center-5.png"));
         m_pUI->formatJustifyCenterPushButton->setIcon(formatJustifyCenterIcon);
         m_pUI->ActionAlignCenter->setIcon(formatJustifyCenterIcon);
-        QNTRACE("set fallback format-justify-center icon");
+        QNTRACE(QStringLiteral("set fallback format-justify-center icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-justify-left")) {
-        QIcon formatJustifyLeftIcon(":/fallback_icons/png/format-justify-left-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-left"))) {
+        QIcon formatJustifyLeftIcon(QStringLiteral(":/fallback_icons/png/format-justify-left-5.png"));
         m_pUI->formatJustifyLeftPushButton->setIcon(formatJustifyLeftIcon);
         m_pUI->ActionAlignLeft->setIcon(formatJustifyLeftIcon);
-        QNTRACE("set fallback format-justify-left icon");
+        QNTRACE(QStringLiteral("set fallback format-justify-left icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-justify-right")) {
-        QIcon formatJustifyRightIcon(":/fallback_icons/png/format-justify-right-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-right"))) {
+        QIcon formatJustifyRightIcon(QStringLiteral(":/fallback_icons/png/format-justify-right-5.png"));
         m_pUI->formatJustifyRightPushButton->setIcon(formatJustifyRightIcon);
         m_pUI->ActionAlignRight->setIcon(formatJustifyRightIcon);
-        QNTRACE("set fallback format-justify-right icon");
+        QNTRACE(QStringLiteral("set fallback format-justify-right icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-list-ordered")) {
-        QIcon formatListOrderedIcon(":/fallback_icons/png/format-list-ordered.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-list-ordered"))) {
+        QIcon formatListOrderedIcon(QStringLiteral(":/fallback_icons/png/format-list-ordered.png"));
         m_pUI->formatListOrderedPushButton->setIcon(formatListOrderedIcon);
         m_pUI->ActionInsertNumberedList->setIcon(formatListOrderedIcon);
-        QNTRACE("set fallback format-list-ordered icon");
+        QNTRACE(QStringLiteral("set fallback format-list-ordered icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-list-unordered")) {
-        QIcon formatListUnorderedIcon(":/fallback_icons/png/format-list-unordered.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-list-unordered"))) {
+        QIcon formatListUnorderedIcon(QStringLiteral(":/fallback_icons/png/format-list-unordered.png"));
         m_pUI->formatListUnorderedPushButton->setIcon(formatListUnorderedIcon);
         m_pUI->ActionInsertBulletedList->setIcon(formatListUnorderedIcon);
-        QNTRACE("set fallback format-list-unordered icon");
+        QNTRACE(QStringLiteral("set fallback format-list-unordered icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-text-bold")) {
-        QIcon formatTextBoldIcon(":/fallback_icons/png/format-text-bold-4.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-bold"))) {
+        QIcon formatTextBoldIcon(QStringLiteral(":/fallback_icons/png/format-text-bold-4.png"));
         m_pUI->fontBoldPushButton->setIcon(formatTextBoldIcon);
         m_pUI->ActionFontBold->setIcon(formatTextBoldIcon);
-        QNTRACE("set fallback format-text-bold icon");
+        QNTRACE(QStringLiteral("set fallback format-text-bold icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-text-color")) {
-        QIcon formatTextColorIcon(":/fallback_icons/png/format-text-color.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-color"))) {
+        QIcon formatTextColorIcon(QStringLiteral(":/fallback_icons/png/format-text-color.png"));
         m_pUI->chooseTextColorToolButton->setIcon(formatTextColorIcon);
-        QNTRACE("set fallback format-text-color icon");
+        QNTRACE(QStringLiteral("set fallback format-text-color icon"));
     }
 
-    if (!QIcon::hasThemeIcon("color-fill")) {
-        QIcon colorFillIcon(":/fallback_icons/png/color-fill.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("color-fill"))) {
+        QIcon colorFillIcon(QStringLiteral(":/fallback_icons/png/color-fill.png"));
         m_pUI->chooseBackgroundColorToolButton->setIcon(colorFillIcon);
-        QNTRACE("set fallback color-fill icon");
+        QNTRACE(QStringLiteral("set fallback color-fill icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-text-italic")) {
-        QIcon formatTextItalicIcon(":/fallback_icons/png/format-text-italic-4.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-italic"))) {
+        QIcon formatTextItalicIcon(QStringLiteral(":/fallback_icons/png/format-text-italic-4.png"));
         m_pUI->fontItalicPushButton->setIcon(formatTextItalicIcon);
         m_pUI->ActionFontItalic->setIcon(formatTextItalicIcon);
-        QNTRACE("set fallback format-text-italic icon");
+        QNTRACE(QStringLiteral("set fallback format-text-italic icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-text-strikethrough")) {
-        QIcon formatTextStrikethroughIcon(":/fallback_icons/png/format-text-strikethrough-3.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-strikethrough"))) {
+        QIcon formatTextStrikethroughIcon(QStringLiteral(":/fallback_icons/png/format-text-strikethrough-3.png"));
         m_pUI->fontStrikethroughPushButton->setIcon(formatTextStrikethroughIcon);
         m_pUI->ActionFontStrikethrough->setIcon(formatTextStrikethroughIcon);
-        QNTRACE("set fallback format-text-strikethrough icon");
+        QNTRACE(QStringLiteral("set fallback format-text-strikethrough icon"));
     }
 
-    if (!QIcon::hasThemeIcon("format-text-underline")) {
-        QIcon formatTextUnderlineIcon(":/fallback_icons/png/format-text-underline-4.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-underline"))) {
+        QIcon formatTextUnderlineIcon(QStringLiteral(":/fallback_icons/png/format-text-underline-4.png"));
         m_pUI->fontUnderlinePushButton->setIcon(formatTextUnderlineIcon);
         m_pUI->ActionFontUnderlined->setIcon(formatTextUnderlineIcon);
-        QNTRACE("set fallback format-text-underline icon");
+        QNTRACE(QStringLiteral("set fallback format-text-underline icon"));
     }
 
-    if (!QIcon::hasThemeIcon("go-down")) {
-        QIcon goDownIcon(":/fallback_icons/png/go-down-7.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("go-down"))) {
+        QIcon goDownIcon(QStringLiteral(":/fallback_icons/png/go-down-7.png"));
         m_pUI->ActionGoDown->setIcon(goDownIcon);
-        QNTRACE("set fallback go-down icon");
+        QNTRACE(QStringLiteral("set fallback go-down icon"));
     }
 
-    if (!QIcon::hasThemeIcon("go-up")) {
-        QIcon goUpIcon(":/fallback_icons/png/go-up-7.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("go-up"))) {
+        QIcon goUpIcon(QStringLiteral(":/fallback_icons/png/go-up-7.png"));
         m_pUI->ActionGoUp->setIcon(goUpIcon);
-        QNTRACE("set fallback go-up icon");
+        QNTRACE(QStringLiteral("set fallback go-up icon"));
     }
 
-    if (!QIcon::hasThemeIcon("go-previous")) {
-        QIcon goPreviousIcon(":/fallback_icons/png/go-previous-7.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("go-previous"))) {
+        QIcon goPreviousIcon(QStringLiteral(":/fallback_icons/png/go-previous-7.png"));
         m_pUI->ActionGoPrevious->setIcon(goPreviousIcon);
-        QNTRACE("set fallback go-previous icon");
+        QNTRACE(QStringLiteral("set fallback go-previous icon"));
     }
 
-    if (!QIcon::hasThemeIcon("go-next")) {
-        QIcon goNextIcon(":/fallback_icons/png/go-next-7.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("go-next"))) {
+        QIcon goNextIcon(QStringLiteral(":/fallback_icons/png/go-next-7.png"));
         m_pUI->ActionGoNext->setIcon(goNextIcon);
-        QNTRACE("set fallback go-next icon");
+        QNTRACE(QStringLiteral("set fallback go-next icon"));
     }
 
-    if (!QIcon::hasThemeIcon("insert-horizontal-rule")) {
-        QIcon insertHorizontalRuleIcon(":/fallback_icons/png/insert-horizontal-rule.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("insert-horizontal-rule"))) {
+        QIcon insertHorizontalRuleIcon(QStringLiteral(":/fallback_icons/png/insert-horizontal-rule.png"));
         m_pUI->insertHorizontalLinePushButton->setIcon(insertHorizontalRuleIcon);
         m_pUI->ActionInsertHorizontalLine->setIcon(insertHorizontalRuleIcon);
-        QNTRACE("set fallback insert-horizontal-rule icon");
+        QNTRACE(QStringLiteral("set fallback insert-horizontal-rule icon"));
     }
 
-    if (!QIcon::hasThemeIcon("insert-table")) {
-        QIcon insertTableIcon(":/fallback_icons/png/insert-table.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("insert-table"))) {
+        QIcon insertTableIcon(QStringLiteral(":/fallback_icons/png/insert-table.png"));
         m_pUI->ActionInsertTable->setIcon(insertTableIcon);
         m_pUI->menuTable->setIcon(insertTableIcon);
         m_pUI->insertTableToolButton->setIcon(insertTableIcon);
-        QNTRACE("set fallback insert-table icon");
+        QNTRACE(QStringLiteral("set fallback insert-table icon"));
     }
 
-    if (!QIcon::hasThemeIcon("mail-send")) {
-        QIcon mailSendIcon(":/fallback_icons/png/mail-forward-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("mail-send"))) {
+        QIcon mailSendIcon(QStringLiteral(":/fallback_icons/png/mail-forward-5.png"));
         m_pUI->ActionSendMail->setIcon(mailSendIcon);
-        QNTRACE("set fallback mail-send icon");
+        QNTRACE(QStringLiteral("set fallback mail-send icon"));
     }
 
-    if (!QIcon::hasThemeIcon("preferences-other")) {
-        QIcon preferencesOtherIcon(":/fallback_icons/png/preferences-other-3.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("preferences-other"))) {
+        QIcon preferencesOtherIcon(QStringLiteral(":/fallback_icons/png/preferences-other-3.png"));
         m_pUI->ActionPreferences->setIcon(preferencesOtherIcon);
-        QNTRACE("set fallback preferences-other icon");
+        QNTRACE(QStringLiteral("set fallback preferences-other icon"));
     }
 
-    if (!QIcon::hasThemeIcon("tools-check-spelling")) {
-        QIcon spellcheckIcon(":/fallback_icons/png/tools-check-spelling-5.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("tools-check-spelling"))) {
+        QIcon spellcheckIcon(QStringLiteral(":/fallback_icons/png/tools-check-spelling-5.png"));
         m_pUI->spellCheckBox->setIcon(spellcheckIcon);
-        QNTRACE("set fallback tools-check-spelling icon");
+        QNTRACE(QStringLiteral("set fallback tools-check-spelling icon"));
     }
 
-    if (!QIcon::hasThemeIcon("object-rotate-left")) {
-        QIcon objectRotateLeftIcon(":/fallback_icons/png/object-rotate-left.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("object-rotate-left"))) {
+        QIcon objectRotateLeftIcon(QStringLiteral(":/fallback_icons/png/object-rotate-left.png"));
         m_pUI->ActionRotateCounterClockwise->setIcon(objectRotateLeftIcon);
-        QNTRACE("set fallback object-rotate-left icon");
+        QNTRACE(QStringLiteral("set fallback object-rotate-left icon"));
     }
 
-    if (!QIcon::hasThemeIcon("object-rotate-right")) {
-        QIcon objectRotateRightIcon(":/fallback_icons/png/object-rotate-right.png");
+    if (!QIcon::hasThemeIcon(QStringLiteral("object-rotate-right"))) {
+        QIcon objectRotateRightIcon(QStringLiteral(":/fallback_icons/png/object-rotate-right.png"));
         m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
-        QNTRACE("set fallback object-rotate-right icon");
+        QNTRACE(QStringLiteral("set fallback object-rotate-right icon"));
     }
 }
 
@@ -1488,7 +1490,7 @@ void MainWindow::updateNoteHtmlView(QString html)
 
 void MainWindow::setupDefaultShortcuts()
 {
-    QNDEBUG("MainWindow::setupDefaultShortcuts");
+    QNDEBUG(QStringLiteral("MainWindow::setupDefaultShortcuts"));
 
     using quentier::ShortcutManager;
 
@@ -1496,10 +1498,10 @@ void MainWindow::setupDefaultShortcuts()
     { \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
         if (shortcut.isEmpty()) { \
-            QNTRACE("No shortcut was found for action " #action); \
+            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
         else { \
-            m_shortcutManager.setDefaultShortcut(key, shortcut, QString(#__VA_ARGS__)); \
+            m_shortcutManager.setDefaultShortcut(key, shortcut, QStringLiteral(#__VA_ARGS__)); \
         } \
     }
 
@@ -1507,10 +1509,10 @@ void MainWindow::setupDefaultShortcuts()
     { \
         QKeySequence shortcut = m_pUI->Action##action->shortcut(); \
         if (shortcut.isEmpty()) { \
-            QNTRACE("No shortcut was found for action " #action); \
+            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
         else { \
-            m_shortcutManager.setNonStandardDefaultShortcut(#action, shortcut, QString(#__VA_ARGS__)); \
+            m_shortcutManager.setNonStandardDefaultShortcut(#action, shortcut, QStringLiteral(#__VA_ARGS__)); \
         } \
     }
 
@@ -1522,13 +1524,13 @@ void MainWindow::setupDefaultShortcuts()
 
 void MainWindow::setupUserShortcuts()
 {
-    QNDEBUG("MainWindow::setupUserShortcuts");
+    QNDEBUG(QStringLiteral("MainWindow::setupUserShortcuts"));
 
 #define PROCESS_ACTION_SHORTCUT(action, key, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(key, QString(#__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(key, QStringLiteral(#__VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
-            QNTRACE("No shortcut was found for action " #action); \
+            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
         else { \
             m_pUI->Action##action->setShortcut(shortcut); \
@@ -1538,9 +1540,9 @@ void MainWindow::setupUserShortcuts()
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(#action, QString(#__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(#action, QStringLiteral(#__VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
-            QNTRACE("No shortcut was found for action " #action); \
+            QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
         else { \
             m_pUI->Action##action->setShortcut(shortcut); \
@@ -1558,7 +1560,7 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
 {
     const char key[10] = "e3zA914Ol";
 
-    QByteArray consumerKeyObf = QByteArray::fromBase64(QString("ZVYsYCHKtSuDnK0g0swrUYAHzYy1m1UeVw==").toUtf8());
+    QByteArray consumerKeyObf = QByteArray::fromBase64(QStringLiteral("ZVYsYCHKtSuDnK0g0swrUYAHzYy1m1UeVw==").toUtf8());
     char lastChar = 0;
     int size = consumerKeyObf.size();
     for(int i = 0; i < size; ++i) {
@@ -1570,7 +1572,7 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
     consumerKeyObf = qUncompress(consumerKeyObf);
     consumerKey = QString::fromUtf8(consumerKeyObf.constData(), consumerKeyObf.size());
 
-    QByteArray consumerSecretObf = QByteArray::fromBase64(QString("ZVYsfTzX0KqA+jbDsjC0T2ZnKiRT0+Os7AN9uQ==").toUtf8());
+    QByteArray consumerSecretObf = QByteArray::fromBase64(QStringLiteral("ZVYsfTzX0KqA+jbDsjC0T2ZnKiRT0+Os7AN9uQ==").toUtf8());
     lastChar = 0;
     size = consumerSecretObf.size();
     for(int i = 0; i < size; ++i) {

@@ -17,6 +17,7 @@
  */
 
 #include "TableSizeSelector.h"
+#include <quentier/utility/Qt4Helper.h>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QToolTip>
@@ -38,7 +39,7 @@ TableSizeSelector::TableSizeSelector(QWidget * parent) :
 
     QFontMetrics fontMetrics(font());
     m_rowHeight = fontMetrics.height() + 2;
-    m_columnWidth = fontMetrics.width("  ") + 3;
+    m_columnWidth = fontMetrics.width(QStringLiteral("  ")) + 3;
 
     m_rect.setHeight(m_rowHeight * MAX_ROWS);
     m_rect.setWidth(m_columnWidth * MAX_COLUMNS);
@@ -92,7 +93,7 @@ void TableSizeSelector::mouseMoveEvent(QMouseEvent * event)
         m_currentColumn = MAX_COLUMNS;
     }
 
-    QToolTip::showText(event->globalPos(), QString::number(m_currentRow) + "x" + QString::number(m_currentColumn));
+    QToolTip::showText(event->globalPos(), QString::number(m_currentRow) + QStringLiteral("x") + QString::number(m_currentColumn));
     repaint();
 }
 

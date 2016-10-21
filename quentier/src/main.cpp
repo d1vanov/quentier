@@ -24,8 +24,8 @@
 int main(int argc, char *argv[])
 {
     quentier::QuentierApplication app(argc, argv);
-    app.setOrganizationName("d1vanov");
-    app.setApplicationName("Quentier");
+    app.setOrganizationName(QStringLiteral("com.quentier.org"));
+    app.setApplicationName(QStringLiteral("Quentier"));
 
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);

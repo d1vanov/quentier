@@ -108,7 +108,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     }
 
     if (!title.isEmpty()) {
-        m_doc.setHtml("<b>" + title + "</b>");
+        m_doc.setHtml(QStringLiteral("<b>") + title + QStringLiteral("</b>"));
     }
     else {
         m_doc.setPlainText(QString());
@@ -137,7 +137,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
 #define CHECK_AND_SET_DELETED_PREFIX(text) \
     if (deleted) { \
-        text.prepend(tr(QT_TR_NOOP("Deleted")) + " "); \
+        text.prepend(tr(QT_TR_NOOP("Deleted")) + QStringLiteral(" ")); \
     }
 
     QString text;

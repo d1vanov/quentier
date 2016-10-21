@@ -32,29 +32,29 @@ FavoritesModelItem::FavoritesModelItem(const Type::type type,
 
 QTextStream & FavoritesModelItem::print(QTextStream & strm) const
 {
-    strm << "Favorites model item: type = ";
+    strm << QStringLiteral("Favorites model item: type = ");
 
     switch(m_type)
     {
     case Type::Notebook:
-        strm << "Notebook";
+        strm << QStringLiteral("Notebook");
         break;
     case Type::Tag:
-        strm << "Tag";
+        strm << QStringLiteral("Tag");
         break;
     case Type::Note:
-        strm << "Note";
+        strm << QStringLiteral("Note");
         break;
     case Type::SavedSearch:
-        strm << "Saved search";
+        strm << QStringLiteral("Saved search");
         break;
     default:
-        strm << "Unknown";
+        strm << QStringLiteral("Unknown");
         break;
     }
 
-    strm << "; local uid = " << m_localUid << ", display name = " << m_displayName
-         << ", num notes targeted = " << m_numNotesTargeted << ";";
+    strm << QStringLiteral("; local uid = ") << m_localUid << QStringLiteral(", display name = ") << m_displayName
+         << QStringLiteral(", num notes targeted = ") << m_numNotesTargeted << QStringLiteral(";");
 
     return strm;
 }
