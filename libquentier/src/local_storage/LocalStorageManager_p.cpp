@@ -243,18 +243,23 @@ bool LocalStorageManagerPrivate::findUser(User & user, QNLocalizedString & error
     QString userId = QString::number(id);
     QNDEBUG(QStringLiteral("Looking for user with id = ") << userId);
 
-    QString queryString = QString("SELECT * FROM Users LEFT OUTER JOIN UserAttributes "
-                                  "ON Users.id = UserAttributes.id "
-                                  "LEFT OUTER JOIN UserAttributesViewedPromotions "
-                                  "ON Users.id = UserAttributesViewedPromotions.id "
-                                  "LEFT OUTER JOIN UserAttributesRecentMailedAddresses "
-                                  "ON Users.id = UserAttributesRecentMailedAddresses.id "
-                                  "LEFT OUTER JOIN Accounting ON Users.id = Accounting.id "
-                                  "LEFT OUTER JOIN AccountLimits ON Users.id = AccountLimits.id "
-                                  "LEFT OUTER JOIN BusinessUserInfo ON Users.id = BusinessUserInfo.id "
-                                  "WHERE Users.id = %1").arg(userId);
+    QString queryString = QStringLiteral("SELECT * FROM Users LEFT OUTER JOIN UserAttributes "
+                                         "ON Users.id = UserAttributes.id "
+                                         "LEFT OUTER JOIN UserAttributesViewedPromotions "
+                                         "ON Users.id = UserAttributesViewedPromotions.id "
+                                         "LEFT OUTER JOIN UserAttributesRecentMailedAddresses "
+                                         "ON Users.id = UserAttributesRecentMailedAddresses.id "
+                                         "LEFT OUTER JOIN Accounting ON Users.id = Accounting.id "
+                                         "LEFT OUTER JOIN AccountLimits ON Users.id = AccountLimits.id "
+                                         "LEFT OUTER JOIN BusinessUserInfo ON Users.id = BusinessUserInfo.id "
+                                         "WHERE Users.id = :id");
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    query.bindValue(QStringLiteral(":id"), userId);
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
 
     size_t counter = 0;
@@ -325,9 +330,16 @@ bool LocalStorageManagerPrivate::expungeUser(const User & user, QNLocalizedStrin
         return false;
     }
 
-    QString queryString = QString("DELETE FROM Users WHERE id=%1").arg(user.id());
+    QString queryString = QStringLiteral("DELETE FROM Users WHERE id=:id");
     QSqlQuery query(m_sqlDatabase);
-    bool res = query.exec(queryString);
+    bool res = query.prepare(queryString);
+    DATABASE_CHECK_AND_SET_ERROR();
+
+    qevercloud::UserID id = user.id();
+    QString userId = QString::number(id);
+    query.bindValue(QStringLiteral(":id"), userId);
+
+    res = query.exec();
     DATABASE_CHECK_AND_SET_ERROR();
 
     return true;
