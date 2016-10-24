@@ -55,17 +55,17 @@ void NoteFilterModel::setNoteLocalUids(const QStringList & noteLocalUids)
 
 QTextStream & NoteFilterModel::print(QTextStream & strm) const
 {
-    strm << "NoteFilterModel: {\n";
-    strm << "    notebook local uids: "
-         << (m_notebookLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_notebookLocalUids.join(", "))
-         << ";\n";
-    strm << "    tag names: "
-         << (m_tagNames.isEmpty() ? QStringLiteral("<empty>") : m_tagNames.join(", "))
-         << ";\n";
-    strm << "    note local uids: "
-         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_noteLocalUids.join(", "))
-         << ";\n";
-    strm << "};\n";
+    strm << QStringLiteral("NoteFilterModel: {\n");
+    strm << QStringLiteral("    notebook local uids: ")
+         << (m_notebookLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_notebookLocalUids.join(QStringLiteral(", ")))
+         << QStringLiteral(";\n");
+    strm << QStringLiteral("    tag names: ")
+         << (m_tagNames.isEmpty() ? QStringLiteral("<empty>") : m_tagNames.join(QStringLiteral(", ")))
+         << QStringLiteral(";\n");
+    strm << QStringLiteral("    note local uids: ")
+         << (m_noteLocalUids.isEmpty() ? QStringLiteral("<empty>") : m_noteLocalUids.join(QStringLiteral(", ")))
+         << QStringLiteral(";\n");
+    strm << QStringLiteral("};\n");
     return strm;
 }
 
@@ -84,7 +84,7 @@ bool NoteFilterModel::filterAcceptsRow(int sourceRow, const QModelIndex & source
     const NoteModelItem * pItem = pNoteModel->itemAtRow(sourceRow);
     if (Q_UNLIKELY(!pItem)) {
         QNLocalizedString error = QT_TR_NOOP("can't get note model item at row");
-        error += " ";
+        error += QStringLiteral(" ");
         error += QString::number(sourceRow);
         QNWARNING(error);
         emit notifyError(error);

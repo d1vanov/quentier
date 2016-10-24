@@ -20,6 +20,7 @@
 #define QUENTIER_MODELS_NEW_ITEM_NAME_GENERATOR_HPP
 
 #include <QString>
+#include <quentier/utility/Qt4Helper.h>
 
 namespace quentier {
 
@@ -27,7 +28,7 @@ template <class NameIndexType>
 QString newItemName(const NameIndexType & nameIndex, int & newItemCounter, QString baseName)
 {
     if (newItemCounter != 0) {
-        baseName += " (" + QString::number(newItemCounter) + ")";
+        baseName += QStringLiteral(" (") + QString::number(newItemCounter) + QStringLiteral(")");
     }
 
     while(true)
@@ -38,12 +39,12 @@ QString newItemName(const NameIndexType & nameIndex, int & newItemCounter, QStri
         }
 
         if (newItemCounter != 0) {
-            QString numPart = " (" + QString::number(newItemCounter) + ")";
+            QString numPart = QStringLiteral(" (") + QString::number(newItemCounter) + QStringLiteral(")");
             baseName.chop(numPart.length());
         }
 
         ++newItemCounter;
-        baseName += " (" + QString::number(newItemCounter) + ")";
+        baseName += QStringLiteral(" (") + QString::number(newItemCounter) + QStringLiteral(")");
     }
 }
 
