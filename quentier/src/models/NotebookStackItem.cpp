@@ -24,7 +24,7 @@ namespace quentier {
 
 QTextStream & NotebookStackItem::print(QTextStream & strm) const
 {
-    strm << "Notebook stack: " << m_name;
+    strm << QStringLiteral("Notebook stack: ") << m_name;
     return strm;
 }
 

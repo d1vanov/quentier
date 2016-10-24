@@ -109,37 +109,37 @@ const NotebookModelItem * NotebookModelItem::takeChild(const int row) const
 
 QTextStream & NotebookModelItem::print(QTextStream & strm) const
 {
-    strm << "Notebook model item (" << (m_type == Type::Notebook ? "notebook" : "stack")
-         << "): " << (m_type == Type::Notebook
-                      ? (m_notebookItem ? m_notebookItem->toString() : QString("<null>"))
-                      : (m_notebookStackItem ? m_notebookStackItem->toString() : QString("<null>")));
+    strm << QStringLiteral("Notebook model item (") << (m_type == Type::Notebook ? QStringLiteral("notebook") : QStringLiteral("stack"))
+         << QStringLiteral("): ") << (m_type == Type::Notebook
+                                      ? (m_notebookItem ? m_notebookItem->toString() : QStringLiteral("<null>"))
+                                      : (m_notebookStackItem ? m_notebookStackItem->toString() : QStringLiteral("<null>")));
 
-    strm << "Parent item: ";
+    strm << QStringLiteral("Parent item: ");
     if (Q_UNLIKELY(!m_parent))
     {
-        strm << "<null>";
+        strm << QStringLiteral("<null>");
     }
     else
     {
         if (m_parent->type() == NotebookModelItem::Type::Stack) {
-            strm << "stack";
+            strm << QStringLiteral("stack");
         }
         else if (m_parent->type() == NotebookModelItem::Type::Notebook) {
-            strm << "notebook";
+            strm << QStringLiteral("notebook");
         }
         else {
-            strm << "<unknown type>";
+            strm << QStringLiteral("<unknown type>");
         }
 
         if (m_parent->notebookItem()) {
-            strm << ", notebook local uid = " << m_parent->notebookItem()->localUid() << ", notebook name = "
-                 << m_parent->notebookItem()->name();
+            strm << QStringLiteral(", notebook local uid = ") << m_parent->notebookItem()->localUid()
+                 << QStringLiteral(", notebook name = ") << m_parent->notebookItem()->name();
         }
         else if (m_parent->notebookStackItem()) {
-            strm << ", stack name = " << m_parent->notebookStackItem()->name();
+            strm << QStringLiteral(", stack name = ") << m_parent->notebookStackItem()->name();
         }
 
-        strm << "\n";
+        strm << QStringLiteral("\n");
     }
 
     if (m_children.isEmpty()) {
@@ -147,37 +147,37 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
     }
 
     int numChildren = m_children.size();
-    strm << "Num children: " << numChildren << "\n";
+    strm << QStringLiteral("Num children: ") << numChildren << QStringLiteral("\n");
 
     for(int i = 0; i < numChildren; ++i)
     {
-        strm << "Child[" << i << "]: ";
+        strm << QStringLiteral("Child[") << i << QStringLiteral("]: ");
 
         const NotebookModelItem * childItem = m_children[i];
         if (Q_UNLIKELY(!childItem)) {
-            strm << "<null>";
+            strm << QStringLiteral("<null>");
             continue;
         }
 
         if (childItem->type() == NotebookModelItem::Type::Notebook) {
-            strm << "notebook";
+            strm << QStringLiteral("notebook");
         }
         else if (childItem->type() == NotebookModelItem::Type::Stack) {
-            strm << "stack";
+            strm << QStringLiteral("stack");
         }
         else {
-            strm << "<unknown type>";
+            strm << QStringLiteral("<unknown type>");
         }
 
         if (childItem->notebookItem()) {
-            strm << ", notebook local uid = " << childItem->notebookItem()->localUid() << ", notebook name = "
-                 << childItem->notebookItem()->name();
+            strm << QStringLiteral(", notebook local uid = ") << childItem->notebookItem()->localUid()
+                 << QStringLiteral(", notebook name = ") << childItem->notebookItem()->name();
         }
         else if (childItem->notebookStackItem()) {
-            strm << ", stack = " << childItem->notebookStackItem()->name();
+            strm << QStringLiteral(", stack = ") << childItem->notebookStackItem()->name();
         }
 
-        strm << "\n";
+        strm << QStringLiteral("\n");
     }
 
     return strm;
