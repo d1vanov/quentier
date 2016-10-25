@@ -18,12 +18,10 @@
 
 #include "MainWindow.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
-#include "dialogs/ManageAccountsDialog.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
 #include "widgets/NoteEditorWidget.h"
 #include "tests/ManualTestingHelper.h"
-#include "BasicXMLSyntaxHighlighter.h"
 
 // workarouding Qt4 Designer's inability to work with namespaces
 
@@ -73,7 +71,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNotebook(),
     m_testNote(),
     m_pAccount(),
-    m_availableAccounts(),
+    m_pAccountManager(new AccountManager(this)),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_pUndoStack(new QUndoStack(this)),
@@ -82,32 +80,13 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
     m_pUI->setupUi(this);
-    m_pUI->findAndReplaceWidget->setHidden(true);
 
-    // TODO: try to find within the app settings the last used account and pick it
-    m_pAccount.reset(new Account("Default user", Account::Type::Local));
-    m_pUI->noteEditorWidget->setAccount(*m_pAccount);
-
-    m_pUI->noteEditorWidget->setUndoStack(m_pUndoStack);
+    m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
     setupDefaultShortcuts();
     setupUserShortcuts();
 
     addMenuActionsToMainWindow();
-
-    m_pUI->noteSourceView->setHidden(true);
-
-    m_pUI->fontSizeComboBox->clear();
-    QNTRACE(QStringLiteral("fontSizeComboBox num items: ") << m_pUI->fontSizeComboBox->count());
-    for(int i = 0; i < m_pUI->fontSizeComboBox->count(); ++i) {
-        QVariant value = m_pUI->fontSizeComboBox->itemData(i, Qt::UserRole);
-        QNTRACE(QStringLiteral("Font size value for index[") << i << QStringLiteral("] = ") << value);
-    }
-
-    BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUI->noteSourceView->document());
-    Q_UNUSED(highlighter);
-
-    m_pNoteEditor = m_pUI->noteEditorWidget;
 
     checkThemeIconsAndSetFallbacks();
 
@@ -283,21 +262,20 @@ void MainWindow::addMenuActionsToMainWindow()
     QActionGroup * accountsActionGroup = new QActionGroup(this);
     accountsActionGroup->setExclusive(true);
 
-    QStringList availableAccounts = detectAvailableAccounts();
-    if (availableAccounts.isEmpty())
-    {
-        QNDEBUG(QStringLiteral("It appears the default user account doesn't exist yet, will add it"));
-        QString defaultAccount = createDefaultAccount();
-        if (Q_LIKELY(!defaultAccount.isEmpty())) {
-            // TRANSLATOR this "local" is meant for the name of the default account
-            availableAccounts << (defaultAccount + QStringLiteral(" (") + tr("local") + QStringLiteral(")"));
-        }
-    }
+    const QVector<AvailableAccount> & availableAccounts = m_pAccountManager->availableAccounts();
 
     int numAvailableAccounts = availableAccounts.size();
     for(int i = 0; i < numAvailableAccounts; ++i)
     {
-        QAction * accountAction = new QAction(availableAccounts[i], Q_NULLPTR);
+        const AvailableAccount & availableAccount = availableAccounts[i];
+        QString availableAccountRepresentationName = availableAccount.username();
+        if (availableAccount.isLocal()) {
+            availableAccountRepresentationName += QStringLiteral(" (");
+            availableAccountRepresentationName += tr("local");
+            availableAccountRepresentationName += QStringLiteral(")");
+        }
+
+        QAction * accountAction = new QAction(availableAccountRepresentationName, Q_NULLPTR);
         switchAccountSubMenu->addAction(accountAction);
 
         accountAction->setCheckable(true);
@@ -323,96 +301,34 @@ void MainWindow::addMenuActionsToMainWindow()
                      this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
 }
 
-QString MainWindow::createDefaultAccount()
+NoteEditorWidget * MainWindow::currentNoteEditor()
 {
-    QNDEBUG(QStringLiteral("MainWindow::createDefaultAccount"));
+    QNDEBUG(QStringLiteral("MainWindow::currentNoteEditor"));
 
-    QString username = getCurrentUserName();
-
-    QString appPersistenceStoragePath = applicationPersistentStoragePath();
-    QString userPersistenceStoragePath = appPersistenceStoragePath + QStringLiteral("/local_") + username;
-    QDir userPersistenceStorageDir(userPersistenceStoragePath);
-    if (!userPersistenceStorageDir.exists())
-    {
-        bool created = userPersistenceStorageDir.mkpath(userPersistenceStoragePath);
-        if (Q_UNLIKELY(!created)) {
-            NOTIFY_ERROR(tr("Can't create directory for the default account storage"));
-            return QString();
-        }
+    if (Q_UNLIKELY(m_pUI->NoteTabWidget->count() == 0)) {
+        QNTRACE(QStringLiteral("No open note editors"));
+        return Q_NULLPTR;
     }
 
-    QFile accountInfo(userPersistenceStoragePath + QStringLiteral("/accountInfo.txt"));
-
-    bool open = accountInfo.open(QIODevice::WriteOnly);
-    if (Q_UNLIKELY(!open)) {
-        NOTIFY_ERROR(tr("Can't open the account info file for the default account for writing") +
-                     QStringLiteral(": ") + accountInfo.errorString());
-        return QString();
+    int currentIndex = m_pUI->NoteTabWidget->currentIndex();
+    if (Q_UNLIKELY(currentIndex < 0)) {
+        QNTRACE(QStringLiteral("No current note editor"));
+        return Q_NULLPTR;
     }
 
-    QXmlStreamWriter writer(&accountInfo);
-
-    writer.writeStartDocument();
-
-    writer.writeStartElement(QStringLiteral("accountName"));
-    writer.writeCharacters(username);
-    writer.writeEndElement();
-
-    writer.writeStartElement(QStringLiteral("accountType"));
-    writer.writeCharacters(QStringLiteral("local"));
-    writer.writeEndElement();
-
-    writer.writeEndDocument();
-
-    accountInfo.close();
-
-    AvailableAccount availableAccount(username, userPersistenceStoragePath, /* local = */ true);
-    m_availableAccounts << availableAccount;
-
-    return username;
-}
-
-QStringList MainWindow::detectAvailableAccounts()
-{
-    QNDEBUG(QStringLiteral("MainWindow::detectAvailableAccounts"));
-
-    QStringList result;
-
-    QString appPersistenceStoragePath = applicationPersistentStoragePath();
-    QDir appPersistenceStorageDir(appPersistenceStoragePath);
-
-    QFileInfoList accountDirInfos = appPersistenceStorageDir.entryInfoList(QDir::AllDirs);
-    int numPotentialAccountDirs = accountDirInfos.size();
-    result.reserve(numPotentialAccountDirs);
-
-    for(int i = 0; i < numPotentialAccountDirs; ++i)
-    {
-        const QFileInfo & accountDirInfo = accountDirInfos[i];
-        QDir accountDir = accountDirInfo.absoluteDir();
-        QFileInfo accountBasicInfoFileInfo(accountDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
-        if (!accountBasicInfoFileInfo.exists()) {
-            continue;
-        }
-
-        QString accountName = accountDir.dirName();
-        bool isLocal = accountName.startsWith(QStringLiteral("local_"));
-        if (isLocal) {
-            accountName.remove(0, 6);
-        }
-
-        AvailableAccount availableAccount(accountName, accountDir.absolutePath(), isLocal);
-        m_availableAccounts << availableAccount;
-
-        int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
-        if (lastUnderlineIndex >= 0) {
-            int numCharsToRemove = accountName.length() - lastUnderlineIndex;
-            accountName.chop(numCharsToRemove);
-        }
-
-        result << accountName;
+    QWidget * currentWidget = m_pUI->NoteTabWidget->widget(currentIndex);
+    if (Q_UNLIKELY(!currentWidget)) {
+        QNTRACE(QStringLiteral("No current widget"));
+        return Q_NULLPTR;
     }
 
-    return result;
+    NoteEditorWidget * noteEditorWidget = qobject_cast<NoteEditorWidget*>(currentWidget);
+    if (Q_UNLIKELY(!noteEditorWidget)) {
+        QNWARNING(QStringLiteral("Can't cast current note tag widget's widget to note editor widget"));
+        return Q_NULLPTR;
+    }
+
+    return noteEditorWidget;
 }
 
 void MainWindow::prepareTestNoteWithResources()
@@ -763,8 +679,18 @@ void MainWindow::onNoteTextInsertTable(int rows, int columns, double width, bool
 void MainWindow::onShowNoteSource()
 {
     QNDEBUG(QStringLiteral("MainWindow::onShowNoteSource"));
-    updateNoteHtmlView(m_lastNoteEditorHtml);
-    m_pUI->noteSourceView->setHidden(m_pUI->noteSourceView->isVisible());
+
+    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
+    if (!noteEditorWidget) {
+        return;
+    }
+
+    if (!noteEditorWidget->isNoteSourceShown()) {
+        noteEditorWidget->showNoteSource();
+    }
+    else {
+        noteEditorWidget->hideNoteSource();
+    }
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()
@@ -1211,7 +1137,7 @@ void MainWindow::onAddAccountActionTriggered(bool checked)
 
     Q_UNUSED(checked)
 
-    // TODO: implement
+    m_pAccountManager->raiseAddAccountDialog();
 }
 
 void MainWindow::onManageAccountsActionTriggered(bool checked)
@@ -1220,10 +1146,7 @@ void MainWindow::onManageAccountsActionTriggered(bool checked)
 
     Q_UNUSED(checked)
 
-    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, this));
-    manageAccountsDialog->setWindowModality(Qt::WindowModal);
-    // TODO: setup some signal-slot connections for doing the actual work via the dialog?
-    Q_UNUSED(manageAccountsDialog->exec())
+    m_pAccountManager->raiseManageAccountsDialog();
 }
 
 void MainWindow::onSwitchAccountActionToggled(bool checked)
@@ -1251,11 +1174,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 {
     QNTRACE(QStringLiteral("MainWindow::checkThemeIconsAndSetFallbacks"));
 
-    if (!QIcon::hasThemeIcon(QStringLiteral("checkbox"))) {
-        m_pUI->insertToDoCheckboxPushButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/checkbox-2.png")));
-        QNTRACE(QStringLiteral("set fallback checkbox icon"));
-    }
-
     if (!QIcon::hasThemeIcon(QStringLiteral("dialog-information"))) {
         m_pUI->ActionShowNoteAttributesButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/dialog-information-4.png")));
         QNTRACE(QStringLiteral("set fallback dialog-information icon"));
@@ -1280,7 +1198,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
     if (!QIcon::hasThemeIcon(QStringLiteral("edit-copy"))) {
         QIcon editCopyIcon(QStringLiteral(":/fallback_icons/png/edit-copy-6.png"));
-        m_pUI->copyPushButton->setIcon(editCopyIcon);
         m_pUI->ActionCopy->setIcon(editCopyIcon);
         QNTRACE(QStringLiteral("set fallback edit-copy icon"));
     }
@@ -1295,7 +1212,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     if (!QIcon::hasThemeIcon(QStringLiteral("edit-delete"))) {
         QIcon editDeleteIcon(QStringLiteral(":/fallback_icons/png/edit-delete-6.png"));
         m_pUI->ActionNoteDelete->setIcon(editDeleteIcon);
-        m_pUI->deleteTagButton->setIcon(editDeleteIcon);
         QNTRACE(QStringLiteral("set fallback edit-delete icon"));
     }
 
@@ -1306,110 +1222,84 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
     if (!QIcon::hasThemeIcon(QStringLiteral("edit-paste"))) {
         QIcon editPasteIcon(QStringLiteral(":/fallback_icons/png/edit-paste-6.png"));
-        m_pUI->pastePushButton->setIcon(editPasteIcon);
         m_pUI->ActionPaste->setIcon(editPasteIcon);
         QNTRACE(QStringLiteral("set fallback edit-paste icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("edit-redo"))) {
         QIcon editRedoIcon(QStringLiteral(":/fallback_icons/png/edit-redo-7.png"));
-        m_pUI->redoPushButton->setIcon(editRedoIcon);
         m_pUI->ActionRedo->setIcon(editRedoIcon);
         QNTRACE(QStringLiteral("set fallback edit-redo icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("edit-undo"))) {
         QIcon editUndoIcon(QStringLiteral(":/fallback_icons/png/edit-undo-7.png"));
-        m_pUI->undoPushButton->setIcon(editUndoIcon);
         m_pUI->ActionUndo->setIcon(editUndoIcon);
         QNTRACE(QStringLiteral("set fallback edit-undo icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-less"))) {
         QIcon formatIndentLessIcon(QStringLiteral(":/fallback_icons/png/format-indent-less-5.png"));
-        m_pUI->formatIndentLessPushButton->setIcon(formatIndentLessIcon);
         m_pUI->ActionDecreaseIndentation->setIcon(formatIndentLessIcon);
         QNTRACE(QStringLiteral("set fallback format-indent-less icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-more"))) {
         QIcon formatIndentMoreIcon(QStringLiteral(":/fallback_icons/png/format-indent-more-5.png"));
-        m_pUI->formatIndentMorePushButton->setIcon(formatIndentMoreIcon);
         m_pUI->ActionIncreaseIndentation->setIcon(formatIndentMoreIcon);
         QNTRACE(QStringLiteral("set fallback format-indent-more icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-center"))) {
         QIcon formatJustifyCenterIcon(QStringLiteral(":/fallback_icons/png/format-justify-center-5.png"));
-        m_pUI->formatJustifyCenterPushButton->setIcon(formatJustifyCenterIcon);
         m_pUI->ActionAlignCenter->setIcon(formatJustifyCenterIcon);
         QNTRACE(QStringLiteral("set fallback format-justify-center icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-left"))) {
         QIcon formatJustifyLeftIcon(QStringLiteral(":/fallback_icons/png/format-justify-left-5.png"));
-        m_pUI->formatJustifyLeftPushButton->setIcon(formatJustifyLeftIcon);
         m_pUI->ActionAlignLeft->setIcon(formatJustifyLeftIcon);
         QNTRACE(QStringLiteral("set fallback format-justify-left icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-right"))) {
         QIcon formatJustifyRightIcon(QStringLiteral(":/fallback_icons/png/format-justify-right-5.png"));
-        m_pUI->formatJustifyRightPushButton->setIcon(formatJustifyRightIcon);
         m_pUI->ActionAlignRight->setIcon(formatJustifyRightIcon);
         QNTRACE(QStringLiteral("set fallback format-justify-right icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-list-ordered"))) {
         QIcon formatListOrderedIcon(QStringLiteral(":/fallback_icons/png/format-list-ordered.png"));
-        m_pUI->formatListOrderedPushButton->setIcon(formatListOrderedIcon);
         m_pUI->ActionInsertNumberedList->setIcon(formatListOrderedIcon);
         QNTRACE(QStringLiteral("set fallback format-list-ordered icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-list-unordered"))) {
         QIcon formatListUnorderedIcon(QStringLiteral(":/fallback_icons/png/format-list-unordered.png"));
-        m_pUI->formatListUnorderedPushButton->setIcon(formatListUnorderedIcon);
         m_pUI->ActionInsertBulletedList->setIcon(formatListUnorderedIcon);
         QNTRACE(QStringLiteral("set fallback format-list-unordered icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-text-bold"))) {
         QIcon formatTextBoldIcon(QStringLiteral(":/fallback_icons/png/format-text-bold-4.png"));
-        m_pUI->fontBoldPushButton->setIcon(formatTextBoldIcon);
         m_pUI->ActionFontBold->setIcon(formatTextBoldIcon);
         QNTRACE(QStringLiteral("set fallback format-text-bold icon"));
     }
 
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-color"))) {
-        QIcon formatTextColorIcon(QStringLiteral(":/fallback_icons/png/format-text-color.png"));
-        m_pUI->chooseTextColorToolButton->setIcon(formatTextColorIcon);
-        QNTRACE(QStringLiteral("set fallback format-text-color icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("color-fill"))) {
-        QIcon colorFillIcon(QStringLiteral(":/fallback_icons/png/color-fill.png"));
-        m_pUI->chooseBackgroundColorToolButton->setIcon(colorFillIcon);
-        QNTRACE(QStringLiteral("set fallback color-fill icon"));
-    }
-
     if (!QIcon::hasThemeIcon(QStringLiteral("format-text-italic"))) {
         QIcon formatTextItalicIcon(QStringLiteral(":/fallback_icons/png/format-text-italic-4.png"));
-        m_pUI->fontItalicPushButton->setIcon(formatTextItalicIcon);
         m_pUI->ActionFontItalic->setIcon(formatTextItalicIcon);
         QNTRACE(QStringLiteral("set fallback format-text-italic icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-text-strikethrough"))) {
         QIcon formatTextStrikethroughIcon(QStringLiteral(":/fallback_icons/png/format-text-strikethrough-3.png"));
-        m_pUI->fontStrikethroughPushButton->setIcon(formatTextStrikethroughIcon);
         m_pUI->ActionFontStrikethrough->setIcon(formatTextStrikethroughIcon);
         QNTRACE(QStringLiteral("set fallback format-text-strikethrough icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("format-text-underline"))) {
         QIcon formatTextUnderlineIcon(QStringLiteral(":/fallback_icons/png/format-text-underline-4.png"));
-        m_pUI->fontUnderlinePushButton->setIcon(formatTextUnderlineIcon);
         m_pUI->ActionFontUnderlined->setIcon(formatTextUnderlineIcon);
         QNTRACE(QStringLiteral("set fallback format-text-underline icon"));
     }
@@ -1440,7 +1330,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
     if (!QIcon::hasThemeIcon(QStringLiteral("insert-horizontal-rule"))) {
         QIcon insertHorizontalRuleIcon(QStringLiteral(":/fallback_icons/png/insert-horizontal-rule.png"));
-        m_pUI->insertHorizontalLinePushButton->setIcon(insertHorizontalRuleIcon);
         m_pUI->ActionInsertHorizontalLine->setIcon(insertHorizontalRuleIcon);
         QNTRACE(QStringLiteral("set fallback insert-horizontal-rule icon"));
     }
@@ -1463,12 +1352,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         QIcon preferencesOtherIcon(QStringLiteral(":/fallback_icons/png/preferences-other-3.png"));
         m_pUI->ActionPreferences->setIcon(preferencesOtherIcon);
         QNTRACE(QStringLiteral("set fallback preferences-other icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("tools-check-spelling"))) {
-        QIcon spellcheckIcon(QStringLiteral(":/fallback_icons/png/tools-check-spelling-5.png"));
-        m_pUI->spellCheckBox->setIcon(spellcheckIcon);
-        QNTRACE(QStringLiteral("set fallback tools-check-spelling icon"));
     }
 
     if (!QIcon::hasThemeIcon(QStringLiteral("object-rotate-left"))) {

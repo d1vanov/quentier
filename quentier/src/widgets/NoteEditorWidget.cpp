@@ -5,6 +5,7 @@
 // is deeply disappointing
 #include "NoteTagsWidget.h"
 #include "FindAndReplaceWidget.h"
+#include "BasicXMLSyntaxHighlighter.h"
 #include "../insert-table-tool-button/InsertTableToolButton.h"
 #include "../insert-table-tool-button/TableSettingsDialog.h"
 #include "../color-picker-tool-button/ColorPickerToolButton.h"
@@ -28,9 +29,9 @@ using quentier::NoteTagsWidget;
 
 namespace quentier {
 
-NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorageWorker,
-                                   NoteCache & noteCache, NotebookCache & notebookCache,
-                                   TagCache & tagCache, TagModel & tagModel, QWidget * parent) :
+NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+                                   NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
+                                   TagModel & tagModel, QUndoStack * pUndoStack, QWidget * parent) :
     QWidget(parent),
     m_pUi(new Ui::NoteEditorWidget),
     m_noteCache(noteCache),
@@ -38,17 +39,39 @@ NoteEditorWidget::NoteEditorWidget(LocalStorageManagerThreadWorker & localStorag
     m_tagCache(tagCache),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
+    m_currentAccount(account),
+    m_pUndoStack(pUndoStack),
     m_findCurrentNoteRequestId(),
     m_findCurrentNotebookRequestId(),
     m_updateNoteRequestIds(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
+    m_lastNoteEditorHtml(),
     m_lastSuggestedFontSize(-1),
     m_lastActualFontSize(-1),
     m_pendingEditorSpellChecker(false),
     m_currentNoteWasExpunged(false)
 {
     m_pUi->setupUi(this);
+
+    m_pUi->noteEditor->setAccount(m_currentAccount);
+    m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
+    m_pUi->findAndReplaceWidget->setHidden(true);
+    m_pUi->noteSourceView->setHidden(true);
+
+    checkIconThemeIconsAndSetFallbacks();
+
+    m_pUi->fontSizeComboBox->clear();
+    int numFontSizes = m_pUi->fontSizeComboBox->count();
+    QNTRACE(QStringLiteral("fontSizeComboBox num items: ") << numFontSizes);
+    for(int i = 0; i < numFontSizes; ++i) {
+        QVariant value = m_pUi->fontSizeComboBox->itemData(i, Qt::UserRole);
+        QNTRACE(QStringLiteral("Font size value for index[") << i << QStringLiteral("] = ") << value);
+    }
+
+    BasicXMLSyntaxHighlighter * highlighter = new BasicXMLSyntaxHighlighter(m_pUi->noteSourceView->document());
+    Q_UNUSED(highlighter);
+
     m_pUi->tagNameLabelsContainer->setTagModel(&tagModel);
     m_pUi->tagNameLabelsContainer->setLocalStorageManagerThreadWorker(localStorageWorker);
     createConnections(localStorageWorker);
@@ -149,6 +172,22 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
     m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+}
+
+bool NoteEditorWidget::isNoteSourceShown() const
+{
+    return m_pUi->noteSourceView->isVisible();
+}
+
+void NoteEditorWidget::showNoteSource()
+{
+    updateNoteSourceView(m_lastNoteEditorHtml);
+    m_pUi->noteSourceView->setHidden(false);
+}
+
+void NoteEditorWidget::hideNoteSource()
+{
+    m_pUi->noteSourceView->setHidden(true);
 }
 
 void NoteEditorWidget::onEditorTextBoldToggled()
@@ -868,6 +907,17 @@ void NoteEditorWidget::onEditorSpellCheckerReady()
     emit notifyError(QNLocalizedString());     // Send the empty message to remove the previous one about the non-ready spell checker
 }
 
+void NoteEditorWidget::onEditorHtmlUpdate(QString html)
+{
+    m_lastNoteEditorHtml = html;
+
+    if (!m_pUi->noteSourceView->isVisible()) {
+        return;
+    }
+
+    updateNoteSourceView(html);
+}
+
 void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
 {
     QNDEBUG("NoteEditorWidget::createConnections");
@@ -907,6 +957,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdateFailed,QNLocalizedString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,currentNoteChanged,Note),
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
+                     this, QNSLOT(NoteEditorWIdget,onEditorHtmlUpdate,QString));
 
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textBoldState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldStateChanged,bool));
@@ -982,7 +1034,7 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
 
 void NoteEditorWidget::clear()
 {
-    QNDEBUG("NoteEditorWidget::clear: note " << (m_pCurrentNote ? m_pCurrentNote->localUid() : QStringLiteral("<null>")));
+    QNDEBUG(QStringLiteral("NoteEditorWidget::clear: note ") << (m_pCurrentNote ? m_pCurrentNote->localUid() : QStringLiteral("<null>")));
 
     m_pCurrentNote.reset(Q_NULLPTR);
     m_pCurrentNotebook.reset(Q_NULLPTR);
@@ -995,6 +1047,147 @@ void NoteEditorWidget::clear()
 
     m_pendingEditorSpellChecker = false;
     m_currentNoteWasExpunged = false;
+}
+
+void NoteEditorWidget::checkIconThemeIconsAndSetFallbacks()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::checkIconThemeIconsAndSetFallbacks"));
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("checkbox"))) {
+        m_pUi->insertToDoCheckboxPushButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/checkbox-2.png")));
+        QNTRACE(QStringLiteral("set fallback checkbox icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-copy"))) {
+        QIcon editCopyIcon(QStringLiteral(":/fallback_icons/png/edit-copy-6.png"));
+        m_pUi->copyPushButton->setIcon(editCopyIcon);
+        QNTRACE(QStringLiteral("set fallback edit-copy icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-cut"))) {
+        QIcon editCutIcon(QStringLiteral(":/fallback_icons/png/edit-cut-6.png"));
+        m_pUi->cutPushButton->setIcon(editCutIcon);
+        QNTRACE(QStringLiteral("set fallback edit-cut icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-paste"))) {
+        QIcon editPasteIcon(QStringLiteral(":/fallback_icons/png/edit-paste-6.png"));
+        m_pUi->pastePushButton->setIcon(editPasteIcon);
+        QNTRACE(QStringLiteral("set fallback edit-paste icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-redo"))) {
+        QIcon editRedoIcon(QStringLiteral(":/fallback_icons/png/edit-redo-7.png"));
+        m_pUi->redoPushButton->setIcon(editRedoIcon);
+        QNTRACE(QStringLiteral("set fallback edit-redo icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-undo"))) {
+        QIcon editUndoIcon(QStringLiteral(":/fallback_icons/png/edit-undo-7.png"));
+        m_pUi->undoPushButton->setIcon(editUndoIcon);
+        QNTRACE(QStringLiteral("set fallback edit-undo icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-less"))) {
+        QIcon formatIndentLessIcon(QStringLiteral(":/fallback_icons/png/format-indent-less-5.png"));
+        m_pUi->formatIndentLessPushButton->setIcon(formatIndentLessIcon);
+        QNTRACE(QStringLiteral("set fallback format-indent-less icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-more"))) {
+        QIcon formatIndentMoreIcon(QStringLiteral(":/fallback_icons/png/format-indent-more-5.png"));
+        m_pUi->formatIndentMorePushButton->setIcon(formatIndentMoreIcon);
+        QNTRACE(QStringLiteral("set fallback format-indent-more icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-center"))) {
+        QIcon formatJustifyCenterIcon(QStringLiteral(":/fallback_icons/png/format-justify-center-5.png"));
+        m_pUi->formatJustifyCenterPushButton->setIcon(formatJustifyCenterIcon);
+        QNTRACE(QStringLiteral("set fallback format-justify-center icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-left"))) {
+        QIcon formatJustifyLeftIcon(QStringLiteral(":/fallback_icons/png/format-justify-left-5.png"));
+        m_pUi->formatJustifyLeftPushButton->setIcon(formatJustifyLeftIcon);
+        QNTRACE(QStringLiteral("set fallback format-justify-left icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-right"))) {
+        QIcon formatJustifyRightIcon(QStringLiteral(":/fallback_icons/png/format-justify-right-5.png"));
+        m_pUi->formatJustifyRightPushButton->setIcon(formatJustifyRightIcon);
+        QNTRACE(QStringLiteral("set fallback format-justify-right icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-list-ordered"))) {
+        QIcon formatListOrderedIcon(QStringLiteral(":/fallback_icons/png/format-list-ordered.png"));
+        m_pUi->formatListOrderedPushButton->setIcon(formatListOrderedIcon);
+        QNTRACE(QStringLiteral("set fallback format-list-ordered icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-list-unordered"))) {
+        QIcon formatListUnorderedIcon(QStringLiteral(":/fallback_icons/png/format-list-unordered.png"));
+        m_pUi->formatListUnorderedPushButton->setIcon(formatListUnorderedIcon);
+        QNTRACE(QStringLiteral("set fallback format-list-unordered icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-bold"))) {
+        QIcon formatTextBoldIcon(QStringLiteral(":/fallback_icons/png/format-text-bold-4.png"));
+        m_pUi->fontBoldPushButton->setIcon(formatTextBoldIcon);
+        QNTRACE(QStringLiteral("set fallback format-text-bold icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-color"))) {
+        QIcon formatTextColorIcon(QStringLiteral(":/fallback_icons/png/format-text-color.png"));
+        m_pUi->chooseTextColorToolButton->setIcon(formatTextColorIcon);
+        QNTRACE(QStringLiteral("set fallback format-text-color icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("color-fill"))) {
+        QIcon colorFillIcon(QStringLiteral(":/fallback_icons/png/color-fill.png"));
+        m_pUi->chooseBackgroundColorToolButton->setIcon(colorFillIcon);
+        QNTRACE(QStringLiteral("set fallback color-fill icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-italic"))) {
+        QIcon formatTextItalicIcon(QStringLiteral(":/fallback_icons/png/format-text-italic-4.png"));
+        m_pUi->fontItalicPushButton->setIcon(formatTextItalicIcon);
+        QNTRACE(QStringLiteral("set fallback format-text-italic icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-strikethrough"))) {
+        QIcon formatTextStrikethroughIcon(QStringLiteral(":/fallback_icons/png/format-text-strikethrough-3.png"));
+        m_pUi->fontStrikethroughPushButton->setIcon(formatTextStrikethroughIcon);
+        QNTRACE(QStringLiteral("set fallback format-text-strikethrough icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-underline"))) {
+        QIcon formatTextUnderlineIcon(QStringLiteral(":/fallback_icons/png/format-text-underline-4.png"));
+        m_pUi->fontUnderlinePushButton->setIcon(formatTextUnderlineIcon);
+        QNTRACE(QStringLiteral("set fallback format-text-underline icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("insert-horizontal-rule"))) {
+        QIcon insertHorizontalRuleIcon(QStringLiteral(":/fallback_icons/png/insert-horizontal-rule.png"));
+        m_pUi->insertHorizontalLinePushButton->setIcon(insertHorizontalRuleIcon);
+        QNTRACE(QStringLiteral("set fallback insert-horizontal-rule icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("insert-table"))) {
+        QIcon insertTableIcon(QStringLiteral(":/fallback_icons/png/insert-table.png"));
+        m_pUi->insertTableToolButton->setIcon(insertTableIcon);
+        QNTRACE(QStringLiteral("set fallback insert-table icon"));
+    }
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("tools-check-spelling"))) {
+        QIcon spellcheckIcon(QStringLiteral(":/fallback_icons/png/tools-check-spelling-5.png"));
+        m_pUi->spellCheckBox->setIcon(spellcheckIcon);
+        QNTRACE(QStringLiteral("set fallback tools-check-spelling icon"));
+    }
+}
+
+void NoteEditorWidget::updateNoteSourceView(const QString & html)
+{
+    m_pUi->noteSourceView->setPlainText(html);
 }
 
 } // namespace quentier

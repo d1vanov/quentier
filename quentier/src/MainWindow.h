@@ -19,8 +19,7 @@
 #ifndef QUENTIER_MAINWINDOW_H
 #define QUENTIER_MAINWINDOW_H
 
-#include "AvailableAccount.h"
-
+#include "AccountManager.h"
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Account.h>
@@ -43,6 +42,7 @@ class MainWindow;
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
+QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
@@ -150,10 +150,7 @@ private:
     void connectEditorSignalsToSlots();
     void addMenuActionsToMainWindow();
 
-    // Returns the username for the default local account
-    QString createDefaultAccount();
-
-    QStringList detectAvailableAccounts();
+    NoteEditorWidget * currentNoteEditor();
 
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
@@ -166,9 +163,9 @@ private:
 
     quentier::Notebook      m_testNotebook;
     quentier::Note          m_testNote;
-    QScopedPointer<quentier::Account>   m_pAccount;
 
-    QVector<AvailableAccount>   m_availableAccounts;
+    AccountManager *        m_pAccountManager;
+    QScopedPointer<quentier::Account>   m_pAccount;
 
     int                     m_lastFontSizeComboBoxIndex;
     QString                 m_lastFontComboBoxFontFamily;

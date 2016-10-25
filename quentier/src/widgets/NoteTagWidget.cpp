@@ -18,6 +18,7 @@
 
 #include "NoteTagWidget.h"
 #include "ui_NoteTagWidget.h"
+#include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {
 
@@ -26,8 +27,15 @@ NoteTagWidget::NoteTagWidget(const QString & tagName, QWidget *parent) :
     m_pUi(new Ui::NoteTagWidget)
 {
     m_pUi->setupUi(this);
+
+    if (!QIcon::hasThemeIcon(QStringLiteral("edit-delete"))) {
+        QIcon editDeleteIcon(QStringLiteral(":/fallback_icons/png/edit-delete-6.png"));
+        m_pUi->deleteTagButton->setIcon(editDeleteIcon);
+        QNTRACE(QStringLiteral("set fallback edit-delete icon"));
+    }
+
     setTagName(tagName);
-    QObject::connect(m_pUi->pushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->deleteTagButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(NoteTagWidget,onRemoveTagButtonPressed));
 }
 

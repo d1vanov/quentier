@@ -75,7 +75,7 @@ background-color: rgb(205, 221, 229);
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="deleteTagButton">
      <property name="maximumSize">
       <size>
        <width>26</width>
@@ -87,7 +87,8 @@ background-color: rgb(205, 221, 229);
      </property>
      <property name="icon">
       <iconset theme="edit-delete">
-       <normaloff>.</normaloff>.</iconset>
+       <normaloff/>
+      </iconset>
      </property>
      <property name="iconSize">
       <size>

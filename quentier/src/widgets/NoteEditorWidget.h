@@ -9,10 +9,13 @@
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Tag.h>
+#include <quentier/types/Account.h>
 #include <QWidget>
 #include <QUuid>
 #include <QScopedPointer>
 #include <QStringList>
+#include <QPointer>
+#include <QUndoStack>
 
 namespace Ui {
 class NoteEditorWidget;
@@ -32,14 +35,18 @@ class NoteEditorWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteEditorWidget(LocalStorageManagerThreadWorker & localStorageWorker,
+    explicit NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
                               NoteCache & noteCache, NotebookCache & notebookCache,
-                              TagCache & tagCache, TagModel & tagModel,
+                              TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
                               QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditorWidget();
 
     QString noteLocalUid() const;
     void setNoteLocalUid(const QString & noteLocalUid);
+
+    bool isNoteSourceShown() const;
+    void showNoteSource();
+    void hideNoteSource();
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
@@ -114,9 +121,14 @@ private Q_SLOTS:
     void onEditorSpellCheckerNotReady();
     void onEditorSpellCheckerReady();
 
+    void onEditorHtmlUpdate(QString html);
+
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
     void clear();
+
+    void checkIconThemeIconsAndSetFallbacks();
+    void updateNoteSourceView(const QString & html);
 
 private:
     Ui::NoteEditorWidget *      m_pUi;
@@ -127,6 +139,9 @@ private:
     QScopedPointer<Note>        m_pCurrentNote;
     QScopedPointer<Notebook>    m_pCurrentNotebook;
 
+    Account                     m_currentAccount;
+    QPointer<QUndoStack>        m_pUndoStack;
+
     QUuid                       m_findCurrentNoteRequestId;
     QUuid                       m_findCurrentNotebookRequestId;
 
@@ -134,6 +149,8 @@ private:
 
     int                         m_lastFontSizeComboBoxIndex;
     QString                     m_lastFontComboBoxFontFamily;
+
+    QString                     m_lastNoteEditorHtml;
 
     int                         m_lastSuggestedFontSize;
     int                         m_lastActualFontSize;
