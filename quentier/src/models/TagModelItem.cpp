@@ -120,23 +120,23 @@ const TagModelItem * TagModelItem::takeChild(const int row) const
 
 QTextStream & TagModelItem::print(QTextStream & strm) const
 {
-    strm << "Tag model item: local uid = " << m_localUid << ", guid = " << m_guid
-         << ", linked notebook guid = " << m_linkedNotebookGuid
-         << ", name = " << m_name << ", parent local uid = " << m_parentLocalUid
-         << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
-         << ", is dirty = " << (m_isDirty ? "true" : "false")
-         << ", parent = " << (m_parent ? m_parent->m_localUid : QString("<null>"))
-         << ", children: ";
+    strm << QStringLiteral("Tag model item: local uid = ") << m_localUid << QStringLiteral(", guid = ") << m_guid
+         << QStringLiteral(", linked notebook guid = ") << m_linkedNotebookGuid
+         << QStringLiteral(", name = ") << m_name << QStringLiteral(", parent local uid = ") << m_parentLocalUid
+         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", parent = ") << (m_parent ? m_parent->m_localUid : QStringLiteral("<null>"))
+         << QStringLiteral(", children: ");
     if (m_children.isEmpty()) {
-        strm << "<null> \n";
+        strm << QStringLiteral("<null> \n");
     }
     else {
-        strm << "\n";
+        strm << QStringLiteral("\n");
         for(auto it = m_children.begin(), end = m_children.end(); it != end; ++it) {
             const TagModelItem * child = *it;
-            strm << (child ? child->m_localUid : QString("<null>")) << "\n";
+            strm << (child ? child->m_localUid : QStringLiteral("<null>")) << QStringLiteral("\n");
         }
-        strm << "\n";
+        strm << QStringLiteral("\n");
     }
 
     return strm;

@@ -34,10 +34,10 @@ SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
 
 QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
 {
-    strm << "Saved search model item: local uid = " << m_localUid
-         << ", name = " << m_name << ", query = " << m_query
-         << ", is synchronizable = " << (m_isSynchronizable ? "true" : "false")
-         << ", is dirty = " << (m_isDirty ? "true" : "false") << "\n";
+    strm << QStringLiteral("Saved search model item: local uid = ") << m_localUid
+         << QStringLiteral(", name = ") << m_name << QStringLiteral(", query = ") << m_query
+         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("\n");
     return strm;
 }
 
