@@ -91,8 +91,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     checkThemeIconsAndSetFallbacks();
 
     connectActionsToSlots();
-    connectActionsToEditorSlots();
-    connectEditorSignalsToSlots();
 
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
@@ -121,22 +119,26 @@ MainWindow::~MainWindow()
     delete m_pUI;
 }
 
-void MainWindow::connectActionsToEditorSlots()
+void MainWindow::connectActionsToSlots()
 {
+    QObject::connect(m_pUI->ActionFindInsideNote, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onFindInsideNoteAction));
+    QObject::connect(m_pUI->ActionFindNext, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onFindInsideNoteAction));
+    QObject::connect(m_pUI->ActionFindPrevious, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onFindPreviousInsideNoteAction));
+    QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
+
     // Undo/redo actions
-    QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,undo));
-    QObject::connect(m_pUI->ActionRedo, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,redo));
-    // Undo/redo buttons
-    QObject::connect(m_pUI->undoPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,undo));
-    QObject::connect(m_pUI->redoPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,redo));
+    QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onUndoAction));
+    QObject::connect(m_pUI->ActionRedo, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onRedoAction));
     // Copy/cut/paste actions
     QObject::connect(m_pUI->ActionCopy, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,copy));
     QObject::connect(m_pUI->ActionCut, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,cut));
     QObject::connect(m_pUI->ActionPaste, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,paste));
-    // Copy/cut/paste buttons
-    QObject::connect(m_pUI->copyPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,copy));
-    QObject::connect(m_pUI->cutPushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,cut));
-    QObject::connect(m_pUI->pastePushButton, QNSIGNAL(QPushButton,clicked), m_pNoteEditor, QNSLOT(NoteEditor,paste));
     // Select all action
     QObject::connect(m_pUI->ActionSelectAll, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,selectAll));
     // Font actions
@@ -147,19 +149,8 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionIncreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextIncreaseFontSizeAction));
     QObject::connect(m_pUI->ActionDecreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextDecreaseFontSizeAction));
     QObject::connect(m_pUI->ActionFontHighlight, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextHighlightAction));
-    // Font buttons
-    QObject::connect(m_pUI->fontBoldPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
-    QObject::connect(m_pUI->fontItalicPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
-    QObject::connect(m_pUI->fontUnderlinePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
-    QObject::connect(m_pUI->fontStrikethroughPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
-    // Font combo box
-    QObject::connect(m_pUI->fontComboBox, QNSIGNAL(QFontComboBox,currentFontChanged,QFont), this, QNSLOT(MainWindow,onFontComboBoxFontChanged,QFont));
-    // Font size combo box
-    // NOTE: something seems fishy with these two signal-slot signatures, they don't work with Qt5 connection syntax
-    QObject::connect(m_pUI->fontSizeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onFontSizeComboBoxIndexChanged(int)));
     // Spell checking
     QObject::connect(m_pUI->ActionSpellCheck, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextSpellCheckToggled));
-    QObject::connect(m_pUI->spellCheckBox, QNSIGNAL(QCheckBox,clicked,bool), m_pNoteEditor, QNSLOT(NoteEditor,setSpellcheck,bool));
     // Format actions
     QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
     QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
@@ -173,64 +164,6 @@ void MainWindow::connectActionsToEditorSlots()
     QObject::connect(m_pUI->ActionEditHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextEditHyperlinkAction));
     QObject::connect(m_pUI->ActionCopyHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextCopyHyperlinkAction));
     QObject::connect(m_pUI->ActionRemoveHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextRemoveHyperlinkAction));
-    // Format buttons
-    QObject::connect(m_pUI->formatJustifyLeftPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
-    QObject::connect(m_pUI->formatJustifyCenterPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
-    QObject::connect(m_pUI->formatJustifyRightPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAlignRightAction));
-    QObject::connect(m_pUI->insertHorizontalLinePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextAddHorizontalLineAction));
-    QObject::connect(m_pUI->formatIndentMorePushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextIncreaseIndentationAction));
-    QObject::connect(m_pUI->formatIndentLessPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextDecreaseIndentationAction));
-    QObject::connect(m_pUI->formatListUnorderedPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
-    QObject::connect(m_pUI->formatListOrderedPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
-    QObject::connect(m_pUI->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton,clicked), this, QNSLOT(MainWindow,onNoteTextInsertToDoCheckBoxAction));
-    QObject::connect(m_pUI->chooseTextColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),
-                     this, QNSLOT(MainWindow,onNoteChooseTextColor,QColor));
-    QObject::connect(m_pUI->chooseBackgroundColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),
-                     this, QNSLOT(MainWindow,onNoteChooseBackgroundColor,QColor));
-    QObject::connect(m_pUI->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
-                     this, QNSLOT(MainWindow,onNoteTextInsertTable,int,int,double,bool));
-}
-
-void MainWindow::connectActionsToSlots()
-{
-    QObject::connect(m_pUI->ActionFindInsideNote, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onFindInsideNoteAction));
-    QObject::connect(m_pUI->ActionFindNext, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onFindInsideNoteAction));
-    QObject::connect(m_pUI->ActionFindPrevious, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onFindPreviousInsideNoteAction));
-    QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
-
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,closed), this, QNSLOT(MainWindow,onFindAndReplaceWidgetClosed));
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,textToFindEdited,const QString&),
-                     this, QNSLOT(MainWindow,onTextToFindInsideNoteEdited,const QString&));
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,findNext,const QString&,const bool),
-                     this, QNSLOT(MainWindow,onFindNextInsideNote,const QString&,const bool));
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,findPrevious,const QString&,const bool),
-                     this, QNSLOT(MainWindow,onFindPreviousInsideNote,const QString&,const bool));
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,searchCaseSensitivityChanged,const bool),
-                     this, QNSLOT(MainWindow,onFindInsideNoteCaseSensitivityChanged,const bool));
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,replace,const QString&,const QString&,const bool),
-                     this, QNSLOT(MainWindow,onReplaceInsideNote,const QString&,const QString&,const bool));
-    QObject::connect(m_pUI->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,replaceAll,const QString&,const QString&,const bool),
-                     this, QNSLOT(MainWindow,onReplaceAllInsideNote,const QString&,const QString&,const bool));
-}
-
-void MainWindow::connectEditorSignalsToSlots()
-{
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textBoldState,bool), this, QNSLOT(MainWindow,onNoteEditorBoldStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textItalicState,bool), this, QNSLOT(MainWindow,onNoteEditorItalicStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textStrikethroughState,bool), this, QNSLOT(MainWindow,onNoteEditorStrikethroughStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textUnderlineState,bool), this, QNSLOT(MainWindow,onNoteEditorUnderlineStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textAlignLeftState,bool), this, QNSLOT(MainWindow,onNoteEditorAlignLeftStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textAlignCenterState,bool), this, QNSLOT(MainWindow,onNoteEditorAlignCenterStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textAlignRightState,bool), this, QNSLOT(MainWindow,onNoteEditorAlignRightStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideOrderedListStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideUnorderedListStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textInsideTableState,bool), this, QNSLOT(MainWindow,onNoteEditorInsideTableStateChanged,bool));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontFamilyChanged,QString), this, QNSLOT(MainWindow,onNoteEditorFontFamilyChanged,QString));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,textFontSizeChanged,int), this, QNSLOT(MainWindow,onNoteEditorFontSizeChanged,int));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,insertTableDialogRequested), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerNotReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerNotReady));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,spellCheckerReady), this, QNSLOT(MainWindow,onNoteEditorSpellCheckerReady));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,notifyError,QNLocalizedString), this, QNSLOT(MainWindow,onNoteEditorError,QNLocalizedString));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -484,6 +417,30 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     }
 }
 
+void MainWindow::onUndoAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onUndoAction"));
+
+    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
+    if (!noteEditorWidget) {
+        return;
+    }
+
+    noteEditorWidget->onUndoAction();
+}
+
+void MainWindow::onRedoAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRedoAction"));
+
+    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
+    if (!noteEditorWidget) {
+        return;
+    }
+
+    noteEditorWidget->onRedoAction();
+}
+
 void MainWindow::onNoteTextBoldToggled()
 {
     m_pNoteEditor->textBold();
@@ -607,72 +564,9 @@ void MainWindow::onNoteTextRemoveHyperlinkAction()
     m_pNoteEditor->setFocus();
 }
 
-void MainWindow::onNoteChooseTextColor(QColor color)
-{
-    m_pNoteEditor->setFontColor(color);
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteChooseBackgroundColor(QColor color)
-{
-    m_pNoteEditor->setBackgroundColor(color);
-    m_pNoteEditor->setFocus();
-}
-
 void MainWindow::onNoteTextSpellCheckToggled()
 {
     m_pNoteEditor->setSpellcheck(m_pUI->spellCheckBox->isEnabled());
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextInsertToDoCheckBoxAction()
-{
-    m_pNoteEditor->insertToDoCheckbox();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextInsertTableDialogAction()
-{
-    QScopedPointer<TableSettingsDialog> tableSettingsDialogHolder(new TableSettingsDialog(this));
-    TableSettingsDialog * tableSettingsDialog = tableSettingsDialogHolder.data();
-    if (tableSettingsDialog->exec() == QDialog::Accepted)
-    {
-        QNTRACE(QStringLiteral("Returned from TableSettingsDialog::exec: accepted"));
-        int numRows = tableSettingsDialog->numRows();
-        int numColumns = tableSettingsDialog->numColumns();
-        double tableWidth = tableSettingsDialog->tableWidth();
-        bool relativeWidth = tableSettingsDialog->relativeWidth();
-
-        if (relativeWidth) {
-            m_pNoteEditor->insertRelativeWidthTable(numRows, numColumns, tableWidth);
-        }
-        else {
-            m_pNoteEditor->insertFixedWidthTable(numRows, numColumns, static_cast<int>(tableWidth));
-        }
-
-        m_pNoteEditor->setFocus();
-        return;
-    }
-
-    QNTRACE(QStringLiteral("Returned from TableSettingsDialog::exec: rejected"));
-}
-
-void MainWindow::onNoteTextInsertTable(int rows, int columns, double width, bool relativeWidth)
-{
-    rows = std::max(rows, 1);
-    columns = std::max(columns, 1);
-    width = std::max(width, 1.0);
-
-    if (relativeWidth) {
-        m_pNoteEditor->insertRelativeWidthTable(rows, columns, width);
-    }
-    else {
-        m_pNoteEditor->insertFixedWidthTable(rows, columns, static_cast<int>(width));
-    }
-
-    QNTRACE(QStringLiteral("Inserted table: rows = ") << rows << QStringLiteral(", columns = ") << columns
-            << QStringLiteral(", width = ") << width << QStringLiteral(", relative width = ")
-            << (relativeWidth ? QStringLiteral("true") : QStringLiteral("false")));
     m_pNoteEditor->setFocus();
 }
 
@@ -745,390 +639,93 @@ void MainWindow::onFindInsideNoteAction()
 {
     QNDEBUG(QStringLiteral("MainWindow::onFindInsideNoteAction"));
 
-    if (m_pUI->findAndReplaceWidget->isHidden())
-    {
-        QString textToFind = m_pNoteEditor->selectedText();
-        if (textToFind.isEmpty()) {
-            textToFind = m_pUI->findAndReplaceWidget->textToFind();
-        }
-        else {
-            m_pUI->findAndReplaceWidget->setTextToFind(textToFind);
-        }
-
-        m_pUI->findAndReplaceWidget->setHidden(false);
-        m_pUI->findAndReplaceWidget->show();
+    NoteEditorWidget * noteEditor = currentNoteEditor();
+    if (!noteEditor) {
+        return;
     }
 
-    onFindNextInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
+    noteEditor->onFindInsideNoteAction();
 }
 
 void MainWindow::onFindPreviousInsideNoteAction()
 {
     QNDEBUG(QStringLiteral("MainWindow::onFindPreviousInsideNoteAction"));
 
-    if (m_pUI->findAndReplaceWidget->isHidden())
-    {
-        QString textToFind = m_pNoteEditor->selectedText();
-        if (textToFind.isEmpty()) {
-            textToFind = m_pUI->findAndReplaceWidget->textToFind();
-        }
-        else {
-            m_pUI->findAndReplaceWidget->setTextToFind(textToFind);
-        }
-
-        m_pUI->findAndReplaceWidget->setHidden(false);
-        m_pUI->findAndReplaceWidget->show();
+    NoteEditorWidget * noteEditor = currentNoteEditor();
+    if (!noteEditor) {
+        return;
     }
 
-    onFindPreviousInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->matchCase());
+    noteEditor->onFindPreviousInsideNoteAction();
 }
 
 void MainWindow::onReplaceInsideNoteAction()
 {
     QNDEBUG(QStringLiteral("MainWindow::onReplaceInsideNoteAction"));
 
-    if (m_pUI->findAndReplaceWidget->isHidden() || !m_pUI->findAndReplaceWidget->replaceEnabled())
-    {
-        QNTRACE(QStringLiteral("At least the replacement part of find and replace widget is hidden, will only show it and do nothing else"));
-
-        QString textToFind = m_pNoteEditor->selectedText();
-        if (textToFind.isEmpty()) {
-            textToFind = m_pUI->findAndReplaceWidget->textToFind();
-        }
-        else {
-            m_pUI->findAndReplaceWidget->setTextToFind(textToFind);
-        }
-
-        m_pUI->findAndReplaceWidget->setHidden(false);
-        m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
-        m_pUI->findAndReplaceWidget->show();
+    NoteEditorWidget * noteEditor = currentNoteEditor();
+    if (!noteEditor) {
         return;
     }
 
-    onReplaceInsideNote(m_pUI->findAndReplaceWidget->textToFind(), m_pUI->findAndReplaceWidget->replacementText(), m_pUI->findAndReplaceWidget->matchCase());
-}
-
-void MainWindow::onFindAndReplaceWidgetClosed()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFindAndReplaceWidgetClosed"));
-    onFindNextInsideNote(QString(), false);
-}
-
-void MainWindow::onTextToFindInsideNoteEdited(const QString & textToFind)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onTextToFindInsideNoteEdited: ") << textToFind);
-
-    bool matchCase = m_pUI->findAndReplaceWidget->matchCase();
-    onFindNextInsideNote(textToFind, matchCase);
-}
-
-#define CHECK_FIND_AND_REPLACE_WIDGET_STATE() \
-    if (Q_UNLIKELY(m_pUI->findAndReplaceWidget->isHidden())) { \
-        QNTRACE(QStringLiteral("Find and replace widget is not shown, nothing to do")); \
-        return; \
-    }
-
-void MainWindow::onFindNextInsideNote(const QString & textToFind, const bool matchCase)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFindNextInsideNote: text to find = ") << textToFind << QStringLiteral(", match case = ")
-            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
-
-    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-    m_pNoteEditor->findNext(textToFind, matchCase);
-}
-
-void MainWindow::onFindPreviousInsideNote(const QString & textToFind, const bool matchCase)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFindPreviousInsideNote: text to find = ") << textToFind << QStringLiteral(", match case = ")
-            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
-
-    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-    m_pNoteEditor->findPrevious(textToFind, matchCase);
-}
-
-void MainWindow::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFindInsideNoteCaseSensitivityChanged: match case = ")
-            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
-
-    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-
-    QString textToFind = m_pUI->findAndReplaceWidget->textToFind();
-    m_pNoteEditor->findNext(textToFind, matchCase);
-}
-
-void MainWindow::onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onReplaceInsideNote: text to replace = ") << textToReplace << QStringLiteral(", replacement text = ")
-            << replacementText << QStringLiteral(", match case = ") << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
-
-    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-    m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
-
-    m_pNoteEditor->replace(textToReplace, replacementText, matchCase);
-}
-
-void MainWindow::onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onReplaceAllInsideNote: text to replace = ") << textToReplace << QStringLiteral(", replacement text = ")
-            << replacementText << QStringLiteral(", match case = ") << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
-
-    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
-    m_pUI->findAndReplaceWidget->setReplaceEnabled(true);
-
-    m_pNoteEditor->replaceAll(textToReplace, replacementText, matchCase);
-}
-
-#undef CHECK_FIND_AND_REPLACE_WIDGET_STATE
-
-void MainWindow::onNoteEditorHtmlUpdate(QString html)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorHtmlUpdate"));
-    QNTRACE(QStringLiteral("Html: ") << html);
-
-    m_lastNoteEditorHtml = html;
-
-    if (!m_pUI->noteSourceView->isVisible()) {
-        return;
-    }
-
-    updateNoteHtmlView(html);
+    noteEditor->onReplaceInsideNoteAction();
 }
 
 void MainWindow::onNoteEditorError(QNLocalizedString error)
 {
     QNINFO(QStringLiteral("MainWindow::onNoteEditorError: ") << error);
+
+    NoteEditorWidget * noteEditor = qobject_cast<NoteEditorWidget*>(sender());
+    if (!noteEditor) {
+        QNTRACE(QStringLiteral("Can't cast caller to note editor widget, skipping"));
+        return;
+    }
+
+    NoteEditorWidget * currentEditor = currentNoteEditor();
+    if (!currentEditor || (currentEditor != noteEditor)) {
+        QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
+        return;
+    }
+
     onSetStatusBarText(error.localizedString(), 20000);
 }
 
 void MainWindow::onNoteEditorSpellCheckerNotReady()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteEditorSpellCheckerNotReady"));
+
+    NoteEditorWidget * noteEditor = qobject_cast<NoteEditorWidget*>(sender());
+    if (!noteEditor) {
+        QNTRACE(QStringLiteral("Can't cast caller to note editor widget, skipping"));
+        return;
+    }
+
+    NoteEditorWidget * currentEditor = currentNoteEditor();
+    if (!currentEditor || (currentEditor != noteEditor)) {
+        QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
+        return;
+    }
+
     onSetStatusBarText(tr("Spell checker is loading dictionaries, please wait"));
 }
 
 void MainWindow::onNoteEditorSpellCheckerReady()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteEditorSpellCheckerReady"));
+
+    NoteEditorWidget * noteEditor = qobject_cast<NoteEditorWidget*>(sender());
+    if (!noteEditor) {
+        QNTRACE(QStringLiteral("Can't cast caller to note editor widget, skipping"));
+        return;
+    }
+
+    NoteEditorWidget * currentEditor = currentNoteEditor();
+    if (!currentEditor || (currentEditor != noteEditor)) {
+        QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
+        return;
+    }
+
     onSetStatusBarText(QString());
-}
-
-void MainWindow::onNoteEditorBoldStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorBoldStateChanged: ") << (state ? QStringLiteral("bold") : QStringLiteral("not bold")));
-    m_pUI->fontBoldPushButton->setChecked(state);
-}
-
-void MainWindow::onNoteEditorItalicStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorItalicStateChanged: ") << (state ? QStringLiteral("italic") : QStringLiteral("not italic")));
-    m_pUI->fontItalicPushButton->setChecked(state);
-}
-
-void MainWindow::onNoteEditorUnderlineStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorUnderlineStateChanged: ") << (state ? QStringLiteral("underline") : QStringLiteral("not underline")));
-    m_pUI->fontUnderlinePushButton->setChecked(state);
-}
-
-void MainWindow::onNoteEditorStrikethroughStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorStrikethroughStateChanged: ") << (state ? QStringLiteral("strikethrough") : QStringLiteral("not strikethrough")));
-    m_pUI->fontStrikethroughPushButton->setChecked(state);
-}
-
-void MainWindow::onNoteEditorAlignLeftStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorAlignLeftStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUI->formatJustifyLeftPushButton->setChecked(state);
-
-    if (state) {
-        m_pUI->formatJustifyCenterPushButton->setChecked(false);
-        m_pUI->formatJustifyRightPushButton->setChecked(false);
-    }
-}
-
-void MainWindow::onNoteEditorAlignCenterStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorAlignCenterStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUI->formatJustifyCenterPushButton->setChecked(state);
-
-    if (state) {
-        m_pUI->formatJustifyLeftPushButton->setChecked(false);
-        m_pUI->formatJustifyRightPushButton->setChecked(false);
-    }
-}
-
-void MainWindow::onNoteEditorAlignRightStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorAlignRightStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUI->formatJustifyRightPushButton->setChecked(state);
-
-    if (state) {
-        m_pUI->formatJustifyLeftPushButton->setChecked(false);
-        m_pUI->formatJustifyCenterPushButton->setChecked(false);
-    }
-}
-
-void MainWindow::onNoteEditorInsideOrderedListStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorInsideOrderedListStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUI->formatListOrderedPushButton->setChecked(state);
-
-    if (state) {
-        m_pUI->formatListUnorderedPushButton->setChecked(false);
-    }
-}
-
-void MainWindow::onNoteEditorInsideUnorderedListStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorInsideUnorderedListStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUI->formatListUnorderedPushButton->setChecked(state);
-
-    if (state) {
-        m_pUI->formatListOrderedPushButton->setChecked(false);
-    }
-}
-
-void MainWindow::onNoteEditorInsideTableStateChanged(bool state)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorInsideTableStateChanged: ") << (state ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUI->insertTableToolButton->setEnabled(!state);
-}
-
-void MainWindow::onNoteEditorFontFamilyChanged(QString fontFamily)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorFontFamilyChanged: font family = ") << fontFamily);
-
-    if (m_lastFontComboBoxFontFamily == fontFamily) {
-        QNTRACE(QStringLiteral("Font family didn't change"));
-        return;
-    }
-
-    m_lastFontComboBoxFontFamily = fontFamily;
-
-    QFont currentFont(fontFamily);
-    m_pUI->fontComboBox->setCurrentFont(currentFont);
-    QNTRACE(QStringLiteral("Font family from combo box: ") << m_pUI->fontComboBox->currentFont().family()
-            << QStringLiteral(", font family set by QFont's constructor from it: ") << currentFont.family());
-
-    QFontDatabase fontDatabase;
-    QList<int> fontSizes = fontDatabase.pointSizes(currentFont.family(), currentFont.styleName());
-    // NOTE: it is important to use currentFont.family() in the call above instead of fontFamily variable
-    // because the two can be different by presence/absence of apostrophes around the font family name
-    if (fontSizes.isEmpty()) {
-        QNTRACE(QStringLiteral("Coulnd't find point sizes for font family ") << currentFont.family()
-                << QStringLiteral(", will use standard sizes instead"));
-        fontSizes = fontDatabase.standardSizes();
-    }
-
-    m_lastFontSizeComboBoxIndex = 0;    // NOTE: clearing out font sizes combo box causes unwanted update of its index to 0, workarounding it
-    m_pUI->fontSizeComboBox->clear();
-    int numFontSizes = fontSizes.size();
-    QNTRACE(QStringLiteral("Found ") << numFontSizes << QStringLiteral(" font sizes for font family ") << currentFont.family());
-
-    for(int i = 0; i < numFontSizes; ++i) {
-        m_pUI->fontSizeComboBox->addItem(QString::number(fontSizes[i]), QVariant(fontSizes[i]));
-        QNTRACE(QStringLiteral("Added item ") << fontSizes[i] << QStringLiteral("pt for index ") << i);
-    }
-    m_lastFontSizeComboBoxIndex = -1;
-}
-
-void MainWindow::onNoteEditorFontSizeChanged(int fontSize)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onNoteEditorFontSizeChanged: font size = ") << fontSize);
-    int fontSizeIndex = m_pUI->fontSizeComboBox->findData(QVariant(fontSize), Qt::UserRole);
-    if (fontSizeIndex >= 0)
-    {
-        m_lastFontSizeComboBoxIndex = fontSizeIndex;
-        if (m_pUI->fontSizeComboBox->currentIndex() != fontSizeIndex) {
-            m_pUI->fontSizeComboBox->setCurrentIndex(fontSizeIndex);
-            QNTRACE(QStringLiteral("fontSizeComboBox: set current index to ") << fontSizeIndex
-                    << QStringLiteral(", found font size = ") << QVariant(fontSize));
-        }
-    }
-    else
-    {
-        QNDEBUG(QStringLiteral("Can't find font size ") << fontSize
-                << QStringLiteral(" within those listed in font size combobox, will try to choose the closest one instead"));
-        const int numFontSizes = m_pUI->fontSizeComboBox->count();
-        int currentSmallestDiscrepancy = 1e5;
-        int currentClosestIndex = -1;
-        for(int i = 0; i < numFontSizes; ++i)
-        {
-            QVariant value = m_pUI->fontSizeComboBox->itemData(i, Qt::UserRole);
-            bool conversionResult = false;
-            int valueInt = value.toInt(&conversionResult);
-            if (!conversionResult) {
-                QNWARNING(QStringLiteral("Can't convert value from font size combo box to int: ") << value);
-                continue;
-            }
-
-            int discrepancy = abs(valueInt - fontSize);
-            if (currentSmallestDiscrepancy > discrepancy) {
-                currentSmallestDiscrepancy = discrepancy;
-                currentClosestIndex = i;
-                QNTRACE(QStringLiteral("Updated current closest index to ") << i << QStringLiteral(": font size = ") << valueInt);
-            }
-        }
-
-        if (currentClosestIndex >= 0) {
-            QNTRACE(QStringLiteral("Setting current font size index to ") << currentClosestIndex);
-            m_lastFontSizeComboBoxIndex = currentClosestIndex;
-            if (m_pUI->fontSizeComboBox->currentIndex() != currentClosestIndex) {
-                m_pUI->fontSizeComboBox->setCurrentIndex(currentClosestIndex);
-            }
-        }
-        else {
-            QNDEBUG(QStringLiteral("Couldn't find closest font size to ") << fontSize);
-        }
-    }
-}
-
-void MainWindow::onFontComboBoxFontChanged(QFont font)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFontComboBoxFontChanged: font family = ") << font.family());
-
-    m_pNoteEditor->setFont(font);
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onFontSizeComboBoxIndexChanged(int currentIndex)
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFontSizeComboBoxIndexChanged: current index = ") << currentIndex);
-
-    if (currentIndex == m_lastFontSizeComboBoxIndex) {
-        QNTRACE(QStringLiteral("Already cached that index"));
-        return;
-    }
-
-    if (Q_UNLIKELY(!m_pNoteEditor)) {
-        QNDEBUG(QStringLiteral("Note editor is not set"));
-        return;
-    }
-
-    if (Q_UNLIKELY(currentIndex < 0)) {
-        QNDEBUG(QStringLiteral("Invalid font size combo box index = ") << currentIndex);
-        return;
-    }
-
-    if (m_pUI->fontSizeComboBox->count() == 0) {
-        QNDEBUG(QStringLiteral("Font size combo box is empty"));
-        return;
-    }
-
-    QVariant value = m_pUI->fontSizeComboBox->itemData(currentIndex, Qt::UserRole);
-    bool conversionResult = false;
-    int valueInt = value.toInt(&conversionResult);
-    if (Q_UNLIKELY(!conversionResult)) {
-        QNWARNING(QStringLiteral("Can't convert font size combo box value to int: ") << value);
-        return;
-    }
-
-    m_lastFontSizeComboBoxIndex = currentIndex;
-
-    QNTRACE(QStringLiteral("Parsed font size ") << valueInt << QStringLiteral(" from value ") << value);
-    m_pNoteEditor->setFontHeight(valueInt);
 }
 
 void MainWindow::onAddAccountActionTriggered(bool checked)

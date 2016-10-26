@@ -360,6 +360,16 @@ void NoteEditorWidget::onEditorInsertTable(int rows, int columns, double width, 
     m_pUi->noteEditor->setFocus();
 }
 
+void NoteEditorWidget::onUndoAction()
+{
+    m_pUi->noteEditor->undo();
+}
+
+void NoteEditorWidget::onRedoAction()
+{
+    m_pUi->noteEditor->redo();
+}
+
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
     if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
@@ -918,9 +928,163 @@ void NoteEditorWidget::onEditorHtmlUpdate(QString html)
     updateNoteSourceView(html);
 }
 
+void NoteEditorWidget::onFindInsideNoteAction()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindInsideNoteAction"));
+
+    if (m_pUi->findAndReplaceWidget->isHidden())
+    {
+        QString textToFind = m_pUi->noteEditor->selectedText();
+        if (textToFind.isEmpty()) {
+            textToFind = m_pUi->findAndReplaceWidget->textToFind();
+        }
+        else {
+            m_pUi->findAndReplaceWidget->setTextToFind(textToFind);
+        }
+
+        m_pUi->findAndReplaceWidget->setHidden(false);
+        m_pUi->findAndReplaceWidget->show();
+    }
+
+    onFindNextInsideNote(m_pUi->findAndReplaceWidget->textToFind(),
+                         m_pUi->findAndReplaceWidget->matchCase());
+}
+
+void NoteEditorWidget::onFindPreviousInsideNoteAction()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindPreviousInsideNoteAction"));
+
+    if (m_pUi->findAndReplaceWidget->isHidden())
+    {
+        QString textToFind = m_pUi->noteEditor->selectedText();
+        if (textToFind.isEmpty()) {
+            textToFind = m_pUi->findAndReplaceWidget->textToFind();
+        }
+        else {
+            m_pUi->findAndReplaceWidget->setTextToFind(textToFind);
+        }
+
+        m_pUi->findAndReplaceWidget->setHidden(false);
+        m_pUi->findAndReplaceWidget->show();
+    }
+
+    onFindPreviousInsideNote(m_pUi->findAndReplaceWidget->textToFind(),
+                             m_pUi->findAndReplaceWidget->matchCase());
+}
+
+void NoteEditorWidget::onReplaceInsideNoteAction()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onReplaceInsideNoteAction"));
+
+    if (m_pUi->findAndReplaceWidget->isHidden() ||
+        !m_pUi->findAndReplaceWidget->replaceEnabled())
+    {
+        QNTRACE(QStringLiteral("At least the replacement part of find and replace widget "
+                               "is hidden, will only show it and do nothing else"));
+
+        QString textToFind = m_pUi->noteEditor->selectedText();
+        if (textToFind.isEmpty()) {
+            textToFind = m_pUi->findAndReplaceWidget->textToFind();
+        }
+        else {
+            m_pUi->findAndReplaceWidget->setTextToFind(textToFind);
+        }
+
+        m_pUi->findAndReplaceWidget->setHidden(false);
+        m_pUi->findAndReplaceWidget->setReplaceEnabled(true);
+        m_pUi->findAndReplaceWidget->show();
+        return;
+    }
+
+    onReplaceInsideNote(m_pUi->findAndReplaceWidget->textToFind(),
+                        m_pUi->findAndReplaceWidget->replacementText(),
+                        m_pUi->findAndReplaceWidget->matchCase());
+}
+
+void NoteEditorWidget::onFindAndReplaceWidgetClosed()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindAndReplaceWidgetClosed"));
+    onFindNextInsideNote(QString(), false);
+}
+
+void NoteEditorWidget::onTextToFindInsideNoteEdited(const QString & textToFind)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onTextToFindInsideNoteEdited: ") << textToFind);
+
+    bool matchCase = m_pUi->findAndReplaceWidget->matchCase();
+    onFindNextInsideNote(textToFind, matchCase);
+}
+
+#define CHECK_FIND_AND_REPLACE_WIDGET_STATE() \
+    if (Q_UNLIKELY(m_pUi->findAndReplaceWidget->isHidden())) { \
+        QNTRACE(QStringLiteral("Find and replace widget is not shown, nothing to do")); \
+        return; \
+    }
+
+void NoteEditorWidget::onFindNextInsideNote(const QString & textToFind, const bool matchCase)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindNextInsideNote: text to find = ")
+            << textToFind << QStringLiteral(", match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+    m_pUi->noteEditor->findNext(textToFind, matchCase);
+}
+
+void NoteEditorWidget::onFindPreviousInsideNote(const QString & textToFind, const bool matchCase)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindPreviousInsideNote: text to find = ")
+            << textToFind << QStringLiteral(", match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+    m_pUi->noteEditor->findPrevious(textToFind, matchCase);
+}
+
+void NoteEditorWidget::onFindInsideNoteCaseSensitivityChanged(const bool matchCase)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onFindInsideNoteCaseSensitivityChanged: match case = ")
+            << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+
+    QString textToFind = m_pUi->findAndReplaceWidget->textToFind();
+    m_pUi->noteEditor->findNext(textToFind, matchCase);
+}
+
+void NoteEditorWidget::onReplaceInsideNote(const QString & textToReplace,
+                                           const QString & replacementText,
+                                           const bool matchCase)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onReplaceInsideNote: text to replace = ")
+            << textToReplace << QStringLiteral(", replacement text = ") << replacementText
+            << QStringLiteral(", match case = ") << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+    m_pUi->findAndReplaceWidget->setReplaceEnabled(true);
+
+    m_pUi->noteEditor->replace(textToReplace, replacementText, matchCase);
+}
+
+void NoteEditorWidget::onReplaceAllInsideNote(const QString & textToReplace,
+                                              const QString & replacementText,
+                                              const bool matchCase)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onReplaceAllInsideNote: text to replace = ")
+            << textToReplace << QStringLiteral(", replacement text = ") << replacementText
+            << QStringLiteral(", match case = ") << (matchCase ? QStringLiteral("true") : QStringLiteral("false")));
+
+    CHECK_FIND_AND_REPLACE_WIDGET_STATE()
+    m_pUi->findAndReplaceWidget->setReplaceEnabled(true);
+
+    m_pUi->noteEditor->replaceAll(textToReplace, replacementText, matchCase);
+}
+
+#undef CHECK_FIND_AND_REPLACE_WIDGET_STATE
+
 void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
 {
-    QNDEBUG("NoteEditorWidget::createConnections");
+    QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
 
     // Local signals to localStorageWorker's slots
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,updateNote,Note,bool,bool,QUuid),
@@ -995,6 +1159,22 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,notifyError,QNLocalizedString),
                      this, QNSIGNAL(NoteEditorWidget,notifyError,QNLocalizedString));
 
+    // Connect find and replace widget actions to local slots
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,closed),
+                     this, QNSLOT(NoteEditorWidget,onFindAndReplaceWidgetClosed));
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,textToFindEdited,const QString&),
+                     this, QNSLOT(NoteEditorWidget,onTextToFindInsideNoteEdited,const QString&));
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,findNext,const QString&,const bool),
+                     this, QNSLOT(NoteEditorWidget,onFindNextInsideNote,const QString&,const bool));
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,findPrevious,const QString&,const bool),
+                     this, QNSLOT(NoteEditorWidget,onFindPreviousInsideNote,const QString&,const bool));
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,searchCaseSensitivityChanged,const bool),
+                     this, QNSLOT(NoteEditorWidget,onFindInsideNoteCaseSensitivityChanged,const bool));
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,replace,const QString&,const QString&,const bool),
+                     this, QNSLOT(NoteEditorWidget,onReplaceInsideNote,const QString&,const QString&,const bool));
+    QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,replaceAll,const QString&,const QString&,const bool),
+                     this, QNSLOT(NoteEditorWidget,onReplaceAllInsideNote,const QString&,const QString&,const bool));
+
     // Connect toolbar buttons actions to local slots
     QObject::connect(m_pUi->fontBoldPushButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldToggled));
@@ -1030,6 +1210,18 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorInsertToDoCheckBoxAction));
     QObject::connect(m_pUi->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorInsertTable,int,int,double,bool));
+
+    // Connect toolbar button actions to editor slots
+    QObject::connect(m_pUi->copyPushButton, QNSIGNAL(QPushButton,clicked),
+                     m_pUi->noteEditor, QNSLOT(NoteEditor,copy));
+    QObject::connect(m_pUi->cutPushButton, QNSIGNAL(QPushButton,clicked),
+                     m_pUi->noteEditor, QNSLOT(NoteEditor,cut));
+    QObject::connect(m_pUi->pastePushButton, QNSIGNAL(QPushButton,clicked),
+                     m_pUi->noteEditor, QNSLOT(NoteEditor,paste));
+    QObject::connect(m_pUi->undoPushButton, QNSIGNAL(QPushButton,clicked),
+                     m_pUi->noteEditor, QNSLOT(NoteEditor,undo));
+    QObject::connect(m_pUi->redoPushButton, QNSIGNAL(QPushButton,clicked),
+                     m_pUi->noteEditor, QNSLOT(NoteEditor,redo));
 }
 
 void NoteEditorWidget::clear()

@@ -86,6 +86,14 @@ public Q_SLOTS:
     void onEditorInsertTableDialogAction();
     void onEditorInsertTable(int rows, int columns, double width, bool relativeWidth);
 
+    void onUndoAction();
+    void onRedoAction();
+
+    // Slots for find and replace actions
+    void onFindInsideNoteAction();
+    void onFindPreviousInsideNoteAction();
+    void onReplaceInsideNoteAction();
+
 private Q_SLOTS:
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
@@ -122,6 +130,15 @@ private Q_SLOTS:
     void onEditorSpellCheckerReady();
 
     void onEditorHtmlUpdate(QString html);
+
+    // Slots for find & replace widget events
+    void onFindAndReplaceWidgetClosed();
+    void onTextToFindInsideNoteEdited(const QString & textToFind);
+    void onFindNextInsideNote(const QString & textToFind, const bool matchCase);
+    void onFindPreviousInsideNote(const QString & textToFind, const bool matchCase);
+    void onFindInsideNoteCaseSensitivityChanged(const bool matchCase);
+    void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
+    void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);

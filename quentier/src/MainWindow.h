@@ -61,6 +61,9 @@ public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
 
 private Q_SLOTS:
+    void onUndoAction();
+    void onRedoAction();
+
     void onNoteTextBoldToggled();
     void onNoteTextItalicToggled();
     void onNoteTextUnderlineToggled();
@@ -79,16 +82,7 @@ private Q_SLOTS:
     void onNoteTextEditHyperlinkAction();
     void onNoteTextCopyHyperlinkAction();
     void onNoteTextRemoveHyperlinkAction();
-
-    void onNoteChooseTextColor(QColor color);
-    void onNoteChooseBackgroundColor(QColor color);
-
     void onNoteTextSpellCheckToggled();
-    void onNoteTextInsertToDoCheckBoxAction();
-
-    void onNoteTextInsertTableDialogAction();
-    void onNoteTextInsertTable(int rows, int columns, double width, bool relativeWidth);
-
     void onShowNoteSource();
 
     // Test notes for debugging
@@ -101,36 +95,10 @@ private Q_SLOTS:
     void onFindPreviousInsideNoteAction();
     void onReplaceInsideNoteAction();
 
-    void onFindAndReplaceWidgetClosed();
-    void onTextToFindInsideNoteEdited(const QString & textToFind);
-    void onFindNextInsideNote(const QString & textToFind, const bool matchCase);
-    void onFindPreviousInsideNote(const QString & textToFind, const bool matchCase);
-    void onFindInsideNoteCaseSensitivityChanged(const bool matchCase);
-    void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
-    void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
-
-    void onNoteEditorHtmlUpdate(QString html);
     void onNoteEditorError(QNLocalizedString error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();
-
-    // Slots used to reflect the change of formatting for the piece of text being the one currently pointed to by the text cursor in the note editor
-    void onNoteEditorBoldStateChanged(bool state);
-    void onNoteEditorItalicStateChanged(bool state);
-    void onNoteEditorUnderlineStateChanged(bool state);
-    void onNoteEditorStrikethroughStateChanged(bool state);
-    void onNoteEditorAlignLeftStateChanged(bool state);
-    void onNoteEditorAlignCenterStateChanged(bool state);
-    void onNoteEditorAlignRightStateChanged(bool state);
-    void onNoteEditorInsideOrderedListStateChanged(bool state);
-    void onNoteEditorInsideUnorderedListStateChanged(bool state);
-    void onNoteEditorInsideTableStateChanged(bool state);
-    void onNoteEditorFontFamilyChanged(QString fontFamily);
-    void onNoteEditorFontSizeChanged(int fontSize);
-
-    void onFontComboBoxFontChanged(QFont font);
-    void onFontSizeComboBoxIndexChanged(int currentIndex);
 
     void onAddAccountActionTriggered(bool checked);
     void onManageAccountsActionTriggered(bool checked);
@@ -146,8 +114,6 @@ private:
     void setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret);
 
     void connectActionsToSlots();
-    void connectActionsToEditorSlots();
-    void connectEditorSignalsToSlots();
     void addMenuActionsToMainWindow();
 
     NoteEditorWidget * currentNoteEditor();
