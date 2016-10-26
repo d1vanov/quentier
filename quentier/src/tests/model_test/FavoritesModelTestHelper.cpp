@@ -796,8 +796,8 @@ void FavoritesModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QNLocal
 
 void FavoritesModelTestHelper::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onFindNotebookFailed: notebook = " << notebook << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onFindNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
+            << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
@@ -807,21 +807,23 @@ void FavoritesModelTestHelper::onListNotebooksFailed(LocalStorageManager::ListOb
                                                      LocalStorageManager::OrderDirection::type orderDirection,
                                                      QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onListNotebooksFailed: flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
-            << ", linked notebook guid = " << (linkedNotebookGuid.isNull() ? QString("<null>") : linkedNotebookGuid)
-            << ", error description = " << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onListNotebooksFailed: flag = ") << flag << QStringLiteral(", limit = ")
+            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", linked notebook guid = ")
+            << (linkedNotebookGuid.isNull() ? QStringLiteral("<null>") : linkedNotebookGuid)
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
 
 void FavoritesModelTestHelper::onUpdateTagComplete(Tag tag, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onUpdateTagComplete: tag = " << tag << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateTagComplete: tag = ") << tag << QStringLiteral(", request id = ")
+            << requestId);
 
     if (m_expectingTagUpdateFromLocalStorage)
     {
-        if (tag.name() != "Manual tag name") {
+        if (tag.name() != QStringLiteral("Manual tag name")) {
             QString error = QT_TR_NOOP("The name of the tag updated in the local storage doesn't match the expected one");
             QNWARNING(error);
             emit failure();
@@ -853,16 +855,16 @@ void FavoritesModelTestHelper::onUpdateTagComplete(Tag tag, QUuid requestId)
 
 void FavoritesModelTestHelper::onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onUpdateTagFailed: tag = " << tag << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
+            << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
 
 void FavoritesModelTestHelper::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onFindTagFailed: tag = " << tag << "\nError description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onFindTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
+            << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
@@ -874,24 +876,25 @@ void FavoritesModelTestHelper::onListTagsFailed(LocalStorageManager::ListObjects
                                                 QString linkedNotebookGuid,
                                                 QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onListTagsFailed: flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
-            << ", linked notebook guid: is null = " << (linkedNotebookGuid.isNull() ? "true" : "false")
-            << ", is empty = " << (linkedNotebookGuid.isEmpty() ? "true" : "false") << ", value = "
-            << linkedNotebookGuid << ", error description = " << errorDescription << ", request id = "
-            << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onListTagsFailed: flag = ") << flag << QStringLiteral(", limit = ")
+            << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
+            << QStringLiteral(", direction = ") << orderDirection << QStringLiteral(", linked notebook guid: is null = ")
+            << (linkedNotebookGuid.isNull() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", is empty = ") << (linkedNotebookGuid.isEmpty() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", value = ") << linkedNotebookGuid << QStringLiteral(", error description = ")
+            << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
 
 void FavoritesModelTestHelper::onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onUpdateSavedSearchComplete: search = " << search
-            << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateSavedSearchComplete: search = ") << search
+            << QStringLiteral(", request id = ") << requestId);
 
     if (m_expectingSavedSearchUpdateFromLocalStorage)
     {
-        if (search.name() != "Manual saved search name") {
+        if (search.name() != QStringLiteral("Manual saved search name")) {
             QString error = QT_TR_NOOP("The name of the saved search updated in the local storage doesn't match the expected one");
             QNWARNING(error);
             emit failure();
@@ -923,16 +926,16 @@ void FavoritesModelTestHelper::onUpdateSavedSearchComplete(SavedSearch search, Q
 
 void FavoritesModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onUpdateSavedSearchFailed: search = " << search << ", error description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onUpdateSavedSearchFailed: search = ") << search
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
 
 void FavoritesModelTestHelper::onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onFindSavedSearchFailed: search = " << search << ", error description = "
-            << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onFindSavedSearchFailed: search = ") << search
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
@@ -943,16 +946,17 @@ void FavoritesModelTestHelper::onListSavedSearchesFailed(LocalStorageManager::Li
                                                          LocalStorageManager::OrderDirection::type orderDirection,
                                                          QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG("FavoritesModelTestHelper::onListSavedSearchesFailed: flag = " << flag << ", limit = " << limit
-            << ", offset = " << offset << ", order = " << order << ", direction = " << orderDirection
-            << ", error description = " << errorDescription << ", request id = " << requestId);
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::onListSavedSearchesFailed: flag = ") << flag
+            << QStringLiteral(", limit = ") << limit << QStringLiteral(", offset = ") << offset
+            << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ") << orderDirection
+            << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
 
     emit failure();
 }
 
 void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
 {
-    QNDEBUG("FavoritesModelTestHelper::checkSorting");
+    QNDEBUG(QStringLiteral("FavoritesModelTestHelper::checkSorting"));
 
     int numRows = model.rowCount(QModelIndex());
 
@@ -962,7 +966,7 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
     {
         const FavoritesModelItem * item = model.itemAtRow(i);
         if (Q_UNLIKELY(!item)) {
-            FAIL("Unexpected null pointer to the favorites model item");
+            FAIL(QStringLiteral("Unexpected null pointer to the favorites model item"));
         }
 
         items << *item;
@@ -1007,11 +1011,11 @@ void FavoritesModelTestHelper::checkSorting(const FavoritesModel & model)
     {
         const FavoritesModelItem * item = model.itemAtRow(i);
         if (Q_UNLIKELY(!item)) {
-            FAIL("Unexpected null pointer to the favorites model item");
+            FAIL(QStringLiteral("Unexpected null pointer to the favorites model item"));
         }
 
         if (item->localUid() != items[i].localUid()) {
-            FAIL("Found mismatched favorites model items when checking the sorting");
+            FAIL(QStringLiteral("Found mismatched favorites model items when checking the sorting"));
         }
     }
 }

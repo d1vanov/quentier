@@ -32,7 +32,7 @@ NewTagLineEditor::NewTagLineEditor(TagModel * pTagModel, QWidget *parent) :
     m_pCompleter(new QCompleter(this))
 {
     m_pUi->setupUi(this);
-    setPlaceholderText("+");
+    setPlaceholderText(QStringLiteral("+"));
     setupCompleter();
 
     QObject::connect(m_pTagModel, QNSIGNAL(TagModel,sortingChanged),
@@ -46,7 +46,7 @@ NewTagLineEditor::~NewTagLineEditor()
 
 void NewTagLineEditor::onTagModelSortingChanged()
 {
-    QNDEBUG("NewTagLineEditor::onTagModelSortingChanged");
+    QNDEBUG(QStringLiteral("NewTagLineEditor::onTagModelSortingChanged"));
     m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
                                    ? QCompleter::CaseSensitivelySortedModel : QCompleter::UnsortedModel);
 }
@@ -58,7 +58,7 @@ void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
     }
 
     int key = pEvent->key();
-    QNTRACE("NewTagLineEditor::keyPressEvent: key = " << key);
+    QNTRACE(QStringLiteral("NewTagLineEditor::keyPressEvent: key = ") << key);
 
     if (key == Qt::Key_Tab) {
         emit editingFinished();
@@ -70,7 +70,7 @@ void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
 
 void NewTagLineEditor::setupCompleter()
 {
-    QNDEBUG("NewTagLineEditor::setupCompleter");
+    QNDEBUG(QStringLiteral("NewTagLineEditor::setupCompleter"));
 
     m_pCompleter->setCaseSensitivity(Qt::CaseSensitive);
     m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
