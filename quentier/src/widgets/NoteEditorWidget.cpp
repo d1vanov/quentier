@@ -190,6 +190,11 @@ void NoteEditorWidget::hideNoteSource()
     m_pUi->noteSourceView->setHidden(true);
 }
 
+bool NoteEditorWidget::isSpellCheckEnabled() const
+{
+    return m_pUi->noteEditor->spellCheckEnabled();
+}
+
 void NoteEditorWidget::onEditorTextBoldToggled()
 {
     m_pUi->noteEditor->textBold();
@@ -363,11 +368,37 @@ void NoteEditorWidget::onEditorInsertTable(int rows, int columns, double width, 
 void NoteEditorWidget::onUndoAction()
 {
     m_pUi->noteEditor->undo();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onRedoAction()
 {
     m_pUi->noteEditor->redo();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onCopyAction()
+{
+    m_pUi->noteEditor->copy();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onCutAction()
+{
+    m_pUi->noteEditor->cut();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onPasteAction()
+{
+    m_pUi->noteEditor->paste();
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::onSelectAllAction()
+{
+    m_pUi->noteEditor->selectAll();
+    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -1122,7 +1153,7 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,currentNoteChanged,Note),
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
-                     this, QNSLOT(NoteEditorWIdget,onEditorHtmlUpdate,QString));
+                     this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
 
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textBoldState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldStateChanged,bool));

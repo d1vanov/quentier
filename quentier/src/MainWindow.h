@@ -20,6 +20,7 @@
 #define QUENTIER_MAINWINDOW_H
 
 #include "AccountManager.h"
+#include "widgets/NoteEditorWidget.h"
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Account.h>
@@ -42,7 +43,6 @@ class MainWindow;
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
-QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
@@ -63,7 +63,11 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onUndoAction();
     void onRedoAction();
+    void onCopyAction();
+    void onCutAction();
+    void onPasteAction();
 
+    void onNoteTextSelectAllToggled();
     void onNoteTextBoldToggled();
     void onNoteTextItalicToggled();
     void onNoteTextUnderlineToggled();
@@ -79,21 +83,22 @@ private Q_SLOTS:
     void onNoteTextDecreaseIndentationAction();
     void onNoteTextInsertUnorderedListAction();
     void onNoteTextInsertOrderedListAction();
+    void onNoteTextInsertTableDialogAction();
     void onNoteTextEditHyperlinkAction();
     void onNoteTextCopyHyperlinkAction();
     void onNoteTextRemoveHyperlinkAction();
     void onNoteTextSpellCheckToggled();
     void onShowNoteSource();
 
+    void onFindInsideNoteAction();
+    void onFindPreviousInsideNoteAction();
+    void onReplaceInsideNoteAction();
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
     void onSetTestReadOnlyNote();
     void onSetInkNote();
-
-    void onFindInsideNoteAction();
-    void onFindPreviousInsideNoteAction();
-    void onReplaceInsideNoteAction();
 
     void onNoteEditorError(QNLocalizedString error);
 
@@ -106,7 +111,6 @@ private Q_SLOTS:
 
 private:
     void checkThemeIconsAndSetFallbacks();
-    void updateNoteHtmlView(QString html);
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();
@@ -116,7 +120,7 @@ private:
     void connectActionsToSlots();
     void addMenuActionsToMainWindow();
 
-    NoteEditorWidget * currentNoteEditor();
+    quentier::NoteEditorWidget * currentNoteEditor();
 
     void prepareTestNoteWithResources();
     void prepareTestInkNote();

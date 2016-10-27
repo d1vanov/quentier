@@ -48,6 +48,8 @@ public:
     void showNoteSource();
     void hideNoteSource();
 
+    bool isSpellCheckEnabled() const;
+
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
 
@@ -73,6 +75,7 @@ public Q_SLOTS:
     void onEditorTextDecreaseIndentationAction();
     void onEditorTextInsertUnorderedListAction();
     void onEditorTextInsertOrderedListAction();
+    void onEditorTextInsertTableDialogRequested();
     void onEditorTextEditHyperlinkAction();
     void onEditorTextCopyHyperlinkAction();
     void onEditorTextRemoveHyperlinkAction();
@@ -88,6 +91,12 @@ public Q_SLOTS:
 
     void onUndoAction();
     void onRedoAction();
+
+    void onCopyAction();
+    void onCutAction();
+    void onPasteAction();
+
+    void onSelectAllAction();
 
     // Slots for find and replace actions
     void onFindInsideNoteAction();
@@ -124,7 +133,6 @@ private Q_SLOTS:
     void onEditorTextInsideTableStateChanged(bool state);
     void onEditorTextFontFamilyChanged(QString fontFamily);
     void onEditorTextFontSizeChanged(int fontSize);
-    void onEditorTextInsertTableDialogRequested();
 
     void onEditorSpellCheckerNotReady();
     void onEditorSpellCheckerReady();

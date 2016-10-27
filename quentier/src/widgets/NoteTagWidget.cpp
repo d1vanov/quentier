@@ -56,7 +56,7 @@ void NoteTagWidget::setTagName(const QString & name)
 
 void NoteTagWidget::onCanCreateTagRestrictionChanged(bool canCreateTag)
 {
-    m_pUi->pushButton->setHidden(!canCreateTag);
+    m_pUi->deleteTagButton->setHidden(!canCreateTag);
 }
 
 void NoteTagWidget::onRemoveTagButtonPressed()

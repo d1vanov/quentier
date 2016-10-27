@@ -20,7 +20,6 @@
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
-#include "widgets/NoteEditorWidget.h"
 #include "tests/ManualTestingHelper.h"
 
 // workarouding Qt4 Designer's inability to work with namespaces
@@ -30,6 +29,7 @@ using quentier::FindAndReplaceWidget;
 
 #include <quentier/note_editor/NoteEditor.h>
 using quentier::NoteEditor;
+using quentier::NoteEditorWidget;
 #include "ui_MainWindow.h"
 
 #include <quentier/types/Note.h>
@@ -70,8 +70,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_lastNoteEditorHtml(),
     m_testNotebook(),
     m_testNote(),
-    m_pAccount(),
     m_pAccountManager(new AccountManager(this)),
+    m_pAccount(new Account(m_pAccountManager->currentAccount())),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_pUndoStack(new QUndoStack(this)),
@@ -80,8 +80,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
     m_pUI->setupUi(this);
-
-    m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
     setupDefaultShortcuts();
     setupUserShortcuts();
@@ -95,9 +93,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
                      this, QNSLOT(MainWindow, onShowNoteSource));
-    QObject::connect(m_pNoteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
-                     this, QNSLOT(MainWindow,onNoteEditorHtmlUpdate,QString));
-
     QObject::connect(m_pUI->ActionSetTestNoteWithEncryptedData, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSetTestNoteWithEncryptedData));
     QObject::connect(m_pUI->ActionSetTestNoteWithResources, QNSIGNAL(QAction,triggered),
@@ -136,9 +131,12 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionRedo, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onRedoAction));
     // Copy/cut/paste actions
-    QObject::connect(m_pUI->ActionCopy, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,copy));
-    QObject::connect(m_pUI->ActionCut, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,cut));
-    QObject::connect(m_pUI->ActionPaste, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,paste));
+    QObject::connect(m_pUI->ActionCopy, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onCopyAction));
+    QObject::connect(m_pUI->ActionCut, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onCutAction));
+    QObject::connect(m_pUI->ActionPaste, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onPasteAction));
     // Select all action
     QObject::connect(m_pUI->ActionSelectAll, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,selectAll));
     // Font actions
@@ -417,157 +415,65 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     }
 }
 
-void MainWindow::onUndoAction()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onUndoAction"));
-
-    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
-    if (!noteEditorWidget) {
-        return;
+#define DISPATCH_TO_NOTE_EDITOR(MainWindowMethod, NoteEditorMethod) \
+    void MainWindow::MainWindowMethod() \
+    { \
+        QNDEBUG(QStringLiteral("MainWindow::" #MainWindowMethod)); \
+        \
+        NoteEditorWidget * noteEditorWidget = currentNoteEditor(); \
+        if (!noteEditorWidget) { \
+            return; \
+        } \
+        \
+        noteEditorWidget->NoteEditorMethod(); \
     }
 
-    noteEditorWidget->onUndoAction();
-}
+DISPATCH_TO_NOTE_EDITOR(onUndoAction, onUndoAction)
+DISPATCH_TO_NOTE_EDITOR(onRedoAction, onRedoAction)
+DISPATCH_TO_NOTE_EDITOR(onCopyAction, onCopyAction)
+DISPATCH_TO_NOTE_EDITOR(onCutAction, onCutAction)
+DISPATCH_TO_NOTE_EDITOR(onPasteAction, onPasteAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextSelectAllToggled, onSelectAllAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextBoldToggled, onEditorTextBoldToggled)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextItalicToggled, onEditorTextItalicToggled)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextUnderlineToggled, onEditorTextUnderlineToggled)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextStrikethroughToggled, onEditorTextStrikethroughToggled)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignLeftAction, onEditorTextAlignLeftAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignCenterAction, onEditorTextAlignCenterAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignRightAction, onEditorTextAlignRightAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextAddHorizontalLineAction, onEditorTextAddHorizontalLineAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextIncreaseFontSizeAction, onEditorTextIncreaseFontSizeAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextDecreaseFontSizeAction, onEditorTextDecreaseFontSizeAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextHighlightAction, onEditorTextHighlightAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextIncreaseIndentationAction, onEditorTextIncreaseIndentationAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextDecreaseIndentationAction, onEditorTextDecreaseIndentationAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertUnorderedListAction, onEditorTextInsertUnorderedListAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertOrderedListAction, onEditorTextInsertOrderedListAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextInsertTableDialogAction, onEditorTextInsertTableDialogRequested)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextEditHyperlinkAction, onEditorTextEditHyperlinkAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextCopyHyperlinkAction, onEditorTextCopyHyperlinkAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextRemoveHyperlinkAction, onEditorTextRemoveHyperlinkAction)
+DISPATCH_TO_NOTE_EDITOR(onFindInsideNoteAction, onFindInsideNoteAction)
+DISPATCH_TO_NOTE_EDITOR(onFindPreviousInsideNoteAction, onFindPreviousInsideNoteAction)
+DISPATCH_TO_NOTE_EDITOR(onReplaceInsideNoteAction, onReplaceInsideNoteAction)
 
-void MainWindow::onRedoAction()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onRedoAction"));
-
-    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
-    if (!noteEditorWidget) {
-        return;
-    }
-
-    noteEditorWidget->onRedoAction();
-}
-
-void MainWindow::onNoteTextBoldToggled()
-{
-    m_pNoteEditor->textBold();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextItalicToggled()
-{
-    m_pNoteEditor->textItalic();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextUnderlineToggled()
-{
-    m_pNoteEditor->textUnderline();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextStrikethroughToggled()
-{
-    m_pNoteEditor->textStrikethrough();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextAlignLeftAction()
-{
-    if (m_pUI->formatJustifyLeftPushButton->isChecked()) {
-        m_pUI->formatJustifyCenterPushButton->setChecked(false);
-        m_pUI->formatJustifyRightPushButton->setChecked(false);
-    }
-
-    m_pNoteEditor->alignLeft();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextAlignCenterAction()
-{
-    if (m_pUI->formatJustifyCenterPushButton->isChecked()) {
-        m_pUI->formatJustifyLeftPushButton->setChecked(false);
-        m_pUI->formatJustifyRightPushButton->setChecked(false);
-    }
-
-    m_pNoteEditor->alignCenter();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextAlignRightAction()
-{
-    if (m_pUI->formatJustifyRightPushButton->isChecked()) {
-        m_pUI->formatJustifyLeftPushButton->setChecked(false);
-        m_pUI->formatJustifyCenterPushButton->setChecked(false);
-    }
-
-    m_pNoteEditor->alignRight();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextAddHorizontalLineAction()
-{
-    m_pNoteEditor->insertHorizontalLine();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextIncreaseFontSizeAction()
-{
-    m_pNoteEditor->increaseFontSize();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextDecreaseFontSizeAction()
-{
-    m_pNoteEditor->decreaseFontSize();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextHighlightAction()
-{
-    m_pNoteEditor->textHighlight();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextIncreaseIndentationAction()
-{
-    m_pNoteEditor->increaseIndentation();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextDecreaseIndentationAction()
-{
-    m_pNoteEditor->decreaseIndentation();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextInsertUnorderedListAction()
-{
-    m_pNoteEditor->insertBulletedList();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextInsertOrderedListAction()
-{
-    m_pNoteEditor->insertNumberedList();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextEditHyperlinkAction()
-{
-    m_pNoteEditor->editHyperlinkDialog();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextCopyHyperlinkAction()
-{
-    m_pNoteEditor->copyHyperlink();
-    m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onNoteTextRemoveHyperlinkAction()
-{
-    m_pNoteEditor->removeHyperlink();
-    m_pNoteEditor->setFocus();
-}
+#undef DISPATCH_TO_NOTE_EDITOR
 
 void MainWindow::onNoteTextSpellCheckToggled()
 {
-    m_pNoteEditor->setSpellcheck(m_pUI->spellCheckBox->isEnabled());
-    m_pNoteEditor->setFocus();
+    QNDEBUG(QStringLiteral("MainWindow::onNoteTextSpellCheckToggled"));
+
+    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
+    if (!noteEditorWidget) {
+        return;
+    }
+
+    if (noteEditorWidget->isSpellCheckEnabled()) {
+        noteEditorWidget->onEditorSpellCheckStateChanged(Qt::Unchecked);
+    }
+    else {
+        noteEditorWidget->onEditorSpellCheckStateChanged(Qt::Checked);
+    }
 }
 
 void MainWindow::onShowNoteSource()
@@ -633,42 +539,6 @@ void MainWindow::onSetInkNote()
 
     m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
     m_pNoteEditor->setFocus();
-}
-
-void MainWindow::onFindInsideNoteAction()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFindInsideNoteAction"));
-
-    NoteEditorWidget * noteEditor = currentNoteEditor();
-    if (!noteEditor) {
-        return;
-    }
-
-    noteEditor->onFindInsideNoteAction();
-}
-
-void MainWindow::onFindPreviousInsideNoteAction()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onFindPreviousInsideNoteAction"));
-
-    NoteEditorWidget * noteEditor = currentNoteEditor();
-    if (!noteEditor) {
-        return;
-    }
-
-    noteEditor->onFindPreviousInsideNoteAction();
-}
-
-void MainWindow::onReplaceInsideNoteAction()
-{
-    QNDEBUG(QStringLiteral("MainWindow::onReplaceInsideNoteAction"));
-
-    NoteEditorWidget * noteEditor = currentNoteEditor();
-    if (!noteEditor) {
-        return;
-    }
-
-    noteEditor->onReplaceInsideNoteAction();
 }
 
 void MainWindow::onNoteEditorError(QNLocalizedString error)
@@ -801,7 +671,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 
     if (!QIcon::hasThemeIcon(QStringLiteral("edit-cut"))) {
         QIcon editCutIcon(QStringLiteral(":/fallback_icons/png/edit-cut-6.png"));
-        m_pUI->cutPushButton->setIcon(editCutIcon);
         m_pUI->ActionCut->setIcon(editCutIcon);
         QNTRACE(QStringLiteral("set fallback edit-cut icon"));
     }
@@ -935,7 +804,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         QIcon insertTableIcon(QStringLiteral(":/fallback_icons/png/insert-table.png"));
         m_pUI->ActionInsertTable->setIcon(insertTableIcon);
         m_pUI->menuTable->setIcon(insertTableIcon);
-        m_pUI->insertTableToolButton->setIcon(insertTableIcon);
         QNTRACE(QStringLiteral("set fallback insert-table icon"));
     }
 
@@ -962,11 +830,6 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
         QNTRACE(QStringLiteral("set fallback object-rotate-right icon"));
     }
-}
-
-void MainWindow::updateNoteHtmlView(QString html)
-{
-    m_pUI->noteSourceView->setPlainText(html);
 }
 
 void MainWindow::setupDefaultShortcuts()
