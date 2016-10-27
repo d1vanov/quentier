@@ -18,9 +18,20 @@
 
 #include "AccountManager.h"
 #include "dialogs/ManageAccountsDialog.h"
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QXmlStreamWriter>
+
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/scope_exit.hpp>
+#endif
+
+#define ACCOUNT_SETTINGS_GROUP QStringLiteral("AccountSettings")
+#define LAST_USED_ACCOUNT_NAME QStringLiteral("LastUsedAccountName")
+#define LAST_USED_ACCOUNT_TYPE QStringLiteral("LastUsedAccountType")
+#define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
 
 using namespace quentier;
 
@@ -35,8 +46,12 @@ Account AccountManager::currentAccount()
 {
     QNDEBUG(QStringLiteral("AccountManager::currentAccount"));
 
-    // TODO: try to find within the app settings the last used account and pick it
-    return Account("Default user", Account::Type::Local);
+    QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
+    if (pLastUsedAccount.isNull()) {
+        return Account("Default user", Account::Type::Local);
+    }
+
+    return *pLastUsedAccount;
 }
 
 void AccountManager::raiseAddAccountDialog()
@@ -149,4 +164,70 @@ QString AccountManager::createDefaultAccount()
     m_availableAccounts << availableAccount;
 
     return username;
+}
+
+QSharedPointer<Account> AccountManager::lastUsedAccount() const
+{
+    QNDEBUG(QStringLiteral("AccountManager::lastUsedAccount"));
+
+    QSharedPointer<Account> result;
+
+    ApplicationSettings appSettings;
+
+    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+
+    BOOST_SCOPE_EXIT(&appSettings) { \
+        appSettings.endGroup();
+    } BOOST_SCOPE_EXIT_END
+
+    QVariant name = appSettings.value(LAST_USED_ACCOUNT_NAME);
+    if (name.isNull()) {
+        QNDEBUG(QStringLiteral("Can't find last used account's name"));
+        return result;
+    }
+
+    QString accountName = name.toString();
+    if (accountName.isEmpty()) {
+        QNDEBUG(QStringLiteral("Last used account's name is empty"));
+        return result;
+    }
+
+    QVariant type = appSettings.value(LAST_USED_ACCOUNT_TYPE);
+    if (type.isNull()) {
+        QNDEBUG(QStringLiteral("Can't find last used account's type"));
+        return result;
+    }
+
+    bool isLocal = type.toBool();
+
+    qevercloud::UserID id = -1;
+    if (!isLocal)
+    {
+        QVariant userId = appSettings.value(LAST_USED_ACCOUNT_ID);
+        if (userId.isNull()) {
+            QNDEBUG(QStringLiteral("Can't find last used account's id"));
+            return result;
+        }
+
+        bool conversionResult = false;
+        id = userId.toInt(&conversionResult);
+        if (!conversionResult) {
+            QNDEBUG(QStringLiteral("Can't convert the last used account's id to int"));
+            return result;
+        }
+    }
+
+    // Now need to check whether such an account exists
+    QString appPersistenceStoragePath = applicationPersistentStoragePath();
+    QString accountDirName = (isLocal
+                              ? (QStringLiteral("local_") + accountName)
+                              : (accountName + QStringLiteral("_") + QString::number(id)));
+    QFileInfo accountFileInfo(appPersistenceStoragePath + QStringLiteral("/") +
+                              accountDirName + QStringLiteral("/accountInfo.txt"));
+    if (accountFileInfo.exists()) {
+        result = QSharedPointer<Account>(new Account(accountName, (isLocal ? Account::Type::Local : Account::Type::Evernote), id));
+        // TODO: set Evernote account type and other supplementary info into this new account object
+    }
+
+    return result;
 }

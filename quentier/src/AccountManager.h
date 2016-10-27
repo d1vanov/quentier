@@ -23,6 +23,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
+#include <QSharedPointer>
 #include <QVector>
 
 class AccountManager: public QObject
@@ -52,6 +53,10 @@ private:
 
     // Returns the username for the default local account
     QString createDefaultAccount();
+
+    // Tries to restore the last used account from the app settings;
+    // in case of success returns non-null pointer to account, null otherwise
+    QSharedPointer<quentier::Account> lastUsedAccount() const;
 
 private:
     QVector<AvailableAccount>   m_availableAccounts;

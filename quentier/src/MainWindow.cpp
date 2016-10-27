@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNotebook(),
     m_testNote(),
     m_pAccountManager(new AccountManager(this)),
-    m_pAccount(new Account(m_pAccountManager->currentAccount())),
+    m_pAccount(),
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_pUndoStack(new QUndoStack(this)),
@@ -80,6 +80,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
     m_pUI->setupUi(this);
+
+    m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
     setupDefaultShortcuts();
     setupUserShortcuts();
