@@ -245,7 +245,7 @@ void SpellChecker::onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAff
 {
     QNDEBUG(QStringLiteral("SpellChecker::onDictionariesFound"));
 
-    for(auto it = files.begin(), end = files.end(); it != end; ++it)
+    for(auto it = files.constBegin(), end = files.constEnd(); it != end; ++it)
     {
         const QPair<QString, QString> & pair = it.value();
         QByteArray dictionaryFilePathData = pair.first.toLocal8Bit();

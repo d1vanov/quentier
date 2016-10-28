@@ -20,13 +20,18 @@
 #define QUENTIER_MAINWINDOW_H
 
 #include "AccountManager.h"
+#include "models/NotebookCache.h"
+#include "models/TagCache.h"
+#include "models/SavedSearchCache.h"
+#include "models/NoteCache.h"
+#include "models/NotebookModel.h"
+#include "models/TagModel.h"
+#include "models/SavedSearchModel.h"
+#include "models/NoteModel.h"
+#include "models/FavoritesModel.h"
 #include "widgets/NoteEditorWidget.h"
-#include <quentier/types/Notebook.h>
-#include <quentier/types/Note.h>
-#include <quentier/types/Account.h>
-#include <quentier/utility/Qt4Helper.h>
-#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/utility/ShortcutManager.h>
+#include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 
 #include <QtCore>
 
@@ -48,7 +53,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 }
 
-using quentier::QNLocalizedString;
+using namespace quentier;
 
 class MainWindow : public QMainWindow
 {
@@ -59,6 +64,10 @@ public:
 
 public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
+
+Q_SIGNALS:
+    // private signals
+    void localStorageSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
 
 private Q_SLOTS:
     void onUndoAction();
@@ -109,9 +118,14 @@ private Q_SLOTS:
     void onManageAccountsActionTriggered(bool checked);
     void onSwitchAccountActionToggled(bool checked);
 
+    void onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId);
+    void onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId);
+
 private:
     void checkThemeIconsAndSetFallbacks();
 
+    void setupLocalStorageManager();
+    void setupModels();
     void setupDefaultShortcuts();
     void setupUserShortcuts();
 
@@ -120,7 +134,7 @@ private:
     void connectActionsToSlots();
     void addMenuActionsToMainWindow();
 
-    quentier::NoteEditorWidget * currentNoteEditor();
+    NoteEditorWidget * currentNoteEditor();
 
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
@@ -128,17 +142,29 @@ private:
 private:
     Ui::MainWindow *        m_pUI;
     QWidget *               m_currentStatusBarChildWidget;
-    quentier::NoteEditor *  m_pNoteEditor;
     QString                 m_lastNoteEditorHtml;
 
-    quentier::Notebook      m_testNotebook;
-    quentier::Note          m_testNote;
+    AccountManager *            m_pAccountManager;
+    QScopedPointer<Account>     m_pAccount;
 
-    AccountManager *        m_pAccountManager;
-    QScopedPointer<quentier::Account>   m_pAccount;
+    QThread *               m_pLocalStorageManagerThread;
+    LocalStorageManagerThreadWorker *   m_pLocalStorageManager;
 
-    int                     m_lastFontSizeComboBoxIndex;
-    QString                 m_lastFontComboBoxFontFamily;
+    NotebookCache           m_notebookCache;
+    TagCache                m_tagCache;
+    SavedSearchCache        m_savedSearchCache;
+    NoteCache               m_noteCache;
+
+    NotebookModel *         m_pNotebookModel;
+    TagModel *              m_pTagModel;
+    SavedSearchModel *      m_pSavedSearchModel;
+    NoteModel *             m_pNoteModel;
+
+    NoteModel *             m_pDeletedNotesModel;
+    FavoritesModel *        m_pFavoritesModel;
+
+    Notebook                m_testNotebook;
+    Note                    m_testNote;
 
     QUndoStack *            m_pUndoStack;
 

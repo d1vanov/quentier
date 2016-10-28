@@ -21,17 +21,9 @@
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
 #include "tests/ManualTestingHelper.h"
-
-// workarouding Qt4 Designer's inability to work with namespaces
-
 #include "widgets/FindAndReplaceWidget.h"
-using quentier::FindAndReplaceWidget;
-
 #include <quentier/note_editor/NoteEditor.h>
-using quentier::NoteEditor;
-using quentier::NoteEditorWidget;
 #include "ui_MainWindow.h"
-
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Resource.h>
@@ -66,14 +58,23 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QMainWindow(pParentWidget),
     m_pUI(new Ui::MainWindow),
     m_currentStatusBarChildWidget(Q_NULLPTR),
-    m_pNoteEditor(Q_NULLPTR),
     m_lastNoteEditorHtml(),
-    m_testNotebook(),
-    m_testNote(),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
-    m_lastFontSizeComboBoxIndex(-1),
-    m_lastFontComboBoxFontFamily(),
+    m_pLocalStorageManagerThread(Q_NULLPTR),
+    m_pLocalStorageManager(Q_NULLPTR),
+    m_notebookCache(),
+    m_tagCache(),
+    m_savedSearchCache(),
+    m_noteCache(),
+    m_pNotebookModel(Q_NULLPTR),
+    m_pTagModel(Q_NULLPTR),
+    m_pSavedSearchModel(Q_NULLPTR),
+    m_pNoteModel(Q_NULLPTR),
+    m_pDeletedNotesModel(Q_NULLPTR),
+    m_pFavoritesModel(Q_NULLPTR),
+    m_testNotebook(),
+    m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
     m_shortcutManager(this)
 {
@@ -83,6 +84,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
+    setupLocalStorageManager();
+    setupModels();
     setupDefaultShortcuts();
     setupUserShortcuts();
 
@@ -106,13 +109,14 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     QString consumerKey, consumerSecret;
     setupConsumerKeyAndSecret(consumerKey, consumerSecret);
-
-    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
-    m_pNoteEditor->setFocus();
 }
 
 MainWindow::~MainWindow()
 {
+    if (m_pLocalStorageManagerThread) {
+        m_pLocalStorageManagerThread->quit();
+    }
+
     delete m_pUI;
 }
 
@@ -140,7 +144,7 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionPaste, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onPasteAction));
     // Select all action
-    QObject::connect(m_pUI->ActionSelectAll, QNSIGNAL(QAction,triggered), m_pNoteEditor, QNSLOT(NoteEditor,selectAll));
+    QObject::connect(m_pUI->ActionSelectAll, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextSelectAllToggled));
     // Font actions
     QObject::connect(m_pUI->ActionFontBold, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
     QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
@@ -504,8 +508,8 @@ void MainWindow::onSetTestNoteWithEncryptedData()
 
     QString noteContent = test::ManualTestingHelper::noteContentWithEncryption();
     m_testNote.setContent(noteContent);
-    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
-    m_pNoteEditor->setFocus();
+
+    // TODO: set this note to editor, in new tab or replace existing tab (if any)
 }
 
 void MainWindow::onSetTestNoteWithResources()
@@ -517,8 +521,7 @@ void MainWindow::onSetTestNoteWithResources()
     m_testNote.setLocalUid(QStringLiteral("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe6}"));
     m_testNotebook.setCanUpdateNotes(true);
 
-    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
-    m_pNoteEditor->setFocus();
+    // TODO: set this note to editor, in new tab or replace existing tab (if any)
 }
 
 void MainWindow::onSetTestReadOnlyNote()
@@ -528,8 +531,7 @@ void MainWindow::onSetTestReadOnlyNote()
     m_testNote.setLocalUid(QStringLiteral("{ce8e5ea1-28fc-4842-a726-0d4a78dfcbe5}"));
     m_testNotebook.setCanUpdateNotes(false);
 
-    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
-    m_pNoteEditor->setFocus();
+    // TODO: set this note to editor, in new tab or replace existing tab (if any)
 }
 
 void MainWindow::onSetInkNote()
@@ -539,8 +541,7 @@ void MainWindow::onSetInkNote()
     m_testNote.setLocalUid(QStringLiteral("{96c747e2-7bdc-4805-a704-105cbfcc7fbe}"));
     m_testNotebook.setCanUpdateNotes(true);
 
-    m_pNoteEditor->setNoteAndNotebook(m_testNote, m_testNotebook);
-    m_pNoteEditor->setFocus();
+    // TODO: set this note to editor, in new tab or replace existing tab (if any)
 }
 
 void MainWindow::onNoteEditorError(QNLocalizedString error)
@@ -637,6 +638,21 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     QString accountName = action->text();
     Q_UNUSED(accountName);
     // TODO: implement further
+}
+
+void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
+{
+    Q_UNUSED(account)
+    Q_UNUSED(requestId)
+    // TODO: implement
+}
+
+void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
+{
+    Q_UNUSED(account)
+    Q_UNUSED(errorDescription)
+    Q_UNUSED(requestId)
+    // TODO: implement
 }
 
 void MainWindow::checkThemeIconsAndSetFallbacks()
@@ -832,6 +848,39 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
         QNTRACE(QStringLiteral("set fallback object-rotate-right icon"));
     }
+}
+
+void MainWindow::setupLocalStorageManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupLocalStorageManager"));
+
+    m_pLocalStorageManagerThread = new QThread;
+    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished), m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+    m_pLocalStorageManagerThread->start();
+
+    m_pLocalStorageManager = new LocalStorageManagerThreadWorker(*m_pAccount, /* start from scratch = */ false,
+                                                                 /* override lock = */ false);
+    m_pLocalStorageManager->moveToThread(m_pLocalStorageManagerThread);
+
+    QObject::connect(this, QNSIGNAL(MainWindow,localStorageSwitchUserRequest,Account,bool,QUuid),
+                     m_pLocalStorageManager, QNSLOT(LocalStorageManagerThreadWorker,onSwitchUserRequest,Account,bool,QUuid));
+    QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserComplete,Account,QUuid),
+                     this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestComplete,Account,QUuid));
+    QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserFailed,Account,QNLocalizedString,QUuid),
+                     this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,Account,QNLocalizedString,QUuid));
+}
+
+void MainWindow::setupModels()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupModels"));
+
+    m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager, m_notebookCache, this);
+    m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManager, m_tagCache, this);
+    m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager, m_savedSearchCache, this);
+    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
+
+    m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
+    m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache, m_notebookCache, m_tagCache, m_savedSearchCache, this);
 }
 
 void MainWindow::setupDefaultShortcuts()
