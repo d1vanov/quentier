@@ -51,6 +51,7 @@ set(${PROJECT_NAME}_HEADERS
     src/BasicXMLSyntaxHighlighter.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
+    src/dialogs/AddAccountDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/models/NewItemNameGenerator.hpp
     src/models/SavedSearchModel.h
@@ -92,6 +93,7 @@ set(${PROJECT_NAME}_SOURCES
     src/BasicXMLSyntaxHighlighter.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
+    src/dialogs/AddAccountDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
@@ -123,6 +125,7 @@ set(${PROJECT_NAME}_SOURCES
 
 set(FORMS
     src/MainWindow.ui
+    src/dialogs/AddAccountDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
