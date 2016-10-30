@@ -860,6 +860,7 @@ void MainWindow::setupLocalStorageManager()
 
     m_pLocalStorageManager = new LocalStorageManagerThreadWorker(*m_pAccount, /* start from scratch = */ false,
                                                                  /* override lock = */ false);
+    m_pLocalStorageManager->init();
     m_pLocalStorageManager->moveToThread(m_pLocalStorageManagerThread);
 
     QObject::connect(this, QNSIGNAL(MainWindow,localStorageSwitchUserRequest,Account,bool,QUuid),
