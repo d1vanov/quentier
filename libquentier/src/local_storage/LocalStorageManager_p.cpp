@@ -609,14 +609,6 @@ void LocalStorageManagerPrivate::switchUser(const Account & account,
     }
 
     // TODO: in future should check whether the upgrade from the previous database version is necessary
-
-    if (!query.exec(QStringLiteral("INSERT INTO Auxiliary DEFAULT VALUES"))) {
-        QString lastErrorText = m_sqlDatabase.lastError().text();
-        QNLocalizedString error = QT_TR_NOOP("can't initialize the auxiliary info table in the local storage database");
-        error += QStringLiteral(": ");
-        error += lastErrorText;
-        throw DatabaseSqlErrorException(error);
-    }
 }
 
 int LocalStorageManagerPrivate::userCount(QNLocalizedString & errorDescription) const
@@ -4013,7 +4005,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create BusinessUserInfo table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_user_delete_trigger "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS on_user_delete_trigger "
                                     "BEFORE DELETE ON Users "
                                     "BEGIN "
                                     "DELETE FROM UserAttributes WHERE id=OLD.id; "
@@ -4078,19 +4070,19 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create Notebooks table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE NotebookFTS USING FTS4(content=\"Notebooks\", "
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE IF NOT EXISTS NotebookFTS USING FTS4(content=\"Notebooks\", "
                                     "localUid, guid, notebookName)"));
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 NotebookFTS table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER NotebookFTS_BeforeDeleteTrigger BEFORE DELETE ON Notebooks "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS NotebookFTS_BeforeDeleteTrigger BEFORE DELETE ON Notebooks "
                                     "BEGIN "
                                     "DELETE FROM NotebookFTS WHERE localUid=old.localUid; "
                                     "END"));
     errorPrefix = QT_TR_NOOP("can't create NotebookFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER NotebookFTS_AfterInsertTrigger AFTER INSERT ON Notebooks "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS NotebookFTS_AfterInsertTrigger AFTER INSERT ON Notebooks "
                                     "BEGIN "
                                     "INSERT INTO NotebookFTS(NotebookFTS) VALUES('rebuild'); "
                                     "END"));
@@ -4254,7 +4246,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create index NotesNotebooks");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE NoteFTS USING FTS4(content=\"Notes\", localUid, titleNormalized, "
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE IF NOT EXISTS NoteFTS USING FTS4(content=\"Notes\", localUid, titleNormalized, "
                                     "contentListOfWords, contentContainsFinishedToDo, contentContainsUnfinishedToDo, "
                                     "contentContainsEncryption, creationTimestamp, modificationTimestamp, "
                                     "isActive, notebookLocalUid, notebookGuid, subjectDate, latitude, longitude, "
@@ -4264,21 +4256,21 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 table NoteFTS");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER NoteFTS_BeforeDeleteTrigger BEFORE DELETE ON Notes "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS NoteFTS_BeforeDeleteTrigger BEFORE DELETE ON Notes "
                                     "BEGIN "
                                     "DELETE FROM NoteFTS WHERE localUid=old.localUid; "
                                     "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger NoteFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER NoteFTS_AfterInsertTrigger AFTER INSERT ON Notes "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS NoteFTS_AfterInsertTrigger AFTER INSERT ON Notes "
                                     "BEGIN "
                                     "INSERT INTO NoteFTS(NoteFTS) VALUES('rebuild'); "
                                     "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger NoteFTS_AfterInsertTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_notebook_delete_trigger BEFORE DELETE ON Notebooks "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS on_notebook_delete_trigger BEFORE DELETE ON Notebooks "
                                     "BEGIN "
                                     "DELETE FROM NotebookRestrictions WHERE NotebookRestrictions.localUid=OLD.localUid; "
                                     "DELETE FROM SharedNotebooks WHERE SharedNotebooks.sharedNotebookNotebookGuid=OLD.guid; "
@@ -4328,12 +4320,12 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create ResourceRecognitionDataIndex index");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE ResourceRecognitionDataFTS USING FTS4"
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE IF NOT EXISTS ResourceRecognitionDataFTS USING FTS4"
                                     "(content=\"ResourceRecognitionData\", resourceLocalUid, noteLocalUid, recognitionData)"));
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 ResourceRecognitionDataFTS table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER ResourceRecognitionDataFTS_BeforeDeleteTrigger BEFORE DELETE "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS ResourceRecognitionDataFTS_BeforeDeleteTrigger BEFORE DELETE "
                                     "ON ResourceRecognitionData "
                                     "BEGIN "
                                     "DELETE FROM ResourceRecognitionDataFTS WHERE recognitionData=old.recognitionData; "
@@ -4341,7 +4333,7 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create trigger ResourceRecognitionDataFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER ResourceRecognitionDataFTS_AfterInsertTrigger AFTER INSERT "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS ResourceRecognitionDataFTS_AfterInsertTrigger AFTER INSERT "
                                     "ON ResourceRecognitionData "
                                     "BEGIN "
                                     "INSERT INTO ResourceRecognitionDataFTS(ResourceRecognitionDataFTS) VALUES('rebuild'); "
@@ -4349,18 +4341,18 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create trigger ResourceRecognitionDataFTS_AfterInsertTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE ResourceMimeFTS USING FTS4(content=\"Resources\", resourceLocalUid, mime)"));
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE IF NOT EXISTS ResourceMimeFTS USING FTS4(content=\"Resources\", resourceLocalUid, mime)"));
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 ResourceMimeFTS table");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER ResourceMimeFTS_BeforeDeleteTrigger BEFORE DELETE ON Resources "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS ResourceMimeFTS_BeforeDeleteTrigger BEFORE DELETE ON Resources "
                                     "BEGIN "
                                     "DELETE FROM ResourceMimeFTS WHERE mime=old.mime; "
                                     "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger ResourceMimeFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER ResourceMimeFTS_AfterInsertTrigger AFTER INSERT ON Resources "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS ResourceMimeFTS_AfterInsertTrigger AFTER INSERT ON Resources "
                                     "BEGIN "
                                     "INSERT INTO ResourceMimeFTS(ResourceMimeFTS) VALUES('rebuild'); "
                                     "END"));
@@ -4434,18 +4426,18 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create TagNameUpperIndex index");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE TagFTS USING FTS4(content=\"Tags\", localUid, guid, nameLower)"));
+    res = query.exec(QStringLiteral("CREATE VIRTUAL TABLE IF NOT EXISTS TagFTS USING FTS4(content=\"Tags\", localUid, guid, nameLower)"));
     errorPrefix = QT_TR_NOOP("can't create virtual FTS4 table TagFTS");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER TagFTS_BeforeDeleteTrigger BEFORE DELETE ON Tags "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS TagFTS_BeforeDeleteTrigger BEFORE DELETE ON Tags "
                                     "BEGIN "
                                     "DELETE FROM TagFTS WHERE localUid=old.localUid; "
                                     "END"));
     errorPrefix = QT_TR_NOOP("can't create trigger TagFTS_BeforeDeleteTrigger");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER TagFTS_AfterInsertTrigger AFTER INSERT ON Tags "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS TagFTS_AfterInsertTrigger AFTER INSERT ON Tags "
                                     "BEGIN "
                                     "INSERT INTO TagFTS(TagFTS) VALUES('rebuild'); "
                                     "END"));
@@ -4487,7 +4479,8 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     // NOTE: reasoning for existence and unique constraint for nameLower, citing Evernote API reference:
     // "The account may only contain one search with a given name (case-insensitive compare)"
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_linked_notebook_delete_trigger BEFORE DELETE ON LinkedNotebooks "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS on_linked_notebook_delete_trigger "
+                                    "BEFORE DELETE ON LinkedNotebooks "
                                     "BEGIN "
                                     "DELETE FROM Notebooks WHERE Notebooks.linkedNotebookGuid=OLD.guid; "
                                     "DELETE FROM Tags WHERE Tags.linkedNotebookGuid=OLD.guid; "
@@ -4495,7 +4488,8 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create trigger to fire on linked notebook deletion");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_note_delete_trigger BEFORE DELETE ON Notes "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS on_note_delete_trigger "
+                                    "BEFORE DELETE ON Notes "
                                     "BEGIN "
                                     "DELETE FROM Resources WHERE Resources.noteLocalUid=OLD.localUid; "
                                     "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.noteLocalUid=OLD.localUid; "
@@ -4508,7 +4502,8 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create trigger to fire on note deletion");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_resource_delete_trigger BEFORE DELETE ON Resources "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS on_resource_delete_trigger "
+                                    "BEFORE DELETE ON Resources "
                                     "BEGIN "
                                     "DELETE FROM ResourceRecognitionData WHERE ResourceRecognitionData.resourceLocalUid=OLD.resourceLocalUid; "
                                     "DELETE FROM ResourceAttributes WHERE ResourceAttributes.resourceLocalUid=OLD.resourceLocalUid; "
@@ -4519,7 +4514,8 @@ bool LocalStorageManagerPrivate::createTables(QNLocalizedString & errorDescripti
     errorPrefix = QT_TR_NOOP("can't create trigger to fire on resource deletion");
     DATABASE_CHECK_AND_SET_ERROR();
 
-    res = query.exec(QStringLiteral("CREATE TRIGGER on_tag_delete_trigger BEFORE DELETE ON Tags "
+    res = query.exec(QStringLiteral("CREATE TRIGGER IF NOT EXISTS on_tag_delete_trigger "
+                                    "BEFORE DELETE ON Tags "
                                     "BEGIN "
                                     "DELETE FROM NoteTags WHERE NoteTags.localTag=OLD.localUid; "
                                     "END"));
