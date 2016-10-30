@@ -31,7 +31,8 @@ AddAccountDialog::AddAccountDialog(QWidget * parent) :
     accountTypes << QStringLiteral("Evernote");
     accountTypes << tr("Local");
     m_pUi->accountTypeComboBox->setModel(new QStringListModel(accountTypes, this));
-    m_pUi->accountTypeComboBox->setCurrentIndex(0);
+    m_pUi->accountTypeComboBox->setCurrentIndex(0);  // Assume the creation of a new Evernote account by default
+    m_pUi->accountNameLineEdit->setDisabled(true);  // The name for Evernote account would be acquired through OAuth
 
     QObject::connect(m_pUi->accountTypeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onCurrentAccountTypeChanged(int)));
@@ -52,5 +53,7 @@ AddAccountDialog::~AddAccountDialog()
 
 void AddAccountDialog::onCurrentAccountTypeChanged(int index)
 {
-    m_pUi->evernoteServerComboBox->setDisabled(index != 0);
+    bool isLocal = (index != 0);
+    m_pUi->evernoteServerComboBox->setDisabled(isLocal);
+    m_pUi->accountNameLineEdit->setDisabled(!isLocal);
 }
