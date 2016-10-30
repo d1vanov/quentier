@@ -17,6 +17,7 @@
  */
 
 #include "AccountManager.h"
+#include <dialogs/AddAccountDialog.h>
 #include "dialogs/ManageAccountsDialog.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
@@ -58,7 +59,12 @@ void AccountManager::raiseAddAccountDialog()
 {
     QNDEBUG(QStringLiteral("AccountManager::raiseAddAccountDialog"));
 
-    // TODO: implement
+    QWidget * parentWidget = qobject_cast<QWidget*>(parent());
+
+    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(parentWidget));
+    addAccountDialog->setWindowModality(Qt::WindowModal);
+    // TODO: setup some signal-slot connections for doing the actual work via the dialog
+    Q_UNUSED(addAccountDialog->exec())
 }
 
 void AccountManager::raiseManageAccountsDialog()
