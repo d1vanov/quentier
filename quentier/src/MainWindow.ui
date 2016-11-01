@@ -476,8 +476,7 @@ color: rgb(255, 255, 255);</string>
               </property>
               <property name="icon">
                <iconset theme="document-save">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -509,7 +508,7 @@ color: rgb(255, 255, 255);</string>
       <widget class="QTabWidget" name="NoteTabWidget">
        <property name="minimumSize">
         <size>
-         <width>1000</width>
+         <width>600</width>
          <height>0</height>
         </size>
        </property>
@@ -527,7 +526,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -562,8 +561,7 @@ color: rgb(255, 255, 255);</string>
      </property>
      <property name="icon">
       <iconset theme="edit-find-replace">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionFindNote"/>
      <addaction name="separator"/>
@@ -635,8 +633,7 @@ color: rgb(255, 255, 255);</string>
      </property>
      <property name="icon">
       <iconset theme="insert-table">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionInsertTable"/>
      <addaction name="ActionInsertRow"/>
@@ -661,8 +658,7 @@ color: rgb(255, 255, 255);</string>
      </property>
      <property name="icon">
       <iconset theme="image-x-generic">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionSaveImage"/>
      <addaction name="ActionRotateClockwise"/>
@@ -822,8 +818,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteAdd">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -838,8 +833,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -863,8 +857,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Copy note</string>
@@ -878,8 +871,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookAdd">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -893,8 +885,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -903,8 +894,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookSetStack">
    <property name="icon">
     <iconset theme="list-add">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add to stack</string>
@@ -968,8 +958,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSendMail">
    <property name="icon">
     <iconset theme="mail-send">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Send by e-mail</string>
@@ -984,8 +973,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPrint">
    <property name="icon">
     <iconset theme="printer">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Print</string>
@@ -1025,8 +1013,7 @@ stop: 1 #0EB7FF);
   <action name="ActionClearTrash">
    <property name="icon">
     <iconset theme="user-trash">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Clear trash</string>
@@ -1035,8 +1022,7 @@ stop: 1 #0EB7FF);
   <action name="ActionQuit">
    <property name="icon">
     <iconset theme="application-exit">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Quit</string>
@@ -1051,8 +1037,7 @@ stop: 1 #0EB7FF);
   <action name="ActionRedo">
    <property name="icon">
     <iconset theme="edit-redo">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Redo</string>
@@ -1067,8 +1052,7 @@ stop: 1 #0EB7FF);
   <action name="ActionCut">
    <property name="icon">
     <iconset theme="edit-cut">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Cut</string>
@@ -1083,8 +1067,7 @@ stop: 1 #0EB7FF);
   <action name="ActionCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Copy</string>
@@ -1099,8 +1082,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPaste">
    <property name="icon">
     <iconset theme="edit-paste">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Paste</string>
@@ -1115,8 +1097,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPasteUnformatted">
    <property name="icon">
     <iconset theme="insert-text">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Paste unformatted</string>
@@ -1131,8 +1112,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPreferences">
    <property name="icon">
     <iconset theme="preferences-other">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Settings</string>
@@ -1305,8 +1285,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontBold">
    <property name="icon">
     <iconset theme="format-text-bold">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Bold</string>
@@ -1321,8 +1300,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontUnderlined">
    <property name="icon">
     <iconset theme="format-text-underline">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Underlined</string>
@@ -1337,8 +1315,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontItalic">
    <property name="icon">
     <iconset theme="format-text-italic">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Italic</string>
@@ -1353,8 +1330,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontStrikethrough">
    <property name="icon">
     <iconset theme="format-text-strikethrough">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Strikethrough</string>
@@ -1369,8 +1345,7 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertHorizontalLine">
    <property name="icon">
     <iconset theme="insert-horizontal-rule">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert horizontal rule</string>
@@ -1379,8 +1354,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontUpperIndex">
    <property name="icon">
     <iconset theme="go-top">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Upper index</string>
@@ -1395,8 +1369,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontLowerIndex">
    <property name="icon">
     <iconset theme="go-bottom">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Lower index</string>
@@ -1436,8 +1409,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSaveImage">
    <property name="icon">
     <iconset theme="document-save">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Save</string>
@@ -1446,8 +1418,7 @@ stop: 1 #0EB7FF);
   <action name="ActionRotateClockwise">
    <property name="icon">
     <iconset theme="object-rotate-right">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Rotate clockwise</string>
@@ -1456,8 +1427,7 @@ stop: 1 #0EB7FF);
   <action name="ActionRotateCounterClockwise">
    <property name="icon">
     <iconset theme="object-rotate-left">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Rotate counterclockwise</string>
@@ -1466,8 +1436,7 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignLeft">
    <property name="icon">
     <iconset theme="format-justify-left">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Align left</string>
@@ -1482,8 +1451,7 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignCenter">
    <property name="icon">
     <iconset theme="format-justify-center">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Aligh center</string>
@@ -1498,8 +1466,7 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignRight">
    <property name="icon">
     <iconset theme="format-justify-right">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Align right</string>
@@ -1514,8 +1481,7 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertBulletedList">
    <property name="icon">
     <iconset theme="format-list-unordered">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert bulleted list</string>
@@ -1530,8 +1496,7 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertNumberedList">
    <property name="icon">
     <iconset theme="format-list-ordered">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert numbered list</string>
@@ -1546,8 +1511,7 @@ stop: 1 #0EB7FF);
   <action name="ActionIncreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Increase</string>
@@ -1565,8 +1529,7 @@ stop: 1 #0EB7FF);
   <action name="ActionDecreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Decrease</string>
@@ -1597,8 +1560,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSpellCheck">
    <property name="icon">
     <iconset theme="tools-check-spelling">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Spellcheck</string>
@@ -1658,8 +1620,7 @@ stop: 1 #0EB7FF);
   <action name="ActionGoPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go back</string>
@@ -1671,8 +1632,7 @@ stop: 1 #0EB7FF);
   <action name="ActionGoNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go forward</string>
@@ -1687,8 +1647,7 @@ stop: 1 #0EB7FF);
    </property>
    <property name="icon">
     <iconset theme="go-up">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Up</string>
@@ -1700,8 +1659,7 @@ stop: 1 #0EB7FF);
   <action name="ActionGoDown">
    <property name="icon">
     <iconset theme="go-down">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Down</string>
@@ -1731,8 +1689,7 @@ stop: 1 #0EB7FF);
   <action name="ActionShowNoteAttributesButton">
    <property name="icon">
     <iconset theme="dialog-information">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Show note attributes</string>
@@ -1761,8 +1718,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNewNote">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New note</string>
@@ -1777,8 +1733,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNewNotebook">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New notebook</string>
@@ -1796,8 +1751,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNewSavedSearch">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New saved search</string>
@@ -1806,8 +1760,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSelectAll">
    <property name="icon">
     <iconset theme="edit-select-all">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Select all</string>
@@ -1822,8 +1775,7 @@ stop: 1 #0EB7FF);
   <action name="ActionDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -1832,8 +1784,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindNote">
    <property name="icon">
     <iconset theme="system-search">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find note</string>
@@ -1845,8 +1796,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindInsideNote">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find inside note</string>
@@ -1858,8 +1808,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find next</string>
@@ -1871,8 +1820,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find previous</string>
@@ -1884,8 +1832,7 @@ stop: 1 #0EB7FF);
   <action name="ActionReplaceInNote">
    <property name="icon">
     <iconset theme="edit-replace">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Replace in note</string>
@@ -1897,8 +1844,7 @@ stop: 1 #0EB7FF);
   <action name="ActionUndo">
    <property name="icon">
     <iconset theme="edit-undo">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Undo</string>
@@ -2003,8 +1949,7 @@ stop: 1 #0EB7FF);
   <action name="ActionIncreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-more">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Increase</string>
@@ -2019,8 +1964,7 @@ stop: 1 #0EB7FF);
   <action name="ActionDecreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Decrease</string>
@@ -2035,8 +1979,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontHighlight">
    <property name="icon">
     <iconset theme="fill-color">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Highlight</string>
@@ -2051,8 +1994,7 @@ stop: 1 #0EB7FF);
   <action name="ActionEditHyperlink">
    <property name="icon">
     <iconset theme="insert-link">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add/edit...</string>
