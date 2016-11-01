@@ -61,7 +61,7 @@ void AccountManager::raiseAddAccountDialog()
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
-    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(parentWidget));
+    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_availableAccounts, parentWidget));
     addAccountDialog->setWindowModality(Qt::WindowModal);
     // TODO: setup some signal-slot connections for doing the actual work via the dialog
     Q_UNUSED(addAccountDialog->exec())
@@ -109,6 +109,9 @@ void AccountManager::detectAvailableAccounts()
 
         AvailableAccount availableAccount(accountName, accountDir.absolutePath(), isLocal);
         m_availableAccounts << availableAccount;
+        QNDEBUG(QStringLiteral("Found available account: name = ") << accountName
+                << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
+                << QStringLiteral(", dir ") << accountDir.absolutePath());
 
         int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
         if (lastUnderlineIndex >= 0) {
