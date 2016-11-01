@@ -65,6 +65,29 @@ AddAccountDialog::~AddAccountDialog()
     delete m_pUi;
 }
 
+bool AddAccountDialog::isLocal() const
+{
+    return (m_pUi->accountTypeComboBox->currentIndex() != 0);
+}
+
+QString AddAccountDialog::localAccountName() const
+{
+    return m_pUi->accountNameLineEdit->text();
+}
+
+QString AddAccountDialog::evernoteServerUrl() const
+{
+    switch(m_pUi->evernoteServerComboBox->currentIndex())
+    {
+    case 1:
+        return QStringLiteral("app.yinxiang.com");
+    case 2:
+        return QStringLiteral("sandbox.evernote.com");
+    default:
+        return QStringLiteral("www.evernote.com");
+    }
+}
+
 void AddAccountDialog::onCurrentAccountTypeChanged(int index)
 {
     QNDEBUG(QStringLiteral("AddAccountDialog::onCurrentAccountTypeChanged: index = ") << index);
@@ -121,11 +144,20 @@ bool AddAccountDialog::localAccountAlreadyExists(const QString & name)
 
 void AddAccountDialog::accept()
 {
-    if ((m_pUi->accountTypeComboBox->currentIndex() == 0) &&
-        localAccountAlreadyExists(m_pUi->accountNameLineEdit->text()))
-    {
+    bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() == 0);
+    QString name = m_pUi->accountNameLineEdit->text();
+
+    if (isLocal && localAccountAlreadyExists(name)) {
         QDialog::reject();
         return;
+    }
+
+    if (isLocal) {
+        emit localAccountAdditionRequested(name);
+    }
+    else {
+        QString server = evernoteServerUrl();
+        emit evernoteAccountAdditionRequested(server);
     }
 
     QDialog::accept();

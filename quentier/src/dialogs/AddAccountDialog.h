@@ -35,6 +35,14 @@ public:
                               QWidget * parent = Q_NULLPTR);
     ~AddAccountDialog();
 
+    bool isLocal() const;
+    QString localAccountName() const;
+    QString evernoteServerUrl() const;
+
+Q_SIGNALS:
+    void evernoteAccountAdditionRequested(QString evernoteServer);
+    void localAccountAdditionRequested(QString name);
+
 private Q_SLOTS:
     void onCurrentAccountTypeChanged(int index);
     void onLocalAccountNameChosen();
