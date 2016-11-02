@@ -48,8 +48,17 @@ Account AccountManager::currentAccount()
     QNDEBUG(QStringLiteral("AccountManager::currentAccount"));
 
     QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
-    if (pLastUsedAccount.isNull()) {
-        pLastUsedAccount.reset(new Account(createDefaultAccount(), Account::Type::Local));
+    if (pLastUsedAccount.isNull())
+    {
+        QNLocalizedString errorDescription;
+        pLastUsedAccount = createDefaultAccount(errorDescription);
+        if (Q_UNLIKELY(pLastUsedAccount.isNull())) {
+            QNLocalizedString error = QT_TR_NOOP("Can't initialize the default account");
+            error += QStringLiteral(": ");
+            error += errorDescription;
+            throw AccountInitializationException(error);
+        }
+
         updateLastUsedAccount(*pLastUsedAccount);
     }
 
@@ -122,11 +131,14 @@ void AccountManager::detectAvailableAccounts()
     }
 }
 
-QString AccountManager::createDefaultAccount()
+QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::createDefaultAccount"));
 
     QString username = getCurrentUserName();
+    if (Q_UNLIKELY(username.isEmpty())) {
+        username = QStringLiteral("Default user");
+    }
 
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
     QString userPersistenceStoragePath = appPersistenceStoragePath + QStringLiteral("/local_") + username;
@@ -135,23 +147,26 @@ QString AccountManager::createDefaultAccount()
     {
         bool created = userPersistenceStorageDir.mkpath(userPersistenceStoragePath);
         if (Q_UNLIKELY(!created)) {
-            QNLocalizedString error = QT_TR_NOOP("Can't create directory for the default account storage");
-            QNWARNING(error);
-            emit notifyError(error);
-            return QString();
+            errorDescription = QT_TR_NOOP("can't create directory for the default account storage");
+            QNWARNING(errorDescription);
+            return QSharedPointer<Account>();
         }
     }
 
     QFile accountInfo(userPersistenceStoragePath + QStringLiteral("/accountInfo.txt"));
 
     bool open = accountInfo.open(QIODevice::WriteOnly);
-    if (Q_UNLIKELY(!open)) {
-        QNLocalizedString error = QT_TR_NOOP("Can't open the account info file for the default account for writing");
-        error += QStringLiteral(": ");
-        error += accountInfo.errorString();
-        QNWARNING(error);
-        emit notifyError(error);
-        return QString();
+    if (Q_UNLIKELY(!open))
+    {
+        errorDescription = QT_TR_NOOP("can't open the account info file for the default account for writing");
+        QString errorString = accountInfo.errorString();
+        if (!errorString.isEmpty()) {
+            errorDescription += QStringLiteral(": ");
+            errorDescription += errorString;
+        }
+
+        QNWARNING(errorDescription);
+        return QSharedPointer<Account>();
     }
 
     QXmlStreamWriter writer(&accountInfo);
@@ -173,7 +188,8 @@ QString AccountManager::createDefaultAccount()
     AvailableAccount availableAccount(username, userPersistenceStoragePath, /* local = */ true);
     m_availableAccounts << availableAccount;
 
-    return username;
+    QSharedPointer<Account> result(new Account(username, Account::Type::Local));
+    return result;
 }
 
 QSharedPointer<Account> AccountManager::lastUsedAccount() const
@@ -256,4 +272,13 @@ void AccountManager::updateLastUsedAccount(const Account & account)
     // TODO: set Evernote account type and other supplementary info
 
     appSettings.endGroup();
+}
+
+AccountManager::AccountInitializationException::AccountInitializationException(const QNLocalizedString & message) :
+    IQuentierException(message)
+{}
+
+const QString AccountManager::AccountInitializationException::exceptionDisplayName() const
+{
+    return QStringLiteral("AccountInitializationException");
 }

@@ -22,6 +22,7 @@
 #include "AvailableAccount.h"
 #include <quentier/types/Account.h>
 #include <quentier/utility/QNLocalizedString.h>
+#include <quentier/exception/IQuentierException.h>
 #include <QObject>
 #include <QSharedPointer>
 #include <QVector>
@@ -29,6 +30,16 @@
 class AccountManager: public QObject
 {
     Q_OBJECT
+public:
+    class AccountInitializationException: public quentier::IQuentierException
+    {
+    public:
+        explicit AccountInitializationException(const quentier::QNLocalizedString & message);
+
+    protected:
+        virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
+    };
+
 public:
     AccountManager(QObject * parent = Q_NULLPTR);
 
@@ -51,8 +62,7 @@ Q_SIGNALS:
 private:
     void detectAvailableAccounts();
 
-    // Returns the username for the default local account
-    QString createDefaultAccount();
+    QSharedPointer<quentier::Account> createDefaultAccount(quentier::QNLocalizedString & errorDescription);
 
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise
