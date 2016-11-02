@@ -33,6 +33,7 @@
 #define LAST_USED_ACCOUNT_NAME QStringLiteral("LastUsedAccountName")
 #define LAST_USED_ACCOUNT_TYPE QStringLiteral("LastUsedAccountType")
 #define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
+#define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
 
 using namespace quentier;
 
@@ -137,6 +138,7 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
 
     QString username = getCurrentUserName();
     if (Q_UNLIKELY(username.isEmpty())) {
+        QNDEBUG(QStringLiteral("Couldn't get the current user's name, fallback to \"Default user\""));
         username = QStringLiteral("Default user");
     }
 
@@ -227,6 +229,8 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
     bool isLocal = type.toBool();
 
     qevercloud::UserID id = -1;
+    Account::EvernoteAccountType::type evernoteAccountType = Account::EvernoteAccountType::Free;
+
     if (!isLocal)
     {
         QVariant userId = appSettings.value(LAST_USED_ACCOUNT_ID);
@@ -241,6 +245,19 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
             QNDEBUG(QStringLiteral("Can't convert the last used account's id to int"));
             return result;
         }
+
+        QVariant userEvernoteAccountType = appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE);
+        if (userEvernoteAccountType.isNull()) {
+            QNDEBUG(QStringLiteral("Can't find last used account's Evernote account type"));
+            return result;
+        }
+
+        conversionResult = false;
+        evernoteAccountType = static_cast<Account::EvernoteAccountType::type>(userEvernoteAccountType.toInt(&conversionResult));
+        if (!conversionResult) {
+            QNDEBUG(QStringLiteral("Can't convert the last used account's Evernote account type to int"));
+            return result;
+        }
     }
 
     // Now need to check whether such an account exists
@@ -251,8 +268,9 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
     QFileInfo accountFileInfo(appPersistenceStoragePath + QStringLiteral("/") +
                               accountDirName + QStringLiteral("/accountInfo.txt"));
     if (accountFileInfo.exists()) {
-        result = QSharedPointer<Account>(new Account(accountName, (isLocal ? Account::Type::Local : Account::Type::Evernote), id));
-        // TODO: set Evernote account type and other supplementary info into this new account object
+        result = QSharedPointer<Account>(new Account(accountName,
+                                                     (isLocal ? Account::Type::Local : Account::Type::Evernote),
+                                                     id, evernoteAccountType));
     }
 
     return result;
@@ -269,7 +287,7 @@ void AccountManager::updateLastUsedAccount(const Account & account)
     appSettings.setValue(LAST_USED_ACCOUNT_NAME, account.name());
     appSettings.setValue(LAST_USED_ACCOUNT_TYPE, (account.type() == Account::Type::Local));
     appSettings.setValue(LAST_USED_ACCOUNT_ID, account.id());
-    // TODO: set Evernote account type and other supplementary info
+    appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE, account.evernoteAccountType());
 
     appSettings.endGroup();
 }
