@@ -18,8 +18,10 @@
 
 #include "ManageAccountsDialog.h"
 #include "ui_ManageAccountsDialog.h"
+#include "AddAccountDialog.h"
+#include <quentier/logging/QuentierLogger.h>
 
-ManageAccountsDialog::ManageAccountsDialog(QVector<AvailableAccount> availableAccounts,
+ManageAccountsDialog::ManageAccountsDialog(const QVector<AvailableAccount> & availableAccounts,
                                            QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::ManageAccountsDialog),
@@ -27,6 +29,52 @@ ManageAccountsDialog::ManageAccountsDialog(QVector<AvailableAccount> availableAc
     m_accountListModel()
 {
     m_pUi->setupUi(this);
+
+    m_pUi->listView->setModel(&m_accountListModel);
+    updateAvailableAccountsInView();
+
+    QObject::connect(m_pUi->addNewAccountButton, QNSIGNAL(QPushButton,released),
+                     this, QNSLOT(ManageAccountsDialog,onAddAccountButtonPressed));
+    QObject::connect(m_pUi->revokeAuthenticationButton, QNSIGNAL(QPushButton,released),
+                     this, QNSLOT(ManageAccountsDialog,onRevokeAuthenticationButtonPressed));
+}
+
+ManageAccountsDialog::~ManageAccountsDialog()
+{
+    delete m_pUi;
+}
+
+void ManageAccountsDialog::onAvailableAccountsChanged(const QVector<AvailableAccount> & availableAccounts)
+{
+    QNDEBUG(QStringLiteral("ManageAccountsDialog::onAvailableAccountsChanged"));
+
+    m_availableAccounts = availableAccounts;
+    updateAvailableAccountsInView();
+}
+
+void ManageAccountsDialog::onAddAccountButtonPressed()
+{
+    QNDEBUG(QStringLiteral("ManageAccountsDialog::onAddAccountButtonPressed"));
+
+    QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_availableAccounts, this));
+    addAccountDialog->setWindowModality(Qt::WindowModal);
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString),
+                     this, QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString));
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString),
+                     this, QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString));
+    Q_UNUSED(addAccountDialog->exec())
+}
+
+void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
+{
+    QNDEBUG(QStringLiteral("ManageAccountsDialog::onRevokeAuthenticationButtonPressed"));
+
+    // TODO: 1) if current account is local, do nothing; 2) otherwise, get user id and emit revokeAuthentication signal with it
+}
+
+void ManageAccountsDialog::updateAvailableAccountsInView()
+{
+    QNDEBUG(QStringLiteral("ManageAccountsDialog::updateAvailableAccountsInView"));
 
     int numAvailableAccounts = m_availableAccounts.size();
     QStringList accountsList;
@@ -47,10 +95,4 @@ ManageAccountsDialog::ManageAccountsDialog(QVector<AvailableAccount> availableAc
     }
 
     m_accountListModel.setStringList(accountsList);
-    m_pUi->listView->setModel(&m_accountListModel);
-}
-
-ManageAccountsDialog::~ManageAccountsDialog()
-{
-    delete m_pUi;
 }

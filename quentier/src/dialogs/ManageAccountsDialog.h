@@ -25,6 +25,12 @@
 #include <QVector>
 #include <QStringListModel>
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+#include <qt5qevercloud/QEverCloud.h>
+#else
+#include <qt4qevercloud/QEverCloud.h>
+#endif
+
 namespace Ui {
 class ManageAccountsDialog;
 }
@@ -33,9 +39,24 @@ class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ManageAccountsDialog(QVector<AvailableAccount> availableAccounts,
+    explicit ManageAccountsDialog(const QVector<AvailableAccount> & availableAccounts,
                                   QWidget * parent = Q_NULLPTR);
     virtual ~ManageAccountsDialog();
+
+Q_SIGNALS:
+    void evernoteAccountAdditionRequested(QString evernoteServer);
+    void localAccountAdditionRequested(QString name);
+    void revokeAuthentication(qevercloud::UserID id);
+
+public Q_SLOTS:
+    void onAvailableAccountsChanged(const QVector<AvailableAccount> & availableAccounts);
+
+private Q_SLOTS:
+    void onAddAccountButtonPressed();
+    void onRevokeAuthenticationButtonPressed();
+
+private:
+    void updateAvailableAccountsInView();
 
 private:
     Ui::ManageAccountsDialog *  m_pUi;
