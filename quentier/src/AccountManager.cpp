@@ -49,7 +49,7 @@ Account AccountManager::currentAccount()
 
     QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
     if (pLastUsedAccount.isNull()) {
-        return Account("Default user", Account::Type::Local);
+        return Account(createDefaultAccount(), Account::Type::Local);
     }
 
     return *pLastUsedAccount;
