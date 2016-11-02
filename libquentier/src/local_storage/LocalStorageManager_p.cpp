@@ -2055,8 +2055,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
     QString notebookGuidSqlQueryCondition = QString("%1 = '%2'").arg(column,uid);
     notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
                                                                          orderDirection, notebookGuidSqlQueryCondition);
-    const int numNotes = notes.size();
-    if ((numNotes == 0) && !error.isEmpty()) {
+    if (notes.isEmpty() && !error.isEmpty()) {
         errorDescription = errorPrefix;
         errorDescription += QStringLiteral(": ");
         errorDescription += error;
@@ -2064,6 +2063,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerNotebook(const Notebook & no
         return notes;
     }
 
+    const int numNotes = notes.size();
     for(int i = 0; i < numNotes; ++i)
     {
         Note & note = notes[i];
@@ -2156,8 +2156,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
 
     notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit, offset, order,
                                                                          orderDirection, queryCondition);
-    int numNotes = notes.size();
-    if ((numNotes == 0) && !error.isEmpty()) {
+    if (notes.isEmpty() && !error.isEmpty()) {
         errorDescription = errorPrefix;
         errorDescription += QStringLiteral(": ");
         errorDescription += error;
@@ -2165,6 +2164,7 @@ QList<Note> LocalStorageManagerPrivate::listNotesPerTag(const Tag & tag, QNLocal
         return notes;
     }
 
+    int numNotes = notes.size();
     for(int i = 0; i < numNotes; ++i)
     {
         Note & note = notes[i];
@@ -2226,7 +2226,7 @@ QList<Note> LocalStorageManagerPrivate::listNotes(const LocalStorageManager::Lis
     QNLocalizedString error;
     QList<Note> notes = listObjects<Note, LocalStorageManager::ListNotesOrder::type>(flag, error, limit,
                                                                                      offset, order, orderDirection);
-    if (notes.isEmpty()) {
+    if (notes.isEmpty() && !error.isEmpty()) {
         errorDescription = errorPrefix;
         errorDescription += QStringLiteral(": ");
         errorDescription += error;
