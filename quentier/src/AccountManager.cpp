@@ -49,7 +49,8 @@ Account AccountManager::currentAccount()
 
     QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
     if (pLastUsedAccount.isNull()) {
-        return Account(createDefaultAccount(), Account::Type::Local);
+        pLastUsedAccount.reset(new Account(createDefaultAccount(), Account::Type::Local));
+        updateLastUsedAccount(*pLastUsedAccount);
     }
 
     return *pLastUsedAccount;
@@ -148,8 +149,8 @@ QString AccountManager::createDefaultAccount()
         QNLocalizedString error = QT_TR_NOOP("Can't open the account info file for the default account for writing");
         error += QStringLiteral(": ");
         error += accountInfo.errorString();
-            QNWARNING(error);
-            emit notifyError(error);
+        QNWARNING(error);
+        emit notifyError(error);
         return QString();
     }
 
@@ -239,4 +240,20 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
     }
 
     return result;
+}
+
+void AccountManager::updateLastUsedAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("AccountManager::updateLastUsedAccount: ") << account);
+
+    ApplicationSettings appSettings;
+
+    appSettings.beginGroup(ACCOUNT_SETTINGS_GROUP);
+
+    appSettings.setValue(LAST_USED_ACCOUNT_NAME, account.name());
+    appSettings.setValue(LAST_USED_ACCOUNT_TYPE, (account.type() == Account::Type::Local));
+    appSettings.setValue(LAST_USED_ACCOUNT_ID, account.id());
+    // TODO: set Evernote account type and other supplementary info
+
+    appSettings.endGroup();
 }

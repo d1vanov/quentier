@@ -58,6 +58,8 @@ private:
     // in case of success returns non-null pointer to account, null otherwise
     QSharedPointer<quentier::Account> lastUsedAccount() const;
 
+    void updateLastUsedAccount(const quentier::Account & account);
+
 private:
     QVector<AvailableAccount>   m_availableAccounts;
 };
