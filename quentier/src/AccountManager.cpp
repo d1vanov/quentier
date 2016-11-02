@@ -74,7 +74,10 @@ void AccountManager::raiseAddAccountDialog()
 
     QScopedPointer<AddAccountDialog> addAccountDialog(new AddAccountDialog(m_availableAccounts, parentWidget));
     addAccountDialog->setWindowModality(Qt::WindowModal);
-    // TODO: setup some signal-slot connections for doing the actual work via the dialog
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString),
+                     this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString),
+                     this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString));
     Q_UNUSED(addAccountDialog->exec())
 }
 
@@ -88,6 +91,48 @@ void AccountManager::raiseManageAccountsDialog()
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
     // TODO: setup some signal-slot connections for doing the actual work via the dialog
     Q_UNUSED(manageAccountsDialog->exec())
+}
+
+void AccountManager::switchAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
+
+    updateLastUsedAccount(account);
+    emit switchedAccount(account);
+}
+
+void AccountManager::onLocalAccountAdditionRequested(QString name)
+{
+    QNDEBUG(QStringLiteral("AccountManager::onLocalAccountAdditionRequested: ") << name);
+
+    // Double-check that no local account with such username already exists
+    for(int i = 0, size = m_availableAccounts.size(); i < size; ++i)
+    {
+        const AvailableAccount & availableAccount = m_availableAccounts[i];
+        if (!availableAccount.isLocal()) {
+            continue;
+        }
+
+        if (Q_UNLIKELY(availableAccount.username() == name)) {
+            QNLocalizedString error = QT_TR_NOOP("Can't add local account: account with chosen name already exists");
+            QNWARNING(error);
+            emit notifyError(error);
+            return;
+        }
+    }
+
+    QNLocalizedString errorDescription;
+    QSharedPointer<Account> pNewAccount = createAccount(name, errorDescription);
+    if (Q_UNLIKELY(pNewAccount.isNull())) {
+        QNLocalizedString error = QT_TR_NOOP("Can't create new local account");
+        error += QStringLiteral(": ");
+        error += errorDescription;
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    switchAccount(*pNewAccount);
 }
 
 void AccountManager::detectAvailableAccounts()
@@ -142,14 +187,22 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
         username = QStringLiteral("Default user");
     }
 
+    return createAccount(username, errorDescription);
+}
+
+QSharedPointer<Account> AccountManager::createAccount(const QString & name,
+                                                      QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("AccountManager::createAccount: ") << name);
+
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
-    QString userPersistenceStoragePath = appPersistenceStoragePath + QStringLiteral("/local_") + username;
+    QString userPersistenceStoragePath = appPersistenceStoragePath + QStringLiteral("/local_") + name;
     QDir userPersistenceStorageDir(userPersistenceStoragePath);
     if (!userPersistenceStorageDir.exists())
     {
         bool created = userPersistenceStorageDir.mkpath(userPersistenceStoragePath);
         if (Q_UNLIKELY(!created)) {
-            errorDescription = QT_TR_NOOP("can't create directory for the default account storage");
+            errorDescription = QT_TR_NOOP("can't create directory for the account storage");
             QNWARNING(errorDescription);
             return QSharedPointer<Account>();
         }
@@ -160,7 +213,7 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        errorDescription = QT_TR_NOOP("can't open the account info file for the default account for writing");
+        errorDescription = QT_TR_NOOP("can't open the account info file for writing");
         QString errorString = accountInfo.errorString();
         if (!errorString.isEmpty()) {
             errorDescription += QStringLiteral(": ");
@@ -176,7 +229,7 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
     writer.writeStartDocument();
 
     writer.writeStartElement(QStringLiteral("accountName"));
-    writer.writeCharacters(username);
+    writer.writeCharacters(name);
     writer.writeEndElement();
 
     writer.writeStartElement(QStringLiteral("accountType"));
@@ -187,10 +240,10 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
 
     accountInfo.close();
 
-    AvailableAccount availableAccount(username, userPersistenceStoragePath, /* local = */ true);
+    AvailableAccount availableAccount(name, userPersistenceStoragePath, /* local = */ true);
     m_availableAccounts << availableAccount;
 
-    QSharedPointer<Account> result(new Account(username, Account::Type::Local));
+    QSharedPointer<Account> result(new Account(name, Account::Type::Local));
     return result;
 }
 

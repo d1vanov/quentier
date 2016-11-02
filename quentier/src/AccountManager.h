@@ -56,13 +56,23 @@ public:
     void raiseManageAccountsDialog();
 
 Q_SIGNALS:
+    void evernoteAccountAuthenticationRequested(QString host);
     void switchedAccount(quentier::Account account);
     void notifyError(quentier::QNLocalizedString error);
+
+public Q_SLOTS:
+    void switchAccount(const quentier::Account & account);
+
+private Q_SLOTS:
+    void onLocalAccountAdditionRequested(QString name);
 
 private:
     void detectAvailableAccounts();
 
     QSharedPointer<quentier::Account> createDefaultAccount(quentier::QNLocalizedString & errorDescription);
+
+    QSharedPointer<quentier::Account> createAccount(const QString & name,
+                                                    quentier::QNLocalizedString & errorDescription);
 
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise
