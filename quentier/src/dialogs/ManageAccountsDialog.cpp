@@ -69,7 +69,30 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
 {
     QNDEBUG(QStringLiteral("ManageAccountsDialog::onRevokeAuthenticationButtonPressed"));
 
-    // TODO: 1) if current account is local, do nothing; 2) otherwise, get user id and emit revokeAuthentication signal with it
+    QModelIndex currentIndex = m_pUi->listView->currentIndex();
+    if (Q_UNLIKELY(!currentIndex.isValid())) {
+        QNTRACE(QStringLiteral("Current index is invalid"));
+        return;
+    }
+
+    int currentRow = currentIndex.row();
+    if (Q_UNLIKELY(currentRow < 0)) {
+        QNTRACE(QStringLiteral("Current row is negative"));
+        return;
+    }
+
+    if (Q_UNLIKELY(currentRow >= m_availableAccounts.size())) {
+        QNTRACE(QStringLiteral("Current row is larger than the number of available accounts"));
+        return;
+    }
+
+    const AvailableAccount & availableAccount = m_availableAccounts[currentRow];
+    if (availableAccount.isLocal()) {
+        QNTRACE(QStringLiteral("The current account is local, nothing to do"));
+        return;
+    }
+
+    emit revokeAuthentication(availableAccount.userId());
 }
 
 void ManageAccountsDialog::updateAvailableAccountsInView()

@@ -89,13 +89,18 @@ void AccountManager::raiseManageAccountsDialog()
 
     QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, parentWidget));
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
-    // TODO: setup some signal-slot connections for doing the actual work via the dialog
+    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString),
+                     this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
+    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString),
+                     this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString));
     Q_UNUSED(manageAccountsDialog->exec())
 }
 
 void AccountManager::switchAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
+
+    // TODO: if the account is being added the first time, need to create a folder and the info file for it
 
     updateLastUsedAccount(account);
     emit switchedAccount(account);
@@ -158,16 +163,42 @@ void AccountManager::detectAvailableAccounts()
         }
 
         QString accountName = accountDir.dirName();
+        qevercloud::UserID userId = -1;
+
         bool isLocal = accountName.startsWith(QStringLiteral("local_"));
         if (isLocal) {
             accountName.remove(0, 6);
         }
+        else
+        {
+            int accountNameSize = accountName.size();
+            int lastUnderlineIndex = accountName.lastIndexOf("_");
+            if ((lastUnderlineIndex < 0) || (lastUnderlineIndex >= accountNameSize)) {
+                QNTRACE(QStringLiteral("Dir ") << accountName
+                        << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
+                                          "doesn't contain \"_<user id>\" at the end"));
+                continue;
+            }
 
-        AvailableAccount availableAccount(accountName, accountDir.absolutePath(), isLocal);
+            QStringRef userIdStrRef = accountName.rightRef(accountNameSize - lastUnderlineIndex);
+            bool conversionResult = false;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+            userId = static_cast<qevercloud::UserID>(userIdStrRef.toInt(&conversionResult));
+#else
+            userId = static_cast<qevercloud::UserID>(userIdStrRef.toString().toInt(&conversionResult));
+#endif
+            if (Q_UNLIKELY(!conversionResult)) {
+                QNTRACE(QStringLiteral("Skipping dir ") << accountName
+                        << QStringLiteral(" as it doesn't seem to end with user id, the attempt to convert it to int fails"));
+                continue;
+            }
+        }
+
+        AvailableAccount availableAccount(accountName, accountDir.absolutePath(), userId, isLocal);
         m_availableAccounts << availableAccount;
         QNDEBUG(QStringLiteral("Found available account: name = ") << accountName
                 << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
-                << QStringLiteral(", dir ") << accountDir.absolutePath());
+                << QStringLiteral(", user id = ") << userId << QStringLiteral(", dir ") << accountDir.absolutePath());
 
         int lastUnderlineIndex = accountName.lastIndexOf(QStringLiteral("_"));
         if (lastUnderlineIndex >= 0) {
@@ -240,7 +271,7 @@ QSharedPointer<Account> AccountManager::createAccount(const QString & name,
 
     accountInfo.close();
 
-    AvailableAccount availableAccount(name, userPersistenceStoragePath, /* local = */ true);
+    AvailableAccount availableAccount(name, userPersistenceStoragePath, /* user id = */ -1, /* local = */ true);
     m_availableAccounts << availableAccount;
 
     QSharedPointer<Account> result(new Account(name, Account::Type::Local));
