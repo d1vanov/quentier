@@ -100,7 +100,35 @@ void AccountManager::switchAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
 
-    // TODO: if the account is being added the first time, need to create a folder and the info file for it
+    // See whether this account is within a list of already available accounts, if not, add it there
+    bool accountIsAvailable = false;
+    bool isLocal = (account.type() == Account::Type::Local);
+    for(int i = 0, size = m_availableAccounts.size(); i < size; ++i)
+    {
+        const AvailableAccount & availableAccount = m_availableAccounts[i];
+
+        if (availableAccount.isLocal() != isLocal) {
+            continue;
+        }
+
+        if (!isLocal && (availableAccount.userId() != account.id())) {
+            continue;
+        }
+        else if (isLocal && (availableAccount.username() != account.name())) {
+            continue;
+        }
+
+        accountIsAvailable = true;
+        break;
+    }
+
+    if (!accountIsAvailable)
+    {
+        bool res = createAccountInfo(account);
+        if (!res) {
+            return;
+        }
+    }
 
     updateLastUsedAccount(account);
     emit switchedAccount(account);
@@ -127,7 +155,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name)
     }
 
     QNLocalizedString errorDescription;
-    QSharedPointer<Account> pNewAccount = createAccount(name, errorDescription);
+    QSharedPointer<Account> pNewAccount = createLocalAccount(name, errorDescription);
     if (Q_UNLIKELY(pNewAccount.isNull())) {
         QNLocalizedString error = QT_TR_NOOP("Can't create new local account");
         error += QStringLiteral(": ");
@@ -218,33 +246,76 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
         username = QStringLiteral("Default user");
     }
 
-    return createAccount(username, errorDescription);
+    return createLocalAccount(username, errorDescription);
 }
 
-QSharedPointer<Account> AccountManager::createAccount(const QString & name,
-                                                      QNLocalizedString & errorDescription)
+QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
+                                                           QNLocalizedString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("AccountManager::createAccount: ") << name);
+    QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: ") << name);
 
-    QString appPersistenceStoragePath = applicationPersistentStoragePath();
-    QString userPersistenceStoragePath = appPersistenceStoragePath + QStringLiteral("/local_") + name;
-    QDir userPersistenceStorageDir(userPersistenceStoragePath);
-    if (!userPersistenceStorageDir.exists())
+    bool res = writeAccountInfo(name, /* is local = */ true, /* user id = */ -1, errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        return QSharedPointer<Account>();
+    }
+
+    QSharedPointer<Account> result(new Account(name, Account::Type::Local));
+    return result;
+}
+
+bool AccountManager::createAccountInfo(const Account & account)
+{
+    QNDEBUG(QStringLiteral("AccountManager::createAccountInfo: ") << account);
+
+    bool isLocal = (account.type() == Account::Type::Local);
+
+    QNLocalizedString errorDescription;
+    bool res = writeAccountInfo(account.name(), isLocal, account.id(), errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        emit notifyError(errorDescription);
+        return false;
+    }
+
+    return true;
+}
+
+bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal, const qevercloud::UserID id,
+                                      QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("AccountManager::writeAccountInfo: name = ") << name
+            << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", user id = ") << id);
+
+    QString accountPersistentStoragePath = applicationPersistentStoragePath();
+
+    accountPersistentStoragePath += QStringLiteral("/");
+    if (isLocal) {
+        accountPersistentStoragePath += QStringLiteral("/local_");
+    }
+
+    accountPersistentStoragePath += name;
+    if (!isLocal) {
+        accountPersistentStoragePath += QStringLiteral("_");
+        accountPersistentStoragePath += QString::number(id);
+    }
+
+    QDir accountPersistentStorageDir(accountPersistentStoragePath);
+    if (!accountPersistentStorageDir.exists())
     {
-        bool created = userPersistenceStorageDir.mkpath(userPersistenceStoragePath);
-        if (Q_UNLIKELY(!created)) {
+        bool res = accountPersistentStorageDir.mkpath(accountPersistentStoragePath);
+        if (Q_UNLIKELY(!res)) {
             errorDescription = QT_TR_NOOP("can't create directory for the account storage");
             QNWARNING(errorDescription);
-            return QSharedPointer<Account>();
+            return false;
         }
     }
 
-    QFile accountInfo(userPersistenceStoragePath + QStringLiteral("/accountInfo.txt"));
+    QFile accountInfo(accountPersistentStoragePath + QStringLiteral("/accountInfo.txt"));
 
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        errorDescription = QT_TR_NOOP("can't open the account info file for writing");
+        errorDescription = QT_TR_NOOP("can't open the new account info file for writing");
         QString errorString = accountInfo.errorString();
         if (!errorString.isEmpty()) {
             errorDescription += QStringLiteral(": ");
@@ -252,7 +323,7 @@ QSharedPointer<Account> AccountManager::createAccount(const QString & name,
         }
 
         QNWARNING(errorDescription);
-        return QSharedPointer<Account>();
+        return false;
     }
 
     QXmlStreamWriter writer(&accountInfo);
@@ -264,18 +335,19 @@ QSharedPointer<Account> AccountManager::createAccount(const QString & name,
     writer.writeEndElement();
 
     writer.writeStartElement(QStringLiteral("accountType"));
-    writer.writeCharacters(QStringLiteral("local"));
+    writer.writeCharacters(isLocal ? QStringLiteral("local") : QStringLiteral("Evernote"));
     writer.writeEndElement();
 
     writer.writeEndDocument();
 
     accountInfo.close();
 
-    AvailableAccount availableAccount(name, userPersistenceStoragePath, /* user id = */ -1, /* local = */ true);
+    AvailableAccount availableAccount(name, accountPersistentStoragePath,
+                                      /* user id = */ (isLocal ? qevercloud::UserID(-1) : id),
+                                      /* local = */ isLocal);
     m_availableAccounts << availableAccount;
 
-    QSharedPointer<Account> result(new Account(name, Account::Type::Local));
-    return result;
+    return true;
 }
 
 QSharedPointer<Account> AccountManager::lastUsedAccount() const

@@ -70,9 +70,12 @@ private:
     void detectAvailableAccounts();
 
     QSharedPointer<quentier::Account> createDefaultAccount(quentier::QNLocalizedString & errorDescription);
+    QSharedPointer<quentier::Account> createLocalAccount(const QString & name,
+                                                         quentier::QNLocalizedString & errorDescription);
+    bool createAccountInfo(const quentier::Account & account);
 
-    QSharedPointer<quentier::Account> createAccount(const QString & name,
-                                                    quentier::QNLocalizedString & errorDescription);
+    bool writeAccountInfo(const QString & name, const bool isLocal, const qevercloud::UserID id,
+                          quentier::QNLocalizedString & errorDescription);
 
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise
