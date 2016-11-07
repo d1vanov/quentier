@@ -32,6 +32,7 @@
 #include "widgets/NoteEditorWidget.h"
 #include <quentier/utility/ShortcutManager.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/synchronization/SynchronizationManager.h>
 
 #include <QtCore>
 
@@ -103,6 +104,17 @@ private Q_SLOTS:
     void onFindPreviousInsideNoteAction();
     void onReplaceInsideNoteAction();
 
+    // Synchronization manager slots
+    void onSynchronizationManagerFailure(QNLocalizedString errorDescription);
+    void onSynchronizationFinished(Account account);
+    void onAuthenticationRevoked(bool success, QNLocalizedString errorDescription,
+                                 qevercloud::UserID userId);
+    void onRateLimitExceeded(qint32 secondsToWait);
+    void onRemoteToLocalSyncDone();
+    void onSynchronizationProgressUpdate(QNLocalizedString message, double workDonePercentage);
+    void onRemoteToLocalSyncStopped();
+    void onSendLocalChangesStopped();
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
@@ -126,6 +138,9 @@ private:
 
     void setupLocalStorageManager();
     void setupModels();
+
+    void setupSynchronizationManager();
+
     void setupDefaultShortcuts();
     void setupUserShortcuts();
 
@@ -135,6 +150,8 @@ private:
     void addMenuActionsToMainWindow();
 
     NoteEditorWidget * currentNoteEditor();
+
+    void onSyncStopped();
 
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
@@ -147,8 +164,12 @@ private:
     AccountManager *            m_pAccountManager;
     QScopedPointer<Account>     m_pAccount;
 
-    QThread *               m_pLocalStorageManagerThread;
+    QThread *                   m_pLocalStorageManagerThread;
     LocalStorageManagerThreadWorker *   m_pLocalStorageManager;
+
+    QThread *                   m_pSynchronizationManagerThread;
+    SynchronizationManager *    m_pSynchronizationManager;
+    QString                     m_synchronizationManagerHost;
 
     NotebookCache           m_notebookCache;
     TagCache                m_tagCache;

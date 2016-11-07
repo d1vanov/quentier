@@ -127,7 +127,8 @@ Q_SIGNALS:
 
     /**
      * This signal is emitted when the "remote to local" synchronization step is paused
-     * @param pendingAuthentication - true if the reason for pausing is the need for new authentication token(s), false otherwise
+     * @param pendingAuthentication - true if the reason for pausing is the need
+     * for new authentication token(s), false otherwise
      */
     void remoteToLocalSyncPaused(bool pendingAuthenticaton);
 
@@ -152,8 +153,8 @@ Q_SIGNALS:
      * from the Evernote service are available yet no conflict between remote and local changes was found yet.
      *
      * Such situation can rarely happen in case of changes introduced concurrently with the
-     * running synchronization - perhaps via another client. The algorithm will handle it, the signal is just for the sake
-     * of diagnostic
+     * running synchronization - perhaps via another client. The algorithm will handle it,
+     * the signal is just for the sake of diagnostic
      */
     void willRepeatRemoteToLocalSyncAfterSendingChanges();
 

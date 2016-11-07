@@ -47,6 +47,7 @@
 #include <QUndoStack>
 #include <QCryptographicHash>
 #include <QXmlStreamWriter>
+#include <QDateTime>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -63,6 +64,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAccount(),
     m_pLocalStorageManagerThread(Q_NULLPTR),
     m_pLocalStorageManager(Q_NULLPTR),
+    m_pSynchronizationManagerThread(Q_NULLPTR),
+    m_pSynchronizationManager(Q_NULLPTR),
+    m_synchronizationManagerHost(),
     m_notebookCache(),
     m_tagCache(),
     m_savedSearchCache(),
@@ -86,6 +90,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupLocalStorageManager();
     setupModels();
+
     setupDefaultShortcuts();
     setupUserShortcuts();
 
@@ -266,6 +271,11 @@ NoteEditorWidget * MainWindow::currentNoteEditor()
     }
 
     return noteEditorWidget;
+}
+
+void MainWindow::onSyncStopped()
+{
+    onSetStatusBarText(tr("Synchronization was stopped"));
 }
 
 void MainWindow::prepareTestNoteWithResources()
@@ -464,6 +474,117 @@ DISPATCH_TO_NOTE_EDITOR(onFindPreviousInsideNoteAction, onFindPreviousInsideNote
 DISPATCH_TO_NOTE_EDITOR(onReplaceInsideNoteAction, onReplaceInsideNoteAction)
 
 #undef DISPATCH_TO_NOTE_EDITOR
+
+void MainWindow::onSynchronizationManagerFailure(QNLocalizedString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
+    onSetStatusBarText(errorDescription.localizedString());
+}
+
+void MainWindow::onSynchronizationFinished(Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationFinished: ") << account);
+
+    onSetStatusBarText(tr("Synchronization finished!"));
+
+    QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
+           << QStringLiteral(", id ") << account.id());
+
+    // TODO: figure out what to do with the account object now
+}
+
+void MainWindow::onAuthenticationRevoked(bool success, QNLocalizedString errorDescription,
+                                         qevercloud::UserID userId)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
+            << (success ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral(", user id = ") << userId);
+
+    if (!success) {
+        onSetStatusBarText(tr("Couldn't revoke the authentication") + QStringLiteral(": ") +
+                           errorDescription.localizedString());
+        return;
+    }
+
+    QNINFO(QStringLiteral("Revoked authentication for user with id ") << userId);
+}
+
+void MainWindow::onRateLimitExceeded(qint32 secondsToWait)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRateLimitExceeded: seconds to wait = ")
+            << secondsToWait);
+
+    qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
+    qint64 futureTimestamp = currentTimestamp + secondsToWait * 1000;
+    QDateTime futureDateTime;
+    futureDateTime.setMSecsSinceEpoch(futureTimestamp);
+
+    QDateTime today = QDateTime::currentDateTime();
+    bool includeDate = (today.date() != futureDateTime.date());
+
+    QString dateTimeToShow = (includeDate
+                              ? futureDateTime.toString(QStringLiteral("dd.MM.yyyy hh:mm:ss"))
+                              : futureDateTime.toString(QStringLiteral("hh:mm:ss")));
+
+    onSetStatusBarText(tr("The synchronization has reached the Evernote API rate limit, "
+                          "it will continue automatically at approximately") + QStringLiteral(" ") +
+                       dateTimeToShow);
+
+    QNINFO(QStringLiteral("Evernote API rate limit exceeded, need to wait for ")
+           << secondsToWait << QStringLiteral(" seconds, the synchronization will continue at ")
+           << dateTimeToShow);
+}
+
+void MainWindow::onRemoteToLocalSyncDone()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncDone"));
+
+    onSetStatusBarText(tr("Received all updates from Evernote servers, sending local changes"));
+    QNINFO(QStringLiteral("Remote to local sync done"));
+}
+
+void MainWindow::onSynchronizationProgressUpdate(QNLocalizedString message, double workDonePercentage)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSynchronizationProgressUpdate: message = ")
+            << message << QStringLiteral(", work done percentage = ") << workDonePercentage);
+
+    if (Q_UNLIKELY(message.isEmpty())) {
+        return;
+    }
+
+    bool showProgress = true;
+    if (Q_UNLIKELY((workDonePercentage < 0.0) || (workDonePercentage >= 1.0))) {
+        showProgress = false;
+    }
+
+    workDonePercentage *= 1.0e4;
+    workDonePercentage = std::floor(workDonePercentage + 0.5);
+    workDonePercentage *= 1.0e-2;
+
+    QString messageToShow = message.localizedString();
+    if (showProgress) {
+        messageToShow += QStringLiteral(", ");
+        messageToShow += tr("progress");
+        messageToShow += QStringLiteral(": ");
+        messageToShow += QString::number(workDonePercentage);
+        messageToShow += QStringLiteral("%");
+    }
+
+    onSetStatusBarText(messageToShow);
+}
+
+void MainWindow::onRemoteToLocalSyncStopped()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRemoteToLocalSyncStopped"));
+    onSyncStopped();
+}
+
+void MainWindow::onSendLocalChangesStopped()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSendLocalChangesStopped"));
+    onSyncStopped();
+}
 
 void MainWindow::onNoteTextSpellCheckToggled()
 {
@@ -855,7 +976,8 @@ void MainWindow::setupLocalStorageManager()
     QNDEBUG(QStringLiteral("MainWindow::setupLocalStorageManager"));
 
     m_pLocalStorageManagerThread = new QThread;
-    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished), m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
+    QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,finished),
+                     m_pLocalStorageManagerThread, QNSLOT(QThread,deleteLater));
     m_pLocalStorageManagerThread->start();
 
     m_pLocalStorageManager = new LocalStorageManagerThreadWorker(*m_pAccount, /* start from scratch = */ false,
@@ -882,6 +1004,47 @@ void MainWindow::setupModels()
 
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
     m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache, m_notebookCache, m_tagCache, m_savedSearchCache, this);
+}
+
+void MainWindow::setupSynchronizationManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManager"));
+
+    if (m_synchronizationManagerHost.isEmpty()) {
+        QNDEBUG(QStringLiteral("Host is empty"));
+        return;
+    }
+
+    QString consumerKey, consumerSecret;
+    setupConsumerKeyAndSecret(consumerKey, consumerSecret);
+
+    if (Q_UNLIKELY(consumerKey.isEmpty())) {
+        QNDEBUG(QStringLiteral("Consumer key is empty"));
+        return;
+    }
+
+    if (Q_UNLIKELY(consumerSecret.isEmpty())) {
+        QNDEBUG(QStringLiteral("Consumer secret is empty"));
+        return;
+    }
+
+    if (!m_pSynchronizationManagerThread) {
+        m_pSynchronizationManagerThread = new QThread;
+        QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
+                         m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
+        m_pSynchronizationManagerThread->start();
+    }
+
+    if (m_pSynchronizationManager) {
+        // TODO: disconnect from it
+        m_pSynchronizationManager->deleteLater();
+    }
+
+    m_pSynchronizationManager = new SynchronizationManager(consumerKey, consumerSecret,
+                                                           m_synchronizationManagerHost,
+                                                           *m_pLocalStorageManager);
+    m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
+    // TODO: connect to it
 }
 
 void MainWindow::setupDefaultShortcuts()
