@@ -41,7 +41,9 @@
 #else
 #include <QMainWindow>
 #endif
+
 #include <QTextListFormat>
+#include <QMap>
 
 namespace Ui {
 class MainWindow;
@@ -130,6 +132,8 @@ private Q_SLOTS:
     void onManageAccountsActionTriggered(bool checked);
     void onSwitchAccountActionToggled(bool checked);
 
+    void onAccountSwitched(Account account);
+
     void onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId);
     void onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId);
 
@@ -168,6 +172,8 @@ private:
 
     QThread *                   m_pLocalStorageManagerThread;
     LocalStorageManagerThreadWorker *   m_pLocalStorageManager;
+
+    QUuid                       m_lastLocalStorageSwitchUserRequest;
 
     QThread *                   m_pSynchronizationManagerThread;
     SynchronizationManager *    m_pSynchronizationManager;

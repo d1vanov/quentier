@@ -122,6 +122,7 @@ void AccountManager::switchAccount(const Account & account)
         break;
     }
 
+    Account complementedAccount = account;
     if (!accountIsAvailable)
     {
         bool res = createAccountInfo(account);
@@ -129,9 +130,13 @@ void AccountManager::switchAccount(const Account & account)
             return;
         }
     }
+    else
+    {
+        readComplementaryAccountInfo(complementedAccount);
+    }
 
-    updateLastUsedAccount(account);
-    emit switchedAccount(account);
+    updateLastUsedAccount(complementedAccount);
+    emit switchedAccount(complementedAccount);
 }
 
 void AccountManager::onLocalAccountAdditionRequested(QString name)
@@ -254,7 +259,8 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
 {
     QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: ") << name);
 
-    bool res = writeAccountInfo(name, /* is local = */ true, /* user id = */ -1, errorDescription);
+    bool res = writeAccountInfo(name, /* is local = */ true, /* user id = */ -1,
+                                /* evernote account type = */ QString(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         return QSharedPointer<Account>();
     }
@@ -269,8 +275,26 @@ bool AccountManager::createAccountInfo(const Account & account)
 
     bool isLocal = (account.type() == Account::Type::Local);
 
+    QString evernoteAccountType;
+    switch(account.evernoteAccountType())
+    {
+    case Account::EvernoteAccountType::Plus:
+        evernoteAccountType = QStringLiteral("Plus");
+        break;
+    case Account::EvernoteAccountType::Premium:
+        evernoteAccountType = QStringLiteral("Premium");
+        break;
+    case Account::EvernoteAccountType::Business:
+        evernoteAccountType = QStringLiteral("Business");
+        break;
+    default:
+        evernoteAccountType = QStringLiteral("Free");
+        break;
+    }
+
     QNLocalizedString errorDescription;
-    bool res = writeAccountInfo(account.name(), isLocal, account.id(), errorDescription);
+    bool res = writeAccountInfo(account.name(), isLocal, account.id(),
+                                evernoteAccountType, errorDescription);
     if (Q_UNLIKELY(!res)) {
         emit notifyError(errorDescription);
         return false;
@@ -279,30 +303,19 @@ bool AccountManager::createAccountInfo(const Account & account)
     return true;
 }
 
-bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal, const qevercloud::UserID id,
+bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal,
+                                      const qevercloud::UserID id,
+                                      const QString & evernoteAccountType,
                                       QNLocalizedString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::writeAccountInfo: name = ") << name
             << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", user id = ") << id);
 
-    QString accountPersistentStoragePath = applicationPersistentStoragePath();
-
-    accountPersistentStoragePath += QStringLiteral("/");
-    if (isLocal) {
-        accountPersistentStoragePath += QStringLiteral("/local_");
-    }
-
-    accountPersistentStoragePath += name;
-    if (!isLocal) {
-        accountPersistentStoragePath += QStringLiteral("_");
-        accountPersistentStoragePath += QString::number(id);
-    }
-
-    QDir accountPersistentStorageDir(accountPersistentStoragePath);
+    QDir accountPersistentStorageDir = accountStorageDir(name, isLocal, id);
     if (!accountPersistentStorageDir.exists())
     {
-        bool res = accountPersistentStorageDir.mkpath(accountPersistentStoragePath);
+        bool res = accountPersistentStorageDir.mkpath(accountPersistentStorageDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
             errorDescription = QT_TR_NOOP("can't create directory for the account storage");
             QNWARNING(errorDescription);
@@ -310,14 +323,19 @@ bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal, 
         }
     }
 
-    QFile accountInfo(accountPersistentStoragePath + QStringLiteral("/accountInfo.txt"));
+    QFile accountInfo(accountPersistentStorageDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
 
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
         errorDescription = QT_TR_NOOP("can't open the new account info file for writing");
+        errorDescription += QStringLiteral(": ");
+        errorDescription += accountInfo.fileName();
+
         QString errorString = accountInfo.errorString();
         if (!errorString.isEmpty()) {
+            errorDescription += QStringLiteral(", ");
+            errorDescription += QT_TR_NOOP("error");
             errorDescription += QStringLiteral(": ");
             errorDescription += errorString;
         }
@@ -335,19 +353,135 @@ bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal, 
     writer.writeEndElement();
 
     writer.writeStartElement(QStringLiteral("accountType"));
-    writer.writeCharacters(isLocal ? QStringLiteral("local") : QStringLiteral("Evernote"));
+    writer.writeCharacters(isLocal ? QStringLiteral("Local") : QStringLiteral("Evernote"));
+    writer.writeEndElement();
+
+    writer.writeStartElement(QStringLiteral("evernoteAccountType"));
+    writer.writeCharacters(evernoteAccountType);
     writer.writeEndElement();
 
     writer.writeEndDocument();
 
     accountInfo.close();
 
-    AvailableAccount availableAccount(name, accountPersistentStoragePath,
+    AvailableAccount availableAccount(name, accountPersistentStorageDir.absolutePath(),
                                       /* user id = */ (isLocal ? qevercloud::UserID(-1) : id),
                                       /* local = */ isLocal);
     m_availableAccounts << availableAccount;
 
     return true;
+}
+
+void AccountManager::readComplementaryAccountInfo(Account & account)
+{
+    QNDEBUG(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account);
+
+    QDir accountPersistentStorageDir = accountStorageDir(account.name(),
+                                                         (account.type() == Account::Type::Local),
+                                                         account.id());
+    if (!accountPersistentStorageDir.exists()) {
+        QNDEBUG(QStringLiteral("No persistent storage dir exists for this account"));
+        return;
+    }
+
+    QFile accountInfo(accountPersistentStorageDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
+
+    bool open = accountInfo.open(QIODevice::ReadOnly);
+    if (Q_UNLIKELY(!open))
+    {
+        QNLocalizedString errorDescription = QT_TR_NOOP("Can't read complementary account info: "
+                                                        "can't open file for reading");
+        errorDescription += QStringLiteral(": ");
+        errorDescription += accountInfo.fileName();
+
+        QString errorString = accountInfo.errorString();
+        if (!errorString.isEmpty()) {
+            errorDescription += QStringLiteral(", ");
+            errorDescription += QT_TR_NOOP("error");
+            errorDescription += QStringLiteral(": ");
+            errorDescription += errorString;
+        }
+
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QXmlStreamReader reader(&accountInfo);
+
+    QString currentElementName;
+    while(!reader.atEnd())
+    {
+        Q_UNUSED(reader.readNext());
+
+        if (reader.isStartDocument()) {
+            continue;
+        }
+
+        if (reader.isDTD()) {
+            continue;
+        }
+
+        if (reader.isEndDocument()) {
+            continue;
+        }
+
+        if (reader.isStartElement())
+        {
+            currentElementName = reader.name().toString();
+            if (currentElementName != QStringLiteral("evernoteAccountType")) {
+                continue;
+            }
+        }
+
+        if (reader.isCharacters())
+        {
+            if (currentElementName.isEmpty() || (currentElementName != QStringLiteral("evernoteAccountType"))) {
+                continue;
+            }
+
+            QString evernoteAccountType = reader.text().toString();
+            if (evernoteAccountType.isEmpty() || (evernoteAccountType == QStringLiteral("Free"))) {
+                account.setEvernoteAccountType(Account::EvernoteAccountType::Free);
+                break;
+            }
+            else if (evernoteAccountType == QStringLiteral("Plus")) {
+                account.setEvernoteAccountType(Account::EvernoteAccountType::Plus);
+                break;
+            }
+            else if (evernoteAccountType == QStringLiteral("Premium")) {
+                account.setEvernoteAccountType(Account::EvernoteAccountType::Premium);
+                break;
+            }
+            else if (evernoteAccountType == QStringLiteral("Business")) {
+                account.setEvernoteAccountType(Account::EvernoteAccountType::Business);
+                break;
+            }
+        }
+    }
+
+    accountInfo.close();
+
+    QNDEBUG(QStringLiteral("Account after reading in the complementary info: ") << account);
+}
+
+QDir AccountManager::accountStorageDir(const QString & name, const bool isLocal,
+                                       const qevercloud::UserID id) const
+{
+    QString accountPersistentStoragePath = applicationPersistentStoragePath();
+
+    accountPersistentStoragePath += QStringLiteral("/");
+    if (isLocal) {
+        accountPersistentStoragePath += QStringLiteral("/local_");
+    }
+
+    accountPersistentStoragePath += name;
+    if (!isLocal) {
+        accountPersistentStoragePath += QStringLiteral("_");
+        accountPersistentStoragePath += QString::number(id);
+    }
+
+    return QDir(accountPersistentStoragePath);
 }
 
 QSharedPointer<Account> AccountManager::lastUsedAccount() const

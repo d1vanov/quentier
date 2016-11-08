@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAccount(),
     m_pLocalStorageManagerThread(Q_NULLPTR),
     m_pLocalStorageManager(Q_NULLPTR),
+    m_lastLocalStorageSwitchUserRequest(),
     m_pSynchronizationManagerThread(Q_NULLPTR),
     m_pSynchronizationManager(Q_NULLPTR),
     m_synchronizationManagerHost(),
@@ -219,6 +220,8 @@ void MainWindow::addMenuActionsToMainWindow()
 
         QAction * accountAction = new QAction(availableAccountRepresentationName, Q_NULLPTR);
         switchAccountSubMenu->addAction(accountAction);
+
+        accountAction->setData(i);
 
         accountAction->setCheckable(true);
         addAction(accountAction);
@@ -806,20 +809,65 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        NOTIFY_ERROR(QT_TR_NOOP("Internal error: can't identify account to switch to"));
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: account switching action is unexpectedly null"));
         return;
     }
 
-    QString accountName = action->text();
-    Q_UNUSED(accountName);
-    // TODO: implement further
+    QVariant indexData = action->data();
+    bool conversionResult = false;
+    int index = indexData.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: can't get identification data "
+                                "from the account switching action"));
+        return;
+    }
+
+    const QVector<AvailableAccount> & availableAccounts = m_pAccountManager->availableAccounts();
+    const int numAvailableAccounts = availableAccounts.size();
+
+    if ((index < 0) || (index >= numAvailableAccounts)) {
+        NOTIFY_ERROR(QT_TR_NOOP("Internal error: wrong index into available accounts "
+                                "in account switching action"));
+        return;
+    }
+
+    const AvailableAccount & availableAccount = availableAccounts[index];
+
+    Account account(availableAccount.username(),
+                    (availableAccount.isLocal() ? Account::Type::Local : Account::Type::Evernote),
+                    availableAccount.userId());
+    m_pAccountManager->switchAccount(account);
+    // Will continue in slot connected to AccountManager's switchedAccount signal
+}
+
+void MainWindow::onAccountSwitched(Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitched: ") << account);
+
+    // Now need to ask the local stortage manager to switch the account
+    m_lastLocalStorageSwitchUserRequest = QUuid::createUuid();
+    emit localStorageSwitchUserRequest(account, /* start from scratch = */ false,
+                                       m_lastLocalStorageSwitchUserRequest);
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
 {
-    Q_UNUSED(account)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestComplete: account = ")
+            << account << QStringLiteral(", request id = ") << requestId);
+
+    bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
+    m_lastLocalStorageSwitchUserRequest = QUuid();
+
+    if (!expected) {
+        NOTIFY_ERROR(QT_TR_NOOP("Local storage user was switched without explicit user action"));
+        // Trying to undo it
+        m_pAccountManager->switchAccount(*m_pAccount); // This should trigger the switch in local storage as well
+        return;
+    }
+
+    *m_pAccount = account;
+
+    // TODO: process the account switching for the synchronization manager
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
