@@ -273,6 +273,60 @@ NoteEditorWidget * MainWindow::currentNoteEditor()
     return noteEditorWidget;
 }
 
+void MainWindow::connectSynchronizationManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::connectSynchronizationManager"));
+
+    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+        QNDEBUG(QStringLiteral("No synchronization manager"));
+        return;
+    }
+
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onSynchronizationManagerFailure,QNLocalizedString));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
+                     this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
+                     this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
+                     this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
+                     this, QNSLOT(MainWindow,onSendLocalChangesStopped));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
+                     this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
+                     this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QNLocalizedString,double),
+                     this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QNLocalizedString,double));
+}
+
+void MainWindow::disconnectSynchronizationManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::disconnectSynchronizationManager"));
+
+    if (Q_UNLIKELY(!m_pSynchronizationManager)) {
+        QNDEBUG(QStringLiteral("No synchronization manager"));
+        return;
+    }
+
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString),
+                        this, QNSLOT(MainWindow,onSynchronizationManagerFailure,QNLocalizedString));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
+                        this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
+                        this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
+                        this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
+                        this, QNSLOT(MainWindow,onSendLocalChangesStopped));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32),
+                        this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
+                        this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QNLocalizedString,double),
+                        this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QNLocalizedString,double));
+}
+
 void MainWindow::onSyncStopped()
 {
     onSetStatusBarText(tr("Synchronization was stopped"));
@@ -1036,7 +1090,7 @@ void MainWindow::setupSynchronizationManager()
     }
 
     if (m_pSynchronizationManager) {
-        // TODO: disconnect from it
+        disconnectSynchronizationManager();
         m_pSynchronizationManager->deleteLater();
     }
 
@@ -1044,7 +1098,7 @@ void MainWindow::setupSynchronizationManager()
                                                            m_synchronizationManagerHost,
                                                            *m_pLocalStorageManager);
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
-    // TODO: connect to it
+    connectSynchronizationManager();
 }
 
 void MainWindow::setupDefaultShortcuts()

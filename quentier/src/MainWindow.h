@@ -151,6 +151,8 @@ private:
 
     NoteEditorWidget * currentNoteEditor();
 
+    void connectSynchronizationManager();
+    void disconnectSynchronizationManager();
     void onSyncStopped();
 
     void prepareTestNoteWithResources();
