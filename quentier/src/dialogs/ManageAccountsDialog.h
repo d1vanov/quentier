@@ -19,8 +19,7 @@
 #ifndef QUENTIER_MANAGE_ACCOUNTS_DIALOG_H
 #define QUENTIER_MANAGE_ACCOUNTS_DIALOG_H
 
-#include "AvailableAccount.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/types/Account.h>
 #include <QDialog>
 #include <QVector>
 #include <QStringListModel>
@@ -33,7 +32,7 @@ class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ManageAccountsDialog(const QVector<AvailableAccount> & availableAccounts,
+    explicit ManageAccountsDialog(const QVector<quentier::Account> & availableAccounts,
                                   QWidget * parent = Q_NULLPTR);
     virtual ~ManageAccountsDialog();
 
@@ -43,7 +42,7 @@ Q_SIGNALS:
     void revokeAuthentication(qevercloud::UserID id);
 
 public Q_SLOTS:
-    void onAvailableAccountsChanged(const QVector<AvailableAccount> & availableAccounts);
+    void onAvailableAccountsChanged(const QVector<quentier::Account> & availableAccounts);
 
 private Q_SLOTS:
     void onAddAccountButtonPressed();
@@ -54,7 +53,7 @@ private:
 
 private:
     Ui::ManageAccountsDialog *  m_pUi;
-    QVector<AvailableAccount>   m_availableAccounts;
+    QVector<quentier::Account>  m_availableAccounts;
     QStringListModel            m_accountListModel;
 };
 

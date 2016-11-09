@@ -117,6 +117,9 @@ private Q_SLOTS:
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
 
+    // AccountManager slots
+    void onEvernoteAccountAuthenticationRequested(QString host);
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();

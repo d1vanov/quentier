@@ -22,7 +22,9 @@
 #include <QStringListModel>
 #include <QPushButton>
 
-AddAccountDialog::AddAccountDialog(const QVector<AvailableAccount> & availableAccounts,
+using namespace quentier;
+
+AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
                                    QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::AddAccountDialog),
@@ -125,16 +127,16 @@ void AddAccountDialog::onLocalAccountNameChosen()
     }
 }
 
-bool AddAccountDialog::localAccountAlreadyExists(const QString & name)
+bool AddAccountDialog::localAccountAlreadyExists(const QString & name) const
 {
     for(int i = 0, size = m_availableAccounts.size(); i < size; ++i)
     {
-        const AvailableAccount & availableAccount = m_availableAccounts[i];
-        if (!availableAccount.isLocal()) {
+        const Account & availableAccount = m_availableAccounts[i];
+        if (availableAccount.type() != Account::Type::Local) {
             continue;
         }
 
-        if (name == availableAccount.username()) {
+        if (name == availableAccount.name()) {
             return true;
         }
     }

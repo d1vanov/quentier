@@ -45,9 +45,11 @@ public:
     };
 
 public:
+    explicit Account();
     explicit Account(const QString & name, const Type::type type,
                      const qevercloud::UserID userId = -1,
-                     const EvernoteAccountType::type evernoteAccountType = EvernoteAccountType::Free);
+                     const EvernoteAccountType::type evernoteAccountType = EvernoteAccountType::Free,
+                     const QString & evernoteHost = QString());
     Account(const Account & other);
     Account & operator=(const Account & other);
     virtual ~Account();
@@ -58,19 +60,24 @@ public:
     QString name() const;
 
     /**
-     * @return user id for Evernote accounts, -1 for local accounts (as the concept of user id is not defined for local accounts)
-     */
-    qevercloud::UserID id() const;
-
-    /**
      * @return the type of the account: either local of Evernote
      */
     Type::type type() const;
 
     /**
+     * @return user id for Evernote accounts, -1 for local accounts (as the concept of user id is not defined for local accounts)
+     */
+    qevercloud::UserID id() const;
+
+    /**
      * @return the type of the Evernote account; if applied to free account, returns "Free"
      */
     EvernoteAccountType::type evernoteAccountType() const;
+
+    /**
+     * @return the Evernote server host with which the account is associated
+     */
+    QString evernoteHost() const;
 
     void setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType);
 

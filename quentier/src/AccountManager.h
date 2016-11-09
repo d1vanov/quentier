@@ -19,7 +19,6 @@
 #ifndef QUENTIER_ACCOUNT_MANAGER_H
 #define QUENTIER_ACCOUNT_MANAGER_H
 
-#include "AvailableAccount.h"
 #include <quentier/types/Account.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/exception/IQuentierException.h>
@@ -43,7 +42,7 @@ public:
 public:
     AccountManager(QObject * parent = Q_NULLPTR);
 
-    const QVector<AvailableAccount> & availableAccounts() const
+    const QVector<quentier::Account> & availableAccounts() const
     { return m_availableAccounts; }
 
     /**
@@ -89,7 +88,7 @@ private:
     void updateLastUsedAccount(const quentier::Account & account);
 
 private:
-    QVector<AvailableAccount>   m_availableAccounts;
+    QVector<quentier::Account>   m_availableAccounts;
 };
 
 #endif // QUENTIER_ACCOUNT_MANAGER_H

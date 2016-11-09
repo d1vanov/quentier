@@ -102,19 +102,20 @@ void AccountManager::switchAccount(const Account & account)
 
     // See whether this account is within a list of already available accounts, if not, add it there
     bool accountIsAvailable = false;
+    Account::Type::type type = account.type();
     bool isLocal = (account.type() == Account::Type::Local);
-    for(int i = 0, size = m_availableAccounts.size(); i < size; ++i)
+    for(auto it = m_availableAccounts.constBegin(), end = m_availableAccounts.constEnd(); it != end; ++it)
     {
-        const AvailableAccount & availableAccount = m_availableAccounts[i];
+        const Account & availableAccount = *it;
 
-        if (availableAccount.isLocal() != isLocal) {
+        if (availableAccount.type() != type) {
             continue;
         }
 
-        if (!isLocal && (availableAccount.userId() != account.id())) {
+        if (!isLocal && (availableAccount.id() != account.id())) {
             continue;
         }
-        else if (isLocal && (availableAccount.username() != account.name())) {
+        else if (isLocal && (availableAccount.name() != account.name())) {
             continue;
         }
 
@@ -144,14 +145,14 @@ void AccountManager::onLocalAccountAdditionRequested(QString name)
     QNDEBUG(QStringLiteral("AccountManager::onLocalAccountAdditionRequested: ") << name);
 
     // Double-check that no local account with such username already exists
-    for(int i = 0, size = m_availableAccounts.size(); i < size; ++i)
+    for(auto it = m_availableAccounts.constBegin(), end = m_availableAccounts.constEnd(); it != end; ++it)
     {
-        const AvailableAccount & availableAccount = m_availableAccounts[i];
-        if (!availableAccount.isLocal()) {
+        const Account & availableAccount = *it;
+        if (availableAccount.type() != Account::Type::Local) {
             continue;
         }
 
-        if (Q_UNLIKELY(availableAccount.username() == name)) {
+        if (Q_UNLIKELY(availableAccount.name() == name)) {
             QNLocalizedString error = QT_TR_NOOP("Can't add local account: account with chosen name already exists");
             QNWARNING(error);
             emit notifyError(error);
@@ -176,8 +177,6 @@ void AccountManager::onLocalAccountAdditionRequested(QString name)
 void AccountManager::detectAvailableAccounts()
 {
     QNDEBUG(QStringLiteral("AccountManager::detectAvailableAccounts"));
-
-    m_availableAccounts.resize(0);
 
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
     QDir appPersistenceStorageDir(appPersistenceStoragePath);
@@ -227,7 +226,7 @@ void AccountManager::detectAvailableAccounts()
             }
         }
 
-        AvailableAccount availableAccount(accountName, accountDir.absolutePath(), userId, isLocal);
+        Account availableAccount(accountName, (isLocal ? Account::Type::Local : Account::Type::Evernote), userId);
         m_availableAccounts << availableAccount;
         QNDEBUG(QStringLiteral("Found available account: name = ") << accountName
                 << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
@@ -364,9 +363,8 @@ bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal,
 
     accountInfo.close();
 
-    AvailableAccount availableAccount(name, accountPersistentStorageDir.absolutePath(),
-                                      /* user id = */ (isLocal ? qevercloud::UserID(-1) : id),
-                                      /* local = */ isLocal);
+    Account availableAccount(name, (isLocal ? Account::Type::Local : Account::Type::Evernote),
+                             /* user id = */ (isLocal ? qevercloud::UserID(-1) : id));
     m_availableAccounts << availableAccount;
 
     return true;

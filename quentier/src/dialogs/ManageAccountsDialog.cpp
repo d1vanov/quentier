@@ -21,7 +21,9 @@
 #include "AddAccountDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 
-ManageAccountsDialog::ManageAccountsDialog(const QVector<AvailableAccount> & availableAccounts,
+using namespace quentier;
+
+ManageAccountsDialog::ManageAccountsDialog(const QVector<Account> & availableAccounts,
                                            QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::ManageAccountsDialog),
@@ -44,7 +46,7 @@ ManageAccountsDialog::~ManageAccountsDialog()
     delete m_pUi;
 }
 
-void ManageAccountsDialog::onAvailableAccountsChanged(const QVector<AvailableAccount> & availableAccounts)
+void ManageAccountsDialog::onAvailableAccountsChanged(const QVector<Account> & availableAccounts)
 {
     QNDEBUG(QStringLiteral("ManageAccountsDialog::onAvailableAccountsChanged"));
 
@@ -86,13 +88,13 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
         return;
     }
 
-    const AvailableAccount & availableAccount = m_availableAccounts[currentRow];
-    if (availableAccount.isLocal()) {
+    const Account & availableAccount = m_availableAccounts.at(currentRow);
+    if (availableAccount.type() == Account::Type::Local) {
         QNTRACE(QStringLiteral("The current account is local, nothing to do"));
         return;
     }
 
-    emit revokeAuthentication(availableAccount.userId());
+    emit revokeAuthentication(availableAccount.id());
 }
 
 void ManageAccountsDialog::updateAvailableAccountsInView()
@@ -105,9 +107,9 @@ void ManageAccountsDialog::updateAvailableAccountsInView()
 
     for(int i = 0; i < numAvailableAccounts; ++i)
     {
-        const AvailableAccount & availableAccount = m_availableAccounts[i];
-        QString displayedAccountName = availableAccount.username();
-        if (availableAccount.isLocal()) {
+        const Account & availableAccount = m_availableAccounts.at(i);
+        QString displayedAccountName = availableAccount.name();
+        if (availableAccount.type() == Account::Type::Local) {
             displayedAccountName += QStringLiteral(" (");
             // TRANSLATOR: the "local" word here means the local account i.e. the one not synchronized with Evernote
             displayedAccountName += tr("local");

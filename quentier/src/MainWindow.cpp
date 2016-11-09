@@ -205,14 +205,14 @@ void MainWindow::addMenuActionsToMainWindow()
     QActionGroup * accountsActionGroup = new QActionGroup(this);
     accountsActionGroup->setExclusive(true);
 
-    const QVector<AvailableAccount> & availableAccounts = m_pAccountManager->availableAccounts();
+    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
 
     int numAvailableAccounts = availableAccounts.size();
     for(int i = 0; i < numAvailableAccounts; ++i)
     {
-        const AvailableAccount & availableAccount = availableAccounts[i];
-        QString availableAccountRepresentationName = availableAccount.username();
-        if (availableAccount.isLocal()) {
+        const Account & availableAccount = availableAccounts[i];
+        QString availableAccountRepresentationName = availableAccount.name();
+        if (availableAccount.type() == Account::Type::Local) {
             availableAccountRepresentationName += QStringLiteral(" (");
             availableAccountRepresentationName += tr("local");
             availableAccountRepresentationName += QStringLiteral(")");
@@ -643,6 +643,18 @@ void MainWindow::onSendLocalChangesStopped()
     onSyncStopped();
 }
 
+void MainWindow::onEvernoteAccountAuthenticationRequested(QString host)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onEvernoteAccountAuthenticationRequested: host = ") << host);
+
+    if ((host != m_synchronizationManagerHost) || !m_pSynchronizationManager) {
+        m_synchronizationManagerHost = host;
+        setupSynchronizationManager();
+    }
+
+    // TODO: trigger the authentication but don't start the synchronization right away
+}
+
 void MainWindow::onNoteTextSpellCheckToggled()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteTextSpellCheckToggled"));
@@ -822,7 +834,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
         return;
     }
 
-    const QVector<AvailableAccount> & availableAccounts = m_pAccountManager->availableAccounts();
+    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
     const int numAvailableAccounts = availableAccounts.size();
 
     if ((index < 0) || (index >= numAvailableAccounts)) {
@@ -831,12 +843,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
         return;
     }
 
-    const AvailableAccount & availableAccount = availableAccounts[index];
-
-    Account account(availableAccount.username(),
-                    (availableAccount.isLocal() ? Account::Type::Local : Account::Type::Evernote),
-                    availableAccount.userId());
-    m_pAccountManager->switchAccount(account);
+    const Account & availableAccount = availableAccounts[index];
+    m_pAccountManager->switchAccount(availableAccount);
     // Will continue in slot connected to AccountManager's switchedAccount signal
 }
 
@@ -867,7 +875,26 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     *m_pAccount = account;
 
-    // TODO: process the account switching for the synchronization manager
+    if (m_pAccount->type() == Account::Type::Local)
+    {
+        disconnectSynchronizationManager();
+
+        if (m_pSynchronizationManager) {
+            m_pSynchronizationManager->deleteLater();
+            m_pSynchronizationManager = Q_NULLPTR;
+        }
+
+        if (m_pSynchronizationManagerThread) {
+            m_pSynchronizationManagerThread->quit();    // The thread would delete itself after it's finished
+            m_pSynchronizationManagerThread = Q_NULLPTR;
+        }
+    }
+    else
+    {
+        // TODO: figure out to which host this account belongs: if to the same as the previous account,
+        // just switch the account in the existing synchronization manager (if any); otherwise, re-create
+        // the synchronization manager from scratch
+    }
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)

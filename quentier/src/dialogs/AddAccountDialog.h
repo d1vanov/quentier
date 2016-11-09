@@ -19,8 +19,7 @@
 #ifndef QUENTIER_DIALOGS_ADD_ACCOUNT_DIALOG_H
 #define QUENTIER_DIALOGS_ADD_ACCOUNT_DIALOG_H
 
-#include "../AvailableAccount.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/types/Account.h>
 #include <QDialog>
 
 namespace Ui {
@@ -31,7 +30,7 @@ class AddAccountDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit AddAccountDialog(const QVector<AvailableAccount> & availableAccounts,
+    explicit AddAccountDialog(const QVector<quentier::Account> & availableAccounts,
                               QWidget * parent = Q_NULLPTR);
     ~AddAccountDialog();
 
@@ -46,13 +45,13 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onCurrentAccountTypeChanged(int index);
     void onLocalAccountNameChosen();
-    bool localAccountAlreadyExists(const QString & name);
+    bool localAccountAlreadyExists(const QString & name) const;
 
     virtual void accept() Q_DECL_OVERRIDE;
 
 private:
     Ui::AddAccountDialog *      m_pUi;
-    QVector<AvailableAccount>   m_availableAccounts;
+    QVector<quentier::Account>  m_availableAccounts;
 };
 
 #endif // QUENTIER_DIALOGS_ADD_ACCOUNT_DIALOG_H

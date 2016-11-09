@@ -3,14 +3,23 @@
 
 namespace quentier {
 
+Account::Account() :
+    d(new AccountData)
+{
+    d->m_accountType = Account::Type::Local;
+    d->m_userId = -1;
+}
+
 Account::Account(const QString & name, const Type::type type,
                  const qevercloud::UserID userId,
-                 const EvernoteAccountType::type evernoteAccountType) :
+                 const EvernoteAccountType::type evernoteAccountType,
+                 const QString & evernoteHost) :
     d(new AccountData)
 {
     d->m_name = name;
     d->m_accountType = type;
     d->m_userId = userId;
+    d->m_evernoteHost = evernoteHost;
     d->switchEvernoteAccountType(evernoteAccountType);
 }
 
@@ -58,6 +67,11 @@ Account::Type::type Account::type() const
 Account::EvernoteAccountType::type Account::evernoteAccountType() const
 {
     return d->m_evernoteAccountType;
+}
+
+QString Account::evernoteHost() const
+{
+    return d->m_evernoteHost;
 }
 
 qint32 Account::mailLimitDaily() const
@@ -151,6 +165,8 @@ QTextStream & Account::print(QTextStream & strm) const
         break;
     }
     strm << QStringLiteral(";\n");
+
+    strm << QStringLiteral("    Evernote hsot = ") << d->m_evernoteHost << QStringLiteral(";\n");
 
     strm << QStringLiteral("    mail limit daily = ") << d->m_mailLimitDaily << QStringLiteral(";\n");
     strm << QStringLiteral("    note size max = ") << d->m_noteSizeMax << QStringLiteral(";\n");

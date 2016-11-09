@@ -47,7 +47,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libquentier/headers)
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/AccountManager.h
-    src/AvailableAccount.h
     src/BasicXMLSyntaxHighlighter.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
@@ -88,7 +87,6 @@ set(${PROJECT_NAME}_HEADERS
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
     src/AccountManager.cpp
-    src/AvailableAccount.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
