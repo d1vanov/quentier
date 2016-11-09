@@ -75,11 +75,11 @@ private:
 
     bool writeAccountInfo(const QString & name, const bool isLocal,
                           const qevercloud::UserID id, const QString & evernoteAccountType,
-                          quentier::QNLocalizedString & errorDescription);
+                          const QString & evernoteHost, quentier::QNLocalizedString & errorDescription);
 
     void readComplementaryAccountInfo(quentier::Account & account);
 
-    QDir accountStorageDir(const QString & name, const bool isLocal, const qevercloud::UserID id) const;
+    QDir accountStorageDir(const QString & name, const bool isLocal, const qevercloud::UserID id, const QString & evernoteHost) const;
 
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise

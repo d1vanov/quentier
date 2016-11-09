@@ -44,6 +44,11 @@ void Account::setEvernoteAccountType(const EvernoteAccountType::type evernoteAcc
     d->switchEvernoteAccountType(evernoteAccountType);
 }
 
+void Account::setEvernoteHost(const QString & evernoteHost)
+{
+    d->m_evernoteHost = evernoteHost;
+}
+
 void Account::setEvernoteAccountLimits(const qevercloud::AccountLimits & limits)
 {
     d->setEvernoteAccountLimits(limits);

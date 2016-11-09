@@ -80,6 +80,7 @@ public:
     QString evernoteHost() const;
 
     void setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType);
+    void setEvernoteHost(const QString & evernoteHost);
 
     qint32 mailLimitDaily() const;
     qint64 noteSizeMax() const;
