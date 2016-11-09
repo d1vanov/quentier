@@ -87,6 +87,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     m_pUI->setupUi(this);
 
+    setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
     setupLocalStorageManager();
@@ -858,6 +859,12 @@ void MainWindow::onAccountSwitched(Account account)
                                        m_lastLocalStorageSwitchUserRequest);
 }
 
+void MainWindow::onAccountManagerError(QNLocalizedString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ") << errorDescription);
+    onSetStatusBarText(errorDescription.localizedString());
+}
+
 void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestComplete: account = ")
@@ -1098,6 +1105,18 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
         QNTRACE(QStringLiteral("set fallback object-rotate-right icon"));
     }
+}
+
+void MainWindow::setupAccountManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupAccountManager"));
+
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString),
+                     this, QNSLOT(MainWindow,onEvernoteAccountAuthenticationRequested,QString));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,switchedAccount,Account),
+                     this, QNSLOT(MainWindow,onAccountSwitched,Account));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,notifyError,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onAccountManagerError,QNLocalizedString));
 }
 
 void MainWindow::setupLocalStorageManager()

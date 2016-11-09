@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QVector>
+#include <QDir>
 
 class AccountManager: public QObject
 {

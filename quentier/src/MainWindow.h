@@ -119,6 +119,8 @@ private Q_SLOTS:
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(QString host);
+    void onAccountSwitched(Account account);
+    void onAccountManagerError(QNLocalizedString errorDescription);
 
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
@@ -135,13 +137,13 @@ private Q_SLOTS:
     void onManageAccountsActionTriggered(bool checked);
     void onSwitchAccountActionToggled(bool checked);
 
-    void onAccountSwitched(Account account);
-
     void onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId);
     void onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     void checkThemeIconsAndSetFallbacks();
+
+    void setupAccountManager();
 
     void setupLocalStorageManager();
     void setupModels();
