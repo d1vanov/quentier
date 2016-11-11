@@ -190,12 +190,12 @@ void SynchronizationManagerPrivate::revokeAuthentication(const qevercloud::UserI
     m_lastRevokedAuthenticationUserId = userId;
 
     m_deleteAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_") +
-                                QString::number(m_lastRevokedAuthenticationUserId));
+                                m_host + QStringLiteral("_") + QString::number(m_lastRevokedAuthenticationUserId));
     m_deletingAuthToken = true;
     m_deleteAuthTokenJob.start();
 
     m_deleteShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_") +
-                              QString::number(m_lastRevokedAuthenticationUserId));
+                              m_host + QStringLiteral("_") + QString::number(m_lastRevokedAuthenticationUserId));
     m_deletingShardId = true;
     m_deleteShardIdJob.start();
 }
@@ -678,8 +678,10 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
     m_cachedLinkedNotebookLastSyncTimeByGuid.clear();
 
     ApplicationSettings appSettings;
+    const QString keyGroup = QStringLiteral("Synchronization/") + m_host + QStringLiteral("/") +
+                             QString::number(m_OAuthResult.userId) + QStringLiteral("/") +
+                             LAST_SYNC_PARAMS_KEY_GROUP + QStringLiteral("/");
 
-    const QString keyGroup = QString(LAST_SYNC_PARAMS_KEY_GROUP) + QStringLiteral("/");
     QVariant lastUpdateCountVar = appSettings.value(keyGroup + LAST_SYNC_UPDATE_COUNT_KEY);
     if (!lastUpdateCountVar.isNull())
     {
@@ -702,7 +704,7 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
         }
     }
 
-    int numLinkedNotebooksSyncParams = appSettings.beginReadArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS);
+    int numLinkedNotebooksSyncParams = appSettings.beginReadArray(keyGroup + LAST_SYNC_LINKED_NOTEBOOKS_PARAMS);
     for(int i = 0; i < numLinkedNotebooksSyncParams; ++i)
     {
         appSettings.setArrayIndex(i);
@@ -758,8 +760,8 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
     QNTRACE(QStringLiteral("Trying to restore persistent authentication settings..."));
 
     ApplicationSettings appSettings;
-    QString keyGroup = QStringLiteral("Authentication/") + QString::number(m_OAuthResult.userId) +
-                       QStringLiteral("/");
+    QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
+                       QString::number(m_OAuthResult.userId) + QStringLiteral("/");
 
     QVariant tokenExpirationValue = appSettings.value(keyGroup + EXPIRATION_TIMESTAMP_KEY);
     if (tokenExpirationValue.isNull()) {
@@ -831,12 +833,12 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
     QNDEBUG(QStringLiteral("Trying to restore the authentication token and the shard id from the keychain"));
 
     m_readAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token_") +
-                              QString::number(m_OAuthResult.userId));
+                              m_host + QStringLiteral("_") + QString::number(m_OAuthResult.userId));
     m_readingAuthToken = true;
     m_readAuthTokenJob.start();
 
     m_readShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id_") +
-                            QString::number(m_OAuthResult.userId));
+                            m_host + QStringLiteral("_") + QString::number(m_OAuthResult.userId));
     m_readingShardId = true;
     m_readShardIdJob.start();
 }
@@ -887,13 +889,13 @@ void SynchronizationManagerPrivate::sendChanges()
 void SynchronizationManagerPrivate::launchStoreOAuthResult()
 {
     m_writeAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token_") +
-                               QString::number(m_OAuthResult.userId));
+                               m_host + QStringLiteral("_") + QString::number(m_OAuthResult.userId));
     m_writeAuthTokenJob.setTextData(m_OAuthResult.authenticationToken);
     m_writingAuthToken = true;
     m_writeAuthTokenJob.start();
 
     m_writeShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id_") +
-                             QString::number(m_OAuthResult.userId));
+                             m_host + QStringLiteral("_") + QString::number(m_OAuthResult.userId));
     m_writeShardIdJob.setTextData(m_OAuthResult.shardId);
     m_writingShardId = true;
     m_writeShardIdJob.start();
@@ -903,17 +905,17 @@ void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
 {
     ApplicationSettings appSettings;
 
-    QString keyGroup = QStringLiteral("Authentication/") + QString::number(m_OAuthResult.userId) +
-                       QStringLiteral("/");
+    QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
+                       QString::number(m_OAuthResult.userId) + QStringLiteral("/");
 
     appSettings.setValue(keyGroup + NOTE_STORE_URL_KEY, m_OAuthResult.noteStoreUrl);
     appSettings.setValue(keyGroup + EXPIRATION_TIMESTAMP_KEY, m_OAuthResult.expires);
     appSettings.setValue(keyGroup + WEB_API_URL_PREFIX_KEY, m_OAuthResult.webApiUrlPrefix);
 
-    QNDEBUG(QStringLiteral("Successfully wrote the authentication result info to the application settings for user id ")
-            << m_OAuthResult.userId << QStringLiteral(": ") << QStringLiteral(": auth token expiration timestamp = ")
-            << printableDateTimeFromTimestamp(m_OAuthResult.expires) << QStringLiteral(", web API url prefix = ")
-            << m_OAuthResult.webApiUrlPrefix);
+    QNDEBUG(QStringLiteral("Successfully wrote the authentication result info to the application settings for host ")
+            << m_host << QStringLiteral(", user id ") << m_OAuthResult.userId << QStringLiteral(": ")
+            << QStringLiteral(": auth token expiration timestamp = ") << printableDateTimeFromTimestamp(m_OAuthResult.expires)
+            << QStringLiteral(", web API url prefix = ") << m_OAuthResult.webApiUrlPrefix);
 
     finalizeAuthentication();
 }
@@ -1090,12 +1092,14 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
     }
 
     ApplicationSettings appSettings;
-    QString keyGroup = QStringLiteral("Authentication/") + QString::number(m_OAuthResult.userId) + QStringLiteral("/");
+    QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
+                       QString::number(m_OAuthResult.userId) + QStringLiteral("/");
 
     QHash<QString,QPair<QString,QString> >  authTokensAndShardIdsToCacheByGuid;
     QHash<QString,qevercloud::Timestamp>    authTokenExpirationTimestampsToCacheByGuid;
 
-    QString keyPrefix = QApplication::applicationName() + QStringLiteral("_") + QString::number(m_OAuthResult.userId);
+    QString keyPrefix = QApplication::applicationName() + QStringLiteral("_") + m_host +
+                        QStringLiteral("_") + QString::number(m_OAuthResult.userId);
 
     for(auto it = m_linkedNotebookGuidsAndGlobalIdsWaitingForAuth.begin();
         it != m_linkedNotebookGuidsAndGlobalIdsWaitingForAuth.end(); )
@@ -1459,12 +1463,14 @@ void SynchronizationManagerPrivate::updatePersistentSyncSettings()
 
     ApplicationSettings appSettings;
 
-    const QString keyGroup = QString(LAST_SYNC_PARAMS_KEY_GROUP) + QStringLiteral("/");
+    const QString keyGroup = QStringLiteral("Synchronization/") + m_host + QStringLiteral("/") +
+                             QString::number(m_OAuthResult.userId) + QStringLiteral("/") +
+                             LAST_SYNC_PARAMS_KEY_GROUP + QStringLiteral("/");
     appSettings.setValue(keyGroup + LAST_SYNC_UPDATE_COUNT_KEY, m_lastUpdateCount);
     appSettings.setValue(keyGroup + LAST_SYNC_TIME_KEY, m_lastSyncTime);
 
     int numLinkedNotebooksSyncParams = m_cachedLinkedNotebookLastUpdateCountByGuid.size();
-    appSettings.beginWriteArray(LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
+    appSettings.beginWriteArray(keyGroup + LAST_SYNC_LINKED_NOTEBOOKS_PARAMS, numLinkedNotebooksSyncParams);
 
     int counter = 0;
     auto updateCountEnd = m_cachedLinkedNotebookLastUpdateCountByGuid.end();
