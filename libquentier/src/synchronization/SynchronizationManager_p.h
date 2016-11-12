@@ -65,6 +65,8 @@ Q_SIGNALS:
     void sendLocalChangesPaused(bool pendingAuthenticaton);
     void sendLocalChangesStopped();
 
+    void authenticationFinished(bool success, QNLocalizedString errorDescription,
+                                qevercloud::UserID userId);
     void authenticationRevoked(bool success, QNLocalizedString errorDescription,
                                qevercloud::UserID userId);
 
@@ -78,6 +80,7 @@ Q_SIGNALS:
 public Q_SLOTS:
     void setAccount(const Account & account);
     void synchronize();
+    void authenticate();
     void pause();
     void resume();
     void stop();
@@ -159,10 +162,10 @@ private:
     };
 
     void launchOAuth();
-    void authenticate(const AuthContext::type authContext);
+    void authenticateImpl(const AuthContext::type authContext);
     void finalizeAuthentication();
 
-    void launchStoreOAuthResult();
+    void launchStoreOAuthResult(const qevercloud::EvernoteOAuthWebView::OAuthResult & result);
     void finalizeStoreOAuthResult();
 
     void finalizeRevokeAuthentication();
@@ -210,6 +213,7 @@ private:
 
     qevercloud::EvernoteOAuthWebView        m_OAuthWebView;
     qevercloud::EvernoteOAuthWebView::OAuthResult   m_OAuthResult;
+    bool                                    m_authenticationInProgress;
 
     RemoteToLocalSynchronizationManager     m_remoteToLocalSyncManager;
     SendLocalChangesManager                 m_sendLocalChangesManager;
@@ -229,6 +233,7 @@ private:
     QKeychain::WritePasswordJob             m_writeShardIdJob;
     bool                                    m_writingAuthToken;
     bool                                    m_writingShardId;
+    qevercloud::EvernoteOAuthWebView::OAuthResult   m_writtenOAuthResult;
 
     QKeychain::DeletePasswordJob            m_deleteAuthTokenJob;
     QKeychain::DeletePasswordJob            m_deleteShardIdJob;

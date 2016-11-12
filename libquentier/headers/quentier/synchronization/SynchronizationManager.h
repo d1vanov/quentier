@@ -74,6 +74,15 @@ public Q_SLOTS:
     void setAccount(Account account);
 
     /**
+     * Use this slot to authenticate the new user to do the synchronization with the Evernote service via the client app.
+     * The invoking of slot would respond asynchronously with @link authenticationFinished @endlink signal but won't start
+     * the synchronization.
+     *
+     * Note that this slot would always proceed to the actual OAuth.
+     */
+    void authenticate();
+
+    /**
      * Use this slot to launch the synchronization of data
      */
     void synchronize();
@@ -124,6 +133,16 @@ Q_SIGNALS:
      */
     void authenticationRevoked(bool success, QNLocalizedString errorDescription,
                                qevercloud::UserID userId);
+
+    /**
+     * This signal is emitted in response to the attempt to authenticate the new user of the client app to synchronize
+     * with the Evernote service
+     * @param success - true if the authentication was successful, false otherwise
+     * @param errorDescription - the textual explanation of the failure to authenticate the new user
+     * @param userId - the ID of the authenticated user
+     */
+    void authenticationFinished(bool success, QNLocalizedString errorDescription,
+                                qevercloud::UserID userId);
 
     /**
      * This signal is emitted when the "remote to local" synchronization step is paused

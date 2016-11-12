@@ -63,6 +63,7 @@ SynchronizationManagerPrivate::SynchronizationManagerPrivate(const QString & con
     m_launchSyncPostponeTimerId(-1),
     m_OAuthWebView(),
     m_OAuthResult(),
+    m_authenticationInProgress(false),
     m_remoteToLocalSyncManager(localStorageManagerThreadWorker, m_host,
                                m_noteStore.getQecNoteStore(), m_userStore.getQecUserStore()),
     m_sendLocalChangesManager(localStorageManagerThreadWorker, m_noteStore.getQecNoteStore()),
@@ -134,8 +135,37 @@ void SynchronizationManagerPrivate::setAccount(const Account & account)
 
 void SynchronizationManagerPrivate::synchronize()
 {
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::synchronize"));
+
+    if (m_authenticationInProgress || m_writingAuthToken || m_writingShardId) {
+        QNLocalizedString error = QT_TR_NOOP("Authentication is not finished yet, please wait");
+        QNDEBUG(error << QStringLiteral(", authentication in progress = ")
+                << (m_authenticationInProgress ? QStringLiteral("true") : QStringLiteral("false"))
+                << QStringLiteral(", writing OAuth token = ") << (m_writingAuthToken ? QStringLiteral("true") : QStringLiteral("false"))
+                << QStringLiteral(", writing shard id = ") << (m_writingShardId ? QStringLiteral("true") : QStringLiteral("false")));
+        emit notifyError(error);
+        return;
+    }
+
     clear();
-    authenticate(AuthContext::SyncLaunch);
+    authenticateImpl(AuthContext::SyncLaunch);
+}
+
+void SynchronizationManagerPrivate::authenticate()
+{
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticate"));
+
+    if (m_authenticationInProgress || m_writingAuthToken || m_writingShardId) {
+        QNLocalizedString error = QT_TR_NOOP("Previous authentication is not finished yet, please wait");
+        QNDEBUG(error << QStringLiteral(", authentication in progress = ")
+                << (m_authenticationInProgress ? QStringLiteral("true") : QStringLiteral("false"))
+                << QStringLiteral(", writing OAuth token = ") << (m_writingAuthToken ? QStringLiteral("true") : QStringLiteral("false"))
+                << QStringLiteral(", writing shard id = ") << (m_writingShardId ? QStringLiteral("true") : QStringLiteral("false")));
+        emit authenticationFinished(/* success = */ false, error, /* user ID = */ -1);
+        return;
+    }
+
+    authenticateImpl(AuthContext::Request);
 }
 
 void SynchronizationManagerPrivate::pause()
@@ -212,16 +242,21 @@ void SynchronizationManagerPrivate::onOAuthResult(bool result)
 
 void SynchronizationManagerPrivate::onOAuthSuccess()
 {
-    m_OAuthResult = m_OAuthWebView.oauthResult();
+    m_authenticationInProgress = false;
 
-    m_noteStore.setNoteStoreUrl(m_OAuthResult.noteStoreUrl);
-    m_noteStore.setAuthenticationToken(m_OAuthResult.authenticationToken);
+    if (m_authContext != AuthContext::Request) {
+        m_OAuthResult = m_OAuthWebView.oauthResult();
+        m_noteStore.setNoteStoreUrl(m_OAuthResult.noteStoreUrl);
+        m_noteStore.setAuthenticationToken(m_OAuthResult.authenticationToken);
+    }
 
-    launchStoreOAuthResult();
+    launchStoreOAuthResult(m_OAuthWebView.oauthResult());
 }
 
 void SynchronizationManagerPrivate::onOAuthFailure()
 {
+    m_authenticationInProgress = false;
+
     QNLocalizedString error = QT_TR_NOOP("OAuth failed");
     QString oauthError = m_OAuthWebView.oauthError();
     if (!oauthError.isEmpty()) {
@@ -229,7 +264,12 @@ void SynchronizationManagerPrivate::onOAuthFailure()
         error += oauthError;
     }
 
-    emit notifyError(error);
+    if (m_authContext == AuthContext::Request) {
+        emit authenticationFinished(/* success = */ false, error, /* user id = */ -1);
+    }
+    else {
+        emit notifyError(error);
+    }
 }
 
 void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
@@ -403,7 +443,7 @@ void SynchronizationManagerPrivate::onRequestAuthenticationToken()
         return;
     }
 
-    authenticate(AuthContext::SyncLaunch);
+    authenticateImpl(AuthContext::SyncLaunch);
 }
 
 void SynchronizationManagerPrivate::onRequestAuthenticationTokensForLinkedNotebooks(QVector<QPair<QString,QString> > linkedNotebookGuidsAndShareKeys)
@@ -739,11 +779,17 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
     m_onceReadLastSyncParams = true;
 }
 
-void SynchronizationManagerPrivate::authenticate(const AuthContext::type authContext)
+void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type authContext)
 {
-    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticate: auth context = ") << authContext);
+    QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticateImpl: auth context = ") << authContext);
 
     m_authContext = authContext;
+
+    if (m_authContext == AuthContext::Request) {
+        QNDEBUG(QStringLiteral("Authentication of the new user is requested, proceeding to OAuth"));
+        launchOAuth();
+        return;
+    }
 
     if (m_OAuthResult.userId < 0) {
         QNDEBUG(QStringLiteral("No current user id, launching the OAuth procedure"));
@@ -845,6 +891,7 @@ void SynchronizationManagerPrivate::authenticate(const AuthContext::type authCon
 
 void SynchronizationManagerPrivate::launchOAuth()
 {
+    m_authenticationInProgress = true;
     m_OAuthWebView.authenticate(m_host, m_consumerKey, m_consumerSecret);
 }
 
@@ -886,17 +933,19 @@ void SynchronizationManagerPrivate::sendChanges()
     m_sendLocalChangesManager.start(m_lastUpdateCount, m_cachedLinkedNotebookLastUpdateCountByGuid);
 }
 
-void SynchronizationManagerPrivate::launchStoreOAuthResult()
+void SynchronizationManagerPrivate::launchStoreOAuthResult(const qevercloud::EvernoteOAuthWebView::OAuthResult & result)
 {
+    m_writtenOAuthResult = result;
+
     m_writeAuthTokenJob.setKey(QApplication::applicationName() + QStringLiteral("_auth_token_") +
-                               m_host + QStringLiteral("_") + QString::number(m_OAuthResult.userId));
-    m_writeAuthTokenJob.setTextData(m_OAuthResult.authenticationToken);
+                               m_host + QStringLiteral("_") + QString::number(result.userId));
+    m_writeAuthTokenJob.setTextData(result.authenticationToken);
     m_writingAuthToken = true;
     m_writeAuthTokenJob.start();
 
     m_writeShardIdJob.setKey(QApplication::applicationName() + QStringLiteral("_shard_id_") +
-                             m_host + QStringLiteral("_") + QString::number(m_OAuthResult.userId));
-    m_writeShardIdJob.setTextData(m_OAuthResult.shardId);
+                             m_host + QStringLiteral("_") + QString::number(result.userId));
+    m_writeShardIdJob.setTextData(result.shardId);
     m_writingShardId = true;
     m_writeShardIdJob.start();
 }
@@ -906,16 +955,16 @@ void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
     ApplicationSettings appSettings;
 
     QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
-                       QString::number(m_OAuthResult.userId) + QStringLiteral("/");
+                       QString::number(m_writtenOAuthResult.userId) + QStringLiteral("/");
 
-    appSettings.setValue(keyGroup + NOTE_STORE_URL_KEY, m_OAuthResult.noteStoreUrl);
-    appSettings.setValue(keyGroup + EXPIRATION_TIMESTAMP_KEY, m_OAuthResult.expires);
-    appSettings.setValue(keyGroup + WEB_API_URL_PREFIX_KEY, m_OAuthResult.webApiUrlPrefix);
+    appSettings.setValue(keyGroup + NOTE_STORE_URL_KEY, m_writtenOAuthResult.noteStoreUrl);
+    appSettings.setValue(keyGroup + EXPIRATION_TIMESTAMP_KEY, m_writtenOAuthResult.expires);
+    appSettings.setValue(keyGroup + WEB_API_URL_PREFIX_KEY, m_writtenOAuthResult.webApiUrlPrefix);
 
     QNDEBUG(QStringLiteral("Successfully wrote the authentication result info to the application settings for host ")
-            << m_host << QStringLiteral(", user id ") << m_OAuthResult.userId << QStringLiteral(": ")
-            << QStringLiteral(": auth token expiration timestamp = ") << printableDateTimeFromTimestamp(m_OAuthResult.expires)
-            << QStringLiteral(", web API url prefix = ") << m_OAuthResult.webApiUrlPrefix);
+            << m_host << QStringLiteral(", user id ") << m_writtenOAuthResult.userId << QStringLiteral(": ")
+            << QStringLiteral(": auth token expiration timestamp = ") << printableDateTimeFromTimestamp(m_writtenOAuthResult.expires)
+            << QStringLiteral(", web API url prefix = ") << m_writtenOAuthResult.webApiUrlPrefix);
 
     finalizeAuthentication();
 }
@@ -969,6 +1018,13 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
     case AuthContext::SyncLaunch:
         launchSync();
         break;
+    case AuthContext::Request:
+    {
+        QNDEBUG(QStringLiteral("Emitting the authenticationFinished signal: ") << m_writtenOAuthResult);
+        emit authenticationFinished(/* success = */ true, QNLocalizedString(), m_writtenOAuthResult.userId);
+        m_writtenOAuthResult = qevercloud::EvernoteOAuthWebView::OAuthResult();
+        break;
+    }
     case AuthContext::AuthToLinkedNotebooks:
         authenticateToLinkedNotebooks();
         break;
@@ -1225,7 +1281,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
                 emit notifyError(error);
             }
             else {
-                authenticate(AuthContext::AuthToLinkedNotebooks);
+                authenticateImpl(AuthContext::AuthToLinkedNotebooks);
             }
 
             ++it;
