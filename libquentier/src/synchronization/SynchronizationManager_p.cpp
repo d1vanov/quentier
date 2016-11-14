@@ -161,7 +161,7 @@ void SynchronizationManagerPrivate::authenticate()
                 << (m_authenticationInProgress ? QStringLiteral("true") : QStringLiteral("false"))
                 << QStringLiteral(", writing OAuth token = ") << (m_writingAuthToken ? QStringLiteral("true") : QStringLiteral("false"))
                 << QStringLiteral(", writing shard id = ") << (m_writingShardId ? QStringLiteral("true") : QStringLiteral("false")));
-        emit authenticationFinished(/* success = */ false, error, /* user ID = */ -1);
+        emit authenticationFinished(/* success = */ false, error, Account());
         return;
     }
 
@@ -265,7 +265,7 @@ void SynchronizationManagerPrivate::onOAuthFailure()
     }
 
     if (m_authContext == AuthContext::Request) {
-        emit authenticationFinished(/* success = */ false, error, /* user id = */ -1);
+        emit authenticationFinished(/* success = */ false, error, Account());
     }
     else {
         emit notifyError(error);
@@ -1020,8 +1020,18 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
         break;
     case AuthContext::Request:
     {
-        QNDEBUG(QStringLiteral("Emitting the authenticationFinished signal: ") << m_writtenOAuthResult);
-        emit authenticationFinished(/* success = */ true, QNLocalizedString(), m_writtenOAuthResult.userId);
+        QNLocalizedString errorDescription;
+        bool res = m_remoteToLocalSyncManager.syncUser(m_writtenOAuthResult.userId, errorDescription);
+        if (!res) {
+            QNDEBUG(QStringLiteral("Can't sync user: ") << errorDescription);
+            emit authenticationFinished(/* success = */ false, errorDescription, Account());
+        }
+        else {
+            Account account = m_remoteToLocalSyncManager.account();
+            QNDEBUG(QStringLiteral("Emitting the authenticationFinished signal: ") << account);
+            emit authenticationFinished(/* success = */ true, QNLocalizedString(), account);
+        }
+
         m_writtenOAuthResult = qevercloud::EvernoteOAuthWebView::OAuthResult();
         break;
     }

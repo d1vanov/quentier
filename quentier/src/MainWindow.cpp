@@ -286,10 +286,17 @@ void MainWindow::connectSynchronizationManager()
         return;
     }
 
+    // Connect local signals to SynchronizationManager slots
+    QObject::connect(this, QNSIGNAL(MainWindow,authenticate),
+                     m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
+
+    // Connect SynchronizationManager signals to local slots
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString),
                      this, QNSLOT(MainWindow,onSynchronizationManagerFailure,QNLocalizedString));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
                      this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,QNLocalizedString,Account),
+                     this, QNSLOT(MainWindow,onAuthenticationFinished,bool,QNLocalizedString,Account));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
                      this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
@@ -313,10 +320,17 @@ void MainWindow::disconnectSynchronizationManager()
         return;
     }
 
+    // Disconnect local signals from SynchronizationManager slots
+    QObject::disconnect(this, QNSIGNAL(MainWindow,authenticate),
+                        m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
+
+    // Disonnect SynchronizationManager signals from local slots
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString),
                         this, QNSLOT(MainWindow,onSynchronizationManagerFailure,QNLocalizedString));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
                         this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,QNLocalizedString,Account),
+                        this, QNSLOT(MainWindow,onAuthenticationFinished,bool,QNLocalizedString,Account));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
                         this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
@@ -548,7 +562,24 @@ void MainWindow::onSynchronizationFinished(Account account)
     QNINFO(QStringLiteral("Synchronization finished for user ") << account.name()
            << QStringLiteral(", id ") << account.id());
 
-    // TODO: figure out what to do with the account object now
+    // TODO: figure out what to do with the account object now: should anything be done with it?
+}
+
+void MainWindow::onAuthenticationFinished(bool success, QNLocalizedString errorDescription,
+                                          Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
+            << (success ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral(", account = ") << account);
+
+    if (!success) {
+        onSetStatusBarText(tr("Couldn't authenticate the Evernote user") + QStringLiteral(": ") +
+                           errorDescription.localizedString());
+        return;
+    }
+
+    m_pAccountManager->switchAccount(account);
 }
 
 void MainWindow::onAuthenticationRevoked(bool success, QNLocalizedString errorDescription,
@@ -653,7 +684,7 @@ void MainWindow::onEvernoteAccountAuthenticationRequested(QString host)
         setupSynchronizationManager();
     }
 
-    // TODO: trigger the authentication but don't start the synchronization right away
+    emit authenticate();
 }
 
 void MainWindow::onNoteTextSpellCheckToggled()

@@ -66,7 +66,7 @@ Q_SIGNALS:
     void sendLocalChangesStopped();
 
     void authenticationFinished(bool success, QNLocalizedString errorDescription,
-                                qevercloud::UserID userId);
+                                Account account);
     void authenticationRevoked(bool success, QNLocalizedString errorDescription,
                                qevercloud::UserID userId);
 

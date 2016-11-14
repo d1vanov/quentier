@@ -31,8 +31,8 @@ SynchronizationManager::SynchronizationManager(const QString & consumerKey, cons
                      this, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyFinish,Account),
                      this, QNSIGNAL(SynchronizationManager,finished,Account));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,authenticationFinished,bool,QNLocalizedString,qevercloud::UserID),
-                     this, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,QNLocalizedString,qevercloud::UserID));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,authenticationFinished,bool,QNLocalizedString,Account),
+                     this, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,QNLocalizedString,Account));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
                      this, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,remoteToLocalSyncPaused,bool),

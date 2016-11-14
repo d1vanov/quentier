@@ -238,9 +238,38 @@ Account RemoteToLocalSynchronizationManager::account() const
         userId = m_user.id();
     }
 
-    Account account(name, Account::Type::Evernote, userId, accountEnType);
+    Account account(name, Account::Type::Evernote, userId, accountEnType, m_host);
     account.setEvernoteAccountLimits(m_accountLimits);
     return account;
+}
+
+bool RemoteToLocalSynchronizationManager::syncUser(const qevercloud::UserID userId, QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncUser: user id = ") << userId);
+
+    m_user = User();
+    m_user.setId(userId);
+
+    // Checking the protocol version first
+    if (!checkProtocolVersion(errorDescription)) {
+        QNDEBUG(QStringLiteral("Protocol version check failed: ") << errorDescription);
+        return false;
+    }
+
+    bool waitIfRateLimitReached = false;
+
+    // Retrieving the latest user info then, to figure out the service level and stuff like that
+    if (!syncUserImpl(waitIfRateLimitReached, errorDescription)) {
+        QNDEBUG(QStringLiteral("Syncing the user has failed: ") << errorDescription);
+        return false;
+    }
+
+    if (!checkAndSyncAccountLimits(waitIfRateLimitReached, errorDescription)) {
+        QNDEBUG(QStringLiteral("Syncing the user's account limits has failed: ") << errorDescription);
+        return false;
+    }
+
+    return true;
 }
 
 void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
@@ -266,17 +295,35 @@ void RemoteToLocalSynchronizationManager::start(qint32 afterUsn)
     clear();
     m_active = true;
 
+    QNLocalizedString errorDescription;
+
     // Checking the protocol version first
-    if (!checkProtocolVersion()) {
+    if (!checkProtocolVersion(errorDescription)) {
+        emit failure(errorDescription);
         return;
     }
+
+    bool waitIfRateLimitReached = true;
 
     // Retrieving the latest user info then, to figure out the service level and stuff like that
-    if (!syncUser()) {
+    if (!syncUserImpl(waitIfRateLimitReached, errorDescription))
+    {
+        if (m_syncUserPostponeTimerId == 0) {
+            // Not a "rate limit exceeded" error
+            emit failure(errorDescription);
+        }
+
         return;
     }
 
-    if (!checkAndSyncAccountLimits()) {
+    if (!checkAndSyncAccountLimits(waitIfRateLimitReached, errorDescription))
+    {
+        if (m_syncAccountLimitsPostponeTimerId == 0) {
+            // Not a "rate limit exceeded" error
+            emit failure(errorDescription);
+
+        }
+
         return;
     }
 
@@ -2858,7 +2905,7 @@ void RemoteToLocalSynchronizationManager::launchSync()
     launchResourcesSync();
 }
 
-bool RemoteToLocalSynchronizationManager::checkProtocolVersion()
+bool RemoteToLocalSynchronizationManager::checkProtocolVersion(QNLocalizedString & errorDescription)
 {
     QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkProtocolVersion"));
 
@@ -2867,7 +2914,6 @@ bool RemoteToLocalSynchronizationManager::checkProtocolVersion()
         return true;
     }
 
-    QNLocalizedString errorDescription;
     QString clientName = clientNameForProtocolVersionCheck();
     qint16 edamProtocolVersionMajor = qevercloud::EDAM_VERSION_MAJOR;
     qint16 edamProtocolVersionMinor = qevercloud::EDAM_VERSION_MINOR;
@@ -2892,7 +2938,6 @@ bool RemoteToLocalSynchronizationManager::checkProtocolVersion()
         }
 
         QNWARNING(errorDescription);
-        emit failure(errorDescription);
         return false;
     }
 
@@ -2900,9 +2945,10 @@ bool RemoteToLocalSynchronizationManager::checkProtocolVersion()
     return true;
 }
 
-bool RemoteToLocalSynchronizationManager::syncUser()
+bool RemoteToLocalSynchronizationManager::syncUserImpl(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncUser"));
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncUserImpl: wait if rate limit reached = ")
+            << (waitIfRateLimitReached ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (m_user.hasId() && m_user.hasServiceLevel()) {
         QNDEBUG(QStringLiteral("User id and service level are set, that means the user info has already been synchronized once "
@@ -2910,7 +2956,6 @@ bool RemoteToLocalSynchronizationManager::syncUser()
         return true;
     }
 
-    QNLocalizedString errorDescription;
     qint32 rateLimitSeconds = 0;
     qint32 errorCode = m_userStore.getUser(m_user, errorDescription, rateLimitSeconds);
     if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
@@ -2920,23 +2965,27 @@ bool RemoteToLocalSynchronizationManager::syncUser()
             errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
             errorDescription += QStringLiteral(": ");
             errorDescription += QString::number(rateLimitSeconds);
-            emit failure(errorDescription);
+            QNWARNING(errorDescription);
             return false;
         }
-
-        int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-        if (Q_UNLIKELY(timerId == 0)) {
-            QNLocalizedString errorMessage = QT_TR_NOOP("can't start timer to postpone the Evernote API call due to rate limit exceeding");
-            errorMessage += QStringLiteral(": ");
-            errorMessage += errorDescription;
-            emit failure(errorMessage);
-            return false;
-        }
-
-        m_syncUserPostponeTimerId = timerId;
 
         QNDEBUG(QStringLiteral("Rate limit exceeded, need to wait for ") << rateLimitSeconds << QStringLiteral(" seconds"));
-        emit rateLimitExceeded(rateLimitSeconds);
+        if (waitIfRateLimitReached)
+        {
+            int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            if (Q_UNLIKELY(timerId == 0)) {
+                QNLocalizedString errorMessage = QT_TR_NOOP("can't start timer to postpone the Evernote API call due to rate limit exceeding");
+                errorMessage += QStringLiteral(": ");
+                errorMessage += errorDescription;
+                errorDescription = errorMessage;
+                QNDEBUG(errorDescription);
+                return false;
+            }
+
+            m_syncUserPostponeTimerId = timerId;
+            emit rateLimitExceeded(rateLimitSeconds);
+        }
+
         return false;
     }
     else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
@@ -2945,8 +2994,8 @@ bool RemoteToLocalSynchronizationManager::syncUser()
                                                     "the latest information about the current user: ");
         errorMessage += QStringLiteral(": ");
         errorMessage += errorDescription;
-        QNDEBUG(errorMessage);
-        emit failure(errorMessage);
+        errorDescription = errorMessage;
+        QNINFO(errorDescription);
         return false;
     }
     else if (errorCode != 0)
@@ -2954,7 +3003,8 @@ bool RemoteToLocalSynchronizationManager::syncUser()
         QNLocalizedString errorMessage = QT_TR_NOOP("can't download the latest user info");
         errorMessage += QStringLiteral(": ");
         errorMessage += errorDescription;
-        emit failure(errorMessage);
+        errorDescription = errorMessage;
+        QNINFO(errorDescription);
         return false;
     }
 
@@ -2972,9 +3022,10 @@ bool RemoteToLocalSynchronizationManager::syncUser()
     return true;
 }
 
-bool RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
+bool RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits"));
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits: wait if rate limit reached = ")
+            << (waitIfRateLimitReached ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (Q_UNLIKELY(!m_user.hasId())) {
         QNLocalizedString error = QT_TR_NOOP("Detected attempt to synchronize the account limits before the user id was set");
@@ -3007,19 +3058,17 @@ bool RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits()
         }
     }
 
-    return syncAccountLimits();
+    return syncAccountLimits(waitIfRateLimitReached, errorDescription);
 }
 
-bool RemoteToLocalSynchronizationManager::syncAccountLimits()
+bool RemoteToLocalSynchronizationManager::syncAccountLimits(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncAccountLimits"));
-
-    QNLocalizedString errorDescription;
+    QNDEBUG(QStringLiteral("RemoteToLocalSynchronizationManager::syncAccountLimits: wait if rate limit reached = ")
+            << (waitIfRateLimitReached ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (Q_UNLIKELY(!m_user.hasServiceLevel())) {
         errorDescription = QT_TR_NOOP("No Evernote service level was found for the current user");
         QNDEBUG(errorDescription);
-        emit failure(errorDescription);
         return false;
     }
 
@@ -3032,23 +3081,28 @@ bool RemoteToLocalSynchronizationManager::syncAccountLimits()
             errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
             errorDescription += QStringLiteral(": ");
             errorDescription += QString::number(rateLimitSeconds);
-            emit failure(errorDescription);
+            QNWARNING(errorDescription);
             return false;
         }
-
-        int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
-        if (Q_UNLIKELY(timerId == 0)) {
-            QNLocalizedString errorMessage = QT_TR_NOOP("can't start timer to postpone the Evernote API call due to rate limit exceeding");
-            errorMessage += QStringLiteral(": ");
-            errorMessage += errorDescription;
-            emit failure(errorMessage);
-            return false;
-        }
-
-        m_syncAccountLimitsPostponeTimerId = timerId;
 
         QNDEBUG(QStringLiteral("Rate limit exceeded, need to wait for ") << rateLimitSeconds << QStringLiteral(" seconds"));
-        emit rateLimitExceeded(rateLimitSeconds);
+        if (waitIfRateLimitReached)
+        {
+            int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
+            if (Q_UNLIKELY(timerId == 0)) {
+                QNLocalizedString errorMessage = QT_TR_NOOP("can't start timer to postpone the Evernote API call due to rate limit exceeding");
+                errorMessage += QStringLiteral(": ");
+                errorMessage += errorDescription;
+                errorDescription = errorMessage;
+                QNWARNING(errorDescription);
+                return false;
+            }
+
+            m_syncAccountLimitsPostponeTimerId = timerId;
+
+            emit rateLimitExceeded(rateLimitSeconds);
+        }
+
         return false;
     }
     else if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
@@ -3056,7 +3110,8 @@ bool RemoteToLocalSynchronizationManager::syncAccountLimits()
         QNLocalizedString errorMessage = QT_TR_NOOP("unexpected AUTH_EXPIRED error when trying to sync the current user's account limits");
         errorMessage += QStringLiteral(": ");
         errorMessage += errorDescription;
-        emit failure(errorMessage);
+        errorDescription = errorMessage;
+        QNWARNING(errorDescription);
         return false;
     }
     else if (errorCode != 0)
@@ -3064,7 +3119,8 @@ bool RemoteToLocalSynchronizationManager::syncAccountLimits()
         QNLocalizedString errorMessage = QT_TR_NOOP("can't get account limits for the current user");
         errorMessage += QStringLiteral(": ");
         errorMessage += errorDescription;
-        emit failure(errorMessage);
+        errorDescription = errorMessage;
+        QNWARNING(errorDescription);
         return false;
     }
 

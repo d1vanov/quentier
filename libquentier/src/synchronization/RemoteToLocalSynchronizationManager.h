@@ -57,6 +57,8 @@ public:
     void setAccount(const Account & account);
     Account account() const;
 
+    bool syncUser(const qevercloud::UserID userId, QNLocalizedString & errorDescription);
+
 Q_SIGNALS:
     void failure(QNLocalizedString errorDescription);
     void finished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
@@ -214,11 +216,11 @@ private:
     void launchSync();
 
     // If any of these returns false, it is either due to error or due to API rate limit exceeding
-    bool checkProtocolVersion();
-    bool syncUser();
+    bool checkProtocolVersion(QNLocalizedString & errorDescription);
+    bool syncUserImpl(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription);
 
-    bool checkAndSyncAccountLimits();
-    bool syncAccountLimits();
+    bool checkAndSyncAccountLimits(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription);
+    bool syncAccountLimits(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription);
     void readSavedAccountLimits();
     void writeAccountLimitsToAppSettings();
 

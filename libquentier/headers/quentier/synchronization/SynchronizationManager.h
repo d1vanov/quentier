@@ -139,10 +139,10 @@ Q_SIGNALS:
      * with the Evernote service
      * @param success - true if the authentication was successful, false otherwise
      * @param errorDescription - the textual explanation of the failure to authenticate the new user
-     * @param userId - the ID of the authenticated user
+     * @param account - the account of the authenticated user
      */
     void authenticationFinished(bool success, QNLocalizedString errorDescription,
-                                qevercloud::UserID userId);
+                                Account account);
 
     /**
      * This signal is emitted when the "remote to local" synchronization step is paused

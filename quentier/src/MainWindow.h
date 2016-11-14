@@ -71,6 +71,7 @@ public Q_SLOTS:
 Q_SIGNALS:
     // private signals
     void localStorageSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
+    void authenticate();
 
 private Q_SLOTS:
     void onUndoAction();
@@ -109,6 +110,8 @@ private Q_SLOTS:
     // Synchronization manager slots
     void onSynchronizationManagerFailure(QNLocalizedString errorDescription);
     void onSynchronizationFinished(Account account);
+    void onAuthenticationFinished(bool success, QNLocalizedString errorDescription,
+                                  Account account);
     void onAuthenticationRevoked(bool success, QNLocalizedString errorDescription,
                                  qevercloud::UserID userId);
     void onRateLimitExceeded(qint32 secondsToWait);
