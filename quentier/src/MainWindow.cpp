@@ -60,6 +60,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pUI(new Ui::MainWindow),
     m_currentStatusBarChildWidget(Q_NULLPTR),
     m_lastNoteEditorHtml(),
+    m_availableAccountsActionGroup(new QActionGroup(this)),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
     m_pLocalStorageManagerThread(Q_NULLPTR),
@@ -86,6 +87,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
     m_pUI->setupUi(this);
+
+    m_availableAccountsActionGroup->setExclusive(true);
 
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
@@ -203,9 +206,6 @@ void MainWindow::addMenuActionsToMainWindow()
     QAction * switchAccountSubMenuAction = m_pUI->menuFile->insertMenu(separatorAction, switchAccountSubMenu);
     Q_UNUSED(m_pUI->menuFile->insertSeparator(switchAccountSubMenuAction));
 
-    QActionGroup * accountsActionGroup = new QActionGroup(this);
-    accountsActionGroup->setExclusive(true);
-
     const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
 
     int numAvailableAccounts = availableAccounts.size();
@@ -229,7 +229,7 @@ void MainWindow::addMenuActionsToMainWindow()
         QObject::connect(accountAction, QNSIGNAL(QAction,toggled,bool),
                          this, QNSLOT(MainWindow,onSwitchAccountActionToggled,bool));
 
-        accountsActionGroup->addAction(accountAction);
+        m_availableAccountsActionGroup->addAction(accountAction);
     }
 
     if (Q_LIKELY(numAvailableAccounts != 0)) {
@@ -939,10 +939,61 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
 {
-    Q_UNUSED(account)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
-    // TODO: implement
+    bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
+    if (!expected) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestFailed: ") << account << QStringLiteral("\nError description: ")
+            << errorDescription << QStringLiteral(", request id = ") << requestId);
+
+    m_lastLocalStorageSwitchUserRequest = QUuid();
+
+    onSetStatusBarText(tr("Could not switch account") + QStringLiteral(": ") + errorDescription.localizedString());
+
+    if (!m_pAccount) {
+        // If there was no any account set previously, nothing to do
+        return;
+    }
+
+    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
+    const int numAvailableAccounts = availableAccounts.size();
+
+    // Trying to restore the previously selected account as the current one in the UI
+    QList<QAction*> availableAccountActions = m_availableAccountsActionGroup->actions();
+    for(auto it = availableAccountActions.constBegin(), end = availableAccountActions.constEnd(); it != end; ++it)
+    {
+        QAction * action = *it;
+        if (Q_UNLIKELY(!action)) {
+            QNDEBUG(QStringLiteral("Found null pointer to action within the available accounts action group"));
+            continue;
+        }
+
+        QVariant actionData = action->data();
+        bool conversionResult = false;
+        int index = actionData.toInt(&conversionResult);
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNDEBUG(QStringLiteral("Can't convert available account's user data to int: ") << actionData);
+            continue;
+        }
+
+        if (Q_UNLIKELY((index < 0) || (index >= numAvailableAccounts))) {
+            QNDEBUG(QStringLiteral("Available account's index is beyond the range of available accounts: index = ")
+                    << index << QStringLiteral(", num available accounts = ") << numAvailableAccounts);
+            continue;
+        }
+
+        const Account & actionAccount = availableAccounts.at(index);
+        if (actionAccount == *m_pAccount) {
+            QNDEBUG(QStringLiteral("Restoring the current account in UI: index = ") << index << QStringLiteral(", account = ")
+                    << actionAccount);
+            action->setChecked(true);
+            return;
+        }
+    }
+
+    // If we got here, it means we haven't found the proper previous account
+    QNDEBUG(QStringLiteral("Couldn't find the action corresponding to the previous available account: ") << *m_pAccount);
 }
 
 void MainWindow::checkThemeIconsAndSetFallbacks()

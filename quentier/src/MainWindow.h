@@ -51,6 +51,7 @@ class MainWindow;
 
 QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
+QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
@@ -175,6 +176,8 @@ private:
     Ui::MainWindow *        m_pUI;
     QWidget *               m_currentStatusBarChildWidget;
     QString                 m_lastNoteEditorHtml;
+
+    QActionGroup *          m_availableAccountsActionGroup;
 
     AccountManager *            m_pAccountManager;
     QScopedPointer<Account>     m_pAccount;
