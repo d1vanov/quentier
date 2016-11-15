@@ -150,7 +150,9 @@ private:
     void setupAccountManager();
 
     void setupLocalStorageManager();
+
     void setupModels();
+    void clearModels();
 
     void setupSynchronizationManager();
     void clearSynchronizationManager();

@@ -934,7 +934,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
         m_pSynchronizationManager->setAccount(*m_pAccount);
     }
 
-    // TODO: update models/views
+    setupModels();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
@@ -1229,6 +1229,8 @@ void MainWindow::setupModels()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupModels"));
 
+    clearModels();
+
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager, m_notebookCache, this);
     m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManager, m_tagCache, this);
     m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager, m_savedSearchCache, this);
@@ -1236,6 +1238,45 @@ void MainWindow::setupModels()
 
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
     m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache, m_notebookCache, m_tagCache, m_savedSearchCache, this);
+
+    // TODO: connect models to views
+}
+
+void MainWindow::clearModels()
+{
+    QNDEBUG(QStringLiteral("MainWindow::clearModels"));
+
+    // TODO: disconnect the models from views
+
+    if (m_pNotebookModel) {
+        delete m_pNotebookModel;
+        m_pNotebookModel = Q_NULLPTR;
+    }
+
+    if (m_pTagModel) {
+        delete m_pTagModel;
+        m_pTagModel = Q_NULLPTR;
+    }
+
+    if (m_pSavedSearchModel) {
+        delete m_pSavedSearchModel;
+        m_pSavedSearchModel = Q_NULLPTR;
+    }
+
+    if (m_pNoteModel) {
+        delete m_pNoteModel;
+        m_pNoteModel = Q_NULLPTR;
+    }
+
+    if (m_pDeletedNotesModel) {
+        delete m_pDeletedNotesModel;
+        m_pDeletedNotesModel = Q_NULLPTR;
+    }
+
+    if (m_pFavoritesModel) {
+        delete m_pFavoritesModel;
+        m_pFavoritesModel = Q_NULLPTR;
+    }
 }
 
 void MainWindow::setupSynchronizationManager()
