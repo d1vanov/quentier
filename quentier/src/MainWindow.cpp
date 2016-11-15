@@ -915,24 +915,26 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     if (m_pAccount->type() == Account::Type::Local)
     {
-        disconnectSynchronizationManager();
-
-        if (m_pSynchronizationManager) {
-            m_pSynchronizationManager->deleteLater();
-            m_pSynchronizationManager = Q_NULLPTR;
-        }
-
-        if (m_pSynchronizationManagerThread) {
-            m_pSynchronizationManagerThread->quit();    // The thread would delete itself after it's finished
-            m_pSynchronizationManagerThread = Q_NULLPTR;
-        }
+        clearSynchronizationManager();
     }
     else
     {
-        // TODO: figure out to which host this account belongs: if to the same as the previous account,
-        // just switch the account in the existing synchronization manager (if any); otherwise, re-create
-        // the synchronization manager from scratch
+        if (m_synchronizationManagerHost == m_pAccount->evernoteHost())
+        {
+            if (!m_pSynchronizationManager) {
+                setupSynchronizationManager();
+            }
+        }
+        else
+        {
+            m_synchronizationManagerHost = m_pAccount->evernoteHost();
+            setupSynchronizationManager();
+        }
+
+        m_pSynchronizationManager->setAccount(*m_pAccount);
     }
+
+    // TODO: update models/views
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
@@ -1189,6 +1191,8 @@ void MainWindow::setupSynchronizationManager()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupSynchronizationManager"));
 
+    clearSynchronizationManager();
+
     if (m_synchronizationManagerHost.isEmpty()) {
         QNDEBUG(QStringLiteral("Host is empty"));
         return;
@@ -1207,23 +1211,33 @@ void MainWindow::setupSynchronizationManager()
         return;
     }
 
-    if (!m_pSynchronizationManagerThread) {
-        m_pSynchronizationManagerThread = new QThread;
-        QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
-                         m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
-        m_pSynchronizationManagerThread->start();
-    }
-
-    if (m_pSynchronizationManager) {
-        disconnectSynchronizationManager();
-        m_pSynchronizationManager->deleteLater();
-    }
+    m_pSynchronizationManagerThread = new QThread;
+    QObject::connect(m_pSynchronizationManagerThread, QNSIGNAL(QThread,finished),
+                     m_pSynchronizationManagerThread, QNSLOT(QThread,deleteLater));
+    m_pSynchronizationManagerThread->start();
 
     m_pSynchronizationManager = new SynchronizationManager(consumerKey, consumerSecret,
                                                            m_synchronizationManagerHost,
                                                            *m_pLocalStorageManager);
     m_pSynchronizationManager->moveToThread(m_pSynchronizationManagerThread);
     connectSynchronizationManager();
+}
+
+void MainWindow::clearSynchronizationManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::clearSynchronizationManager"));
+
+    disconnectSynchronizationManager();
+
+    if (m_pSynchronizationManager) {
+        m_pSynchronizationManager->deleteLater();
+        m_pSynchronizationManager = Q_NULLPTR;
+    }
+
+    if (m_pSynchronizationManagerThread) {
+        m_pSynchronizationManagerThread->quit();    // The thread would delete itself after it's finished
+        m_pSynchronizationManagerThread = Q_NULLPTR;
+    }
 }
 
 void MainWindow::setupDefaultShortcuts()

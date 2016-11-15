@@ -54,6 +54,9 @@ public:
     Account & operator=(const Account & other);
     virtual ~Account();
 
+    bool operator==(const Account & other) const;
+    bool operator!=(const Account & other) const;
+
     /**
      * @return username for either local or Evernote account
      */

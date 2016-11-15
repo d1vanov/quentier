@@ -122,6 +122,12 @@ void SynchronizationManagerPrivate::setAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::setAccount: ") << account);
 
+    Account currentAccount = m_remoteToLocalSyncManager.account();
+    if (currentAccount == account) {
+        QNDEBUG(QStringLiteral("The same account is already set, nothing to do"));
+        return;
+    }
+
     clear();
 
     if (account.type() == Account::Type::Local) {

@@ -152,6 +152,7 @@ private:
     void setupModels();
 
     void setupSynchronizationManager();
+    void clearSynchronizationManager();
 
     void setupDefaultShortcuts();
     void setupUserShortcuts();

@@ -39,6 +39,39 @@ Account & Account::operator=(const Account & other)
 Account::~Account()
 {}
 
+bool Account::operator==(const Account & other) const
+{
+    if (d == other.d) {
+        return true;
+    }
+
+    if ((d->m_name == other.d->m_name) &&
+        (d->m_accountType == other.d->m_accountType) &&
+        (d->m_evernoteAccountType == other.d->m_evernoteAccountType) &&
+        (d->m_userId == other.d->m_userId) &&
+        (d->m_evernoteHost == other.d->m_evernoteHost) &&
+        (d->m_mailLimitDaily == other.d->m_mailLimitDaily) &&
+        (d->m_noteSizeMax == other.d->m_noteSizeMax) &&
+        (d->m_resourceSizeMax == other.d->m_resourceSizeMax) &&
+        (d->m_linkedNotebookMax == other.d->m_linkedNotebookMax) &&
+        (d->m_noteCountMax == other.d->m_noteCountMax) &&
+        (d->m_notebookCountMax == other.d->m_notebookCountMax) &&
+        (d->m_tagCountMax == other.d->m_tagCountMax) &&
+        (d->m_noteTagCountMax == other.d->m_noteTagCountMax) &&
+        (d->m_savedSearchCountMax == other.d->m_savedSearchCountMax) &&
+        (d->m_noteResourceCountMax == other.d->m_noteResourceCountMax))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+bool Account::operator!=(const Account & other) const
+{
+    return !(operator==(other));
+}
+
 void Account::setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType)
 {
     d->switchEvernoteAccountType(evernoteAccountType);
