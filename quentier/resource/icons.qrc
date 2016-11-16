@@ -14,7 +14,8 @@
         <file>sync_icons/stat_notify_sync_error.png</file>
         <file>label/tag.png</file>
         <file>format_text_elements/insert_table.png</file>
-        <file>label/trash_can.png</file>
+        <file>trash/trash_can.png</file>
+        <file>user/user.png</file>
         <file>fallback_icons/png/checkbox-2.png</file>
         <file>fallback_icons/png/dialog-information-4.png</file>
         <file>fallback_icons/png/document-new-6.png</file>
