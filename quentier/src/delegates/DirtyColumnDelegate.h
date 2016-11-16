@@ -1,15 +1,14 @@
-#ifndef QUENTIER_DELEGATES_SYNCHRONIZABLE_COLUMN_DELEGATE_H
-#define QUENTIER_DELEGATES_SYNCHRONIZABLE_COLUMN_DELEGATE_H
+#ifndef QUENTIER_DELEGATES_DIRTY_COLUMN_DELEGATE_H
+#define QUENTIER_DELEGATES_DIRTY_COLUMN_DELEGATE_H
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QStyledItemDelegate>
-#include <QIcon>
 
-class SynchronizableColumnDelegate: public QStyledItemDelegate
+class DirtyColumnDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit SynchronizableColumnDelegate(QObject * parent = Q_NULLPTR);
+    explicit DirtyColumnDelegate(QObject * parent = Q_NULLPTR);
 
 private:
     // QStyledItemDelegate interface
@@ -24,10 +23,6 @@ private:
     virtual QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
     virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
                                       const QModelIndex & index) const Q_DECL_OVERRIDE;
-
-private:
-    QIcon   m_icon;
-    QSize   m_iconSize;
 };
 
-#endif // QUENTIER_DELEGATES_SYNCHRONIZABLE_COLUMN_DELEGATE_H
+#endif // QUENTIER_DELEGATES_DIRTY_COLUMN_DELEGATE_H

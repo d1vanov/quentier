@@ -71,6 +71,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/FavoritesModel.h
     src/models/FavoritesModelItem.h
     src/delegates/NoteItemDelegate.h
+    src/delegates/DirtyColumnDelegate.h
     src/delegates/FromLinkedNotebookColumnDelegate.h
     src/delegates/SynchronizableColumnDelegate.h
     src/insert-table-tool-button/InsertTableToolButton.h
@@ -114,6 +115,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/delegates/NoteItemDelegate.cpp
+    src/delegates/DirtyColumnDelegate.cpp
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
     src/widgets/FindAndReplaceWidget.cpp
