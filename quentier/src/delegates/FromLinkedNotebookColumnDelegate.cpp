@@ -76,7 +76,7 @@ QSize FromLinkedNotebookColumnDelegate::sizeHint(const QStyleOptionViewItem & op
 {
     Q_UNUSED(option)
 
-    if (!index.isValid()) {
+    if (Q_UNLIKELY(!index.isValid())) {
         return QSize();
     }
 
