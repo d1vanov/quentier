@@ -155,6 +155,9 @@ private:
     void setupModels();
     void clearModels();
 
+    void setupViews();
+    void clearViews();
+
     void setupSynchronizationManager();
     void clearSynchronizationManager();
 

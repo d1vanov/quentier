@@ -53,7 +53,7 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
    <property name="layoutDirection">
     <enum>Qt::LeftToRight</enum>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -74,6 +74,9 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
+      <property name="handleWidth">
+       <number>0</number>
+      </property>
       <widget class="QSplitter" name="LeftPaneSplitter">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -83,7 +86,7 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
        </property>
        <property name="minimumSize">
         <size>
-         <width>150</width>
+         <width>170</width>
          <height>0</height>
         </size>
        </property>
@@ -95,6 +98,9 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
        </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+       <property name="handleWidth">
+        <number>0</number>
        </property>
        <property name="childrenCollapsible">
         <bool>false</bool>
@@ -113,7 +119,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <property name="topMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="rightMargin">
           <number>1</number>
@@ -122,88 +128,152 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QLabel" name="favoritesLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>20</height>
-            </size>
-           </property>
+          <widget class="QWidget" name="favoritesHeaderWidget" native="true">
            <property name="styleSheet">
-            <string notr="true">border: none;
+            <string notr="true">QWidget#favoritesHeaderWidget {
+border: none;
+border-bottom: 1px solid black;
 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
+color: rgb(255, 255, 255);
+margin: 0px;
+}</string>
            </property>
-           <property name="text">
-            <string>F&amp;avorites</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
+           <layout class="QHBoxLayout" name="favoritesHeaderHorizontalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>1</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>1</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="favoritesLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>90</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: rgb(255, 255, 255);</string>
+              </property>
+              <property name="text">
+               <string>F&amp;avorites</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>favoritesTableView</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="favoriteInfoButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="dialog-information">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="unfavoritePushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="edit-delete">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
           <widget class="QTableView" name="favoritesTableView">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
            <property name="styleSheet">
             <string notr="true">QTableView#favoritesTableView {
 border: none;
 background-color: transparent;
 }</string>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="favoritesButtonsWidget" native="true">
-           <layout class="QHBoxLayout" name="favoritesButtonsHorizontalLayout">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="unfavoritePushButton">
-              <property name="icon">
-               <iconset theme="edit-delete"/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="favoriteInfoButton">
-              <property name="icon">
-               <iconset theme="dialog-information"/>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
           </widget>
          </item>
         </layout>
@@ -222,7 +292,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <property name="topMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="rightMargin">
           <number>1</number>
@@ -231,40 +301,179 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QLabel" name="notebooksLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>20</height>
-            </size>
-           </property>
+          <widget class="QWidget" name="notebooksHeaderWidget" native="true">
            <property name="styleSheet">
-            <string notr="true">border: none;
+            <string notr="true">QWidget#notebooksHeaderWidget {
+border: none;
+border-bottom: 1px solid black;
 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
+color: rgb(255, 255, 255);
+margin: 0px;
+}</string>
            </property>
-           <property name="text">
-            <string>&amp;Notebooks</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
+           <layout class="QHBoxLayout" name="notebooksHeaderVerticalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>1</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>1</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="notebooksLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>90</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: rgb(255, 255, 255);</string>
+              </property>
+              <property name="text">
+               <string>&amp;Notebooks</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>notebooksTableView</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addNotebookButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="folder-add">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="removeNotebookButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="edit-delete">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="notebookInfoButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="dialog-information">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
           <widget class="QTableView" name="notebooksTableView">
            <property name="minimumSize">
             <size>
-             <width>150</width>
+             <width>0</width>
              <height>30</height>
             </size>
            </property>
@@ -274,61 +483,6 @@ border: none;
 background-color: transparent;
 }</string>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="notebooksButtonsWidget" native="true">
-           <layout class="QHBoxLayout" name="notebooksButtonsHorizontalLayout">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="QPushButton" name="addNotebookButton">
-              <property name="icon">
-               <iconset theme="folder-add">
-                <normaloff>.</normaloff>.</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="removeNotebookButton">
-              <property name="icon">
-               <iconset theme="edit-delete">
-                <normaloff>.</normaloff>.</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="notebookInfoButton">
-              <property name="icon">
-               <iconset theme="dialog-information">
-                <normaloff>.</normaloff>.</iconset>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="notebooksButtonsHorizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-           </layout>
           </widget>
          </item>
         </layout>
@@ -347,7 +501,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <property name="topMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="rightMargin">
           <number>1</number>
@@ -356,40 +510,179 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QLabel" name="tagsLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>20</height>
-            </size>
-           </property>
+          <widget class="QWidget" name="tagsHeaderWidget" native="true">
            <property name="styleSheet">
-            <string notr="true">border: none;
+            <string notr="true">QWidget#tagsHeaderWidget {
+border: none;
+border-bottom: 1px solid black;
 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
+color: rgb(255, 255, 255);
+margin: 0px;
+}</string>
            </property>
-           <property name="text">
-            <string>&amp;Tags</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
+           <layout class="QHBoxLayout" name="tagButtonsHorizontalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>1</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>1</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="tagsLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>90</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: rgb(255, 255, 255);</string>
+              </property>
+              <property name="text">
+               <string>&amp;Tags</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>tagsTreeView</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addTagButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="document-new">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="removeTagButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="edit-delete">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="tagInfoButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="dialog-information">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </item>
          <item>
           <widget class="QTreeView" name="tagsTreeView">
            <property name="minimumSize">
             <size>
-             <width>150</width>
+             <width>0</width>
              <height>30</height>
             </size>
            </property>
@@ -401,8 +694,587 @@ background-color: transparent;
            </property>
           </widget>
          </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="savedSearchesWidget" native="true">
+        <property name="styleSheet">
+         <string notr="true">QWidget#savedSearchesWidget {
+border: 1px solid black
+}</string>
+        </property>
+        <layout class="QVBoxLayout" name="savedSearchesVerticalLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
          <item>
-          <layout class="QHBoxLayout" name="tagButtonsHorizontalLayout">
+          <widget class="QWidget" name="savedSearchesHeaderWidget" native="true">
+           <property name="styleSheet">
+            <string notr="true">QWidget#savedSearchesHeaderWidget {
+border: none;
+border-bottom: 1px solid black;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+color: rgb(255, 255, 255);
+margin: 0px;
+}</string>
+           </property>
+           <layout class="QHBoxLayout" name="savedSearchesButtonsHorizontalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>1</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>1</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="savedSearchesLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>140</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: rgb(255, 255, 255);</string>
+              </property>
+              <property name="text">
+               <string>Saved sea&amp;rches</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>savedSearchesTableView</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addSavedSearchButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="document-new">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="removeSavedSearchButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="edit-delete">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="savedSearchInfoButton">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="dialog-information">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTableView" name="savedSearchesTableView">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QTableView#savedSearchesTableView {
+border: none;
+background-color: transparent;
+}</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="deletedNotesWidget" native="true">
+        <property name="styleSheet">
+         <string notr="true">QWidget#deletedNotesWidget {
+border: 1px solid black
+}</string>
+        </property>
+        <layout class="QVBoxLayout" name="deletedNotesVerticalLayout">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>1</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>1</number>
+         </property>
+         <property name="bottomMargin">
+          <number>1</number>
+         </property>
+         <item>
+          <widget class="QWidget" name="deletedNotesHeaderWidget" native="true">
+           <property name="styleSheet">
+            <string notr="true">QWidget#deletedNotesHeaderWidget {
+border: none;
+border-bottom: 1px solid black;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+color: rgb(255, 255, 255);
+margin: 0px;
+}</string>
+           </property>
+           <layout class="QHBoxLayout" name="deletedNotesButtonsHorizontalLayout">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>1</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>1</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="deletedNotesLabel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>140</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">color: rgb(255, 255, 255);</string>
+              </property>
+              <property name="text">
+               <string>De&amp;leted notes</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>deletedNotesTableView</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="restoreDeletedNoteButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Restore deleted note</string>
+              </property>
+              <property name="icon">
+               <iconset theme="edit-redo">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="eraseDeletedNoteButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Erase the note completely</string>
+              </property>
+              <property name="icon">
+               <iconset theme="edit-delete">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="deletedNoteInfoButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="dialog-information">
+                <normaloff/>
+               </iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QTableView" name="deletedNotesTableView">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QTableView#deletedNotesTableView {
+border: none;
+background-color: transparent;
+}</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="noteListWidget" native="true">
+       <property name="styleSheet">
+        <string notr="true">QWidget#noteListWidget {
+border: 1px solid black;
+border-left: none;
+}</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="noteSortingModeLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>90</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: none;
+border-right: 1px solid black;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+color: rgb(255, 255, 255);</string>
+          </property>
+          <property name="text">
+           <string>Sorting &amp;mode</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="buddy">
+           <cstring>noteSortingModeComboBox</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="searchQueryLabel">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>90</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>22</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: none;
+border-right: 1px solid black;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+color: rgb(255, 255, 255);</string>
+          </property>
+          <property name="text">
+           <string>Search &amp;query</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="buddy">
+           <cstring>searchQueryLineEdit</cstring>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QComboBox" name="noteSortingModeComboBox">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>90</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: none;
+border-right: 1px solid black;
+margin: 0px;
+margin-left: 1px;
+padding-bottom: 2px;
+</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QListView" name="noteListView">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: 1px solid black;
+border-left: none;</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QWidget" name="searchQueryWidget" native="true">
+          <property name="styleSheet">
+           <string notr="true">QWidget#searchQueryWidget {
+margin: 0px;
+padding: 0px;
+border-right: 1px solid black;
+}</string>
+          </property>
+          <layout class="QHBoxLayout" name="searchQueryAndSaveHorizontalLayout" stretch="0,0">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="sizeConstraint">
+            <enum>QLayout::SetDefaultConstraint</enum>
+           </property>
            <property name="leftMargin">
             <number>0</number>
            </property>
@@ -416,410 +1288,64 @@ background-color: transparent;
             <number>0</number>
            </property>
            <item>
-            <widget class="QPushButton" name="addTagButton">
-             <property name="icon">
-              <iconset theme="document-new">
-               <normaloff>.</normaloff>.</iconset>
+            <widget class="QLineEdit" name="searchQueryLineEdit">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="removeTagButton">
-             <property name="icon">
-              <iconset theme="edit-delete">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="tagInfoButton">
-             <property name="icon">
-              <iconset theme="dialog-information">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="tagButtonsHorizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+             <property name="minimumSize">
               <size>
-               <width>40</width>
+               <width>100</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border: none;</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="saveSearchPushButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>20</width>
                <height>20</height>
               </size>
              </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="verticalLayoutWidget_5">
-        <layout class="QVBoxLayout" name="savedSearchesVerticalLayout">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="savedSearchesLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border: none;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
-           </property>
-           <property name="text">
-            <string>Saved sea&amp;rches</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTableView" name="savedSearchesTableView">
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border: none</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="savedSearchesButtonsHorizontalLayout">
-           <item>
-            <widget class="QPushButton" name="addSavedSearchButton">
-             <property name="icon">
-              <iconset theme="document-new">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="removeSavedSearchButton">
-             <property name="icon">
-              <iconset theme="edit-delete">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="savedSearchInfoButton">
-             <property name="icon">
-              <iconset theme="dialog-information">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="savedSearchesButtonsHorizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+             <property name="maximumSize">
               <size>
-               <width>40</width>
+               <width>20</width>
                <height>20</height>
               </size>
              </property>
-            </spacer>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="verticalLayoutWidget_6">
-        <layout class="QVBoxLayout" name="deletedNotesVerticalLayout">
-         <property name="spacing">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="deletedNotesLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border: none;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
-           </property>
-           <property name="text">
-            <string>De&amp;leted notes</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTableView" name="deletedNotesTableView">
-           <property name="minimumSize">
-            <size>
-             <width>150</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border: none</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QHBoxLayout" name="deletedNotesButtonsHorizontalLayout">
-           <item>
-            <widget class="QPushButton" name="restoreDeletedNoteButton">
-             <property name="toolTip">
-              <string>Restore deleted note</string>
+             <property name="text">
+              <string/>
              </property>
              <property name="icon">
-              <iconset theme="edit-redo">
-               <normaloff>.</normaloff>.</iconset>
+              <iconset theme="document-save">
+               <normaloff/>
+              </iconset>
              </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="eraseDeletedNoteButton">
-             <property name="toolTip">
-              <string>Erase the note completely</string>
-             </property>
-             <property name="icon">
-              <iconset theme="edit-delete">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="deletedNoteInfoButton">
-             <property name="icon">
-              <iconset theme="dialog-information">
-               <normaloff>.</normaloff>.</iconset>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="deletedNotesButtonsHorizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
+             <property name="iconSize">
               <size>
-               <width>40</width>
-               <height>20</height>
+               <width>16</width>
+               <height>16</height>
               </size>
              </property>
-            </spacer>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+            </widget>
            </item>
           </layout>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="noteListVerticalLayoutWidget">
-       <layout class="QVBoxLayout" name="noteListVerticalLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="sizeConstraint">
-         <enum>QLayout::SetMinimumSize</enum>
-        </property>
-        <item>
-         <layout class="QGridLayout" name="noteSortingAndSearchGridLayout">
-          <property name="sizeConstraint">
-           <enum>QLayout::SetMinimumSize</enum>
-          </property>
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <item row="0" column="0">
-           <widget class="QLabel" name="noteSortingModeLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>120</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: none;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
-            </property>
-            <property name="text">
-             <string>Sorting &amp;mode</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="buddy">
-             <cstring>noteSortingModeComboBox</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLabel" name="searchQueryLabel">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>20</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: none;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
-            </property>
-            <property name="text">
-             <string>Search &amp;query</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-            <property name="buddy">
-             <cstring>searchQueryLineEdit</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QComboBox" name="noteSortingModeComboBox">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>90</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">border: none</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <layout class="QHBoxLayout" name="searchQueryAndSaveHorizontalLayout">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetMinimumSize</enum>
-            </property>
-            <property name="leftMargin">
-             <number>5</number>
-            </property>
-            <property name="rightMargin">
-             <number>5</number>
-            </property>
-            <item>
-             <widget class="QLineEdit" name="searchQueryLineEdit">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">border: none</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="saveSearchPushButton">
-              <property name="text">
-               <string/>
-              </property>
-              <property name="icon">
-               <iconset theme="document-save">
-                <normaloff>.</normaloff>.</iconset>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QListView" name="noteListView">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">border: none</string>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
          </widget>
         </item>
        </layout>
@@ -845,7 +1371,7 @@ color: rgb(255, 255, 255);</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>30</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -880,7 +1406,8 @@ color: rgb(255, 255, 255);</string>
      </property>
      <property name="icon">
       <iconset theme="edit-find-replace">
-       <normaloff>.</normaloff>.</iconset>
+       <normaloff/>
+      </iconset>
      </property>
      <addaction name="ActionFindNote"/>
      <addaction name="separator"/>
@@ -952,7 +1479,8 @@ color: rgb(255, 255, 255);</string>
      </property>
      <property name="icon">
       <iconset theme="insert-table">
-       <normaloff>.</normaloff>.</iconset>
+       <normaloff/>
+      </iconset>
      </property>
      <addaction name="ActionInsertTable"/>
      <addaction name="ActionInsertRow"/>
@@ -977,7 +1505,8 @@ color: rgb(255, 255, 255);</string>
      </property>
      <property name="icon">
       <iconset theme="image-x-generic">
-       <normaloff>.</normaloff>.</iconset>
+       <normaloff/>
+      </iconset>
      </property>
      <addaction name="ActionSaveImage"/>
      <addaction name="ActionRotateClockwise"/>
@@ -1137,7 +1666,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteAdd">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -1152,7 +1682,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -1176,7 +1707,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Copy note</string>
@@ -1190,7 +1722,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookAdd">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -1204,7 +1737,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -1213,7 +1747,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookSetStack">
    <property name="icon">
     <iconset theme="list-add">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Add to stack</string>
@@ -1277,7 +1812,8 @@ stop: 1 #0EB7FF);
   <action name="ActionSendMail">
    <property name="icon">
     <iconset theme="mail-send">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Send by e-mail</string>
@@ -1292,7 +1828,8 @@ stop: 1 #0EB7FF);
   <action name="ActionPrint">
    <property name="icon">
     <iconset theme="printer">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Print</string>
@@ -1332,7 +1869,8 @@ stop: 1 #0EB7FF);
   <action name="ActionClearTrash">
    <property name="icon">
     <iconset theme="user-trash">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Clear trash</string>
@@ -1341,7 +1879,8 @@ stop: 1 #0EB7FF);
   <action name="ActionQuit">
    <property name="icon">
     <iconset theme="application-exit">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -1356,7 +1895,8 @@ stop: 1 #0EB7FF);
   <action name="ActionRedo">
    <property name="icon">
     <iconset theme="edit-redo">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Redo</string>
@@ -1371,7 +1911,8 @@ stop: 1 #0EB7FF);
   <action name="ActionCut">
    <property name="icon">
     <iconset theme="edit-cut">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Cut</string>
@@ -1386,7 +1927,8 @@ stop: 1 #0EB7FF);
   <action name="ActionCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>C&amp;opy</string>
@@ -1401,7 +1943,8 @@ stop: 1 #0EB7FF);
   <action name="ActionPaste">
    <property name="icon">
     <iconset theme="edit-paste">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Paste</string>
@@ -1416,7 +1959,8 @@ stop: 1 #0EB7FF);
   <action name="ActionPasteUnformatted">
    <property name="icon">
     <iconset theme="insert-text">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>P&amp;aste unformatted</string>
@@ -1431,7 +1975,8 @@ stop: 1 #0EB7FF);
   <action name="ActionPreferences">
    <property name="icon">
     <iconset theme="preferences-other">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>S&amp;ettings</string>
@@ -1604,7 +2149,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontBold">
    <property name="icon">
     <iconset theme="format-text-bold">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Bold</string>
@@ -1619,7 +2165,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontUnderlined">
    <property name="icon">
     <iconset theme="format-text-underline">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Underlined</string>
@@ -1634,7 +2181,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontItalic">
    <property name="icon">
     <iconset theme="format-text-italic">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Italic</string>
@@ -1649,7 +2197,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontStrikethrough">
    <property name="icon">
     <iconset theme="format-text-strikethrough">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Strikethrough</string>
@@ -1664,7 +2213,8 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertHorizontalLine">
    <property name="icon">
     <iconset theme="insert-horizontal-rule">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Insert horizontal &amp;rule</string>
@@ -1673,7 +2223,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontUpperIndex">
    <property name="icon">
     <iconset theme="go-top">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>U&amp;pper index</string>
@@ -1688,7 +2239,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontLowerIndex">
    <property name="icon">
     <iconset theme="go-bottom">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Lower index</string>
@@ -1728,7 +2280,8 @@ stop: 1 #0EB7FF);
   <action name="ActionSaveImage">
    <property name="icon">
     <iconset theme="document-save">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Save</string>
@@ -1737,7 +2290,8 @@ stop: 1 #0EB7FF);
   <action name="ActionRotateClockwise">
    <property name="icon">
     <iconset theme="object-rotate-right">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Rotate clockwise</string>
@@ -1746,7 +2300,8 @@ stop: 1 #0EB7FF);
   <action name="ActionRotateCounterClockwise">
    <property name="icon">
     <iconset theme="object-rotate-left">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Rotate &amp;counterclockwise</string>
@@ -1755,7 +2310,8 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignLeft">
    <property name="icon">
     <iconset theme="format-justify-left">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Align left</string>
@@ -1770,7 +2326,8 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignCenter">
    <property name="icon">
     <iconset theme="format-justify-center">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Aligh &amp;center</string>
@@ -1785,7 +2342,8 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignRight">
    <property name="icon">
     <iconset theme="format-justify-right">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Align &amp;right</string>
@@ -1800,7 +2358,8 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertBulletedList">
    <property name="icon">
     <iconset theme="format-list-unordered">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Insert bulleted list</string>
@@ -1815,7 +2374,8 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertNumberedList">
    <property name="icon">
     <iconset theme="format-list-ordered">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Insert &amp;numbered list</string>
@@ -1830,7 +2390,8 @@ stop: 1 #0EB7FF);
   <action name="ActionIncreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Increase</string>
@@ -1848,7 +2409,8 @@ stop: 1 #0EB7FF);
   <action name="ActionDecreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Decrease</string>
@@ -1879,7 +2441,8 @@ stop: 1 #0EB7FF);
   <action name="ActionSpellCheck">
    <property name="icon">
     <iconset theme="tools-check-spelling">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Sp&amp;ellcheck</string>
@@ -1939,7 +2502,8 @@ stop: 1 #0EB7FF);
   <action name="ActionGoPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Go back</string>
@@ -1951,7 +2515,8 @@ stop: 1 #0EB7FF);
   <action name="ActionGoNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Go forward</string>
@@ -1966,7 +2531,8 @@ stop: 1 #0EB7FF);
    </property>
    <property name="icon">
     <iconset theme="go-up">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Up</string>
@@ -1978,7 +2544,8 @@ stop: 1 #0EB7FF);
   <action name="ActionGoDown">
    <property name="icon">
     <iconset theme="go-down">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Down</string>
@@ -2008,7 +2575,8 @@ stop: 1 #0EB7FF);
   <action name="ActionShowNoteAttributesButton">
    <property name="icon">
     <iconset theme="dialog-information">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Show note attributes</string>
@@ -2037,7 +2605,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNewNote">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;New note</string>
@@ -2052,7 +2621,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNewNotebook">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>N&amp;ew notebook</string>
@@ -2070,7 +2640,8 @@ stop: 1 #0EB7FF);
   <action name="ActionNewSavedSearch">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>New &amp;saved search</string>
@@ -2079,7 +2650,8 @@ stop: 1 #0EB7FF);
   <action name="ActionSelectAll">
    <property name="icon">
     <iconset theme="edit-select-all">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Select all</string>
@@ -2094,7 +2666,8 @@ stop: 1 #0EB7FF);
   <action name="ActionDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -2103,7 +2676,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFindNote">
    <property name="icon">
     <iconset theme="system-search">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Find note</string>
@@ -2115,7 +2689,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFindInsideNote">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Find &amp;inside note</string>
@@ -2127,7 +2702,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFindNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Find &amp;next</string>
@@ -2139,7 +2715,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFindPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>Find &amp;previous</string>
@@ -2151,7 +2728,8 @@ stop: 1 #0EB7FF);
   <action name="ActionReplaceInNote">
    <property name="icon">
     <iconset theme="edit-replace">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Replace in note</string>
@@ -2163,7 +2741,8 @@ stop: 1 #0EB7FF);
   <action name="ActionUndo">
    <property name="icon">
     <iconset theme="edit-undo">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -2268,7 +2847,8 @@ stop: 1 #0EB7FF);
   <action name="ActionIncreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-more">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Increase</string>
@@ -2283,7 +2863,8 @@ stop: 1 #0EB7FF);
   <action name="ActionDecreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-less">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Decrease</string>
@@ -2298,7 +2879,8 @@ stop: 1 #0EB7FF);
   <action name="ActionFontHighlight">
    <property name="icon">
     <iconset theme="fill-color">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Highlight</string>
@@ -2313,7 +2895,8 @@ stop: 1 #0EB7FF);
   <action name="ActionEditHyperlink">
    <property name="icon">
     <iconset theme="insert-link">
-     <normaloff>.</normaloff>.</iconset>
+     <normaloff/>
+    </iconset>
    </property>
    <property name="text">
     <string>&amp;Add/edit...</string>

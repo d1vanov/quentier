@@ -1,9 +1,16 @@
 #include "DirtyColumnDelegate.h"
 #include <QPainter>
 
+#define DIRTY_CIRCLE_RADIUS (2)
+
 DirtyColumnDelegate::DirtyColumnDelegate(QObject * parent) :
     QStyledItemDelegate(parent)
 {}
+
+int DirtyColumnDelegate::sideSize() const
+{
+    return qRound(DIRTY_CIRCLE_RADIUS * 2.1125);
+}
 
 QString DirtyColumnDelegate::displayText(const QVariant & value, const QLocale & locale) const
 {
@@ -41,7 +48,7 @@ void DirtyColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem &
     painter->setBrush(QBrush(Qt::red));
 
     int side = std::min(option.rect.width(), option.rect.height());
-    int radius = std::min(side, 3);
+    int radius = std::min(side, DIRTY_CIRCLE_RADIUS);
     int diameter = 2 * radius;
     QPoint center = option.rect.center();
     painter->drawEllipse(QRectF(center.x() - radius, center.y() - radius, diameter, diameter));

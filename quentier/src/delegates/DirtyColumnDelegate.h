@@ -10,6 +10,8 @@ class DirtyColumnDelegate: public QStyledItemDelegate
 public:
     explicit DirtyColumnDelegate(QObject * parent = Q_NULLPTR);
 
+    int sideSize() const;
+
 private:
     // QStyledItemDelegate interface
     virtual QString displayText(const QVariant & value, const QLocale & locale) const Q_DECL_OVERRIDE;

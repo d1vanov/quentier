@@ -2,12 +2,19 @@
 #include <QPainter>
 #include <QCheckBox>
 
+#define SIDE_SIZE (8)
+
 SynchronizableColumnDelegate::SynchronizableColumnDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
     m_icon(),
-    m_iconSize(8, 8)
+    m_iconSize(SIDE_SIZE, SIDE_SIZE)
 {
     m_icon.addFile(QStringLiteral(":/sync_icons/stat_notify_sync.png"), m_iconSize);
+}
+
+int SynchronizableColumnDelegate::sideSize() const
+{
+    return qRound(SIDE_SIZE * 1.25);
 }
 
 QString SynchronizableColumnDelegate::displayText(const QVariant & value, const QLocale & locale) const

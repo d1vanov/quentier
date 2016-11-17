@@ -22,6 +22,9 @@
 #include "insert-table-tool-button/TableSettingsDialog.h"
 #include "tests/ManualTestingHelper.h"
 #include "widgets/FindAndReplaceWidget.h"
+#include "delegates/SynchronizableColumnDelegate.h"
+#include "delegates/DirtyColumnDelegate.h"
+#include "delegates/FromLinkedNotebookColumnDelegate.h"
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
 #include <quentier/types/Note.h>
@@ -96,6 +99,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupLocalStorageManager();
     setupModels();
+    setupViews();
 
     setupDefaultShortcuts();
     setupUserShortcuts();
@@ -1236,7 +1240,6 @@ void MainWindow::setupModels()
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager, m_notebookCache, this);
     m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManager, m_tagCache, this);
     m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager, m_savedSearchCache, this);
-
     m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
 
@@ -1244,22 +1247,15 @@ void MainWindow::setupModels()
     m_pUI->notebooksTableView->setModel(m_pNotebookModel);
     m_pUI->tagsTreeView->setModel(m_pTagModel);
     m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
-
     m_pUI->noteListView->setModel(m_pNoteModel);
-    m_pUI->deletedNotesTableView->setModel(m_pNoteModel);
+    m_pUI->deletedNotesTableView->setModel(m_pDeletedNotesModel);
 }
 
 void MainWindow::clearModels()
 {
     QNDEBUG(QStringLiteral("MainWindow::clearModels"));
 
-    m_pUI->favoritesTableView->setModel(&m_blankModel);
-    m_pUI->notebooksTableView->setModel(&m_blankModel);
-    m_pUI->tagsTreeView->setModel(&m_blankModel);
-    m_pUI->savedSearchesTableView->setModel(&m_blankModel);
-
-    m_pUI->noteListView->setModel(&m_blankModel);
-    m_pUI->deletedNotesTableView->setModel(&m_blankModel);
+    clearViews();
 
     if (m_pNotebookModel) {
         delete m_pNotebookModel;
@@ -1290,6 +1286,58 @@ void MainWindow::clearModels()
         delete m_pFavoritesModel;
         m_pFavoritesModel = Q_NULLPTR;
     }
+}
+
+void MainWindow::setupViews()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupViews"));
+
+    QTableView * favoritesTableView = m_pUI->favoritesTableView;
+    favoritesTableView->horizontalHeader()->hide();
+
+
+    QTableView * notebooksTableView = m_pUI->notebooksTableView;
+
+    SynchronizableColumnDelegate * notebookTableViewSynchronizableColumnDelegate = new SynchronizableColumnDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable, notebookTableViewSynchronizableColumnDelegate);
+    notebooksTableView->setColumnWidth(NotebookModel::Columns::Synchronizable, notebookTableViewSynchronizableColumnDelegate->sideSize());
+
+    DirtyColumnDelegate * notebookTableViewDirtyColumnDelegate = new DirtyColumnDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Dirty, notebookTableViewDirtyColumnDelegate);
+    notebooksTableView->setColumnWidth(NotebookModel::Columns::Dirty, notebookTableViewDirtyColumnDelegate->sideSize());
+
+    FromLinkedNotebookColumnDelegate * notebookTableViewFromLinkedNotebookColumnDelegate = new FromLinkedNotebookColumnDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook, notebookTableViewFromLinkedNotebookColumnDelegate);
+    notebooksTableView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook, notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
+
+    // TODO: temporary, need to set these columns up properly
+    notebooksTableView->setColumnHidden(NotebookModel::Columns::Default, true);
+    notebooksTableView->setColumnHidden(NotebookModel::Columns::Published, true);
+    notebooksTableView->horizontalHeader()->hide();
+
+    m_pUI->tagsTreeView->setModel(m_pTagModel);
+    m_pUI->tagsTreeView->header()->hide();
+
+    m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
+    m_pUI->savedSearchesTableView->horizontalHeader()->hide();
+
+    m_pUI->noteListView->setModel(m_pNoteModel);
+
+    m_pUI->deletedNotesTableView->setModel(m_pNoteModel);
+    m_pUI->deletedNotesTableView->horizontalHeader()->hide();
+}
+
+void MainWindow::clearViews()
+{
+    QNDEBUG(QStringLiteral("MainWindow::clearViews"));
+
+    m_pUI->favoritesTableView->setModel(&m_blankModel);
+    m_pUI->notebooksTableView->setModel(&m_blankModel);
+    m_pUI->tagsTreeView->setModel(&m_blankModel);
+    m_pUI->savedSearchesTableView->setModel(&m_blankModel);
+
+    m_pUI->noteListView->setModel(&m_blankModel);
+    m_pUI->deletedNotesTableView->setModel(&m_blankModel);
 }
 
 void MainWindow::setupSynchronizationManager()

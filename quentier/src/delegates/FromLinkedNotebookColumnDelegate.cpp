@@ -1,12 +1,19 @@
 #include "FromLinkedNotebookColumnDelegate.h"
 #include <QPainter>
 
+#define ICON_SIDE_SIZE (16)
+
 FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
     m_icon(),
-    m_iconSize(16, 16)
+    m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
 {
     m_icon.addFile(QStringLiteral(":/user/user.png"), m_iconSize);
+}
+
+int FromLinkedNotebookColumnDelegate::sideSize() const
+{
+    return qRound(ICON_SIDE_SIZE * 1.25);
 }
 
 QString FromLinkedNotebookColumnDelegate::displayText(const QVariant & value, const QLocale & locale) const
