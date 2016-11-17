@@ -79,6 +79,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteModel(Q_NULLPTR),
     m_pDeletedNotesModel(Q_NULLPTR),
     m_pFavoritesModel(Q_NULLPTR),
+    m_blankModel(),
     m_testNotebook(),
     m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
@@ -1231,22 +1232,34 @@ void MainWindow::setupModels()
 
     clearModels();
 
+    m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache, m_notebookCache, m_tagCache, m_savedSearchCache, this);
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager, m_notebookCache, this);
     m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManager, m_tagCache, this);
     m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager, m_savedSearchCache, this);
+
     m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
-
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
-    m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache, m_notebookCache, m_tagCache, m_savedSearchCache, this);
 
-    // TODO: connect models to views
+    m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
+    m_pUI->notebooksTableView->setModel(m_pNotebookModel);
+    m_pUI->tagsTreeView->setModel(m_pTagModel);
+    m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
+
+    m_pUI->noteListView->setModel(m_pNoteModel);
+    m_pUI->deletedNotesTableView->setModel(m_pNoteModel);
 }
 
 void MainWindow::clearModels()
 {
     QNDEBUG(QStringLiteral("MainWindow::clearModels"));
 
-    // TODO: disconnect the models from views
+    m_pUI->favoritesTableView->setModel(&m_blankModel);
+    m_pUI->notebooksTableView->setModel(&m_blankModel);
+    m_pUI->tagsTreeView->setModel(&m_blankModel);
+    m_pUI->savedSearchesTableView->setModel(&m_blankModel);
+
+    m_pUI->noteListView->setModel(&m_blankModel);
+    m_pUI->deletedNotesTableView->setModel(&m_blankModel);
 
     if (m_pNotebookModel) {
         delete m_pNotebookModel;

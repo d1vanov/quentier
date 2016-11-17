@@ -44,6 +44,7 @@
 
 #include <QTextListFormat>
 #include <QMap>
+#include <QStandardItemModel>
 
 namespace Ui {
 class MainWindow;
@@ -205,6 +206,8 @@ private:
 
     NoteModel *             m_pDeletedNotesModel;
     FavoritesModel *        m_pFavoritesModel;
+
+    QStandardItemModel      m_blankModel;
 
     Notebook                m_testNotebook;
     Note                    m_testNote;
