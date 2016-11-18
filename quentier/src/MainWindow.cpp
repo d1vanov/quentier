@@ -1005,6 +1005,11 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 {
     QNTRACE(QStringLiteral("MainWindow::checkThemeIconsAndSetFallbacks"));
 
+    if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
+        QIcon::setThemeName(QStringLiteral("tango"));
+    }
+
+    /*
     if (!QIcon::hasThemeIcon(QStringLiteral("dialog-information"))) {
         m_pUI->ActionShowNoteAttributesButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/dialog-information-4.png")));
         QNTRACE(QStringLiteral("set fallback dialog-information icon"));
@@ -1194,6 +1199,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
         m_pUI->ActionRotateClockwise->setIcon(objectRotateRightIcon);
         QNTRACE(QStringLiteral("set fallback object-rotate-right icon"));
     }
+    */
 }
 
 void MainWindow::setupAccountManager()

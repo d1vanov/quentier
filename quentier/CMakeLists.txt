@@ -144,6 +144,7 @@ else()
 endif()
 
 set(RESOURCES
+    resource/fallback_icons/tango/tango.qrc
     resource/icons.qrc
     src/tests/test_notes.qrc)
 
