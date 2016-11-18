@@ -148,7 +148,8 @@ background-color: rgba(255, 255, 255, 0.3);
           </size>
          </property>
          <property name="icon">
-          <iconset theme="go-previous"/>
+          <iconset theme="go-previous">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -176,7 +177,8 @@ background-color: rgba(255, 255, 255, 0.3);
           </size>
          </property>
          <property name="icon">
-          <iconset theme="go-next"/>
+          <iconset theme="go-next">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -233,7 +235,8 @@ background-color: rgba(255, 255, 255, 0.3);
           </size>
          </property>
          <property name="icon">
-          <iconset theme="dialog-information"/>
+          <iconset theme="dialog-information">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -261,7 +264,8 @@ background-color: rgba(255, 255, 255, 0.3);
           </size>
          </property>
          <property name="icon">
-          <iconset theme="document-print"/>
+          <iconset theme="document-print">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -289,7 +293,8 @@ background-color: rgba(255, 255, 255, 0.3);
           </size>
          </property>
          <property name="icon">
-          <iconset theme="mail-send"/>
+          <iconset theme="mail-send">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -346,7 +351,8 @@ background-color: rgba(255, 255, 255, 0.3);
           </size>
          </property>
          <property name="icon">
-          <iconset theme="document-new"/>
+          <iconset theme="document-new">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -501,6 +507,40 @@ border: none;
              <number>1</number>
             </property>
             <item>
+             <widget class="QPushButton" name="favoritesIconPseudoPushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
+              </property>
+              <property name="icon">
+               <iconset theme="emblem-favorite"/>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="favoritesLabel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -526,41 +566,6 @@ border: none;
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="favoriteInfoButton">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>20</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>20</width>
-                <height>20</height>
-               </size>
-              </property>
-              <property name="icon">
-               <iconset theme="dialog-information">
-                <normaloff>.</normaloff>.</iconset>
-              </property>
-              <property name="iconSize">
-               <size>
-                <width>16</width>
-                <height>16</height>
-               </size>
-              </property>
-              <property name="flat">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QPushButton" name="unfavoritePushButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -582,6 +587,41 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
+                <normaloff>.</normaloff>.</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="favoriteInfoButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="icon">
+               <iconset theme="dialog-information">
                 <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
@@ -695,6 +735,37 @@ border: none;
             <property name="bottomMargin">
              <number>1</number>
             </property>
+            <item>
+             <widget class="QPushButton" name="notebooksIconPseudoPushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
+              </property>
+              <property name="icon">
+               <iconset theme="emblem-documents"/>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QLabel" name="notebooksLabel">
               <property name="sizePolicy">
@@ -932,6 +1003,28 @@ border: none;
              <number>1</number>
             </property>
             <item>
+             <widget class="QLabel" name="tagIcon">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="../resource/icons.qrc">:/label/tag.png</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="tagsLabel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1162,6 +1255,37 @@ border: none;
              <number>1</number>
             </property>
             <item>
+             <widget class="QPushButton" name="savedSearchIconPseudoPushButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
+              </property>
+              <property name="icon">
+               <iconset theme="system-search"/>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="savedSearchesLabel">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -1385,6 +1509,28 @@ border: none;
             <property name="bottomMargin">
              <number>1</number>
             </property>
+            <item>
+             <widget class="QLabel" name="deletedNoteIcon">
+              <property name="minimumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>20</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="../resource/icons.qrc">:/trash/trash_can.png</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
             <item>
              <widget class="QLabel" name="deletedNotesLabel">
               <property name="sizePolicy">
