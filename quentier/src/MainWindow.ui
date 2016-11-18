@@ -77,6 +77,9 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
       <property name="handleWidth">
        <number>0</number>
       </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
       <widget class="QSplitter" name="LeftPaneSplitter">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
@@ -95,6 +98,13 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
          <width>16777215</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">margin-right: 0px;
+padding-right: 0px;</string>
+       </property>
+       <property name="lineWidth">
+        <number>0</number>
        </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -207,8 +217,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -243,8 +252,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -380,8 +388,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="folder-add">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -416,8 +423,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -452,8 +458,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -589,8 +594,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="document-new">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -625,8 +629,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -661,8 +664,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -798,8 +800,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="document-new">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -834,8 +835,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -864,8 +864,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1004,8 +1003,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="edit-redo">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1043,8 +1041,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1079,8 +1076,7 @@ margin: 0px;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1118,11 +1114,18 @@ background-color: transparent;
       <widget class="QWidget" name="noteListWidget" native="true">
        <property name="styleSheet">
         <string notr="true">QWidget#noteListWidget {
-border: 1px solid black;
+border-top: 1px solid black;
+border-right: 1px solid black;
 border-left: none;
+border-bottom: none;
+margin: 0px;
+padding: 0px;
 }</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <property name="leftMargin">
          <number>0</number>
         </property>
@@ -1135,146 +1138,9 @@ border-left: none;
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="noteSortingModeLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>90</width>
-            <height>22</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>120</width>
-            <height>22</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">border: none;
-border-right: 1px solid black;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
-          </property>
-          <property name="text">
-           <string>Sorting &amp;mode</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="buddy">
-           <cstring>noteSortingModeComboBox</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLabel" name="searchQueryLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>90</width>
-            <height>22</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>16777215</width>
-            <height>22</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">border: none;
-border-right: 1px solid black;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-color: rgb(255, 255, 255);</string>
-          </property>
-          <property name="text">
-           <string>Search &amp;query</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <property name="buddy">
-           <cstring>searchQueryLineEdit</cstring>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QComboBox" name="noteSortingModeComboBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>90</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">border: none;
-border-right: 1px solid black;
-margin: 0px;
-margin-left: 1px;
-padding-bottom: 2px;
-</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0" colspan="2">
-         <widget class="QListView" name="noteListView">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">border: 1px solid black;
-border-left: none;</string>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QWidget" name="searchQueryWidget" native="true">
-          <property name="styleSheet">
-           <string notr="true">QWidget#searchQueryWidget {
-margin: 0px;
-padding: 0px;
-border-right: 1px solid black;
-}</string>
-          </property>
-          <layout class="QHBoxLayout" name="searchQueryAndSaveHorizontalLayout" stretch="0,0">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <property name="sizeConstraint">
-            <enum>QLayout::SetDefaultConstraint</enum>
-           </property>
+        <item>
+         <widget class="QWidget" name="noteListWidgetHeader" native="true">
+          <layout class="QGridLayout" name="noteListWidgetHeaderGridLayout">
            <property name="leftMargin">
             <number>0</number>
            </property>
@@ -1287,65 +1153,240 @@ border-right: 1px solid black;
            <property name="bottomMargin">
             <number>0</number>
            </property>
-           <item>
-            <widget class="QLineEdit" name="searchQueryLineEdit">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item row="2" column="0">
+            <widget class="QComboBox" name="noteSortingModeComboBox">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="minimumSize">
               <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">border: none;</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QPushButton" name="saveSearchPushButton">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>20</width>
+               <width>115</width>
                <height>20</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>20</width>
-               <height>20</height>
+               <width>50</width>
+               <height>16777215</height>
               </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border: none;
+margin-top: 0px;
+margin-bottom: 0px;
+margin-left: 3px;
+margin-right: 0px;
+padding: 0px;</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="searchQueryLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>90</width>
+               <height>22</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>22</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border: 1px solid black;
+border-top: none;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+color: rgb(255, 255, 255);</string>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
              </property>
              <property name="text">
-              <string/>
+              <string>Search &amp;query</string>
              </property>
-             <property name="icon">
-              <iconset theme="document-save">
-               <normaloff/>
-              </iconset>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
-             <property name="iconSize">
+             <property name="buddy">
+              <cstring>searchQueryLineEdit</cstring>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QWidget" name="searchQueryWidget" native="true">
+             <property name="minimumSize">
               <size>
-               <width>16</width>
-               <height>16</height>
+               <width>0</width>
+               <height>26</height>
               </size>
              </property>
-             <property name="flat">
-              <bool>true</bool>
+             <property name="styleSheet">
+              <string notr="true">QWidget#searchQueryWidget {
+margin: 0px;
+padding: 0px;
+border-right: 1px solid black;
+border-left: 1px solid black;
+padding-left: 3px;
+}</string>
+             </property>
+             <layout class="QHBoxLayout" name="searchQueryAndSaveHorizontalLayout" stretch="0,0">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="sizeConstraint">
+               <enum>QLayout::SetDefaultConstraint</enum>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLineEdit" name="searchQueryLineEdit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">border: none;
+margin: 3px;
+margin-right: 0px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="saveSearchPushButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>26</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>26</width>
+                  <height>20</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset theme="document-save">
+                  <normaloff>.</normaloff>.</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>16</width>
+                  <height>16</height>
+                 </size>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="noteSortingModeLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>120</width>
+               <height>22</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">border: none;
+border-bottom: 1px solid black;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+color: rgb(255, 255, 255);</string>
+             </property>
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
+             <property name="text">
+              <string>Sorting &amp;mode</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+             <property name="buddy">
+              <cstring>noteSortingModeComboBox</cstring>
              </property>
             </widget>
            </item>
           </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListView" name="noteListView">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: 1px solid black;
+border-left: none;
+margin: 0px;
+padding: 0px;</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
          </widget>
         </item>
        </layout>
@@ -1371,7 +1412,7 @@ border-right: 1px solid black;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1406,8 +1447,7 @@ border-right: 1px solid black;
      </property>
      <property name="icon">
       <iconset theme="edit-find-replace">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionFindNote"/>
      <addaction name="separator"/>
@@ -1479,8 +1519,7 @@ border-right: 1px solid black;
      </property>
      <property name="icon">
       <iconset theme="insert-table">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionInsertTable"/>
      <addaction name="ActionInsertRow"/>
@@ -1505,8 +1544,7 @@ border-right: 1px solid black;
      </property>
      <property name="icon">
       <iconset theme="image-x-generic">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionSaveImage"/>
      <addaction name="ActionRotateClockwise"/>
@@ -1666,8 +1704,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteAdd">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -1682,8 +1719,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -1707,8 +1743,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNoteCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Copy note</string>
@@ -1722,8 +1757,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookAdd">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -1737,8 +1771,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -1747,8 +1780,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNotebookSetStack">
    <property name="icon">
     <iconset theme="list-add">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add to stack</string>
@@ -1812,8 +1844,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSendMail">
    <property name="icon">
     <iconset theme="mail-send">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Send by e-mail</string>
@@ -1828,8 +1859,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPrint">
    <property name="icon">
     <iconset theme="printer">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Print</string>
@@ -1869,8 +1899,7 @@ stop: 1 #0EB7FF);
   <action name="ActionClearTrash">
    <property name="icon">
     <iconset theme="user-trash">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Clear trash</string>
@@ -1879,8 +1908,7 @@ stop: 1 #0EB7FF);
   <action name="ActionQuit">
    <property name="icon">
     <iconset theme="application-exit">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -1895,8 +1923,7 @@ stop: 1 #0EB7FF);
   <action name="ActionRedo">
    <property name="icon">
     <iconset theme="edit-redo">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Redo</string>
@@ -1911,8 +1938,7 @@ stop: 1 #0EB7FF);
   <action name="ActionCut">
    <property name="icon">
     <iconset theme="edit-cut">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Cut</string>
@@ -1927,8 +1953,7 @@ stop: 1 #0EB7FF);
   <action name="ActionCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>C&amp;opy</string>
@@ -1943,8 +1968,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPaste">
    <property name="icon">
     <iconset theme="edit-paste">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Paste</string>
@@ -1959,8 +1983,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPasteUnformatted">
    <property name="icon">
     <iconset theme="insert-text">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>P&amp;aste unformatted</string>
@@ -1975,8 +1998,7 @@ stop: 1 #0EB7FF);
   <action name="ActionPreferences">
    <property name="icon">
     <iconset theme="preferences-other">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>S&amp;ettings</string>
@@ -2149,8 +2171,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontBold">
    <property name="icon">
     <iconset theme="format-text-bold">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Bold</string>
@@ -2165,8 +2186,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontUnderlined">
    <property name="icon">
     <iconset theme="format-text-underline">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Underlined</string>
@@ -2181,8 +2201,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontItalic">
    <property name="icon">
     <iconset theme="format-text-italic">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Italic</string>
@@ -2197,8 +2216,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontStrikethrough">
    <property name="icon">
     <iconset theme="format-text-strikethrough">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Strikethrough</string>
@@ -2213,8 +2231,7 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertHorizontalLine">
    <property name="icon">
     <iconset theme="insert-horizontal-rule">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert horizontal &amp;rule</string>
@@ -2223,8 +2240,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontUpperIndex">
    <property name="icon">
     <iconset theme="go-top">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>U&amp;pper index</string>
@@ -2239,8 +2255,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontLowerIndex">
    <property name="icon">
     <iconset theme="go-bottom">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Lower index</string>
@@ -2280,8 +2295,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSaveImage">
    <property name="icon">
     <iconset theme="document-save">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Save</string>
@@ -2290,8 +2304,7 @@ stop: 1 #0EB7FF);
   <action name="ActionRotateClockwise">
    <property name="icon">
     <iconset theme="object-rotate-right">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Rotate clockwise</string>
@@ -2300,8 +2313,7 @@ stop: 1 #0EB7FF);
   <action name="ActionRotateCounterClockwise">
    <property name="icon">
     <iconset theme="object-rotate-left">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Rotate &amp;counterclockwise</string>
@@ -2310,8 +2322,7 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignLeft">
    <property name="icon">
     <iconset theme="format-justify-left">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Align left</string>
@@ -2326,8 +2337,7 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignCenter">
    <property name="icon">
     <iconset theme="format-justify-center">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Aligh &amp;center</string>
@@ -2342,8 +2352,7 @@ stop: 1 #0EB7FF);
   <action name="ActionAlignRight">
    <property name="icon">
     <iconset theme="format-justify-right">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Align &amp;right</string>
@@ -2358,8 +2367,7 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertBulletedList">
    <property name="icon">
     <iconset theme="format-list-unordered">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Insert bulleted list</string>
@@ -2374,8 +2382,7 @@ stop: 1 #0EB7FF);
   <action name="ActionInsertNumberedList">
    <property name="icon">
     <iconset theme="format-list-ordered">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert &amp;numbered list</string>
@@ -2390,8 +2397,7 @@ stop: 1 #0EB7FF);
   <action name="ActionIncreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Increase</string>
@@ -2409,8 +2415,7 @@ stop: 1 #0EB7FF);
   <action name="ActionDecreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Decrease</string>
@@ -2441,8 +2446,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSpellCheck">
    <property name="icon">
     <iconset theme="tools-check-spelling">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Sp&amp;ellcheck</string>
@@ -2502,8 +2506,7 @@ stop: 1 #0EB7FF);
   <action name="ActionGoPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go back</string>
@@ -2515,8 +2518,7 @@ stop: 1 #0EB7FF);
   <action name="ActionGoNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go forward</string>
@@ -2531,8 +2533,7 @@ stop: 1 #0EB7FF);
    </property>
    <property name="icon">
     <iconset theme="go-up">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Up</string>
@@ -2544,8 +2545,7 @@ stop: 1 #0EB7FF);
   <action name="ActionGoDown">
    <property name="icon">
     <iconset theme="go-down">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Down</string>
@@ -2575,8 +2575,7 @@ stop: 1 #0EB7FF);
   <action name="ActionShowNoteAttributesButton">
    <property name="icon">
     <iconset theme="dialog-information">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Show note attributes</string>
@@ -2605,8 +2604,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNewNote">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;New note</string>
@@ -2621,8 +2619,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNewNotebook">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>N&amp;ew notebook</string>
@@ -2640,8 +2637,7 @@ stop: 1 #0EB7FF);
   <action name="ActionNewSavedSearch">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New &amp;saved search</string>
@@ -2650,8 +2646,7 @@ stop: 1 #0EB7FF);
   <action name="ActionSelectAll">
    <property name="icon">
     <iconset theme="edit-select-all">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Select all</string>
@@ -2666,8 +2661,7 @@ stop: 1 #0EB7FF);
   <action name="ActionDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -2676,8 +2670,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindNote">
    <property name="icon">
     <iconset theme="system-search">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Find note</string>
@@ -2689,8 +2682,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindInsideNote">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find &amp;inside note</string>
@@ -2702,8 +2694,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find &amp;next</string>
@@ -2715,8 +2706,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFindPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find &amp;previous</string>
@@ -2728,8 +2718,7 @@ stop: 1 #0EB7FF);
   <action name="ActionReplaceInNote">
    <property name="icon">
     <iconset theme="edit-replace">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Replace in note</string>
@@ -2741,8 +2730,7 @@ stop: 1 #0EB7FF);
   <action name="ActionUndo">
    <property name="icon">
     <iconset theme="edit-undo">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -2847,8 +2835,7 @@ stop: 1 #0EB7FF);
   <action name="ActionIncreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-more">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Increase</string>
@@ -2863,8 +2850,7 @@ stop: 1 #0EB7FF);
   <action name="ActionDecreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Decrease</string>
@@ -2879,8 +2865,7 @@ stop: 1 #0EB7FF);
   <action name="ActionFontHighlight">
    <property name="icon">
     <iconset theme="fill-color">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Highlight</string>
@@ -2895,8 +2880,7 @@ stop: 1 #0EB7FF);
   <action name="ActionEditHyperlink">
    <property name="icon">
     <iconset theme="insert-link">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Add/edit...</string>
