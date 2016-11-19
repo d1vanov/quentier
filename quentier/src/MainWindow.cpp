@@ -24,6 +24,7 @@
 #include "widgets/FindAndReplaceWidget.h"
 #include "delegates/SynchronizableColumnDelegate.h"
 #include "delegates/DirtyColumnDelegate.h"
+#include "delegates/FavoriteItemColumnDelegate.h"
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -1108,21 +1109,32 @@ void MainWindow::setupViews()
 
     QTableView * favoritesTableView = m_pUI->favoritesTableView;
     favoritesTableView->horizontalHeader()->hide();
-
+    favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);
+    FavoriteItemColumnDelegate * favoriteItemDelegate = new FavoriteItemColumnDelegate(favoritesTableView);
+    favoritesTableView->setItemDelegate(favoriteItemDelegate);
+    favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
 
     QTableView * notebooksTableView = m_pUI->notebooksTableView;
+    SynchronizableColumnDelegate * notebookTableViewSynchronizableColumnDelegate =
+            new SynchronizableColumnDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable,
+                                                 notebookTableViewSynchronizableColumnDelegate);
+    notebooksTableView->setColumnWidth(NotebookModel::Columns::Synchronizable,
+                                       notebookTableViewSynchronizableColumnDelegate->sideSize());
 
-    SynchronizableColumnDelegate * notebookTableViewSynchronizableColumnDelegate = new SynchronizableColumnDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable, notebookTableViewSynchronizableColumnDelegate);
-    notebooksTableView->setColumnWidth(NotebookModel::Columns::Synchronizable, notebookTableViewSynchronizableColumnDelegate->sideSize());
+    DirtyColumnDelegate * notebookTableViewDirtyColumnDelegate =
+            new DirtyColumnDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
+                                                 notebookTableViewDirtyColumnDelegate);
+    notebooksTableView->setColumnWidth(NotebookModel::Columns::Dirty,
+                                       notebookTableViewDirtyColumnDelegate->sideSize());
 
-    DirtyColumnDelegate * notebookTableViewDirtyColumnDelegate = new DirtyColumnDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Dirty, notebookTableViewDirtyColumnDelegate);
-    notebooksTableView->setColumnWidth(NotebookModel::Columns::Dirty, notebookTableViewDirtyColumnDelegate->sideSize());
-
-    FromLinkedNotebookColumnDelegate * notebookTableViewFromLinkedNotebookColumnDelegate = new FromLinkedNotebookColumnDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook, notebookTableViewFromLinkedNotebookColumnDelegate);
-    notebooksTableView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook, notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
+    FromLinkedNotebookColumnDelegate * notebookTableViewFromLinkedNotebookColumnDelegate =
+            new FromLinkedNotebookColumnDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook,
+                                                 notebookTableViewFromLinkedNotebookColumnDelegate);
+    notebooksTableView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook,
+                                       notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
 
     // TODO: temporary, need to set these columns up properly
     notebooksTableView->setColumnHidden(NotebookModel::Columns::Default, true);
