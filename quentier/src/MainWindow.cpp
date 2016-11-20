@@ -22,6 +22,7 @@
 #include "insert-table-tool-button/TableSettingsDialog.h"
 #include "tests/ManualTestingHelper.h"
 #include "widgets/FindAndReplaceWidget.h"
+#include "delegates/NotebookItemDelegate.h"
 #include "delegates/SynchronizableColumnDelegate.h"
 #include "delegates/DirtyColumnDelegate.h"
 #include "delegates/FavoriteItemDelegate.h"
@@ -1115,30 +1116,26 @@ void MainWindow::setupViews()
     favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
 
     QTableView * notebooksTableView = m_pUI->notebooksTableView;
+    NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTableView);
+    notebooksTableView->setItemDelegate(notebookItemDelegate);
     SynchronizableColumnDelegate * notebookTableViewSynchronizableColumnDelegate =
             new SynchronizableColumnDelegate(notebooksTableView);
     notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable,
                                                  notebookTableViewSynchronizableColumnDelegate);
     notebooksTableView->setColumnWidth(NotebookModel::Columns::Synchronizable,
                                        notebookTableViewSynchronizableColumnDelegate->sideSize());
-
     DirtyColumnDelegate * notebookTableViewDirtyColumnDelegate =
             new DirtyColumnDelegate(notebooksTableView);
     notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
                                                  notebookTableViewDirtyColumnDelegate);
     notebooksTableView->setColumnWidth(NotebookModel::Columns::Dirty,
                                        notebookTableViewDirtyColumnDelegate->sideSize());
-
     FromLinkedNotebookColumnDelegate * notebookTableViewFromLinkedNotebookColumnDelegate =
             new FromLinkedNotebookColumnDelegate(notebooksTableView);
     notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook,
                                                  notebookTableViewFromLinkedNotebookColumnDelegate);
     notebooksTableView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook,
                                        notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
-
-    // TODO: temporary, need to set these columns up properly
-    notebooksTableView->setColumnHidden(NotebookModel::Columns::Default, true);
-    notebooksTableView->setColumnHidden(NotebookModel::Columns::Published, true);
     notebooksTableView->horizontalHeader()->hide();
 
     m_pUI->tagsTreeView->setModel(m_pTagModel);

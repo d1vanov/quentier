@@ -71,6 +71,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/FavoritesModel.h
     src/models/FavoritesModelItem.h
     src/delegates/NoteItemDelegate.h
+    src/delegates/NotebookItemDelegate.h
     src/delegates/DirtyColumnDelegate.h
     src/delegates/FavoriteItemDelegate.h
     src/delegates/FromLinkedNotebookColumnDelegate.h
@@ -116,6 +117,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
     src/delegates/NoteItemDelegate.cpp
+    src/delegates/NotebookItemDelegate.cpp
     src/delegates/DirtyColumnDelegate.cpp
     src/delegates/FavoriteItemDelegate.cpp
     src/delegates/FromLinkedNotebookColumnDelegate.cpp

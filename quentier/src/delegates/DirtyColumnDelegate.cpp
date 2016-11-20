@@ -72,11 +72,17 @@ void DirtyColumnDelegate::setModelData(QWidget * editor, QAbstractItemModel * mo
 
 QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
+    Q_UNUSED(option)
+
     if (Q_UNLIKELY(!index.isValid())) {
         return QSize();
     }
 
-    return option.rect.size();
+    int side = DIRTY_CIRCLE_RADIUS;
+    side += 1;
+    side *= 2;
+
+    return QSize(side, side);
 }
 
 void DirtyColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
