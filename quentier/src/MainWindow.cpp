@@ -1140,8 +1140,26 @@ void MainWindow::setupViews()
                                        notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
     notebooksTableView->horizontalHeader()->hide();
 
-    m_pUI->tagsTreeView->setModel(m_pTagModel);
-    m_pUI->tagsTreeView->header()->hide();
+    QTreeView * tagsTreeView = m_pUI->tagsTreeView;
+    SynchronizableColumnDelegate * tagsTreeViewSynchronizableColumnDelegate =
+            new SynchronizableColumnDelegate(tagsTreeView);
+    tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Synchronizable,
+                                           tagsTreeViewSynchronizableColumnDelegate);
+    tagsTreeView->setColumnWidth(TagModel::Columns::Synchronizable,
+                                 tagsTreeViewSynchronizableColumnDelegate->sideSize());
+    DirtyColumnDelegate * tagsTreeViewDirtyColumnDelegate =
+            new DirtyColumnDelegate(tagsTreeView);
+    tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Dirty,
+                                           tagsTreeViewDirtyColumnDelegate);
+    tagsTreeView->setColumnWidth(TagModel::Columns::Dirty,
+                                 tagsTreeViewDirtyColumnDelegate->sideSize());
+    FromLinkedNotebookColumnDelegate * tagsTreeViewFromLinkedNotebookColumnDelegate =
+            new FromLinkedNotebookColumnDelegate(tagsTreeView);
+    tagsTreeView->setItemDelegateForColumn(TagModel::Columns::FromLinkedNotebook,
+                                           tagsTreeViewFromLinkedNotebookColumnDelegate);
+    tagsTreeView->setColumnWidth(TagModel::Columns::FromLinkedNotebook,
+                                 tagsTreeViewFromLinkedNotebookColumnDelegate->sideSize());
+    tagsTreeView->header()->hide();
 
     QTableView * savedSearchesTableView = m_pUI->savedSearchesTableView;
     savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
@@ -1159,10 +1177,10 @@ void MainWindow::setupViews()
                                            savedSearchesTableViewDirtyColumnDelegate->sideSize());
     savedSearchesTableView->horizontalHeader()->hide();
 
-    m_pUI->noteListView->setModel(m_pNoteModel);
+    // TODO: setup m_pUI->noteListView
 
-    m_pUI->deletedNotesTableView->setModel(m_pNoteModel);
     m_pUI->deletedNotesTableView->horizontalHeader()->hide();
+    // TODO: setup this view further
 }
 
 void MainWindow::clearViews()
