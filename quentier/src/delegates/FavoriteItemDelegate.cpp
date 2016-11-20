@@ -1,4 +1,4 @@
-#include "FavoriteItemColumnDelegate.h"
+#include "FavoriteItemDelegate.h"
 #include "../models/FavoritesModel.h"
 #include "../models/FavoritesModelItem.h"
 #include <QPainter>
@@ -8,7 +8,7 @@
 
 using namespace quentier;
 
-FavoriteItemColumnDelegate::FavoriteItemColumnDelegate(QObject * parent) :
+FavoriteItemDelegate::FavoriteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
     m_notebookIcon(QIcon::fromTheme(QStringLiteral("x-office-address-book"))),
     m_tagIcon(),
@@ -21,19 +21,20 @@ FavoriteItemColumnDelegate::FavoriteItemColumnDelegate(QObject * parent) :
     m_tagIcon.addFile(QStringLiteral(":/label/tag.png"), m_iconSize);
 }
 
-int FavoriteItemColumnDelegate::sideSize() const
+int FavoriteItemDelegate::sideSize() const
 {
     return ICON_SIDE_SIZE;
 }
 
-QString FavoriteItemColumnDelegate::displayText(const QVariant & value, const QLocale & locale) const
+QString FavoriteItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
 {
     Q_UNUSED(value)
     Q_UNUSED(locale)
     return QString();
 }
 
-QWidget * FavoriteItemColumnDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const
+QWidget * FavoriteItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
+                                             const QModelIndex & index) const
 {
     Q_UNUSED(parent)
     Q_UNUSED(option)
@@ -41,8 +42,8 @@ QWidget * FavoriteItemColumnDelegate::createEditor(QWidget * parent, const QStyl
     return Q_NULLPTR;
 }
 
-void FavoriteItemColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
-                                       const QModelIndex & index) const
+void FavoriteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
+                                 const QModelIndex & index) const
 {
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
@@ -105,22 +106,22 @@ void FavoriteItemColumnDelegate::paint(QPainter * painter, const QStyleOptionVie
     painter->restore();
 }
 
-void FavoriteItemColumnDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
+void FavoriteItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(index)
 }
 
-void FavoriteItemColumnDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
-                                              const QModelIndex & index) const
+void FavoriteItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
+                                        const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(model)
     Q_UNUSED(index)
 }
 
-QSize FavoriteItemColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
-                                           const QModelIndex & index) const
+QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
+                                     const QModelIndex & index) const
 {
     int column = index.column();
     if (column == FavoritesModel::Columns::Type) {
@@ -131,8 +132,8 @@ QSize FavoriteItemColumnDelegate::sizeHint(const QStyleOptionViewItem & option,
     }
 }
 
-void FavoriteItemColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
-                                                      const QModelIndex & index) const
+void FavoriteItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
+                                                const QModelIndex & index) const
 {
     Q_UNUSED(editor)
     Q_UNUSED(option)

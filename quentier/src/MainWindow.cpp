@@ -24,7 +24,7 @@
 #include "widgets/FindAndReplaceWidget.h"
 #include "delegates/SynchronizableColumnDelegate.h"
 #include "delegates/DirtyColumnDelegate.h"
-#include "delegates/FavoriteItemColumnDelegate.h"
+#include "delegates/FavoriteItemDelegate.h"
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -1110,7 +1110,7 @@ void MainWindow::setupViews()
     QTableView * favoritesTableView = m_pUI->favoritesTableView;
     favoritesTableView->horizontalHeader()->hide();
     favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);
-    FavoriteItemColumnDelegate * favoriteItemDelegate = new FavoriteItemColumnDelegate(favoritesTableView);
+    FavoriteItemDelegate * favoriteItemDelegate = new FavoriteItemDelegate(favoritesTableView);
     favoritesTableView->setItemDelegate(favoriteItemDelegate);
     favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
 

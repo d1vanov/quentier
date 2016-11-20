@@ -1,16 +1,16 @@
-#ifndef QUENTIER_DELEGATES_FAVORITE_ITEM_COLUMN_DELEGATE_H
-#define QUENTIER_DELEGATES_FAVORITE_ITEM_COLUMN_DELEGATE_H
+#ifndef QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
+#define QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QStyledItemDelegate>
 #include <QIcon>
 #include <QTextDocument>
 
-class FavoriteItemColumnDelegate: public QStyledItemDelegate
+class FavoriteItemDelegate: public QStyledItemDelegate
 {
     Q_OBJECT
 public:
-    explicit FavoriteItemColumnDelegate(QObject * parent = Q_NULLPTR);
+    explicit FavoriteItemDelegate(QObject * parent = Q_NULLPTR);
 
     int sideSize() const;
 
@@ -38,4 +38,4 @@ private:
     mutable QTextDocument   m_doc;
 };
 
-#endif // QUENTIER_DELEGATES_FAVORITE_ITEM_COLUMN_DELEGATE_H
+#endif // QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
