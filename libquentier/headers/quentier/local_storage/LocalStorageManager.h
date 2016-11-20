@@ -823,7 +823,7 @@ public:
     bool findEnResource(Resource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'deleteEnResource' method for a reason: resources are deleted automatically
-    // in remote storage so there's no need to mark some resource as deleted for synchronization procedure.
+    // in remote storage so there's no need to mark some resource as deleted for the synchronization procedure.
 
     /**
      * @brief expungeResource - permanently deletes resource from local storage completely,

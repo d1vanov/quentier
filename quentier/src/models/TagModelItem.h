@@ -35,6 +35,7 @@ public:
                           const QString & parentGuid = QString(),
                           const bool isSynchronizable = false,
                           const bool isDirty = false,
+                          const int numNotesPerTag = -1,
                           TagModelItem * parent = Q_NULLPTR);
     ~TagModelItem();
 
@@ -63,6 +64,9 @@ public:
 
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
+
+    int numNotesPerTag() const { return m_numNotesPerTag; }
+    void setNumNotesPerTag(const int numNotesPerTag) { m_numNotesPerTag = numNotesPerTag; }
 
     const TagModelItem * parent() const { return m_parent; }
     void setParent(const TagModelItem * parent) const;
@@ -93,6 +97,7 @@ private:
     QString     m_parentGuid;
     bool        m_isSynchronizable;
     bool        m_isDirty;
+    int         m_numNotesPerTag;
 
     // NOTE: these are mutable in order to have the possibility to organize
     // the efficient storage of TagModelItems in boost::multi_index_container:

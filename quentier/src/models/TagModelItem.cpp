@@ -28,6 +28,7 @@ TagModelItem::TagModelItem(const QString & localUid,
                            const QString & parentGuid,
                            const bool isSynchronizable,
                            const bool isDirty,
+                           const int numNotesPerTag,
                            TagModelItem * parent) :
     m_localUid(localUid),
     m_guid(guid),
@@ -37,6 +38,7 @@ TagModelItem::TagModelItem(const QString & localUid,
     m_parentGuid(parentGuid),
     m_isSynchronizable(isSynchronizable),
     m_isDirty(isDirty),
+    m_numNotesPerTag(numNotesPerTag),
     m_parent(parent),
     m_children()
 {
@@ -125,17 +127,22 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
          << QStringLiteral(", name = ") << m_name << QStringLiteral(", parent local uid = ") << m_parentLocalUid
          << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", num notes per tag = ") << m_numNotesPerTag
          << QStringLiteral(", parent = ") << (m_parent ? m_parent->m_localUid : QStringLiteral("<null>"))
          << QStringLiteral(", children: ");
-    if (m_children.isEmpty()) {
+
+    if (m_children.isEmpty())
+    {
         strm << QStringLiteral("<null> \n");
     }
-    else {
+    else
+    {
         strm << QStringLiteral("\n");
         for(auto it = m_children.begin(), end = m_children.end(); it != end; ++it) {
             const TagModelItem * child = *it;
             strm << (child ? child->m_localUid : QStringLiteral("<null>")) << QStringLiteral("\n");
         }
+
         strm << QStringLiteral("\n");
     }
 
@@ -145,7 +152,8 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
 QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
 {
     out << item.m_localUid << item.m_guid << item.m_linkedNotebookGuid << item.m_name
-        << item.m_parentLocalUid << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty;
+        << item.m_parentLocalUid << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty
+        << item.m_numNotesPerTag;
 
     return out;
 }
@@ -153,7 +161,8 @@ QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
 QDataStream & operator>>(QDataStream & in, TagModelItem & item)
 {
     in >> item.m_localUid >> item.m_guid >> item.m_linkedNotebookGuid >> item.m_name
-       >> item.m_parentLocalUid >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty;
+       >> item.m_parentLocalUid >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty
+       >> item.m_numNotesPerTag;
 
     return in;
 }

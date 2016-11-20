@@ -26,7 +26,7 @@
 // Limit for the queries to the local storage
 #define TAG_LIST_LIMIT (100)
 
-#define NUM_TAG_MODEL_COLUMNS (4)
+#define NUM_TAG_MODEL_COLUMNS (5)
 
 namespace quentier {
 
@@ -44,6 +44,7 @@ TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & lo
     m_addTagRequestIds(),
     m_updateTagRequestIds(),
     m_expungeTagRequestIds(),
+    m_noteCountPerTagRequestIds(),
     m_findTagToRestoreFailedUpdateRequestIds(),
     m_findTagToPerformUpdateRequestIds(),
     m_sortedColumn(Columns::Name),
@@ -158,6 +159,9 @@ QVariant TagModel::data(const QModelIndex & index, int role) const
     case Columns::FromLinkedNotebook:
         column = Columns::FromLinkedNotebook;
         break;
+    case Columns::NumNotesPerTag:
+        column = Columns::NumNotesPerTag;
+        break;
     default:
         return QVariant();
     }
@@ -196,6 +200,8 @@ QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role
         return QVariant(tr("Dirty"));
     case Columns::FromLinkedNotebook:
         return QVariant(tr("From linked notebook"));
+    case Columns::NumNotesPerTag:
+        return QVariant(tr("Notes per tag"));
     default:
         return QVariant();
     }
@@ -741,6 +747,7 @@ void TagModel::onAddTagComplete(Tag tag, QUuid requestId)
     }
 
     onTagAddedOrUpdated(tag);
+    requestNoteCountForTag(tag);
 }
 
 void TagModel::onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
@@ -771,6 +778,8 @@ void TagModel::onUpdateTagComplete(Tag tag, QUuid requestId)
     }
 
     onTagAddedOrUpdated(tag);
+    // NOTE: no need to re-request the number of notes per this tag - the update of the tag itself doesn't change
+    // anything about which notes use the tag
 }
 
 void TagModel::onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
@@ -860,6 +869,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
 
     for(auto it = foundTags.constBegin(), end = foundTags.constEnd(); it != end; ++it) {
         onTagAddedOrUpdated(*it);
+        requestNoteCountForTag(*it);
     }
 
     m_listTagsRequestId = QUuid();
@@ -918,6 +928,69 @@ void TagModel::onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, Q
     Q_UNUSED(m_expungeTagRequestIds.erase(it))
 
     onTagAddedOrUpdated(tag);
+}
+
+void TagModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId)
+{
+    auto it = m_noteCountPerTagRequestIds.find(requestId);
+    if (it == m_noteCountPerTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("TagModel::onNoteCountPerTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ")
+            << requestId << QStringLiteral(", note count = ") << noteCount);
+
+    Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto itemIt = localUidIndex.find(tag.localUid());
+    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
+        QNLocalizedString error = QT_TR_NOOP("No tag receiving the note count update was found in the model");
+        QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag item: ") << *itemIt);
+        emit notifyError(error);
+        return;
+    }
+
+    const TagModelItem * parentItem = itemIt->parent();
+    if (Q_UNLIKELY(!parentItem)) {
+        QNLocalizedString error = QT_TR_NOOP("tag item being updated with the note count does not have a parent item linked with it");
+        QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag item: ") << *itemIt);
+        emit notifyError(error);
+        return;
+    }
+
+    int row = parentItem->rowForChild(&(*itemIt));
+    if (Q_UNLIKELY(row < 0)) {
+        QNLocalizedString error = QT_TR_NOOP("can't find the row of tag item being updated with the note count within its parent");
+        QNWARNING(error << QStringLiteral(", tag: ") << tag << QStringLiteral("\nTag item: ") << *itemIt);
+        emit notifyError(error);
+        return;
+    }
+
+    TagModelItem itemCopy = *itemIt;
+    itemCopy.setNumNotesPerTag(noteCount);
+    Q_UNUSED(localUidIndex.replace(itemIt, itemCopy))
+
+    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
+    const TagModelItem * item = &(*itemIt);
+    QModelIndex index = createIndex(row, Columns::NumNotesPerTag, const_cast<TagModelItem*>(item));
+    emit dataChanged(index, index);
+
+    // NOTE: in future, if/when sorting by note count is supported, will need to check if need to re-sort and emit the layout change signals
+}
+
+void TagModel::onNoteCountPerTagFailed(QNLocalizedString errorDescription, Tag tag, QUuid requestId)
+{
+    auto it = m_noteCountPerTagRequestIds.find(requestId);
+    if (it == m_noteCountPerTagRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("TagModel::onNoteCountPerTagFailed: error description = ") << errorDescription
+            << QStringLiteral(", tag = ") << tag << QStringLiteral(", request id = ") << requestId);
+
+    Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
 }
 
 void TagModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
@@ -998,6 +1071,8 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
                                                               LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,expungeTag,Tag,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeTagRequest,Tag,QUuid));
+    QObject::connect(this, QNSIGNAL(TagModel,requestNoteCountPerTag,Tag,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerTagRequest,Tag,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,findNotebook,Notebook,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
 
@@ -1028,6 +1103,10 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
                      this, QNSLOT(TagModel,onExpungeTagComplete,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,QNLocalizedString,QUuid),
                      this, QNSLOT(TagModel,onExpungeTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagComplete,int,Tag,QUuid),
+                     this, QNSLOT(TagModel,onNoteCountPerTagComplete,int,Tag,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagFailed,QNLocalizedString,Tag,QUuid),
+                     this, QNSLOT(TagModel,onNoteCountPerTagFailed,QNLocalizedString,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(TagModel,onFindNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
@@ -1050,6 +1129,16 @@ void TagModel::requestTagsList()
     QNTRACE(QStringLiteral("Emitting the request to list tags: offset = ") << m_listTagsOffset << QStringLiteral(", request id = ")
             << m_listTagsRequestId);
     emit listTags(flags, TAG_LIST_LIMIT, m_listTagsOffset, order, direction, QString(), m_listTagsRequestId);
+}
+
+void TagModel::requestNoteCountForTag(const Tag & tag)
+{
+    QNDEBUG(QStringLiteral("TagModel::requestNoteCountForTag: ") << tag);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_noteCountPerTagRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to compute the number of notes per tag, request id = ") << requestId);
+    emit requestNoteCountPerTag(tag, requestId);
 }
 
 void TagModel::onTagAddedOrUpdated(const Tag & tag)
@@ -1303,6 +1392,8 @@ QVariant TagModel::dataImpl(const TagModelItem & item, const Columns::type colum
         return QVariant(item.isDirty());
     case Columns::FromLinkedNotebook:
         return QVariant(!item.linkedNotebookGuid().isEmpty());
+    case Columns::NumNotesPerTag:
+        return QVariant(item.numNotesPerTag());
     default:
         return QVariant();
     }
@@ -1315,12 +1406,12 @@ QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::
         return QVariant();
     }
 
-    QString accessibleText = tr("Tag: ");
+    QString accessibleText = tr("Tag") + QStringLiteral(": ");
 
     switch(column)
     {
     case Columns::Name:
-        accessibleText += tr("name is ") + textData.toString();
+        accessibleText += tr("name is") + QStringLiteral(" ") + textData.toString();
         break;
     case Columns::Synchronizable:
         accessibleText += (textData.toBool() ? tr("synchronizable") : tr("not synchronizable"));
@@ -1330,6 +1421,9 @@ QVariant TagModel::dataAccessibleText(const TagModelItem & item, const Columns::
         break;
     case Columns::FromLinkedNotebook:
         accessibleText += (textData.toBool() ? tr("from linked notebook") : tr("from own account"));
+        break;
+    case Columns::NumNotesPerTag:
+        accessibleText += tr("number of notes");
         break;
     default:
         return QVariant();
