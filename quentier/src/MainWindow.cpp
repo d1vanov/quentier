@@ -1108,6 +1108,8 @@ void MainWindow::setupViews()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupViews"));
 
+
+
     QTableView * favoritesTableView = m_pUI->favoritesTableView;
     favoritesTableView->horizontalHeader()->hide();
     favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);
@@ -1141,8 +1143,21 @@ void MainWindow::setupViews()
     m_pUI->tagsTreeView->setModel(m_pTagModel);
     m_pUI->tagsTreeView->header()->hide();
 
-    m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
-    m_pUI->savedSearchesTableView->horizontalHeader()->hide();
+    QTableView * savedSearchesTableView = m_pUI->savedSearchesTableView;
+    savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
+    SynchronizableColumnDelegate * savedSearchesTableViewSynchronizableColumnDelegate =
+            new SynchronizableColumnDelegate(savedSearchesTableView);
+    savedSearchesTableView->setItemDelegateForColumn(SavedSearchModel::Columns::Synchronizable,
+                                                     savedSearchesTableViewSynchronizableColumnDelegate);
+    savedSearchesTableView->setColumnWidth(SavedSearchModel::Columns::Synchronizable,
+                                           savedSearchesTableViewSynchronizableColumnDelegate->sideSize());
+    DirtyColumnDelegate * savedSearchesTableViewDirtyColumnDelegate =
+            new DirtyColumnDelegate(savedSearchesTableView);
+    savedSearchesTableView->setItemDelegateForColumn(SavedSearchModel::Columns::Dirty,
+                                                     savedSearchesTableViewDirtyColumnDelegate);
+    savedSearchesTableView->setColumnWidth(SavedSearchModel::Columns::Dirty,
+                                           savedSearchesTableViewDirtyColumnDelegate->sideSize());
+    savedSearchesTableView->horizontalHeader()->hide();
 
     m_pUI->noteListView->setModel(m_pNoteModel);
 
