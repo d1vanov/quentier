@@ -148,9 +148,9 @@ else()
 endif()
 
 set(RESOURCES
-    resource/fallback_icons/tango/tango.qrc
-    resource/fallback_icons/oxygen/oxygen.qrc
-    resource/icons.qrc
+    resource/icons/themes/tango/tango.qrc
+    resource/icons/themes/oxygen/oxygen.qrc
+    resource/icons/other/icons.qrc
     src/tests/test_notes.qrc)
 
 if(USE_QT5)

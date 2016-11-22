@@ -213,8 +213,8 @@ padding-right: 2px;
           </size>
          </property>
          <property name="icon">
-          <iconset resource="../resource/icons.qrc">
-           <normaloff>:/sync_icons/stat_notify_sync.png</normaloff>:/sync_icons/stat_notify_sync.png</iconset>
+          <iconset resource="../resource/icons/other/icons.qrc">
+           <normaloff>:/sync/stat_notify_sync.png</normaloff>:/sync/stat_notify_sync.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -612,8 +612,8 @@ stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
               </property>
               <property name="icon">
-               <iconset theme="emblem-favorite">
-                <normaloff>.</normaloff>.</iconset>
+               <iconset resource="../resource/icons/other/icons.qrc">
+                <normaloff>:/favorite/star.png</normaloff>:/favorite/star.png</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -1098,7 +1098,7 @@ border: none;
                </size>
               </property>
               <property name="pixmap">
-               <pixmap resource="../resource/icons.qrc">:/label/tag.png</pixmap>
+               <pixmap resource="../resource/icons/other/icons.qrc">:/label/tag.png</pixmap>
               </property>
               <property name="scaledContents">
                <bool>true</bool>
@@ -3034,7 +3034,7 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionSynchronizeButton">
    <property name="icon">
-    <iconset resource="../resource/icons.qrc">
+    <iconset>
      <normaloff>:/sync_icons/stat_notify_sync.png</normaloff>:/sync_icons/stat_notify_sync.png</iconset>
    </property>
    <property name="text">
@@ -3064,7 +3064,7 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionManageLabelsButton">
    <property name="icon">
-    <iconset resource="../resource/icons.qrc">
+    <iconset resource="../resource/icons/other/icons.qrc">
      <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
    </property>
    <property name="text">
@@ -3105,7 +3105,7 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionNewTag">
    <property name="icon">
-    <iconset resource="../resource/icons.qrc">
+    <iconset resource="../resource/icons/other/icons.qrc">
      <normaloff>:/label/tag.png</normaloff>:/label/tag.png</iconset>
    </property>
    <property name="text">
@@ -3398,7 +3398,7 @@ border-bottom: 1px solid black;</string>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../resource/icons.qrc"/>
+  <include location="../resource/icons/other/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

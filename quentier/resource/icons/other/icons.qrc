@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>favorite/star.png</file>
+        <file>label/tag.png</file>
+        <file>user/user.png</file>
+        <file>sync/stat_notify_sync.png</file>
+        <file>sync/stat_notify_sync_anim1.png</file>
+        <file>sync/stat_notify_sync_anim2.png</file>
+        <file>sync/stat_notify_sync_anim3.png</file>
+        <file>sync/stat_notify_sync_anim4.png</file>
+        <file>sync/stat_notify_sync_anim5.png</file>
+        <file>sync/stat_notify_sync_anim6.png</file>
+        <file>sync/stat_notify_sync_anim7.png</file>
+        <file>sync/stat_notify_sync_anim8.png</file>
+        <file>sync/stat_notify_sync_anim9.png</file>
+        <file>sync/stat_notify_sync_anim10.png</file>
+        <file>sync/stat_notify_sync_error.png</file>
+    </qresource>
+</RCC>
