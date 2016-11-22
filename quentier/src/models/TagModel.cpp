@@ -1080,6 +1080,16 @@ void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 
     Q_UNUSED(requestId)
 
+    // Notes from this notebook have been expunged along with it; need to re-request the number of notes per tag
+    // for all tags
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
+        const TagModelItem & item = *it;
+        Tag tag;
+        tag.setLocalUid(item.localUid());
+        requestNoteCountForTag(tag);
+    }
+
     if (!notebook.hasLinkedNotebookGuid()) {
         return;
     }
