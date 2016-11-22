@@ -149,6 +149,8 @@ private Q_SLOTS:
     void onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
     void onNoteCountPerTagFailed(QNLocalizedString errorDescription, Tag tag, QUuid requestId);
 
+    void onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId);
+
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
@@ -247,7 +249,7 @@ private:
 
     QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findTagToPerformUpdateRequestIds;
-
+    QSet<QUuid>             m_findTagAfterNotelessTagsErasureRequestIds;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;

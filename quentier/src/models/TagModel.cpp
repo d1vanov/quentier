@@ -47,6 +47,7 @@ TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & lo
     m_noteCountPerTagRequestIds(),
     m_findTagToRestoreFailedUpdateRequestIds(),
     m_findTagToPerformUpdateRequestIds(),
+    m_findTagAfterNotelessTagsErasureRequestIds(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
     m_tagRestrictionsByLinkedNotebookGuid(),
@@ -805,19 +806,23 @@ void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
 {
     auto restoreUpdateIt = m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findTagToPerformUpdateRequestIds.find(requestId);
+    auto checkAfterErasureIt = m_findTagAfterNotelessTagsErasureRequestIds.find(requestId);
     if ((restoreUpdateIt == m_findTagToRestoreFailedUpdateRequestIds.end()) &&
-        (performUpdateIt == m_findTagToPerformUpdateRequestIds.end()))
+        (performUpdateIt == m_findTagToPerformUpdateRequestIds.end()) &&
+        (checkAfterErasureIt == m_findTagAfterNotelessTagsErasureRequestIds.end()))
     {
         return;
     }
 
     QNDEBUG(QStringLiteral("TagModel::onFindTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
 
-    if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end()) {
+    if (restoreUpdateIt != m_findTagToRestoreFailedUpdateRequestIds.end())
+    {
         Q_UNUSED(m_findTagToRestoreFailedUpdateRequestIds.erase(restoreUpdateIt))
         onTagAddedOrUpdated(tag);
     }
-    else if (performUpdateIt != m_findTagToPerformUpdateRequestIds.end()) {
+    else if (performUpdateIt != m_findTagToPerformUpdateRequestIds.end())
+    {
         Q_UNUSED(m_findTagToPerformUpdateRequestIds.erase(performUpdateIt))
         m_cache.put(tag.localUid(), tag);
         TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
@@ -826,14 +831,22 @@ void TagModel::onFindTagComplete(Tag tag, QUuid requestId)
             updateTagInLocalStorage(*it);
         }
     }
+    else if (checkAfterErasureIt != m_findTagAfterNotelessTagsErasureRequestIds.end())
+    {
+        QNDEBUG(QStringLiteral("Tag still exists after expunging the noteless tags from linked notebooks: ") << tag);
+        Q_UNUSED(m_findTagAfterNotelessTagsErasureRequestIds.erase(checkAfterErasureIt))
+        onTagAddedOrUpdated(tag);
+    }
 }
 
 void TagModel::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
 {
     auto restoreUpdateIt = m_findTagToRestoreFailedUpdateRequestIds.find(requestId);
     auto performUpdateIt = m_findTagToPerformUpdateRequestIds.find(requestId);
+    auto checkAfterErasureIt = m_findTagAfterNotelessTagsErasureRequestIds.find(requestId);
     if ((restoreUpdateIt == m_findTagToRestoreFailedUpdateRequestIds.end()) &&
-        (performUpdateIt == m_findTagToPerformUpdateRequestIds.end()))
+        (performUpdateIt == m_findTagToPerformUpdateRequestIds.end()) &&
+        (checkAfterErasureIt == m_findTagAfterNotelessTagsErasureRequestIds.end()))
     {
         return;
     }
@@ -846,6 +859,11 @@ void TagModel::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUui
     }
     else if (performUpdateIt != m_findTagToPerformUpdateRequestIds.end()) {
         Q_UNUSED(m_findTagToPerformUpdateRequestIds.erase(performUpdateIt))
+    }
+    else if (checkAfterErasureIt != m_findTagAfterNotelessTagsErasureRequestIds.end()) {
+        QNDEBUG(QStringLiteral("Tag no longer exists after the noteless tags from linked notebooks erasure"));
+        Q_UNUSED(m_findTagAfterNotelessTagsErasureRequestIds.erase(checkAfterErasureIt))
+        removeItemByLocalUid(tag.localUid());
     }
 
     emit notifyError(errorDescription);
@@ -993,6 +1011,32 @@ void TagModel::onNoteCountPerTagFailed(QNLocalizedString errorDescription, Tag t
     Q_UNUSED(m_noteCountPerTagRequestIds.erase(it))
 }
 
+void TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("TagModel::onExpungeNotelessTagsFromLinkedNotebooksComplete: request id = ") << requestId);
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    for(auto it = localUidIndex.begin(); it != localUidIndex.end(); )
+    {
+        const TagModelItem & item = *it;
+
+        if (item.linkedNotebookGuid().isEmpty()) {
+            continue;
+        }
+
+        // The item's current note count per tag may be invalid due to asynchronous events sequence,
+        // need to ask the database if such an item actually exists
+        QUuid requestId = QUuid::createUuid();
+        Q_UNUSED(m_findTagAfterNotelessTagsErasureRequestIds.insert(requestId))
+        Tag tag;
+        tag.setLocalUid(item.localUid());
+        QNTRACE(QStringLiteral("Emitting the request to find tag from linked notebook to check for its existence: ")
+                << item.localUid() << QStringLiteral(", request id = ") << requestId);
+        emit findTag(tag, requestId);
+    }
+}
+
 void TagModel::onFindNotebookComplete(Notebook notebook, QUuid requestId)
 {
     auto it = m_findNotebookRequestForLinkedNotebookGuid.right.find(requestId);
@@ -1107,6 +1151,8 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
                      this, QNSLOT(TagModel,onNoteCountPerTagComplete,int,Tag,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,noteCountPerTagFailed,QNLocalizedString,Tag,QUuid),
                      this, QNSLOT(TagModel,onNoteCountPerTagFailed,QNLocalizedString,Tag,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
+                     this, QNSLOT(TagModel,onExpungeNotelessTagsFromLinkedNotebooksComplete,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(TagModel,onFindNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
