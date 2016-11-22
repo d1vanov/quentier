@@ -92,6 +92,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
+    checkThemeIconsAndSetFallbacks();
+
     m_pUI->setupUi(this);
 
     m_availableAccountsActionGroup->setExclusive(true);
@@ -107,8 +109,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupUserShortcuts();
 
     addMenuActionsToMainWindow();
-
-    checkThemeIconsAndSetFallbacks();
 
     connectActionsToSlots();
 
@@ -1008,7 +1008,7 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
     QNTRACE(QStringLiteral("MainWindow::checkThemeIconsAndSetFallbacks"));
 
     if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
-        QIcon::setThemeName(QStringLiteral("tango"));
+        QIcon::setThemeName(QStringLiteral("oxygen"));
     }
 }
 

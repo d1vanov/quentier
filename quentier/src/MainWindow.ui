@@ -329,7 +329,8 @@ padding-right: 2px;
           </size>
          </property>
          <property name="icon">
-          <iconset theme="edit-delete"/>
+          <iconset theme="edit-delete">
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -1611,7 +1612,8 @@ stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
               </property>
               <property name="icon">
-               <iconset theme="user-trash"/>
+               <iconset theme="user-trash">
+                <normaloff>.</normaloff>.</iconset>
               </property>
              </widget>
             </item>
@@ -1928,7 +1930,7 @@ padding: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">

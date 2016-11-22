@@ -1,0 +1,2 @@
+Oxygen icons, by Oxygen project: https://techbase.kde.org/Projects/Oxygen
+License: LGPL v.3, see COPYING

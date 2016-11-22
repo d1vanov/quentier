@@ -149,6 +149,7 @@ endif()
 
 set(RESOURCES
     resource/fallback_icons/tango/tango.qrc
+    resource/fallback_icons/oxygen/oxygen.qrc
     resource/icons.qrc
     src/tests/test_notes.qrc)
 
