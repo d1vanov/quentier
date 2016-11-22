@@ -36,7 +36,8 @@ public:
                           const bool isDirty = false,
                           const bool isDefault = false,
                           const bool isPublished = false,
-                          const bool isLinkedNotebook = false);
+                          const bool isLinkedNotebook = false,
+                          const int numNotesPerNotebook = -1);
     ~NotebookItem();
 
     const QString & localUid() const { return m_localUid; }
@@ -74,6 +75,9 @@ public:
     bool isLinkedNotebook() const { return m_isLinkedNotebook; }
     void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
 
+    int numNotesPerNotebook() const { return m_numNotesPerNotebook; }
+    void setNumNotesPerNotebook(const int numNotesPerNotebook) { m_numNotesPerNotebook = numNotesPerNotebook; }
+
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
@@ -88,6 +92,7 @@ private:
     bool        m_isDefault;
     bool        m_isPublished;
     bool        m_isLinkedNotebook;
+    int         m_numNotesPerNotebook;
 };
 
 } // namespace quentier

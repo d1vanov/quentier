@@ -30,7 +30,8 @@ NotebookItem::NotebookItem(const QString & localUid,
                            const bool isDirty,
                            const bool isDefault,
                            const bool isPublished,
-                           const bool isLinkedNotebook) :
+                           const bool isLinkedNotebook,
+                           const int numNotesPerNotebook) :
     m_localUid(localUid),
     m_guid(guid),
     m_name(name),
@@ -41,7 +42,8 @@ NotebookItem::NotebookItem(const QString & localUid,
     m_isDirty(isDirty),
     m_isDefault(isDefault),
     m_isPublished(isPublished),
-    m_isLinkedNotebook(isLinkedNotebook)
+    m_isLinkedNotebook(isLinkedNotebook),
+    m_numNotesPerNotebook(numNotesPerNotebook)
 {}
 
 NotebookItem::~NotebookItem()
@@ -56,7 +58,8 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
          << QStringLiteral(", name is updatable = ") << (m_nameIsUpdatable ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is published = ") << (m_isPublished ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is linked notebook = ") << (m_isLinkedNotebook ? QStringLiteral("true") : QStringLiteral("false"));
+         << QStringLiteral(", is linked notebook = ") << (m_isLinkedNotebook ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", num notes per notebook = ") << m_numNotesPerNotebook;
     return strm;
 }
 

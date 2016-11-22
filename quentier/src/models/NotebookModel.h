@@ -59,7 +59,8 @@ public:
             Dirty,
             Default,
             Published,
-            FromLinkedNotebook
+            FromLinkedNotebook,
+            NumNotesPerNotebook
         };
     };
 
@@ -117,6 +118,7 @@ Q_SIGNALS:
                        LocalStorageManager::OrderDirection::type orderDirection,
                        QString linkedNotebookGuid, QUuid requestId);
     void expungeNotebook(Notebook notebook, QUuid requestId);
+    void requestNoteCountPerNotebook(Notebook notebook, QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -140,9 +142,18 @@ private Q_SLOTS:
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
 
+    void onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
+    void onNoteCountPerNotebookFailed(QNLocalizedString errorDescription, Notebook notebook, QUuid requestId);
+
+    void onAddNoteComplete(Note note, QUuid requestId);
+    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void onExpungeNoteComplete(Note note, QUuid requestId);
+
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestNotebooksList();
+    void requestNoteCountForNotebook(const Notebook & notebook);
+    void requestNoteCountForAllNotebooks();
 
     QVariant dataImpl(const NotebookModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const NotebookModelItem & item, const Columns::type column) const;
@@ -164,6 +175,12 @@ private:
     void updateItemRowWithRespectToSorting(const NotebookModelItem & modelItem);
 
     void updatePersistentModelIndices();
+
+    // Returns true if successfully incremented the note count for the notebook item with the corresponding local uid
+    bool onAddNoteWithNotebookLocalUid(const QString & notebookLocalUid);
+
+    // Returns true if successfully decremented the note count for the notebook item with the corresponding local uid
+    bool onExpungeNoteWithNotebookLocalUid(const QString & notebookLocalUid);
 
 private:
     struct ByLocalUid{};
@@ -224,6 +241,9 @@ private:
     void onNotebookAdded(const Notebook & notebook);
     void onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it);
 
+    // Returns true if successfully incremented the note count for the notebook item with the corresponding local uid
+    bool updateNoteCountPerNotebookIndex(const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
+
     ModelItems::iterator addNewStackModelItem(const NotebookStackItem & stackItem);
 
 private:
@@ -251,6 +271,8 @@ private:
 
     QSet<QUuid>             m_findNotebookToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findNotebookToPerformUpdateRequestIds;
+
+    QSet<QUuid>             m_noteCountPerNotebookRequestIds;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
