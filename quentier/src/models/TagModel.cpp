@@ -1107,6 +1107,10 @@ void TagModel::onAddNoteComplete(Note note, QUuid requestId)
     QNDEBUG(QStringLiteral("TagModel::onAddNoteComplete: note = ") << note
             << QStringLiteral("\nRequest id = ") << requestId);
 
+    if (Q_UNLIKELY(note.hasDeletionTimestamp())) {
+        return;
+    }
+
     requestTagsPerNote(note);
 }
 
@@ -1834,6 +1838,24 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     const TagModelItem * siblingItem = parentItem->childAtRow(row - 1);
     if (Q_UNLIKELY(!siblingItem)) {
         QNDEBUG(QStringLiteral("No sibling item was found"));
+        return itemIndex;
+    }
+
+    const QString & itemLinkedNotebookGuid = item->linkedNotebookGuid();
+    const QString & siblingItemLinkedNotebookGuid = siblingItem->linkedNotebookGuid();
+    if ((parentItem == m_fakeRootItem) && (siblingItemLinkedNotebookGuid != itemLinkedNotebookGuid))
+    {
+        QNLocalizedString error;
+        if (itemLinkedNotebookGuid.isEmpty() != siblingItemLinkedNotebookGuid.isEmpty()) {
+            error = QT_TR_NOOP("Can't mix tags from linked notebooks with tags from the current account");
+        }
+        else {
+            error = QT_TR_NOOP("Can't mix tags from different linked notebooks");
+        }
+
+        QNDEBUG(error << QStringLiteral(", item attempted to be demoted: ") << *item
+                << QStringLiteral("\nSibling item: ") << *siblingItem);
+        emit notifyError(error);
         return itemIndex;
     }
 
