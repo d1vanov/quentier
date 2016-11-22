@@ -125,6 +125,11 @@ Q_SIGNALS:
     void expungeTag(Tag tag, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
     void requestNoteCountPerTag(Tag tag, QUuid requestId);
+    void listAllTagsPerNote(Note note, LocalStorageManager::ListObjectsOptions flag,
+                            size_t limit, size_t offset,
+                            LocalStorageManager::ListTagsOrder::type order,
+                            LocalStorageManager::OrderDirection::type orderDirection,
+                            QUuid requestId);
 
 private Q_SLOTS:
     // Slots for response to events from local storage
@@ -156,10 +161,28 @@ private Q_SLOTS:
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
+    void onAddNoteComplete(Note note, QUuid requestId);
+    void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
+    void onExpungeNoteComplete(Note note, QUuid requestId);
+
+    void onListAllTagsPerNoteComplete(QList<Tag> foundTags, Note note,
+                                      LocalStorageManager::ListObjectsOptions flag,
+                                      size_t limit, size_t offset,
+                                      LocalStorageManager::ListTagsOrder::type order,
+                                      LocalStorageManager::OrderDirection::type orderDirection,
+                                      QUuid requestId);
+    void onListAllTagsPerNoteFailed(Note note, LocalStorageManager::ListObjectsOptions flag,
+                                    size_t limit, size_t offset,
+                                    LocalStorageManager::ListTagsOrder::type order,
+                                    LocalStorageManager::OrderDirection::type orderDirection,
+                                    QNLocalizedString errorDescription, QUuid requestId);
+
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);
     void requestTagsList();
     void requestNoteCountForTag(const Tag & tag);
+    void requestTagsPerNote(const Note & note);
+    void requestNoteCountForAllTags();
 
     QVariant dataImpl(const TagModelItem & item, const Columns::type column) const;
     QVariant dataAccessibleText(const TagModelItem & item, const Columns::type column) const;
@@ -250,6 +273,8 @@ private:
     QSet<QUuid>             m_findTagToRestoreFailedUpdateRequestIds;
     QSet<QUuid>             m_findTagToPerformUpdateRequestIds;
     QSet<QUuid>             m_findTagAfterNotelessTagsErasureRequestIds;
+
+    QSet<QUuid>             m_listTagsPerNoteRequestIds;
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;

@@ -48,6 +48,7 @@ TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & lo
     m_findTagToRestoreFailedUpdateRequestIds(),
     m_findTagToPerformUpdateRequestIds(),
     m_findTagAfterNotelessTagsErasureRequestIds(),
+    m_listTagsPerNoteRequestIds(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
     m_tagRestrictionsByLinkedNotebookGuid(),
@@ -1082,13 +1083,7 @@ void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 
     // Notes from this notebook have been expunged along with it; need to re-request the number of notes per tag
     // for all tags
-    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
-        const TagModelItem & item = *it;
-        Tag tag;
-        tag.setLocalUid(item.localUid());
-        requestNoteCountForTag(tag);
-    }
+    requestNoteCountForAllTags();
 
     if (!notebook.hasLinkedNotebookGuid()) {
         return;
@@ -1105,6 +1100,98 @@ void TagModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
 
     it->m_canCreateTags = false;
     it->m_canUpdateTags = false;
+}
+
+void TagModel::onAddNoteComplete(Note note, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("TagModel::onAddNoteComplete: note = ") << note
+            << QStringLiteral("\nRequest id = ") << requestId);
+
+    requestTagsPerNote(note);
+}
+
+void TagModel::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
+{
+    if (!updateTags) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("TagModel::onUpdateNoteComplete: note = ") << note
+            << QStringLiteral("\nUpdate resources = ")
+            << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ")
+            << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", request id = ") << requestId);
+
+    requestTagsPerNote(note);
+}
+
+void TagModel::onExpungeNoteComplete(Note note, QUuid requestId)
+{
+    QNDEBUG(QStringLiteral("TagModel::onExpungeNoteComplete: note = ") << note
+            << QStringLiteral("\nRequest id = ") << requestId);
+
+    if (note.hasTagLocalUids())
+    {
+        const QStringList & tagLocalUids = note.tagLocalUids();
+        for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
+        {
+            const QString & tagLocalUid = *it;
+            Tag tag;
+            tag.setLocalUid(tagLocalUid);
+            requestNoteCountForTag(tag);
+        }
+
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Note has no tag local uids, have to re-request the note count for all tag items"));
+
+    requestNoteCountForAllTags();
+}
+
+void TagModel::onListAllTagsPerNoteComplete(QList<Tag> foundTags, Note note,
+                                            LocalStorageManager::ListObjectsOptions flag,
+                                            size_t limit, size_t offset,
+                                            LocalStorageManager::ListTagsOrder::type order,
+                                            LocalStorageManager::OrderDirection::type orderDirection,
+                                            QUuid requestId)
+{
+    auto it = m_listTagsPerNoteRequestIds.find(requestId);
+    if (it == m_listTagsPerNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("TagModel::onListAllTagsPerNoteComplete: note = ") << note
+            << QStringLiteral("\nFlag = ") << flag << QStringLiteral(", limit = ") << limit
+            << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
+            << QStringLiteral(", order direction = ") << orderDirection << QStringLiteral(", request id = ")
+            << requestId);
+
+    for(auto it = foundTags.constBegin(), end = foundTags.constEnd(); it != end; ++it) {
+        requestNoteCountForTag(*it);
+    }
+}
+
+void TagModel::onListAllTagsPerNoteFailed(Note note, LocalStorageManager::ListObjectsOptions flag,
+                                          size_t limit, size_t offset,
+                                          LocalStorageManager::ListTagsOrder::type order,
+                                          LocalStorageManager::OrderDirection::type orderDirection,
+                                          QNLocalizedString errorDescription, QUuid requestId)
+{
+    auto it = m_listTagsPerNoteRequestIds.find(requestId);
+    if (it == m_listTagsPerNoteRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING(QStringLiteral("TagModel::onListAllTagsPerNoteFailed: note = ") << note
+              << QStringLiteral("\nFlag = ") << flag << QStringLiteral(", limit = ") << limit
+              << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order
+              << QStringLiteral(", order direction = ") << orderDirection << QStringLiteral(", request id = ")
+              << requestId << QStringLiteral(", error description = ") << errorDescription);
+
+    // Trying to work around this problem by re-requesting the note count for all tags
+    requestNoteCountForAllTags();
 }
 
 void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker)
@@ -1125,10 +1212,15 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
                                                               LocalStorageManager::OrderDirection::type,QString,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,expungeTag,Tag,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onExpungeTagRequest,Tag,QUuid));
-    QObject::connect(this, QNSIGNAL(TagModel,requestNoteCountPerTag,Tag,QUuid),
-                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerTagRequest,Tag,QUuid));
     QObject::connect(this, QNSIGNAL(TagModel,findNotebook,Notebook,QUuid),
                      &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
+    QObject::connect(this, QNSIGNAL(TagModel,requestNoteCountPerTag,Tag,QUuid),
+                     &localStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,onNoteCountPerTagRequest,Tag,QUuid));
+    QObject::connect(this, QNSIGNAL(TagModel,listAllTagsPerNote,Note,LocalStorageManager::ListObjectsOptions,size_t,size_t,
+                                    LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
+                     &localStorageManagerThreadWorker,
+                     QNSLOT(LocalStorageManagerThreadWorker,onListAllTagsPerNoteRequest,Note,LocalStorageManager::ListObjectsOptions,
+                            size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QUuid));
 
     // localStorageManagerThreadWorker's signals to local slots
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
@@ -1171,6 +1263,18 @@ void TagModel::createConnections(LocalStorageManagerThreadWorker & localStorageM
                      this, QNSLOT(TagModel,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(TagModel,onExpungeNotebookComplete,Notebook,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                     this, QNSLOT(TagModel,onAddNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
+                     this, QNSLOT(TagModel,onUpdateNoteComplete,Note,bool,bool,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
+                     this, QNSLOT(TagModel,onExpungeNoteComplete,Note,QUuid));
+    QObject::connect(&localStorageManagerThreadWorker,
+                     QNSIGNAL(LocalStorageManagerThreadWorker,listAllTagsPerNoteComplete,QList<Tag>,Note,LocalStorageManager::ListObjectsOptions,
+                              size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QUuid),
+                     this,
+                     QNSLOT(TagModel,onListAllTagsPerNoteComplete,QList<Tag>,Note,LocalStorageManager::ListObjectsOptions,
+                              size_t,size_t,LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QUuid));
 }
 
 void TagModel::requestTagsList()
@@ -1195,6 +1299,31 @@ void TagModel::requestNoteCountForTag(const Tag & tag)
     Q_UNUSED(m_noteCountPerTagRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to compute the number of notes per tag, request id = ") << requestId);
     emit requestNoteCountPerTag(tag, requestId);
+}
+
+void TagModel::requestTagsPerNote(const Note & note)
+{
+    QNDEBUG(QStringLiteral("TagModel::requestTagsPerNote: ") << note);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_listTagsPerNoteRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to list tags per note: request id = ") << requestId);
+    emit listAllTagsPerNote(note, LocalStorageManager::ListObjectsOption::ListAll,
+                            /* limit = */ 0, /* offset = */ 0, LocalStorageManager::ListTagsOrder::NoOrder,
+                            LocalStorageManager::OrderDirection::Ascending, requestId);
+}
+
+void TagModel::requestNoteCountForAllTags()
+{
+    QNDEBUG(QStringLiteral("TagModel::requestNoteCountForAllTags"));
+
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
+        const TagModelItem & item = *it;
+        Tag tag;
+        tag.setLocalUid(item.localUid());
+        requestNoteCountForTag(tag);
+    }
 }
 
 void TagModel::onTagAddedOrUpdated(const Tag & tag)
