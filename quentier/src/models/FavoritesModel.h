@@ -218,6 +218,12 @@ private:
     void requestTagsList();
     void requestSavedSearchesList();
 
+    void requestNoteCountForNotebook(const QString & notebookLocalUid);
+    void requestNoteCountForAllNotebooks();
+
+    void requestNoteCountForTag(const QString & tagLocalUid);
+    void requestNoteCountForAllTags();
+
     QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
 
