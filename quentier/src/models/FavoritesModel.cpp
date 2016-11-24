@@ -2106,12 +2106,19 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
         checkTagsUpdateForNote(note);
     }
 
-    if (!note.hasNotebookLocalUid()) {
+    if (!note.hasNotebookLocalUid())
+    {
         QNWARNING(QStringLiteral("Skipping the note not having the notebook local uid: ") << note);
+
+        // FIXME: even though it is quite an unusual situation, it's better to re-subscribe to note count per notebook
+        // for all favorited notebooks to ensure the numbers are good
+
         return;
     }
 
     checkNotebookUpdateForNote(note.localUid(), note.notebookLocalUid());
+
+    // FIXME: need to figure out if the notebook to which this note belongs needs to update its note count
 
     if (!note.isFavorited()) {
         removeItemByLocalUid(note.localUid());
@@ -2532,8 +2539,13 @@ void FavoritesModel::checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const No
             << note.localUid());
 
     auto notebookLocalUidIt = m_noteLocalUidToNotebookLocalUid.find(note.localUid());
-    if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end()) {
+    if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end())
+    {
         QNDEBUG(QStringLiteral("Haven't found the notebook local uid for the expunged note"));
+
+        // FIXME: need to re-subscribe to note count per all notebooks within the favorites model;
+        // it is the only way to keep the number of notes per notebooks actual
+
         return;
     }
 
@@ -2562,7 +2574,6 @@ void FavoritesModel::checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const No
         QNDEBUG(QStringLiteral("There's an active request to fetch the note count for the expunged note's notebook: ")
                 << requestIt->second << QStringLiteral(", won't adjust the note count for it on the model side"));
     }
-
 }
 
 void FavoritesModel::checkTagsUpdateForNote(const Note & note)
@@ -2597,7 +2608,7 @@ void FavoritesModel::checkTagsUpdateForNote(const Note & note)
             << QStringLiteral("; new tags' local uids: ") << tagLocalUids.join(QStringLiteral(", ")));
 
     QStringList removedTagLocalUids;
-    for(auto it = previousTagLocalUids.begin(), end = previousTagLocalUids.end(); it != end; ++it)
+    for(auto it = previousTagLocalUids.constBegin(), end = previousTagLocalUids.constEnd(); it != end; ++it)
     {
         const QString & previousTagLocalUid = *it;
         if (!tagLocalUids.contains(previousTagLocalUid)) {
@@ -2606,7 +2617,7 @@ void FavoritesModel::checkTagsUpdateForNote(const Note & note)
     }
 
     QStringList newTagLocalUids;
-    for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it)
+    for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
     {
         const QString & tagLocalUid = *it;
         if (!previousTagLocalUids.contains(tagLocalUid)) {
@@ -2620,7 +2631,7 @@ void FavoritesModel::checkTagsUpdateForNote(const Note & note)
 
     if (!removedTagLocalUids.isEmpty())
     {
-        for(auto it = removedTagLocalUids.begin(), end = removedTagLocalUids.end(); it != end; ++it)
+        for(auto it = removedTagLocalUids.constBegin(), end = removedTagLocalUids.constEnd(); it != end; ++it)
         {
             const QString & removedTagLocalUid = *it;
 
@@ -2652,7 +2663,7 @@ void FavoritesModel::checkTagsUpdateForNote(const Note & note)
 
     if (!newTagLocalUids.isEmpty())
     {
-        for(auto it = newTagLocalUids.begin(), end = newTagLocalUids.end(); it != end; ++it)
+        for(auto it = newTagLocalUids.constBegin(), end = newTagLocalUids.constEnd(); it != end; ++it)
         {
             const QString & tagLocalUid = *it;
 
@@ -2694,13 +2705,17 @@ void FavoritesModel::checkAndUpdateNoteCountPerTagAfterNoteExpunge(const Note & 
     }
 
     const QStringList & tagLocalUids = tagLocalUidsIt.value();
-    if (tagLocalUids.isEmpty()) {
+    if (tagLocalUids.isEmpty())
+    {
         QNDEBUG(QStringLiteral("The expunged note had no tags"));
+
+        // FIXME: need to re-subscribe to the note count per tag for all favorited tags, it's the only way to keep the number of targeted notes actual
+
         return;
     }
 
     FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    for(auto it = tagLocalUids.begin(), end = tagLocalUids.end(); it != end; ++it)
+    for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
     {
         const QString & removedTagLocalUid = *it;
 
