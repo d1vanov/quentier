@@ -104,26 +104,27 @@ QStyle * applicationStyle()
 #ifdef Q_OS_WIN
     // FIXME: figure out why QWindowsStyle doesn't compile
     return Q_NULLPTR;
-#endif
+#else
 
-#ifdef Q_OS_MAC
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#if defined(Q_OS_MAC) && QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     return new QMacStyle;
-#endif
-#endif
+#else
 
     const QStringList styleNames = QStyleFactory::keys();
-#if !defined(Q_OS_WIN) && !defined(Q_OS_MAC) && (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+#if !defined(Q_OS_MAC) && (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
     if (styleNames.isEmpty()) {
         QNINFO(QStringLiteral("No valid styles were found in QStyleFactory! Fallback to the last resort of plastique style"));
         return new QPlastiqueStyle;
     }
-#elif QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    return Q_NULLPTR;
-#endif
 
     const QString & firstStyle = styleNames.first();
     return QStyleFactory::create(firstStyle);
+#else
+    return Q_NULLPTR;
+#endif // !defined(Q_OS_MAC) && (QT_VERSION < QT_VERSION_CHECK(5, 0, 0))
+
+#endif // defined(Q_OS_MAC) && QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#endif // Q_OS_WIN
 }
 
 const QString humanReadableSize(const quint64 bytes)

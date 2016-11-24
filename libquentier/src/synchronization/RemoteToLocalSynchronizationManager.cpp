@@ -4873,12 +4873,14 @@ QString RemoteToLocalSynchronizationManager::clientNameForProtocolVersionCheck()
     case QSysInfo::MV_10_9:
         clientName += QStringLiteral("OS X/10.9");
         break;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     case QSysInfo::MV_10_10:
         clientName += QStringLiteral("OS X/10.10");
         break;
     case QSysInfo::MV_10_11:
         clientName += QStringLiteral("OS X/10.11");
         break;
+#endif
     // NOTE: intentional fall-through
     case QSysInfo::MV_Unknown:
     default:

@@ -18,8 +18,11 @@ public:
     void setModel(QAbstractItemModel * model);
 
 Q_SIGNALS:
+
+// NOTE: don't attempt to use QT_VERSION_CHECK here: Qt4 doesn't expand macro functions during moc run which leads
+// to the check not working and the code not building
     void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#if QT_VERSION < 0x050000
                             );
 #else
                             , const QVector<int> & roles = QVector<int>());
@@ -27,7 +30,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#if QT_VERSION < 0x050000
                             );
 #else
                             , const QVector<int> & roles = QVector<int>());

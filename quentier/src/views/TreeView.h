@@ -11,8 +11,10 @@ public:
     explicit TreeView(QWidget * parent = Q_NULLPTR);
 
 public Q_SLOTS:
+// NOTE: don't attempt to use QT_VERSION_CHECK here: Qt4 doesn't expand macro functions during moc run which leads
+// to the check not working and the code not building
     virtual void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#if QT_VERSION < 0x050000
                             )
 #else
                             , const QVector<int> & roles = QVector<int>())
