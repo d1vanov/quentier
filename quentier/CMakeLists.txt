@@ -52,6 +52,7 @@ set(${PROJECT_NAME}_HEADERS
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/dialogs/AddAccountDialog.h
     src/dialogs/ManageAccountsDialog.h
+    src/models/ColumnChangeRerouter.h
     src/models/NewItemNameGenerator.hpp
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
@@ -81,6 +82,8 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
+    src/views/TableView.h
+    src/views/TreeView.h
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
@@ -103,6 +106,7 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
+    src/models/ColumnChangeRerouter.cpp
     src/models/SavedSearchModel.cpp
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp
@@ -122,6 +126,8 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/FavoriteItemDelegate.cpp
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
+    src/views/TableView.cpp
+    src/views/TreeView.cpp
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp

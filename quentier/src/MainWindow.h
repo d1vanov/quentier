@@ -54,6 +54,8 @@ QT_FORWARD_DECLARE_CLASS(QUrl)
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QActionGroup)
 
+QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
+
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 }
@@ -206,6 +208,9 @@ private:
     TagModel *              m_pTagModel;
     SavedSearchModel *      m_pSavedSearchModel;
     NoteModel *             m_pNoteModel;
+
+    ColumnChangeRerouter *  m_pNotebookModelColumnChangeRerouter;
+    ColumnChangeRerouter *  m_pTagModelColumnChangeRerouter;
 
     NoteModel *             m_pDeletedNotesModel;
     FavoritesModel *        m_pFavoritesModel;

@@ -981,7 +981,7 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
           </widget>
          </item>
          <item>
-          <widget class="QTableView" name="notebooksTableView">
+          <widget class="TableView" name="notebooksTableView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1233,7 +1233,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="QTreeView" name="tagsTreeView">
+          <widget class="TreeView" name="tagsTreeView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1924,7 +1924,7 @@ padding: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3391,6 +3391,18 @@ border-bottom: 1px solid black;</string>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableView</extends>
+   <header>views/TableView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>TreeView</class>
+   <extends>QTreeView</extends>
+   <header>views/TreeView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resource/icons/other/icons.qrc"/>
  </resources>

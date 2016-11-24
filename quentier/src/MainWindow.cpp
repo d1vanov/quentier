@@ -27,6 +27,9 @@
 #include "delegates/DirtyColumnDelegate.h"
 #include "delegates/FavoriteItemDelegate.h"
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
+#include "models/ColumnChangeRerouter.h"
+#include "views/TableView.h"
+#include "views/TreeView.h"
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
 #include <quentier/types/Note.h>
@@ -82,6 +85,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pTagModel(Q_NULLPTR),
     m_pSavedSearchModel(Q_NULLPTR),
     m_pNoteModel(Q_NULLPTR),
+    m_pNotebookModelColumnChangeRerouter(new ColumnChangeRerouter(NotebookModel::Columns::NumNotesPerNotebook,
+                                                                  NotebookModel::Columns::Name, this)),
+    m_pTagModelColumnChangeRerouter(new ColumnChangeRerouter(TagModel::Columns::NumNotesPerTag,
+                                                             TagModel::Columns::Name, this)),
     m_pDeletedNotesModel(Q_NULLPTR),
     m_pFavoritesModel(Q_NULLPTR),
     m_blankModel(),
@@ -1065,6 +1072,9 @@ void MainWindow::setupModels()
     m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
     m_pUI->noteListView->setModel(m_pNoteModel);
     m_pUI->deletedNotesTableView->setModel(m_pDeletedNotesModel);
+
+    m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
+    m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
 }
 
 void MainWindow::clearModels()
@@ -1108,8 +1118,6 @@ void MainWindow::setupViews()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupViews"));
 
-
-
     QTableView * favoritesTableView = m_pUI->favoritesTableView;
     favoritesTableView->horizontalHeader()->hide();
     favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);
@@ -1117,7 +1125,7 @@ void MainWindow::setupViews()
     favoritesTableView->setItemDelegate(favoriteItemDelegate);
     favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
 
-    QTableView * notebooksTableView = m_pUI->notebooksTableView;
+    TableView * notebooksTableView = m_pUI->notebooksTableView;
     NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTableView);
     notebooksTableView->setItemDelegate(notebookItemDelegate);
     SynchronizableColumnDelegate * notebookTableViewSynchronizableColumnDelegate =
@@ -1140,7 +1148,15 @@ void MainWindow::setupViews()
                                        notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
     notebooksTableView->horizontalHeader()->hide();
 
-    QTreeView * tagsTreeView = m_pUI->tagsTreeView;
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
+                     notebooksTableView, QNSLOT(TableView,dataChanged,const QModelIndex&,const QModelIndex&));
+#else
+    QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
+                     notebooksTableView, QNSLOT(TableView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+#endif
+
+    TreeView * tagsTreeView = m_pUI->tagsTreeView;
     SynchronizableColumnDelegate * tagsTreeViewSynchronizableColumnDelegate =
             new SynchronizableColumnDelegate(tagsTreeView);
     tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Synchronizable,
@@ -1160,6 +1176,14 @@ void MainWindow::setupViews()
     tagsTreeView->setColumnWidth(TagModel::Columns::FromLinkedNotebook,
                                  tagsTreeViewFromLinkedNotebookColumnDelegate->sideSize());
     tagsTreeView->header()->hide();
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
+                     tagsTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&));
+#else
+    QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
+                     tagsTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+#endif
 
     QTableView * savedSearchesTableView = m_pUI->savedSearchesTableView;
     savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
