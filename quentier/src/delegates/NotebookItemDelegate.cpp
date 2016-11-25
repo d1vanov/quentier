@@ -129,14 +129,14 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
         return;
     }
 
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    }
+
     QString name = model->data(index).toString();
     if (name.isEmpty()) {
         QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: notebook name is empty"));
         return;
-    }
-
-    if (option.state & QStyle::State_Selected) {
-        painter->fillRect(option.rect, option.palette.highlight());
     }
 
     painter->setPen(option.state & QStyle::State_Selected
@@ -156,7 +156,7 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
         return;
     }
 
-    if (numNotesPerNotebookInt == 0) {
+    if (numNotesPerNotebookInt <= 0) {
         return;
     }
 
@@ -194,7 +194,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    if (numNotesPerNotebookInt == 0) {
+    if (numNotesPerNotebookInt <= 0) {
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
