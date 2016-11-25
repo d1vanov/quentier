@@ -1592,17 +1592,20 @@ void FavoritesModel::requestSavedSearchesList()
                            order, direction, m_listSavedSearchesRequestId);
 }
 
-void FavoritesModel::requestNoteCountForNotebook(const QString & notebookLocalUid)
+void FavoritesModel::requestNoteCountForNotebook(const QString & notebookLocalUid, const NoteCountRequestOption::type option)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForNotebook: notebook lcoal uid = ") << notebookLocalUid);
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForNotebook: notebook lcoal uid = ") << notebookLocalUid
+            << QStringLiteral(", note count request option = ") << option);
 
-    auto it = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
-    if (it != m_notebookLocalUidToNoteCountRequestIdBimap.left.end()) {
-        QNDEBUG(QStringLiteral("There's an active request to fetch the note count for this notebook local uid"));
-        return;
+    if (option != NoteCountRequestOption::Force)
+    {
+        auto it = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
+        if (it != m_notebookLocalUidToNoteCountRequestIdBimap.left.end()) {
+            QNDEBUG(QStringLiteral("There's an active request to fetch the note count for this notebook local uid"));
+            return;
+        }
     }
 
-    // Need to figure out how many notes this notebook targets
     QUuid requestId = QUuid::createUuid();
     m_notebookLocalUidToNoteCountRequestIdBimap.insert(LocalUidToRequestIdBimap::value_type(notebookLocalUid, requestId));
     Notebook dummyNotebook;
@@ -1612,9 +1615,10 @@ void FavoritesModel::requestNoteCountForNotebook(const QString & notebookLocalUi
     emit noteCountPerNotebook(dummyNotebook, requestId);
 }
 
-void FavoritesModel::requestNoteCountForAllNotebooks()
+void FavoritesModel::requestNoteCountForAllNotebooks(const NoteCountRequestOption::type option)
 {
-    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForAllNotebooks"));
+    QNDEBUG(QStringLiteral("FavoritesModel::requestNoteCountForAllNotebooks: note count request option = ")
+            << option);
 
     const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
@@ -1625,7 +1629,7 @@ void FavoritesModel::requestNoteCountForAllNotebooks()
             continue;
         }
 
-        requestNoteCountForNotebook(item.localUid());
+        requestNoteCountForNotebook(item.localUid(), option);
     }
 }
 
@@ -1662,6 +1666,53 @@ void FavoritesModel::requestNoteCountForAllTags()
         }
 
         requestNoteCountForTag(item.localUid());
+    }
+}
+
+void FavoritesModel::checkAndIncrementNoteCountPerNotebook(const QString & notebookLocalUid)
+{
+    QNDEBUG(QStringLiteral("FavoritesModel::checkAndIncrementNoteCountPerNotebook: ") << notebookLocalUid);
+    checkAndAdjustNoteCountPerNotebook(notebookLocalUid, /* increment = */ true);
+}
+
+void FavoritesModel::checkAndDecrementNoteCountPerNotebook(const QString & notebookLocalUid)
+{
+    QNDEBUG(QStringLiteral("FavoritesModel::checkAndDecrementNoteCountPerNotebook: ") << notebookLocalUid);
+    checkAndAdjustNoteCountPerNotebook(notebookLocalUid, /* increment = */ false);
+}
+
+void FavoritesModel::checkAndAdjustNoteCountPerNotebook(const QString & notebookLocalUid, const bool increment)
+{
+    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
+    if (requestIt == m_notebookLocalUidToNoteCountRequestIdBimap.left.end())
+    {
+        FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+        auto notebookItemIt = localUidIndex.find(notebookLocalUid);
+        if (notebookItemIt == localUidIndex.end()) {
+            QNDEBUG(QStringLiteral("Notebook is not within the favorites model"));
+            return;
+        }
+
+        FavoritesModelItem item = *notebookItemIt;
+        int numNotesTargeted = item.numNotesTargeted();
+        if (increment) {
+            ++numNotesTargeted;
+            QNDEBUG(QStringLiteral("Incremented to ") << numNotesTargeted);
+        }
+        else {
+            --numNotesTargeted;
+            QNDEBUG(QStringLiteral("Decremented to ") << numNotesTargeted);
+        }
+        item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
+        Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
+
+        updateItemColumnInView(item, Columns::NumNotesTargeted);
+    }
+    else
+    {
+        QNDEBUG(QStringLiteral("There's an active request to fetch the note count for notebook ")
+                << notebookLocalUid << QStringLiteral(": ") << requestIt->second
+                << QStringLiteral(", won't adjust the note count for it on the model side"));
     }
 }
 
@@ -2181,13 +2232,11 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
 
     if (!note.hasNotebookLocalUid()) {
         QNWARNING(QStringLiteral("Skipping the note not having the notebook local uid: ") << note);
-        requestNoteCountForAllNotebooks();
+        requestNoteCountForAllNotebooks(NoteCountRequestOption::IfNotAlreadyRunning);
         return;
     }
 
     checkNotebookUpdateForNote(note.localUid(), note.notebookLocalUid());
-
-    // FIXME: need to figure out if the notebook to which this note belongs needs to update its note count
 
     if (!note.isFavorited()) {
         removeItemByLocalUid(note.localUid());
@@ -2329,7 +2378,7 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
         emit layoutChanged();
 
         // Need to figure out how many notes this notebook targets
-        requestNoteCountForNotebook(notebook.localUid());
+        requestNoteCountForNotebook(notebook.localUid(), NoteCountRequestOption::IfNotAlreadyRunning);
     }
     else
     {
@@ -2524,11 +2573,20 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
     QNDEBUG(QStringLiteral("FavoritesModel::checkNotebookUpdateForNote: note local uid = ") << noteLocalUid
             << QStringLiteral(", notebook local uid = ") << notebookLocalUid);
 
+    const FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
     auto notebookLocalUidIt = m_noteLocalUidToNotebookLocalUid.find(noteLocalUid);
-    if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end()) {
+    if (notebookLocalUidIt == m_noteLocalUidToNotebookLocalUid.end())
+    {
         QNDEBUG(QStringLiteral("Haven't found the previous notebook local uid for this note"));
         m_noteLocalUidToNotebookLocalUid[noteLocalUid] = notebookLocalUid;
-        // FIXME: since it's unclear whether the note count was changed for this notebook, need to re-request the note count for this notebook
+
+        auto notebookItemIt = localUidIndex.find(notebookLocalUid);
+        if (notebookItemIt != localUidIndex.end()) {
+            // Since it's unclear whether the note count was changed for this notebook, need to request the note count for this notebook
+            requestNoteCountForNotebook(notebookLocalUid, NoteCountRequestOption::IfNotAlreadyRunning);
+        }
+
         return;
     }
 
@@ -2543,56 +2601,8 @@ void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, co
 
     m_noteLocalUidToNotebookLocalUid[noteLocalUid] = notebookLocalUid;
 
-    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    auto notebookItemIt = localUidIndex.find(previousNotebookLocalUid);
-    if (notebookItemIt != localUidIndex.end())
-    {
-        QNDEBUG(QStringLiteral("Previous notebook is present within the favorites model, need to update the note count for it"));
-
-        auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(previousNotebookLocalUid);
-        if (requestIt == m_notebookLocalUidToNoteCountRequestIdBimap.left.end())
-        {
-            FavoritesModelItem item = *notebookItemIt;
-            int numNotesTargeted = item.numNotesTargeted();
-            --numNotesTargeted;
-            item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
-            Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
-
-            updateItemColumnInView(item, Columns::NumNotesTargeted);
-        }
-        else
-        {
-            QNDEBUG(QStringLiteral("There's an active request to fetch the note count for the updated note's previous notebook: ")
-                    << requestIt->second << QStringLiteral(", won't adjust the note count for it on the model side"));
-        }
-    }
-    else
-    {
-        QNDEBUG(QStringLiteral("Previous notebook is not present within the favorites model"));
-    }
-
-    notebookItemIt = localUidIndex.find(notebookLocalUid);
-    if (notebookItemIt == localUidIndex.end()) {
-        QNDEBUG(QStringLiteral("New notebook of the note is not present within the favorites model"));
-        return;
-    }
-
-    QNDEBUG(QStringLiteral("New notebook of the note is present within the favorites model, need to update the note count for it"));
-
-    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
-    if (requestIt != m_notebookLocalUidToNoteCountRequestIdBimap.left.end()) {
-        QNDEBUG(QStringLiteral("There's an active request to fetch the note count for the updated note's new notebook: ")
-                << requestIt->second << QStringLiteral(", won't adjust the note count for it on the model side"));
-        return;
-    }
-
-    FavoritesModelItem item = *notebookItemIt;
-    int numNotesTargeted = item.numNotesTargeted();
-    ++numNotesTargeted;
-    item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
-    Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
-
-    updateItemColumnInView(item, Columns::NumNotesTargeted);
+    checkAndDecrementNoteCountPerNotebook(previousNotebookLocalUid);
+    checkAndIncrementNoteCountPerNotebook(notebookLocalUid);
 }
 
 void FavoritesModel::checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const Note & note)
@@ -2605,37 +2615,14 @@ void FavoritesModel::checkAndUpdateNoteCountPerNotebookAfterNoteExpunge(const No
     {
         QNDEBUG(QStringLiteral("Haven't found the notebook local uid for the expunged note"));
 
-        // FIXME: need to re-subscribe to note count per all notebooks within the favorites model;
-        // it is the only way to keep the number of notes per notebooks actual
-
+        // Since it's unclear whether some notebook within the favorites model was affected,
+        // need to check and re-subscribe to the note counts for all notebooks
+        requestNoteCountForAllNotebooks(NoteCountRequestOption::IfNotAlreadyRunning);
         return;
     }
 
     const QString & notebookLocalUid = notebookLocalUidIt.value();
-
-    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    auto notebookItemIt = localUidIndex.find(notebookLocalUid);
-    if (notebookItemIt == localUidIndex.end()) {
-        QNDEBUG(QStringLiteral("The notebook for the expunged note wasn't present within the favorites model's items"));
-        return;
-    }
-
-    auto requestIt = m_notebookLocalUidToNoteCountRequestIdBimap.left.find(notebookLocalUid);
-    if (requestIt == m_notebookLocalUidToNoteCountRequestIdBimap.left.end())
-    {
-        FavoritesModelItem item = *notebookItemIt;
-        int numNotesTargeted = item.numNotesTargeted();
-        --numNotesTargeted;
-        item.setNumNotesTargeted(std::max(numNotesTargeted, 0));
-        Q_UNUSED(localUidIndex.replace(notebookItemIt, item))
-
-        updateItemColumnInView(item, Columns::NumNotesTargeted);
-    }
-    else
-    {
-        QNDEBUG(QStringLiteral("There's an active request to fetch the note count for the expunged note's notebook: ")
-                << requestIt->second << QStringLiteral(", won't adjust the note count for it on the model side"));
-    }
+    checkAndDecrementNoteCountPerNotebook(notebookLocalUid);
 }
 
 void FavoritesModel::checkTagsUpdateForNote(const Note & note)

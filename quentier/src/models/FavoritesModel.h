@@ -218,11 +218,24 @@ private:
     void requestTagsList();
     void requestSavedSearchesList();
 
-    void requestNoteCountForNotebook(const QString & notebookLocalUid);
-    void requestNoteCountForAllNotebooks();
+    struct NoteCountRequestOption
+    {
+        enum type {
+            Force = 0,
+            IfNotAlreadyRunning
+        };
+    };
+
+    void requestNoteCountForNotebook(const QString & notebookLocalUid,
+                                     const NoteCountRequestOption::type option);
+    void requestNoteCountForAllNotebooks(const NoteCountRequestOption::type option);
 
     void requestNoteCountForTag(const QString & tagLocalUid);
     void requestNoteCountForAllTags();
+
+    void checkAndIncrementNoteCountPerNotebook(const QString & notebookLocalUid);
+    void checkAndDecrementNoteCountPerNotebook(const QString & notebookLocalUid);
+    void checkAndAdjustNoteCountPerNotebook(const QString & notebookLocalUid, const bool increment);
 
     QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
