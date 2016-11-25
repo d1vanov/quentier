@@ -4,7 +4,6 @@
 #include <quentier/utility/Qt4Helper.h>
 #include <QStyledItemDelegate>
 #include <QIcon>
-#include <QTextDocument>
 
 class FavoriteItemDelegate: public QStyledItemDelegate
 {
@@ -29,13 +28,16 @@ private:
                                       const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
+    QSize favoriteItemNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    void drawFavoriteItemName(QPainter * painter, const QModelIndex & index, const QStyleOptionViewItem & option) const;
+
+private:
     QIcon   m_notebookIcon;
     QIcon   m_tagIcon;
     QIcon   m_noteIcon;
     QIcon   m_savedSearchIcon;
     QIcon   m_unknownTypeIcon;
     QSize   m_iconSize;
-    mutable QTextDocument   m_doc;
 };
 
 #endif // QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
