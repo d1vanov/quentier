@@ -230,12 +230,17 @@ private:
                                      const NoteCountRequestOption::type option);
     void requestNoteCountForAllNotebooks(const NoteCountRequestOption::type option);
 
-    void requestNoteCountForTag(const QString & tagLocalUid);
-    void requestNoteCountForAllTags();
-
     void checkAndIncrementNoteCountPerNotebook(const QString & notebookLocalUid);
     void checkAndDecrementNoteCountPerNotebook(const QString & notebookLocalUid);
     void checkAndAdjustNoteCountPerNotebook(const QString & notebookLocalUid, const bool increment);
+
+    void requestNoteCountForTag(const QString & tagLocalUid,
+                                const NoteCountRequestOption::type option);
+    void requestNoteCountForAllTags(const NoteCountRequestOption::type option);
+
+    void checkAndIncrementNoteCountPerTag(const QString & tagLocalUid);
+    void checkAndDecrementNoteCountPerTag(const QString & tagLocalUid);
+    void checkAndAdjustNoteCountPerTag(const QString & tagLocalUid, const bool increment);
 
     QVariant dataImpl(const int row, const Columns::type column) const;
     QVariant dataAccessibleText(const int row, const Columns::type column) const;
