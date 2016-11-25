@@ -27,6 +27,7 @@
 #include "delegates/DirtyColumnDelegate.h"
 #include "delegates/FavoriteItemDelegate.h"
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
+#include "delegates/NoteItemDelegate.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/TableView.h"
 #include "views/TreeView.h"
@@ -1201,10 +1202,30 @@ void MainWindow::setupViews()
                                            savedSearchesTableViewDirtyColumnDelegate->sideSize());
     savedSearchesTableView->horizontalHeader()->hide();
 
-    // TODO: setup m_pUI->noteListView
+    QListView * noteListView = m_pUI->noteListView;
+    noteListView->setModelColumn(NoteModel::Columns::Title);
+    noteListView->setItemDelegate(new NoteItemDelegate(noteListView));
 
+    QTableView * deletedNotesTableView = m_pUI->deletedNotesTableView;
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::PreviewText, true);
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::ThumbnailImageFilePath, true);
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::TagNameList, true);
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::Size, true);
+    SynchronizableColumnDelegate * deletedNotesTableViewSynchronizableColumnDelegate =
+            new SynchronizableColumnDelegate(deletedNotesTableView);
+    deletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Synchronizable,
+                                                    deletedNotesTableViewSynchronizableColumnDelegate);
+    deletedNotesTableView->setColumnWidth(NoteModel::Columns::Synchronizable,
+                                          deletedNotesTableViewSynchronizableColumnDelegate->sideSize());
+    DirtyColumnDelegate * deletedNotesTableViewDirtyColumnDelegate =
+            new DirtyColumnDelegate(deletedNotesTableView);
+    deletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Dirty,
+                                                    deletedNotesTableViewDirtyColumnDelegate);
+    deletedNotesTableView->setColumnWidth(NoteModel::Columns::Dirty,
+                                          deletedNotesTableViewDirtyColumnDelegate->sideSize());
+    // TODO: create and set the specific delegate which uses preview text if the title is empty
     m_pUI->deletedNotesTableView->horizontalHeader()->hide();
-    // TODO: setup this view further
 }
 
 void MainWindow::clearViews()
