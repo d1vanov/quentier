@@ -6,8 +6,6 @@
 #include <algorithm>
 #include <cmath>
 
-#define CIRCLE_RADIUS (2)
-
 using namespace quentier;
 
 TagItemDelegate::TagItemDelegate(QObject * parent) :

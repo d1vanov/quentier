@@ -29,6 +29,7 @@
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
 #include "delegates/NoteItemDelegate.h"
 #include "delegates/TagItemDelegate.h"
+#include "delegates/DeletedNoteTitleColumnDelegate.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/TableView.h"
 #include "views/TreeView.h"
@@ -1228,7 +1229,9 @@ void MainWindow::setupViews()
                                                     deletedNotesTableViewDirtyColumnDelegate);
     deletedNotesTableView->setColumnWidth(NoteModel::Columns::Dirty,
                                           deletedNotesTableViewDirtyColumnDelegate->sideSize());
-    // TODO: create and set the specific delegate which uses preview text if the title is empty
+    DeletedNoteTitleColumnDelegate * deletedNoteTitleColumnDelegate =
+            new DeletedNoteTitleColumnDelegate(deletedNotesTableView);
+    deletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Title, deletedNoteTitleColumnDelegate);
     m_pUI->deletedNotesTableView->horizontalHeader()->hide();
 }
 
