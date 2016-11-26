@@ -67,7 +67,7 @@ void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
 
 void NotebookItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
 {
-    if (index.column() == NotebookModel::Columns::Name) {
+    if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
         QStyledItemDelegate::setEditorData(editor, index);
     }
 }
@@ -75,7 +75,7 @@ void NotebookItemDelegate::setEditorData(QWidget * editor, const QModelIndex & i
 void NotebookItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
                                         const QModelIndex & index) const
 {
-    if (index.column() == NotebookModel::Columns::Name) {
+    if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
         QStyledItemDelegate::setModelData(editor, model, index);
     }
 }

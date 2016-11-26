@@ -28,6 +28,7 @@
 #include "delegates/FavoriteItemDelegate.h"
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
 #include "delegates/NoteItemDelegate.h"
+#include "delegates/TagItemDelegate.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/TableView.h"
 #include "views/TreeView.h"
@@ -1176,6 +1177,9 @@ void MainWindow::setupViews()
                                            tagsTreeViewFromLinkedNotebookColumnDelegate);
     tagsTreeView->setColumnWidth(TagModel::Columns::FromLinkedNotebook,
                                  tagsTreeViewFromLinkedNotebookColumnDelegate->sideSize());
+    TagItemDelegate * tagsTreeViewNameColumnDelegate = new TagItemDelegate(tagsTreeView);
+    tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Name, tagsTreeViewNameColumnDelegate);
+    tagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true);
     tagsTreeView->header()->hide();
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)

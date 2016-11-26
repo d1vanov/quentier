@@ -77,6 +77,7 @@ set(${PROJECT_NAME}_HEADERS
     src/delegates/FavoriteItemDelegate.h
     src/delegates/FromLinkedNotebookColumnDelegate.h
     src/delegates/SynchronizableColumnDelegate.h
+    src/delegates/TagItemDelegate.h
     src/insert-table-tool-button/InsertTableToolButton.h
     src/insert-table-tool-button/TableSettingsDialog.h
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
@@ -126,6 +127,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/FavoriteItemDelegate.cpp
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
+    src/delegates/TagItemDelegate.cpp
     src/views/TableView.cpp
     src/views/TreeView.cpp
     src/widgets/FindAndReplaceWidget.cpp
