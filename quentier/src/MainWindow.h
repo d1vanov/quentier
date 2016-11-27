@@ -129,6 +129,11 @@ private Q_SLOTS:
     void onAccountSwitched(Account account);
     void onAccountManagerError(QNLocalizedString errorDescription);
 
+    // Look and feel settings slots
+    void onSwitchIconsToNativeAction();
+    void onSwitchIconsToTangoAction();
+    void onSwitchIconsToOxygenAction();
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
@@ -180,10 +185,17 @@ private:
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
 
+    void refreshChildWidgetsThemeIcons();
+
+    template <class T>
+    void refreshThemeIcons();
+
 private:
     Ui::MainWindow *        m_pUI;
     QWidget *               m_currentStatusBarChildWidget;
     QString                 m_lastNoteEditorHtml;
+
+    QString                 m_nativeIconThemeName;
 
     QActionGroup *          m_availableAccountsActionGroup;
 

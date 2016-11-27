@@ -1924,7 +1924,7 @@ padding: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>30</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -2004,11 +2004,24 @@ border-bottom: 1px solid black;</string>
      </property>
      <addaction name="ActionShowSidePanel"/>
      <addaction name="ActionShowFavorites"/>
-     <addaction name="ActionShowNotes"/>
      <addaction name="ActionShowNotebooks"/>
      <addaction name="ActionShowTags"/>
      <addaction name="ActionShowSavedSearches"/>
-     <addaction name="ActionShowTrash"/>
+     <addaction name="ActionShowDeletedNotes"/>
+    </widget>
+    <widget class="QMenu" name="menuLookAndFeel">
+     <property name="title">
+      <string>Look and feel</string>
+     </property>
+     <widget class="QMenu" name="menuIcons">
+      <property name="title">
+       <string>Icons</string>
+      </property>
+      <addaction name="ActionIconsNative"/>
+      <addaction name="ActionIconsTango"/>
+      <addaction name="ActionIconsOxygen"/>
+     </widget>
+     <addaction name="menuIcons"/>
     </widget>
     <addaction name="ActionNotes"/>
     <addaction name="ActionNotebooks"/>
@@ -2017,10 +2030,10 @@ border-bottom: 1px solid black;</string>
     <addaction name="separator"/>
     <addaction name="menuSidePanel"/>
     <addaction name="ActionShowNotesList"/>
-    <addaction name="ActionShowNoteEditor"/>
     <addaction name="ActionShowToolbar"/>
     <addaction name="separator"/>
     <addaction name="ActionShowStatusBar"/>
+    <addaction name="menuLookAndFeel"/>
    </widget>
    <widget class="QMenu" name="menuFormat">
     <property name="locale">
@@ -2596,7 +2609,7 @@ border-bottom: 1px solid black;</string>
     <string>&amp;Saved searches</string>
    </property>
   </action>
-  <action name="ActionShowTrash">
+  <action name="ActionShowDeletedNotes">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -2604,7 +2617,7 @@ border-bottom: 1px solid black;</string>
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Sho&amp;w trash</string>
+    <string>Show &amp;deleted notes</string>
    </property>
   </action>
   <action name="ActionShowNoteEditor">
@@ -3218,6 +3231,9 @@ border-bottom: 1px solid black;</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Show side panel (left)</string>
    </property>
@@ -3229,12 +3245,18 @@ border-bottom: 1px solid black;</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Show &amp;favorites</string>
    </property>
   </action>
   <action name="ActionShowNotes">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -3245,12 +3267,18 @@ border-bottom: 1px solid black;</string>
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>S&amp;how notebooks</string>
+    <string>Show note&amp;books</string>
    </property>
   </action>
   <action name="ActionShowTags">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -3259,6 +3287,9 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionShowSavedSearches">
    <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
     <bool>true</bool>
    </property>
    <property name="text">
@@ -3387,6 +3418,21 @@ border-bottom: 1px solid black;</string>
   <action name="ActionSwitchAccount">
    <property name="text">
     <string>Switch account</string>
+   </property>
+  </action>
+  <action name="ActionIconsNative">
+   <property name="text">
+    <string>Native</string>
+   </property>
+  </action>
+  <action name="ActionIconsTango">
+   <property name="text">
+    <string>Tango</string>
+   </property>
+  </action>
+  <action name="ActionIconsOxygen">
+   <property name="text">
+    <string>Oxygen</string>
    </property>
   </action>
  </widget>

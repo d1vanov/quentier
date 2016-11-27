@@ -371,7 +371,7 @@ QString ShortcutManagerPrivate::keyToString(const int key) const
     PRINT_ITEM(ShowNotebooks);
     PRINT_ITEM(ShowTags);
     PRINT_ITEM(ShowSavedSearches);
-    PRINT_ITEM(ShowTrash);
+    PRINT_ITEM(ShowDeletedNotes);
     PRINT_ITEM(ShowStatusBar);
     PRINT_ITEM(ShowToolBar);
     PRINT_ITEM(PasteUnformatted);

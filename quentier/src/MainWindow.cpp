@@ -59,6 +59,7 @@
 #include <QCryptographicHash>
 #include <QXmlStreamWriter>
 #include <QDateTime>
+#include <QCheckBox>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -71,6 +72,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pUI(new Ui::MainWindow),
     m_currentStatusBarChildWidget(Q_NULLPTR),
     m_lastNoteEditorHtml(),
+    m_nativeIconThemeName(),
     m_availableAccountsActionGroup(new QActionGroup(this)),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
@@ -171,30 +173,58 @@ void MainWindow::connectActionsToSlots()
     QObject::connect(m_pUI->ActionPaste, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onPasteAction));
     // Select all action
-    QObject::connect(m_pUI->ActionSelectAll, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextSelectAllToggled));
+    QObject::connect(m_pUI->ActionSelectAll, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextSelectAllToggled));
     // Font actions
-    QObject::connect(m_pUI->ActionFontBold, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextBoldToggled));
-    QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextItalicToggled));
-    QObject::connect(m_pUI->ActionFontUnderlined, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
-    QObject::connect(m_pUI->ActionFontStrikethrough, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
-    QObject::connect(m_pUI->ActionIncreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextIncreaseFontSizeAction));
-    QObject::connect(m_pUI->ActionDecreaseFontSize, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextDecreaseFontSizeAction));
-    QObject::connect(m_pUI->ActionFontHighlight, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextHighlightAction));
+    QObject::connect(m_pUI->ActionFontBold, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextBoldToggled));
+    QObject::connect(m_pUI->ActionFontItalic, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextItalicToggled));
+    QObject::connect(m_pUI->ActionFontUnderlined, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextUnderlineToggled));
+    QObject::connect(m_pUI->ActionFontStrikethrough, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextStrikethroughToggled));
+    QObject::connect(m_pUI->ActionIncreaseFontSize, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextIncreaseFontSizeAction));
+    QObject::connect(m_pUI->ActionDecreaseFontSize, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextDecreaseFontSizeAction));
+    QObject::connect(m_pUI->ActionFontHighlight, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextHighlightAction));
     // Spell checking
-    QObject::connect(m_pUI->ActionSpellCheck, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextSpellCheckToggled));
-    // Format actions
-    QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
-    QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
-    QObject::connect(m_pUI->ActionAlignRight, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAlignRightAction));
-    QObject::connect(m_pUI->ActionInsertHorizontalLine, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextAddHorizontalLineAction));
-    QObject::connect(m_pUI->ActionIncreaseIndentation, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextIncreaseIndentationAction));
-    QObject::connect(m_pUI->ActionDecreaseIndentation, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextDecreaseIndentationAction));
-    QObject::connect(m_pUI->ActionInsertBulletedList, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
-    QObject::connect(m_pUI->ActionInsertNumberedList, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
-    QObject::connect(m_pUI->ActionInsertTable, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
-    QObject::connect(m_pUI->ActionEditHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextEditHyperlinkAction));
-    QObject::connect(m_pUI->ActionCopyHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextCopyHyperlinkAction));
-    QObject::connect(m_pUI->ActionRemoveHyperlink, QNSIGNAL(QAction,triggered), this, QNSLOT(MainWindow,onNoteTextRemoveHyperlinkAction));
+    QObject::connect(m_pUI->ActionSpellCheck, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextSpellCheckToggled));
+    // Text format actions
+    QObject::connect(m_pUI->ActionAlignLeft, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextAlignLeftAction));
+    QObject::connect(m_pUI->ActionAlignCenter, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
+    QObject::connect(m_pUI->ActionAlignRight, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextAlignRightAction));
+    QObject::connect(m_pUI->ActionInsertHorizontalLine, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextAddHorizontalLineAction));
+    QObject::connect(m_pUI->ActionIncreaseIndentation, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextIncreaseIndentationAction));
+    QObject::connect(m_pUI->ActionDecreaseIndentation, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextDecreaseIndentationAction));
+    QObject::connect(m_pUI->ActionInsertBulletedList, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextInsertUnorderedListAction));
+    QObject::connect(m_pUI->ActionInsertNumberedList, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextInsertOrderedListAction));
+    QObject::connect(m_pUI->ActionInsertTable, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextInsertTableDialogAction));
+    QObject::connect(m_pUI->ActionEditHyperlink, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextEditHyperlinkAction));
+    QObject::connect(m_pUI->ActionCopyHyperlink, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextCopyHyperlinkAction));
+    QObject::connect(m_pUI->ActionRemoveHyperlink, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextRemoveHyperlinkAction));
+    // Look and feel actions
+    QObject::connect(m_pUI->ActionIconsNative, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconsToNativeAction));
+    QObject::connect(m_pUI->ActionIconsOxygen, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconsToOxygenAction));
+    QObject::connect(m_pUI->ActionIconsTango, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchIconsToTangoAction));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -500,6 +530,17 @@ void MainWindow::prepareTestInkNote()
 
     inkNoteImageFile.write(inkNoteImageData);
     inkNoteImageFile.close();
+}
+
+void MainWindow::refreshChildWidgetsThemeIcons()
+{
+    QNDEBUG(QStringLiteral("MainWindow::refreshChildWidgetsThemeIcons"));
+
+    refreshThemeIcons<QAction>();
+    refreshThemeIcons<QPushButton>();
+    refreshThemeIcons<QCheckBox>();
+    refreshThemeIcons<ColorPickerToolButton>();
+    refreshThemeIcons<InsertTableToolButton>();
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
@@ -913,6 +954,62 @@ void MainWindow::onAccountManagerError(QNLocalizedString errorDescription)
     onSetStatusBarText(errorDescription.localizedString());
 }
 
+void MainWindow::onSwitchIconsToNativeAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToNativeAction"));
+
+    if (m_nativeIconThemeName.isEmpty()) {
+        QNLocalizedString error = QNLocalizedString("No native icon theme is available", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    if (QIcon::themeName() == m_nativeIconThemeName) {
+        QNLocalizedString error = QNLocalizedString("Already using native icon theme", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QIcon::setThemeName(m_nativeIconThemeName);
+    refreshChildWidgetsThemeIcons();
+}
+
+void MainWindow::onSwitchIconsToTangoAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToTangoAction"));
+
+    QString tango = QStringLiteral("tango");
+
+    if (QIcon::themeName() == tango) {
+        QNLocalizedString error = QNLocalizedString("Already using tango icon theme", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QIcon::setThemeName(tango);
+    refreshChildWidgetsThemeIcons();
+}
+
+void MainWindow::onSwitchIconsToOxygenAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToOxygenAction"));
+
+    QString oxygen = QStringLiteral("oxygen");
+
+    if (QIcon::themeName() == oxygen) {
+        QNLocalizedString error = QNLocalizedString("Already using oxygen icon theme", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QIcon::setThemeName(oxygen);
+    refreshChildWidgetsThemeIcons();
+}
+
 void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("MainWindow::onLocalStorageSwitchUserRequestComplete: account = ")
@@ -1017,7 +1114,14 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
 {
     QNTRACE(QStringLiteral("MainWindow::checkThemeIconsAndSetFallbacks"));
 
+    m_nativeIconThemeName = QIcon::themeName();
+    QNDEBUG(QStringLiteral("Native icon theme name: ") << m_nativeIconThemeName);
+
     if (!QIcon::hasThemeIcon(QStringLiteral("document-open"))) {
+        QNDEBUG(QStringLiteral("There seems to be no native icon theme available: "
+                               "document-open icon is not present within the theme"));
+        m_pUI->ActionIconsNative->setDisabled(true);
+        m_pUI->ActionIconsNative->setVisible(false);
         QIcon::setThemeName(QStringLiteral("oxygen"));
     }
 }
@@ -1396,4 +1500,38 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
 
     consumerSecretObf = qUncompress(consumerSecretObf);
     consumerSecret = QString::fromUtf8(consumerSecretObf.constData(), consumerSecretObf.size());
+}
+
+template <class T>
+void MainWindow::refreshThemeIcons()
+{
+    QList<T*> objects = findChildren<T*>();
+    QNDEBUG(QStringLiteral("Found ") << objects.size() << QStringLiteral(" child objects"));
+
+    for(auto it = objects.constBegin(), end = objects.constEnd(); it != end; ++it)
+    {
+        T * object = *it;
+        if (Q_UNLIKELY(!object)) {
+            continue;
+        }
+
+        QIcon icon = object->icon();
+        if (icon.isNull()) {
+            continue;
+        }
+
+        QString iconName = icon.name();
+        if (iconName.isEmpty()) {
+            continue;
+        }
+
+        QIcon newIcon;
+        if (QIcon::hasThemeIcon(iconName)) {
+            newIcon = QIcon::fromTheme(iconName);
+        }
+        else {
+            newIcon.addFile(QStringLiteral("."), QSize(), QIcon::Normal, QIcon::Off);
+        }
+        object->setIcon(newIcon);
+    }
 }

@@ -57,7 +57,7 @@ public:
         ShowNotebooks,
         ShowTags,
         ShowSavedSearches,
-        ShowTrash,
+        ShowDeletedNotes,
         ShowStatusBar,
         ShowToolBar,
         PasteUnformatted,
