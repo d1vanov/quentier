@@ -87,6 +87,7 @@
         <file alias="16x16/go-top.png">16x16/actions/go-top.png</file>
         <file alias="16x16/media-playback-start.png">16x16/actions/media-playback-start.png</file>
         <file alias="16x16/go-up.png">16x16/actions/go-up.png</file>
+        <file alias="16x16/mail-send.png">16x16/actions/mail-send.png</file>
         <file alias="16x16/mail-send-receive.png">16x16/actions/mail-send-receive.png</file>
         <file alias="16x16/format-justify-right.png">16x16/actions/format-justify-right.png</file>
         <file alias="16x16/format-justify-center.png">16x16/actions/format-justify-center.png</file>
@@ -303,6 +304,7 @@
         <file alias="22x22/go-top.png">22x22/actions/go-top.png</file>
         <file alias="22x22/media-playback-start.png">22x22/actions/media-playback-start.png</file>
         <file alias="22x22/go-up.png">22x22/actions/go-up.png</file>
+        <file alias="22x22/mail-send.png">22x22/actions/mail-send.png</file>
         <file alias="22x22/mail-send-receive.png">22x22/actions/mail-send-receive.png</file>
         <file alias="22x22/format-justify-right.png">22x22/actions/format-justify-right.png</file>
         <file alias="22x22/format-justify-center.png">22x22/actions/format-justify-center.png</file>
@@ -519,6 +521,7 @@
         <file alias="32x32/go-top.png">32x32/actions/go-top.png</file>
         <file alias="32x32/media-playback-start.png">32x32/actions/media-playback-start.png</file>
         <file alias="32x32/go-up.png">32x32/actions/go-up.png</file>
+        <file alias="32x32/mail-send.png">32x32/actions/mail-send.png</file>
         <file alias="32x32/mail-send-receive.png">32x32/actions/mail-send-receive.png</file>
         <file alias="32x32/format-justify-right.png">32x32/actions/format-justify-right.png</file>
         <file alias="32x32/format-justify-center.png">32x32/actions/format-justify-center.png</file>
