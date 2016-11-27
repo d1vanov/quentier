@@ -70,7 +70,7 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
      <number>0</number>
     </property>
     <item>
-     <widget class="QWidget" name="upperBar" native="true">
+     <widget class="QFrame" name="upperBarPanel">
       <property name="minimumSize">
        <size>
         <width>50</width>
@@ -78,7 +78,7 @@ stop: 0.9 #4c4c4c, stop: 1 #333333);
        </size>
       </property>
       <property name="styleSheet">
-       <string notr="true">QWidget#upperBar {
+       <string notr="true">QFrame#upperBarPanel {
 border: none;
 background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, 
@@ -123,6 +123,9 @@ margin-right: 2px;
 padding-left: 2px;
 padding-right: 2px;
 }</string>
+      </property>
+      <property name="lineWidth">
+       <number>0</number>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
@@ -522,7 +525,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QWidget" name="favoritesHeaderWidget" native="true">
+          <widget class="QFrame" name="favoritesHeaderPanel">
            <property name="styleSheet">
             <string notr="true">QWidget {
 border: none;
@@ -563,21 +566,24 @@ QLabel {
 border: none;
 }</string>
            </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
            <layout class="QHBoxLayout" name="favoritesHeaderHorizontalLayout">
             <property name="spacing">
              <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QPushButton" name="favoritesIconPseudoPushButton">
@@ -753,7 +759,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QWidget" name="notebooksHeaderWidget" native="true">
+          <widget class="QFrame" name="notebooksHeaderPanel">
            <property name="styleSheet">
             <string notr="true">QWidget {
 border: none;
@@ -793,21 +799,24 @@ QLabel {
 border: none;
 }</string>
            </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
            <layout class="QHBoxLayout" name="notebooksHeaderVerticalLayout">
             <property name="spacing">
              <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QPushButton" name="notebooksIconPseudoPushButton">
@@ -830,14 +839,14 @@ border: none;
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
+               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset resource="../resource/icons/other/icons.qrc">
                 <normaloff>:/notebook/book.png</normaloff>:/notebook/book.png</iconset>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1001,7 +1010,8 @@ background-color: transparent;
        <widget class="QWidget" name="tagsWidget" native="true">
         <property name="styleSheet">
          <string notr="true">QWidget#tagsWidget {
-border: 1px solid black
+border: 1px solid black;
+border-top: none;
 }</string>
         </property>
         <layout class="QVBoxLayout" name="tagsVerticalLayout">
@@ -1021,7 +1031,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QWidget" name="tagsHeaderWidget" native="true">
+          <widget class="QFrame" name="tagsHeaderPanel">
            <property name="styleSheet">
             <string notr="true">QWidget {
 border: none;
@@ -1061,21 +1071,24 @@ QLabel {
 border: none;
 }</string>
            </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
            <layout class="QHBoxLayout" name="tagButtonsHorizontalLayout">
             <property name="spacing">
              <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QLabel" name="tagIcon">
@@ -1253,7 +1266,8 @@ background-color: transparent;
        <widget class="QWidget" name="savedSearchesWidget" native="true">
         <property name="styleSheet">
          <string notr="true">QWidget#savedSearchesWidget {
-border: 1px solid black
+border: 1px solid black;
+border-top: none;
 }</string>
         </property>
         <layout class="QVBoxLayout" name="savedSearchesVerticalLayout">
@@ -1273,7 +1287,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QWidget" name="savedSearchesHeaderWidget" native="true">
+          <widget class="QFrame" name="savedSearchesHeaderPanel">
            <property name="styleSheet">
             <string notr="true">QWidget {
 border: none;
@@ -1313,21 +1327,24 @@ QLabel {
 border: none;
 }</string>
            </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
            <layout class="QHBoxLayout" name="savedSearchesButtonsHorizontalLayout">
             <property name="spacing">
              <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QPushButton" name="savedSearchIconPseudoPushButton">
@@ -1350,14 +1367,14 @@ border: none;
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
+               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset theme="edit-find">
                 <normaloff>.</normaloff>.</iconset>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1509,7 +1526,8 @@ background-color: transparent;
        <widget class="QWidget" name="deletedNotesWidget" native="true">
         <property name="styleSheet">
          <string notr="true">QWidget#deletedNotesWidget {
-border: 1px solid black
+border: 1px solid black;
+border-top: none;
 }</string>
         </property>
         <layout class="QVBoxLayout" name="deletedNotesVerticalLayout">
@@ -1529,7 +1547,7 @@ border: 1px solid black
           <number>1</number>
          </property>
          <item>
-          <widget class="QWidget" name="deletedNotesHeaderWidget" native="true">
+          <widget class="QFrame" name="deletedNotesHeaderPanel">
            <property name="styleSheet">
             <string notr="true">QWidget {
 border: none;
@@ -1569,21 +1587,24 @@ QLabel {
 border: none;
 }</string>
            </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
            <layout class="QHBoxLayout" name="deletedNotesButtonsHorizontalLayout">
             <property name="spacing">
              <number>0</number>
             </property>
             <property name="leftMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="topMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="rightMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="bottomMargin">
-             <number>1</number>
+             <number>0</number>
             </property>
             <item>
              <widget class="QPushButton" name="deleteNoteIconPseudoPushButton">
@@ -1600,14 +1621,14 @@ border: none;
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);</string>
+               <string notr="true"/>
               </property>
               <property name="icon">
                <iconset theme="user-trash">
                 <normaloff>.</normaloff>.</iconset>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -1795,88 +1816,118 @@ border-bottom: none;
          <number>0</number>
         </property>
         <item>
-         <widget class="QSplitter" name="noteListWidgetHeaderSplitter">
+         <widget class="QFrame" name="noteListWidgetHeaderPanel">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Raised</enum>
+          </property>
           <property name="lineWidth">
            <number>0</number>
           </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="handleWidth">
-           <number>0</number>
-          </property>
-          <widget class="QLabel" name="noteSortingModeLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <property name="spacing">
+            <number>0</number>
            </property>
-           <property name="minimumSize">
-            <size>
-             <width>80</width>
-             <height>21</height>
-            </size>
+           <property name="leftMargin">
+            <number>0</number>
            </property>
-           <property name="maximumSize">
-            <size>
-             <width>140</width>
-             <height>16777215</height>
-            </size>
+           <property name="topMargin">
+            <number>0</number>
            </property>
-           <property name="styleSheet">
-            <string notr="true">border: none;
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QSplitter" name="noteListWidgetHeaderSplitter">
+             <property name="lineWidth">
+              <number>0</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="handleWidth">
+              <number>0</number>
+             </property>
+             <widget class="QLabel" name="noteSortingModeLabelPanel">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>80</width>
+                <height>21</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>140</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">border: none;
 border-right: 1px solid black;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 margin-top: 1px;
 padding-bottom: 1px;</string>
-           </property>
-           <property name="lineWidth">
-            <number>0</number>
-           </property>
-           <property name="text">
-            <string>Sort &amp;by:</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="buddy">
-            <cstring>noteSortingModeComboBox</cstring>
-           </property>
-          </widget>
-          <widget class="QComboBox" name="noteSortingModeComboBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>115</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">border: none;
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="text">
+               <string>Sort &amp;by:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>noteSortingModeComboBox</cstring>
+              </property>
+             </widget>
+             <widget class="QComboBox" name="noteSortingModeComboBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>115</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">border: none;
 border-right: 1px solid black;
 margin-top: 1px;
 margin-bottom: 0px;
 margin-left: 0px;
 margin-right: 0px;
 padding: 0px;</string>
-           </property>
-          </widget>
+              </property>
+             </widget>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>
@@ -2011,17 +2062,26 @@ border-bottom: 1px solid black;</string>
     </widget>
     <widget class="QMenu" name="menuLookAndFeel">
      <property name="title">
-      <string>Look and feel</string>
+      <string>Look &amp;and feel</string>
      </property>
      <widget class="QMenu" name="menuIcons">
       <property name="title">
-       <string>Icons</string>
+       <string>&amp;Icons</string>
       </property>
       <addaction name="ActionIconsNative"/>
       <addaction name="ActionIconsTango"/>
       <addaction name="ActionIconsOxygen"/>
      </widget>
+     <widget class="QMenu" name="menuPanels">
+      <property name="title">
+       <string>Panels</string>
+      </property>
+      <addaction name="ActionPanelStyleBuiltIn"/>
+      <addaction name="ActionPanelStyleLighter"/>
+      <addaction name="ActionPanelStyleDarker"/>
+     </widget>
      <addaction name="menuIcons"/>
+     <addaction name="menuPanels"/>
     </widget>
     <addaction name="ActionNotes"/>
     <addaction name="ActionNotebooks"/>
@@ -3422,17 +3482,32 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionIconsNative">
    <property name="text">
-    <string>Native</string>
+    <string>&amp;Native</string>
    </property>
   </action>
   <action name="ActionIconsTango">
    <property name="text">
-    <string>Tango</string>
+    <string>&amp;Tango</string>
    </property>
   </action>
   <action name="ActionIconsOxygen">
    <property name="text">
-    <string>Oxygen</string>
+    <string>&amp;Oxygen</string>
+   </property>
+  </action>
+  <action name="ActionPanelStyleBuiltIn">
+   <property name="text">
+    <string>Built-in</string>
+   </property>
+  </action>
+  <action name="ActionPanelStyleLighter">
+   <property name="text">
+    <string>Lighter</string>
+   </property>
+  </action>
+  <action name="ActionPanelStyleDarker">
+   <property name="text">
+    <string>Darker</string>
    </property>
   </action>
  </widget>

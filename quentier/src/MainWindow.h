@@ -134,6 +134,10 @@ private Q_SLOTS:
     void onSwitchIconsToTangoAction();
     void onSwitchIconsToOxygenAction();
 
+    void onSwitchPanelStyleToBuiltIn();
+    void onSwitchPanelStyleToLighter();
+    void onSwitchPanelStyleToDarker();
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
@@ -191,6 +195,11 @@ private:
     template <class T>
     void refreshThemeIcons();
 
+    void collectBaseStyleSheets();
+    void setupPanelOverlayStyleSheets();
+    QString panelStyleSheet(const QString & panelStyleOption) const;
+    void setPanelsOverlayStyleSheet(const QString & overlayStyleSheet);
+
 private:
     Ui::MainWindow *        m_pUI;
     QWidget *               m_currentStatusBarChildWidget;
@@ -234,6 +243,17 @@ private:
     Note                    m_testNote;
 
     QUndoStack *            m_pUndoStack;
+
+    struct StyleSheetInfo
+    {
+        QPointer<QWidget>   m_targetWidget;
+        QString             m_baseStyleSheet;
+        QString             m_overlayStyleSheet;
+    };
+
+    QHash<QWidget*, StyleSheetInfo>    m_styleSheetInfo;
+
+    QString                 m_currentPanelStyle;
 
     quentier::ShortcutManager   m_shortcutManager;
 };

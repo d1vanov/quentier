@@ -61,6 +61,7 @@
 #include <QXmlStreamWriter>
 #include <QDateTime>
 #include <QCheckBox>
+#include <QPalette>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -101,6 +102,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNotebook(),
     m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
+    m_styleSheetInfo(),
+    m_currentPanelStyle(),
     m_shortcutManager(this)
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
@@ -108,6 +111,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupThemeIcons();
 
     m_pUI->setupUi(this);
+
+    collectBaseStyleSheets();
+    setupPanelOverlayStyleSheets();
 
     m_availableAccountsActionGroup->setExclusive(true);
 
@@ -226,6 +232,12 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchIconsToOxygenAction));
     QObject::connect(m_pUI->ActionIconsTango, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconsToTangoAction));
+    QObject::connect(m_pUI->ActionPanelStyleBuiltIn, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchPanelStyleToBuiltIn));
+    QObject::connect(m_pUI->ActionPanelStyleLighter, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchPanelStyleToLighter));
+    QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -552,6 +564,108 @@ void MainWindow::refreshChildWidgetsThemeIcons()
     refreshThemeIcons<QCheckBox>();
     refreshThemeIcons<ColorPickerToolButton>();
     refreshThemeIcons<InsertTableToolButton>();
+}
+
+void MainWindow::collectBaseStyleSheets()
+{
+    QNDEBUG(QStringLiteral("MainWindow::collectBaseStyleSheets"));
+
+    QList<QWidget*> childWidgets = findChildren<QWidget*>();
+    for(auto it = childWidgets.constBegin(), end = childWidgets.constEnd(); it != end; ++it)
+    {
+        QWidget * widget = *it;
+        if (Q_UNLIKELY(!widget)) {
+            continue;
+        }
+
+        QString styleSheet = widget->styleSheet();
+        if (styleSheet.isEmpty()) {
+            continue;
+        }
+
+        StyleSheetInfo & info = m_styleSheetInfo[widget];
+        info.m_baseStyleSheet = styleSheet;
+        info.m_targetWidget = QPointer<QWidget>(widget);
+    }
+}
+
+void MainWindow::setupPanelOverlayStyleSheets()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupPanelOverlayStyleSheets"));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("LookAndFeel"));
+    QString panelStyle = appSettings.value(QStringLiteral("panelStyle")).toString();
+    appSettings.endGroup();
+
+    if (panelStyle.isEmpty()) {
+        QNDEBUG(QStringLiteral("No last chosen panel style"));
+        return;
+    }
+
+    QString overlayStyleSheet = panelStyleSheet(panelStyle);
+    if (Q_UNLIKELY(overlayStyleSheet.isEmpty())) {
+        return;
+    }
+
+    m_currentPanelStyle = panelStyle;
+
+    setPanelsOverlayStyleSheet(overlayStyleSheet);
+}
+
+QString MainWindow::panelStyleSheet(const QString & panelStyleOption) const
+{
+    QString overlayStyleSheet = QStringLiteral("QWidget { background-color: ");
+
+    if (panelStyleOption == QStringLiteral("Lighter")) {
+        overlayStyleSheet += palette().color(QPalette::Light).name();
+        overlayStyleSheet += QStringLiteral("; color: ");
+        overlayStyleSheet += palette().color(QPalette::WindowText).name();
+    }
+    else if (panelStyleOption == QStringLiteral("Darker")) {
+        overlayStyleSheet += palette().color(QPalette::Dark).name();
+        overlayStyleSheet += QStringLiteral("; color: ");
+        overlayStyleSheet += palette().color(QPalette::BrightText).name();
+    }
+    else {
+        QNDEBUG(QStringLiteral("Unidentified panel style name: ") << panelStyleOption);
+        return QString();
+    }
+
+    overlayStyleSheet += QStringLiteral("; } .QFrame { border-bottom: 1px solid black; }");
+
+    QNTRACE(QStringLiteral("Overlay stylesheet: ") << overlayStyleSheet);
+    return overlayStyleSheet;
+}
+
+void MainWindow::setPanelsOverlayStyleSheet(const QString & overlayStyleSheet)
+{
+    for(auto it = m_styleSheetInfo.begin(); it != m_styleSheetInfo.end(); )
+    {
+        StyleSheetInfo & info = it.value();
+
+        const QPointer<QWidget> & widget = info.m_targetWidget;
+        if (Q_UNLIKELY(widget.isNull())) {
+            it = m_styleSheetInfo.erase(it);
+            continue;
+        }
+
+        ++it;
+
+        if (!widget->objectName().contains(QStringLiteral("Panel"))) {
+            QNTRACE(QStringLiteral("Skipping widget ") << widget->objectName());
+            continue;
+        }
+
+        info.m_overlayStyleSheet = overlayStyleSheet;
+
+        if (overlayStyleSheet.isEmpty()) {
+            widget->setStyleSheet(info.m_baseStyleSheet);
+        }
+        else {
+            widget->setStyleSheet(overlayStyleSheet);
+        }
+    }
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
@@ -1022,6 +1136,71 @@ void MainWindow::onSwitchIconsToOxygenAction()
     QIcon::setThemeName(oxygen);
     persistChosenIconTheme(oxygen);
     refreshChildWidgetsThemeIcons();
+}
+
+void MainWindow::onSwitchPanelStyleToBuiltIn()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToBuiltIn"));
+
+    if (m_currentPanelStyle.isEmpty()) {
+        QNLocalizedString error = QNLocalizedString("Already using the built-in panel style", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    m_currentPanelStyle.clear();
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup("LookAndFeel");
+    appSettings.remove(QStringLiteral("panelStyle"));
+    appSettings.endGroup();
+
+    setPanelsOverlayStyleSheet(QString());
+}
+
+void MainWindow::onSwitchPanelStyleToLighter()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToLighter"));
+
+    if (m_currentPanelStyle == QStringLiteral("Lighter")) {
+        QNLocalizedString error = QNLocalizedString("Already using the lighter panel style", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    m_currentPanelStyle = QStringLiteral("Lighter");
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup("LookAndFeel");
+    appSettings.setValue(QStringLiteral("panelStyle"), m_currentPanelStyle);
+    appSettings.endGroup();
+
+    QString overlayStyleSheet = panelStyleSheet(m_currentPanelStyle);
+    setPanelsOverlayStyleSheet(overlayStyleSheet);
+}
+
+void MainWindow::onSwitchPanelStyleToDarker()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToDarker"));
+
+    if (m_currentPanelStyle == QStringLiteral("Darker")) {
+        QNLocalizedString error = QNLocalizedString("Already using the darker panel style", this);
+        QNDEBUG(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    m_currentPanelStyle = QStringLiteral("Darker");
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup("LookAndFeel");
+    appSettings.setValue(QStringLiteral("panelStyle"), m_currentPanelStyle);
+    appSettings.endGroup();
+
+    QString overlayStyleSheet = panelStyleSheet(m_currentPanelStyle);
+    setPanelsOverlayStyleSheet(overlayStyleSheet);
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId)
