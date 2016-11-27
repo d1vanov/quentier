@@ -153,7 +153,7 @@ private Q_SLOTS:
     void onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
-    void checkThemeIconsAndSetFallbacks();
+    void setupThemeIcons();
 
     void setupAccountManager();
 
@@ -185,6 +185,7 @@ private:
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
 
+    void persistChosenIconTheme(const QString & iconThemeName);
     void refreshChildWidgetsThemeIcons();
 
     template <class T>

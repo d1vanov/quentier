@@ -40,6 +40,7 @@
 #include <quentier/types/Resource.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <cmath>
 #include <QPushButton>
@@ -104,7 +105,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
-    checkThemeIconsAndSetFallbacks();
+    setupThemeIcons();
 
     m_pUI->setupUi(this);
 
@@ -530,6 +531,16 @@ void MainWindow::prepareTestInkNote()
 
     inkNoteImageFile.write(inkNoteImageData);
     inkNoteImageFile.close();
+}
+
+void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
+{
+    QNDEBUG(QStringLiteral("MainWindow::persistChosenIconTheme: ") << iconThemeName);
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("LookAndFeel"));
+    appSettings.setValue(QStringLiteral("iconTheme"), iconThemeName);
+    appSettings.endGroup();
 }
 
 void MainWindow::refreshChildWidgetsThemeIcons()
@@ -973,6 +984,7 @@ void MainWindow::onSwitchIconsToNativeAction()
     }
 
     QIcon::setThemeName(m_nativeIconThemeName);
+    persistChosenIconTheme(m_nativeIconThemeName);
     refreshChildWidgetsThemeIcons();
 }
 
@@ -990,6 +1002,7 @@ void MainWindow::onSwitchIconsToTangoAction()
     }
 
     QIcon::setThemeName(tango);
+    persistChosenIconTheme(tango);
     refreshChildWidgetsThemeIcons();
 }
 
@@ -1007,6 +1020,7 @@ void MainWindow::onSwitchIconsToOxygenAction()
     }
 
     QIcon::setThemeName(oxygen);
+    persistChosenIconTheme(oxygen);
     refreshChildWidgetsThemeIcons();
 }
 
@@ -1110,9 +1124,9 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocali
     QNDEBUG(QStringLiteral("Couldn't find the action corresponding to the previous available account: ") << *m_pAccount);
 }
 
-void MainWindow::checkThemeIconsAndSetFallbacks()
+void MainWindow::setupThemeIcons()
 {
-    QNTRACE(QStringLiteral("MainWindow::checkThemeIconsAndSetFallbacks"));
+    QNTRACE(QStringLiteral("MainWindow::setupThemeIcons"));
 
     m_nativeIconThemeName = QIcon::themeName();
     QNDEBUG(QStringLiteral("Native icon theme name: ") << m_nativeIconThemeName);
@@ -1122,8 +1136,22 @@ void MainWindow::checkThemeIconsAndSetFallbacks()
                                "document-open icon is not present within the theme"));
         m_pUI->ActionIconsNative->setDisabled(true);
         m_pUI->ActionIconsNative->setVisible(false);
-        QIcon::setThemeName(QStringLiteral("oxygen"));
     }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("LookAndFeel"));
+    QString iconThemeName = appSettings.value(QStringLiteral("iconTheme")).toString();
+    appSettings.endGroup();
+
+    if (!iconThemeName.isEmpty()) {
+        QNDEBUG(QStringLiteral("Last chosen icon theme: ") << iconThemeName);
+    }
+    else {
+        QNDEBUG(QStringLiteral("No last chosen icon theme, fallback to oxygen"));
+        iconThemeName = QStringLiteral("oxygen");
+    }
+
+    QIcon::setThemeName(iconThemeName);
 }
 
 void MainWindow::setupAccountManager()
