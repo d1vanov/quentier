@@ -195,10 +195,44 @@ private:
     template <class T>
     void refreshThemeIcons();
 
+    class StyleSheetProperty
+    {
+    public:
+        struct Target
+        {
+            enum type {
+                None = 0,
+                ButtonHover,
+                ButtonPressed
+            };
+        };
+
+        StyleSheetProperty(const Target::type targetType = Target::None,
+                           const char * name = Q_NULLPTR,
+                           const QString & value = QString()) :
+            m_targetType(targetType),
+            m_name(name),
+            m_value(value)
+        {}
+
+        Target::type    m_targetType;
+        const char *    m_name;
+        QString         m_value;
+    };
+
+    typedef QVector<StyleSheetProperty> StyleSheetProperties;
+
     void collectBaseStyleSheets();
     void setupPanelOverlayStyleSheets();
-    QString panelStyleSheet(const QString & panelStyleOption) const;
-    void setPanelsOverlayStyleSheet(const QString & overlayStyleSheet);
+    void getPanelStyleSheetProperties(const QString & panelStyleOption, StyleSheetProperties & properties) const;
+    void setPanelsOverlayStyleSheet(const StyleSheetProperties & properties);
+
+    // This method performs a nasty hack - it searches for some properties within
+    // the passed in stylesheet and alters some of these; the whole workflow is based
+    // on weak assumptions about the structure of the stylesheet so once it is sufficiently
+    // altered, this method would stop work. Don't program like this, kids.
+    QString alterStyleSheet(const QString & originalStyleSheet,
+                            const StyleSheetProperties & properties);
 
 private:
     Ui::MainWindow *        m_pUI;
