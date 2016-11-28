@@ -476,7 +476,7 @@ padding-right: 2px;
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QSplitter" name="LeftPaneSplitter">
+      <widget class="QSplitter" name="leftPaneSplitter">
        <property name="maximumSize">
         <size>
          <width>16777215</width>
@@ -484,9 +484,11 @@ padding-right: 2px;
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">margin: 0px;
+        <string notr="true">#leftPaneSplitter {
+margin: 0px;
 padding: 0px;
-border: none;</string>
+border: none;
+}</string>
        </property>
        <property name="lineWidth">
         <number>0</number>
@@ -1960,6 +1962,8 @@ padding-right: 2px;
 QComboBox {
 border-top: 1px solid black;
 border-bottom: 1px solid black;
+border-right: 1px solid black;
+padding-right: 1px;
 }</string>
           </property>
           <property name="lineWidth">
@@ -2093,7 +2097,7 @@ border-bottom: 1px solid black;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>30</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
