@@ -58,6 +58,7 @@ QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
+QT_FORWARD_DECLARE_CLASS(NoteEditorTabWidgetManager)
 }
 
 using namespace quentier;
@@ -169,6 +170,8 @@ private:
     void setupViews();
     void clearViews();
 
+    void setupNoteEditorTabWidgetManager();
+
     void setupSynchronizationManager();
     void clearSynchronizationManager();
 
@@ -275,6 +278,8 @@ private:
     FavoritesModel *        m_pFavoritesModel;
 
     QStandardItemModel      m_blankModel;
+
+    NoteEditorTabWidgetManager *    m_pNoteEditorTabWidgetManager;
 
     Notebook                m_testNotebook;
     Note                    m_testNote;

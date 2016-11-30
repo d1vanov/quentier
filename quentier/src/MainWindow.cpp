@@ -17,6 +17,7 @@
  */
 
 #include "MainWindow.h"
+#include "NoteEditorTabWidgetManager.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
@@ -99,6 +100,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pDeletedNotesModel(Q_NULLPTR),
     m_pFavoritesModel(Q_NULLPTR),
     m_blankModel(),
+    m_pNoteEditorTabWidgetManager(Q_NULLPTR),
     m_testNotebook(),
     m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
@@ -128,6 +130,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupLocalStorageManager();
     setupModels();
     setupViews();
+
+    setupNoteEditorTabWidgetManager();
 
     setupDefaultShortcuts();
     setupUserShortcuts();
@@ -316,18 +320,18 @@ NoteEditorWidget * MainWindow::currentNoteEditor()
 {
     QNDEBUG(QStringLiteral("MainWindow::currentNoteEditor"));
 
-    if (Q_UNLIKELY(m_pUI->NoteTabWidget->count() == 0)) {
+    if (Q_UNLIKELY(m_pUI->noteEditorsTabWidget->count() == 0)) {
         QNTRACE(QStringLiteral("No open note editors"));
         return Q_NULLPTR;
     }
 
-    int currentIndex = m_pUI->NoteTabWidget->currentIndex();
+    int currentIndex = m_pUI->noteEditorsTabWidget->currentIndex();
     if (Q_UNLIKELY(currentIndex < 0)) {
         QNTRACE(QStringLiteral("No current note editor"));
         return Q_NULLPTR;
     }
 
-    QWidget * currentWidget = m_pUI->NoteTabWidget->widget(currentIndex);
+    QWidget * currentWidget = m_pUI->noteEditorsTabWidget->widget(currentIndex);
     if (Q_UNLIKELY(!currentWidget)) {
         QNTRACE(QStringLiteral("No current widget"));
         return Q_NULLPTR;
@@ -1782,6 +1786,19 @@ void MainWindow::clearViews()
 
     m_pUI->noteListView->setModel(&m_blankModel);
     m_pUI->deletedNotesTableView->setModel(&m_blankModel);
+}
+
+void MainWindow::setupNoteEditorTabWidgetManager()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupNoteEditorTabWidgetManager"));
+
+    delete m_pNoteEditorTabWidgetManager;
+    m_pNoteEditorTabWidgetManager = new NoteEditorTabWidgetManager(*m_pAccount, *m_pLocalStorageManager,
+                                                                   m_noteCache, m_notebookCache,
+                                                                   m_tagCache, *m_pTagModel,
+                                                                   m_pUI->noteEditorsTabWidget);
+
+    // TODO: connect relevant signals-slots
 }
 
 void MainWindow::setupSynchronizationManager()

@@ -173,8 +173,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="go-previous">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -203,8 +202,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="go-next">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -262,8 +260,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="dialog-information">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -292,8 +289,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="document-print">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -322,8 +318,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="mail-send">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -352,8 +347,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="edit-delete">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -382,8 +376,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="document-new">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -451,8 +444,7 @@ padding-right: 2px;
          </property>
          <property name="icon">
           <iconset theme="document-save">
-           <normaloff/>
-          </iconset>
+           <normaloff>.</normaloff>.</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -725,8 +717,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -761,8 +752,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -997,8 +987,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="document-new">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1039,8 +1028,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1075,8 +1063,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1300,8 +1287,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="document-new">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1336,8 +1322,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1372,8 +1357,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1549,8 +1533,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-find">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -1604,8 +1587,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="document-new">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1640,8 +1622,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-delete">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1670,8 +1651,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1840,8 +1820,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="user-trash">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="flat">
                <bool>true</bool>
@@ -1898,8 +1877,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-redo">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1937,8 +1915,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="edit-clear">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -1973,8 +1950,7 @@ border: none;
               </property>
               <property name="icon">
                <iconset theme="dialog-information">
-                <normaloff/>
-               </iconset>
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -2195,7 +2171,7 @@ border-bottom: 1px solid black;</string>
         </item>
        </layout>
       </widget>
-      <widget class="QTabWidget" name="NoteTabWidget">
+      <widget class="QTabWidget" name="noteEditorsTabWidget">
        <property name="minimumSize">
         <size>
          <width>600</width>
@@ -2216,7 +2192,7 @@ border-bottom: 1px solid black;</string>
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -2255,8 +2231,7 @@ border-bottom: 1px solid black;</string>
      </property>
      <property name="icon">
       <iconset theme="edit-find-replace">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionFindNote"/>
      <addaction name="separator"/>
@@ -2350,8 +2325,7 @@ border-bottom: 1px solid black;</string>
      </property>
      <property name="icon">
       <iconset theme="insert-table">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionInsertTable"/>
      <addaction name="ActionInsertRow"/>
@@ -2376,8 +2350,7 @@ border-bottom: 1px solid black;</string>
      </property>
      <property name="icon">
       <iconset theme="image-x-generic">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <addaction name="ActionSaveImage"/>
      <addaction name="ActionRotateClockwise"/>
@@ -2493,8 +2466,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNoteAdd">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -2509,8 +2481,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNoteDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -2534,8 +2505,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNoteCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Copy note</string>
@@ -2549,8 +2519,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNotebookAdd">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New</string>
@@ -2564,8 +2533,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNotebookDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Delete</string>
@@ -2574,8 +2542,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNotebookSetStack">
    <property name="icon">
     <iconset theme="list-add">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Add to stack</string>
@@ -2639,8 +2606,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionSendMail">
    <property name="icon">
     <iconset theme="mail-send">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Send by e-mail</string>
@@ -2655,8 +2621,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionPrint">
    <property name="icon">
     <iconset theme="printer">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Print</string>
@@ -2696,8 +2661,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionClearTrash">
    <property name="icon">
     <iconset theme="user-trash">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Clear trash</string>
@@ -2706,8 +2670,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionQuit">
    <property name="icon">
     <iconset theme="application-exit">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -2722,8 +2685,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionRedo">
    <property name="icon">
     <iconset theme="edit-redo">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Redo</string>
@@ -2738,8 +2700,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionCut">
    <property name="icon">
     <iconset theme="edit-cut">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Cut</string>
@@ -2754,8 +2715,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionCopy">
    <property name="icon">
     <iconset theme="edit-copy">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>C&amp;opy</string>
@@ -2770,8 +2730,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionPaste">
    <property name="icon">
     <iconset theme="edit-paste">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Paste</string>
@@ -2786,8 +2745,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionPasteUnformatted">
    <property name="icon">
     <iconset theme="insert-text">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>P&amp;aste unformatted</string>
@@ -2802,8 +2760,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionPreferences">
    <property name="icon">
     <iconset theme="preferences-other">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>S&amp;ettings</string>
@@ -2976,8 +2933,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontBold">
    <property name="icon">
     <iconset theme="format-text-bold">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Bold</string>
@@ -2992,8 +2948,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontUnderlined">
    <property name="icon">
     <iconset theme="format-text-underline">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Underlined</string>
@@ -3008,8 +2963,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontItalic">
    <property name="icon">
     <iconset theme="format-text-italic">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Italic</string>
@@ -3024,8 +2978,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontStrikethrough">
    <property name="icon">
     <iconset theme="format-text-strikethrough">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Strikethrough</string>
@@ -3040,8 +2993,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionInsertHorizontalLine">
    <property name="icon">
     <iconset theme="insert-horizontal-rule">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert horizontal &amp;rule</string>
@@ -3050,8 +3002,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontUpperIndex">
    <property name="icon">
     <iconset theme="go-top">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>U&amp;pper index</string>
@@ -3066,8 +3017,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontLowerIndex">
    <property name="icon">
     <iconset theme="go-bottom">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Lower index</string>
@@ -3107,8 +3057,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionSaveImage">
    <property name="icon">
     <iconset theme="document-save">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Save</string>
@@ -3117,8 +3066,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionRotateClockwise">
    <property name="icon">
     <iconset theme="object-rotate-right">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Rotate clockwise</string>
@@ -3127,8 +3075,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionRotateCounterClockwise">
    <property name="icon">
     <iconset theme="object-rotate-left">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Rotate &amp;counterclockwise</string>
@@ -3137,8 +3084,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionAlignLeft">
    <property name="icon">
     <iconset theme="format-justify-left">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Align left</string>
@@ -3153,8 +3099,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionAlignCenter">
    <property name="icon">
     <iconset theme="format-justify-center">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Aligh &amp;center</string>
@@ -3169,8 +3114,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionAlignRight">
    <property name="icon">
     <iconset theme="format-justify-right">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Align &amp;right</string>
@@ -3185,8 +3129,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionInsertBulletedList">
    <property name="icon">
     <iconset theme="format-list-unordered">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Insert bulleted list</string>
@@ -3201,8 +3144,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionInsertNumberedList">
    <property name="icon">
     <iconset theme="format-list-ordered">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Insert &amp;numbered list</string>
@@ -3217,8 +3159,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionIncreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Increase</string>
@@ -3236,8 +3177,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionDecreaseIndentation">
    <property name="icon">
     <iconset theme="format-indent-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Decrease</string>
@@ -3268,8 +3208,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionSpellCheck">
    <property name="icon">
     <iconset theme="tools-check-spelling">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Sp&amp;ellcheck</string>
@@ -3329,8 +3268,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionGoPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go back</string>
@@ -3342,8 +3280,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionGoNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Go forward</string>
@@ -3358,8 +3295,7 @@ border-bottom: 1px solid black;</string>
    </property>
    <property name="icon">
     <iconset theme="go-up">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Up</string>
@@ -3371,8 +3307,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionGoDown">
    <property name="icon">
     <iconset theme="go-down">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Down</string>
@@ -3402,8 +3337,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionShowNoteAttributesButton">
    <property name="icon">
     <iconset theme="dialog-information">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Show note attributes</string>
@@ -3432,8 +3366,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNewNote">
    <property name="icon">
     <iconset theme="document-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;New note</string>
@@ -3448,8 +3381,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNewNotebook">
    <property name="icon">
     <iconset theme="folder-new">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>N&amp;ew notebook</string>
@@ -3467,8 +3399,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionNewSavedSearch">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>New &amp;saved search</string>
@@ -3477,8 +3408,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionSelectAll">
    <property name="icon">
     <iconset theme="edit-select-all">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Select all</string>
@@ -3493,8 +3423,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionDelete">
    <property name="icon">
     <iconset theme="edit-delete">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Delete</string>
@@ -3503,8 +3432,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFindNote">
    <property name="icon">
     <iconset theme="system-search">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Find note</string>
@@ -3516,8 +3444,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFindInsideNote">
    <property name="icon">
     <iconset theme="edit-find">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find &amp;inside note</string>
@@ -3529,8 +3456,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFindNext">
    <property name="icon">
     <iconset theme="go-next">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find &amp;next</string>
@@ -3542,8 +3468,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFindPrevious">
    <property name="icon">
     <iconset theme="go-previous">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Find &amp;previous</string>
@@ -3555,8 +3480,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionReplaceInNote">
    <property name="icon">
     <iconset theme="edit-replace">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Replace in note</string>
@@ -3568,8 +3492,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionUndo">
    <property name="icon">
     <iconset theme="edit-undo">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -3692,8 +3615,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionIncreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-more">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Increase</string>
@@ -3708,8 +3630,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionDecreaseFontSize">
    <property name="icon">
     <iconset theme="format-font-size-less">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Decrease</string>
@@ -3724,8 +3645,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionFontHighlight">
    <property name="icon">
     <iconset theme="fill-color">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Highlight</string>
@@ -3740,8 +3660,7 @@ border-bottom: 1px solid black;</string>
   <action name="ActionEditHyperlink">
    <property name="icon">
     <iconset theme="insert-link">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Add/edit...</string>
