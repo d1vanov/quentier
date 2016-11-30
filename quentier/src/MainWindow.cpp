@@ -1606,7 +1606,7 @@ void MainWindow::setupModels()
     m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
 
     m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
-    m_pUI->notebooksTableView->setModel(m_pNotebookModel);
+    m_pUI->notebooksTreeView->setModel(m_pNotebookModel);
     m_pUI->tagsTreeView->setModel(m_pTagModel);
     m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
     m_pUI->noteListView->setModel(m_pNoteModel);
@@ -1664,35 +1664,35 @@ void MainWindow::setupViews()
     favoritesTableView->setItemDelegate(favoriteItemDelegate);
     favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
 
-    TableView * notebooksTableView = m_pUI->notebooksTableView;
-    NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegate(notebookItemDelegate);
-    SynchronizableColumnDelegate * notebookTableViewSynchronizableColumnDelegate =
-            new SynchronizableColumnDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable,
-                                                 notebookTableViewSynchronizableColumnDelegate);
-    notebooksTableView->setColumnWidth(NotebookModel::Columns::Synchronizable,
-                                       notebookTableViewSynchronizableColumnDelegate->sideSize());
-    DirtyColumnDelegate * notebookTableViewDirtyColumnDelegate =
-            new DirtyColumnDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
-                                                 notebookTableViewDirtyColumnDelegate);
-    notebooksTableView->setColumnWidth(NotebookModel::Columns::Dirty,
-                                       notebookTableViewDirtyColumnDelegate->sideSize());
-    FromLinkedNotebookColumnDelegate * notebookTableViewFromLinkedNotebookColumnDelegate =
-            new FromLinkedNotebookColumnDelegate(notebooksTableView);
-    notebooksTableView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook,
-                                                 notebookTableViewFromLinkedNotebookColumnDelegate);
-    notebooksTableView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook,
-                                       notebookTableViewFromLinkedNotebookColumnDelegate->sideSize());
-    notebooksTableView->horizontalHeader()->hide();
+    TreeView * notebooksTreeView = m_pUI->notebooksTreeView;
+    NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTreeView);
+    notebooksTreeView->setItemDelegate(notebookItemDelegate);
+    SynchronizableColumnDelegate * notebookTreeViewSynchronizableColumnDelegate =
+            new SynchronizableColumnDelegate(notebooksTreeView);
+    notebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable,
+                                                notebookTreeViewSynchronizableColumnDelegate);
+    notebooksTreeView->setColumnWidth(NotebookModel::Columns::Synchronizable,
+                                      notebookTreeViewSynchronizableColumnDelegate->sideSize());
+    DirtyColumnDelegate * notebookTreeViewDirtyColumnDelegate =
+            new DirtyColumnDelegate(notebooksTreeView);
+    notebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
+                                                notebookTreeViewDirtyColumnDelegate);
+    notebooksTreeView->setColumnWidth(NotebookModel::Columns::Dirty,
+                                      notebookTreeViewDirtyColumnDelegate->sideSize());
+    FromLinkedNotebookColumnDelegate * notebookTreeViewFromLinkedNotebookColumnDelegate =
+            new FromLinkedNotebookColumnDelegate(notebooksTreeView);
+    notebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::FromLinkedNotebook,
+                                                notebookTreeViewFromLinkedNotebookColumnDelegate);
+    notebooksTreeView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook,
+                                      notebookTreeViewFromLinkedNotebookColumnDelegate->sideSize());
+    notebooksTreeView->header()->hide();
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
-                     notebooksTableView, QNSLOT(TableView,dataChanged,const QModelIndex&,const QModelIndex&));
+                     notebooksTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&));
 #else
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
-                     notebooksTableView, QNSLOT(TableView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+                     notebooksTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
 #endif
 
     TreeView * tagsTreeView = m_pUI->tagsTreeView;
@@ -1776,7 +1776,7 @@ void MainWindow::clearViews()
     QNDEBUG(QStringLiteral("MainWindow::clearViews"));
 
     m_pUI->favoritesTableView->setModel(&m_blankModel);
-    m_pUI->notebooksTableView->setModel(&m_blankModel);
+    m_pUI->notebooksTreeView->setModel(&m_blankModel);
     m_pUI->tagsTreeView->setModel(&m_blankModel);
     m_pUI->savedSearchesTableView->setModel(&m_blankModel);
 
