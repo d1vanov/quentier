@@ -115,11 +115,12 @@ stop: 0.9 #262626, stop: 1 #1a1a1a);
 
 QLabel {
 color: rgb(255, 255, 255);
+margin-right: 2px;
 }
 
 QLineEdit {
-margin-left: 2px;
-margin-right: 2px;
+margin-left: 0px;
+margin-right: 0px;
 padding-left: 2px;
 padding-right: 2px;
 }</string>
@@ -553,6 +554,10 @@ color: rgb(255, 255, 255);
 margin: 0px;
 }
 
+.QFrame {
+padding-top: 1px;
+}
+
 QPushButton {
 border: none;
 padding: 0px;
@@ -809,6 +814,10 @@ color: rgb(255, 255, 255);
 margin: 0px;
 }
 
+.QFrame {
+margin-top: 1px;
+}
+
 QPushButton {
 border: none;
 padding: 0px;
@@ -1051,6 +1060,7 @@ border: none;
            <property name="styleSheet">
             <string notr="true">QTableView#notebooksTableView {
 border: none;
+border-top: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
@@ -1107,6 +1117,11 @@ stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 margin: 0px;
+}
+
+.QFrame {
+margin-top: 1px;
+margin-bottom: 1px;
 }
 
 QPushButton {
@@ -1321,6 +1336,7 @@ border: none;
            <property name="styleSheet">
             <string notr="true">QTreeView#tagsTreeView {
 border: none;
+border-top: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
@@ -1377,6 +1393,11 @@ stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 margin: 0px;
+}
+
+.QFrame {
+margin-top: 1px;
+margin-bottom: 1px;
 }
 
 QPushButton {
@@ -1609,6 +1630,7 @@ border: none;
            <property name="styleSheet">
             <string notr="true">QTableView#savedSearchesTableView {
 border: none;
+border-top: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
@@ -1664,6 +1686,11 @@ stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
 margin: 0px;
+}
+
+.QFrame {
+margin-top: 1px;
+margin-bottom: 1px;
 }
 
 QPushButton {
@@ -1902,6 +1929,7 @@ border: none;
            <property name="styleSheet">
             <string notr="true">QTableView#deletedNotesTableView {
 border: none;
+border-top: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
@@ -1948,9 +1976,11 @@ margin: 0px;
 padding: 0px;
 }
 
+.QFrame {
+border: 1px solid black
+}
+
 QLabel {
-border-top: 1px solid black;
-border-bottom: 1px solid black;
 background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
@@ -1960,9 +1990,6 @@ padding-right: 2px;
 }
 
 QComboBox {
-border-top: 1px solid black;
-border-bottom: 1px solid black;
-border-right: 1px solid black;
 padding-right: 1px;
 }</string>
           </property>
