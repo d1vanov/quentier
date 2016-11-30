@@ -234,6 +234,9 @@ private:
     QString alterStyleSheet(const QString & originalStyleSheet,
                             const StyleSheetProperties & properties);
 
+    bool isInsideStyleBlock(const QString & styleSheet, const QString & styleBlockStartSearchString,
+                            const int currentIndex, bool & error) const;
+
 private:
     Ui::MainWindow *        m_pUI;
     QWidget *               m_currentStatusBarChildWidget;

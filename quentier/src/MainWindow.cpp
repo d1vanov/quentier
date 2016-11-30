@@ -727,25 +727,70 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
 
     QString result = originalStyleSheet;
 
+#define REPORT_ERROR() \
+    QNLocalizedString errorDescription = QT_TR_NOOP("Can't alter the stylesheet: stylesheet parsing failed"); \
+    QNINFO(errorDescription << QStringLiteral(", original stylesheet: ") \
+           << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ") \
+           << result << QStringLiteral(", property index = ") \
+           << propertyIndex); \
+    onSetStatusBarText(errorDescription.localizedString())
+
     for(auto it = properties.constBegin(), end = properties.constEnd(); it != end; ++it)
     {
         const StyleSheetProperty & property = *it;
 
         QString propertyName = QString::fromUtf8(property.m_name);
 
-        // FIXME: there can be more than one hover and pressed stylesheet items...
-        int hoverIndex = result.indexOf(QStringLiteral(":hover"), std::max(hoverIndex, 0));
-        int hoverEndIndex = result.indexOf(QStringLiteral("}"), std::max(hoverIndex, 0));
-
-        int pressedIndex = result.indexOf(QStringLiteral(":pressed"), std::max(pressedIndex, 0));
-        int pressedEndIndex = result.indexOf(QStringLiteral("}"), std::max(pressedIndex, 0));
-
         int propertyIndex = -1;
         while(true)
         {
+            if (propertyIndex >= result.size()) {
+                break;
+            }
+
             propertyIndex = result.indexOf(propertyName, propertyIndex + 1);
             if (propertyIndex < 0) {
                 break;
+            }
+
+            if (propertyIndex > 0)
+            {
+                // Check that what we've found is the start of a word
+                QChar previousChar = result[propertyIndex - 1];
+                QString previousCharString(previousChar);
+                if (!previousCharString.trimmed().isEmpty()) {
+                    continue;
+                }
+            }
+
+            bool error = false;
+            bool insideHover = isInsideStyleBlock(result, QStringLiteral(":hover:!pressed"), propertyIndex, error);
+            if (Q_UNLIKELY(error)) {
+                REPORT_ERROR();
+                return QString();
+            }
+
+            error = false;
+            bool insidePressed = isInsideStyleBlock(result, QStringLiteral(":pressed"), propertyIndex, error);
+            if (Q_UNLIKELY(error)) {
+                REPORT_ERROR();
+                return QString();
+            }
+
+            error = false;
+            bool insidePseudoButtonHover = isInsideStyleBlock(result, QStringLiteral("pseudoPushButton:hover:!pressed"),
+                                                              propertyIndex, error);
+            if (Q_UNLIKELY(error)) {
+                REPORT_ERROR();
+                return QString();
+            }
+
+            error = false;
+            bool insidePseudoButtonPressed = isInsideStyleBlock(result, QStringLiteral("pseudoPushButton:hover:pressed"),
+                                                                propertyIndex, error);
+            if (Q_UNLIKELY(error)) {
+                REPORT_ERROR();
+                return QString();
             }
 
             int propertyEndIndex = result.indexOf(QStringLiteral(";"), propertyIndex + 1);
@@ -766,22 +811,24 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
             QNDEBUG(QStringLiteral("Replacing substring ") \
                     << result.midRef(propertyIndex, propertyEndIndex - propertyIndex) \
                     << QStringLiteral(" with ") << replacement); \
-            result.replace(propertyIndex, propertyEndIndex, replacement)
+            result.replace(propertyIndex, propertyEndIndex - propertyIndex, replacement); \
+            QNDEBUG(QStringLiteral("Stylesheet after the replacement: ") << result)
 #else
 #define REPLACE() \
             QNDEBUG(QStringLiteral("Replacing substring ") \
                     << result.mid(propertyIndex, propertyEndIndex - propertyIndex) \
                     << QStringLiteral(" with ") << replacement); \
-            result.replace(propertyIndex, propertyEndIndex, replacement)
+            result.replace(propertyIndex, propertyEndIndex - propertyIndex, replacement); \
+            QNDEBUG(QStringLiteral("Stylesheet after the replacement: ") << result)
 #endif
 
             if (property.m_targetType == StyleSheetProperty::Target::None)
             {
-                if ((propertyIndex >= hoverIndex) && (propertyIndex <= hoverEndIndex)) {
+                if (insideHover && !insidePseudoButtonHover) {
                     continue;
                 }
 
-                if ((propertyIndex >= pressedIndex) && (propertyIndex <= pressedEndIndex)) {
+                if (insidePressed && !insidePseudoButtonPressed) {
                     continue;
                 }
 
@@ -789,11 +836,11 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
             }
             else if (property.m_targetType == StyleSheetProperty::Target::ButtonHover)
             {
-                if ((propertyIndex < hoverIndex) || (propertyIndex > hoverEndIndex)) {
+                if (insidePressed) {
                     continue;
                 }
 
-                if ((propertyIndex >= pressedIndex) && (propertyIndex <= pressedEndIndex)) {
+                if (!insideHover || insidePseudoButtonHover) {
                     continue;
                 }
 
@@ -801,11 +848,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
             }
             else if (property.m_targetType == StyleSheetProperty::Target::ButtonPressed)
             {
-                if ((propertyIndex < pressedIndex) || (propertyIndex > pressedEndIndex)) {
-                    continue;
-                }
-
-                if ((propertyIndex >= pressedIndex) && (propertyIndex <= pressedEndIndex)) {
+                if (!insidePressed || insidePseudoButtonPressed) {
                     continue;
                 }
 
@@ -816,6 +859,37 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
 
     QNDEBUG(QStringLiteral("Altered stylesheet: ") << result);
     return result;
+}
+
+bool MainWindow::isInsideStyleBlock(const QString & styleSheet, const QString & styleBlockStartSearchString,
+                                    const int currentIndex, bool & error) const
+{
+    error = false;
+
+    int blockStartIndex = styleSheet.lastIndexOf(styleBlockStartSearchString, currentIndex);
+    if (blockStartIndex < 0) {
+        // No block start before the current index => not inside the style block of this kind
+        return false;
+    }
+
+    int blockEndIndex = styleSheet.lastIndexOf(QStringLiteral("}"), currentIndex);
+    if (blockEndIndex > blockStartIndex) {
+        // Block end was found after the last block start before the current index => the current index is not within the style block
+        return false;
+    }
+
+    // There's no block end between block start and the current index, need to look for the block end after the current index
+    blockEndIndex = styleSheet.indexOf(QStringLiteral("}"), currentIndex + 1);
+    if (Q_UNLIKELY(blockEndIndex < 0)) {
+        QNDEBUG(QStringLiteral("Can't parse stylesheet: can't find block end for style block search string ")
+                << styleBlockStartSearchString);
+        error = true;
+        return false;
+    }
+
+    // Found first style block end after the current index while the block start is before the current index =>
+    // the current index is inside the style block
+    return true;
 }
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
