@@ -22,18 +22,6 @@
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
-  <property name="styleSheet">
-   <string notr="true">#mainToolbar  { 
-border: 1px solid black;
-background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
-stop: 0.39999 #717171, stop: 0.4 #626262,
-stop: 0.9 #4c4c4c, stop: 1 #333333);
-}</string>
-  </property>
-  <property name="locale">
-   <locale language="English" country="UnitedStates"/>
-  </property>
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonTextOnly</enum>
   </property>
@@ -525,7 +513,6 @@ padding-right: 2px;
         <property name="styleSheet">
          <string notr="true">QWidget#favoritesWidget {
 border: none;
-border-left: 1px solid black;
 border-right: 1px solid black;
 margin: 0px;
 padding: 0px;
@@ -536,7 +523,7 @@ padding: 0px;
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
           <number>0</number>
@@ -791,7 +778,6 @@ background-color: transparent;
         <property name="styleSheet">
          <string notr="true">QWidget#notebooksWidget {
 border: none;
-border-left: 1px solid black;
 border-right: 1px solid black;
 }</string>
         </property>
@@ -800,7 +786,7 @@ border-right: 1px solid black;
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
           <number>0</number>
@@ -1102,7 +1088,6 @@ background-color: transparent;
         <property name="styleSheet">
          <string notr="true">QWidget#tagsWidget {
 border: none;
-border-left: 1px solid black;
 border-right: 1px solid black;
 }</string>
         </property>
@@ -1111,7 +1096,7 @@ border-right: 1px solid black;
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
           <number>0</number>
@@ -1396,7 +1381,6 @@ background-color: transparent;
         <property name="styleSheet">
          <string notr="true">QWidget#savedSearchesWidget {
 border: none;
-border-left: 1px solid black;
 border-right: 1px solid black;
 }</string>
         </property>
@@ -1405,7 +1389,7 @@ border-right: 1px solid black;
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
           <number>0</number>
@@ -1690,6 +1674,7 @@ background-color: transparent;
         <property name="styleSheet">
          <string notr="true">QWidget#deletedNotesWidget {
 border: 1px solid black;
+border-left: none;
 border-top: none;
 }</string>
         </property>
@@ -1698,7 +1683,7 @@ border-top: none;
           <number>0</number>
          </property>
          <property name="leftMargin">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="topMargin">
           <number>0</number>
@@ -2171,28 +2156,61 @@ border-bottom: 1px solid black;</string>
         </item>
        </layout>
       </widget>
-      <widget class="TabWidget" name="noteEditorsTabWidget">
-       <property name="minimumSize">
-        <size>
-         <width>600</width>
-         <height>0</height>
-        </size>
-       </property>
+      <widget class="QFrame" name="noteEditorTabWidgetFrame">
        <property name="styleSheet">
-        <string notr="true">#noteEditorsTabWidget {
+        <string notr="true">#noteEditorTabWidgetFrame {
 margin: 0px;
 padding: 0px;
+border: none;
+border-top: 1px solid black;
+border-bottom: 1px solid black;
 }</string>
        </property>
-       <property name="documentMode">
-        <bool>true</bool>
+       <property name="lineWidth">
+        <number>0</number>
        </property>
-       <property name="tabsClosable">
-        <bool>true</bool>
-       </property>
-       <property name="movable">
-        <bool>true</bool>
-       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="TabWidget" name="noteEditorsTabWidget">
+          <property name="minimumSize">
+           <size>
+            <width>600</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">#noteEditorsTabWidget {
+padding: 0px;
+margin: 0px;
+}</string>
+          </property>
+          <property name="documentMode">
+           <bool>true</bool>
+          </property>
+          <property name="tabsClosable">
+           <bool>true</bool>
+          </property>
+          <property name="movable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -2204,7 +2222,7 @@ padding: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">

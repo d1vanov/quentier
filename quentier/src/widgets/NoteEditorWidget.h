@@ -44,6 +44,18 @@ public:
     QString noteLocalUid() const;
     void setNoteLocalUid(const QString & noteLocalUid);
 
+    /**
+     * @return true if the widget currently has the full note & notebook object with all the required stuff: note's resources,
+     * note's tags, notebook's restrictions (if any) etc; returns false otherwise, if no note local uid was set
+     * or if it was set but the query for the full note and/or notebook object from local storage is in progress now
+     */
+    bool isResolved() const;
+
+    /**
+     * @return title or preview text of the note managed by the editor, if any; empty string otherwise
+     */
+    QString titleOrPreview() const;
+
     bool isNoteSourceShown() const;
     void showNoteSource();
     void hideNoteSource();
@@ -52,6 +64,18 @@ public:
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
+
+    /**
+     * This signal is emitted when note's title or, if note's title has changed (or appeared or disappeared) or, if note has no title
+     * and had no title, if note's content has changed in a way affecting the preview text so that it has changed too
+     */
+    void titleOrPreviewChanged(QString titleOrPreview); // FIXME: properly support this signal
+
+    /**
+     * This signal is emitted when full note & notebook objects are found or received by the widget so it can continue its work
+     * after setting the note local uid initially
+     */
+    void resolved();
 
 // private signals
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);

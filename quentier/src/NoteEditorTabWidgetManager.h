@@ -39,7 +39,12 @@ public:
 
     void addNote(const QString & noteLocalUid);
 
+private Q_SLOTS:
+    void onNoteEditorWidgetResolved();
+    void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);
+
 private:
+    void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
     void checkAndCloseOlderNoteEditors();
 
 private:
@@ -52,10 +57,9 @@ private:
 
     TabWidget *                         m_pTabWidget;
     NoteEditorWidget *                  m_pBlankNoteEditor;
-    int                                 m_blankNoteTab;
-    QUndoStack *                        m_pBlankNoteTabUndoStack;
 
     int                                 m_maxNumNotes;
+
     boost::circular_buffer<QString>     m_shownNoteLocalUids;
 };
 

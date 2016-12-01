@@ -180,6 +180,31 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
 
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    emit resolved();
+}
+
+bool NoteEditorWidget::isResolved() const
+{
+    return !m_pCurrentNote.isNull() && !m_pCurrentNotebook.isNull();
+}
+
+QString NoteEditorWidget::titleOrPreview() const
+{
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
+        return QString();
+    }
+
+    if (m_pCurrentNote->hasTitle()) {
+        return m_pCurrentNote->title();
+    }
+
+    if (m_pCurrentNote->hasContent()) {
+        QString previewText = m_pCurrentNote->plainText();
+        previewText.truncate(140);
+        return previewText;
+    }
+
+    return QString();
 }
 
 bool NoteEditorWidget::isNoteSourceShown() const
@@ -583,6 +608,7 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
 
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    emit resolved();
 }
 
 void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
@@ -666,6 +692,7 @@ void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId
     m_pCurrentNotebook.reset(new Notebook(notebook));
 
     setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    emit resolved();
 }
 
 void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
