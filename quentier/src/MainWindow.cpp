@@ -34,6 +34,10 @@
 #include "models/ColumnChangeRerouter.h"
 #include "views/TableView.h"
 #include "views/TreeView.h"
+
+#include "widgets/TabWidget.h"
+using quentier::TabWidget;
+
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
 #include <quentier/types/Note.h>

@@ -5,7 +5,13 @@
 #include "models/NotebookCache.h"
 #include "models/TagCache.h"
 #include <quentier/types/Account.h>
+#include <quentier/utility/LRUCache.hpp>
 #include <QTabWidget>
+
+// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
+#ifndef Q_MOC_RUN
+#include <boost/circular_buffer.hpp>
+#endif
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 
@@ -15,6 +21,7 @@ QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
+QT_FORWARD_DECLARE_CLASS(TabWidget)
 
 class NoteEditorTabWidgetManager: public QObject
 {
@@ -23,14 +30,17 @@ public:
     explicit NoteEditorTabWidgetManager(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
                                         NoteCache & noteCache, NotebookCache & notebookCache,
                                         TagCache & tagCache, TagModel & tagModel,
-                                        QTabWidget * tabWidget, QObject * parent = Q_NULLPTR);
+                                        TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
 
     int maxNumNotes() const { return m_maxNumNotes; }
     void setMaxNumNotes(const int maxNumNotes);
 
     int numNotes() const;
 
-    void addNote(const Note & note);
+    void addNote(const QString & noteLocalUid);
+
+private:
+    void checkAndCloseOlderNoteEditors();
 
 private:
     Account                             m_currentAccount;
@@ -40,12 +50,13 @@ private:
     TagCache &                          m_tagCache;
     TagModel &                          m_tagModel;
 
-    QTabWidget *                        m_pTabWidget;
+    TabWidget *                         m_pTabWidget;
     NoteEditorWidget *                  m_pBlankNoteEditor;
     int                                 m_blankNoteTab;
     QUndoStack *                        m_pBlankNoteTabUndoStack;
 
     int                                 m_maxNumNotes;
+    boost::circular_buffer<QString>     m_shownNoteLocalUids;
 };
 
 } // namespace quentier

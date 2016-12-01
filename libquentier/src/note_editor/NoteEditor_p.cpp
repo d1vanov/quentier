@@ -153,8 +153,6 @@ typedef QWebEngineSettings WebSettings;
 
 namespace quentier {
 
-void NoteEditorPageDeleter(NoteEditorPage *& page) { delete page; page = Q_NULLPTR; }
-
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     INoteEditorBackend(&noteEditor),
     m_noteEditorPageFolderPath(),
@@ -224,6 +222,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_pPageMutationHandler(new PageMutationHandler(this)),
     m_pUndoStack(Q_NULLPTR),
     m_pAccount(),
+    m_blankPageHtml(),
     m_contextMenuSequenceNumber(1),     // NOTE: must start from 1 as JavaScript treats 0 as null!
     m_lastContextMenuEventGlobalPos(),
     m_lastContextMenuEventPagePos(),
@@ -330,6 +329,17 @@ NoteEditorPrivate::~NoteEditorPrivate()
     }
 }
 
+void NoteEditorPrivate::setBlankPageHtml(const QString & html)
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::setBlankPageHtml: ") << html);
+
+    m_blankPageHtml = html;
+
+    if (!m_pNote || !m_pNotebook) {
+        clearEditorContent();
+    }
+}
+
 void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onNoteLoadFinished: ok = ") << (ok ? QStringLiteral("true") : QStringLiteral("false")));
@@ -339,13 +349,15 @@ void NoteEditorPrivate::onNoteLoadFinished(bool ok)
         return;
     }
 
-    if (Q_UNLIKELY(!m_pNote)) {
+    if (Q_UNLIKELY(!m_pNote))  {
         QNDEBUG(QStringLiteral("No note is set to the editor"));
+        setPageEditable(false);
         return;
     }
 
     if (Q_UNLIKELY(!m_pNotebook)) {
         QNDEBUG(QStringLiteral("No notebook is set to the editor"));
+        setPageEditable(false);
         return;
     }
 
@@ -894,6 +906,16 @@ void NoteEditorPrivate::onJavaScriptLoaded()
     if (m_pendingJavaScriptExecution)
     {
         m_pendingJavaScriptExecution = false;
+
+        if (Q_UNLIKELY(!m_pNote)) {
+            QNDEBUG(QStringLiteral("No note is set to the editor, won't retrieve the editor content's html"));
+            return;
+        }
+
+        if (Q_UNLIKELY(!m_pNotebook)) {
+            QNDEBUG(QStringLiteral("No notebook is set to the editor, won't retrieve the editor content's html"));
+            return;
+        }
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
         m_htmlCachedMemory = page->mainFrame()->toHtml();
@@ -2102,7 +2124,7 @@ void NoteEditorPrivate::initialize()
     setupNoteEditorPage();
     setAcceptDrops(true);
 
-    QString initialHtml = m_pagePrefix + QStringLiteral("<body></body></html>");
+    QString initialHtml = initialPageHtml();
     writeNotePageFile(initialHtml);
 }
 
@@ -2502,7 +2524,7 @@ void NoteEditorPrivate::clearEditorContent()
     m_lastSearchHighlightedText.resize(0);
     m_lastSearchHighlightedTextCaseSensitivity = false;
 
-    QString initialHtml = m_pagePrefix + QStringLiteral("<body></body></html>");
+    QString initialHtml = initialPageHtml();
     writeNotePageFile(initialHtml);
 }
 
@@ -4073,6 +4095,15 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
     resizableImageHandleRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
     resizableImageHandleRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
     m_skipRulesForHtmlToEnmlConversion << resizableImageHandleRule;
+}
+
+QString NoteEditorPrivate::initialPageHtml() const
+{
+    if (!m_blankPageHtml.isEmpty()) {
+        return m_blankPageHtml;
+    }
+
+    return m_pagePrefix + QStringLiteral("<body></body></html>");
 }
 
 void NoteEditorPrivate::determineStatesForCurrentTextCursorPosition()

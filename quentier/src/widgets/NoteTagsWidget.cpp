@@ -556,7 +556,7 @@ void NoteTagsWidget::addTagIconToLayout()
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::addTagIconToLayout"));
 
-    QPixmap tagIconImage(QStringLiteral("/label/tag.png"));
+    QPixmap tagIconImage(QStringLiteral("/tag/tag.png"));
     QLabel * pTagIconLabel = new QLabel(this);
     pTagIconLabel->setPixmap(tagIconImage);
     m_pLayout->addWidget(pTagIconLabel);

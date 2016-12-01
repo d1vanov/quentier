@@ -65,6 +65,11 @@ public:
     void setUndoStack(QUndoStack * pUndoStack);
 
     /**
+     * Set the html to be displayed when the note is not set to the editor
+     */
+    void setBlankPageHtml(const QString & html);
+
+    /**
      * Get the local uid of the note currently set to the note editor
      */
     QString currentNoteLocalUid() const;

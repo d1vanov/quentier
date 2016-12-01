@@ -63,6 +63,11 @@ void NoteEditor::setUndoStack(QUndoStack * pUndoStack)
     m_backend->setUndoStack(pUndoStack);
 }
 
+void NoteEditor::setBlankPageHtml(const QString & html)
+{
+    m_backend->setBlankPageHtml(html);
+}
+
 void NoteEditor::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
     m_backend->setNoteAndNotebook(note, notebook);

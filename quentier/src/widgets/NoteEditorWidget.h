@@ -155,6 +155,10 @@ private:
     void checkIconThemeIconsAndSetFallbacks();
     void updateNoteSourceView(const QString & html);
 
+    void setNoteAndNotebook(const Note & note, const Notebook & notebook);
+
+    QString blankPageHtml() const;
+
 private:
     Ui::NoteEditorWidget *      m_pUi;
     NoteCache &                 m_noteCache;

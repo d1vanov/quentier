@@ -20,6 +20,8 @@ using quentier::NoteTagsWidget;
 #include <quentier/types/Resource.h>
 #include <QFontDatabase>
 #include <QScopedPointer>
+#include <QColor>
+#include <QPalette>
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
@@ -54,8 +56,15 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
 {
     m_pUi->setupUi(this);
 
+    m_pUi->noteNameLabel->hide();
+    m_pUi->tagNameLabelsContainer->hide();
+
     m_pUi->noteEditor->setAccount(m_currentAccount);
     m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
+
+    QString initialHtml = blankPageHtml();
+    m_pUi->noteEditor->setBlankPageHtml(initialHtml);
+
     m_pUi->findAndReplaceWidget->setHidden(true);
     m_pUi->noteSourceView->setHidden(true);
 
@@ -170,8 +179,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
 
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 bool NoteEditorWidget::isNoteSourceShown() const
@@ -507,8 +515,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         }
     }
 
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -575,8 +582,7 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
 
     m_pCurrentNotebook.reset(new Notebook(*pCachedNotebook));
 
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
-    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
@@ -625,7 +631,7 @@ void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid request
     QNDEBUG(QStringLiteral("NoteEditorWidget::onUpdateNotebookComplete: notebook = ") << notebook << QStringLiteral("\nRequest id = ")
             << requestId);
 
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onExpungeNotebookComplete(Notebook notebook, QUuid requestId)
@@ -658,7 +664,8 @@ void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId
     }
 
     m_pCurrentNotebook.reset(new Notebook(notebook));
-    m_pUi->noteEditor->setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
+
+    setNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
 }
 
 void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
@@ -1435,6 +1442,67 @@ void NoteEditorWidget::checkIconThemeIconsAndSetFallbacks()
 void NoteEditorWidget::updateNoteSourceView(const QString & html)
 {
     m_pUi->noteSourceView->setPlainText(html);
+}
+
+void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & notebook)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setCurrentNoteAndNotebook"));
+    QNTRACE(QStringLiteral("Note: ") << note << QStringLiteral("\nNotebook: ") << notebook);
+
+    if (note.hasTitle()) {
+        m_pUi->noteNameLabel->setText(note.title());
+        m_pUi->noteNameLabel->show();
+    }
+    else {
+        m_pUi->noteNameLabel->clear();
+        m_pUi->noteNameLabel->hide();
+    }
+
+    m_pUi->noteEditor->setNoteAndNotebook(note, notebook);
+    m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(note, notebook);
+}
+
+QString NoteEditorWidget::blankPageHtml() const
+{
+    QString html = QStringLiteral("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">"
+                                  "<html><head>"
+                                  "<meta http-equiv=\"Content-Type\" content=\"text/html\" charset=\"UTF-8\" />"
+                                  "<style>"
+                                  "body {"
+                                  "background-color: ");
+
+    QColor backgroundColor = palette().color(QPalette::Window).darker(115);
+    html += backgroundColor.name();
+
+    html += QStringLiteral(";"
+                           "color: ");
+    QColor foregroundColor = palette().color(QPalette::WindowText);
+    html += foregroundColor.name();
+
+    html += QStringLiteral(";"
+                           "-webkit-user-select: none;"
+                           "}"
+                           ".outer {"
+                           "    display: table;"
+                           "    position: absolute;"
+                           "    height: 95%;"
+                           "    width: 95%;"
+                           "}"
+                           ".middle {"
+                           "    display: table-cell;"
+                           "    vertical-align: middle;"
+                           "}"
+                           ".inner {"
+                           "    text-align: center;"
+                           "}"
+                           "</style><title></title></head>"
+                           "<body><div class=\"outer\"><div class=\"middle\"><div class=\"inner\">\n\n\n");
+
+    html += tr("Please create a new note to start editing");
+
+    html += QStringLiteral("</div></div></div></body></html>");
+
+    return html;
 }
 
 } // namespace quentier

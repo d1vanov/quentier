@@ -188,6 +188,8 @@ public Q_SLOTS:
     virtual void setAccount(const Account & account) Q_DECL_OVERRIDE;
     virtual void setUndoStack(QUndoStack * pUndoStack) Q_DECL_OVERRIDE;
 
+    virtual void setBlankPageHtml(const QString & html) Q_DECL_OVERRIDE;
+
     virtual void undo() Q_DECL_OVERRIDE;
     virtual void redo() Q_DECL_OVERRIDE;
     virtual void cut() Q_DECL_OVERRIDE;
@@ -488,6 +490,8 @@ private:
     void setupTextCursorPositionJavaScriptHandlerConnections();
     void setupSkipRulesForHtmlToEnmlConversion();
 
+    QString initialPageHtml() const;
+
     void determineStatesForCurrentTextCursorPosition();
     void determineContextMenuEventTarget();
 
@@ -726,6 +730,8 @@ private:
     QUndoStack * m_pUndoStack;
 
     QScopedPointer<Account>     m_pAccount;
+
+    QString     m_blankPageHtml;
 
     quint64     m_contextMenuSequenceNumber;
     QPoint      m_lastContextMenuEventGlobalPos;

@@ -44,6 +44,8 @@ public:
     virtual void setAccount(const Account & account) = 0;
     virtual void setUndoStack(QUndoStack * pUndoStack) = 0;
 
+    virtual void setBlankPageHtml(const QString & html) = 0;
+
     virtual void convertToNote() = 0;
     virtual void undo() = 0;
     virtual void redo() = 0;
