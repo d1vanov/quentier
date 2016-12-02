@@ -27,10 +27,12 @@ SharedNote::SharedNote() :
 {}
 
 SharedNote::SharedNote(const SharedNote & other) :
+    Printable(),
     d(other.d)
 {}
 
 SharedNote::SharedNote(SharedNote && other) :
+    Printable(),
     d(std::move(other.d))
 {}
 

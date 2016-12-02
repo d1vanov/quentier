@@ -9,12 +9,14 @@ UserData::UserData() :
 {}
 
 UserData::UserData(const UserData & other) :
+    QSharedData(),
     m_qecUser(other.m_qecUser),
     m_isLocal(other.m_isLocal),
     m_isDirty(other.m_isDirty)
 {}
 
 UserData::UserData(UserData && other) :
+    QSharedData(),
     m_qecUser(std::move(other.m_qecUser)),
     m_isLocal(std::move(other.m_isLocal)),
     m_isDirty(std::move(other.m_isDirty))

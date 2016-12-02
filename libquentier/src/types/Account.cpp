@@ -24,6 +24,7 @@ Account::Account(const QString & name, const Type::type type,
 }
 
 Account::Account(const Account & other) :
+    Printable(),
     d(other.d)
 {}
 
