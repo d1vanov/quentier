@@ -21,6 +21,8 @@ namespace Ui {
 class NoteEditorWidget;
 }
 
+QT_FORWARD_DECLARE_CLASS(QTimer)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
@@ -69,7 +71,7 @@ Q_SIGNALS:
      * This signal is emitted when note's title or, if note's title has changed (or appeared or disappeared) or, if note has no title
      * and had no title, if note's content has changed in a way affecting the preview text so that it has changed too
      */
-    void titleOrPreviewChanged(QString titleOrPreview); // FIXME: properly support this signal
+    void titleOrPreviewChanged(QString titleOrPreview);
 
     /**
      * This signal is emitted when full note & notebook objects are found or received by the widget so it can continue its work
@@ -82,7 +84,13 @@ Q_SIGNALS:
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
     void findNotebook(Notebook notebook, QUuid requestId);
 
+    void noteSavedInLocalStorage();
+    void noteSaveInLocalStorageFailed();
+    void conversionToNoteFailed();
+
 public Q_SLOTS:
+    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
+
     // Slots for toolbar button actions or external actions
     void onEditorTextBoldToggled();
     void onEditorTextItalicToggled();
@@ -192,8 +200,12 @@ private:
     QScopedPointer<Note>        m_pCurrentNote;
     QScopedPointer<Notebook>    m_pCurrentNotebook;
 
+    QString                     m_lastNoteTitleOrPreviewText;
+
     Account                     m_currentAccount;
     QPointer<QUndoStack>        m_pUndoStack;
+
+    QTimer *                    m_pConvertToNoteDeadlineTimer;
 
     QUuid                       m_findCurrentNoteRequestId;
     QUuid                       m_findCurrentNotebookRequestId;

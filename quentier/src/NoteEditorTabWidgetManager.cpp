@@ -130,6 +130,8 @@ void NoteEditorTabWidgetManager::onNoteEditorWidgetResolved()
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
         QNLocalizedString error = QT_TR_NOOP("Internal error: can't resolve the added note editor, cast failed");
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 
@@ -143,7 +145,27 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged: ") << titleOrPreview);
 
-    // TODO: implement
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        QNLocalizedString error = QT_TR_NOOP("Internal error: can't update the note editor's tab name, cast failed");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    for(int i = 0, numTabs = m_pTabWidget->count(); i < numTabs; ++i)
+    {
+        if (pNoteEditorWidget != m_pTabWidget->widget(i)) {
+            continue;
+        }
+
+        m_pTabWidget->setTabText(i, titleOrPreview);
+        return;
+    }
+
+    QNLocalizedString error = QT_TR_NOOP("Internal error: can't find the note editor which has sent the title or preview text update");
+    QNWARNING(error);
+    emit notifyError(error);
 }
 
 void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget)
@@ -154,9 +176,7 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteTitleOrPreviewTextChanged,QString));
 
     QString titleOrPreview = pNoteEditorWidget->titleOrPreview();
-    int index = m_pTabWidget->addTab(pNoteEditorWidget, titleOrPreview);
-    Q_UNUSED(index)
-    // FIXME: find out whether this index thing is required for anything
+    Q_UNUSED(m_pTabWidget->addTab(pNoteEditorWidget, titleOrPreview))
 
     m_shownNoteLocalUids.push_back(pNoteEditorWidget->noteLocalUid());
 
@@ -186,7 +206,7 @@ void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditors()
         const QString & noteLocalUid = pNoteEditorWidget->noteLocalUid();
         auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), noteLocalUid);
         if (it == m_shownNoteLocalUids.end()) {
-            // TODO: close note editor widget - if it has a modified unsaved note, need to save is synchronously
+            Q_UNUSED(pNoteEditorWidget->close())
             m_pTabWidget->removeTab(i);
         }
     }

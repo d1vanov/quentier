@@ -39,6 +39,9 @@ public:
 
     void addNote(const QString & noteLocalUid);
 
+Q_SIGNALS:
+    void notifyError(QNLocalizedString error);
+
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
     void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);

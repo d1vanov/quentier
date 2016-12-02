@@ -84,6 +84,11 @@ public:
      */
     void clear();
 
+    /**
+     * @return true if there's content within the editor not yet converted to note, false otherwise
+     */
+    bool isModified() const;
+
 Q_SIGNALS:
     void contentChanged();
     void notifyError(QNLocalizedString error);

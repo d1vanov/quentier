@@ -154,7 +154,6 @@ public:
     void updateResource(const QString & resourceLocalUid, const QByteArray & previousResourceHash,
                         Resource updatedResource);
 
-    bool isModified() const;
     Note * notePtr() { return m_pNote.data(); }
 
     bool isPageEditable() const { return m_isPageEditable; }
@@ -276,6 +275,7 @@ public Q_SLOTS:
 
     virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) Q_DECL_OVERRIDE;
     virtual void clear() Q_DECL_OVERRIDE;
+    virtual bool isModified() const Q_DECL_OVERRIDE;
     virtual void convertToNote() Q_DECL_OVERRIDE;
 
     void undoPageAction();

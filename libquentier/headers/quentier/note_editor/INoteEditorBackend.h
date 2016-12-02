@@ -147,6 +147,8 @@ public:
 
     virtual void clear() = 0;
 
+    virtual bool isModified() const = 0;
+
 protected:
     INoteEditorBackend(NoteEditor * parent);
     NoteEditor *    m_pNoteEditor;

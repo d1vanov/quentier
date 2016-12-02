@@ -18,16 +18,21 @@ using quentier::NoteTagsWidget;
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/types/Resource.h>
+#include <quentier/utility/EventLoopWithExitStatus.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <QFontDatabase>
 #include <QScopedPointer>
 #include <QColor>
 #include <QPalette>
+#include <QTimer>
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
         emit notifyError(QT_TR_NOOP("No note is set to the editor")); \
         return; \
     }
+
+#define DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT (5)
 
 namespace quentier {
 
@@ -41,8 +46,10 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_tagCache(tagCache),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
+    m_lastNoteTitleOrPreviewText(),
     m_currentAccount(account),
     m_pUndoStack(pUndoStack),
+    m_pConvertToNoteDeadlineTimer(Q_NULLPTR),
     m_findCurrentNoteRequestId(),
     m_findCurrentNotebookRequestId(),
     m_updateNoteRequestIds(),
@@ -226,6 +233,67 @@ void NoteEditorWidget::hideNoteSource()
 bool NoteEditorWidget::isSpellCheckEnabled() const
 {
     return m_pUi->noteEditor->spellCheckEnabled();
+}
+
+void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING(QStringLiteral("Detected null pointer to QCloseEvent in NoteEditorWidget's closeEvent"));
+        return;
+    }
+
+    if (m_pCurrentNote.isNull()) {
+        pEvent->accept();
+        return;
+    }
+
+    if (!m_pUi->noteEditor->isModified()) {
+        pEvent->accept();
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    QVariant editorConvertToNoteTimeoutData = appSettings.value(QStringLiteral("ConvertToNoteTimeout"));
+    appSettings.endGroup();
+
+    bool conversionResult = false;
+    quint64 editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toULongLong(&conversionResult);
+    if (!conversionResult) {
+        QNDEBUG(QStringLiteral("Can't read the timeout for note editor to note conversion from the application settings, "
+                               "fallback to the default value of ") << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
+                << QStringLiteral(" seconds"));
+        editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
+    }
+
+    if (m_pConvertToNoteDeadlineTimer) {
+        m_pConvertToNoteDeadlineTimer->deleteLater();
+    }
+
+    m_pConvertToNoteDeadlineTimer = new QTimer(this);
+    m_pConvertToNoteDeadlineTimer->setSingleShot(true);
+
+    EventLoopWithExitStatus eventLoop;
+    QObject::connect(m_pConvertToNoteDeadlineTimer, QNSIGNAL(QTimer,timeout),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+    QObject::connect(this, QNSIGNAL(NoteEditorWidget,noteSavedInLocalStorage),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+    QObject::connect(this, QNSIGNAL(NoteEditorWidget,noteSaveInLocalStorageFailed),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+    QObject::connect(this, QNSIGNAL(NoteEditorWidget,conversionToNoteFailed),
+                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+
+    QTimer::singleShot(0, m_pUi->noteEditor, SLOT(convertToNote()));
+    int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
+
+    if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
+        QNWARNING(QStringLiteral("Failed to convert the editor contents to note"));
+    }
+    else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
+        QNWARNING(QStringLiteral("The conversion of note editor contents to note failed to finish in time"));
+    }
+
+    pEvent->accept();
 }
 
 void NoteEditorWidget::onEditorTextBoldToggled()
@@ -450,6 +518,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
         Q_UNUSED(m_updateNoteRequestIds.erase(it))
+        emit noteSavedInLocalStorage();
     }
 
     QList<Resource> backupResources;
@@ -561,6 +630,8 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
     error += errorDescription;
     emit notifyError(error);
     // NOTE: not clearing out the unsaved stuff because it may be of value to the user
+
+    emit noteSaveInLocalStorageFailed();
 }
 
 void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -740,6 +811,8 @@ void NoteEditorWidget::onEditorNoteUpdateFailed(QNLocalizedString error)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorNoteUpdateFailed: ") << error);
     emit notifyError(error);
+
+    emit conversionToNoteFailed();
 }
 
 void NoteEditorWidget::onEditorTextBoldStateChanged(bool state)
@@ -1321,6 +1394,9 @@ void NoteEditorWidget::clear()
     m_pCurrentNotebook.reset(Q_NULLPTR);
     m_pUi->noteEditor->clear();
     m_pUi->tagNameLabelsContainer->clear();
+    m_pUi->noteNameLabel->clear();
+
+    m_lastNoteTitleOrPreviewText.clear();
 
     m_findCurrentNoteRequestId = QUuid();
     m_findCurrentNotebookRequestId = QUuid();
@@ -1476,13 +1552,31 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
     QNDEBUG(QStringLiteral("NoteEditorWidget::setCurrentNoteAndNotebook"));
     QNTRACE(QStringLiteral("Note: ") << note << QStringLiteral("\nNotebook: ") << notebook);
 
-    if (note.hasTitle()) {
-        m_pUi->noteNameLabel->setText(note.title());
+    if (note.hasTitle())
+    {
+        QString title = note.title();
+        m_pUi->noteNameLabel->setText(title);
         m_pUi->noteNameLabel->show();
+        if (m_lastNoteTitleOrPreviewText != title) {
+            m_lastNoteTitleOrPreviewText = title;
+            emit titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
+        }
     }
-    else {
+    else
+    {
         m_pUi->noteNameLabel->clear();
         m_pUi->noteNameLabel->hide();
+
+        QString previewText;
+        if (note.hasContent()) {
+            previewText = note.plainText();
+            previewText.truncate(140);
+        }
+
+        if (previewText != m_lastNoteTitleOrPreviewText) {
+            m_lastNoteTitleOrPreviewText = previewText;
+            emit titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
+        }
     }
 
     m_pUi->noteEditor->setNoteAndNotebook(note, notebook);

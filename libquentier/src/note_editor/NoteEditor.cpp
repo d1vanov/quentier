@@ -78,6 +78,11 @@ void NoteEditor::clear()
     m_backend->clear();
 }
 
+bool NoteEditor::isModified() const
+{
+    return m_backend->isModified();
+}
+
 void NoteEditor::convertToNote()
 {
     m_backend->convertToNote();
