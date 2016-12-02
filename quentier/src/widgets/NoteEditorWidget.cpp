@@ -63,19 +63,10 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
 {
     m_pUi->setupUi(this);
 
-    m_pUi->noteNameLabel->hide();
-    m_pUi->tagNameLabelsContainer->hide();
-
     m_pUi->noteEditor->setAccount(m_currentAccount);
     m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
 
-    QString initialHtml = blankPageHtml();
-    m_pUi->noteEditor->setBlankPageHtml(initialHtml);
-
-    m_pUi->findAndReplaceWidget->setHidden(true);
-    m_pUi->noteSourceView->setHidden(true);
-
-    checkIconThemeIconsAndSetFallbacks();
+    setupBlankEditor();
 
     m_pUi->fontSizeComboBox->clear();
     int numFontSizes = m_pUi->fontSizeComboBox->count();
@@ -91,6 +82,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_pUi->tagNameLabelsContainer->setTagModel(&tagModel);
     m_pUi->tagNameLabelsContainer->setLocalStorageManagerThreadWorker(localStorageWorker);
     createConnections(localStorageWorker);
+
+    QWidget::setAttribute(Qt::WA_DeleteOnClose, /* on = */ true);
 }
 
 NoteEditorWidget::~NoteEditorWidget()
@@ -118,7 +111,8 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
 
     clear();
 
-    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+    if (noteLocalUid.isEmpty()) {
+        setupBlankEditor();
         return;
     }
 
@@ -258,12 +252,15 @@ void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
     appSettings.endGroup();
 
     bool conversionResult = false;
-    quint64 editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toULongLong(&conversionResult);
+    int editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toInt(&conversionResult);
     if (!conversionResult) {
         QNDEBUG(QStringLiteral("Can't read the timeout for note editor to note conversion from the application settings, "
                                "fallback to the default value of ") << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
                 << QStringLiteral(" seconds"));
         editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
+    }
+    else {
+        editorConvertToNoteTimeout = std::max(editorConvertToNoteTimeout, 1);
     }
 
     if (m_pConvertToNoteDeadlineTimer) {
@@ -282,6 +279,8 @@ void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
                      &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
     QObject::connect(this, QNSIGNAL(NoteEditorWidget,conversionToNoteFailed),
                      &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+
+    m_pConvertToNoteDeadlineTimer->start(editorConvertToNoteTimeout);
 
     QTimer::singleShot(0, m_pUi->noteEditor, SLOT(convertToNote()));
     int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
@@ -1406,142 +1405,6 @@ void NoteEditorWidget::clear()
     m_currentNoteWasExpunged = false;
 }
 
-void NoteEditorWidget::checkIconThemeIconsAndSetFallbacks()
-{
-    QNDEBUG(QStringLiteral("NoteEditorWidget::checkIconThemeIconsAndSetFallbacks"));
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("checkbox"))) {
-        m_pUi->insertToDoCheckboxPushButton->setIcon(QIcon(QStringLiteral(":/fallback_icons/png/checkbox-2.png")));
-        QNTRACE(QStringLiteral("set fallback checkbox icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("edit-copy"))) {
-        QIcon editCopyIcon(QStringLiteral(":/fallback_icons/png/edit-copy-6.png"));
-        m_pUi->copyPushButton->setIcon(editCopyIcon);
-        QNTRACE(QStringLiteral("set fallback edit-copy icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("edit-cut"))) {
-        QIcon editCutIcon(QStringLiteral(":/fallback_icons/png/edit-cut-6.png"));
-        m_pUi->cutPushButton->setIcon(editCutIcon);
-        QNTRACE(QStringLiteral("set fallback edit-cut icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("edit-paste"))) {
-        QIcon editPasteIcon(QStringLiteral(":/fallback_icons/png/edit-paste-6.png"));
-        m_pUi->pastePushButton->setIcon(editPasteIcon);
-        QNTRACE(QStringLiteral("set fallback edit-paste icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("edit-redo"))) {
-        QIcon editRedoIcon(QStringLiteral(":/fallback_icons/png/edit-redo-7.png"));
-        m_pUi->redoPushButton->setIcon(editRedoIcon);
-        QNTRACE(QStringLiteral("set fallback edit-redo icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("edit-undo"))) {
-        QIcon editUndoIcon(QStringLiteral(":/fallback_icons/png/edit-undo-7.png"));
-        m_pUi->undoPushButton->setIcon(editUndoIcon);
-        QNTRACE(QStringLiteral("set fallback edit-undo icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-less"))) {
-        QIcon formatIndentLessIcon(QStringLiteral(":/fallback_icons/png/format-indent-less-5.png"));
-        m_pUi->formatIndentLessPushButton->setIcon(formatIndentLessIcon);
-        QNTRACE(QStringLiteral("set fallback format-indent-less icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-indent-more"))) {
-        QIcon formatIndentMoreIcon(QStringLiteral(":/fallback_icons/png/format-indent-more-5.png"));
-        m_pUi->formatIndentMorePushButton->setIcon(formatIndentMoreIcon);
-        QNTRACE(QStringLiteral("set fallback format-indent-more icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-center"))) {
-        QIcon formatJustifyCenterIcon(QStringLiteral(":/fallback_icons/png/format-justify-center-5.png"));
-        m_pUi->formatJustifyCenterPushButton->setIcon(formatJustifyCenterIcon);
-        QNTRACE(QStringLiteral("set fallback format-justify-center icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-left"))) {
-        QIcon formatJustifyLeftIcon(QStringLiteral(":/fallback_icons/png/format-justify-left-5.png"));
-        m_pUi->formatJustifyLeftPushButton->setIcon(formatJustifyLeftIcon);
-        QNTRACE(QStringLiteral("set fallback format-justify-left icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-justify-right"))) {
-        QIcon formatJustifyRightIcon(QStringLiteral(":/fallback_icons/png/format-justify-right-5.png"));
-        m_pUi->formatJustifyRightPushButton->setIcon(formatJustifyRightIcon);
-        QNTRACE(QStringLiteral("set fallback format-justify-right icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-list-ordered"))) {
-        QIcon formatListOrderedIcon(QStringLiteral(":/fallback_icons/png/format-list-ordered.png"));
-        m_pUi->formatListOrderedPushButton->setIcon(formatListOrderedIcon);
-        QNTRACE(QStringLiteral("set fallback format-list-ordered icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-list-unordered"))) {
-        QIcon formatListUnorderedIcon(QStringLiteral(":/fallback_icons/png/format-list-unordered.png"));
-        m_pUi->formatListUnorderedPushButton->setIcon(formatListUnorderedIcon);
-        QNTRACE(QStringLiteral("set fallback format-list-unordered icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-bold"))) {
-        QIcon formatTextBoldIcon(QStringLiteral(":/fallback_icons/png/format-text-bold-4.png"));
-        m_pUi->fontBoldPushButton->setIcon(formatTextBoldIcon);
-        QNTRACE(QStringLiteral("set fallback format-text-bold icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-color"))) {
-        QIcon formatTextColorIcon(QStringLiteral(":/fallback_icons/png/format-text-color.png"));
-        m_pUi->chooseTextColorToolButton->setIcon(formatTextColorIcon);
-        QNTRACE(QStringLiteral("set fallback format-text-color icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("color-fill"))) {
-        QIcon colorFillIcon(QStringLiteral(":/fallback_icons/png/color-fill.png"));
-        m_pUi->chooseBackgroundColorToolButton->setIcon(colorFillIcon);
-        QNTRACE(QStringLiteral("set fallback color-fill icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-italic"))) {
-        QIcon formatTextItalicIcon(QStringLiteral(":/fallback_icons/png/format-text-italic-4.png"));
-        m_pUi->fontItalicPushButton->setIcon(formatTextItalicIcon);
-        QNTRACE(QStringLiteral("set fallback format-text-italic icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-strikethrough"))) {
-        QIcon formatTextStrikethroughIcon(QStringLiteral(":/fallback_icons/png/format-text-strikethrough-3.png"));
-        m_pUi->fontStrikethroughPushButton->setIcon(formatTextStrikethroughIcon);
-        QNTRACE(QStringLiteral("set fallback format-text-strikethrough icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("format-text-underline"))) {
-        QIcon formatTextUnderlineIcon(QStringLiteral(":/fallback_icons/png/format-text-underline-4.png"));
-        m_pUi->fontUnderlinePushButton->setIcon(formatTextUnderlineIcon);
-        QNTRACE(QStringLiteral("set fallback format-text-underline icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("insert-horizontal-rule"))) {
-        QIcon insertHorizontalRuleIcon(QStringLiteral(":/fallback_icons/png/insert-horizontal-rule.png"));
-        m_pUi->insertHorizontalLinePushButton->setIcon(insertHorizontalRuleIcon);
-        QNTRACE(QStringLiteral("set fallback insert-horizontal-rule icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("insert-table"))) {
-        QIcon insertTableIcon(QStringLiteral(":/fallback_icons/png/insert-table.png"));
-        m_pUi->insertTableToolButton->setIcon(insertTableIcon);
-        QNTRACE(QStringLiteral("set fallback insert-table icon"));
-    }
-
-    if (!QIcon::hasThemeIcon(QStringLiteral("tools-check-spelling"))) {
-        QIcon spellcheckIcon(QStringLiteral(":/fallback_icons/png/tools-check-spelling-5.png"));
-        m_pUi->spellCheckBox->setIcon(spellcheckIcon);
-        QNTRACE(QStringLiteral("set fallback tools-check-spelling icon"));
-    }
-}
-
 void NoteEditorWidget::updateNoteSourceView(const QString & html)
 {
     m_pUi->noteSourceView->setPlainText(html);
@@ -1624,6 +1487,20 @@ QString NoteEditorWidget::blankPageHtml() const
     html += QStringLiteral("</div></div></div></body></html>");
 
     return html;
+}
+
+void NoteEditorWidget::setupBlankEditor()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setupBlankEditor"));
+
+    m_pUi->noteNameLabel->hide();
+    m_pUi->tagNameLabelsContainer->hide();
+
+    QString initialHtml = blankPageHtml();
+    m_pUi->noteEditor->setBlankPageHtml(initialHtml);
+
+    m_pUi->findAndReplaceWidget->setHidden(true);
+    m_pUi->noteSourceView->setHidden(true);
 }
 
 } // namespace quentier

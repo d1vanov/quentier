@@ -7,6 +7,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QUndoStack>
 #include <QTabBar>
+#include <QCloseEvent>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES (5)
@@ -51,11 +52,15 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
                                               m_noteCache, m_notebookCache, m_tagCache,
                                               m_tagModel, pUndoStack, m_pTabWidget);
+    m_pBlankNoteEditor->installEventFilter(this);
     pUndoStack->setParent(m_pBlankNoteEditor);
 
     Q_UNUSED(m_pTabWidget->addTab(m_pBlankNoteEditor, BLANK_NOTE_KEY))
 
     m_pTabWidget->tabBar()->hide();
+
+    QObject::connect(m_pTabWidget, QNSIGNAL(TabWidget,tabCloseRequested,int),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorTabCloseRequested,int));
 }
 
 void NoteEditorTabWidgetManager::setMaxNumNotes(const int maxNumNotes)
@@ -114,11 +119,24 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
         }
     }
 
+    if (m_shownNoteLocalUids.empty() && m_pBlankNoteEditor)
+    {
+        // There's only the blank note's note editor displayed, just set the note into it
+        NoteEditorWidget * pNoteEditorWidget = m_pBlankNoteEditor;
+        m_pBlankNoteEditor = Q_NULLPTR;
+
+        pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
+
+        insertNoteEditorWidget(pNoteEditorWidget);
+        return;
+    }
+
     QUndoStack * pUndoStack = new QUndoStack;
     NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 m_tagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
+    pNoteEditorWidget->installEventFilter(this);
 
     insertNoteEditorWidget(pNoteEditorWidget);
 }
@@ -168,6 +186,27 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
     emit notifyError(error);
 }
 
+void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
+{
+    if (m_pTabWidget->count() == 1)
+    {
+        // We shouldn't have ended up here really but if we have, let's try to play nice
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
+        if (Q_UNLIKELY(!pNoteEditorWidget)) {
+            QNWARNING(QStringLiteral("Detected attempt to close the note editor tab but can't cast the tab widget's tab to note editor"));
+            return;
+        }
+
+        // TODO: save the modified note within the editor (if any)
+
+        // That should remove the note from the editor (if any)
+        pNoteEditorWidget->setNoteLocalUid(QString());
+        return;
+    }
+
+    m_pTabWidget->removeTab(tabIndex);
+}
+
 void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::insertNoteEditorWidget: ") << pNoteEditorWidget->noteLocalUid());
@@ -206,10 +245,62 @@ void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditors()
         const QString & noteLocalUid = pNoteEditorWidget->noteLocalUid();
         auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), noteLocalUid);
         if (it == m_shownNoteLocalUids.end()) {
-            Q_UNUSED(pNoteEditorWidget->close())
             m_pTabWidget->removeTab(i);
+            Q_UNUSED(pNoteEditorWidget->close())
         }
     }
+
+    if (m_pTabWidget->count() <= 1) {
+        m_pTabWidget->tabBar()->hide();
+        m_pTabWidget->setTabsClosable(false);
+    }
+    else {
+        m_pTabWidget->tabBar()->show();
+        m_pTabWidget->setTabsClosable(true);
+    }
+}
+
+bool NoteEditorTabWidgetManager::eventFilter(QObject * pWatched, QEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pWatched)) {
+        QNWARNING(QStringLiteral("NoteEditorTabWidgetManager: caught event for null watched object in the eventFilter method"));
+        return true;
+    }
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING(QStringLiteral("NoteEditorTabWidgetManager: caught null event in the eventFilter method for object ")
+                  << pWatched->objectName() << QStringLiteral(" of class ") << pWatched->metaObject()->className());
+        return true;
+    }
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(pWatched);
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        return false;
+    }
+
+    if (pEvent->type() != QEvent::Close) {
+        return false;
+    }
+
+    int numNoteEditorWidgets = m_pTabWidget->count();
+    if (numNoteEditorWidgets == 2) {
+        // There are two editors, one is about to close, so the only one would be left, need to hide the close button from its tab
+        m_pTabWidget->setTabsClosable(false);
+        return false;
+    }
+
+    if (numNoteEditorWidgets == 1)
+    {
+        // We shouldn't have got here (see just above) but if we are here anyway, need to clear the note from the editor widget
+        // but leave the only remaining editor widget
+
+        // TODO: save the modified note within the editor (if any)
+
+        pNoteEditorWidget->setNoteLocalUid(QString());
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace quentier

@@ -30,7 +30,7 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
 /**
  * @brief The NoteEditorWidget class contains the actual note editor +
- * note title + toolbar with formatting options + debug html source view +
+ * note title + toolbar with formatting actions + debug html source view +
  * note tags widget
  */
 class NoteEditorWidget: public QWidget
@@ -184,12 +184,12 @@ private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
     void clear();
 
-    void checkIconThemeIconsAndSetFallbacks();
     void updateNoteSourceView(const QString & html);
 
     void setNoteAndNotebook(const Note & note, const Notebook & notebook);
 
     QString blankPageHtml() const;
+    void setupBlankEditor();
 
 private:
     Ui::NoteEditorWidget *      m_pUi;

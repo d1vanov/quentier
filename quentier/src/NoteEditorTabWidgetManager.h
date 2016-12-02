@@ -45,10 +45,14 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
     void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);
+    void onNoteEditorTabCloseRequested(int tabIndex);
 
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
     void checkAndCloseOlderNoteEditors();
+
+private:
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     Account                             m_currentAccount;
