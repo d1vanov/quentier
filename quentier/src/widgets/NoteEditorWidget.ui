@@ -94,7 +94,16 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="buttonsUpperSubPaneHorizontalLayout" stretch="2,2,2,2,2,2,2,2,2,2,2,2,2,2,2">
+           <layout class="QHBoxLayout" name="buttonsUpperSubPaneHorizontalLayout">
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
             <item>
              <widget class="QPushButton" name="undoPushButton">
               <property name="toolTip">
@@ -325,7 +334,7 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>40</width>
+                <width>80</width>
                 <height>20</height>
                </size>
               </property>
@@ -334,9 +343,15 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="buttonsLowerSubPaneHorizontalLayout" stretch="2,2,2,2,2,2,2,2,2,2,2">
+           <layout class="QHBoxLayout" name="buttonsLowerSubPaneHorizontalLayout">
             <property name="spacing">
-             <number>6</number>
+             <number>5</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
             </property>
             <item>
              <widget class="QFontComboBox" name="fontComboBox">
