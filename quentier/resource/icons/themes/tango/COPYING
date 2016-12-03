@@ -1,6 +1,12 @@
 Tango icon theme 0.8.9 by Tango Desktop Project (http://tango.freedesktop.org/Tango_Desktop_Project).
 The color palette is public domain. The icon theme is also available as public domain since the 0.8.90 release.
 
-Extensions: added mail-send icon (scalable + 32x32 + 22x22 + 16x16 png images) from wikimedia: https://commons.wikimedia.org/wiki/File:Send-email.svg
+Extensions:
+
+1) mail-send icon (scalable + 32x32 + 22x22 + 16x16 png images) from wikimedia: https://commons.wikimedia.org/wiki/File:Send-email.svg
 License: Creative Commons Attribution-Share Alike 3.0 Unported
 Author: RRZE - https://commons.wikimedia.org/wiki/User:RRZEicons
+
+2) checkbox icon (32x32 + 22x22 + 16x16 png images) - custom icon
+License: GPL v.3
+Author: Dmitry Ivanov

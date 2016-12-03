@@ -117,6 +117,7 @@
         <file alias="16x16/bookmark-new.png">16x16/actions/bookmark-new.png</file>
         <file alias="16x16/media-seek-forward.png">16x16/actions/media-seek-forward.png</file>
         <file alias="16x16/edit-copy.png">16x16/actions/edit-copy.png</file>
+        <file alias="16x16/checkbox.png">16x16/actions/checkbox.png</file>
         <file alias="16x16/go-home.png">16x16/actions/go-home.png</file>
         <file alias="16x16/edit-undo.png">16x16/actions/edit-undo.png</file>
         <file alias="16x16/document-print.png">16x16/actions/document-print.png</file>
@@ -334,6 +335,7 @@
         <file alias="22x22/bookmark-new.png">22x22/actions/bookmark-new.png</file>
         <file alias="22x22/media-seek-forward.png">22x22/actions/media-seek-forward.png</file>
         <file alias="22x22/edit-copy.png">22x22/actions/edit-copy.png</file>
+        <file alias="22x22/checkbox.png">22x22/actions/checkbox.png</file>
         <file alias="22x22/go-home.png">22x22/actions/go-home.png</file>
         <file alias="22x22/edit-undo.png">22x22/actions/edit-undo.png</file>
         <file alias="22x22/document-print.png">22x22/actions/document-print.png</file>
@@ -551,6 +553,7 @@
         <file alias="32x32/bookmark-new.png">32x32/actions/bookmark-new.png</file>
         <file alias="32x32/media-seek-forward.png">32x32/actions/media-seek-forward.png</file>
         <file alias="32x32/edit-copy.png">32x32/actions/edit-copy.png</file>
+        <file alias="32x32/checkbox.png">32x32/actions/checkbox.png</file>
         <file alias="32x32/go-home.png">32x32/actions/go-home.png</file>
         <file alias="32x32/edit-undo.png">32x32/actions/edit-undo.png</file>
         <file alias="32x32/document-print.png">32x32/actions/document-print.png</file>
