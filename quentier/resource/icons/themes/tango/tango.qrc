@@ -52,6 +52,7 @@
         <file alias="16x16/system-lock-screen.png">16x16/actions/system-lock-screen.png</file>
         <file alias="16x16/go-next.png">16x16/actions/go-next.png</file>
         <file alias="16x16/format-text-underline.png">16x16/actions/format-text-underline.png</file>
+        <file alias="16x16/format-list-ordered.png">16x16/actions/format-list-ordered.png</file>
         <file alias="16x16/system-shutdown.png">16x16/actions/system-shutdown.png</file>
         <file alias="16x16/process-stop.png">16x16/actions/process-stop.png</file>
         <file alias="16x16/format-indent-more.png">16x16/actions/format-indent-more.png</file>
@@ -271,6 +272,7 @@
         <file alias="22x22/system-lock-screen.png">22x22/actions/system-lock-screen.png</file>
         <file alias="22x22/go-next.png">22x22/actions/go-next.png</file>
         <file alias="22x22/format-text-underline.png">22x22/actions/format-text-underline.png</file>
+        <file alias="22x22/format-list-ordered.png">22x22/actions/format-list-ordered.png</file>
         <file alias="22x22/system-shutdown.png">22x22/actions/system-shutdown.png</file>
         <file alias="22x22/process-stop.png">22x22/actions/process-stop.png</file>
         <file alias="22x22/format-indent-more.png">22x22/actions/format-indent-more.png</file>
@@ -490,6 +492,7 @@
         <file alias="32x32/system-lock-screen.png">32x32/actions/system-lock-screen.png</file>
         <file alias="32x32/go-next.png">32x32/actions/go-next.png</file>
         <file alias="32x32/format-text-underline.png">32x32/actions/format-text-underline.png</file>
+        <file alias="32x32/format-list-ordered.png">32x32/actions/format-list-ordered.png</file>
         <file alias="32x32/system-shutdown.png">32x32/actions/system-shutdown.png</file>
         <file alias="32x32/process-stop.png">32x32/actions/process-stop.png</file>
         <file alias="32x32/format-indent-more.png">32x32/actions/format-indent-more.png</file>
