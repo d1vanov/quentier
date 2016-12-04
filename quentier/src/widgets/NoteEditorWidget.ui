@@ -485,7 +485,7 @@
              <widget class="QCheckBox" name="spellCheckBox">
               <property name="minimumSize">
                <size>
-                <width>26</width>
+                <width>54</width>
                 <height>26</height>
                </size>
               </property>
