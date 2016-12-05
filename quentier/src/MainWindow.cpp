@@ -137,6 +137,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupNoteEditorTabWidgetManager();
 
+    setupShowHideStartupSettings();
+
     setupDefaultShortcuts();
     setupUserShortcuts();
 
@@ -238,6 +240,26 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onNoteTextCopyHyperlinkAction));
     QObject::connect(m_pUI->ActionRemoveHyperlink, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNoteTextRemoveHyperlinkAction));
+    // Toggle view actions
+    QObject::connect(m_pUI->ActionShowSidePanel, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowSidePanelActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowFavorites, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowFavoritesActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowNotebooks, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowNotebooksActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowTags, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowTagsActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowSavedSearches, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowSavedSearchesActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowDeletedNotes, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowDeletedNotesActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowNotesList, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowNoteListActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowToolbar, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowToolbarActionToggled,bool));
+    QObject::connect(m_pUI->ActionShowStatusBar, QNSIGNAL(QAction,toggled,bool),
+                     this, QNSLOT(MainWindow,onShowStatusBarActionToggled,bool));
+
     // Look and feel actions
     QObject::connect(m_pUI->ActionIconsNative, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconsToNativeAction));
@@ -1311,6 +1333,168 @@ void MainWindow::onAccountManagerError(QNLocalizedString errorDescription)
     onSetStatusBarText(errorDescription.localizedString());
 }
 
+void MainWindow::onShowSidePanelActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowSidePanelActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowSidePanel"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->sidePanelSplitter->show();
+    }
+    else {
+        m_pUI->sidePanelSplitter->hide();
+    }
+}
+
+void MainWindow::onShowFavoritesActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowFavoritesActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowFavorites"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->favoritesWidget->show();
+    }
+    else {
+        m_pUI->favoritesWidget->hide();
+    }
+}
+
+void MainWindow::onShowNotebooksActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowNotebooksActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowNotebooks"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->notebooksWidget->show();
+    }
+    else {
+        m_pUI->notebooksWidget->hide();
+    }
+}
+
+void MainWindow::onShowTagsActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowTagsActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowTags"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->tagsWidget->show();
+    }
+    else {
+        m_pUI->tagsWidget->hide();
+    }
+}
+
+void MainWindow::onShowSavedSearchesActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowSavedSearchesActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowSavedSearches"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->savedSearchesWidget->show();
+    }
+    else {
+        m_pUI->savedSearchesWidget->hide();
+    }
+}
+
+void MainWindow::onShowDeletedNotesActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowDeletedNotesActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowDeletedNotes"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->deletedNotesWidget->show();
+    }
+    else {
+        m_pUI->deletedNotesWidget->hide();
+    }
+}
+
+void MainWindow::onShowNoteListActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowNoteListActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowNotesList"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->notesListFrame->show();
+    }
+    else {
+        m_pUI->notesListFrame->hide();
+    }
+}
+
+void MainWindow::onShowToolbarActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowToolbarActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowToolbar"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->upperBarPanel->show();
+    }
+    else {
+        m_pUI->upperBarPanel->hide();
+    }
+}
+
+void MainWindow::onShowStatusBarActionToggled(bool checked)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onShowStatusBarActionToggled: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(QStringLiteral("ShowStatusBar"), checked);
+    appSettings.endGroup();
+
+    if (checked) {
+        m_pUI->statusBar->show();
+    }
+    else {
+        m_pUI->statusBar->hide();
+    }
+}
+
 void MainWindow::onSwitchIconsToNativeAction()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToNativeAction"));
@@ -1606,12 +1790,17 @@ void MainWindow::setupModels()
 
     clearModels();
 
-    m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache, m_notebookCache, m_tagCache, m_savedSearchCache, this);
-    m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager, m_notebookCache, this);
+    m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache,
+                                           m_notebookCache, m_tagCache, m_savedSearchCache, this);
+    m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager,
+                                         m_notebookCache, this);
     m_pTagModel = new TagModel(*m_pAccount, *m_pLocalStorageManager, m_tagCache, this);
-    m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager, m_savedSearchCache, this);
-    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
-    m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache, m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
+    m_pSavedSearchModel = new SavedSearchModel(*m_pAccount, *m_pLocalStorageManager,
+                                               m_savedSearchCache, this);
+    m_pNoteModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
+                                 m_notebookCache, this, NoteModel::IncludedNotes::NonDeleted);
+    m_pDeletedNotesModel = new NoteModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
+                                         m_notebookCache, this, NoteModel::IncludedNotes::Deleted);
 
     m_pUI->favoritesTableView->setModel(m_pFavoritesModel);
     m_pUI->notebooksTreeView->setModel(m_pNotebookModel);
@@ -1659,6 +1848,43 @@ void MainWindow::clearModels()
         delete m_pFavoritesModel;
         m_pFavoritesModel = Q_NULLPTR;
     }
+}
+
+void MainWindow::setupShowHideStartupSettings()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupShowHideStartupSettings"));
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+
+#define CHECK_AND_SET_SHOW_SETTING(name, action, widget) \
+    { \
+        QVariant showSetting = appSettings.value(name); \
+        if (showSetting.isNull()) { \
+            showSetting = m_pUI->Action##action->isChecked(); \
+        } \
+        if (showSetting.toBool()) {\
+            m_pUI->widget->show(); \
+        } \
+        else { \
+            m_pUI->widget->hide(); \
+        } \
+        m_pUI->Action##action->setChecked(showSetting.toBool()); \
+    }
+
+    CHECK_AND_SET_SHOW_SETTING("ShowSidePanel", ShowSidePanel, sidePanelSplitter)
+    CHECK_AND_SET_SHOW_SETTING("ShowFavorites", ShowFavorites, favoritesWidget)
+    CHECK_AND_SET_SHOW_SETTING("ShowNotebooks", ShowNotebooks, notebooksWidget)
+    CHECK_AND_SET_SHOW_SETTING("ShowTags", ShowTags, tagsWidget)
+    CHECK_AND_SET_SHOW_SETTING("ShowSavedSearches", ShowSavedSearches, savedSearchesWidget)
+    CHECK_AND_SET_SHOW_SETTING("ShowDeletedNotes", ShowDeletedNotes, deletedNotesWidget)
+    CHECK_AND_SET_SHOW_SETTING("ShowNotesList", ShowNotesList, notesListFrame)
+    CHECK_AND_SET_SHOW_SETTING("ShowToolbar", ShowToolbar, upperBarPanel)
+    CHECK_AND_SET_SHOW_SETTING("ShowStatusBar", ShowStatusBar, upperBarPanel)
+
+#undef CHECK_AND_SET_SHOW_SETTING
+
+    appSettings.endGroup();
 }
 
 void MainWindow::setupViews()

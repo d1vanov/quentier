@@ -130,6 +130,17 @@ private Q_SLOTS:
     void onAccountSwitched(Account account);
     void onAccountManagerError(QNLocalizedString errorDescription);
 
+    // Toggle view slots
+    void onShowSidePanelActionToggled(bool checked);
+    void onShowFavoritesActionToggled(bool checked);
+    void onShowNotebooksActionToggled(bool checked);
+    void onShowTagsActionToggled(bool checked);
+    void onShowSavedSearchesActionToggled(bool checked);
+    void onShowDeletedNotesActionToggled(bool checked);
+    void onShowNoteListActionToggled(bool checked);
+    void onShowToolbarActionToggled(bool checked);
+    void onShowStatusBarActionToggled(bool checked);
+
     // Look and feel settings slots
     void onSwitchIconsToNativeAction();
     void onSwitchIconsToTangoAction();
@@ -167,6 +178,7 @@ private:
     void setupModels();
     void clearModels();
 
+    void setupShowHideStartupSettings();
     void setupViews();
     void clearViews();
 
