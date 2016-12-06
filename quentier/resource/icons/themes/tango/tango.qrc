@@ -121,6 +121,10 @@
         <file alias="16x16/edit-copy.png">16x16/actions/edit-copy.png</file>
         <file alias="16x16/checkbox.png">16x16/actions/checkbox.png</file>
         <file alias="16x16/tools-check-spelling.png">16x16/actions/tools-check-spelling.png</file>
+        <file alias="16x16/insert-table.png">16x16/actions/insert-table.png</file>
+        <file alias="16x16/insert-horizontal-rule.png">16x16/actions/insert-horizontal-rule.png</file>
+        <file alias="16x16/format-text-color.png">16x16/actions/format-text-color.png</file>
+        <file alias="16x16/fill-color.png">16x16/actions/fill-color.png</file>
         <file alias="16x16/go-home.png">16x16/actions/go-home.png</file>
         <file alias="16x16/edit-undo.png">16x16/actions/edit-undo.png</file>
         <file alias="16x16/document-print.png">16x16/actions/document-print.png</file>
@@ -342,6 +346,10 @@
         <file alias="22x22/edit-copy.png">22x22/actions/edit-copy.png</file>
         <file alias="22x22/checkbox.png">22x22/actions/checkbox.png</file>
         <file alias="22x22/tools-check-spelling.png">22x22/actions/tools-check-spelling.png</file>
+        <file alias="22x22/insert-table.png">22x22/actions/insert-table.png</file>
+        <file alias="22x22/insert-horizontal-rule.png">22x22/actions/insert-horizontal-rule.png</file>
+        <file alias="22x22/format-text-color.png">22x22/actions/format-text-color.png</file>
+        <file alias="22x22/fill-color.png">22x22/actions/fill-color.png</file>
         <file alias="22x22/go-home.png">22x22/actions/go-home.png</file>
         <file alias="22x22/edit-undo.png">22x22/actions/edit-undo.png</file>
         <file alias="22x22/document-print.png">22x22/actions/document-print.png</file>
@@ -563,6 +571,10 @@
         <file alias="32x32/edit-copy.png">32x32/actions/edit-copy.png</file>
         <file alias="32x32/checkbox.png">32x32/actions/checkbox.png</file>
         <file alias="32x32/tools-check-spelling.png">32x32/actions/tools-check-spelling.png</file>
+        <file alias="32x32/insert-table.png">32x32/actions/insert-table.png</file>
+        <file alias="32x32/insert-horizontal-rule.png">32x32/actions/insert-horizontal-rule.png</file>
+        <file alias="32x32/format-text-color.png">32x32/actions/format-text-color.png</file>
+        <file alias="32x32/fill-color.png">32x32/actions/fill-color.png</file>
         <file alias="32x32/go-home.png">32x32/actions/go-home.png</file>
         <file alias="32x32/edit-undo.png">32x32/actions/edit-undo.png</file>
         <file alias="32x32/document-print.png">32x32/actions/document-print.png</file>

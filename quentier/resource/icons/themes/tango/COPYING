@@ -5,31 +5,36 @@ Extensions:
 
 1) mail-send icon (scalable + 32x32 + 22x22 + 16x16 png images) from wikimedia: https://commons.wikimedia.org/wiki/File:Send-email.svg
 License: Creative Commons Attribution-Share Alike 3.0 Unported
-Author: RRZE - https://commons.wikimedia.org/wiki/User:RRZEicons
+Copyright: RRZE - https://commons.wikimedia.org/wiki/User:RRZEicons
 
 2) checkbox icon (32x32 + 22x22 + 16x16 png images) - custom icon
 License: GPL v.3
-Author: Dmitry Ivanov
+Copyright: Dmitry Ivanov
 
 3) format-list-ordered (32x32 + 22x22 + 16x16 png images) - custom icon
 License: GPL v.3
-Author: Dmitry Ivanov
+Copyright: Dmitry Ivanov
 
 4) format-list-unordered (32x32 + 22x22 + 16x16 png images) - custom icon
 License: GPL v.3
-Author: Dmitry Ivanov
+Copyright: Dmitry Ivanov
 
-5) tools-check-spelling icon (scalable + 32x32 + 22x22 + 16x16 png images) from Gnome icon theme: http://ftp.gnome.org/pub/gnome/sources/gnome-icon-theme/2.28
-License: GPL v. 2
-Authors:
-Ulisse Perusin <uli.peru@gmail.com>
-Riccardo Buzzotta <raozuzu@yahoo.it>
-Josef Vybíral <cornelius@vybiral.info>
-Hylke Bons <h.bons@student.rug.nl>
-Ricardo González <rick@jinlabs.com>
-Lapo Calamandrei <calamandrei@gmail.com>
-Rodney Dawes <dobey@novell.com>
-Luca Ferretti <elle.uca@libero.it>
-Tuomas Kuosmanen <tigert@gimp.org>
-Andreas Nilsson <nisses.mail@home.se>
-Jakub Steiner <jimmac@novell.com>
+5) tools-check-spelling icon (32x32 + 22x22 + 16x16 png images) from Farm-fresh icon theme: https://www.iconfinder.com/iconsets/fatcow
+License: Creative Commons (Attribution 3.0 United States)
+Copyright: FatCow Web Hosting
+
+6) insert-horizontal-rule (32x32 + 22x22 + 16x16 png images) - custom icon
+License: GPL v.3
+Copyright: Dmitry Ivanov
+
+7) format-text-color (32x32 + 22x22 + 16x16 png images) - custom icon
+License: GPL v.3
+Copyright: Dmitry Ivanov
+
+8) fill-color (32x32 + 22x22 + 16x16 png images) from PixeloPhilia icon theme: https://www.iconfinder.com/iconsets/pixelo
+License: Creative Commons (Attribution 3.0 Unported)
+Copyright: Ömer Çetin - https://omercetin.deviantart.com
+
+9) insert-table icon (32x32 + 22x22 + 16x16 png images) from Farm-fresh icon theme: https://www.iconfinder.com/iconsets/fatcow
+License: Creative Commons (Attribution 3.0 United States)
+Copyright: FatCow Web Hosting
