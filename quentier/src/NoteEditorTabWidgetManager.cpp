@@ -197,7 +197,10 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
             return;
         }
 
-        // TODO: save the modified note within the editor (if any)
+        QNLocalizedString errorDescription;
+        NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                << QStringLiteral(", error description: ") << errorDescription);
 
         // That should remove the note from the editor (if any)
         pNoteEditorWidget->setNoteLocalUid(QString());
@@ -294,7 +297,10 @@ bool NoteEditorTabWidgetManager::eventFilter(QObject * pWatched, QEvent * pEvent
         // We shouldn't have got here (see just above) but if we are here anyway, need to clear the note from the editor widget
         // but leave the only remaining editor widget
 
-        // TODO: save the modified note within the editor (if any)
+        QNLocalizedString errorDescription;
+        NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                << QStringLiteral(", error description: ") << errorDescription);
 
         pNoteEditorWidget->setNoteLocalUid(QString());
         return true;

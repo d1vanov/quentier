@@ -229,21 +229,18 @@ bool NoteEditorWidget::isSpellCheckEnabled() const
     return m_pUi->noteEditor->spellCheckEnabled();
 }
 
-void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
+NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNote(QNLocalizedString & errorDescription)
 {
-    if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected null pointer to QCloseEvent in NoteEditorWidget's closeEvent"));
-        return;
-    }
+    QNDEBUG(QStringLiteral("NoteEditorWidget::checkAndSaveModifiedNote"));
 
     if (m_pCurrentNote.isNull()) {
-        pEvent->accept();
-        return;
+        QNDEBUG(QStringLiteral("No note is set to the editor"));
+        return NoteSaveStatus::Ok;
     }
 
     if (!m_pUi->noteEditor->isModified()) {
-        pEvent->accept();
-        return;
+        QNDEBUG(QStringLiteral("Note is not modified, nothing to save"));
+        return NoteSaveStatus::Ok;
     }
 
     ApplicationSettings appSettings;
@@ -286,11 +283,31 @@ void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
     int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
 
     if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
-        QNWARNING(QStringLiteral("Failed to convert the editor contents to note"));
+        errorDescription = QT_TR_NOOP("Failed to convert the editor contents to note");
+        QNWARNING(errorDescription);
+        return NoteSaveStatus::Failed;
     }
     else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        QNWARNING(QStringLiteral("The conversion of note editor contents to note failed to finish in time"));
+        errorDescription = QT_TR_NOOP("The conversion of note editor contents "
+                                      "to note failed to finish in time");
+        QNWARNING(errorDescription);
+        return NoteSaveStatus::Timeout;
     }
+
+    return NoteSaveStatus::Ok;
+}
+
+void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING(QStringLiteral("Detected null pointer to QCloseEvent in NoteEditorWidget's closeEvent"));
+        return;
+    }
+
+    QNLocalizedString errorDescription;
+    NoteSaveStatus::type status = checkAndSaveModifiedNote(errorDescription);
+    QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+            << QStringLiteral(", error description: ") << errorDescription);
 
     pEvent->accept();
 }

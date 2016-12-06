@@ -43,7 +43,19 @@ public:
                               QWidget * parent = Q_NULLPTR);
     virtual ~NoteEditorWidget();
 
+    /**
+     * @brief noteLocalUid - getter for the local uid of the editor's note
+     * @return the local uid of the note set to the editor, if any; empty string otherwise
+     */
     QString noteLocalUid() const;
+
+    /**
+     * @brief setNoteLocalUid - setter for the local uid of the editor's note
+     * @param noteLocalUid - the local uid of the note to be set to the editor;
+     * the editor finds the note (either within the note cache or within the local storage
+     * database) and loads it; setting the empty string removes the note from the editor
+     * if it was set there before
+     */
     void setNoteLocalUid(const QString & noteLocalUid);
 
     /**
@@ -58,24 +70,76 @@ public:
      */
     QString titleOrPreview() const;
 
+    /**
+     * @brief isNoteSourceShown
+     * @return true if the note source widget showing the note editor's HTML is currently shown,
+     * false otherwise
+     */
     bool isNoteSourceShown() const;
+
+    /**
+     * @brief showNoteSource - shows the note source widget displaying the note editor's HTML
+     */
     void showNoteSource();
+
+    /**
+     * @brief hideNoteSource - hides the note source widget displaying the note editor's HTML
+     */
     void hideNoteSource();
 
+    /**
+     * @brief isSpellCheckEnabled
+     * @return true if the spell checking is enabled for the note editor, false otherwise
+     */
     bool isSpellCheckEnabled() const;
+
+    /**
+     * @brief The NoteSaveStatus struct is the namespace wrapper for the enum
+     * describing the possible statuses of the attempt to save the changes
+     * done to the note within the editor
+     */
+    struct NoteSaveStatus
+    {
+        enum type {
+            /**
+             * Successfully saved the note's contents
+             */
+            Ok = 0,
+            /**
+             * Failed to save the note's contents
+             */
+            Failed,
+            /**
+             * Failed to finish saving the note's contents in time
+             */
+            Timeout
+        };
+    };
+
+    /**
+     * @brief checkAndSaveModifiedNote - if the note editor has some note set and
+     * it also contains some modifications to the content of the note which are
+     * not saved yet, this method attempts to save these synchronously
+     * @param errorDescription - contains the textual description of the error
+     * if the method wasn't able to save the note
+     * @return the result of the attempt to save the note synchronously
+     */
+    NoteSaveStatus::type checkAndSaveModifiedNote(QNLocalizedString & errorDescription);
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
 
     /**
-     * This signal is emitted when note's title or, if note's title has changed (or appeared or disappeared) or, if note has no title
-     * and had no title, if note's content has changed in a way affecting the preview text so that it has changed too
+     * This signal is emitted when note's title or, if note's title has changed
+     * (or appeared or disappeared) or, if note has no title and had no title,
+     * if note's content has changed in a way affecting the preview text so that
+     * it has changed too
      */
     void titleOrPreviewChanged(QString titleOrPreview);
 
     /**
-     * This signal is emitted when full note & notebook objects are found or received by the widget so it can continue its work
-     * after setting the note local uid initially
+     * This signal is emitted when full note & notebook objects are found or received
+     * by the widget so it can continue its work after setting the note local uid initially
      */
     void resolved();
 
