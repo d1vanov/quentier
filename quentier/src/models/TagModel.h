@@ -72,6 +72,7 @@ public:
     const TagModelItem * itemForLocalUid(const QString & localUid) const;
     QModelIndex indexForItem(const TagModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
+    QModelIndex indexForTagName(const QString & tagName) const;
 
     QModelIndex promote(const QModelIndex & index);
     QModelIndex demote(const QModelIndex & index);

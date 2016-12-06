@@ -70,6 +70,7 @@ public:
     const NotebookModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const NotebookModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
+    QModelIndex indexForNotebookName(const QString & notebookName) const;
 
     QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
     QModelIndex removeFromStack(const QModelIndex & index);

@@ -62,24 +62,34 @@ void SavedSearchModel::updateAccount(const Account & account)
     m_account = account;
 }
 
+QModelIndex SavedSearchModel::indexForItem(const SavedSearchModelItem * item) const
+{
+    if (!item) {
+        return QModelIndex();
+    }
+
+    return indexForLocalUid(item->m_localUid);
+
+}
+
 QModelIndex SavedSearchModel::indexForLocalUid(const QString & localUid) const
 {
     const SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    SavedSearchDataByLocalUid::const_iterator itemIt = localUidIndex.find(localUid);
-    if (Q_UNLIKELY(itemIt == localUidIndex.end())) {
-        QNDEBUG(QStringLiteral("Can't find the saved search item by local uid"));
+    auto it = localUidIndex.find(localUid);
+    return indexForLocalUidIndexIterator(it);
+}
+
+QModelIndex SavedSearchModel::indexForSavedSearchName(const QString & savedSearchName) const
+{
+    const SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    auto it = nameIndex.find(savedSearchName.toUpper());
+    if (it == nameIndex.end()) {
         return QModelIndex();
     }
 
-    const SavedSearchDataByIndex & index = m_data.get<ByIndex>();
-    SavedSearchDataByIndex::const_iterator indexIt = m_data.project<ByIndex>(itemIt);
-    if (Q_UNLIKELY(indexIt == index.end())) {
-        QNWARNING(QStringLiteral("Can't find the indexed reference to the saved search item: ") << *itemIt);
-        return QModelIndex();
-    }
-
-    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
-    return createIndex(rowIndex, Columns::Name);
+    const SavedSearchModelItem & item = *it;
+    return indexForItem(&item);
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
@@ -1041,6 +1051,25 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
         QNTRACE(QStringLiteral("Emitted the request to update the saved search in the local storage: id = ") << requestId
                 << QStringLiteral(", saved search: ") << savedSearch);
     }
+}
+
+QModelIndex SavedSearchModel::indexForLocalUidIndexIterator(const SavedSearchDataByLocalUid::const_iterator it) const
+{
+    const SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    if (it == localUidIndex.end()) {
+        return QModelIndex();
+    }
+
+    const SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    auto indexIt = m_data.project<ByIndex>(it);
+    if (Q_UNLIKELY(indexIt == index.end())) {
+        QNWARNING(QStringLiteral("Can't find the indexed reference to the saved search item: ")
+                  << *it);
+        return QModelIndex();
+    }
+
+    int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
+    return createIndex(rowIndex, Columns::Name);
 }
 
 bool SavedSearchModel::LessByName::operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const

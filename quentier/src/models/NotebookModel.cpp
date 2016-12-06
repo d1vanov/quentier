@@ -114,8 +114,21 @@ QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
         return QModelIndex();
     }
 
-    const NotebookModelItem * item = &(it.value());
-    return indexForItem(item);
+    const NotebookModelItem & item = *it;
+    return indexForItem(&item);
+}
+
+QModelIndex NotebookModel::indexForNotebookName(const QString & notebookName) const
+{
+    const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    auto it = nameIndex.find(notebookName.toUpper());
+    if (it == nameIndex.end()) {
+        return QModelIndex();
+    }
+
+    const NotebookItem & item = *it;
+    return indexForLocalUid(item.localUid());
 }
 
 QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString & stack)

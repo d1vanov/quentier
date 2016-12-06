@@ -64,7 +64,10 @@ public:
     int sortingColumn() const { return m_sortedColumn; }
     Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
+    const SavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
+    QModelIndex indexForItem(const SavedSearchModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
+    QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
 
 public:
     // QAbstractItemModel interface
@@ -172,6 +175,8 @@ private:
     {
         bool operator()(const SavedSearchModelItem & lhs, const SavedSearchModelItem & rhs) const;
     };
+
+    QModelIndex indexForLocalUidIndexIterator(const SavedSearchDataByLocalUid::const_iterator it) const;
 
 private:
     Account                 m_account;

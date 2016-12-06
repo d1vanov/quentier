@@ -1688,6 +1688,19 @@ QModelIndex TagModel::indexForLocalUid(const QString & localUid) const
     return indexForItem(&item);
 }
 
+QModelIndex TagModel::indexForTagName(const QString & tagName) const
+{
+    const TagDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    auto it = nameIndex.find(tagName.toUpper());
+    if (it == nameIndex.end()) {
+        return QModelIndex();
+    }
+
+    const TagModelItem & item = *it;
+    return indexForItem(&item);
+}
+
 QModelIndex TagModel::promote(const QModelIndex & itemIndex)
 {
     QNDEBUG(QStringLiteral("TagModel::promote: index: is valid = ") << (itemIndex.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
