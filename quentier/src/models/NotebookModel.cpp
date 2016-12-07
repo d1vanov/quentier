@@ -199,6 +199,11 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
         return index;
     }
 
+    if (it == m_modelItemsByStack.end()) {
+        QNCRITICAL(QStringLiteral("Internal error: no notebook model item while it's expected to be here; failed to auto-fix the problem"));
+        return index;
+    }
+
     NotebookItem notebookItemCopy(*notebookItem);
     notebookItemCopy.setStack(stack);
     localUidIndex.replace(notebookItemIt, notebookItemCopy);
@@ -272,6 +277,141 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
     item->setParent(m_fakeRootItem);
     updateItemRowWithRespectToSorting(*item);
     return indexForItem(item);
+}
+
+QStringList NotebookModel::stacks() const
+{
+    QStringList result;
+    result.reserve(m_stackItems.size());
+
+    for(auto it = m_stackItems.constBegin(), end = m_stackItems.constEnd(); it != end; ++it) {
+        result.push_back(it.key());
+    }
+
+    return result;
+}
+
+QModelIndex NotebookModel::createNotebook(const QString & notebookName,
+                                          const QString & notebookStack, QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::createNotebook: notebook name = ")
+            << notebookName << ", notebook stack = " << notebookStack);
+
+    if (notebookName.isEmpty()) {
+        errorDescription = QNLocalizedString("Notebook name is empty", this);
+        return QModelIndex();
+    }
+
+    int notebookNameSize = notebookName.size();
+
+    if (notebookNameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) {
+        errorDescription = QNLocalizedString("Notebook name's minimal acceptable length is");
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN);
+        return QModelIndex();
+    }
+
+    if (notebookNameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) {
+        errorDescription = QNLocalizedString("Notebook mame's maximal acceptable length is");
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX);
+        return QModelIndex();
+    }
+
+    QModelIndex existingItemIndex = indexForNotebookName(notebookName);
+    if (existingItemIndex.isValid()) {
+        errorDescription = QNLocalizedString("Notebook with such name already exists");
+        return QModelIndex();
+    }
+
+    NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    int numExistingNotebooks = static_cast<int>(localUidIndex.size());
+    if (Q_UNLIKELY(numExistingNotebooks + 1 >= m_account.notebookCountMax())) {
+        errorDescription = QNLocalizedString("Can't add notebook: the account can "
+                                             "contain a limited number of notebooks");
+        errorDescription += QStringLiteral(": ");
+        errorDescription += QString::number(m_account.notebookCountMax());
+        return QModelIndex();
+    }
+
+    if (!m_fakeRootItem) {
+        m_fakeRootItem = new NotebookModelItem;
+    }
+
+    const NotebookModelItem * parentItem = m_fakeRootItem;
+
+    if (!notebookStack.isEmpty())
+    {
+        auto it = m_modelItemsByStack.end();
+        auto stackItemIt = m_stackItems.find(notebookStack);
+        if (stackItemIt == m_stackItems.end()) {
+            QNDEBUG(QStringLiteral("Adding new notebook stack item"));
+            stackItemIt = m_stackItems.insert(notebookStack, NotebookStackItem(notebookStack));
+            it = addNewStackModelItem(stackItemIt.value());
+        }
+
+        if (it == m_modelItemsByStack.end())
+        {
+            it = m_modelItemsByStack.find(notebookStack);
+            if (it == m_modelItemsByStack.end()) {
+                QNWARNING(QStringLiteral("Internal error: no notebook model item while it's expected to be here; "
+                                         "will try to auto-fix it and add the new model item"));
+                it = addNewStackModelItem(stackItemIt.value());
+            }
+        }
+
+        if (it == m_modelItemsByStack.end()) {
+            errorDescription = QNLocalizedString("Internal error: no notebook model item "
+                                                 "while it's expected to be here; failed "
+                                                 "to auto-fix the problem");
+            return QModelIndex();
+        }
+
+        parentItem = &(it.value());
+        QNDEBUG(QStringLiteral("Will put the new notebook under parent item: ") << *parentItem);
+    }
+
+    QModelIndex parentIndex = indexForItem(parentItem);
+
+    // Will insert the notebook to the end of the parent item's children
+    int row = parentItem->numChildren();
+
+    beginInsertRows(parentIndex, row, row);
+
+    NotebookItem item;
+    item.setLocalUid(UidGenerator::Generate());
+    Q_UNUSED(m_notebookItemsNotYetInLocalStorageUids.insert(item.localUid()))
+
+    item.setName(notebookName);
+    item.setDirty(true);
+    item.setStack(notebookStack);
+    item.setSynchronizable(m_account.type() != Account::Type::Local);
+
+    auto insertionResult = localUidIndex.insert(item);
+
+    // Adding wrapping notebook model item
+    NotebookModelItem modelItem(NotebookModelItem::Type::Notebook, &(*insertionResult.first));
+    auto modelItemInsertionResult = m_modelItemsByLocalUid.insert(item.localUid(), modelItem);
+    modelItemInsertionResult.value().setParent(parentItem);
+
+    endInsertRows();
+
+    updateNotebookInLocalStorage(item);
+
+    QModelIndex addedNotebookIndex = indexForLocalUid(item.localUid());
+
+    if (m_sortedColumn != Columns::Name) {
+        QNDEBUG(QStringLiteral("Not sorting by name, returning"));
+        return addedNotebookIndex;
+    }
+
+    emit layoutAboutToBeChanged();
+    for(auto it = m_modelItemsByLocalUid.begin(), end = m_modelItemsByLocalUid.end(); it != end; ++it) {
+        updateItemRowWithRespectToSorting(*it);
+    }
+    emit layoutChanged();
+
+    return addedNotebookIndex;
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const

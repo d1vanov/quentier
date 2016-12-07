@@ -52,6 +52,7 @@ set(${PROJECT_NAME}_HEADERS
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/dialogs/AddAccountDialog.h
+    src/dialogs/AddNotebookDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/models/ColumnChangeRerouter.h
     src/models/NewItemNameGenerator.hpp
@@ -105,6 +106,7 @@ set(${PROJECT_NAME}_SOURCES
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/dialogs/AddAccountDialog.cpp
+    src/dialogs/AddNotebookDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
@@ -148,6 +150,7 @@ set(${PROJECT_NAME}_SOURCES
 set(FORMS
     src/MainWindow.ui
     src/dialogs/AddAccountDialog.ui
+    src/dialogs/AddNotebookDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui

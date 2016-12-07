@@ -75,6 +75,20 @@ public:
     QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
     QModelIndex removeFromStack(const QModelIndex & index);
 
+    QStringList stacks() const;
+
+    /**
+     * @brief createNotebook - convenience method to create the new notebook into the model
+     * @param notebookName - the name of the new notebook
+     * @param notebookStack - the stack of the new notebook
+     * @param errorDescription - the textual description of the error if notebook
+     * was not created successfully
+     * @return either valid model index if notebook was created successfully or
+     * invalid model index otherwise
+     */
+    QModelIndex createNotebook(const QString & notebookName, const QString & notebookStack,
+                               QNLocalizedString & errorDescription);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
