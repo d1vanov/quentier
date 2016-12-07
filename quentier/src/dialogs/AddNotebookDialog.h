@@ -24,6 +24,10 @@ public:
 
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
+    void onNotebookNameEdited(const QString & notebookName);
+
+private:
+    void createConnections();
 
 private:
     Ui::AddNotebookDialog * m_pUi;

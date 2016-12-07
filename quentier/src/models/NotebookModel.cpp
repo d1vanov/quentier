@@ -386,6 +386,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     item.setDirty(true);
     item.setStack(notebookStack);
     item.setSynchronizable(m_account.type() != Account::Type::Local);
+    item.setDefault(numExistingNotebooks == 0);
 
     auto insertionResult = localUidIndex.insert(item);
 
@@ -412,6 +413,29 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     emit layoutChanged();
 
     return addedNotebookIndex;
+}
+
+QString NotebookModel::columnName(const NotebookModel::Columns::type column) const
+{
+    switch(column)
+    {
+    case Columns::Name:
+        return tr("Name");
+    case Columns::Synchronizable:
+        return tr("Synchronizable");
+    case Columns::Dirty:
+        return tr("Changed");
+    case Columns::Default:
+        return tr("Default");
+    case Columns::Published:
+        return tr("Published");
+    case Columns::FromLinkedNotebook:
+        return tr("External");
+    case Columns::NumNotesPerNotebook:
+        return tr("Num notes");
+    default:
+        return QString();
+    }
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
@@ -561,25 +585,7 @@ QVariant NotebookModel::headerData(int section, Qt::Orientation orientation, int
         return QVariant();
     }
 
-    switch(section)
-    {
-    case Columns::Name:
-        return QVariant(tr("Name"));
-    case Columns::Synchronizable:
-        return QVariant(tr("Synchronizable"));
-    case Columns::Dirty:
-        return QVariant(tr("Dirty"));
-    case Columns::Default:
-        return QVariant(tr("Default"));
-    case Columns::Published:
-        return QVariant(tr("Published"));
-    case Columns::FromLinkedNotebook:
-        return QVariant(tr("From linked notebook"));
-    case Columns::NumNotesPerNotebook:
-        return QVariant(tr("Notes per notebook"));
-    default:
-        return QVariant();
-    }
+    return columnName(static_cast<Columns::type>(section));
 }
 
 int NotebookModel::rowCount(const QModelIndex & parent) const
@@ -841,7 +847,22 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         }
 
         notebookItemCopy.setDirty(dirty);
+
+        bool sortingByName = (modelIndex.column() == Columns::Name) &&
+                             (m_sortedColumn == Columns::Name);
+        if (sortingByName) {
+            emit layoutAboutToBeChanged();
+        }
+
         localUidIndex.replace(notebookItemIt, notebookItemCopy);
+
+        if (sortingByName) {
+            emit layoutChanged();
+        }
+        else {
+            emit dataChanged(modelIndex, modelIndex);
+        }
+
         updateNotebookInLocalStorage(notebookItemCopy);
     }
     else
@@ -932,9 +953,10 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         // Change all the child items
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
+        bool sortingByName = (m_sortedColumn == Columns::Name);
+
         // Refresh the list of children; shouldn't be necessary but just n case
         children = stackModelItemIt->children();
-
         for(auto it = children.constBegin(), end = children.constEnd(); it != end; ++it)
         {
             const NotebookModelItem * childItem = *it;
@@ -949,7 +971,20 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
             NotebookItem notebookItemCopy(*notebookItem);
             notebookItemCopy.setStack(newStack);
+
+            if (sortingByName) {
+                emit layoutAboutToBeChanged();
+            }
+
             localUidIndex.replace(notebookItemIt, notebookItemCopy);
+
+            if (sortingByName) {
+                emit layoutChanged();
+            }
+            else {
+                emit dataChanged(modelIndex, modelIndex);
+            }
+
             updateNotebookInLocalStorage(notebookItemCopy);
         }
 

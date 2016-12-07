@@ -24,6 +24,8 @@ AddNotebookDialog::AddNotebookDialog(NotebookModel * pNotebookModel,
         m_pNotebookStacksModel->setStringList(stacks);
         m_pUi->notebookStackComboBox->setModel(m_pNotebookStacksModel);
     }
+
+    createConnections();
 }
 
 AddNotebookDialog::~AddNotebookDialog()
@@ -56,6 +58,20 @@ void AddNotebookDialog::accept()
     }
 
     QDialog::accept();
+}
+
+void AddNotebookDialog::onNotebookNameEdited(const QString & notebookName)
+{
+    QNDEBUG(QStringLiteral("AddNotebookDialog::onNotebookNameEdited: ") << notebookName);
+
+    m_pUi->statusBar->clear();
+    m_pUi->statusBar->setHidden(true);
+}
+
+void AddNotebookDialog::createConnections()
+{
+    QObject::connect(m_pUi->notebookNameLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString&),
+                     this, QNSLOT(AddNotebookDialog,onNotebookNameEdited,const QString&));
 }
 
 } // namespace quentier

@@ -44,7 +44,8 @@ class NotebookModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit NotebookModel(const Account & account,
+                           LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                            NotebookCache & cache, QObject * parent = Q_NULLPTR);
     virtual ~NotebookModel();
 
@@ -72,9 +73,28 @@ public:
     QModelIndex indexForLocalUid(const QString & localUid) const;
     QModelIndex indexForNotebookName(const QString & notebookName) const;
 
+    /**
+     * @brief moveToStack - moves the notebook item pointed to by index to the specified stack
+     * @param index - the index of the notebook item to be moved to the stack
+     * @param stack - the stack to which the notebook item needs to be moved
+     * @return the index of the moved notebook item or invalid index if something went wrong,
+     * for example, if the passed in index did not really point to the notebook item
+     */
     QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
+
+    /**
+     * @brief removeFromStack - removed the notebook item pointed to by index from its stack
+     * @param index - the index of the notebook item to be removed from its stack
+     * @return the index of the notebook item removed from its stack or invalid index
+     * if something went wrong, for example, if the passed in index did not really point
+     * to the notebook item
+     */
     QModelIndex removeFromStack(const QModelIndex & index);
 
+    /**
+     * @brief stacks
+     * @return the list of notebook stacks existing within the notebook model
+     */
     QStringList stacks() const;
 
     /**
@@ -88,6 +108,13 @@ public:
      */
     QModelIndex createNotebook(const QString & notebookName, const QString & notebookStack,
                                QNLocalizedString & errorDescription);
+
+    /**
+     * @brief columnName
+     * @param column - the column which name needs to be returned
+     * @return the name of the column
+     */
+    QString columnName(const Columns::type column) const;
 
 public:
     // QAbstractItemModel interface

@@ -31,6 +31,7 @@
 #include "delegates/NoteItemDelegate.h"
 #include "delegates/TagItemDelegate.h"
 #include "delegates/DeletedNoteTitleColumnDelegate.h"
+#include "dialogs/AddNotebookDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/TableView.h"
 #include "views/TreeView.h"
@@ -145,6 +146,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     addMenuActionsToMainWindow();
 
     connectActionsToSlots();
+    connectViewButtonsToSlots();
 
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
@@ -259,7 +261,6 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onShowToolbarActionToggled,bool));
     QObject::connect(m_pUI->ActionShowStatusBar, QNSIGNAL(QAction,toggled,bool),
                      this, QNSLOT(MainWindow,onShowStatusBarActionToggled,bool));
-
     // Look and feel actions
     QObject::connect(m_pUI->ActionIconsNative, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchIconsToNativeAction));
@@ -273,6 +274,14 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToLighter));
     QObject::connect(m_pUI->ActionPanelStyleDarker, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onSwitchPanelStyleToDarker));
+}
+
+void MainWindow::connectViewButtonsToSlots()
+{
+    QNDEBUG(QStringLiteral("MainWindow::connectViewButtonsToSlots"));
+
+    QObject::connect(m_pUI->addNotebookButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onAddNotebookButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -599,6 +608,19 @@ void MainWindow::refreshChildWidgetsThemeIcons()
     refreshThemeIcons<QCheckBox>();
     refreshThemeIcons<ColorPickerToolButton>();
     refreshThemeIcons<InsertTableToolButton>();
+}
+
+void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type accountType)
+{
+    QNDEBUG(QStringLiteral("MainWindow::showHideViewColumnsForAccountType: ") << accountType);
+
+    bool isLocal = (accountType == Account::Type::Local);
+
+    m_pUI->notebooksTreeView->setColumnHidden(NotebookModel::Columns::Published, isLocal);
+    m_pUI->notebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, isLocal);
+    m_pUI->notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
+
+    // TODO: do the same for other views
 }
 
 void MainWindow::collectBaseStyleSheets()
@@ -1158,6 +1180,22 @@ void MainWindow::onShowNoteSource()
     }
 }
 
+void MainWindow::onAddNotebookButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAddNotebookButtonPressed"));
+
+    if (Q_UNLIKELY(!m_pNotebookModel)) {
+        QNLocalizedString error = QNLocalizedString("Can't add notebook: no notebook model is set up", this);
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QScopedPointer<AddNotebookDialog> pAddNotebookDialog(new AddNotebookDialog(m_pNotebookModel, this));
+    pAddNotebookDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(pAddNotebookDialog->exec())
+}
+
 void MainWindow::onSetTestNoteWithEncryptedData()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
@@ -1660,6 +1698,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     }
 
     setupModels();
+    showHideViewColumnsForAccountType(m_pAccount->type());
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
@@ -1891,22 +1930,26 @@ void MainWindow::setupViews()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupViews"));
 
+    // NOTE: only a few columns would be shown for each view because otherwise there are problems finding space for everyting
+    // TODO: in future should implement the persistent setting of which columns to show or not to show
+
     QTableView * favoritesTableView = m_pUI->favoritesTableView;
-    favoritesTableView->horizontalHeader()->hide();
-    favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);
     FavoriteItemDelegate * favoriteItemDelegate = new FavoriteItemDelegate(favoritesTableView);
     favoritesTableView->setItemDelegate(favoriteItemDelegate);
+    favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);   // This column's values would be displayed along with the favorite item's name
     favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
+    favoritesTableView->horizontalHeader()->hide();
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    favoritesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#endif
+    // FIXME: need to do something similar for Qt4
 
     TreeView * notebooksTreeView = m_pUI->notebooksTreeView;
     NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTreeView);
     notebooksTreeView->setItemDelegate(notebookItemDelegate);
-    SynchronizableColumnDelegate * notebookTreeViewSynchronizableColumnDelegate =
-            new SynchronizableColumnDelegate(notebooksTreeView);
-    notebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Synchronizable,
-                                                notebookTreeViewSynchronizableColumnDelegate);
-    notebooksTreeView->setColumnWidth(NotebookModel::Columns::Synchronizable,
-                                      notebookTreeViewSynchronizableColumnDelegate->sideSize());
+    notebooksTreeView->setColumnHidden(NotebookModel::Columns::NumNotesPerNotebook, true);    // This column's values would be displayed along with the notebook's name
+    notebooksTreeView->setColumnHidden(NotebookModel::Columns::Synchronizable, true);
     DirtyColumnDelegate * notebookTreeViewDirtyColumnDelegate =
             new DirtyColumnDelegate(notebooksTreeView);
     notebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,
@@ -1919,7 +1962,10 @@ void MainWindow::setupViews()
                                                 notebookTreeViewFromLinkedNotebookColumnDelegate);
     notebooksTreeView->setColumnWidth(NotebookModel::Columns::FromLinkedNotebook,
                                       notebookTreeViewFromLinkedNotebookColumnDelegate->sideSize());
-    notebooksTreeView->header()->hide();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    notebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#endif
+    // FIXME: need to do something similar for Qt4
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
@@ -1950,7 +1996,7 @@ void MainWindow::setupViews()
                                  tagsTreeViewFromLinkedNotebookColumnDelegate->sideSize());
     TagItemDelegate * tagsTreeViewNameColumnDelegate = new TagItemDelegate(tagsTreeView);
     tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Name, tagsTreeViewNameColumnDelegate);
-    tagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true);
+    tagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name
     tagsTreeView->header()->hide();
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -2003,6 +2049,13 @@ void MainWindow::setupViews()
             new DeletedNoteTitleColumnDelegate(deletedNotesTableView);
     deletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Title, deletedNoteTitleColumnDelegate);
     m_pUI->deletedNotesTableView->horizontalHeader()->hide();
+
+    Account::Type::type currentAccountType = Account::Type::Local;
+    if (m_pAccount) {
+        currentAccountType = m_pAccount->type();
+    }
+
+    showHideViewColumnsForAccountType(currentAccountType);
 }
 
 void MainWindow::clearViews()

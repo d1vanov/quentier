@@ -37,6 +37,10 @@ void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    }
+
     if (index.isValid())
     {
         int column = index.column();
@@ -46,9 +50,9 @@ void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
         }
         else if (column == NotebookModel::Columns::Default)
         {
-            bool dirty = index.model()->data(index).toBool();
-            if (dirty) {
-                painter->setBrush(QBrush(Qt::magenta));
+            bool isDefault = index.model()->data(index).toBool();
+            if (isDefault) {
+                painter->setBrush(QBrush(Qt::green));
                 drawEllipse(painter, option);
             }
         }
@@ -87,17 +91,31 @@ QSize NotebookItemDelegate::sizeHint(const QStyleOptionViewItem & option, const 
     }
 
     int column = index.column();
+
+    QString columnName;
+    const NotebookModel * model = qobject_cast<const NotebookModel*>(index.model());
+    if (Q_LIKELY(model && (model->columnCount(index.parent()) > column))) {
+        columnName = model->columnName(static_cast<NotebookModel::Columns::type>(column));
+    }
+
+    QFontMetrics fontMetrics(option.font);
+    double margin = 0.1;
+
+    int columnNameWidth = static_cast<int>(std::floor(fontMetrics.width(columnName) *
+                                                      (1.0 + margin) + 0.5));
+
     if ((column == NotebookModel::Columns::Default) ||
         (column == NotebookModel::Columns::Published))
     {
         int side = CIRCLE_RADIUS;
         side += 1;
         side *= 2;
-        return QSize(side, side);
+        int width = std::max(columnNameWidth, side);
+        return QSize(width, side);
     }
     else if (column == NotebookModel::Columns::Name)
     {
-        return notebookNameSizeHint(option, index);
+        return notebookNameSizeHint(option, index, columnNameWidth);
     }
 
     return QStyledItemDelegate::sizeHint(option, index);
@@ -127,10 +145,6 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
     if (Q_UNLIKELY(!model)) {
         QNDEBUG(QStringLiteral("NotebookItemDelegate::drawNotebookName: can't draw, no model"));
         return;
-    }
-
-    if (option.state & QStyle::State_Selected) {
-        painter->fillRect(option.rect, option.palette.highlight());
     }
 
     QString name = model->data(index).toString();
@@ -168,37 +182,60 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
     painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
 }
 
-QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
+QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & option,
+                                                 const QModelIndex & index,
+                                                 const int columnNameWidth) const
 {
+    QNTRACE(QStringLiteral("NotebookItemDelegate::notebookNameSizeHint: column name width = ")
+            << columnNameWidth);
+
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
+        QNDEBUG(QStringLiteral("No model, fallback to the default size hint"));
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
     QString name = model->data(index).toString();
     if (Q_UNLIKELY(name.isEmpty())) {
+        QNDEBUG(QStringLiteral("Notebook name is empty, fallback to the default size hint"));
         return QStyledItemDelegate::sizeHint(option, index);
+    }
+
+    QModelIndex numNotesPerNotebookIndex =
+            model->index(index.row(), NotebookModel::Columns::NumNotesPerNotebook, index.parent());
+    QVariant numNotesPerNotebook = model->data(numNotesPerNotebookIndex);
+    bool conversionResult = false;
+    int numNotesPerNotebookInt = numNotesPerNotebook.toInt(&conversionResult);
+
+    if (!conversionResult) {
+        QNDEBUG(QStringLiteral("Failed to convert the number of notes per notebook to int: ")
+                << numNotesPerNotebook);
+    }
+    else if (numNotesPerNotebookInt > 0) {
+        QNTRACE(QStringLiteral("Appending num notes per notebook to the notebook name: ")
+                << numNotesPerNotebookInt);
+        name += QStringLiteral(" (");
+        name += QString::number(numNotesPerNotebookInt);
+        name += QStringLiteral(")");
     }
 
     QFontMetrics fontMetrics(option.font);
     int nameWidth = fontMetrics.width(name);
     int fontHeight = fontMetrics.height();
 
-    QModelIndex numNotesPerNotebookIndex = model->index(index.row(), NotebookModel::Columns::NumNotesPerNotebook, index.parent());
-    QVariant numNotesPerNotebook = model->data(numNotesPerNotebookIndex);
-    bool conversionResult = false;
-    int numNotesPerNotebookInt = numNotesPerNotebook.toInt(&conversionResult);
-
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the number of notes per notebook to int: ") << numNotesPerNotebook);
-        return QStyledItemDelegate::sizeHint(option, index);
+    double margin = 0.1;
+    int width = std::max(static_cast<int>(std::floor(nameWidth * (1.0 + margin) + 0.5)),
+                         option.rect.width());
+    if (width < columnNameWidth) {
+        width = columnNameWidth;
     }
 
-    if (numNotesPerNotebookInt <= 0) {
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
+    int height = std::max(static_cast<int>(std::floor(fontHeight * (1.0 + margin) + 0.5)),
+                          option.rect.height());
 
-    double margin = 1.1;
-    return QSize(std::max(static_cast<int>(std::floor(nameWidth * margin + 0.5)), option.rect.width()),
-                 std::max(static_cast<int>(std::floor(fontHeight * margin + 0.5)), option.rect.height()));
+    QSize size = QSize(width, height);
+
+    QNTRACE(QStringLiteral("Computed size: width = ") << width
+            << QStringLiteral(", height = ") << height);
+    return size;
 }

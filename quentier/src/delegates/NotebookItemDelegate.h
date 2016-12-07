@@ -29,7 +29,8 @@ private:
 private:
     void drawEllipse(QPainter * painter, const QStyleOptionViewItem & option) const;
     void drawNotebookName(QPainter * painter, const QModelIndex & index, const QStyleOptionViewItem & option) const;
-    QSize notebookNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const;
+    QSize notebookNameSizeHint(const QStyleOptionViewItem & option,
+                               const QModelIndex & index, const int columnNameWidth) const;
 };
 
 #endif // QUENTIER_DELEGATES_NOTEBOOK_ITEM_DELEGATE_H

@@ -17,4 +17,17 @@ void TreeView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bott
 #else
                            , roles);
 #endif
+
+    // NOTE: the table views used in Quentier currently have automatic column width adjustment;
+    // As the default implementation doesn't seem to really care much about data changes,
+    // let's force it to do so
+    if (Q_UNLIKELY(!topLeft.isValid() || !bottomRight.isValid())) {
+        return;
+    }
+
+    int minColumn = topLeft.column();
+    int maxColumn = bottomRight.column();
+    for(int i = minColumn; i <= maxColumn; ++i) {
+        resizeColumnToContents(i);
+    }
 }

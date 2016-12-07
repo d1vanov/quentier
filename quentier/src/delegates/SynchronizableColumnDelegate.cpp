@@ -3,6 +3,7 @@
 #include <QCheckBox>
 
 #define SIDE_SIZE (8)
+#define NON_SYNCHRONIZABLE_CIRCLE_RADIUS (2)
 
 SynchronizableColumnDelegate::SynchronizableColumnDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
@@ -56,6 +57,10 @@ void SynchronizableColumnDelegate::paint(QPainter * painter, const QStyleOptionV
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
 
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    }
+
     bool synchronizable = false;
 
     const QAbstractItemModel * model = index.model();
@@ -63,8 +68,18 @@ void SynchronizableColumnDelegate::paint(QPainter * painter, const QStyleOptionV
         synchronizable = model->data(index).toBool();
     }
 
-    if (synchronizable) {
+    if (synchronizable)
+    {
         m_icon.paint(painter, option.rect);
+    }
+    else
+    {
+        painter->setBrush(QBrush(Qt::magenta));
+        int side = std::min(option.rect.width(), option.rect.height());
+        int radius = std::min(side, NON_SYNCHRONIZABLE_CIRCLE_RADIUS);
+        int diameter = 2 * radius;
+        QPoint center = option.rect.center();
+        painter->drawEllipse(QRectF(center.x() - radius, center.y() - radius, diameter, diameter));
     }
 
     painter->restore();

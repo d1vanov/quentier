@@ -1,5 +1,7 @@
 #include "DirtyColumnDelegate.h"
 #include <QPainter>
+#include <algorithm>
+#include <cmath>
 
 #define DIRTY_CIRCLE_RADIUS (2)
 
@@ -31,21 +33,26 @@ QWidget * DirtyColumnDelegate::createEditor(QWidget * parent, const QStyleOption
 void DirtyColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
                                 const QModelIndex & index) const
 {
-    const QAbstractItemModel * model = index.model();
-    if (Q_UNLIKELY(!model)) {
-        return;
-    }
-
-    bool dirty = model->data(index).toBool();
-    if (!dirty) {
-        // Don't draw anything on non-dirty items
-        return;
-    }
-
     painter->save();
-
     painter->setRenderHints(QPainter::Antialiasing);
-    painter->setBrush(QBrush(Qt::red));
+
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    }
+
+    bool dirty = false;
+
+    const QAbstractItemModel * model = index.model();
+    if (model) {
+        dirty = model->data(index).toBool();
+    }
+
+    if (dirty) {
+        painter->setBrush(QBrush(Qt::red));
+    }
+    else {
+        painter->setBrush(QBrush(Qt::green));
+    }
 
     int side = std::min(option.rect.width(), option.rect.height());
     int radius = std::min(side, DIRTY_CIRCLE_RADIUS);
@@ -78,11 +85,24 @@ QSize DirtyColumnDelegate::sizeHint(const QStyleOptionViewItem & option, const Q
         return QSize();
     }
 
+    int column = index.column();
+
+    QString columnName;
+    const QAbstractItemModel * model = index.model();
+    if (Q_LIKELY(model && (model->columnCount(index.parent()) > column))) {
+        // NOTE: assuming the delegate would only be used in horizontal layouts...
+        columnName = model->headerData(column, Qt::Horizontal).toString();
+    }
+
+    QFontMetrics fontMetrics(option.font);
+    double margin = 0.1;
+    int columnNameWidth = static_cast<int>(std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
+
     int side = DIRTY_CIRCLE_RADIUS;
     side += 1;
     side *= 2;
-
-    return QSize(side, side);
+    int width = std::max(side, columnNameWidth);
+    return QSize(width, side);
 }
 
 void DirtyColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,

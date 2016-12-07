@@ -150,6 +150,9 @@ private Q_SLOTS:
     void onSwitchPanelStyleToLighter();
     void onSwitchPanelStyleToDarker();
 
+    // View buttons slots
+    void onAddNotebookButtonPressed();
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
@@ -193,6 +196,8 @@ private:
     void setupConsumerKeyAndSecret(QString & consumerKey, QString & consumerSecret);
 
     void connectActionsToSlots();
+    void connectViewButtonsToSlots();
+
     void addMenuActionsToMainWindow();
 
     NoteEditorWidget * currentNoteEditor();
@@ -209,6 +214,8 @@ private:
 
     template <class T>
     void refreshThemeIcons();
+
+    void showHideViewColumnsForAccountType(const Account::Type::type accountType);
 
     class StyleSheetProperty
     {

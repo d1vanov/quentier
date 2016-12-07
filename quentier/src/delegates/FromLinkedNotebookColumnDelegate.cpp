@@ -1,5 +1,7 @@
 #include "FromLinkedNotebookColumnDelegate.h"
 #include <QPainter>
+#include <algorithm>
+#include <cmath>
 
 #define ICON_SIDE_SIZE (16)
 
@@ -35,10 +37,12 @@ QWidget * FromLinkedNotebookColumnDelegate::createEditor(QWidget * parent, const
 void FromLinkedNotebookColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
                                              const QModelIndex & index) const
 {
-    Q_UNUSED(index)
-
     painter->save();
     painter->setRenderHints(QPainter::Antialiasing);
+
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    }
 
     bool fromLinkedNotebook = false;
 
@@ -87,7 +91,21 @@ QSize FromLinkedNotebookColumnDelegate::sizeHint(const QStyleOptionViewItem & op
         return QSize();
     }
 
-    return m_iconSize;
+    int column = index.column();
+
+    QString columnName;
+    const QAbstractItemModel * model = index.model();
+    if (Q_LIKELY(model && (model->columnCount(index.parent()) > column))) {
+        // NOTE: assuming the delegate would only be used in horizontal layouts...
+        columnName = model->headerData(column, Qt::Horizontal).toString();
+    }
+
+    QFontMetrics fontMetrics(option.font);
+    double margin = 0.1;
+    int columnNameWidth = static_cast<int>(std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
+
+    int width = std::max(m_iconSize.width(), columnNameWidth);
+    return QSize(width, m_iconSize.height());
 }
 
 void FromLinkedNotebookColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
