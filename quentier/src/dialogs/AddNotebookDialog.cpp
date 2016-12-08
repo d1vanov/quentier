@@ -26,6 +26,7 @@ AddNotebookDialog::AddNotebookDialog(NotebookModel * pNotebookModel,
     }
 
     createConnections();
+    m_pUi->notebookNameLineEdit->setFocus();
 }
 
 AddNotebookDialog::~AddNotebookDialog()
