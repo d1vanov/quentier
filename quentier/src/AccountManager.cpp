@@ -34,6 +34,7 @@
 #define LAST_USED_ACCOUNT_TYPE QStringLiteral("LastUsedAccountType")
 #define LAST_USED_ACCOUNT_ID QStringLiteral("LastUsedAccountId")
 #define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
+#define LAST_USED_ACCOUNT_EVERNOTE_HOST QStringLiteral("LastUsedAccountEvernoteHost")
 
 using namespace quentier;
 
@@ -179,15 +180,42 @@ void AccountManager::detectAvailableAccounts()
     QNDEBUG(QStringLiteral("AccountManager::detectAvailableAccounts"));
 
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
-    QDir appPersistenceStorageDir(appPersistenceStoragePath);
 
-    QFileInfoList accountDirInfos = appPersistenceStorageDir.entryInfoList(QDir::AllDirs);
-    int numPotentialAccountDirs = accountDirInfos.size();
+    QString localAccountsStoragePath = appPersistenceStoragePath + QStringLiteral("/LocalAccounts");
+    QDir localAccountsStorageDir(localAccountsStoragePath);
+    QFileInfoList localAccountsDirInfos = localAccountsStorageDir.entryInfoList(QDir::AllDirs);
+
+    QString evernoteAccountsStoragePath = appPersistenceStoragePath + QStringLiteral("/EvernoteAccounts");
+    QDir evernoteAccountsStorageDir(evernoteAccountsStoragePath);
+    QFileInfoList evernoteAccountsDirInfos = evernoteAccountsStorageDir.entryInfoList(QDir::AllDirs);
+
+    int numPotentialLocalAccountDirs = localAccountsDirInfos.size();
+    int numPotentialEvernoteAccountDirs = evernoteAccountsDirInfos.size();
+    int numPotentialAccountDirs = numPotentialLocalAccountDirs + numPotentialEvernoteAccountDirs;
     m_availableAccounts.reserve(numPotentialAccountDirs);
 
-    for(int i = 0; i < numPotentialAccountDirs; ++i)
+    for(int i = 0; i < numPotentialLocalAccountDirs; ++i)
     {
-        const QFileInfo & accountDirInfo = accountDirInfos[i];
+        const QFileInfo & accountDirInfo = localAccountsDirInfos[i];
+        QDir accountDir = accountDirInfo.absoluteDir();
+        QFileInfo accountBasicInfoFileInfo(accountDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
+        if (!accountBasicInfoFileInfo.exists()) {
+            continue;
+        }
+
+        QString accountName = accountDir.dirName();
+        qevercloud::UserID userId = -1;
+
+        Account availableAccount(accountName, Account::Type::Local, userId);
+        readComplementaryAccountInfo(availableAccount);
+        m_availableAccounts << availableAccount;
+        QNDEBUG(QStringLiteral("Found available local account: name = ") << accountName
+                << QStringLiteral(", dir ") << accountDir.absolutePath());
+    }
+
+    for(int i = 0; i < numPotentialEvernoteAccountDirs; ++i)
+    {
+        const QFileInfo & accountDirInfo = evernoteAccountsDirInfos[i];
         QDir accountDir = accountDirInfo.absoluteDir();
         QFileInfo accountBasicInfoFileInfo(accountDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
         if (!accountBasicInfoFileInfo.exists()) {
@@ -198,53 +226,42 @@ void AccountManager::detectAvailableAccounts()
         qevercloud::UserID userId = -1;
 
         // The account dir for Evernote accounts is encoded as "<account_name>_<host>_<user_id>"
-        // while for local accounts it is encoded as "local_<account_name>"
-
-        bool isLocal = accountName.startsWith(QStringLiteral("local_"));
-        if (isLocal)
-        {
-            accountName.remove(0, 6);
+        int accountNameSize = accountName.size();
+        int lastUnderlineIndex = accountName.lastIndexOf('_');
+        if ((lastUnderlineIndex < 0) || (lastUnderlineIndex >= accountNameSize)) {
+            QNTRACE(QStringLiteral("Dir ") << accountName
+                    << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
+                                      "doesn't contain \"_<user id>\" at the end"));
+            continue;
         }
-        else
-        {
-            int accountNameSize = accountName.size();
-            int lastUnderlineIndex = accountName.lastIndexOf('_');
-            if ((lastUnderlineIndex < 0) || (lastUnderlineIndex >= accountNameSize)) {
-                QNTRACE(QStringLiteral("Dir ") << accountName
-                        << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
-                                          "doesn't contain \"_<user id>\" at the end"));
-                continue;
-            }
 
-            QStringRef userIdStrRef = accountName.rightRef(accountNameSize - lastUnderlineIndex);
-            bool conversionResult = false;
+        QStringRef userIdStrRef = accountName.rightRef(accountNameSize - lastUnderlineIndex);
+        bool conversionResult = false;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-            userId = static_cast<qevercloud::UserID>(userIdStrRef.toInt(&conversionResult));
+        userId = static_cast<qevercloud::UserID>(userIdStrRef.toInt(&conversionResult));
 #else
-            userId = static_cast<qevercloud::UserID>(userIdStrRef.toString().toInt(&conversionResult));
+        userId = static_cast<qevercloud::UserID>(userIdStrRef.toString().toInt(&conversionResult));
 #endif
-            if (Q_UNLIKELY(!conversionResult)) {
-                QNTRACE(QStringLiteral("Skipping dir ") << accountName
-                        << QStringLiteral(" as it doesn't seem to end with user id, the attempt to convert it to int fails"));
-                continue;
-            }
-
-            int preLastUnderlineIndex = accountName.lastIndexOf('_', lastUnderlineIndex);
-            if ((preLastUnderlineIndex < 0) || (preLastUnderlineIndex >= lastUnderlineIndex)) {
-                QNTRACE(QStringLiteral("Dir ") << accountName
-                        << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
-                                          "doesn't contain \"_<host>_<user id>\" at the end"));
-                continue;
-            }
-
-            accountName.remove(preLastUnderlineIndex, accountName.size() - preLastUnderlineIndex);
+        if (Q_UNLIKELY(!conversionResult)) {
+            QNTRACE(QStringLiteral("Skipping dir ") << accountName
+                    << QStringLiteral(" as it doesn't seem to end with user id, the attempt to convert it to int fails"));
+            continue;
         }
 
-        Account availableAccount(accountName, (isLocal ? Account::Type::Local : Account::Type::Evernote), userId);
+        int preLastUnderlineIndex = accountName.lastIndexOf('_', lastUnderlineIndex);
+        if ((preLastUnderlineIndex < 0) || (preLastUnderlineIndex >= lastUnderlineIndex)) {
+            QNTRACE(QStringLiteral("Dir ") << accountName
+                    << QStringLiteral(" doesn't seem to be an account dir: it doesn't start with \"local_\" and "
+                                      "doesn't contain \"_<host>_<user id>\" at the end"));
+            continue;
+        }
+
+        accountName.remove(preLastUnderlineIndex, accountName.size() - preLastUnderlineIndex);
+
+        Account availableAccount(accountName, Account::Type::Evernote, userId);
         readComplementaryAccountInfo(availableAccount);
         m_availableAccounts << availableAccount;
-        QNDEBUG(QStringLiteral("Found available account: name = ") << accountName
-                << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
+        QNDEBUG(QStringLiteral("Found available Evernote account: name = ") << accountName
                 << QStringLiteral(", user id = ") << userId << QStringLiteral(", Evernote account type = ")
                 << availableAccount.evernoteAccountType() << QStringLiteral(", Evernote host = ")
                 << availableAccount.evernoteHost() << QStringLiteral(", dir ") << accountDir.absolutePath());
@@ -497,7 +514,10 @@ QDir AccountManager::accountStorageDir(const QString & name, const bool isLocal,
 
     accountPersistentStoragePath += QStringLiteral("/");
     if (isLocal) {
-        accountPersistentStoragePath += QStringLiteral("/local_");
+        accountPersistentStoragePath += QStringLiteral("LocalAccounts/");
+    }
+    else {
+        accountPersistentStoragePath += QStringLiteral("EvernoteAccounts/");
     }
 
     accountPersistentStoragePath += name;
@@ -547,6 +567,7 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
 
     qevercloud::UserID id = -1;
     Account::EvernoteAccountType::type evernoteAccountType = Account::EvernoteAccountType::Free;
+    QString evernoteHost;
 
     if (!isLocal)
     {
@@ -562,6 +583,13 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
             QNDEBUG(QStringLiteral("Can't convert the last used account's id to int"));
             return result;
         }
+
+        QVariant userEvernoteAccountHost = appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_HOST);
+        if (userEvernoteAccountHost.isNull()) {
+            QNDEBUG(QStringLiteral("Can't find last used account's Evernote host"));
+            return result;
+        }
+        evernoteHost = userEvernoteAccountHost.toString();
 
         QVariant userEvernoteAccountType = appSettings.value(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE);
         if (userEvernoteAccountType.isNull()) {
@@ -580,14 +608,16 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
     // Now need to check whether such an account exists
     QString appPersistenceStoragePath = applicationPersistentStoragePath();
     QString accountDirName = (isLocal
-                              ? (QStringLiteral("local_") + accountName)
-                              : (accountName + QStringLiteral("_") + QString::number(id)));
+                              ? (QStringLiteral("LocalAccounts/") + accountName)
+                              : (QStringLiteral("EvernoteAccounts/") + accountName +
+                                 QStringLiteral("_") + evernoteHost + QStringLiteral("_") +
+                                 QString::number(id)));
     QFileInfo accountFileInfo(appPersistenceStoragePath + QStringLiteral("/") +
                               accountDirName + QStringLiteral("/accountInfo.txt"));
     if (accountFileInfo.exists()) {
         result = QSharedPointer<Account>(new Account(accountName,
                                                      (isLocal ? Account::Type::Local : Account::Type::Evernote),
-                                                     id, evernoteAccountType));
+                                                     id, evernoteAccountType, evernoteHost));
     }
 
     return result;
@@ -605,6 +635,7 @@ void AccountManager::updateLastUsedAccount(const Account & account)
     appSettings.setValue(LAST_USED_ACCOUNT_TYPE, (account.type() == Account::Type::Local));
     appSettings.setValue(LAST_USED_ACCOUNT_ID, account.id());
     appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE, account.evernoteAccountType());
+    appSettings.setValue(LAST_USED_ACCOUNT_EVERNOTE_HOST, account.evernoteHost());
 
     appSettings.endGroup();
 }

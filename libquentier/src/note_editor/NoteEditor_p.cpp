@@ -2110,6 +2110,8 @@ void NoteEditorPrivate::initialize()
         m_noteEditorPageFolderPath += QStringLiteral("/EvernoteAccounts/");
         m_noteEditorPageFolderPath += accountName;
         m_noteEditorPageFolderPath += QStringLiteral("_");
+        m_noteEditorPageFolderPath += m_pAccount->evernoteHost();
+        m_noteEditorPageFolderPath += QStringLiteral("_");
         m_noteEditorPageFolderPath += QString::number(m_pAccount->id());
     }
 

@@ -468,6 +468,8 @@ void LocalStorageManagerPrivate::switchUser(const Account & account,
         m_databaseFilePath += QStringLiteral("/EvernoteAccounts/");
         m_databaseFilePath += accountName;
         m_databaseFilePath += QStringLiteral("_");
+        m_databaseFilePath += account.evernoteHost();
+        m_databaseFilePath += QStringLiteral("_");
         m_databaseFilePath += QString::number(account.id());
     }
 
