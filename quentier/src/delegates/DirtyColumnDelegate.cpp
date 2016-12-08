@@ -5,8 +5,10 @@
 
 #define DIRTY_CIRCLE_RADIUS (2)
 
+namespace quentier {
+
 DirtyColumnDelegate::DirtyColumnDelegate(QObject * parent) :
-    QStyledItemDelegate(parent)
+    AbstractStyledItemDelegate(parent)
 {}
 
 int DirtyColumnDelegate::sideSize() const
@@ -54,10 +56,13 @@ void DirtyColumnDelegate::paint(QPainter * painter, const QStyleOptionViewItem &
         painter->setBrush(QBrush(Qt::green));
     }
 
+    int colNameWidth = columnNameWidth(option, index);
     int side = std::min(option.rect.width(), option.rect.height());
     int radius = std::min(side, DIRTY_CIRCLE_RADIUS);
     int diameter = 2 * radius;
     QPoint center = option.rect.center();
+    center.setX(std::min(center.x(), (option.rect.left() + std::max(colNameWidth, side)/2 + 1)));
+    painter->setPen(QColor());
     painter->drawEllipse(QRectF(center.x() - radius, center.y() - radius, diameter, diameter));
 
     painter->restore();
@@ -112,3 +117,5 @@ void DirtyColumnDelegate::updateEditorGeometry(QWidget * editor, const QStyleOpt
     Q_UNUSED(option)
     Q_UNUSED(index)
 }
+
+} // namespace quentier

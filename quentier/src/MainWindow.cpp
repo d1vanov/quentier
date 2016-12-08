@@ -616,11 +616,20 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
 
     bool isLocal = (accountType == Account::Type::Local);
 
-    m_pUI->notebooksTreeView->setColumnHidden(NotebookModel::Columns::Published, isLocal);
-    m_pUI->notebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, isLocal);
-    m_pUI->notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
+    TreeView * notebooksTreeView = m_pUI->notebooksTreeView;
+    notebooksTreeView->setColumnHidden(NotebookModel::Columns::Published, isLocal);
+    notebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, isLocal);
+    notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
 
-    // TODO: do the same for other views
+    TreeView * tagsTreeView = m_pUI->tagsTreeView;
+    tagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, isLocal);
+    tagsTreeView->setColumnHidden(TagModel::Columns::Dirty, isLocal);
+
+    TableView * savedSearchesTableView = m_pUI->savedSearchesTableView;
+    savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Dirty, isLocal);
+
+    TableView * deletedNotesTableView = m_pUI->deletedNotesTableView;
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::Dirty, isLocal);
 }
 
 void MainWindow::collectBaseStyleSheets()
@@ -1933,17 +1942,17 @@ void MainWindow::setupViews()
     // NOTE: only a few columns would be shown for each view because otherwise there are problems finding space for everyting
     // TODO: in future should implement the persistent setting of which columns to show or not to show
 
-    QTableView * favoritesTableView = m_pUI->favoritesTableView;
+    TableView * favoritesTableView = m_pUI->favoritesTableView;
     FavoriteItemDelegate * favoriteItemDelegate = new FavoriteItemDelegate(favoritesTableView);
     favoritesTableView->setItemDelegate(favoriteItemDelegate);
     favoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);   // This column's values would be displayed along with the favorite item's name
     favoritesTableView->setColumnWidth(FavoritesModel::Columns::Type, favoriteItemDelegate->sideSize());
-    favoritesTableView->horizontalHeader()->hide();
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     favoritesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
+    favoritesTableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
-    // FIXME: need to do something similar for Qt4
 
     TreeView * notebooksTreeView = m_pUI->notebooksTreeView;
     NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTreeView);
@@ -1964,24 +1973,17 @@ void MainWindow::setupViews()
                                       notebookTreeViewFromLinkedNotebookColumnDelegate->sideSize());
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     notebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-#endif
-    // FIXME: need to do something similar for Qt4
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
-                     notebooksTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&));
-#else
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
                      notebooksTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+#else
+    notebooksTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
+    QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
+                     notebooksTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&));
 #endif
 
     TreeView * tagsTreeView = m_pUI->tagsTreeView;
-    SynchronizableColumnDelegate * tagsTreeViewSynchronizableColumnDelegate =
-            new SynchronizableColumnDelegate(tagsTreeView);
-    tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Synchronizable,
-                                           tagsTreeViewSynchronizableColumnDelegate);
-    tagsTreeView->setColumnWidth(TagModel::Columns::Synchronizable,
-                                 tagsTreeViewSynchronizableColumnDelegate->sideSize());
+    tagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name
+    tagsTreeView->setColumnHidden(TagModel::Columns::Synchronizable, true);
     DirtyColumnDelegate * tagsTreeViewDirtyColumnDelegate =
             new DirtyColumnDelegate(tagsTreeView);
     tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Dirty,
@@ -1996,49 +1998,43 @@ void MainWindow::setupViews()
                                  tagsTreeViewFromLinkedNotebookColumnDelegate->sideSize());
     TagItemDelegate * tagsTreeViewNameColumnDelegate = new TagItemDelegate(tagsTreeView);
     tagsTreeView->setItemDelegateForColumn(TagModel::Columns::Name, tagsTreeViewNameColumnDelegate);
-    tagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name
-    tagsTreeView->header()->hide();
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
-    QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
-                     tagsTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&));
-#else
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    tagsTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
                      tagsTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+#else
+    tagsTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
+    QObject::connect(m_pTagModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
+                     tagsTreeView, QNSLOT(TreeView,dataChanged,const QModelIndex&,const QModelIndex&));
 #endif
 
-    QTableView * savedSearchesTableView = m_pUI->savedSearchesTableView;
+    TableView * savedSearchesTableView = m_pUI->savedSearchesTableView;
     savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
-    SynchronizableColumnDelegate * savedSearchesTableViewSynchronizableColumnDelegate =
-            new SynchronizableColumnDelegate(savedSearchesTableView);
-    savedSearchesTableView->setItemDelegateForColumn(SavedSearchModel::Columns::Synchronizable,
-                                                     savedSearchesTableViewSynchronizableColumnDelegate);
-    savedSearchesTableView->setColumnWidth(SavedSearchModel::Columns::Synchronizable,
-                                           savedSearchesTableViewSynchronizableColumnDelegate->sideSize());
+    savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Synchronizable, true);
     DirtyColumnDelegate * savedSearchesTableViewDirtyColumnDelegate =
             new DirtyColumnDelegate(savedSearchesTableView);
     savedSearchesTableView->setItemDelegateForColumn(SavedSearchModel::Columns::Dirty,
                                                      savedSearchesTableViewDirtyColumnDelegate);
     savedSearchesTableView->setColumnWidth(SavedSearchModel::Columns::Dirty,
                                            savedSearchesTableViewDirtyColumnDelegate->sideSize());
-    savedSearchesTableView->horizontalHeader()->hide();
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    savedSearchesTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
+    savedSearchesTableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+#endif
 
     QListView * noteListView = m_pUI->noteListView;
     noteListView->setModelColumn(NoteModel::Columns::Title);
     noteListView->setItemDelegate(new NoteItemDelegate(noteListView));
 
-    QTableView * deletedNotesTableView = m_pUI->deletedNotesTableView;
+    TableView * deletedNotesTableView = m_pUI->deletedNotesTableView;
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::PreviewText, true);
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::ThumbnailImageFilePath, true);
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::TagNameList, true);
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::Size, true);
-    SynchronizableColumnDelegate * deletedNotesTableViewSynchronizableColumnDelegate =
-            new SynchronizableColumnDelegate(deletedNotesTableView);
-    deletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Synchronizable,
-                                                    deletedNotesTableViewSynchronizableColumnDelegate);
-    deletedNotesTableView->setColumnWidth(NoteModel::Columns::Synchronizable,
-                                          deletedNotesTableViewSynchronizableColumnDelegate->sideSize());
+    deletedNotesTableView->setColumnHidden(NoteModel::Columns::Synchronizable, true);
     DirtyColumnDelegate * deletedNotesTableViewDirtyColumnDelegate =
             new DirtyColumnDelegate(deletedNotesTableView);
     deletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Dirty,

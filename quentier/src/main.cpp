@@ -24,7 +24,7 @@
 int main(int argc, char *argv[])
 {
     quentier::QuentierApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("com.quentier.org"));
+    app.setOrganizationName(QStringLiteral("org.quentier.qnt"));
     app.setApplicationName(QStringLiteral("Quentier"));
 
     QUENTIER_INITIALIZE_LOGGING();

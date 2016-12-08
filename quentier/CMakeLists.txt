@@ -73,6 +73,7 @@ set(${PROJECT_NAME}_HEADERS
     src/models/NoteCache.h
     src/models/FavoritesModel.h
     src/models/FavoritesModelItem.h
+    src/delegates/AbstractStyledItemDelegate.h
     src/delegates/NoteItemDelegate.h
     src/delegates/NotebookItemDelegate.h
     src/delegates/DeletedNoteTitleColumnDelegate.h
@@ -127,6 +128,7 @@ set(${PROJECT_NAME}_SOURCES
     src/models/NoteModel.cpp
     src/models/FavoritesModel.cpp
     src/models/FavoritesModelItem.cpp
+    src/delegates/AbstractStyledItemDelegate.cpp
     src/delegates/NoteItemDelegate.cpp
     src/delegates/NotebookItemDelegate.cpp
     src/delegates/DeletedNoteTitleColumnDelegate.cpp

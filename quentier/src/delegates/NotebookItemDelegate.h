@@ -1,10 +1,11 @@
 #ifndef QUENTIER_DELEGATES_NOTEBOOK_ITEM_DELEGATE_H
 #define QUENTIER_DELEGATES_NOTEBOOK_ITEM_DELEGATE_H
 
-#include <quentier/utility/Qt4Helper.h>
-#include <QStyledItemDelegate>
+#include "AbstractStyledItemDelegate.h"
 
-class NotebookItemDelegate: public QStyledItemDelegate
+namespace quentier {
+
+class NotebookItemDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -27,10 +28,13 @@ private:
                                       const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 private:
-    void drawEllipse(QPainter * painter, const QStyleOptionViewItem & option) const;
+    void drawEllipse(QPainter * painter, const QStyleOptionViewItem & option,
+                     const QModelIndex & index) const;
     void drawNotebookName(QPainter * painter, const QModelIndex & index, const QStyleOptionViewItem & option) const;
     QSize notebookNameSizeHint(const QStyleOptionViewItem & option,
                                const QModelIndex & index, const int columnNameWidth) const;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_DELEGATES_NOTEBOOK_ITEM_DELEGATE_H

@@ -1,16 +1,17 @@
 #ifndef QUENTIER_DELEGATES_FROM_LINKED_NOTEBOOK_COLUMN_DELEGATE_H
 #define QUENTIER_DELEGATES_FROM_LINKED_NOTEBOOK_COLUMN_DELEGATE_H
 
-#include <quentier/utility/Qt4Helper.h>
-#include <QStyledItemDelegate>
+#include "AbstractStyledItemDelegate.h"
 #include <QIcon>
+
+namespace quentier {
 
 /**
  * @brief The FromLinkedNotebookColumnDelegate class, as its name suggests,
  * is a custom delegate for the model column providing a boolean indicating
  * whether the model item belongs to the linked notebook
  */
-class FromLinkedNotebookColumnDelegate: public QStyledItemDelegate
+class FromLinkedNotebookColumnDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -36,5 +37,7 @@ private:
     QIcon   m_icon;
     QSize   m_iconSize;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_DELEGATES_FROM_LINKED_NOTEBOOK_COLUMN_DELEGATE_H

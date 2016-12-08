@@ -3,15 +3,16 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QPainter>
 #include <QFontMetrics>
+#include <QTextOption>
 #include <algorithm>
 #include <cmath>
 
 #define CIRCLE_RADIUS (2)
 
-using namespace quentier;
+namespace quentier {
 
 NotebookItemDelegate::NotebookItemDelegate(QObject * parent) :
-    QStyledItemDelegate(parent)
+    AbstractStyledItemDelegate(parent)
 {}
 
 QString NotebookItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
@@ -53,7 +54,7 @@ void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
             bool isDefault = index.model()->data(index).toBool();
             if (isDefault) {
                 painter->setBrush(QBrush(Qt::green));
-                drawEllipse(painter, option);
+                drawEllipse(painter, option, index);
             }
         }
         else if (column == NotebookModel::Columns::Published)
@@ -61,7 +62,7 @@ void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
             bool published = index.model()->data(index).toBool();
             if (published) {
                 painter->setBrush(QBrush(Qt::blue));
-                drawEllipse(painter, option);
+                drawEllipse(painter, option, index);
             }
         }
     }
@@ -90,32 +91,21 @@ QSize NotebookItemDelegate::sizeHint(const QStyleOptionViewItem & option, const 
         return QSize();
     }
 
+    int colNameWidth = columnNameWidth(option, index);
+
     int column = index.column();
-
-    QString columnName;
-    const NotebookModel * model = qobject_cast<const NotebookModel*>(index.model());
-    if (Q_LIKELY(model && (model->columnCount(index.parent()) > column))) {
-        columnName = model->columnName(static_cast<NotebookModel::Columns::type>(column));
-    }
-
-    QFontMetrics fontMetrics(option.font);
-    double margin = 0.1;
-
-    int columnNameWidth = static_cast<int>(std::floor(fontMetrics.width(columnName) *
-                                                      (1.0 + margin) + 0.5));
-
     if ((column == NotebookModel::Columns::Default) ||
         (column == NotebookModel::Columns::Published))
     {
         int side = CIRCLE_RADIUS;
         side += 1;
         side *= 2;
-        int width = std::max(columnNameWidth, side);
+        int width = std::max(colNameWidth, side);
         return QSize(width, side);
     }
     else if (column == NotebookModel::Columns::Name)
     {
-        return notebookNameSizeHint(option, index, columnNameWidth);
+        return notebookNameSizeHint(option, index, colNameWidth);
     }
 
     return QStyledItemDelegate::sizeHint(option, index);
@@ -129,12 +119,16 @@ void NotebookItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOp
     }
 }
 
-void NotebookItemDelegate::drawEllipse(QPainter * painter, const QStyleOptionViewItem & option) const
+void NotebookItemDelegate::drawEllipse(QPainter * painter, const QStyleOptionViewItem & option,
+                                       const QModelIndex & index) const
 {
+    int colNameWidth = columnNameWidth(option, index);
     int side = std::min(option.rect.width(), option.rect.height());
     int radius = std::min(side, CIRCLE_RADIUS);
     int diameter = 2 * radius;
     QPoint center = option.rect.center();
+    center.setX(std::min(center.x(), (option.rect.left() + std::max(colNameWidth, side)/2 + 1)));
+    painter->setPen(QColor());
     painter->drawEllipse(QRectF(center.x() - radius, center.y() - radius, diameter, diameter));
 }
 
@@ -156,7 +150,7 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.highlightedText().color()
                     : option.palette.windowText().color());
-    painter->drawText(option.rect, name, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
+    painter->drawText(QRectF(option.rect), name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     QFontMetrics fontMetrics(option.font);
     int nameWidth = fontMetrics.width(name);
@@ -179,7 +173,8 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
     nameSuffix += QStringLiteral(")");
 
     painter->setPen(painter->pen().color().lighter());
-    painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
+    painter->drawText(QRectF(option.rect.translated(nameWidth, 0)), nameSuffix,
+                      QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
 QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & option,
@@ -239,3 +234,5 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
             << QStringLiteral(", height = ") << height);
     return size;
 }
+
+} // namespace quentier

@@ -1,10 +1,11 @@
 #ifndef QUENTIER_DELEGATES_DIRTY_COLUMN_DELEGATE_H
 #define QUENTIER_DELEGATES_DIRTY_COLUMN_DELEGATE_H
 
-#include <quentier/utility/Qt4Helper.h>
-#include <QStyledItemDelegate>
+#include "AbstractStyledItemDelegate.h"
 
-class DirtyColumnDelegate: public QStyledItemDelegate
+namespace quentier {
+
+class DirtyColumnDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -26,5 +27,7 @@ private:
     virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
                                       const QModelIndex & index) const Q_DECL_OVERRIDE;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_DELEGATES_DIRTY_COLUMN_DELEGATE_H

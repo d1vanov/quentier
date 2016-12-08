@@ -793,6 +793,9 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     return false;
                 }
 
+                m_lowerCaseNotebookNames.erase(nameIt);
+                Q_UNUSED(m_lowerCaseNotebookNames.insert(newName.toLower()))
+
                 dirty = true;
                 notebookItemCopy.setName(newName);
                 break;

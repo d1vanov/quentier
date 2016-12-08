@@ -5,8 +5,10 @@
 
 #define ICON_SIDE_SIZE (16)
 
+namespace quentier {
+
 FromLinkedNotebookColumnDelegate::FromLinkedNotebookColumnDelegate(QObject * parent) :
-    QStyledItemDelegate(parent),
+    AbstractStyledItemDelegate(parent),
     m_icon(),
     m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
 {
@@ -91,20 +93,8 @@ QSize FromLinkedNotebookColumnDelegate::sizeHint(const QStyleOptionViewItem & op
         return QSize();
     }
 
-    int column = index.column();
-
-    QString columnName;
-    const QAbstractItemModel * model = index.model();
-    if (Q_LIKELY(model && (model->columnCount(index.parent()) > column))) {
-        // NOTE: assuming the delegate would only be used in horizontal layouts...
-        columnName = model->headerData(column, Qt::Horizontal).toString();
-    }
-
-    QFontMetrics fontMetrics(option.font);
-    double margin = 0.1;
-    int columnNameWidth = static_cast<int>(std::floor(fontMetrics.width(columnName) * (1.0 + margin) + 0.5));
-
-    int width = std::max(m_iconSize.width(), columnNameWidth);
+    int colNameWidth = columnNameWidth(option, index);
+    int width = std::max(m_iconSize.width(), colNameWidth);
     return QSize(width, m_iconSize.height());
 }
 
@@ -115,3 +105,5 @@ void FromLinkedNotebookColumnDelegate::updateEditorGeometry(QWidget * editor, co
     Q_UNUSED(option)
     Q_UNUSED(index)
 }
+
+} // namespace quentier
