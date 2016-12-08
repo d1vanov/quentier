@@ -60,6 +60,7 @@ namespace quentier {
 
 const QString applicationPersistentStoragePath()
 {
+#if defined(Q_OS_MAC) || defined (Q_OS_WIN)
     // FIXME: clarify in which version the enum item was actually renamed
     // Seriously, WTF is going on? Why the API gets changed within the major release?
     // Who is the moron who has authorized that?
@@ -72,6 +73,16 @@ const QString applicationPersistentStoragePath()
 #else
     return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 #endif
+#else // Linux, BSD-derivatives etc
+    QString storagePath;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    storagePath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+#else
+    storagePath = QDesktopServices::storageLocation(QDesktopServices::HomeLocation);
+#endif
+    storagePath += QStringLiteral("/.") + QApplication::applicationName().toLower();
+    return storagePath;
+#endif // Q_OS_<smth>
 }
 
 const QString applicationTemporaryStoragePath()

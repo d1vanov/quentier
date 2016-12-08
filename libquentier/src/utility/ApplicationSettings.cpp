@@ -17,6 +17,7 @@
  */
 
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/exception/ApplicationSettingsInitializationException.h>
 #include <QApplication>
 
@@ -32,6 +33,15 @@ ApplicationSettings::ApplicationSettings() :
     if (Q_UNLIKELY(QApplication::applicationName().isEmpty())) {
         throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: application name is empty");
     }
+
+    QString storagePath = applicationPersistentStoragePath();
+    if (Q_UNLIKELY(storagePath.isEmpty())) {
+        throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: no persistent storage path");
+    }
+
+    storagePath += QStringLiteral("/settings");
+
+    QSettings::setPath(QSettings::NativeFormat, QSettings::UserScope, storagePath);
 }
 
 ApplicationSettings::~ApplicationSettings()
