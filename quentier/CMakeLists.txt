@@ -87,8 +87,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
-    src/views/TableView.h
-    src/views/TreeView.h
+    src/views/ItemView.h
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
@@ -137,8 +136,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
-    src/views/TableView.cpp
-    src/views/TreeView.cpp
+    src/views/ItemView.cpp
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp

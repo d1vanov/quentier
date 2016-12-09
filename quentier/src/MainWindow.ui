@@ -765,7 +765,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="TableView" name="favoritesTableView">
+          <widget class="ItemView" name="favoritesTableView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -773,7 +773,7 @@ border: none;
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">QTableView#favoritesTableView {
+            <string notr="true">#favoritesTableView {
 border: none;
 border-top: 1px solid black;
 border-bottom: 1px solid black;
@@ -1069,7 +1069,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="TreeView" name="notebooksTreeView">
+          <widget class="ItemView" name="notebooksTreeView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1077,7 +1077,7 @@ border: none;
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">QTreeView#notebooksTreeView {
+            <string notr="true">#notebooksTreeView {
 border: none;
 border-top: 1px solid black;
 border-bottom: 1px solid black;
@@ -1354,7 +1354,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="TreeView" name="tagsTreeView">
+          <widget class="ItemView" name="tagsTreeView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1362,7 +1362,7 @@ border: none;
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">QTreeView#tagsTreeView {
+            <string notr="true">#tagsTreeView {
 border: none;
 border-top: 1px solid black;
 border-bottom: 1px solid black;
@@ -1639,7 +1639,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="TableView" name="savedSearchesTableView">
+          <widget class="ItemView" name="savedSearchesTableView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1647,7 +1647,7 @@ border: none;
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">QTableView#savedSearchesTableView {
+            <string notr="true">#savedSearchesTableView {
 border: none;
 border-top: 1px solid black;
 border-bottom: 1px solid black;
@@ -1930,7 +1930,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="TableView" name="deletedNotesTableView">
+          <widget class="ItemView" name="deletedNotesTableView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1938,7 +1938,7 @@ border: none;
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">QTableView#deletedNotesTableView {
+            <string notr="true">#deletedNotesTableView {
 border: none;
 border-top: 1px solid black;
 background-color: transparent;
@@ -3749,20 +3749,15 @@ border-bottom: 1px solid black;</string>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>TreeView</class>
+   <class>ItemView</class>
    <extends>QTreeView</extends>
-   <header>views/TreeView.h</header>
+   <header>views/ItemView.h</header>
   </customwidget>
   <customwidget>
    <class>TabWidget</class>
    <extends>QTabWidget</extends>
    <header>widgets/TabWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TableView</class>
-   <extends>QTableView</extends>
-   <header>views/TableView.h</header>
   </customwidget>
  </customwidgets>
  <resources>
