@@ -676,11 +676,21 @@ bool NotebookModel::setHeaderData(int section, Qt::Orientation orientation, cons
 
 bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
+    QNDEBUG(QStringLiteral("NotebookModel::setData: index: is valid = ")
+            << (modelIndex.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", value = ") << value << QStringLiteral(", role = ") << role
+            << QStringLiteral(", parent index: is valid = ")
+            << (modelIndex.parent().isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << modelIndex.parent().row()
+            << QStringLiteral(", column = ") << modelIndex.parent().column());
+
     if (role != Qt::EditRole) {
+        QNDEBUG(QStringLiteral("Role is not EditRole, skipping"));
         return false;
     }
 
     if (!modelIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Index is not valid"));
         return false;
     }
 
@@ -706,10 +716,12 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
     const NotebookModelItem * item = itemForIndex(modelIndex);
     if (!item) {
+        QNDEBUG(QStringLiteral("No notebook model item for this index") << modelIndex);
         return false;
     }
 
     if (item == m_fakeRootItem) {
+        QNDEBUG(QStringLiteral("Can't set data for the fake root item"));
         return false;
     }
 
@@ -769,8 +781,12 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         case Columns::Name:
             {
                 QString newName = value.toString().trimmed();
+                QNTRACE(QStringLiteral("New suggested name: ") << newName
+                        << QStringLiteral(", previous name = ") << notebookItemCopy.name());
+
                 bool changed = (newName != notebookItemCopy.name());
                 if (!changed) {
+                    QNTRACE(QStringLiteral("Notebook name has not changed"));
                     return true;
                 }
 
@@ -785,7 +801,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
                 QNLocalizedString errorDescription;
                 if (!Notebook::validateName(newName, &errorDescription)) {
-                    QNLocalizedString error = QT_TR_NOOP("an't rename notebook");
+                    QNLocalizedString error = QT_TR_NOOP("can't rename notebook");
                     error += QStringLiteral(": ");
                     error += errorDescription;
                     QNINFO(error << QStringLiteral("; suggested new name = ") << newName);
@@ -793,7 +809,14 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     return false;
                 }
 
-                m_lowerCaseNotebookNames.erase(nameIt);
+                // Need to remove the previous name before accepting the new one
+                nameIt = m_lowerCaseNotebookNames.find(notebookItemCopy.name().toLower());
+                if (Q_LIKELY(nameIt != m_lowerCaseNotebookNames.end())) {
+                    QNTRACE(QStringLiteral("Erasing old name ") << notebookItemCopy.name()
+                            << QStringLiteral(" from the list of existing names"));
+                    m_lowerCaseNotebookNames.erase(nameIt);
+                }
+
                 Q_UNUSED(m_lowerCaseNotebookNames.insert(newName.toLower()))
 
                 dirty = true;
@@ -853,17 +876,20 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
         bool sortingByName = (modelIndex.column() == Columns::Name) &&
                              (m_sortedColumn == Columns::Name);
+        QNTRACE(QStringLiteral("Sorting by name = ")
+                << (sortingByName ? QStringLiteral("true") : QStringLiteral("false")));
+
         if (sortingByName) {
             emit layoutAboutToBeChanged();
         }
 
         localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
+        QNTRACE(QStringLiteral("Emitting the data changed signal"));
+        emit dataChanged(modelIndex, modelIndex);
+
         if (sortingByName) {
             emit layoutChanged();
-        }
-        else {
-            emit dataChanged(modelIndex, modelIndex);
         }
 
         updateNotebookInLocalStorage(notebookItemCopy);
@@ -885,19 +911,21 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
 #define CHECK_ITEM(childItem) \
             if (Q_UNLIKELY(!childItem)) { \
-                QNWARNING(QStringLiteral("Detected null pointer to notebook model item within the children of another item: item = ") << *item); \
+                QNWARNING(QStringLiteral("Detected null pointer to notebook model item " \
+                                         "within the children of another item: item = ") << *item); \
                 continue; \
             } \
             \
             if (Q_UNLIKELY(childItem->type() == NotebookModelItem::Type::Stack)) { \
-                QNWARNING(QStringLiteral("Internal inconsistency detected: found notebook stack item being a child of another notebook stack item: " \
-                                         "item = ") << *item); \
+                QNWARNING(QStringLiteral("Internal inconsistency detected: found notebook stack item " \
+                                         "being a child of another notebook stack item: item = ") << *item); \
                 continue; \
             } \
             \
             const NotebookItem * notebookItem = childItem->notebookItem(); \
             if (Q_UNLIKELY(!notebookItem)) { \
-                QNWARNING(QStringLiteral("Detected null pointer to notebook item within the children of notebook stack item: item = ") << *item); \
+                QNWARNING(QStringLiteral("Detected null pointer to notebook item within the children " \
+                                         "of notebook stack item: item = ") << *item); \
                 continue; \
             }
 
@@ -908,8 +936,10 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             CHECK_ITEM(childItem)
 
             if (!canUpdateNotebookItem(*notebookItem)) {
-                QNLocalizedString error = QT_TR_NOOP("can't update notebook stack: restrictions on at least one of stacked notebooks' update apply");
-                QNINFO(error << QStringLiteral(", notebook item for which the restrictions apply: ") << *notebookItem);
+                QNLocalizedString error = QT_TR_NOOP("can't update notebook stack: restrictions on at least one "
+                                                     "of stacked notebooks' update apply");
+                QNINFO(error << QStringLiteral(", notebook item for which the restrictions apply: ")
+                       << *notebookItem);
                 emit notifyError(error);
                 return false;
             }
@@ -918,24 +948,25 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         // Change the stack item
         auto stackModelItemIt = m_modelItemsByStack.find(previousStack);
         if (stackModelItemIt == m_modelItemsByStack.end()) {
-            QNLocalizedString error = QT_TR_NOOP("can't update notebook stack item: can't find the item for the previous stack value");
-            QNWARNING(error << QStringLiteral(", previous stack: \"") << previousStack << QStringLiteral("\", new stack: \"")
-                      << newStack << QStringLiteral("\""));
+            QNLocalizedString error = QT_TR_NOOP("can't update notebook stack item: can't find the item "
+                                                 "for the previous stack value");
+            QNWARNING(error << QStringLiteral(", previous stack: \"") << previousStack
+                      << QStringLiteral("\", new stack: \"") << newStack << QStringLiteral("\""));
             emit notifyError(error);
             return false;
         }
 
         NotebookModelItem stackModelItemCopy(stackModelItemIt.value());
         if (Q_UNLIKELY(stackModelItemCopy.type() != NotebookModelItem::Type::Stack)) {
-            QNWARNING(QStringLiteral("Internal inconsistency detected: non-stack item is kept within the hash of model items supposed to be stack items: item: ")
-                      << stackModelItemCopy);
+            QNWARNING(QStringLiteral("Internal inconsistency detected: non-stack item is kept within the hash "
+                                     "of model items supposed to be stack items: item: ") << stackModelItemCopy);
             return false;
         }
 
         const NotebookStackItem * stackItem = stackModelItemCopy.notebookStackItem();
         if (Q_UNLIKELY(!stackItem)) {
-            QNWARNING(QStringLiteral("Detected null pointer to notebook stack item in notebook model item wrapping it; item: ")
-                      << stackModelItemCopy);
+            QNWARNING(QStringLiteral("Detected null pointer to notebook stack item in notebook model item "
+                                     "wrapping it; item: ") << stackModelItemCopy);
             return false;
         }
 
@@ -957,6 +988,8 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
         bool sortingByName = (m_sortedColumn == Columns::Name);
+        QNTRACE(QStringLiteral("Sorting by name = ")
+                << (sortingByName ? QStringLiteral("true") : QStringLiteral("false")));
 
         // Refresh the list of children; shouldn't be necessary but just n case
         children = stackModelItemIt->children();
@@ -981,11 +1014,13 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
             localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
+            QNTRACE(QStringLiteral("Emitting the data changed signal"));
+            emit dataChanged(modelIndex, modelIndex);
+
             if (sortingByName) {
                 emit layoutChanged();
             }
             else {
-                emit dataChanged(modelIndex, modelIndex);
             }
 
             updateNotebookInLocalStorage(notebookItemCopy);
