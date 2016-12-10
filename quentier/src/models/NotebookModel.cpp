@@ -387,6 +387,8 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     item.setStack(notebookStack);
     item.setSynchronizable(m_account.type() != Account::Type::Local);
     item.setDefault(numExistingNotebooks == 0);
+    item.setUpdatable(true);
+    item.setNameIsUpdatable(true);
 
     auto insertionResult = localUidIndex.insert(item);
 
@@ -1089,6 +1091,8 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
         item.setDirty(true);
         item.setStack(stackItem->name());
         item.setSynchronizable(m_account.type() != Account::Type::Local);
+        item.setUpdatable(true);
+        item.setNameIsUpdatable(true);
 
         auto insertionResult = localUidIndex.insert(item);
         addedItems.push_back(insertionResult.first);
