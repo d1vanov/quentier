@@ -128,6 +128,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     m_availableAccountsActionGroup->setExclusive(true);
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    fixupQt4StyleSheets();
+#endif
+
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
@@ -951,6 +955,95 @@ bool MainWindow::isInsideStyleBlock(const QString & styleSheet, const QString & 
     // the current index is inside the style block
     return true;
 }
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+void MainWindow::fixupQt4StyleSheets()
+{
+    QNDEBUG(QStringLiteral("MainWindow::fixupQt4StyleSheets"));
+
+    QString alternateCentralWidgetStylesheet(
+                "QSplitter::handle {"
+                "   background-color: black;"
+                "}"
+                "QSplitter::handle:horizontal {"
+                "   width: 1px;"
+                "}"
+                "QSplitter::handle:vertical {"
+                "   height: 1px;"
+                "}");
+    m_pUI->centralWidget->setStyleSheet(alternateCentralWidgetStylesheet);
+
+    QString alternateNoteListFrameStylesheet(
+                "#notesListFrame {"
+                "   border: none;"
+                "}");
+    m_pUI->notesListFrame->setStyleSheet(alternateNoteListFrameStylesheet);
+
+    QString alternateViewStylesheetBase(
+                "{"
+                "   border: none;"
+                "   border-top: 1px solid black;"
+                "   background-color: transparent;"
+                "}");
+
+    QString alternateFavoritesTableViewStylesheet = QString("#favoritesTableView ") +
+                                                    alternateViewStylesheetBase;
+    m_pUI->favoritesTableView->setStyleSheet(alternateFavoritesTableViewStylesheet);
+
+    QString alternateNotebooksTreeViewStylesheet = QString("#notebooksTreeView ") +
+                                                    alternateViewStylesheetBase;
+    m_pUI->notebooksTreeView->setStyleSheet(alternateNotebooksTreeViewStylesheet);
+
+    QString alternateTagsTreeViewStylesheet = QString("#tagsTreeView ") +
+                                                   alternateViewStylesheetBase;
+    m_pUI->tagsTreeView->setStyleSheet(alternateTagsTreeViewStylesheet);
+
+    QString alternateSavedSearchTableViewStylesheet = QString("#savedSearchesTableView ") +
+                                                      alternateViewStylesheetBase;
+    m_pUI->savedSearchesTableView->setStyleSheet(alternateSavedSearchTableViewStylesheet);
+
+    QString alternateDeletedNotesTableViewStylesheet = QString("#deletedNotesTableView ") +
+                                                       alternateViewStylesheetBase;
+    m_pUI->deletedNotesTableView->setStyleSheet(alternateDeletedNotesTableViewStylesheet);
+
+    QString alternateSidePanelSplitterStylesheet(
+                "QFrame {"
+                "   border: none;"
+                "}"
+                "#sidePanelSplitter {"
+                "   border-bottom: 1px solid black;"
+                "}");
+    m_pUI->sidePanelSplitter->setStyleSheet(alternateSidePanelSplitterStylesheet);
+
+    QString alternateNoteListWidgetHeaderPanelStylesheet = m_pUI->noteListWidgetHeaderPanel->styleSheet();
+    int index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf("QLabel");
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget header panel: "
+                               "no QLabel within the stylesheet"));
+        return;
+    }
+
+    index = alternateNoteListWidgetHeaderPanelStylesheet.indexOf("border-right", index);
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget header panel: "
+                               "no border-right property for QLabel within the stylesheet"));
+        return;
+    }
+
+    int propertyEndIndex = alternateNoteListWidgetHeaderPanelStylesheet.indexOf(";", index);
+    if (Q_UNLIKELY(propertyEndIndex < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of note list widget header panel: "
+                               "no closing \";\" for border-right property for QLabel "
+                               "within the stylesheet"));
+        return;
+    }
+
+    alternateNoteListWidgetHeaderPanelStylesheet.remove(index, propertyEndIndex - index + 1);
+    QNDEBUG(QStringLiteral("alternateNoteListWidgetHeaderPanelStylesheet: ")
+            << alternateNoteListWidgetHeaderPanelStylesheet);
+    m_pUI->noteListWidgetHeaderPanel->setStyleSheet(alternateNoteListWidgetHeaderPanelStylesheet);
+}
+#endif
 
 void MainWindow::onSetStatusBarText(QString message, const int duration)
 {

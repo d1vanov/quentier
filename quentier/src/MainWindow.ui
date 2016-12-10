@@ -44,13 +44,11 @@
 }
 
 QSplitter::handle:horizontal {
-    width: 1px;
-	color: black;
+    width: 0px;
 }
 
 QSplitter::handle:vertical {
-    height: 1px;
-	color: black;
+    height: 0px;
 }</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -2209,7 +2207,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="styleSheet">
