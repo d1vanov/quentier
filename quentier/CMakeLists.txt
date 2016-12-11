@@ -88,6 +88,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
     src/views/ItemView.h
+    src/views/NotebookItemView.h
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
@@ -137,6 +138,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
     src/views/ItemView.cpp
+    src/views/NotebookItemView.cpp
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp

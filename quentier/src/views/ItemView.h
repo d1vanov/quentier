@@ -35,8 +35,6 @@ public:
     explicit ItemView(QWidget * parent = Q_NULLPTR);
 
 public Q_SLOTS:
-// NOTE:
-//
     /**
      * @brief dataChanged slot redefines the QTreeView's implementation: it forces the columns affected by the data change
      * to be automatically resized after the change was processed; the QTreeView's implementation does not do so

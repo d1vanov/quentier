@@ -1067,7 +1067,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="ItemView" name="notebooksTreeView">
+          <widget class="NotebookItemView" name="notebooksTreeView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -2207,7 +2207,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3756,6 +3756,11 @@ border-bottom: 1px solid black;</string>
    <extends>QTabWidget</extends>
    <header>widgets/TabWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>NotebookItemView</class>
+   <extends>QTreeView</extends>
+   <header>views/NotebookItemView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

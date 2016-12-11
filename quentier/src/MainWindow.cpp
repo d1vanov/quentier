@@ -34,6 +34,7 @@
 #include "dialogs/AddNotebookDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
+#include "views/NotebookItemView.h"
 
 #include "widgets/TabWidget.h"
 using quentier::TabWidget;
@@ -619,7 +620,7 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
 
     bool isLocal = (accountType == Account::Type::Local);
 
-    ItemView * notebooksTreeView = m_pUI->notebooksTreeView;
+    NotebookItemView * notebooksTreeView = m_pUI->notebooksTreeView;
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Published, isLocal);
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::FromLinkedNotebook, isLocal);
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Dirty, isLocal);
@@ -2046,7 +2047,7 @@ void MainWindow::setupViews()
     favoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
 
-    ItemView * notebooksTreeView = m_pUI->notebooksTreeView;
+    NotebookItemView * notebooksTreeView = m_pUI->notebooksTreeView;
     NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(notebooksTreeView);
     notebooksTreeView->setItemDelegate(notebookItemDelegate);
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::NumNotesPerNotebook, true);    // This column's values would be displayed along with the notebook's name
@@ -2066,11 +2067,11 @@ void MainWindow::setupViews()
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     notebooksTreeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&),
-                     notebooksTreeView, QNSLOT(ItemView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
+                     notebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&,const QVector<int>&));
 #else
     notebooksTreeView->header()->setResizeMode(QHeaderView::ResizeToContents);
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
-                     notebooksTreeView, QNSLOT(ItemView,dataChanged,const QModelIndex&,const QModelIndex&));
+                     notebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&));
 #endif
 
     ItemView * tagsTreeView = m_pUI->tagsTreeView;
