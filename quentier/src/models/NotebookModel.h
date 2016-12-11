@@ -74,6 +74,13 @@ public:
     QModelIndex indexForNotebookName(const QString & notebookName) const;
 
     /**
+     * @brief defaultNotebookIndex
+     * @return the index of the default notebook item if such one exists
+     * or invalid model index otherwise
+     */
+    QModelIndex defaultNotebookIndex() const;
+
+    /**
      * @brief moveToStack - moves the notebook item pointed to by index to the specified stack
      * @param index - the index of the notebook item to be moved to the stack
      * @param stack - the stack to which the notebook item needs to be moved
@@ -116,6 +123,13 @@ public:
      */
     QString columnName(const Columns::type column) const;
 
+    /**
+     * @brief allNotebooksListed
+     * @return true if the notebook model has received the information about all notebooks
+     * stored in the local storage by the moment; false otherwise
+     */
+    bool allNotebooksListed() const { return m_allNotebooksListed; }
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -149,6 +163,12 @@ public:
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
+
+    /**
+     * @brief notifyAllNotebooksListed - the signal emitted when the notebook model
+     * has received the information on all notebooks stored in the local storage
+     */
+    void notifyAllNotebooksListed();
 
 // private signals
     void addNotebook(Notebook notebook, QUuid requestId);
@@ -207,7 +227,7 @@ private:
     QString nameForNewNotebook() const;
 
     void removeItemByLocalUid(const QString & localUid);
-    void notebookToItem(const Notebook & notebook, NotebookItem & item) const;
+    void notebookToItem(const Notebook & notebook, NotebookItem & item);
 
     void removeModelItemFromParent(const NotebookModelItem & modelItem);
 
@@ -223,6 +243,8 @@ private:
 
     // Returns true if successfully decremented the note count for the notebook item with the corresponding local uid
     bool onExpungeNoteWithNotebookLocalUid(const QString & notebookLocalUid);
+
+    void setDefaultNotebook(const QString & localUid);
 
 private:
     struct ByLocalUid{};
@@ -293,7 +315,7 @@ private:
 
     NotebookData            m_data;
     NotebookModelItem *     m_fakeRootItem;
-    const NotebookItem *    m_defaultNotebookItem;
+    QString                 m_defaultNotebookLocalUid;
 
     ModelItems              m_modelItemsByLocalUid;
     ModelItems              m_modelItemsByStack;
@@ -320,6 +342,8 @@ private:
     Qt::SortOrder           m_sortOrder;
 
     mutable int             m_lastNewNotebookNameCounter;
+
+    bool                    m_allNotebooksListed;
 };
 
 } // namespace quentier

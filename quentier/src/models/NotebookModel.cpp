@@ -34,7 +34,7 @@ NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadW
     m_account(account),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
-    m_defaultNotebookItem(Q_NULLPTR),
+    m_defaultNotebookLocalUid(),
     m_modelItemsByLocalUid(),
     m_modelItemsByStack(),
     m_stackItems(),
@@ -50,7 +50,8 @@ NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadW
     m_noteCountPerNotebookRequestIds(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
-    m_lastNewNotebookNameCounter(0)
+    m_lastNewNotebookNameCounter(0),
+    m_allNotebooksListed(false)
 {
     createConnections(localStorageManagerThreadWorker);
     requestNotebooksList();
@@ -129,6 +130,18 @@ QModelIndex NotebookModel::indexForNotebookName(const QString & notebookName) co
 
     const NotebookItem & item = *it;
     return indexForLocalUid(item.localUid());
+}
+
+QModelIndex NotebookModel::defaultNotebookIndex() const
+{
+    QNDEBUG(QStringLiteral("NotebookModel::defaultNotebookIndex"));
+
+    if (m_defaultNotebookLocalUid.isEmpty()) {
+        QNDEBUG(QStringLiteral("No default notebook local uid"));
+        return QModelIndex();
+    }
+
+    return indexForLocalUid(m_defaultNotebookLocalUid);
 }
 
 QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString & stack)
@@ -854,20 +867,7 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
                 notebookItemCopy.setDefault(true);
                 dirty = true;
-
-                if (m_defaultNotebookItem)
-                {
-                    auto previousDefaultItemIt = localUidIndex.find(m_defaultNotebookItem->localUid());
-                    if (previousDefaultItemIt != localUidIndex.end())
-                    {
-                        NotebookItem previousDefaultItemCopy(*previousDefaultItemIt);
-                        previousDefaultItemCopy.setDefault(false);
-                        localUidIndex.replace(previousDefaultItemIt, previousDefaultItemCopy);
-                        updateNotebookInLocalStorage(previousDefaultItemCopy);
-                    }
-                }
-
-                m_defaultNotebookItem = &(*notebookItemIt);
+                setDefaultNotebook(notebookItemCopy.localUid());
                 break;
             }
         default:
@@ -1570,7 +1570,11 @@ void NotebookModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpti
         QNTRACE(QStringLiteral("The number of found notebooks matches the limit, requesting more notebooks from the local storage"));
         m_listNotebooksOffset += limit;
         requestNotebooksList();
+        return;
     }
+
+    m_allNotebooksListed = true;
+    emit notifyAllNotebooksListed();
 }
 
 void NotebookModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -2355,7 +2359,7 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     endRemoveRows();
 }
 
-void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & item) const
+void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & item)
 {
     item.setLocalUid(notebook.localUid());
 
@@ -2373,7 +2377,12 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
 
     item.setSynchronizable(!notebook.isLocal());
     item.setDirty(notebook.isDirty());
-    item.setDefault(notebook.isDefaultNotebook());
+
+    bool isDefaultNotebook = notebook.isDefaultNotebook();
+    item.setDefault(isDefaultNotebook);
+    if (isDefaultNotebook) {
+        setDefaultNotebook(notebook.localUid());
+    }
 
     if (notebook.hasPublished()) {
         item.setPublished(notebook.isPublished());
@@ -2525,6 +2534,38 @@ bool NotebookModel::onExpungeNoteWithNotebookLocalUid(const QString & notebookLo
     item.setNumNotesPerNotebook(noteCount);
 
     return updateNoteCountPerNotebookIndex(item, it);
+}
+
+void NotebookModel::setDefaultNotebook(const QString & localUid)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::setDefaultNotebook: ") << localUid);
+
+    if (!m_defaultNotebookLocalUid.isEmpty())
+    {
+        QNTRACE(QStringLiteral("There has already been some notebook chosen as the default, "
+                               "switching the default flag off for it"));
+
+        NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+        auto previousDefaultItemIt = localUidIndex.find(m_defaultNotebookLocalUid);
+        if (previousDefaultItemIt != localUidIndex.end())
+        {
+            NotebookItem previousDefaultItemCopy(*previousDefaultItemIt);
+            QNTRACE(QStringLiteral("Previous default notebook item: ") << previousDefaultItemCopy);
+
+            previousDefaultItemCopy.setDefault(false);
+
+            localUidIndex.replace(previousDefaultItemIt, previousDefaultItemCopy);
+
+            QModelIndex previousDefaultItemIndex = indexForLocalUid(m_defaultNotebookLocalUid);
+            emit dataChanged(previousDefaultItemIndex, previousDefaultItemIndex);
+
+            updateNotebookInLocalStorage(previousDefaultItemCopy);
+        }
+    }
+
+    m_defaultNotebookLocalUid = localUid;
+    QNTRACE(QStringLiteral("Set default notebook local uid to ") << localUid);
 }
 
 bool NotebookModel::updateNoteCountPerNotebookIndex(const NotebookItem & item, const NotebookDataByLocalUid::iterator it)
