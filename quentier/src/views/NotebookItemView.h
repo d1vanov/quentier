@@ -32,6 +32,7 @@ private Q_SLOTS:
     void onCreateNewNotebookAction();
     void onRenameNotebookAction();
     void onDeleteNotebookAction();
+    void onSetNotebookDefaultAction();
 
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;

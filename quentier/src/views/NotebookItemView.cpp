@@ -169,7 +169,7 @@ void NotebookItemView::onRenameNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't rename notebook, can't cast slot invoker to QAction");
+        REPORT_ERROR("Internal error: can't rename notebook, can't cast the slot invoker to QAction");
         return;
     }
 
@@ -208,7 +208,7 @@ void NotebookItemView::onDeleteNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't delete notebook, can't cast slot invoker to QAction");
+        REPORT_ERROR("Internal error: can't delete notebook, can't cast the slot invoker to QAction");
         return;
     }
 
@@ -227,6 +227,49 @@ void NotebookItemView::onDeleteNotebookAction()
     }
 
     deleteItem(itemIndex, *pNotebookModel);
+}
+
+void NotebookItemView::onSetNotebookDefaultAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onSetNotebookDefaultAction"));
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't set notebook as default, can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't delete notebook, can't get notebook's "
+                     "local uid from QAction");
+        return;
+    }
+
+    QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't delete notebook: the model returned invalid "
+                     "index for the notebook's local uid");
+        return;
+    }
+
+    itemIndex = pNotebookModel->index(itemIndex.row(), NotebookModel::Columns::Default,
+                                      itemIndex.parent());
+    bool res = pNotebookModel->setData(itemIndex, true);
+    if (res) {
+        QNDEBUG(QStringLiteral("Successfully set the notebook as default"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The notebook model refused to set the notebook as default; "
+                                              "Check the status bar for message from the notebook model "
+                                              "explaining why the action was not successful")));
 }
 
 void NotebookItemView::selectionChanged(const QItemSelection & selected,
@@ -405,7 +448,7 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
 
     m_pNotebookItemContextMenu->addSeparator();
 
-    // TODO: add other actions, like "set default"
+    ADD_CONTEXT_MENU_ACTION(tr("Set default"), onSetNotebookDefaultAction, true);
 
 #undef ADD_CONTEXT_MENU_ACTION
 
