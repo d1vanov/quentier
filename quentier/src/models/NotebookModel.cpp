@@ -305,7 +305,8 @@ QStringList NotebookModel::stacks() const
 }
 
 QModelIndex NotebookModel::createNotebook(const QString & notebookName,
-                                          const QString & notebookStack, QNLocalizedString & errorDescription)
+                                          const QString & notebookStack,
+                                          QNLocalizedString & errorDescription)
 {
     QNDEBUG(QStringLiteral("NotebookModel::createNotebook: notebook name = ")
             << notebookName << ", notebook stack = " << notebookStack);
@@ -1235,15 +1236,15 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
     {
         const NotebookItem * notebookItem = notebookItemsToRemove[i];
         QString localUid = notebookItem->localUid();
-        auto it = localUidIndex.find(localUid);
-        if (Q_LIKELY(it != localUidIndex.end())) {
-            Q_UNUSED(localUidIndex.erase(it))
-        }
-        else {
-            QNWARNING(QStringLiteral("Internal error detected: can't find the notebook item to remove from the NotebookModel: local uid = ")
-                      << localUid);
+
+        auto nameIt = m_lowerCaseNotebookNames.find(notebookItem->name().toLower());
+        if (nameIt != m_lowerCaseNotebookNames.end()) {
+            Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
         }
 
+        // WARNING: need to remove the model item before the underlying notebook item
+        // to prevent the latter one to contain the dangling pointer to the removed
+        // notebook item
         auto modelItemIt = m_modelItemsByLocalUid.find(localUid);
         if (Q_LIKELY(modelItemIt != m_modelItemsByLocalUid.end()))
         {
@@ -1257,12 +1258,64 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             QNWARNING(QStringLiteral("Internal error detected: can't find the notebook model item corresponding to the notebook item "
                                      "being removed: local uid = ") << localUid);
         }
+
+        const QString & stack = notebookItem->stack();
+        if (!stack.isEmpty())
+        {
+            auto stackIt = m_modelItemsByStack.find(stack);
+            if (stackIt != m_modelItemsByStack.end())
+            {
+                NotebookModelItem * parentItem = &(stackIt.value());
+                if ((parentItem != m_fakeRootItem) &&
+                    (parentItem->type() == NotebookModelItem::Type::Stack) &&
+                    (parentItem->notebookStackItem()) &&
+                    (parentItem->numChildren() == 0))
+                {
+                    QNDEBUG(QStringLiteral("The last child was removed from the stack item, "
+                                           "need to remove it as well: stack = ") << stack);
+                    const NotebookStackItem * notebookStackItem = parentItem->notebookStackItem();
+                    notebookStackItemsToRemove << notebookStackItem;
+                }
+            }
+        }
+
+        auto it = localUidIndex.find(localUid);
+        if (Q_LIKELY(it != localUidIndex.end())) {
+            Q_UNUSED(localUidIndex.erase(it))
+            expungeNotebookFromLocalStorage(localUid);
+        }
+        else {
+            QNWARNING(QStringLiteral("Internal error detected: can't find the notebook item to remove from the NotebookModel: local uid = ")
+                      << localUid);
+        }
     }
+
+    endRemoveRows();
 
     for(int i = 0, size = notebookStackItemsToRemove.size(); i < size; ++i)
     {
         const NotebookStackItem * stackItem = notebookStackItemsToRemove[i];
         QString stack = stackItem->name();
+
+        // WARNING: need to remove the model item before the underlying notebook stack item
+        // to prevent the latter one to contain the dangling pointer to the removed
+        // notebook stack item
+        auto stackModelItemIt = m_modelItemsByStack.find(stack);
+        if (Q_LIKELY(stackModelItemIt != m_modelItemsByStack.end()))
+        {
+            const NotebookModelItem & stackModelItem = *stackModelItemIt;
+            int row = m_fakeRootItem->rowForChild(&stackModelItem);
+            beginRemoveRows(QModelIndex(), row, row);
+            removeModelItemFromParent(stackModelItem);
+            Q_UNUSED(m_modelItemsByStack.erase(stackModelItemIt))
+            endRemoveRows();
+        }
+        else
+        {
+            QNWARNING(QStringLiteral("Internal error detected: can't find the notebook model item corresponding to the notebook stack item "
+                                     "being removed from the notebook model: stack = ") << stack);
+        }
+
         auto stackItemIt = m_stackItems.find(stack);
         if (Q_LIKELY(stackItemIt != m_stackItems.end())) {
             Q_UNUSED(m_stackItems.erase(stackItemIt))
@@ -1271,22 +1324,7 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             QNWARNING(QStringLiteral("Internal error detected: can't find the notebook stack item being removed from the notebook model: stack = ")
                       << stack);
         }
-
-        auto stackModelItemIt = m_modelItemsByStack.find(stack);
-        if (Q_LIKELY(stackModelItemIt != m_modelItemsByStack.end()))
-        {
-            const NotebookModelItem & stackModelItem = *stackModelItemIt;
-            removeModelItemFromParent(stackModelItem);
-            Q_UNUSED(m_modelItemsByStack.erase(stackModelItemIt))
-        }
-        else
-        {
-            QNWARNING(QStringLiteral("Internal error detected: can't find the notebook model item corresponding to the notebook stack item "
-                                     "being removed from the notebook model: stack = ") << stack);
-        }
     }
-
-    endRemoveRows();
 
     return true;
 }
@@ -2072,6 +2110,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     notebook.setDirty(item.isDirty());
     notebook.setDefaultNotebook(item.isDefault());
     notebook.setPublished(item.isPublished());
+    notebook.setStack(item.stack());
 
     // NOTE: deliberately not setting the updatable property from the item as it can't be changed by the model
     // and only serves the utilitary purpose inside it
@@ -2096,6 +2135,22 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
         QNTRACE(QStringLiteral("Emitted the request to update the notebook in the local storage: id = ") << requestId
                 << QStringLiteral(", notebook = ") << notebook);
     }
+}
+
+void NotebookModel::expungeNotebookFromLocalStorage(const QString & localUid)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::expungeNotebookFromLocalStorage: local uid = ")
+            << localUid);
+
+    Notebook dummyNotebook;
+    dummyNotebook.setLocalUid(localUid);
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_expungeNotebookRequestIds.insert(requestId))
+    QNDEBUG(QStringLiteral("Emitting the request to expunge the notebook from local storage: "
+                           "request id = ") << requestId
+            << QStringLiteral(", local uid = ") << localUid);
+    emit expungeNotebook(dummyNotebook, requestId);
 }
 
 QString NotebookModel::nameForNewNotebook() const

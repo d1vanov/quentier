@@ -20,7 +20,6 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QStyleFactory>
 #include <QApplication>
-#include <QMessageBox>
 #include <QScopedPointer>
 #include <QUrl>
 
@@ -159,9 +158,9 @@ const QString humanReadableSize(const quint64 bytes)
     return result;
 }
 
-void messageBoxImplementation(const QMessageBox::Icon icon, QWidget * parent,
-                              const QString & title, const QString & briefText,
-                              const QString & detailedText)
+int messageBoxImplementation(const QMessageBox::Icon icon, QWidget * parent,
+                             const QString & title, const QString & briefText,
+                             const QString & detailedText, QMessageBox::StandardButtons buttons)
 {
     QScopedPointer<QMessageBox> pMessageBox(new QMessageBox(parent));
     if (parent) {
@@ -175,38 +174,43 @@ void messageBoxImplementation(const QMessageBox::Icon icon, QWidget * parent,
     }
 
     pMessageBox->setIcon(icon);
-    pMessageBox->addButton(QMessageBox::Ok);
-    pMessageBox->exec();
+    pMessageBox->setStandardButtons(buttons);
+    return pMessageBox->exec();
 }
 
-void genericMessageBox(QWidget * parent, const QString & title, const QString & briefText,
-                       const QString & detailedText)
+int genericMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                       const QString & detailedText, const QMessageBox::StandardButtons buttons)
 {
-    messageBoxImplementation(QMessageBox::NoIcon, parent, title, briefText, detailedText);
+    return messageBoxImplementation(QMessageBox::NoIcon, parent, title, briefText,
+                                    detailedText, buttons);
 }
 
-void informationMessageBox(QWidget * parent, const QString & title, const QString & briefText,
-                           const QString & detailedText)
+int informationMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                          const QString & detailedText, const QMessageBox::StandardButtons buttons)
 {
-    messageBoxImplementation(QMessageBox::Information, parent, title, briefText, detailedText);
+    return messageBoxImplementation(QMessageBox::Information, parent, title, briefText,
+                                    detailedText, buttons);
 }
 
-void warningMessageBox(QWidget * parent, const QString & title, const QString & briefText,
-                       const QString & detailedText)
+int warningMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                      const QString & detailedText, const QMessageBox::StandardButtons buttons)
 {
-    messageBoxImplementation(QMessageBox::Warning, parent, title, briefText, detailedText);
+    return messageBoxImplementation(QMessageBox::Warning, parent, title, briefText,
+                                    detailedText, buttons);
 }
 
-void criticalMessageBox(QWidget * parent, const QString & title, const QString & briefText,
-                        const QString & detailedText)
+int criticalMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                        const QString & detailedText, const QMessageBox::StandardButtons buttons)
 {
-    messageBoxImplementation(QMessageBox::Critical, parent, title, briefText, detailedText);
+    return messageBoxImplementation(QMessageBox::Critical, parent, title, briefText,
+                                    detailedText, buttons);
 }
 
-void questionMessageBox(QWidget * parent, const QString & title, const QString & briefText,
-                        const QString & detailedText)
+int questionMessageBox(QWidget * parent, const QString & title, const QString & briefText,
+                        const QString & detailedText, const QMessageBox::StandardButtons buttons)
 {
-    messageBoxImplementation(QMessageBox::Question, parent, title, briefText, detailedText);
+    return messageBoxImplementation(QMessageBox::Question, parent, title, briefText,
+                                    detailedText, buttons);
 }
 
 void internalErrorMessageBox(QWidget * parent, QString detailedText)

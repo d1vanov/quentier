@@ -23,6 +23,7 @@
 #include <QString>
 #include <QStyle>
 #include <QFileDialog>
+#include <QMessageBox>
 
 QT_FORWARD_DECLARE_CLASS(QWidget)
 
@@ -37,16 +38,21 @@ QUENTIER_EXPORT QStyle * applicationStyle();
 const QString QUENTIER_EXPORT humanReadableSize(const quint64 bytes);
 
 // Convenience functions for message boxes with proper modality on Mac OS X
-void QUENTIER_EXPORT genericMessageBox(QWidget * parent, const QString & title,
-                                        const QString & briefText, const QString & detailedText = QString());
-void QUENTIER_EXPORT informationMessageBox(QWidget * parent, const QString & title,
-                                            const QString & briefText, const QString & detailedText = QString());
-void QUENTIER_EXPORT warningMessageBox(QWidget * parent, const QString & title,
-                                        const QString & briefText, const QString & detailedText = QString());
-void QUENTIER_EXPORT criticalMessageBox(QWidget * parent, const QString & title,
-                                         const QString & briefText, const QString & detailedText = QString());
-void QUENTIER_EXPORT questionMessageBox(QWidget * parent, const QString & title,
-                                         const QString & briefText, const QString & detailedText = QString());
+int QUENTIER_EXPORT genericMessageBox(QWidget * parent, const QString & title,
+                                      const QString & briefText, const QString & detailedText = QString(),
+                                      const QMessageBox::StandardButtons standardButtons = QMessageBox::Ok);
+int QUENTIER_EXPORT informationMessageBox(QWidget * parent, const QString & title,
+                                          const QString & briefText, const QString & detailedText = QString(),
+                                          const QMessageBox::StandardButtons standardButtons = QMessageBox::Ok);
+int QUENTIER_EXPORT warningMessageBox(QWidget * parent, const QString & title,
+                                      const QString & briefText, const QString & detailedText = QString(),
+                                      const QMessageBox::StandardButtons standardButtons = QMessageBox::Ok);
+int QUENTIER_EXPORT criticalMessageBox(QWidget * parent, const QString & title,
+                                       const QString & briefText, const QString & detailedText = QString(),
+                                       const QMessageBox::StandardButtons standardButtons = QMessageBox::Ok);
+int QUENTIER_EXPORT questionMessageBox(QWidget * parent, const QString & title,
+                                       const QString & briefText, const QString & detailedText = QString(),
+                                       const QMessageBox::StandardButtons standardButtons = QMessageBox::Ok);
 
 // Convenience function for critical message box due to internal error, has built-in title
 // ("Internal error") and brief text so the caller only needs to provide the detailed text

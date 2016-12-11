@@ -286,6 +286,8 @@ void MainWindow::connectViewButtonsToSlots()
 
     QObject::connect(m_pUI->addNotebookButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onAddNotebookButtonPressed));
+    QObject::connect(m_pUI->removeNotebookButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onRemoveNotebookButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1298,6 +1300,12 @@ void MainWindow::onAddNotebookButtonPressed()
     Q_UNUSED(pAddNotebookDialog->exec())
 }
 
+void MainWindow::onRemoveNotebookButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRemoveNotebookButtonPressed"));
+    m_pUI->notebooksTreeView->deleteSelectedItem();
+}
+
 void MainWindow::onSetTestNoteWithEncryptedData()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
@@ -1359,6 +1367,12 @@ void MainWindow::onNoteEditorError(QNLocalizedString error)
         return;
     }
 
+    onSetStatusBarText(error.localizedString(), 20000);
+}
+
+void MainWindow::onModelViewError(QNLocalizedString error)
+{
+    QNINFO(QStringLiteral("MainWindow::onModelViewError: ") << error);
     onSetStatusBarText(error.localizedString(), 20000);
 }
 
@@ -2073,6 +2087,11 @@ void MainWindow::setupViews()
     QObject::connect(m_pNotebookModelColumnChangeRerouter, QNSIGNAL(ColumnChangeRerouter,dataChanged,const QModelIndex&,const QModelIndex&),
                      notebooksTreeView, QNSLOT(NotebookItemView,dataChanged,const QModelIndex&,const QModelIndex&));
 #endif
+
+    QObject::connect(notebooksTreeView, QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
+                     this, QNSLOT(MainWindow,onAddNotebookButtonPressed));
+    QObject::connect(notebooksTreeView, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
 
     ItemView * tagsTreeView = m_pUI->tagsTreeView;
     tagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name

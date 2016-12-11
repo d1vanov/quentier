@@ -223,6 +223,7 @@ private:
     bool canUpdateNotebookItem(const NotebookItem & item) const;
 
     void updateNotebookInLocalStorage(const NotebookItem & item);
+    void expungeNotebookFromLocalStorage(const QString & localUid);
 
     QString nameForNewNotebook() const;
 

@@ -152,6 +152,7 @@ private Q_SLOTS:
 
     // View buttons slots
     void onAddNotebookButtonPressed();
+    void onRemoveNotebookButtonPressed();
 
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
@@ -160,6 +161,7 @@ private Q_SLOTS:
     void onSetInkNote();
 
     void onNoteEditorError(QNLocalizedString error);
+    void onModelViewError(QNLocalizedString error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();

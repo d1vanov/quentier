@@ -7,6 +7,8 @@
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(NotebookModel)
+QT_FORWARD_DECLARE_CLASS(NotebookItem)
+QT_FORWARD_DECLARE_CLASS(NotebookStackItem)
 
 class NotebookItemView: public ItemView
 {
@@ -18,14 +20,40 @@ public:
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
+    void newNotebookCreationRequested();
+
+public Q_SLOTS:
+    void deleteSelectedItem();
 
 private Q_SLOTS:
     void onAllNotebooksListed();
+    void onContextMenuRequested(const QPoint & point);
+
+    void onCreateNewNotebookAction();
+    void onRenameNotebookAction();
+    void onDeleteNotebookAction();
+
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
 
+
+private:
+    void deleteItem(const QModelIndex & itemIndex, NotebookModel & model);
+    void showNotebookItemContextMenu(const NotebookItem & item,
+                                     const QPoint & point, NotebookModel & model);
+    void showNotebookStackItemContextMenu(const NotebookStackItem & item,
+                                          const QPoint & point, NotebookModel & model);
+
+    // Returns the valid index if all indexes in the list point to the same row;
+    // otherwise returns invalid model index
+    QModelIndex singleRow(const QModelIndexList & indexes, const quentier::NotebookModel & model) const;
+
 private:
     void selectLastUsedOrDefaultNotebook(const NotebookModel & model);
+
+private:
+    QMenu *     m_pNotebookItemContextMenu;
+    QMenu *     m_pNotebookStackItemContextMenu;
 };
 
 } // namespace quentier
