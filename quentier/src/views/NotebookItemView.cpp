@@ -157,6 +157,8 @@ void NotebookItemView::selectionChanged(const QItemSelection & selected,
     appSettings.beginGroup(QStringLiteral("NotebookItemView"));
     appSettings.setValue(LAST_SELECTED_NOTEBOOK_KEY, pNotebookItem->localUid());
     appSettings.endGroup();
+
+    ItemView::selectionChanged(selected, deselected);
 }
 
 void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & model)
