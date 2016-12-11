@@ -21,6 +21,8 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onAllNotebooksListed();
+    virtual void selectionChanged(const QItemSelection & selected,
+                                  const QItemSelection & deselected) Q_DECL_OVERRIDE;
 
 private:
     void selectLastUsedOrDefaultNotebook(const NotebookModel & model);

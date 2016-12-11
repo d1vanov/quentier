@@ -1,6 +1,9 @@
 #include "NotebookItemView.h"
 #include "../models/NotebookModel.h"
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
+
+#define LAST_SELECTED_NOTEBOOK_KEY QStringLiteral("LastSelectedNotebookLocalUid")
 
 namespace quentier {
 
@@ -63,6 +66,99 @@ void NotebookItemView::onAllNotebooksListed()
     selectLastUsedOrDefaultNotebook(*pNotebookModel);
 }
 
+void NotebookItemView::selectionChanged(const QItemSelection & selected,
+                                        const QItemSelection & deselected)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::selectionChanged"));
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        ItemView::selectionChanged(selected, deselected);
+        return;
+    }
+
+    QModelIndexList selectedIndexes = selected.indexes();
+
+    if (selectedIndexes.isEmpty()) {
+        QNDEBUG(QStringLiteral("The new selection is empty"));
+        ItemView::selectionChanged(selected, deselected);
+        return;
+    }
+
+    // Need to figure out how many rows the new selection covers; if exactly 1,
+    // persist this selection so that it can be resurrected on the next startup
+    int row = -1;
+    QModelIndex sourceIndex;
+    for(auto it = selectedIndexes.constBegin(), end = selectedIndexes.constEnd(); it != end; ++it)
+    {
+        const QModelIndex & index = *it;
+        if (Q_UNLIKELY(!index.isValid())) {
+            continue;
+        }
+
+        if (row < 0) {
+            row = index.row();
+            sourceIndex = index;
+            continue;
+        }
+
+        if (row != index.row()) {
+            row = -1;
+            sourceIndex = QModelIndex();
+            break;
+        }
+    }
+
+    if (!sourceIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Not exactly one row is selected"));
+        ItemView::selectionChanged(selected, deselected);
+        return;
+    }
+
+    const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(sourceIndex);
+    if (Q_UNLIKELY(!pModelItem))
+    {
+        QNLocalizedString errorDescription = QNLocalizedString("Can't find notebook "
+                                                               "model item corresponging "
+                                                               "to the selected index", this);
+        QNWARNING(errorDescription << QStringLiteral(": is valid = ")
+                  << (sourceIndex.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+                  << QStringLiteral(", row = ") << sourceIndex.row()
+                  << QStringLiteral(", column = ") << sourceIndex.column());
+        emit notifyError(errorDescription);
+        ItemView::selectionChanged(selected, deselected);
+        return;
+    }
+
+    if (pModelItem->type() != NotebookModelItem::Type::Notebook) {
+        QNDEBUG(QStringLiteral("Non-notebook item is selected"));
+        ItemView::selectionChanged(selected, deselected);
+        return;
+    }
+
+    const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem))
+    {
+        QNLocalizedString errorDescription = QNLocalizedString("Selected notebook model item "
+                                                               "seems to point to notebook "
+                                                               "but returns null pointer "
+                                                               "to the notebook item", this);
+        QNWARNING(errorDescription << QStringLiteral(": is valid = ")
+                  << (sourceIndex.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+                  << QStringLiteral(", row = ") << sourceIndex.row()
+                  << QStringLiteral(", column = ") << sourceIndex.column());
+        emit notifyError(errorDescription);
+        ItemView::selectionChanged(selected, deselected);
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
+    appSettings.setValue(LAST_SELECTED_NOTEBOOK_KEY, pNotebookItem->localUid());
+    appSettings.endGroup();
+}
+
 void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & model)
 {
     QNDEBUG(QStringLiteral("NotebookItemView::selectLastUsedOrDefaultNotebook"));
@@ -78,6 +174,27 @@ void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & mod
         return;
     }
 
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
+    QString lastSelectedNotebookLocalUid = appSettings.value(LAST_SELECTED_NOTEBOOK_KEY).toString();
+    appSettings.endGroup();
+
+    QNTRACE(QStringLiteral("Last selected notebook local uid: ") << lastSelectedNotebookLocalUid);
+
+    if (!lastSelectedNotebookLocalUid.isEmpty())
+    {
+        QModelIndex lastSelectedNotebookIndex = model.indexForLocalUid(lastSelectedNotebookLocalUid);
+        if (lastSelectedNotebookIndex.isValid()) {
+            QNDEBUG(QStringLiteral("Selecting the last selected notebook item: local uid = ")
+                    << lastSelectedNotebookLocalUid);
+            QModelIndex left = model.index(lastSelectedNotebookIndex.row(), NotebookModel::Columns::Name);
+            QModelIndex right = model.index(lastSelectedNotebookIndex.row(), NotebookModel::Columns::NumNotesPerNotebook);
+            QItemSelection selection(left, right);
+            pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+            return;
+        }
+    }
+
     QModelIndex defaultNotebookIndex = model.defaultNotebookIndex();
     if (defaultNotebookIndex.isValid()) {
         QNDEBUG(QStringLiteral("Selecting the default notebook item"));
@@ -87,8 +204,6 @@ void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & mod
         pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
         return;
     }
-
-    // TODO: otherwise should attempt to select the last used notebook for this account
 }
 
 } // namespace quentier
