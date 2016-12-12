@@ -114,7 +114,7 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
                                       ? (m_notebookItem ? m_notebookItem->toString() : QStringLiteral("<null>"))
                                       : (m_notebookStackItem ? m_notebookStackItem->toString() : QStringLiteral("<null>")));
 
-    strm << QStringLiteral("Parent item: ");
+    strm << QStringLiteral("\nParent item: ");
     if (Q_UNLIKELY(!m_parent))
     {
         strm << QStringLiteral("<null>");
@@ -125,7 +125,7 @@ QTextStream & NotebookModelItem::print(QTextStream & strm) const
             strm << QStringLiteral("stack");
         }
         else if (m_parent->type() == NotebookModelItem::Type::Notebook) {
-            strm << QStringLiteral("notebook");
+            strm << QStringLiteral("notebook or fake root item");
         }
         else {
             strm << QStringLiteral("<unknown type>");

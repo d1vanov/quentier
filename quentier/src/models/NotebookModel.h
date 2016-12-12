@@ -33,6 +33,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/bimap.hpp>
 #endif
 
 #define NOTEBOOK_MODEL_MIME_TYPE "application/x-com.quentier.notebookmodeldatalist"
@@ -301,10 +302,22 @@ private:
     typedef QMap<QString, NotebookModelItem> ModelItems;
     typedef QMap<QString, NotebookStackItem> StackItems;
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    typedef quint32 IndexId;
+#else
+    typedef quintptr IndexId;
+#endif
+
+    typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
+    typedef boost::bimap<IndexId, QString> IndexIdToStackBimap;
+
 private:
     void onNotebookAddedOrUpdated(const Notebook & notebook);
     void onNotebookAdded(const Notebook & notebook);
     void onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it);
+
+    const NotebookModelItem * itemForId(const IndexId id) const;
+    IndexId idForItem(const NotebookModelItem & item) const;
 
     // Returns true if successfully incremented the note count for the notebook item with the corresponding local uid
     bool updateNoteCountPerNotebookIndex(const NotebookItem & item, const NotebookDataByLocalUid::iterator it);
@@ -321,6 +334,10 @@ private:
     ModelItems              m_modelItemsByLocalUid;
     ModelItems              m_modelItemsByStack;
     StackItems              m_stackItems;
+
+    mutable IndexIdToLocalUidBimap  m_indexIdToLocalUidBimap;
+    mutable IndexIdToStackBimap     m_indexIdToStackBimap;
+    mutable IndexId                 m_lastFreeIndexId;
 
     NotebookCache &         m_cache;
 
