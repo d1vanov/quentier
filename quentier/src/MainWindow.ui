@@ -770,9 +770,6 @@ border: none;
              <height>30</height>
             </size>
            </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
-           </property>
            <property name="styleSheet">
             <string notr="true">#favoritesTableView {
 border: none;
@@ -1077,9 +1074,6 @@ border: none;
              <height>30</height>
             </size>
            </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
-           </property>
            <property name="styleSheet">
             <string notr="true">#notebooksTreeView {
 border: none;
@@ -1365,9 +1359,6 @@ border: none;
              <height>30</height>
             </size>
            </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
-           </property>
            <property name="styleSheet">
             <string notr="true">#tagsTreeView {
 border: none;
@@ -1652,9 +1643,6 @@ border: none;
              <width>0</width>
              <height>30</height>
             </size>
-           </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
            </property>
            <property name="styleSheet">
             <string notr="true">#savedSearchesTableView {
@@ -1947,9 +1935,6 @@ border: none;
              <height>30</height>
             </size>
            </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
-           </property>
            <property name="styleSheet">
             <string notr="true">#deletedNotesTableView {
 border: none;
@@ -2222,7 +2207,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">

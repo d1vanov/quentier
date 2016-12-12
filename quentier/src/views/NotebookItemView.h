@@ -27,16 +27,18 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAllNotebooksListed();
-    void onContextMenuRequested(const QPoint & point);
 
     void onCreateNewNotebookAction();
     void onRenameNotebookAction();
     void onDeleteNotebookAction();
     void onSetNotebookDefaultAction();
 
+    void onRenameNotebookStackAction();
+    void onDeleteNotebookStackAction();
+
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
-
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void deleteItem(const QModelIndex & itemIndex, NotebookModel & model);

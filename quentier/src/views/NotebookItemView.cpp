@@ -4,6 +4,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
 #include <QMenu>
+#include <QContextMenuEvent>
 
 #define LAST_SELECTED_NOTEBOOK_KEY QStringLiteral("LastSelectedNotebookLocalUid")
 
@@ -20,10 +21,7 @@ NotebookItemView::NotebookItemView(QWidget * parent) :
     ItemView(parent),
     m_pNotebookItemContextMenu(Q_NULLPTR),
     m_pNotebookStackItemContextMenu(Q_NULLPTR)
-{
-    QObject::connect(this, QNSIGNAL(NotebookItemView,customContextMenuRequested,const QPoint&),
-                     this, QNSLOT(NotebookItemView,onContextMenuRequested,const QPoint &));
-}
+{}
 
 void NotebookItemView::setModel(QAbstractItemModel * pModel)
 {
@@ -105,56 +103,6 @@ void NotebookItemView::onAllNotebooksListed()
                         this, QNSLOT(NotebookItemView,onAllNotebooksListed));
 
     selectLastUsedOrDefaultNotebook(*pNotebookModel);
-}
-
-void NotebookItemView::onContextMenuRequested(const QPoint & point)
-{
-    QNDEBUG(QStringLiteral("NotebookItemView::onContextMenuRequested: point = (")
-            << point.x() << QStringLiteral(", ") << point.y() << QStringLiteral(")"));
-
-    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
-    if (Q_UNLIKELY(!pNotebookModel)) {
-        QNDEBUG(QStringLiteral("Non-notebook model is used, not doing anything"));
-        return;
-    }
-
-    QModelIndex clickedItemIndex = indexAt(point);
-    if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
-        return;
-    }
-
-    const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(clickedItemIndex);
-    if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR("Can't show the context menu for the notebook model item: "
-                     "no item corresponding to the clicked item's index")
-        return;
-    }
-
-    if (pModelItem->type() == NotebookModelItem::Type::Notebook)
-    {
-        const NotebookItem * pNotebookItem = pModelItem->notebookItem();
-        if (Q_UNLIKELY(!pNotebookItem)) {
-            REPORT_ERROR("Can't show the context menu for the notebook item: "
-                         "the model item reported that it points to the notebook item "
-                         "but the pointer to the notebook item is null")
-            return;
-        }
-
-        showNotebookItemContextMenu(*pNotebookItem, point, *pNotebookModel);
-    }
-    else if (pModelItem->type() == NotebookModelItem::Type::Stack)
-    {
-        const NotebookStackItem * pNotebookStackItem = pModelItem->notebookStackItem();
-        if (Q_UNLIKELY(!pNotebookStackItem)) {
-            REPORT_ERROR("Can't show the context menu for the notebook stack item: "
-                         "the model item reported that it points to the notebook stack item "
-                         "but the pointer to the notebook stack item is null")
-            return;
-        }
-
-        showNotebookStackItemContextMenu(*pNotebookStackItem, point, *pNotebookModel);
-    }
 }
 
 void NotebookItemView::onCreateNewNotebookAction()
@@ -272,6 +220,20 @@ void NotebookItemView::onSetNotebookDefaultAction()
                                               "explaining why the action was not successful")));
 }
 
+void NotebookItemView::onRenameNotebookStackAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onRenameNotebookStackAction"));
+
+    // TODO: implement
+}
+
+void NotebookItemView::onDeleteNotebookStackAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onDeleteNotebookStackAction"));
+
+    // TODO: implement
+}
+
 void NotebookItemView::selectionChanged(const QItemSelection & selected,
                                         const QItemSelection & deselected)
 {
@@ -331,6 +293,61 @@ void NotebookItemView::selectionChanged(const QItemSelection & selected,
     appSettings.endGroup();
 
     ItemView::selectionChanged(selected, deselected);
+}
+
+void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::contextMenuEvent"));
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING(QStringLiteral("Detected Qt error: notebook item view received context menu event with null pointer to "
+                                 "the context menu event"));
+        return;
+    }
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used, not doing anything"));
+        return;
+    }
+
+    QModelIndex clickedItemIndex = indexAt(pEvent->pos());
+    if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
+        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
+        return;
+    }
+
+    const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(clickedItemIndex);
+    if (Q_UNLIKELY(!pModelItem)) {
+        REPORT_ERROR("Can't show the context menu for the notebook model item: "
+                     "no item corresponding to the clicked item's index")
+        return;
+    }
+
+    if (pModelItem->type() == NotebookModelItem::Type::Notebook)
+    {
+        const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+        if (Q_UNLIKELY(!pNotebookItem)) {
+            REPORT_ERROR("Can't show the context menu for the notebook item: "
+                         "the model item reported that it points to the notebook item "
+                         "but the pointer to the notebook item is null")
+            return;
+        }
+
+        showNotebookItemContextMenu(*pNotebookItem, pEvent->globalPos(), *pNotebookModel);
+    }
+    else if (pModelItem->type() == NotebookModelItem::Type::Stack)
+    {
+        const NotebookStackItem * pNotebookStackItem = pModelItem->notebookStackItem();
+        if (Q_UNLIKELY(!pNotebookStackItem)) {
+            REPORT_ERROR("Can't show the context menu for the notebook stack item: "
+                         "the model item reported that it points to the notebook stack item "
+                         "but the pointer to the notebook stack item is null")
+            return;
+        }
+
+        showNotebookStackItemContextMenu(*pNotebookStackItem, pEvent->globalPos(), *pNotebookModel);
+    }
 }
 
 void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
@@ -453,7 +470,7 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
 #undef ADD_CONTEXT_MENU_ACTION
 
     m_pNotebookItemContextMenu->show();
-    m_pNotebookItemContextMenu->exec(mapToGlobal(point));
+    m_pNotebookItemContextMenu->exec(point);
 }
 
 void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem & item,
