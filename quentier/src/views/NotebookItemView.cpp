@@ -48,8 +48,8 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
     ItemView::setModel(pModel);
 
     if (pNotebookModel->allNotebooksListed()) {
-        QNDEBUG(QStringLiteral("All notebooks are already listed within the model, "
-                               "need to select the appropriate one"));
+        QNDEBUG(QStringLiteral("All notebooks are already listed within "
+                               "the model, need to select the appropriate one"));
         selectLastUsedOrDefaultNotebook(*pNotebookModel);
         return;
     }
@@ -95,7 +95,8 @@ void NotebookItemView::onAllNotebooksListed()
 
     NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        REPORT_ERROR("Can't cast the model set to the notebook item view to the notebook model")
+        REPORT_ERROR("Can't cast the model set to the notebook item view "
+                     "to the notebook model")
         return;
     }
 
@@ -117,7 +118,8 @@ void NotebookItemView::onRenameNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't rename notebook, can't cast the slot invoker to QAction");
+        REPORT_ERROR("Internal error: can't rename notebook, "
+                     "can't cast the slot invoker to QAction")
         return;
     }
 
@@ -129,8 +131,8 @@ void NotebookItemView::onRenameNotebookAction()
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't rename notebook, can't get notebook's "
-                     "local uid from QAction");
+        REPORT_ERROR("Internal error: can't rename notebook, "
+                     "can't get notebook's local uid from QAction")
         return;
     }
 
@@ -156,21 +158,22 @@ void NotebookItemView::onDeleteNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't delete notebook, can't cast the slot invoker to QAction");
+        REPORT_ERROR("Internal error: can't delete notebook, "
+                     "can't cast the slot invoker to QAction")
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't delete notebook, can't get notebook's "
-                     "local uid from QAction");
+        REPORT_ERROR("Internal error: can't delete notebook, "
+                     "can't get notebook's local uid from QAction")
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't delete notebook: the model returned invalid "
-                     "index for the notebook's local uid");
+        REPORT_ERROR("Internal error: can't delete notebook: the model "
+                     "returned invalid index for the notebook's local uid")
         return;
     }
 
@@ -189,21 +192,22 @@ void NotebookItemView::onSetNotebookDefaultAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't set notebook as default, can't cast the slot invoker to QAction");
+        REPORT_ERROR("Internal error: can't set notebook as default, "
+                     "can't cast the slot invoker to QAction")
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't delete notebook, can't get notebook's "
-                     "local uid from QAction");
+        REPORT_ERROR("Internal error: can't delete notebook, "
+                     "can't get notebook's local uid from QAction")
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't delete notebook: the model returned invalid "
-                     "index for the notebook's local uid");
+        REPORT_ERROR("Internal error: can't delete notebook: the model "
+                     "returned invalid index for the notebook's local uid")
         return;
     }
 
@@ -218,6 +222,50 @@ void NotebookItemView::onSetNotebookDefaultAction()
     Q_UNUSED(internalErrorMessageBox(this, tr("The notebook model refused to set the notebook as default; "
                                               "Check the status bar for message from the notebook model "
                                               "explaining why the action was not successful")));
+}
+
+void NotebookItemView::onMoveNotebookToStackAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onMoveNotebookToStackAction"));
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't move notebook to stack, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QStringList itemLocalUidAndStack = pAction->data().toStringList();
+    if (itemLocalUidAndStack.size() != 2) {
+        REPORT_ERROR("Internal error: can't move notebook to stack, "
+                     "can't retrieve the notebook local uid and target stack "
+                     "from QAction data")
+        return;
+    }
+
+    const QString & localUid = itemLocalUidAndStack.at(0);
+
+    QModelIndex itemIndex = pNotebookModel->indexForLocalUid(localUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't move notebook to stack, "
+                     "can't get valid model index for notebook's local uid")
+        return;
+    }
+
+    const QString & targetStack = itemLocalUidAndStack.at(1);
+    QModelIndex index = pNotebookModel->moveToStack(itemIndex, targetStack);
+    if (!index.isValid()) {
+        REPORT_ERROR("Can't move notebook to stack")
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Successfully moved the notebook item to the target stack"));
 }
 
 void NotebookItemView::onRenameNotebookStackAction()
@@ -441,31 +489,55 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
     delete m_pNotebookItemContextMenu;
     m_pNotebookItemContextMenu = new QMenu(this);
 
-#define ADD_CONTEXT_MENU_ACTION(name, slot, enabled) \
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
     { \
-        QAction * action = new QAction(name, m_pNotebookItemContextMenu); \
-        action->setData(item.localUid()); \
-        action->setEnabled(enabled); \
-        QObject::connect(action, QNSIGNAL(QAction,triggered), this, QNSLOT(NotebookItemView,slot)); \
-        m_pNotebookItemContextMenu->addAction(action); \
+        QAction * pAction = new QAction(name, menu); \
+        pAction->setData(data); \
+        pAction->setEnabled(enabled); \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(NotebookItemView,slot)); \
+        menu->addAction(pAction); \
     }
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new notebook") + QStringLiteral("..."),
-                            onCreateNewNotebookAction, true);
+                            m_pNotebookItemContextMenu, onCreateNewNotebookAction,
+                            item.localUid(), true);
 
     m_pNotebookItemContextMenu->addSeparator();
 
     bool canRename = (item.isUpdatable() && item.nameIsUpdatable());
     ADD_CONTEXT_MENU_ACTION(tr("Rename") + QStringLiteral("..."),
-                            onRenameNotebookAction, canRename);
+                            m_pNotebookItemContextMenu, onRenameNotebookAction,
+                            item.localUid(), canRename);
 
     if (model.account().type() == Account::Type::Local) {
-        ADD_CONTEXT_MENU_ACTION(tr("Delete"), onDeleteNotebookAction, true);
+        ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
+                                onDeleteNotebookAction, item.localUid(), true);
+    }
+
+    const QString & stack = item.stack();
+    QStringList stacks = model.stacks();
+    if (!stack.isEmpty()) {
+        Q_UNUSED(stacks.removeAll(stack))
+    }
+
+    if (!stacks.isEmpty())
+    {
+        QMenu * pTargetStackSubMenu = m_pNotebookItemContextMenu->addMenu(tr("Move to stack"));
+        for(auto it = stacks.constBegin(), end = stacks.constEnd(); it != end; ++it)
+        {
+            QStringList dataPair;
+            dataPair.reserve(2);
+            dataPair << item.localUid();
+            dataPair << *it;
+            ADD_CONTEXT_MENU_ACTION(*it, pTargetStackSubMenu, onMoveNotebookToStackAction,
+                                    dataPair, true);
+        }
     }
 
     m_pNotebookItemContextMenu->addSeparator();
 
-    ADD_CONTEXT_MENU_ACTION(tr("Set default"), onSetNotebookDefaultAction, true);
+    ADD_CONTEXT_MENU_ACTION(tr("Set default"), m_pNotebookItemContextMenu,
+                            onSetNotebookDefaultAction, item.localUid(), true);
 
 #undef ADD_CONTEXT_MENU_ACTION
 

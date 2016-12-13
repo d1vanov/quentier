@@ -248,6 +248,8 @@ private:
 
     void setDefaultNotebook(const QString & localUid);
 
+    void checkAndRemoveEmptyStackItem(const NotebookModelItem & modelItem);
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
