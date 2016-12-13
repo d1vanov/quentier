@@ -146,11 +146,20 @@ bool AddAccountDialog::localAccountAlreadyExists(const QString & name) const
 
 void AddAccountDialog::accept()
 {
-    bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() == 0);
-    QString name = m_pUi->accountNameLineEdit->text();
+    bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
+
+    QString name;
+    if (isLocal)
+    {
+        name = m_pUi->accountNameLineEdit->text();
+        if (name.isEmpty()) {
+            m_pUi->statusText->setText(tr("Please enter the name for the account"));
+            m_pUi->statusText->setHidden(false);
+            return;
+        }
+    }
 
     if (isLocal && localAccountAlreadyExists(name)) {
-        QDialog::reject();
         return;
     }
 

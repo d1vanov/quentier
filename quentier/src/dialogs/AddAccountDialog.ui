@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>243</width>
-    <height>155</height>
+    <width>282</width>
+    <height>157</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -89,12 +89,12 @@
     <widget class="QComboBox" name="evernoteServerComboBox"/>
    </item>
    <item row="6" column="0" colspan="2">
-    <widget class="QLineEdit" name="statusText">
-     <property name="autoFillBackground">
+    <widget class="QLabel" name="statusText">
+     <property name="wordWrap">
       <bool>true</bool>
      </property>
-     <property name="readOnly">
-      <bool>true</bool>
+     <property name="textInteractionFlags">
+      <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
      </property>
     </widget>
    </item>
