@@ -74,6 +74,8 @@ AddOrEditNotebookDialog::~AddOrEditNotebookDialog()
 
 void AddOrEditNotebookDialog::accept()
 {
+    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::accept"));
+
     QString notebookName = m_pUi->notebookNameLineEdit->text();
     QString stack = m_pUi->notebookStackComboBox->currentText();
 
@@ -83,8 +85,7 @@ void AddOrEditNotebookDialog::accept()
 #define REPORT_ERROR(error) \
     m_pUi->statusBar->setText(tr(error)); \
     QNWARNING(error); \
-    m_pUi->statusBar->setHidden(false); \
-    QDialog::reject()
+    m_pUi->statusBar->setHidden(false)
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
         REPORT_ERROR("Can't accept new notebook or edit existing one: "
@@ -102,7 +103,6 @@ void AddOrEditNotebookDialog::accept()
             m_pUi->statusBar->setText(errorDescription.localizedString());
             QNWARNING(errorDescription);
             m_pUi->statusBar->setHidden(false);
-            QDialog::reject();
             return;
         }
     }
@@ -131,19 +131,36 @@ void AddOrEditNotebookDialog::accept()
         }
 
         // If needed, update the notebook name
-        QModelIndex nameIndex = m_pNotebookModel->index(index.row(), NotebookModel::Columns::Name, index.parent());
-        if (m_pNotebookModel->data(nameIndex).toString() != pNotebookItem->name())
+        QModelIndex nameIndex = m_pNotebookModel->index(index.row(),
+                                                        NotebookModel::Columns::Name,
+                                                        index.parent());
+        if (pNotebookItem->name().toUpper() != notebookName.toUpper())
         {
-            bool res = m_pNotebookModel->setData(nameIndex, pNotebookItem->name());
-            if (Q_UNLIKELY(!res)) {
-                REPORT_ERROR("Can't set this name for the notebook");
+            bool res = m_pNotebookModel->setData(nameIndex, notebookName);
+            if (Q_UNLIKELY(!res))
+            {
+                // Probably the new name collides with some existing notebook's name
+                QModelIndex existingItemIndex = m_pNotebookModel->indexForNotebookName(notebookName);
+                if (existingItemIndex.isValid() &&
+                    ((existingItemIndex.row() != nameIndex.row()) ||
+                     (existingItemIndex.parent() != nameIndex.parent())))
+                {
+                    // The new name collides with some existing notebook and not with the currently edited one
+                    REPORT_ERROR("The notebook name must be unique in case insensitive manner");
+                }
+                else
+                {
+                    // Don't really know what happened...
+                    REPORT_ERROR("Can't set this name for the notebook");
+                }
+
                 return;
             }
         }
 
-        if (pNotebookItem->stack() != m_pUi->notebookStackComboBox->currentText())
+        if (pNotebookItem->stack() != stack)
         {
-            QModelIndex movedItemIndex = m_pNotebookModel->moveToStack(nameIndex, m_pUi->notebookStackComboBox->currentText());
+            QModelIndex movedItemIndex = m_pNotebookModel->moveToStack(nameIndex, stack);
             if (Q_UNLIKELY(!movedItemIndex.isValid())) {
                 REPORT_ERROR("Can't set this stack for the notebook");
                 return;
