@@ -7,20 +7,21 @@
 #include <QPointer>
 
 namespace Ui {
-class AddNotebookDialog;
+class AddOrEditNotebookDialog;
 }
 
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-class AddNotebookDialog: public QDialog
+class AddOrEditNotebookDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit AddNotebookDialog(NotebookModel * pNotebookModel,
-                               QWidget * parent = Q_NULLPTR);
-    ~AddNotebookDialog();
+    explicit AddOrEditNotebookDialog(NotebookModel * pNotebookModel,
+                                     QWidget * parent = Q_NULLPTR,
+                                     const QString & editedNotebookLocalUid = QString());
+    ~AddOrEditNotebookDialog();
 
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
@@ -30,9 +31,10 @@ private:
     void createConnections();
 
 private:
-    Ui::AddNotebookDialog * m_pUi;
-    QPointer<NotebookModel> m_pNotebookModel;
-    QStringListModel *      m_pNotebookStacksModel;
+    Ui::AddOrEditNotebookDialog *   m_pUi;
+    QPointer<NotebookModel>         m_pNotebookModel;
+    QStringListModel *              m_pNotebookStacksModel;
+    QString                         m_editedNotebookLocalUid;
 };
 
 } // namespace quentier

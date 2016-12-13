@@ -31,7 +31,7 @@
 #include "delegates/NoteItemDelegate.h"
 #include "delegates/TagItemDelegate.h"
 #include "delegates/DeletedNoteTitleColumnDelegate.h"
-#include "dialogs/AddNotebookDialog.h"
+#include "dialogs/AddOrEditNotebookDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
 #include "views/NotebookItemView.h"
@@ -1295,7 +1295,7 @@ void MainWindow::onAddNotebookButtonPressed()
         return;
     }
 
-    QScopedPointer<AddNotebookDialog> pAddNotebookDialog(new AddNotebookDialog(m_pNotebookModel, this));
+    QScopedPointer<AddOrEditNotebookDialog> pAddNotebookDialog(new AddOrEditNotebookDialog(m_pNotebookModel, this));
     pAddNotebookDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pAddNotebookDialog->exec())
 }
