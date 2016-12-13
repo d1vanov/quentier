@@ -299,6 +299,46 @@ void NotebookItemView::onMoveNotebookToStackAction()
     QNDEBUG(QStringLiteral("Successfully moved the notebook item to the target stack"));
 }
 
+void NotebookItemView::onRemoveNotebookFromStackAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onRemoveNotebookFromStackAction"));
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't remove the notebook from stack, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't remove the notebook from stack, "
+                     "can't get notebook's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't remove the notebook from stack, the model "
+                     "returned invalid index for the notebook's local uid")
+        return;
+    }
+
+    QModelIndex index = pNotebookModel->removeFromStack(itemIndex);
+    if (!index.isValid()) {
+        REPORT_ERROR("Can't remove the notebook from stack")
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Successfully removed the notebook item from its stack"));
+}
+
 void NotebookItemView::onRenameNotebookStackAction()
 {
     QNDEBUG(QStringLiteral("NotebookItemView::onRenameNotebookStackAction"));
@@ -555,6 +595,10 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
         Q_UNUSED(stacks.removeAll(stack))
     }
 
+    if (!stacks.isEmpty() || !stack.isEmpty()) {
+        m_pNotebookItemContextMenu->addSeparator();
+    }
+
     if (!stacks.isEmpty())
     {
         QMenu * pTargetStackSubMenu = m_pNotebookItemContextMenu->addMenu(tr("Move to stack"));
@@ -565,14 +609,22 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
             dataPair << item.localUid();
             dataPair << *it;
             ADD_CONTEXT_MENU_ACTION(*it, pTargetStackSubMenu, onMoveNotebookToStackAction,
-                                    dataPair, true);
+                                    dataPair, item.isUpdatable());
         }
+    }
+
+    if (!stack.isEmpty())
+    {
+        ADD_CONTEXT_MENU_ACTION(tr("Remove from stack"), m_pNotebookItemContextMenu,
+                                onRemoveNotebookFromStackAction, item.localUid(),
+                                item.isUpdatable());
     }
 
     m_pNotebookItemContextMenu->addSeparator();
 
     ADD_CONTEXT_MENU_ACTION(tr("Set default"), m_pNotebookItemContextMenu,
-                            onSetNotebookDefaultAction, item.localUid(), true);
+                            onSetNotebookDefaultAction, item.localUid(),
+                            item.isUpdatable());
 
 #undef ADD_CONTEXT_MENU_ACTION
 
