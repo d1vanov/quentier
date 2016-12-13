@@ -32,6 +32,7 @@ private Q_SLOTS:
     void onRenameNotebookAction();
     void onDeleteNotebookAction();
     void onSetNotebookDefaultAction();
+    void onEditNotebookAction();
     void onMoveNotebookToStackAction();
 
     void onRenameNotebookStackAction();

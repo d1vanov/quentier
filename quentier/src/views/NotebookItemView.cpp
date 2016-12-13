@@ -1,10 +1,12 @@
 #include "NotebookItemView.h"
 #include "../models/NotebookModel.h"
+#include "../dialogs/AddOrEditNotebookDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
 #include <QMenu>
 #include <QContextMenuEvent>
+#include <QScopedPointer>
 
 #define LAST_SELECTED_NOTEBOOK_KEY QStringLiteral("LastSelectedNotebookLocalUid")
 
@@ -206,7 +208,7 @@ void NotebookItemView::onSetNotebookDefaultAction()
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't delete notebook: the model "
+        REPORT_ERROR("Internal error: can't delete notebook, the model "
                      "returned invalid index for the notebook's local uid")
         return;
     }
@@ -222,6 +224,35 @@ void NotebookItemView::onSetNotebookDefaultAction()
     Q_UNUSED(internalErrorMessageBox(this, tr("The notebook model refused to set the notebook as default; "
                                               "Check the status bar for message from the notebook model "
                                               "explaining why the action was not successful")));
+}
+
+void NotebookItemView::onEditNotebookAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onEditNotebookAction"));
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't edit notebook, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't edit notebook, "
+                     "can't get notebook's local uid from QAction")
+        return;
+    }
+
+    QScopedPointer<AddOrEditNotebookDialog> pEditNotebookDialog(new AddOrEditNotebookDialog(pNotebookModel, this, itemLocalUid));
+    pEditNotebookDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(pEditNotebookDialog->exec())
 }
 
 void NotebookItemView::onMoveNotebookToStackAction()
@@ -513,6 +544,10 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
         ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
                                 onDeleteNotebookAction, item.localUid(), true);
     }
+
+    ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
+                            m_pNotebookItemContextMenu,onEditNotebookAction,
+                            item.localUid(), canRename);
 
     const QString & stack = item.stack();
     QStringList stacks = model.stacks();
