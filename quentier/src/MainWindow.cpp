@@ -2066,6 +2066,7 @@ void MainWindow::setupViews()
     notebooksTreeView->setItemDelegate(notebookItemDelegate);
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::NumNotesPerNotebook, true);    // This column's values would be displayed along with the notebook's name
     notebooksTreeView->setColumnHidden(NotebookModel::Columns::Synchronizable, true);
+    notebooksTreeView->setColumnHidden(NotebookModel::Columns::LastUsed, true);
     DirtyColumnDelegate * notebookTreeViewDirtyColumnDelegate =
             new DirtyColumnDelegate(notebooksTreeView);
     notebooksTreeView->setItemDelegateForColumn(NotebookModel::Columns::Dirty,

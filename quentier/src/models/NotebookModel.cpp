@@ -26,7 +26,7 @@ namespace quentier {
 // Limit for the queries to the local storage
 #define NOTEBOOK_LIST_LIMIT (40)
 
-#define NUM_NOTEBOOK_MODEL_COLUMNS (7)
+#define NUM_NOTEBOOK_MODEL_COLUMNS (8)
 
 NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                              NotebookCache & cache, QObject * parent) :
@@ -439,6 +439,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     item.setStack(notebookStack);
     item.setSynchronizable(m_account.type() != Account::Type::Local);
     item.setDefault(numExistingNotebooks == 0);
+    item.setLastUsed(numExistingNotebooks == 0);
     item.setUpdatable(true);
     item.setNameIsUpdatable(true);
 
@@ -482,6 +483,8 @@ QString NotebookModel::columnName(const NotebookModel::Columns::type column) con
         return tr("Changed");
     case Columns::Default:
         return tr("Default");
+    case Columns::LastUsed:
+        return tr("Last used");
     case Columns::Published:
         return tr("Published");
     case Columns::FromLinkedNotebook:
@@ -605,6 +608,9 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
         break;
     case Columns::Default:
         column = Columns::Default;
+        break;
+    case Columns::LastUsed:
+        column = Columns::LastUsed;
         break;
     case Columns::Published:
         column = Columns::Published;
@@ -907,7 +913,8 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 }
 
                 if (notebookItemCopy.isDefault() && !value.toBool()) {
-                    QNLocalizedString error = QT_TR_NOOP("in order to stop notebook being the default one please choose another default notebook");
+                    QNLocalizedString error = QT_TR_NOOP("in order to stop notebook being the default "
+                                                         "one please choose another default notebook");
                     QNDEBUG(error);
                     emit notifyError(error);
                     return false;
@@ -915,7 +922,27 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
 
                 notebookItemCopy.setDefault(true);
                 dirty = true;
-                setDefaultNotebook(notebookItemCopy.localUid());
+                switchDefaultNotebookLocalUid(notebookItemCopy.localUid());
+                break;
+            }
+        case Columns::LastUsed:
+            {
+                if (notebookItemCopy.isLastUsed() == value.toBool()) {
+                    QNDEBUG(QStringLiteral("The last used state of the notebook hasn't changed, nothing to do"));
+                    return true;
+                }
+
+                if (notebookItemCopy.isLastUsed() && !value.toBool()) {
+                    QNLocalizedString error = QT_TR_NOOP("in order to stop notebook being the last used "
+                                                         "one please choose another last used notebook");
+                    QNDEBUG(error);
+                    emit notifyError(error);
+                    return false;
+                }
+
+                notebookItemCopy.setLastUsed(true);
+                dirty = true;
+                switchLastUsedNotebookLocalUid(notebookItemCopy.localUid());
                 break;
             }
         default:
@@ -1433,8 +1460,9 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
 void NotebookModel::sort(int column, Qt::SortOrder order)
 {
-    QNDEBUG(QStringLiteral("NotebookModel::sort: column = ") << column << QStringLiteral(", order = ") << order
-            << QStringLiteral(" (") << (order == Qt::AscendingOrder ? QStringLiteral("ascending") : QStringLiteral("descending"))
+    QNDEBUG(QStringLiteral("NotebookModel::sort: column = ") << column
+            << QStringLiteral(", order = ") << order << QStringLiteral(" (")
+            << (order == Qt::AscendingOrder ? QStringLiteral("ascending") : QStringLiteral("descending"))
             << QStringLiteral(")"));
 
     if (column != Columns::Name) {
@@ -2054,6 +2082,15 @@ QVariant NotebookModel::dataImpl(const NotebookModelItem & item, const Columns::
                 return QVariant();
             }
         }
+    case Columns::LastUsed:
+        {
+            if (isNotebookItem) {
+                return QVariant(item.notebookItem()->isLastUsed());
+            }
+            else {
+                return QVariant();
+            }
+        }
     case Columns::Published:
         {
             if (isNotebookItem) {
@@ -2134,6 +2171,15 @@ QVariant NotebookModel::dataAccessibleText(const NotebookModelItem & item, const
             accessibleText += (textData.toBool() ? tr("default") : tr("not default"));
             break;
         }
+    case Columns::LastUsed:
+        {
+            if (!isNotebookItem) {
+                return QVariant();
+            }
+
+            accessibleText += (textData.toBool() ? tr("last used") : tr("not last used"));
+            break;
+        }
     case Columns::Published:
         {
             if (!isNotebookItem) {
@@ -2208,11 +2254,14 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     notebook.setLocal(!item.isSynchronizable());
     notebook.setDirty(item.isDirty());
     notebook.setDefaultNotebook(item.isDefault());
+    notebook.setLastUsed(item.isLastUsed());
     notebook.setPublished(item.isPublished());
     notebook.setStack(item.stack());
 
-    // NOTE: deliberately not setting the updatable property from the item as it can't be changed by the model
-    // and only serves the utilitary purpose inside it
+    m_cache.put(item.localUid(), notebook);
+
+    // NOTE: deliberately not setting the updatable property from the item
+    // as it can't be changed by the model and only serves the utilitary purposes
 
     QUuid requestId = QUuid::createUuid();
 
@@ -2243,6 +2292,8 @@ void NotebookModel::expungeNotebookFromLocalStorage(const QString & localUid)
 
     Notebook dummyNotebook;
     dummyNotebook.setLocalUid(localUid);
+
+    Q_UNUSED(m_cache.remove(localUid))
 
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_expungeNotebookRequestIds.insert(requestId))
@@ -2318,7 +2369,9 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
     auto it = insertionResult.first;
     const NotebookItem * insertedItem = &(*it);
 
-    auto modelItemIt = m_modelItemsByLocalUid.insert(item.localUid(), NotebookModelItem(NotebookModelItem::Type::Notebook, insertedItem, Q_NULLPTR));
+    auto modelItemIt = m_modelItemsByLocalUid.insert(item.localUid(),
+                                                     NotebookModelItem(NotebookModelItem::Type::Notebook,
+                                                                       insertedItem, Q_NULLPTR));
     const NotebookModelItem * insertedModelItem = &(*modelItemIt);
 
     beginInsertRows(parentIndex, row, row);
@@ -2330,7 +2383,8 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
 
 void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByLocalUid::iterator it)
 {
-    QNDEBUG(QStringLiteral("NotebookModel::onNotebookUpdated: notebook local uid = ") << notebook.localUid());
+    QNDEBUG(QStringLiteral("NotebookModel::onNotebookUpdated: notebook local uid = ")
+            << notebook.localUid());
 
     const NotebookItem & originalItem = *it;
     auto nameIt = m_lowerCaseNotebookNames.find(originalItem.name().toLower());
@@ -2485,12 +2539,10 @@ NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const No
     m_fakeRootItem->insertChild(row, &(it.value()));
     endInsertRows();
 
-    QNTRACE(QStringLiteral("New stack model item after setting parent: ") << it.value()
-            << QStringLiteral("\nFake root item: ") << *m_fakeRootItem);
-
     updateItemRowWithRespectToSorting(it.value());
-    QNTRACE(QStringLiteral("New stack model item after updating the item row with respect to sorting: ") << it.value()
-            << QStringLiteral("\nFake root item: ") << *m_fakeRootItem);
+    QNTRACE(QStringLiteral("New stack model item after updating the item row "
+                           "with respect to sorting: ")
+            << it.value() << QStringLiteral("\nFake root item: ") << *m_fakeRootItem);
     return it;
 }
 
@@ -2539,6 +2591,7 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     endRemoveRows();
 
     Q_UNUSED(localUidIndex.erase(itemIt))
+    Q_UNUSED(m_cache.remove(localUid))
 
     auto indexIt = m_indexIdToLocalUidBimap.right.find(localUid);
     if (indexIt != m_indexIdToLocalUidBimap.right.end()) {
@@ -2568,7 +2621,13 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
     bool isDefaultNotebook = notebook.isDefaultNotebook();
     item.setDefault(isDefaultNotebook);
     if (isDefaultNotebook) {
-        setDefaultNotebook(notebook.localUid());
+        switchDefaultNotebookLocalUid(notebook.localUid());
+    }
+
+    bool isLastUsedNotebook = notebook.isLastUsed();
+    item.setLastUsed(isLastUsedNotebook);
+    if (isLastUsedNotebook) {
+        switchLastUsedNotebookLocalUid(notebook.localUid());
     }
 
     if (notebook.hasPublished()) {
@@ -2742,9 +2801,9 @@ bool NotebookModel::onExpungeNoteWithNotebookLocalUid(const QString & notebookLo
     return updateNoteCountPerNotebookIndex(item, it);
 }
 
-void NotebookModel::setDefaultNotebook(const QString & localUid)
+void NotebookModel::switchDefaultNotebookLocalUid(const QString & localUid)
 {
-    QNDEBUG(QStringLiteral("NotebookModel::setDefaultNotebook: ") << localUid);
+    QNDEBUG(QStringLiteral("NotebookModel::switchDefaultNotebookLocalUid: ") << localUid);
 
     if (!m_defaultNotebookLocalUid.isEmpty())
     {
@@ -2772,6 +2831,38 @@ void NotebookModel::setDefaultNotebook(const QString & localUid)
 
     m_defaultNotebookLocalUid = localUid;
     QNTRACE(QStringLiteral("Set default notebook local uid to ") << localUid);
+}
+
+void NotebookModel::switchLastUsedNotebookLocalUid(const QString & localUid)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::setLastUsedNotebook: ") << localUid);
+
+    if (!m_lastUsedNotebookLocalUid.isEmpty())
+    {
+        QNTRACE(QStringLiteral("There has already been some notebook chosen as the last used one, "
+                               "switching the last used flag off for it"));
+
+        NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+        auto previousLastUsedItemIt = localUidIndex.find(m_lastUsedNotebookLocalUid);
+        if (previousLastUsedItemIt != localUidIndex.end())
+        {
+            NotebookItem previousLastUsedItemCopy(*previousLastUsedItemIt);
+            QNTRACE(QStringLiteral("Previous last used notebook item: ") << previousLastUsedItemCopy);
+
+            previousLastUsedItemCopy.setLastUsed(false);
+
+            localUidIndex.replace(previousLastUsedItemIt, previousLastUsedItemCopy);
+
+            QModelIndex previousLastUsedItemIndex = indexForLocalUid(m_lastUsedNotebookLocalUid);
+            emit dataChanged(previousLastUsedItemIndex, previousLastUsedItemIndex);
+
+            updateNotebookInLocalStorage(previousLastUsedItemCopy);
+        }
+    }
+
+    m_lastUsedNotebookLocalUid = localUid;
+    QNTRACE(QStringLiteral("Set last used notebook local uid to ") << localUid);
 }
 
 void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & modelItem)

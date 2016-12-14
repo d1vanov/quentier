@@ -60,6 +60,7 @@ public:
             Synchronizable,
             Dirty,
             Default,
+            LastUsed,
             Published,
             FromLinkedNotebook,
             NumNotesPerNotebook
@@ -246,7 +247,8 @@ private:
     // Returns true if successfully decremented the note count for the notebook item with the corresponding local uid
     bool onExpungeNoteWithNotebookLocalUid(const QString & notebookLocalUid);
 
-    void setDefaultNotebook(const QString & localUid);
+    void switchDefaultNotebookLocalUid(const QString & localUid);
+    void switchLastUsedNotebookLocalUid(const QString & localUid);
 
     void checkAndRemoveEmptyStackItem(const NotebookModelItem & modelItem);
 
@@ -331,7 +333,9 @@ private:
 
     NotebookData            m_data;
     NotebookModelItem *     m_fakeRootItem;
+
     QString                 m_defaultNotebookLocalUid;
+    QString                 m_lastUsedNotebookLocalUid;
 
     ModelItems              m_modelItemsByLocalUid;
     ModelItems              m_modelItemsByStack;

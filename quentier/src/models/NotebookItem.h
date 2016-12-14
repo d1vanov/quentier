@@ -35,6 +35,7 @@ public:
                           const bool nameIsUpdatable = false,
                           const bool isDirty = false,
                           const bool isDefault = false,
+                          const bool isLastUsed = false,
                           const bool isPublished = false,
                           const bool isLinkedNotebook = false,
                           const int numNotesPerNotebook = -1);
@@ -69,6 +70,9 @@ public:
     bool isDefault() const { return m_isDefault; }
     void setDefault(const bool flag) { m_isDefault = flag; }
 
+    bool isLastUsed() const { return m_isLastUsed; }
+    void setLastUsed(const bool flag) { m_isLastUsed = flag; }
+
     bool isPublished() const { return m_isPublished; }
     void setPublished(const bool flag) { m_isPublished = flag; }
 
@@ -90,6 +94,7 @@ private:
     bool        m_nameIsUpdatable;
     bool        m_isDirty;
     bool        m_isDefault;
+    bool        m_isLastUsed;
     bool        m_isPublished;
     bool        m_isLinkedNotebook;
     int         m_numNotesPerNotebook;
