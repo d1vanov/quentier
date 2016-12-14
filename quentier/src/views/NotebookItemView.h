@@ -1,3 +1,21 @@
+/*
+ * Copyright 2016 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef QUENTIER_VIEWS_NOTEBOOK_ITEM_VIEW_H
 #define QUENTIER_VIEWS_NOTEBOOK_ITEM_VIEW_H
 
@@ -39,6 +57,8 @@ private Q_SLOTS:
     void onRenameNotebookStackAction();
     void onDeleteNotebookStackAction();
 
+    void onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index);
+
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
@@ -54,12 +74,15 @@ private:
     // otherwise returns invalid model index
     QModelIndex singleRow(const QModelIndexList & indexes, const quentier::NotebookModel & model) const;
 
-private:
+    void saveNotebookStackItemsState();
+    void restoreNotebookStackItemsState(const NotebookModel & model);
+
     void selectLastUsedOrDefaultNotebook(const NotebookModel & model);
 
 private:
     QMenu *     m_pNotebookItemContextMenu;
     QMenu *     m_pNotebookStackItemContextMenu;
+    bool        m_restoringNotebookStackItemsState;
 };
 
 } // namespace quentier

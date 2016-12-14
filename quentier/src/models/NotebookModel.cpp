@@ -140,6 +140,22 @@ QModelIndex NotebookModel::indexForNotebookName(const QString & notebookName) co
     return indexForLocalUid(item.localUid());
 }
 
+QModelIndex NotebookModel::indexForNotebookStack(const QString & stack) const
+{
+    auto it = m_modelItemsByStack.find(stack);
+    if (it == m_modelItemsByStack.end()) {
+        return QModelIndex();
+    }
+
+    const NotebookModelItem & modelItem = it.value();
+    return indexForItem(&modelItem);
+}
+
+QModelIndexList NotebookModel::persistentIndexes() const
+{
+    return persistentIndexList();
+}
+
 QModelIndex NotebookModel::defaultNotebookIndex() const
 {
     QNDEBUG(QStringLiteral("NotebookModel::defaultNotebookIndex"));
@@ -150,6 +166,18 @@ QModelIndex NotebookModel::defaultNotebookIndex() const
     }
 
     return indexForLocalUid(m_defaultNotebookLocalUid);
+}
+
+QModelIndex NotebookModel::lastUsedNotebookIndex() const
+{
+    QNDEBUG(QStringLiteral("NotebookModel::lastUsedNotebookIndex"));
+
+    if (m_lastUsedNotebookLocalUid.isEmpty()) {
+        QNDEBUG(QStringLiteral("No last used notebook local uid"));
+        return QModelIndex();
+    }
+
+    return indexForLocalUid(m_lastUsedNotebookLocalUid);
 }
 
 QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString & stack)

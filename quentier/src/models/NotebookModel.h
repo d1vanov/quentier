@@ -74,6 +74,9 @@ public:
     QModelIndex indexForItem(const NotebookModelItem * item) const;
     QModelIndex indexForLocalUid(const QString & localUid) const;
     QModelIndex indexForNotebookName(const QString & notebookName) const;
+    QModelIndex indexForNotebookStack(const QString & stack) const;
+
+    QModelIndexList persistentIndexes() const;
 
     /**
      * @brief defaultNotebookIndex
@@ -81,6 +84,13 @@ public:
      * or invalid model index otherwise
      */
     QModelIndex defaultNotebookIndex() const;
+
+    /**
+     * @brief lastUsedNotebookIndex
+     * @return the index of the last used notebook item if such one exists
+     * or invalid model index otherwise
+     */
+    QModelIndex lastUsedNotebookIndex() const;
 
     /**
      * @brief moveToStack - moves the notebook item pointed to by index to the specified stack
