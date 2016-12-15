@@ -1034,6 +1034,12 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                 continue; \
             }
 
+        // FIXME: there's a bug here: the children of the deleted stack item
+        // don't get reparented before the removal of the deleted stack item
+        // which causes a crash; need to remember the local uids of notebooks
+        // under the stack item getting deleted and then set their parent
+        // to the newly inserted stack item
+
         QList<const NotebookModelItem*> children = item->children();
         for(auto it = children.begin(), end = children.end(); it != end; ++it)
         {
@@ -1075,16 +1081,29 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             return false;
         }
 
+        bool sortingByName = (m_sortedColumn == Columns::Name);
+        QNTRACE(QStringLiteral("Sorting by name = ")
+                << (sortingByName ? QStringLiteral("true") : QStringLiteral("false")));
+
+        if (sortingByName) {
+            emit layoutAboutToBeChanged();
+        }
+
         NotebookStackItem newStackItem(*stackItem);
         newStackItem.setName(newStack);
+
+        // 1) Remove the previous stack item
+
+        int stackItemRow = m_fakeRootItem->rowForChild(&(stackModelItemIt.value()));
+        if (Q_LIKELY(stackItemRow >= 0)) {
+            beginRemoveRows(QModelIndex(), stackItemRow, stackItemRow);
+            m_fakeRootItem->takeChild(stackItemRow);
+        }
 
         auto stackItemIt = m_stackItems.find(previousStack);
         if (stackItemIt != m_stackItems.end()) {
             Q_UNUSED(m_stackItems.erase(stackItemIt))
         }
-
-        stackItemIt = m_stackItems.insert(newStack, newStackItem);
-        stackModelItemCopy.setNotebookStackItem(&(*stackItemIt));
 
         Q_UNUSED(m_modelItemsByStack.erase(stackModelItemIt));
 
@@ -1093,14 +1112,31 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             m_indexIdToStackBimap.right.erase(indexIt);
         }
 
+        if (Q_LIKELY(stackItemRow >= 0)) {
+            endRemoveRows();
+        }
+
+        // 2) Insert the new stack item
+
+        stackItemIt = m_stackItems.insert(newStack, newStackItem);
+        stackModelItemCopy.setNotebookStackItem(&(stackItemIt.value()));
+
         stackModelItemIt = m_modelItemsByStack.insert(newStack, stackModelItemCopy);
+
+        if (Q_LIKELY(stackItemRow >= 0))
+        {
+            stackItemRow = rowForNewItem(*m_fakeRootItem, stackModelItemIt.value());
+
+            beginInsertRows(QModelIndex(), stackItemRow, stackItemRow);
+            m_fakeRootItem->insertChild(stackItemRow, &(stackModelItemIt.value()));
+
+            IndexId index = m_lastFreeIndexId++;
+            m_indexIdToStackBimap.insert(IndexIdToStackBimap::value_type(index,newStack));
+            endInsertRows();
+        }
 
         // Change all the child items
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-
-        bool sortingByName = (m_sortedColumn == Columns::Name);
-        QNTRACE(QStringLiteral("Sorting by name = ")
-                << (sortingByName ? QStringLiteral("true") : QStringLiteral("false")));
 
         // Refresh the list of children; shouldn't be necessary but just n case
         children = stackModelItemIt->children();
@@ -1119,22 +1155,18 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             NotebookItem notebookItemCopy(*notebookItem);
             notebookItemCopy.setStack(newStack);
 
-            if (sortingByName) {
-                emit layoutAboutToBeChanged();
-            }
-
             localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
-            QNTRACE(QStringLiteral("Emitting the data changed signal"));
-            emit dataChanged(modelIndex, modelIndex);
+            QModelIndex notebookItemIndex = indexForLocalUid(notebookItem->localUid());
 
-            if (sortingByName) {
-                emit layoutChanged();
-            }
-            else {
-            }
+            QNTRACE(QStringLiteral("Emitting the data changed signal"));
+            emit dataChanged(notebookItemIndex, notebookItemIndex);
 
             updateNotebookInLocalStorage(notebookItemCopy);
+        }
+
+        if (sortingByName) {
+            emit layoutChanged();
         }
 
 #undef CHECK_ITEM

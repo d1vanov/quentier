@@ -300,7 +300,7 @@ void NotebookItemView::onMoveNotebookToStackAction()
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
         REPORT_ERROR("Internal error: can't move notebook to stack, "
-                     "can't cast the slot invoker to QAction");
+                     "can't cast the slot invoker to QAction")
         return;
     }
 
@@ -344,7 +344,7 @@ void NotebookItemView::onRemoveNotebookFromStackAction()
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
         REPORT_ERROR("Internal error: can't remove the notebook from stack, "
-                     "can't cast the slot invoker to QAction");
+                     "can't cast the slot invoker to QAction")
         return;
     }
 
@@ -375,14 +375,78 @@ void NotebookItemView::onRenameNotebookStackAction()
 {
     QNDEBUG(QStringLiteral("NotebookItemView::onRenameNotebookStackAction"));
 
-    // TODO: implement
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't rename the notebook stack, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QString notebookStack = pAction->data().toString();
+    if (Q_UNLIKELY(notebookStack.isEmpty())) {
+        REPORT_ERROR("Internal error: can't rename the notebook stack, "
+                     "can't get notebook stack from QAction")
+        return;
+    }
+
+    QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack);
+    if (!notebookStackItemIndex.isValid()) {
+        REPORT_ERROR("Internal error: can't rename the notebook stack, "
+                     "the model returned invalid index for the notebook stack")
+        return;
+    }
+
+    edit(notebookStackItemIndex);
 }
 
-void NotebookItemView::onDeleteNotebookStackAction()
+void NotebookItemView::onRemoveNotebooksFromStackAction()
 {
-    QNDEBUG(QStringLiteral("NotebookItemView::onDeleteNotebookStackAction"));
+    QNDEBUG(QStringLiteral("NotebookItemView::onRemoveNotebooksFromStackAction"));
 
-    // TODO: implement
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't remove all notebooks from stack, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QString notebookStack = pAction->data().toString();
+    if (Q_UNLIKELY(notebookStack.isEmpty())) {
+        REPORT_ERROR("Internal error: can't remove all notebooks from stack, "
+                     "can't get notebook stack from QAction")
+        return;
+    }
+
+    while(true)
+    {
+        QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack);
+        if (!notebookStackItemIndex.isValid()) {
+            QNDEBUG(QStringLiteral("Notebook stack item index is invalid, breaking the loop"));
+            break;
+        }
+
+        QModelIndex childIndex = notebookStackItemIndex.child(0, NotebookModel::Columns::Name);
+        if (!childIndex.isValid()) {
+            QNDEBUG(QStringLiteral("Detected invalid child item index for the notebook stack item, breaking the loop"));
+            break;
+        }
+
+        Q_UNUSED(pNotebookModel->removeFromStack(childIndex))
+    }
+
+    QNDEBUG(QStringLiteral("Successfully removed notebook items from the stack"));
 }
 
 void NotebookItemView::onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index)
@@ -632,9 +696,8 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
     m_pNotebookItemContextMenu->addSeparator();
 
     bool canRename = (item.isUpdatable() && item.nameIsUpdatable());
-    ADD_CONTEXT_MENU_ACTION(tr("Rename") + QStringLiteral("..."),
-                            m_pNotebookItemContextMenu, onRenameNotebookAction,
-                            item.localUid(), canRename);
+    ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pNotebookItemContextMenu,
+                            onRenameNotebookAction, item.localUid(), canRename);
 
     if (model.account().type() == Account::Type::Local) {
         ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
@@ -682,8 +745,6 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
                             onSetNotebookDefaultAction, item.localUid(),
                             item.isUpdatable());
 
-#undef ADD_CONTEXT_MENU_ACTION
-
     m_pNotebookItemContextMenu->show();
     m_pNotebookItemContextMenu->exec(point);
 }
@@ -696,8 +757,60 @@ void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem 
             << point.x() << QStringLiteral(", ") << point.y()
             << QStringLiteral(", item: ") << item);
 
-    // TODO: implement
-    Q_UNUSED(model)
+    delete m_pNotebookStackItemContextMenu;
+    m_pNotebookStackItemContextMenu = new QMenu(this);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Create new notebook") + QStringLiteral("..."),
+                            m_pNotebookStackItemContextMenu, onCreateNewNotebookAction,
+                            item.name(), true);
+
+    m_pNotebookStackItemContextMenu->addSeparator();
+
+    bool allChildrenUpdatable = false;
+
+    QModelIndex stackItemIndex = model.indexForNotebookStack(item.name());
+    const NotebookModelItem * pModelItem = model.itemForIndex(stackItemIndex);
+    if (Q_LIKELY(pModelItem))
+    {
+        allChildrenUpdatable = true;
+
+        QList<const NotebookModelItem*> children = pModelItem->children();
+        for(auto it = children.constBegin(), end = children.constEnd(); it != end; ++it)
+        {
+            const NotebookModelItem * pChildItem = *it;
+            if (Q_UNLIKELY(!pChildItem)) {
+                QNWARNING(QStringLiteral("Found null child at stack item: ") << *pModelItem);
+                continue;
+            }
+
+            if (Q_UNLIKELY(pChildItem->type() != NotebookModelItem::Type::Notebook)) {
+                QNWARNING(QStringLiteral("Found child of non-notebook type at stack item: ") << *pModelItem
+                          << QStringLiteral("\nChild item: ") << *pChildItem);
+                continue;
+            }
+
+            const NotebookItem * pNotebookItem = pChildItem->notebookItem();
+            if (Q_UNLIKELY(!pNotebookItem)) {
+                QNWARNING(QStringLiteral("Found child of notebook type but with null notebook item at stack item: ")
+                          << *pModelItem << QStringLiteral("\nChild item: ") << *pChildItem);
+                continue;
+            }
+
+            if (!pNotebookItem->isUpdatable()) {
+                allChildrenUpdatable = false;
+                break;
+            }
+        }
+    }
+
+    ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pNotebookStackItemContextMenu,
+                            onRenameNotebookStackAction, item.name(), allChildrenUpdatable);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Remove stack"), m_pNotebookStackItemContextMenu,
+                            onRemoveNotebooksFromStackAction, item.name(), allChildrenUpdatable);
+
+    m_pNotebookStackItemContextMenu->show();
+    m_pNotebookStackItemContextMenu->exec(point);
 }
 
 QModelIndex NotebookItemView::singleRow(const QModelIndexList & indexes,

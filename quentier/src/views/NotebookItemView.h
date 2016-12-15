@@ -55,7 +55,7 @@ private Q_SLOTS:
     void onRemoveNotebookFromStackAction();
 
     void onRenameNotebookStackAction();
-    void onDeleteNotebookStackAction();
+    void onRemoveNotebooksFromStackAction();
 
     void onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index);
 
