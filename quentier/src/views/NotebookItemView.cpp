@@ -65,6 +65,8 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                             this, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyAllNotebooksListed),
                             this, QNSLOT(NotebookItemView,onAllNotebooksListed));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,const QString&,const QString&),
+                            this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
     }
 
     NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(pModel);
@@ -76,6 +78,8 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyError,QNLocalizedString),
                      this, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,const QString&,const QString&),
+                     this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
 
     ItemView::setModel(pModel);
 
@@ -402,6 +406,8 @@ void NotebookItemView::onRenameNotebookStackAction()
         return;
     }
 
+    saveNotebookStackItemsState();
+
     edit(notebookStackItemIndex);
 }
 
@@ -463,6 +469,64 @@ void NotebookItemView::onNotebookStackItemCollapsedOrExpanded(const QModelIndex 
     }
 
     saveNotebookStackItemsState();
+}
+
+void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
+                                              const QString & newStackName)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onNotebookStackRenamed: previous stack name = ")
+            << previousStackName << QStringLiteral(", new stack name = ") << newStackName);
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNWARNING(QStringLiteral("Received notebook stack item rename event but can't cast the model to the notebook one"));
+        return;
+    }
+
+    QString accountKey = accountToKey(pNotebookModel->account());
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        REPORT_ERROR("Internal error: can't create application settings key from account");
+        QNWARNING(pNotebookModel->account());
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/NotebookItemView"));
+    QStringList expandedStacks = appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
+    appSettings.endGroup();
+
+    int previousStackIndex = expandedStacks.indexOf(previousStackName);
+    if (previousStackIndex < 0) {
+        QNDEBUG(QStringLiteral("The renamed stack item hasn't been expanded"));
+    }
+    else {
+        expandedStacks.replace(previousStackIndex, newStackName);
+    }
+
+    setStacksExpanded(expandedStacks, *pNotebookModel);
+
+    QModelIndex newStackItemIndex = pNotebookModel->indexForNotebookStack(newStackName);
+    if (Q_UNLIKELY(!newStackItemIndex.isValid())) {
+        QNWARNING(QStringLiteral("Can't select the just renamed notebook stack: notebook model returned "
+                                 "invalid index for the new notebook stack name"));
+        autoSelectNotebook(*pNotebookModel);
+        return;
+    }
+
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        QNWARNING(QStringLiteral("Can't select the just renamed notebook stack: no selection model in the view"));
+        return;
+    }
+
+    QModelIndex left = pNotebookModel->index(newStackItemIndex.row(), NotebookModel::Columns::Name,
+                                             newStackItemIndex.parent());
+    QModelIndex right = pNotebookModel->index(newStackItemIndex.row(), NotebookModel::Columns::NumNotesPerNotebook,
+                                              newStackItemIndex.parent());
+    QItemSelection selection(left, right);
+    pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+
+    setFocus();
 }
 
 void NotebookItemView::selectionChanged(const QItemSelection & selected,
@@ -905,8 +969,15 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
     appSettings.endGroup();
 
     m_restoringNotebookStackItemsState = true;
+    setStacksExpanded(expandedStacks, model);
+    m_restoringNotebookStackItemsState = false;
+}
 
-    for(auto it = expandedStacks.constBegin(), end = expandedStacks.constEnd(); it != end; ++it)
+void NotebookItemView::setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::setStacksExpanded"));
+
+    for(auto it = expandedStackNames.constBegin(), end = expandedStackNames.constEnd(); it != end; ++it)
     {
         const QString & expandedStack = *it;
         QModelIndex index = model.indexForNotebookStack(expandedStack);
@@ -916,8 +987,6 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
 
         setExpanded(index, true);
     }
-
-    m_restoringNotebookStackItemsState = false;
 }
 
 void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model)

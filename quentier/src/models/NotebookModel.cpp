@@ -1227,6 +1227,8 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             emit layoutChanged();
         }
 
+        emit notifyNotebookStackRenamed(previousStack, newStack);
+
 #undef CHECK_ITEM
 
     }

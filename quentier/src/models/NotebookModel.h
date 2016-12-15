@@ -182,6 +182,15 @@ Q_SIGNALS:
      */
     void notifyAllNotebooksListed();
 
+    /**
+     * @brief notifyNotebookStackRenamed - the signal emitted after the notebook stack
+     * has been renamed
+     * @param previousStackName - the name of the notebook stack prior to renaming
+     * @param newStackName - the new name of the notebook stack
+     */
+    void notifyNotebookStackRenamed(const QString & previousStackName,
+                                    const QString & newStackName);
+
 // private signals
     void addNotebook(Notebook notebook, QUuid requestId);
     void updateNotebook(Notebook notebook, QUuid requestId);

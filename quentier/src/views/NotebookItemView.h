@@ -58,6 +58,8 @@ private Q_SLOTS:
     void onRemoveNotebooksFromStackAction();
 
     void onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index);
+    void onNotebookStackRenamed(const QString & previousStackName,
+                                const QString & newStackName);
 
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
@@ -76,6 +78,7 @@ private:
 
     void saveNotebookStackItemsState();
     void restoreNotebookStackItemsState(const NotebookModel & model);
+    void setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model);
 
     void restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model);
     void autoSelectNotebook(const NotebookModel & model);
