@@ -77,7 +77,8 @@ private:
     void saveNotebookStackItemsState();
     void restoreNotebookStackItemsState(const NotebookModel & model);
 
-    void selectLastUsedOrDefaultNotebook(const NotebookModel & model);
+    void restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model);
+    void autoSelectNotebook(const NotebookModel & model);
 
 private:
     QMenu *     m_pNotebookItemContextMenu;

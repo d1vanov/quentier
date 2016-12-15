@@ -83,7 +83,7 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
         QNDEBUG(QStringLiteral("All notebooks are already listed within "
                                "the model, need to select the appropriate one"));
         restoreNotebookStackItemsState(*pNotebookModel);
-        selectLastUsedOrDefaultNotebook(*pNotebookModel);
+        restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
         return;
     }
 
@@ -137,7 +137,7 @@ void NotebookItemView::onAllNotebooksListed()
                         this, QNSLOT(NotebookItemView,onAllNotebooksListed));
 
     restoreNotebookStackItemsState(*pNotebookModel);
-    selectLastUsedOrDefaultNotebook(*pNotebookModel);
+    restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
 }
 
 void NotebookItemView::onCreateNewNotebookAction()
@@ -623,6 +623,7 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
             QNDEBUG(QStringLiteral("Successfully removed notebook"));
+            autoSelectNotebook(model);
             return;
         }
 
@@ -645,7 +646,7 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
                                         tr("Note that this action is not reversible and the removal "
                                            "of the whole stack of notebooks would also mean "
                                            "the removal of all the notes stored inside the notebooks!"),
-                                         QMessageBox::Ok | QMessageBox::No);
+                                        QMessageBox::Ok | QMessageBox::No);
         if (confirm != QMessageBox::Ok) {
             QNDEBUG(QStringLiteral("Notebook stack removal was not confirmed"));
             return;
@@ -654,6 +655,7 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
             QNDEBUG(QStringLiteral("Successfully removed notebook stack"));
+            autoSelectNotebook(model);
             return;
         }
 
@@ -918,13 +920,13 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
     m_restoringNotebookStackItemsState = false;
 }
 
-void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & model)
+void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model)
 {
-    QNDEBUG(QStringLiteral("NotebookItemView::selectLastUsedOrDefaultNotebook"));
+    QNDEBUG(QStringLiteral("NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook"));
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR("Can't select last used or default notebook: "
+        REPORT_ERROR("Can't restore last selected notebook or auto-select one: "
                      "no selection model in the view");
         return;
     }
@@ -959,6 +961,19 @@ void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & mod
         }
     }
 
+    autoSelectNotebook(model);
+}
+
+void NotebookItemView::autoSelectNotebook(const NotebookModel & model)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::autoSelectNotebook"));
+
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        REPORT_ERROR("Can't auto-select notebook: no selection model in the view");
+        return;
+    }
+
     QModelIndex lastUsedNotebookIndex = model.lastUsedNotebookIndex();
     if (lastUsedNotebookIndex.isValid())
     {
@@ -985,7 +1000,20 @@ void NotebookItemView::selectLastUsedOrDefaultNotebook(const NotebookModel & mod
         return;
     }
 
-    // TODO: select just any notebook
+    QModelIndexList persistentIndexes = model.persistentIndexes();
+    if (persistentIndexes.isEmpty()) {
+        QNDEBUG(QStringLiteral("No persistent indexes returned by the notebook model, nothing to select"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Selecting random notebook"));
+    QModelIndex index = persistentIndexes.at(0);
+    QModelIndex left = model.index(index.row(), NotebookModel::Columns::Name,
+                                   index.parent());
+    QModelIndex right = model.index(index.row(), NotebookModel::Columns::NumNotesPerNotebook,
+                                    index.parent());
+    QItemSelection selection(left, right);
+    pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
 }
 
 } // namespace quentier
