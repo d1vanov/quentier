@@ -1318,6 +1318,12 @@ void MainWindow::onNotebookInfoButtonPressed()
     NotebookModelItemInfoWidget * pNotebookModelItemInfoWidget = new NotebookModelItemInfoWidget(index, this);
     pNotebookModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
     pNotebookModelItemInfoWidget->setWindowModality(Qt::WindowModal);
+    pNotebookModelItemInfoWidget->adjustSize();
+#ifndef Q_OS_MAC
+    int x = width() / 2;
+    int y = height() / 2;
+    pNotebookModelItemInfoWidget->move(x, y);
+#endif
     pNotebookModelItemInfoWidget->show();
 }
 
@@ -2106,6 +2112,8 @@ void MainWindow::setupViews()
 
     QObject::connect(notebooksTreeView, QNSIGNAL(NotebookItemView,newNotebookCreationRequested),
                      this, QNSLOT(MainWindow,onAddNotebookButtonPressed));
+    QObject::connect(notebooksTreeView, QNSIGNAL(NotebookItemView,notebookInfoRequested),
+                     this, QNSLOT(MainWindow,onNotebookInfoButtonPressed));
     QObject::connect(notebooksTreeView, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString),
                      this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
 

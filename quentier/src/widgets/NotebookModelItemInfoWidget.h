@@ -45,6 +45,8 @@ private:
     void setNotebookItem(const NotebookItem & item);
     void setStackItem(const NotebookStackItem & item, const int numChildren);
 
+    virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+
 private:
     Ui::NotebookModelItemInfoWidget * m_pUi;
 };

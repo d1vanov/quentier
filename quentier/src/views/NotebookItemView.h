@@ -41,6 +41,7 @@ public:
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
     void newNotebookCreationRequested();
+    void notebookInfoRequested();
 
 public Q_SLOTS:
     void deleteSelectedItem();
@@ -52,6 +53,8 @@ private Q_SLOTS:
     void onRenameNotebookAction();
     void onDeleteNotebookAction();
     void onSetNotebookDefaultAction();
+    void onShowNotebookInfoAction();
+
     void onEditNotebookAction();
     void onMoveNotebookToStackAction();
     void onRemoveNotebookFromStackAction();

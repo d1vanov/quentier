@@ -1,6 +1,8 @@
 #include "NotebookModelItemInfoWidget.h"
 #include "ui_NotebookModelItemInfoWidget.h"
 #include "../models/NotebookModel.h"
+#include <QKeyEvent>
+#include <algorithm>
 
 namespace quentier {
 
@@ -11,6 +13,9 @@ NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(const QModelIndex & ind
 {
     m_pUi->setupUi(this);
     setCheckboxesReadOnly();
+
+    QObject::connect(m_pUi->okButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NotebookModelItemInfoWidget,close));
 
     if (Q_UNLIKELY(!index.isValid())) {
         setInvalidIndex();
@@ -175,7 +180,7 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
 
     m_pUi->notebookNameLineEdit->setText(item.name());
     m_pUi->notebookStackLineEdit->setText(item.stack());
-    m_pUi->notebookNumNotesLineEdit->setText(QString::number(item.numNotesPerNotebook()));
+    m_pUi->notebookNumNotesLineEdit->setText(QString::number(std::max(item.numNotesPerNotebook(), 0)));
     m_pUi->notebookSynchronizableCheckBox->setChecked(item.isSynchronizable());
     m_pUi->notebookDirtyCheckBox->setChecked(item.isDirty());
     m_pUi->notebookUpdatableCheckBox->setChecked(item.isUpdatable());
@@ -186,6 +191,9 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
     m_pUi->notebookFromLinkedNotebookCheckBox->setChecked(item.isLinkedNotebook());
     m_pUi->notebookGuidLineEdit->setText(item.guid());
     m_pUi->notebookLocalUidLineEdit->setText(item.localUid());
+
+    setMinimumWidth(475);
+    setWindowTitle(tr("Notebook info"));
 }
 
 void NotebookModelItemInfoWidget::setStackItem(const NotebookStackItem & item,
@@ -196,7 +204,23 @@ void NotebookModelItemInfoWidget::setStackItem(const NotebookStackItem & item,
     m_pUi->statusBarLabel->hide();
 
     m_pUi->stackNameLineEdit->setText(item.name());
-    m_pUi->stackNumNotebooksLineEdit->setText(QString::number(numChildren));
+    m_pUi->stackNumNotebooksLineEdit->setText(QString::number(std::max(numChildren, 0)));
+
+    setWindowTitle(tr("Notebook stack info"));
+}
+
+void NotebookModelItemInfoWidget::keyPressEvent(QKeyEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        return;
+    }
+
+    if (pEvent->key() == Qt::Key_Escape) {
+        close();
+        return;
+    }
+
+    QWidget::keyPressEvent(pEvent);
 }
 
 } // namespace quentier

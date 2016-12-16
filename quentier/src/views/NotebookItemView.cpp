@@ -287,6 +287,12 @@ void NotebookItemView::onSetNotebookDefaultAction()
                                               "explaining why the action was not successful")));
 }
 
+void NotebookItemView::onShowNotebookInfoAction()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onShowNotebookInfoAction"));
+    emit notebookInfoRequested();
+}
+
 void NotebookItemView::onEditNotebookAction()
 {
     QNDEBUG(QStringLiteral("NotebookItemView::onEditNotebookAction"));
@@ -836,6 +842,9 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
                             onSetNotebookDefaultAction, item.localUid(),
                             item.isUpdatable());
 
+    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNotebookItemContextMenu,
+                            onShowNotebookInfoAction, item.localUid(), true);
+
     m_pNotebookItemContextMenu->show();
     m_pNotebookItemContextMenu->exec(point);
 }
@@ -899,6 +908,9 @@ void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem 
 
     ADD_CONTEXT_MENU_ACTION(tr("Remove stack"), m_pNotebookStackItemContextMenu,
                             onRemoveNotebooksFromStackAction, item.name(), allChildrenUpdatable);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pNotebookStackItemContextMenu,
+                            onShowNotebookInfoAction, item.name(), true);
 
     m_pNotebookStackItemContextMenu->show();
     m_pNotebookStackItemContextMenu->exec(point);
