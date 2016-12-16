@@ -407,7 +407,7 @@ bool Notebook::hasPublished() const
 
 bool Notebook::isPublished() const
 {
-    return d->m_qecNotebook.published.isSet();
+    return d->m_qecNotebook.published;
 }
 
 void Notebook::setPublished(const bool published)
