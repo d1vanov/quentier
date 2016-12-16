@@ -55,7 +55,8 @@ TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & lo
     m_sortOrder(Qt::AscendingOrder),
     m_tagRestrictionsByLinkedNotebookGuid(),
     m_findNotebookRequestForLinkedNotebookGuid(),
-    m_lastNewTagNameCounter(0)
+    m_lastNewTagNameCounter(0),
+    m_allTagsListed(false)
 {
     createConnections(localStorageManagerThreadWorker);
     requestTagsList();
@@ -195,21 +196,7 @@ QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role
         return QVariant();
     }
 
-    switch(section)
-    {
-    case Columns::Name:
-        return QVariant(tr("Name"));
-    case Columns::Synchronizable:
-        return QVariant(tr("Synchronizable"));
-    case Columns::Dirty:
-        return QVariant(tr("Changed"));
-    case Columns::FromLinkedNotebook:
-        return QVariant(tr("From linked notebook"));
-    case Columns::NumNotesPerTag:
-        return QVariant(tr("Notes per tag"));
-    default:
-        return QVariant();
-    }
+    return columnName(static_cast<Columns::type>(section));
 }
 
 int TagModel::rowCount(const QModelIndex & parent) const
@@ -920,7 +907,11 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
         QNTRACE(QStringLiteral("The number of found tags matches the limit, requesting more tags from the local storage"));
         m_listTagsOffset += limit;
         requestTagsList();
+        return;
     }
+
+    m_allTagsListed = true;
+    emit notifyAllTagsListed();
 }
 
 void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -1990,6 +1981,25 @@ QStringList TagModel::tagNames() const
     }
 
     return result;
+}
+
+QString TagModel::columnName(const TagModel::Columns::type column) const
+{
+    switch(column)
+    {
+    case Columns::Name:
+        return tr("Name");
+    case Columns::Synchronizable:
+        return tr("Synchronizable");
+    case Columns::Dirty:
+        return tr("Changed");
+    case Columns::FromLinkedNotebook:
+        return tr("From linked notebook");
+    case Columns::NumNotesPerTag:
+        return tr("Notes per tag");
+    default:
+        return QString();
+    }
 }
 
 bool TagModel::hasSynchronizableChildren(const TagModelItem * item) const

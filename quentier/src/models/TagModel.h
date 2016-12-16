@@ -77,7 +77,25 @@ public:
     QModelIndex promote(const QModelIndex & index);
     QModelIndex demote(const QModelIndex & index);
 
+    /**
+     * @brief tagNames
+     * @return the list of tag names existing within the tag model
+     */
     QStringList tagNames() const;
+
+    /**
+     * @brief columnName
+     * @param column - the column which name needs to be returned
+     * @return the name of the column
+     */
+    QString columnName(const Columns::type column) const;
+
+    /**
+     * @brief allTagsListed
+     * @return true if the tag model has received the information about all tags
+     * stored in the local storage by the moment; false otherwise
+     */
+    bool allTagsListed() const { return m_allTagsListed; }
 
 public:
     // QAbstractItemModel interface
@@ -113,6 +131,7 @@ public:
 Q_SIGNALS:
     void sortingChanged();
     void notifyError(QNLocalizedString errorDescription);
+    void notifyAllTagsListed();
 
 // private signals
     void addTag(Tag tag, QUuid requestId);
@@ -310,6 +329,8 @@ private:
     LinkedNotebookGuidWithFindNotebookRequestIdBimap    m_findNotebookRequestForLinkedNotebookGuid;
 
     mutable int             m_lastNewTagNameCounter;
+
+    bool                    m_allTagsListed;
 };
 
 } // namespace quentier

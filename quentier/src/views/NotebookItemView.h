@@ -36,6 +36,9 @@ public:
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 
+    /**
+     * @return valid model index if the selection exists and contains exactly one row and invalid model index otherwise
+     */
     QModelIndex currentlySelectedItemIndex() const;
 
 Q_SIGNALS:
@@ -76,10 +79,6 @@ private:
                                      const QPoint & point, NotebookModel & model);
     void showNotebookStackItemContextMenu(const NotebookStackItem & item,
                                           const QPoint & point, NotebookModel & model);
-
-    // Returns the valid index if all indexes in the list point to the same row;
-    // otherwise returns invalid model index
-    QModelIndex singleRow(const QModelIndexList & indexes, const quentier::NotebookModel & model) const;
 
     void saveNotebookStackItemsState();
     void restoreNotebookStackItemsState(const NotebookModel & model);

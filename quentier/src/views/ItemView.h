@@ -52,6 +52,13 @@ public Q_SLOTS:
                             , const QVector<int> & roles = QVector<int>())
 #endif
                             Q_DECL_OVERRIDE;
+
+protected:
+    /**
+     * @return the valid index if all indexes in the list point to the same row or invalid model index otherwise
+     */
+    QModelIndex singleRow(const QModelIndexList & indexes, const QAbstractItemModel & model,
+                          const int column) const;
 };
 
 } // namespace quentier

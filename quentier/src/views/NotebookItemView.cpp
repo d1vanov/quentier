@@ -117,7 +117,7 @@ QModelIndex NotebookItemView::currentlySelectedItemIndex() const
         return QModelIndex();
     }
 
-    return singleRow(indexes, *pNotebookModel);
+    return singleRow(indexes, *pNotebookModel, NotebookModel::Columns::Name);
 }
 
 void NotebookItemView::deleteSelectedItem()
@@ -139,7 +139,7 @@ void NotebookItemView::deleteSelectedItem()
         return;
     }
 
-    QModelIndex index = singleRow(indexes, *pNotebookModel);
+    QModelIndex index = singleRow(indexes, *pNotebookModel, NotebookModel::Columns::Name);
     if (!index.isValid()) {
         QNDEBUG(QStringLiteral("Not exactly one notebook within the selection"));
         Q_UNUSED(informationMessageBox(this, tr("Cannot delete current notebook"),
@@ -584,15 +584,14 @@ void NotebookItemView::selectionChanged(const QItemSelection & selected,
 
     // Need to figure out how many rows the new selection covers; if exactly 1,
     // persist this selection so that it can be resurrected on the next startup
-    QModelIndex sourceIndex = singleRow(selectedIndexes, *pNotebookModel);
+    QModelIndex sourceIndex = singleRow(selectedIndexes, *pNotebookModel, NotebookModel::Columns::Name);
     if (!sourceIndex.isValid()) {
         QNDEBUG(QStringLiteral("Not exactly one row is selected"));
         return;
     }
 
     const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(sourceIndex);
-    if (Q_UNLIKELY(!pModelItem))
-    {
+    if (Q_UNLIKELY(!pModelItem)) {
         REPORT_ERROR("Internal error: can't find the notebook model item corresponging "
                      "to the selected index");
         return;
@@ -914,37 +913,6 @@ void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem 
 
     m_pNotebookStackItemContextMenu->show();
     m_pNotebookStackItemContextMenu->exec(point);
-}
-
-QModelIndex NotebookItemView::singleRow(const QModelIndexList & indexes,
-                                        const NotebookModel & model) const
-{
-    int row = -1;
-    QModelIndex sourceIndex;
-    for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
-    {
-        const QModelIndex & index = *it;
-        if (Q_UNLIKELY(!index.isValid())) {
-            continue;
-        }
-
-        if (row < 0) {
-            row = index.row();
-            sourceIndex = index;
-            continue;
-        }
-
-        if (row != index.row()) {
-            sourceIndex = QModelIndex();
-            break;
-        }
-    }
-
-    if (!sourceIndex.isValid()) {
-        return sourceIndex;
-    }
-
-    return model.index(sourceIndex.row(), NotebookModel::Columns::Name, sourceIndex.parent());
 }
 
 void NotebookItemView::saveNotebookStackItemsState()

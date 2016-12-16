@@ -56,4 +56,35 @@ void ItemView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bott
     }
 }
 
+QModelIndex ItemView::singleRow(const QModelIndexList & indexes, const QAbstractItemModel & model,
+                                const int column) const
+{
+    int row = -1;
+    QModelIndex sourceIndex;
+    for(auto it = indexes.constBegin(), end = indexes.constEnd(); it != end; ++it)
+    {
+        const QModelIndex & index = *it;
+        if (Q_UNLIKELY(!index.isValid())) {
+            continue;
+        }
+
+        if (row < 0) {
+            row = index.row();
+            sourceIndex = index;
+            continue;
+        }
+
+        if (row != index.row()) {
+            sourceIndex = QModelIndex();
+            break;
+        }
+    }
+
+    if (!sourceIndex.isValid()) {
+        return sourceIndex;
+    }
+
+    return model.index(sourceIndex.row(), column, sourceIndex.parent());
+}
+
 } // namespace quentier
