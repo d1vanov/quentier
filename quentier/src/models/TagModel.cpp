@@ -37,6 +37,8 @@ TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & lo
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
     m_cache(cache),
+    m_indexIdToLocalUidBimap(),
+    m_lastFreeIndexId(1),
     m_lowerCaseTagNames(),
     m_listTagsOffset(0),
     m_listTagsRequestId(),
@@ -99,7 +101,8 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
     {
         QModelIndex parentIndex = index;
 
-        while(true) {
+        while(true)
+        {
             const TagModelItem * parentItem = itemForIndex(parentIndex);
             if (Q_UNLIKELY(!parentItem)) {
                 break;
@@ -199,7 +202,7 @@ QVariant TagModel::headerData(int section, Qt::Orientation orientation, int role
     case Columns::Synchronizable:
         return QVariant(tr("Synchronizable"));
     case Columns::Dirty:
-        return QVariant(tr("Dirty"));
+        return QVariant(tr("Changed"));
     case Columns::FromLinkedNotebook:
         return QVariant(tr("From linked notebook"));
     case Columns::NumNotesPerTag:
@@ -246,8 +249,12 @@ QModelIndex TagModel::index(int row, int column, const QModelIndex & parent) con
         return QModelIndex();
     }
 
-    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
-    return createIndex(row, column, const_cast<TagModelItem*>(item));
+    IndexId id = idForItem(*item);
+    if (Q_UNLIKELY(id == 0)) {
+        return QModelIndex();
+    }
+
+    return createIndex(row, column, id);
 }
 
 QModelIndex TagModel::parent(const QModelIndex & index) const
@@ -282,8 +289,12 @@ QModelIndex TagModel::parent(const QModelIndex & index) const
         return QModelIndex();
     }
 
-    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
-    return createIndex(row, Columns::Name, const_cast<TagModelItem*>(parentItem));
+    IndexId id = idForItem(*parentItem);
+    if (Q_UNLIKELY(id == 0)) {
+        return QModelIndex();
+    }
+
+    return createIndex(row, Columns::Name, id);
 }
 
 bool TagModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant & value, int role)
@@ -421,6 +432,8 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
                 return false;
             }
 
+            changedIndex = this->index(changedIndex.row(), Columns::Synchronizable,
+                                       changedIndex.parent());
             emit dataChanged(changedIndex, changedIndex);
             processedItem = parentItem;
         }
@@ -437,9 +450,11 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     index.replace(it, itemCopy);
     emit dataChanged(modelIndex, modelIndex);
 
-    emit layoutAboutToBeChanged();
-    updateItemRowWithRespectToSorting(itemCopy);
-    emit layoutChanged();
+    if (m_sortedColumn == Columns::Name) {
+        emit layoutAboutToBeChanged();
+        updateItemRowWithRespectToSorting(itemCopy);
+        emit layoutChanged();
+    }
 
     updateTagInLocalStorage(itemCopy);
     return true;
@@ -473,8 +488,8 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
-    std::vector<TagDataByLocalUid::iterator> addedItems;
-    addedItems.reserve(static_cast<size_t>(std::max(count, 0)));
+    QVector<TagDataByLocalUid::iterator> addedItems;
+    addedItems.reserve(std::max(count, 0));
 
     beginInsertRows(parent, row, row + count - 1);
     for(int i = 0; i < count; ++i)
@@ -493,13 +508,21 @@ bool TagModel::insertRows(int row, int count, const QModelIndex & parent)
     }
     endInsertRows();
 
-    emit layoutAboutToBeChanged();
-    for(auto it = addedItems.begin(), end = addedItems.end(); it != end; ++it) {
-        const TagModelItem & item = *(*it);
-        updateItemRowWithRespectToSorting(item);
-        updateTagInLocalStorage(item);
+    if (m_sortedColumn == Columns::Name)
+    {
+        emit layoutAboutToBeChanged();
+
+        for(auto it = addedItems.constBegin(), end = addedItems.constEnd(); it != end; ++it) {
+            const TagModelItem & item = *(*it);
+            updateItemRowWithRespectToSorting(item);
+        }
+
+        emit layoutChanged();
     }
-    emit layoutChanged();
+
+    for(auto it = addedItems.constBegin(), end = addedItems.constEnd(); it != end; ++it) {
+        updateTagInLocalStorage(*(*it));
+    }
 
     return true;
 }
@@ -991,9 +1014,9 @@ void TagModel::onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId
     itemCopy.setNumNotesPerTag(noteCount);
     Q_UNUSED(localUidIndex.replace(itemIt, itemCopy))
 
-    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
     const TagModelItem * item = &(*itemIt);
-    QModelIndex index = createIndex(row, Columns::NumNotesPerTag, const_cast<TagModelItem*>(item));
+    IndexId id = idForItem(*item);
+    QModelIndex index = createIndex(row, Columns::NumNotesPerTag, id);
     emit dataChanged(index, index);
 
     // NOTE: in future, if/when sorting by note count is supported, will need to check if need to re-sort and emit the layout change signals
@@ -1411,9 +1434,11 @@ void TagModel::onTagAdded(const Tag & tag)
 
     endInsertRows();
 
-    emit layoutAboutToBeChanged();
-    updateItemRowWithRespectToSorting(*it);
-    emit layoutChanged();
+    if (m_sortedColumn == Columns::Name) {
+        emit layoutAboutToBeChanged();
+        updateItemRowWithRespectToSorting(*it);
+        emit layoutChanged();
+    }
 }
 
 void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
@@ -1455,9 +1480,10 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
         return;
     }
 
-    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
-    QModelIndex modelIndexFrom = createIndex(row, 0, const_cast<TagModelItem*>(item));
-    QModelIndex modelIndexTo = createIndex(row, NUM_TAG_MODEL_COLUMNS - 1, const_cast<TagModelItem*>(item));
+    IndexId itemId = idForItem(*item);
+
+    QModelIndex modelIndexFrom = createIndex(row, 0, itemId);
+    QModelIndex modelIndexTo = createIndex(row, NUM_TAG_MODEL_COLUMNS - 1, itemId);
     emit dataChanged(modelIndexFrom, modelIndexTo);
 
     emit layoutAboutToBeChanged();
@@ -1569,6 +1595,43 @@ void TagModel::updateRestrictionsFromNotebook(const Notebook & notebook)
             << QStringLiteral(", can update tags = ") << (restrictions.m_canUpdateTags ? QStringLiteral("true") : QStringLiteral("false")));
 }
 
+const TagModelItem * TagModel::itemForId(const IndexId id) const
+{
+    QNDEBUG(QStringLiteral("TagModel::itemForId: ") << id);
+
+    auto localUidIt = m_indexIdToLocalUidBimap.left.find(id);
+    if (Q_UNLIKELY(localUidIt == m_indexIdToLocalUidBimap.left.end())) {
+        QNDEBUG(QStringLiteral("Found no tag model item corresponding to model index internal id"));
+        return Q_NULLPTR;
+    }
+
+    const QString & localUid = localUidIt->second;
+    QNTRACE(QStringLiteral("Found tag local uid corresponding to model index internal id: ") << localUid);
+
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto itemIt = localUidIndex.find(localUid);
+    if (itemIt != localUidIndex.end()) {
+        QNTRACE(QStringLiteral("Found tag item corresponding to local uid: ") << *itemIt);
+        return &(*itemIt);
+    }
+
+    QNTRACE(QStringLiteral("Found no tag item corresponding to local uid"));
+    return Q_NULLPTR;
+}
+
+TagModel::IndexId TagModel::idForItem(const TagModelItem & item) const
+{
+    auto it = m_indexIdToLocalUidBimap.right.find(item.localUid());
+    if (it == m_indexIdToLocalUidBimap.right.end()) {
+        IndexId id = m_lastFreeIndexId++;
+        Q_UNUSED(m_indexIdToLocalUidBimap.insert(IndexIdToLocalUidBimap::value_type(id, item.localUid())))
+        return id;
+    }
+
+    return it->second;
+}
+
 QVariant TagModel::dataImpl(const TagModelItem & item, const Columns::type column) const
 {
     switch(column)
@@ -1627,12 +1690,7 @@ const TagModelItem * TagModel::itemForIndex(const QModelIndex & index) const
         return m_fakeRootItem;
     }
 
-    const TagModelItem * item = reinterpret_cast<const TagModelItem*>(index.internalPointer());
-    if (item) {
-        return item;
-    }
-
-    return m_fakeRootItem;
+    return itemForId(static_cast<IndexId>(index.internalId()));
 }
 
 const TagModelItem * TagModel::itemForLocalUid(const QString & localUid) const
@@ -1671,8 +1729,8 @@ QModelIndex TagModel::indexForItem(const TagModelItem * item) const
         return QModelIndex();
     }
 
-    // NOTE: as long as we stick to using the model index's internal pointer only inside the model, it's fine
-    return createIndex(row, Columns::Name, const_cast<TagModelItem*>(item));
+    IndexId itemId = idForItem(*item);
+    return createIndex(row, Columns::Name, itemId);
 }
 
 QModelIndex TagModel::indexForLocalUid(const QString & localUid) const
@@ -2114,11 +2172,12 @@ void TagModel::updatePersistentModelIndices()
     for(auto it = indices.begin(), end = indices.end(); it != end; ++it)
     {
         const QModelIndex & index = *it;
-        const TagModelItem * item = reinterpret_cast<const TagModelItem*>(index.internalPointer());
+        const TagModelItem * item = itemForId(static_cast<IndexId>(index.internalId()));
         QModelIndex replacementIndex = indexForItem(item);
         changePersistentIndex(index, replacementIndex);
     }
 }
+
 
 void TagModel::updateTagInLocalStorage(const TagModelItem & item)
 {

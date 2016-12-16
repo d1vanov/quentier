@@ -201,7 +201,6 @@ private:
 
     void updateItemRowWithRespectToSorting(const TagModelItem & item);
     void updatePersistentModelIndices();
-
     void updateTagInLocalStorage(const TagModelItem & item);
 
 private:
@@ -231,6 +230,14 @@ private:
     typedef TagData::index<ByParentLocalUid>::type TagDataByParentLocalUid;
     typedef TagData::index<ByNameUpper>::type TagDataByNameUpper;
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    typedef quint32 IndexId;
+#else
+    typedef quintptr IndexId;
+#endif
+
+    typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
+
     struct LessByName
     {
         bool operator()(const TagModelItem & lhs, const TagModelItem & rhs) const;
@@ -252,12 +259,18 @@ private:
     bool canCreateTagItem(const TagModelItem & parentItem) const;
     void updateRestrictionsFromNotebook(const Notebook & notebook);
 
+    const TagModelItem * itemForId(const IndexId id) const;
+    IndexId idForItem(const TagModelItem & item) const;
+
 private:
     Account                 m_account;
     TagData                 m_data;
     TagModelItem *          m_fakeRootItem;
 
     TagCache &              m_cache;
+
+    mutable IndexIdToLocalUidBimap  m_indexIdToLocalUidBimap;
+    mutable IndexId                 m_lastFreeIndexId;
 
     QSet<QString>           m_lowerCaseTagNames;
 
