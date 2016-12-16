@@ -36,6 +36,8 @@ public:
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 
+    QModelIndex currentlySelectedItemIndex() const;
+
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
     void newNotebookCreationRequested();

@@ -39,6 +39,8 @@
 #include "widgets/TabWidget.h"
 using quentier::TabWidget;
 
+#include "widgets/NotebookModelItemInfoWidget.h"
+
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
 #include <quentier/types/Note.h>
@@ -288,6 +290,8 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onAddNotebookButtonPressed));
     QObject::connect(m_pUI->removeNotebookButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onRemoveNotebookButtonPressed));
+    QObject::connect(m_pUI->notebookInfoButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onNotebookInfoButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1304,6 +1308,17 @@ void MainWindow::onRemoveNotebookButtonPressed()
 {
     QNDEBUG(QStringLiteral("MainWindow::onRemoveNotebookButtonPressed"));
     m_pUI->notebooksTreeView->deleteSelectedItem();
+}
+
+void MainWindow::onNotebookInfoButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNotebookInfoButtonPressed"));
+
+    QModelIndex index = m_pUI->notebooksTreeView->currentlySelectedItemIndex();
+    NotebookModelItemInfoWidget * pNotebookModelItemInfoWidget = new NotebookModelItemInfoWidget(index, this);
+    pNotebookModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pNotebookModelItemInfoWidget->setWindowModality(Qt::WindowModal);
+    pNotebookModelItemInfoWidget->show();
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()

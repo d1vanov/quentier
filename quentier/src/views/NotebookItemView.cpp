@@ -95,6 +95,31 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                      this, QNSLOT(NotebookItemView,onAllNotebooksListed));
 }
 
+QModelIndex NotebookItemView::currentlySelectedItemIndex() const
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::currentlySelectedItemIndex"));
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return QModelIndex();
+    }
+
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        QNDEBUG(QStringLiteral("No selection model in the view"));
+        return QModelIndex();
+    }
+
+    QModelIndexList indexes = selectedIndexes();
+    if (indexes.isEmpty()) {
+        QNDEBUG(QStringLiteral("The selection contains no model indexes"));
+        return QModelIndex();
+    }
+
+    return singleRow(indexes, *pNotebookModel);
+}
+
 void NotebookItemView::deleteSelectedItem()
 {
     QNDEBUG(QStringLiteral("NotebookItemView::deleteSelectedItem"));

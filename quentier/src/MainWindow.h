@@ -153,6 +153,7 @@ private Q_SLOTS:
     // View buttons slots
     void onAddNotebookButtonPressed();
     void onRemoveNotebookButtonPressed();
+    void onNotebookInfoButtonPressed();
 
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
