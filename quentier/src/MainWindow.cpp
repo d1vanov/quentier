@@ -1320,9 +1320,15 @@ void MainWindow::onNotebookInfoButtonPressed()
     pNotebookModelItemInfoWidget->setWindowModality(Qt::WindowModal);
     pNotebookModelItemInfoWidget->adjustSize();
 #ifndef Q_OS_MAC
-    int x = width() / 2;
-    int y = height() / 2;
-    pNotebookModelItemInfoWidget->move(x, y);
+    // Center the widget relative to the main window
+    const QRect & geometryRect = geometry();
+    const QRect & dialogGeometryRect = pNotebookModelItemInfoWidget->geometry();
+    if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
+        const QPoint center = geometryRect.center();
+        int x = center.x() - dialogGeometryRect.width() / 2;
+        int y = center.y() - dialogGeometryRect.height() / 2;
+        pNotebookModelItemInfoWidget->move(x, y);
+    }
 #endif
     pNotebookModelItemInfoWidget->show();
 }
