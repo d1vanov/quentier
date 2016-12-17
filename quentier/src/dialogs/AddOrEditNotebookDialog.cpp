@@ -11,6 +11,7 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(NotebookModel * pNotebookModel,
     QDialog(parent),
     m_pUi(new Ui::AddOrEditNotebookDialog),
     m_pNotebookModel(pNotebookModel),
+    m_pNotebookStacksModel(Q_NULLPTR),
     m_editedNotebookLocalUid(editedNotebookLocalUid)
 {
     m_pUi->setupUi(this);
