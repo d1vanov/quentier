@@ -77,6 +77,8 @@ public:
     QModelIndex promote(const QModelIndex & index);
     QModelIndex demote(const QModelIndex & index);
 
+    QModelIndexList persistentIndexes() const;
+
     /**
      * @brief tagNames
      * @return the list of tag names existing within the tag model

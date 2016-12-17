@@ -46,14 +46,26 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onAllTagsListed();
+
+    void onCreateNewTagAction();
+    void onRenameTagAction();
+    void onDeleteTagAction();
+
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
+
+
 
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
 
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+
 private:
     void saveTagItemsState();
     void restoreTagItemsState(const TagModel & model);
+    void setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model);
+
+    void restoreLastSavedSelection(const TagModel & model);
 
 private:
     QMenu *     m_pTagItemContextMenu;

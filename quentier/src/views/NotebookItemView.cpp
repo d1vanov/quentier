@@ -633,8 +633,9 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     QNDEBUG(QStringLiteral("NotebookItemView::contextMenuEvent"));
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected Qt error: notebook item view received context menu event with null pointer to "
-                                 "the context menu event"));
+        QNWARNING(QStringLiteral("Detected Qt error: notebook item view received "
+                                 "context menu event with null pointer "
+                                 "to the context menu event"));
         return;
     }
 
@@ -795,10 +796,9 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
     ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pNotebookItemContextMenu,
                             onRenameNotebookAction, item.localUid(), canRename);
 
-    if (model.account().type() == Account::Type::Local) {
-        ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
-                                onDeleteNotebookAction, item.localUid(), true);
-    }
+    ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pNotebookItemContextMenu,
+                            onDeleteNotebookAction, item.localUid(),
+                            !item.isSynchronizable());
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNotebookItemContextMenu,onEditNotebookAction,
@@ -1000,7 +1000,7 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(const Noteb
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR("Can't restore last selected notebook or auto-select one: "
+        REPORT_ERROR("Can't restore the last selected notebook or auto-select one: "
                      "no selection model in the view");
         return;
     }

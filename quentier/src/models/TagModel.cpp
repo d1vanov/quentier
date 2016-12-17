@@ -1968,6 +1968,11 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     return newIndex;
 }
 
+QModelIndexList TagModel::persistentIndexes() const
+{
+    return persistentIndexList();
+}
+
 QStringList TagModel::tagNames() const
 {
     const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
