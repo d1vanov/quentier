@@ -51,6 +51,10 @@ private Q_SLOTS:
     void onRenameTagAction();
     void onDeleteTagAction();
 
+    void onEditTagAction();
+    void onPromoteTagAction();
+    void onShowTagInfoAction();
+
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
 
 
@@ -61,6 +65,8 @@ private Q_SLOTS:
     virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
+    void deleteItem(const QModelIndex & itemIndex, TagModel & model);
+
     void saveTagItemsState();
     void restoreTagItemsState(const TagModel & model);
     void setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model);

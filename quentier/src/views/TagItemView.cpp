@@ -139,19 +139,128 @@ void TagItemView::onRenameTagAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onRenameTagAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't rename tag, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't rename tag, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't rename tag: the model returned invalid "
+                     "index for the tag's local uid");
+        return;
+    }
+
+    edit(itemIndex);
 }
 
 void TagItemView::onDeleteTagAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onDeleteTagAction"));
 
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't delete tag, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't delete tag, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't delete tag: the model returned invalid "
+                     "index for the tag's local uid");
+        return;
+    }
+
+    deleteItem(itemIndex, *pTagModel);
+}
+
+void TagItemView::onEditTagAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onEditTagAction"));
+
     // TODO: implement
+}
+
+void TagItemView::onPromoteTagAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onPromoteTagAction"));
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't promote tag, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't promote tag, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't promote tag: the model returned invalid "
+                     "index for the tag's local uid");
+        return;
+    }
+
+    QModelIndex promotedItemIndex = pTagModel->promote(itemIndex);
+    if (promotedItemIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Successfully promoted the tag"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The tag model refused to promote the tag; "
+                                              "Check the status bar for message from the tag model "
+                                              "explaining why the tag could not be promoted")))
+}
+
+void TagItemView::onShowTagInfoAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onShowTagInfoAction"));
+    emit tagInfoRequested();
 }
 
 void TagItemView::onTagItemCollapsedOrExpanded(const QModelIndex & index)
 {
-    QNTRACE(QStringLiteral("TagItemView::onNotebookStackItemCollapsedOrExpanded: index: valid = ")
+    QNTRACE(QStringLiteral("TagItemView::onTagItemCollapsedOrExpanded: index: valid = ")
             << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", row = ") << index.row() << QStringLiteral(", column = ") << index.column()
             << QStringLiteral(", parent: valid = ") << (index.parent().isValid() ? QStringLiteral("true") : QStringLiteral("false"))
@@ -276,10 +385,56 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                             onDeleteTagAction, pItem->localUid(),
                             !pItem->isSynchronizable());
 
-    // TODO: continue with other actions
+    ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
+                            m_pTagItemContextMenu, onEditTagAction,
+                            pItem->localUid(), canUpdate);
+
+    if (clickedItemIndex.parent().isValid()) {
+        ADD_CONTEXT_MENU_ACTION(tr("Promote"), m_pTagItemContextMenu,
+                                onPromoteTagAction, pItem->localUid(),
+                                canUpdate);
+    }
+
+    m_pTagItemContextMenu->addSeparator();
+
+    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pTagItemContextMenu,
+                            onShowTagInfoAction, pItem->localUid(), true);
 
     m_pTagItemContextMenu->show();
     m_pTagItemContextMenu->exec(pEvent->globalPos());
+}
+
+#undef ADD_CONTEXT_MENU_ACTION
+
+void TagItemView::deleteItem(const QModelIndex & itemIndex, TagModel & model)
+{
+    QNDEBUG(QStringLiteral("TagItemView::deleteItem"));
+
+    const TagModelItem * pItem = model.itemForIndex(itemIndex);
+    if (Q_UNLIKELY(!pItem)) {
+        REPORT_ERROR("Internal error: can't find the tag model item meant to be deleted");
+        return;
+    }
+
+    int confirm = warningMessageBox(this, tr("Confirm the tag deletion"),
+                                    tr("Are you sure you want to delete this tag?"),
+                                    tr("Note that this action is not reversible and the deletion "
+                                       "of the tag would mean its disappearance from all the notes "
+                                       "using it!"), QMessageBox::Ok | QMessageBox::No);
+    if (confirm != QMessageBox::Ok) {
+        QNDEBUG(QStringLiteral("Tag deletion was not confirmed"));
+        return;
+    }
+
+    bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
+    if (res) {
+        QNDEBUG(QStringLiteral("Successfully deleted tag"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The tag model refused to delete the tag; "
+                                              "Check the status bar for message from the tag model "
+                                              "explaining why the tag could not be deleted")))
 }
 
 void TagItemView::saveTagItemsState()

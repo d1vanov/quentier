@@ -707,24 +707,24 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
 
         int confirm = warningMessageBox(this, tr("Confirm the notebook deletion"),
                                         tr("Are you sure you want to delete the notebook?"),
-                                        tr("Note that this action is not reversible and the removal "
-                                           "of the notebook would also mean the removal of all the notes "
+                                        tr("Note that this action is not reversible and the deletion "
+                                           "of the notebook would also mean the deletion of all the notes "
                                            "stored inside it!"), QMessageBox::Ok | QMessageBox::No);
         if (confirm != QMessageBox::Ok) {
-            QNDEBUG(QStringLiteral("Notebook removal was not confirmed"));
+            QNDEBUG(QStringLiteral("Notebook deletion was not confirmed"));
             return;
         }
 
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
-            QNDEBUG(QStringLiteral("Successfully removed notebook"));
+            QNDEBUG(QStringLiteral("Successfully deleted notebook"));
             autoSelectNotebook(model);
             return;
         }
 
         Q_UNUSED(internalErrorMessageBox(this, tr("The notebook model refused to delete the notebook; "
                                                   "Check the status bar for message from the notebook model "
-                                                  "explaining why the notebook could not be removed")));
+                                                  "explaining why the notebook could not be deleted")))
     }
     else if (pModelItem->type() == NotebookModelItem::Type::Stack)
     {
@@ -738,25 +738,25 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
 
         int confirm = warningMessageBox(this, tr("Confirm the notebook stack deletion"),
                                         tr("Are you sure you want to delete the whole stack of notebooks?"),
-                                        tr("Note that this action is not reversible and the removal "
+                                        tr("Note that this action is not reversible and the deletion "
                                            "of the whole stack of notebooks would also mean "
-                                           "the removal of all the notes stored inside the notebooks!"),
+                                           "the deletion of all the notes stored inside the notebooks!"),
                                         QMessageBox::Ok | QMessageBox::No);
         if (confirm != QMessageBox::Ok) {
-            QNDEBUG(QStringLiteral("Notebook stack removal was not confirmed"));
+            QNDEBUG(QStringLiteral("Notebook stack deletion was not confirmed"));
             return;
         }
 
         bool res = model.removeRow(itemIndex.row(), itemIndex.parent());
         if (res) {
-            QNDEBUG(QStringLiteral("Successfully removed notebook stack"));
+            QNDEBUG(QStringLiteral("Successfully deleted notebook stack"));
             autoSelectNotebook(model);
             return;
         }
 
         Q_UNUSED(internalErrorMessageBox(this, tr("The notebook model refused to delete the notebook stack; "
                                                   "Check the status bar for message from the notebook model "
-                                                  "explaining why the notebook stack could not be removed")));
+                                                  "explaining why the notebook stack could not be deleted")));
     }
     else
     {
@@ -801,7 +801,7 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
                             !item.isSynchronizable());
 
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
-                            m_pNotebookItemContextMenu,onEditNotebookAction,
+                            m_pNotebookItemContextMenu, onEditNotebookAction,
                             item.localUid(), canRename);
 
     const QString & stack = item.stack();
@@ -914,6 +914,8 @@ void NotebookItemView::showNotebookStackItemContextMenu(const NotebookStackItem 
     m_pNotebookStackItemContextMenu->show();
     m_pNotebookStackItemContextMenu->exec(point);
 }
+
+#undef ADD_CONTEXT_MENU_ACTION
 
 void NotebookItemView::saveNotebookStackItemsState()
 {
