@@ -75,8 +75,6 @@ AddOrEditNotebookDialog::~AddOrEditNotebookDialog()
 
 void AddOrEditNotebookDialog::accept()
 {
-    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::accept"));
-
     QString notebookName = m_pUi->notebookNameLineEdit->text();
     QString stack = m_pUi->notebookStackComboBox->currentText();
 

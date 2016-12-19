@@ -22,11 +22,21 @@ public:
                                 const QString & editedTagLocalUid = QString());
     virtual ~AddOrEditTagDialog();
 
+private Q_SLOTS:
+    virtual void accept() Q_DECL_OVERRIDE;
+    void onTagNameEdited(const QString & tagName);
+
+private:
+    void createConnections();
+
 private:
     Ui::AddOrEditTagDialog *    m_pUi;
     QPointer<TagModel>          m_pTagModel;
     QStringListModel *          m_pTagNamesModel;
     QString                     m_editedTagLocalUid;
+
+    // The name specified at any given moment in the line editor
+    QString                     m_currentTagName;
 };
 
 } // namespace quentier
