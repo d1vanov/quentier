@@ -87,6 +87,9 @@ private:
     void restoreLastSavedSelectionOrAutoSelectNotebook(const NotebookModel & model);
     void autoSelectNotebook(const NotebookModel & model);
 
+    void selectionChangedImpl(const QItemSelection & selected,
+                              const QItemSelection & deselected);
+
 private:
     QMenu *     m_pNotebookItemContextMenu;
     QMenu *     m_pNotebookStackItemContextMenu;

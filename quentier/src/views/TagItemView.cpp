@@ -27,10 +27,6 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
-#ifndef QT_MOC_RUN
-#include <boost/scope_exit.hpp>
-#endif
-
 #define LAST_SELECTED_TAG_KEY QStringLiteral("_LastSelectedTagLocalUid")
 #define LAST_EXPANDED_TAG_ITEMS_KEY QStringLiteral("_LastExpandedTagLocalUids")
 
@@ -420,54 +416,8 @@ void TagItemView::selectionChanged(const QItemSelection & selected,
 {
     QNDEBUG(QStringLiteral("TagItemView::selectionChanged"));
 
-    BOOST_SCOPE_EXIT(this_, &selected, &deselected) {
-        this_->ItemView::selectionChanged(selected, deselected);
-    } BOOST_SCOPE_EXIT_END
-
-    TagModel * pTagModel = qobject_cast<TagModel*>(model());
-    if (Q_UNLIKELY(!pTagModel)) {
-        QNDEBUG(QStringLiteral("Non-tag model is used"));
-        return;
-    }
-
-    QModelIndexList selectedIndexes = selected.indexes();
-
-    if (selectedIndexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("The new selection is empty"));
-        return;
-    }
-
-    // Need to figure out how many rows the new selection covers; if exactly 1,
-    // persist this selection so that it can be resurrected on the next startup
-    QModelIndex sourceIndex = singleRow(selectedIndexes, *pTagModel, TagModel::Columns::Name);
-    if (!sourceIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Not exactly one row is selected"));
-        return;
-    }
-
-    const TagModelItem * pTagItem = pTagModel->itemForIndex(sourceIndex);
-    if (Q_UNLIKELY(!pTagItem)) {
-        REPORT_ERROR("Internal error: can't find the tag model item corresponding "
-                     "to the selected index");
-        return;
-    }
-
-    QNTRACE(QStringLiteral("Currently selected tag item: ") << *pTagItem);
-
-    QString accountKey = accountToKey(pTagModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
-        QNWARNING(pTagModel->account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/TagItemView"));
-    appSettings.setValue(LAST_SELECTED_TAG_KEY, pTagItem->localUid());
-    appSettings.endGroup();
-
-    QNDEBUG(QStringLiteral("Persisted the currently selected tag local uid: ")
-            << pTagItem->localUid());
+    selectionChangedImpl(selected, deselected);
+    ItemView::selectionChanged(selected, deselected);
 }
 
 void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
@@ -767,6 +717,57 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
                                     lastSelectedTagIndex.parent());
     QItemSelection selection(left, right);
     pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+}
+
+void TagItemView::selectionChangedImpl(const QItemSelection & selected,
+                                       const QItemSelection & deselected)
+{
+    Q_UNUSED(deselected)
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QModelIndexList selectedIndexes = selected.indexes();
+
+    if (selectedIndexes.isEmpty()) {
+        QNDEBUG(QStringLiteral("The new selection is empty"));
+        return;
+    }
+
+    // Need to figure out how many rows the new selection covers; if exactly 1,
+    // persist this selection so that it can be resurrected on the next startup
+    QModelIndex sourceIndex = singleRow(selectedIndexes, *pTagModel, TagModel::Columns::Name);
+    if (!sourceIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Not exactly one row is selected"));
+        return;
+    }
+
+    const TagModelItem * pTagItem = pTagModel->itemForIndex(sourceIndex);
+    if (Q_UNLIKELY(!pTagItem)) {
+        REPORT_ERROR("Internal error: can't find the tag model item corresponding "
+                     "to the selected index");
+        return;
+    }
+
+    QNTRACE(QStringLiteral("Currently selected tag item: ") << *pTagItem);
+
+    QString accountKey = accountToKey(pTagModel->account());
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        REPORT_ERROR("Internal error: can't create application settings key from account");
+        QNWARNING(pTagModel->account());
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/TagItemView"));
+    appSettings.setValue(LAST_SELECTED_TAG_KEY, pTagItem->localUid());
+    appSettings.endGroup();
+
+    QNDEBUG(QStringLiteral("Persisted the currently selected tag local uid: ")
+            << pTagItem->localUid());
 }
 
 } // namespace quentier

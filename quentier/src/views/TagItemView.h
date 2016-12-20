@@ -76,6 +76,9 @@ private:
 
     void restoreLastSavedSelection(const TagModel & model);
 
+    void selectionChangedImpl(const QItemSelection & selected,
+                              const QItemSelection & deselected);
+
 private:
     QMenu *     m_pTagItemContextMenu;
     bool        m_restoringTagItemsState;
