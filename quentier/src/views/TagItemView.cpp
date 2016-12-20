@@ -19,6 +19,7 @@
 #include "TagItemView.h"
 #include "AccountToKey.h"
 #include "../models/TagModel.h"
+#include "../dialogs/AddOrEditTagDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
@@ -109,6 +110,37 @@ QModelIndex TagItemView::currentlySelectedItemIndex() const
     }
 
     return singleRow(indexes, *pTagModel, TagModel::Columns::Name);
+}
+
+void TagItemView::deleteSelectedItem()
+{
+    QNDEBUG(QStringLiteral("TagItemView::deleteSelectedItem"));
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QModelIndexList indexes = selectedIndexes();
+    if (indexes.isEmpty()) {
+        QNDEBUG(QStringLiteral("No tags are selected, nothing to deete"));
+        Q_UNUSED(informationMessageBox(this, tr("Cannot delete current tag"),
+                                       tr("No tag is selected currently"),
+                                       tr("Please select the tag you want to delete")))
+        return;
+    }
+
+    QModelIndex index = singleRow(indexes, *pTagModel, TagModel::Columns::Name);
+    if (!index.isValid()) {
+        QNDEBUG(QStringLiteral("Not exactly one tag within the selection"));
+        Q_UNUSED(informationMessageBox(this, tr("Cannot delete current tag"),
+                                       tr("More than one tag is currently selected"),
+                                       tr("Please select only the tag you want to delete")))
+        return;
+    }
+
+    deleteItem(index, *pTagModel);
 }
 
 void TagItemView::onAllTagsListed()
@@ -207,7 +239,29 @@ void TagItemView::onEditTagAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onEditTagAction"));
 
-    // TODO: implement
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't edit tag, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't promote tag, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QScopedPointer<AddOrEditTagDialog> pEditTagDialog(new AddOrEditTagDialog(pTagModel, this, itemLocalUid));
+    pEditTagDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(pEditTagDialog->exec())
 }
 
 void TagItemView::onPromoteTagAction()
@@ -250,6 +304,93 @@ void TagItemView::onPromoteTagAction()
     Q_UNUSED(internalErrorMessageBox(this, tr("The tag model refused to promote the tag; "
                                               "Check the status bar for message from the tag model "
                                               "explaining why the tag could not be promoted")))
+}
+
+void TagItemView::onRemoveFromParentTagAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onRemoveFromParentTagAction"));
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't remove tag from parent, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't remove tag from parent, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't remove tag from parent: the model returned invalid "
+                     "index for the tag's local uid");
+        return;
+    }
+
+    QModelIndex removedFromParentItemIndex = pTagModel->removeFromParent(itemIndex);
+    if (removedFromParentItemIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Successfully removed the tag from parent"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The tag model refused to remove the tag from parent; "
+                                              "Check the status bar for message from the tag model "
+                                              "explaining why the tag could not be removed from its parent")))
+}
+
+void TagItemView::onMoveTagToParentAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onMoveTagToParentAction"));
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't move tag to parent, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QStringList itemLocalUidAndParentName = pAction->data().toStringList();
+    if (itemLocalUidAndParentName.size() != 2) {
+        REPORT_ERROR("Internal error: can't move tag to parent, "
+                     "can't retrieve the tag local uid and parent name "
+                     "from QAction data");
+        return;
+    }
+
+    const QString & localUid = itemLocalUidAndParentName.at(0);
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(localUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't move tag to parent, "
+                     "can't get valid model index for tag's local uid");
+        return;
+    }
+
+    const QString & parentTagName = itemLocalUidAndParentName.at(1);
+
+    QModelIndex movedTagItemIndex = pTagModel->moveToParent(itemIndex, parentTagName);
+    if (!movedTagItemIndex.isValid()) {
+        REPORT_ERROR("Can't move tag to parent");
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Successfully moved the tag item to parent"));
 }
 
 void TagItemView::onShowTagInfoAction()
@@ -389,10 +530,37 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                             m_pTagItemContextMenu, onEditTagAction,
                             pItem->localUid(), canUpdate);
 
-    if (clickedItemIndex.parent().isValid()) {
+    if (clickedItemIndex.parent().isValid())
+    {
+        m_pTagItemContextMenu->addSeparator();
+
         ADD_CONTEXT_MENU_ACTION(tr("Promote"), m_pTagItemContextMenu,
                                 onPromoteTagAction, pItem->localUid(),
                                 canUpdate);
+        ADD_CONTEXT_MENU_ACTION(tr("Remove from parent"), m_pTagItemContextMenu,
+                                onRemoveFromParentTagAction, pItem->localUid(),
+                                canUpdate);
+    }
+
+    QStringList tagNames = pTagModel->tagNames();
+    auto nameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pItem->name());
+    if ((nameIt != tagNames.constEnd()) && (*nameIt == pItem->name())) {
+        int pos = static_cast<int>(std::distance(tagNames.constBegin(), nameIt));
+        tagNames.removeAt(pos);
+    }
+
+    if (Q_LIKELY(!tagNames.isEmpty()))
+    {
+        QMenu * pTargetParentSubMenu = m_pTagItemContextMenu->addMenu(tr("Move to parent"));
+        for(auto it = tagNames.constBegin(), end = tagNames.constEnd(); it != end; ++it)
+        {
+            QStringList dataPair;
+            dataPair.reserve(2);
+            dataPair << pItem->localUid();
+            dataPair << *it;
+            ADD_CONTEXT_MENU_ACTION(*it, pTargetParentSubMenu, onMoveTagToParentAction,
+                                    dataPair, canUpdate);
+        }
     }
 
     m_pTagItemContextMenu->addSeparator();

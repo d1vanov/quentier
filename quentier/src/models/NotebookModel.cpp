@@ -28,6 +28,11 @@ namespace quentier {
 
 #define NUM_NOTEBOOK_MODEL_COLUMNS (8)
 
+#define REPORT_ERROR(error, ...) \
+    QNLocalizedString errorDescription = QNLocalizedString(error, this); \
+    QNWARNING(errorDescription << "" __VA_ARGS__ ); \
+    emit notifyError(errorDescription)
+
 NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                              NotebookCache & cache, QObject * parent) :
     QAbstractItemModel(parent),
@@ -80,35 +85,35 @@ const NotebookModelItem * NotebookModel::itemForIndex(const QModelIndex & index)
     return itemForId(static_cast<IndexId>(index.internalId()));
 }
 
-QModelIndex NotebookModel::indexForItem(const NotebookModelItem * item) const
+QModelIndex NotebookModel::indexForItem(const NotebookModelItem * pItem) const
 {
     QNTRACE(QStringLiteral("NotebookModel::indexForItem: ")
-            << (item ? item->toString() : QStringLiteral("<null>")));
+            << (pItem ? pItem->toString() : QStringLiteral("<null>")));
 
-    if (!item) {
+    if (!pItem) {
         return QModelIndex();
     }
 
-    if (item == m_fakeRootItem) {
+    if (pItem == m_fakeRootItem) {
         return QModelIndex();
     }
 
-    const NotebookModelItem * parentItem = item->parent();
-    if (!parentItem) {
+    const NotebookModelItem * pParentItem = pItem->parent();
+    if (!pParentItem) {
         return QModelIndex();
     }
 
-    QNTRACE(QStringLiteral("Parent item: ") << parentItem);
-    int row = parentItem->rowForChild(item);
+    QNTRACE(QStringLiteral("Parent item: ") << *pParentItem);
+    int row = pParentItem->rowForChild(pItem);
     QNTRACE(QStringLiteral("Child row: ") << row);
 
     if (Q_UNLIKELY(row < 0)) {
         QNWARNING(QStringLiteral("Internal error: can't get the row of the child item in parent in NotebookModel, child item: ")
-                  << *item << QStringLiteral("\nParent item: ") << *parentItem);
+                  << *pItem << QStringLiteral("\nParent item: ") << *pParentItem);
         return QModelIndex();
     }
 
-    IndexId id = idForItem(*item);
+    IndexId id = idForItem(*pItem);
     if (Q_UNLIKELY(id == 0)) {
         return QModelIndex();
     }
@@ -188,43 +193,42 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
         return removeFromStack(index);
     }
 
-    const NotebookModelItem * item = itemForId(static_cast<IndexId>(index.internalId()));
-    if (Q_UNLIKELY(!item)) {
-        QNWARNING(QStringLiteral("Detected attempt to move notebook item from stack but the model index has no internal pointer "
-                                 "to the notebook model item"));
-        return index;
+    const NotebookModelItem * pModelItem = itemForId(static_cast<IndexId>(index.internalId()));
+    if (Q_UNLIKELY(!pModelItem)) {
+        REPORT_ERROR("Detected attempt to move notebook item to stack but the model index has no internal id "
+                     "corresponding to the notebook model item");
+        return QModelIndex();
     }
 
-    if (item->type() != NotebookModelItem::Type::Notebook) {
-        QNDEBUG(QStringLiteral("Can't move the non-notebook model item to stack"));
-        return index;
+    if (pModelItem->type() != NotebookModelItem::Type::Notebook) {
+        REPORT_ERROR("Can't move the non-notebook model item to stack");
+        return QModelIndex();
     }
 
-    const NotebookItem * notebookItem = item->notebookItem();
-    if (Q_UNLIKELY(!notebookItem)) {
-        QNWARNING(QStringLiteral("Found notebook model item of notebook type but its pointer to the notebook item is null"));
-        return index;
+    const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem)) {
+        REPORT_ERROR("Found notebook model item of notebook type but its pointer to the notebook item is null");
+        return QModelIndex();
     }
 
-    if (notebookItem->stack() == stack) {
+    if (pNotebookItem->stack() == stack) {
         QNDEBUG(QStringLiteral("The stack of the item hasn't changed, nothing to do"));
         return index;
     }
 
-    const NotebookModelItem * parentItem = item->parent();
-    removeModelItemFromParent(*item);
+    const NotebookModelItem * pParentItem = pModelItem->parent();
+    removeModelItemFromParent(*pModelItem);
 
-    if (parentItem) {
-        checkAndRemoveEmptyStackItem(*parentItem);
+    if (pParentItem) {
+        checkAndRemoveEmptyStackItem(*pParentItem);
     }
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    auto notebookItemIt = localUidIndex.find(notebookItem->localUid());
+    auto notebookItemIt = localUidIndex.find(pNotebookItem->localUid());
     if (Q_UNLIKELY(notebookItemIt == localUidIndex.end()))
     {
-        QNWARNING(QStringLiteral("Can't find the notebook item being moved to stack ") << stack
-                  << QStringLiteral(" by local uid; might be the stale pointer to removed notebook item, cleaning it up"));
-        auto it = m_modelItemsByLocalUid.find(notebookItem->localUid());
+        REPORT_ERROR("Internal error: can't find the notebook item being moved to stack");
+        auto it = m_modelItemsByLocalUid.find(pNotebookItem->localUid());
         if (it != m_modelItemsByLocalUid.end()) {
             Q_UNUSED(m_modelItemsByLocalUid.erase(it))
         }
@@ -249,72 +253,67 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
     }
 
     if (it == m_modelItemsByStack.end()) {
-        QNCRITICAL(QStringLiteral("Internal error: no notebook model item while it's expected to be here; failed to auto-fix the problem"));
-        return index;
+        REPORT_ERROR("Internal error: no notebook model item while it's expected to be here; failed to auto-fix the problem");
+        return QModelIndex();
     }
 
-    if (it == m_modelItemsByStack.end()) {
-        QNCRITICAL(QStringLiteral("Internal error: no notebook model item while it's expected to be here; failed to auto-fix the problem"));
-        return index;
-    }
-
-    NotebookItem notebookItemCopy(*notebookItem);
+    NotebookItem notebookItemCopy(*pNotebookItem);
     notebookItemCopy.setStack(stack);
     localUidIndex.replace(notebookItemIt, notebookItemCopy);
 
     updateNotebookInLocalStorage(notebookItemCopy);
 
-    const NotebookModelItem * newParentItem = &(*it);
+    const NotebookModelItem * pNewParentItem = &(*it);
 
-    QModelIndex parentIndex = indexForItem(newParentItem);
-    int newRow = newParentItem->numChildren();
+    QModelIndex parentIndex = indexForItem(pNewParentItem);
+    int newRow = pNewParentItem->numChildren();
 
     beginInsertRows(parentIndex, newRow, newRow);
-    item->setParent(newParentItem);
+    pModelItem->setParent(pNewParentItem);
     endInsertRows();
 
-    updateItemRowWithRespectToSorting(*item);
+    updateItemRowWithRespectToSorting(*pModelItem);
 
-    return indexForItem(item);
+    return indexForItem(pModelItem);
 }
 
 QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
 {
     QNDEBUG(QStringLiteral("NotebookModel::removeFromStack"));
 
-    const NotebookModelItem * item = itemForId(static_cast<IndexId>(index.internalId()));
-    if (Q_UNLIKELY(!item)) {
-        QNWARNING(QStringLiteral("Detected attempt to remove the notebook item from stack but the model index "
-                                 "has no internal pointer to the notebook model item"));
-        return index;
+    const NotebookModelItem * pModelItem = itemForId(static_cast<IndexId>(index.internalId()));
+    if (Q_UNLIKELY(!pModelItem)) {
+        REPORT_ERROR("Detected attempt to remove the notebook item from stack but the model index "
+                     "has no internal id corresponding to the notebook model item");
+        return QModelIndex();
     }
 
-    if (item->type() != NotebookModelItem::Type::Notebook) {
-        QNDEBUG(QStringLiteral("Can't remove the non-notebook model item from stack"));
-        return index;
+    if (pModelItem->type() != NotebookModelItem::Type::Notebook) {
+        REPORT_ERROR("Can't remove the non-notebook model item from stack");
+        return QModelIndex();
     }
 
-    const NotebookItem * notebookItem = item->notebookItem();
-    if (Q_UNLIKELY(!notebookItem)) {
-        QNWARNING(QStringLiteral("Found notebook model item of notebook type but its pointer to the notebook item is null"));
-        return index;
+    const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem)) {
+        REPORT_ERROR("Found notebook model item of notebook type but its pointer to the notebook item is null");
+        return QModelIndex();
     }
 
-    if (notebookItem->stack().isEmpty())
+    if (pNotebookItem->stack().isEmpty())
     {
         QNWARNING(QStringLiteral("The notebook doesn't appear to have the stack but will continue the attempt to remove it from the stack anyway"));
     }
     else
     {
         NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-        auto it = localUidIndex.find(notebookItem->localUid());
+        auto it = localUidIndex.find(pNotebookItem->localUid());
         if (Q_UNLIKELY(it == localUidIndex.end())) {
-            QNWARNING(QStringLiteral("Can't find the notebook item to be removed from the stack by the local uid: ")
-                      << notebookItem->localUid());
-            return index;
+            REPORT_ERROR("Can't find the notebook item to be removed from the stack by the local uid",
+                         << QStringLiteral(": ") << pNotebookItem->localUid());
+            return QModelIndex();
         }
 
-        NotebookItem notebookItemCopy(*notebookItem);
+        NotebookItem notebookItemCopy(*pNotebookItem);
         notebookItemCopy.setStack(QString());
         localUidIndex.replace(it, notebookItemCopy);
 
@@ -325,39 +324,39 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
         m_fakeRootItem = new NotebookModelItem;
     }
 
-    const NotebookModelItem * parentItem = item->parent();
-    if (!parentItem)
+    const NotebookModelItem * pParentItem = pModelItem->parent();
+    if (!pParentItem)
     {
-        QNDEBUG(QStringLiteral("Notebook item doesn't have the parent, will set it to fake root item"));
+        QNDEBUG(QStringLiteral("Notebook item doesn't have a parent, will set it to fake root item"));
         int newRow = m_fakeRootItem->numChildren();
 
         beginInsertRows(QModelIndex(), newRow, newRow);
-        item->setParent(m_fakeRootItem);
+        pModelItem->setParent(m_fakeRootItem);
         endInsertRows();
 
-        updateItemRowWithRespectToSorting(*item);
-        return indexForItem(item);
+        updateItemRowWithRespectToSorting(*pModelItem);
+        return indexForItem(pModelItem);
     }
 
-    if (parentItem == m_fakeRootItem) {
+    if (pParentItem == m_fakeRootItem) {
         QNDEBUG(QStringLiteral("The notebook item doesn't belong to any stack, nothing to do"));
         return index;
     }
 
-    removeModelItemFromParent(*item);
+    removeModelItemFromParent(*pModelItem);
 
-    if (parentItem) {
-        checkAndRemoveEmptyStackItem(*parentItem);
+    if (pParentItem) {
+        checkAndRemoveEmptyStackItem(*pParentItem);
     }
 
     int newRow = m_fakeRootItem->numChildren();
 
     beginInsertRows(QModelIndex(), newRow, newRow);
-    item->setParent(m_fakeRootItem);
+    pModelItem->setParent(m_fakeRootItem);
     endInsertRows();
 
-    updateItemRowWithRespectToSorting(*item);
-    return indexForItem(item);
+    updateItemRowWithRespectToSorting(*pModelItem);
+    return indexForItem(pModelItem);
 }
 
 QStringList NotebookModel::stacks() const
@@ -377,7 +376,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
                                           QNLocalizedString & errorDescription)
 {
     QNDEBUG(QStringLiteral("NotebookModel::createNotebook: notebook name = ")
-            << notebookName << ", notebook stack = " << notebookStack);
+            << notebookName << QStringLiteral(", notebook stack = ") << notebookStack);
 
     if (notebookName.isEmpty()) {
         errorDescription = QNLocalizedString("Notebook name is empty", this);
@@ -387,14 +386,14 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     int notebookNameSize = notebookName.size();
 
     if (notebookNameSize < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN) {
-        errorDescription = QNLocalizedString("Notebook name's minimal acceptable length is");
+        errorDescription = QNLocalizedString("Notebook name's minimal acceptable length is", this);
         errorDescription += QStringLiteral(" ");
         errorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (notebookNameSize > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX) {
-        errorDescription = QNLocalizedString("Notebook mame's maximal acceptable length is");
+        errorDescription = QNLocalizedString("Notebook name's maximal acceptable length is", this);
         errorDescription += QStringLiteral(" ");
         errorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX);
         return QModelIndex();
@@ -402,15 +401,15 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
 
     QModelIndex existingItemIndex = indexForNotebookName(notebookName);
     if (existingItemIndex.isValid()) {
-        errorDescription = QNLocalizedString("Notebook with such name already exists");
+        errorDescription = QNLocalizedString("Notebook with such name already exists", this);
         return QModelIndex();
     }
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingNotebooks = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingNotebooks + 1 >= m_account.notebookCountMax())) {
-        errorDescription = QNLocalizedString("Can't add notebook: the account can "
-                                             "contain a limited number of notebooks");
+        errorDescription = QNLocalizedString("Can't create notebook: the account can "
+                                             "contain a limited number of notebooks", this);
         errorDescription += QStringLiteral(": ");
         errorDescription += QString::number(m_account.notebookCountMax());
         return QModelIndex();
@@ -420,7 +419,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
         m_fakeRootItem = new NotebookModelItem;
     }
 
-    const NotebookModelItem * parentItem = m_fakeRootItem;
+    const NotebookModelItem * pParentItem = m_fakeRootItem;
 
     if (!notebookStack.isEmpty())
     {
@@ -445,18 +444,18 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
         if (it == m_modelItemsByStack.end()) {
             errorDescription = QNLocalizedString("Internal error: no notebook model item "
                                                  "while it's expected to be here; failed "
-                                                 "to auto-fix the problem");
+                                                 "to auto-fix the problem", this);
             return QModelIndex();
         }
 
-        parentItem = &(it.value());
-        QNDEBUG(QStringLiteral("Will put the new notebook under parent item: ") << *parentItem);
+        pParentItem = &(it.value());
+        QNDEBUG(QStringLiteral("Will put the new notebook under parent item: ") << *pParentItem);
     }
 
-    QModelIndex parentIndex = indexForItem(parentItem);
+    QModelIndex parentIndex = indexForItem(pParentItem);
 
     // Will insert the notebook to the end of the parent item's children
-    int row = parentItem->numChildren();
+    int row = pParentItem->numChildren();
 
     NotebookItem item;
     item.setLocalUid(UidGenerator::Generate());
@@ -478,7 +477,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     auto modelItemInsertionResult = m_modelItemsByLocalUid.insert(item.localUid(), modelItem);
 
     beginInsertRows(parentIndex, row, row);
-    modelItemInsertionResult.value().setParent(parentItem);
+    modelItemInsertionResult.value().setParent(pParentItem);
     endInsertRows();
 
     updateNotebookInLocalStorage(item);
@@ -495,6 +494,9 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
         updateItemRowWithRespectToSorting(*it);
     }
     emit layoutChanged();
+
+    // Need to update the index as the item's row could have changed as a result of sorting
+    addedNotebookIndex = indexForLocalUid(item.localUid());
 
     return addedNotebookIndex;
 }
@@ -790,11 +792,6 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         QNDEBUG(QStringLiteral("Index is not valid"));
         return false;
     }
-
-#define REPORT_ERROR(error, ...) \
-    QNLocalizedString errorDescription = QNLocalizedString(error, this); \
-    QNWARNING(errorDescription << "" __VA_ARGS__ ); \
-    emit notifyError(errorDescription)
 
     if (modelIndex.column() == Columns::Dirty) {
         REPORT_ERROR("The \"dirty\" flag can't be set manually in NotebookModel");
@@ -1269,7 +1266,7 @@ bool NotebookModel::insertRows(int row, int count, const QModelIndex & parent)
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     int numExistingNotebooks = static_cast<int>(localUidIndex.size());
     if (Q_UNLIKELY(numExistingNotebooks + count >= m_account.notebookCountMax())) {
-        QNLocalizedString error = QT_TR_NOOP("can't create notebook(s): the account can contain a limited number of notebooks");
+        QNLocalizedString error = QNLocalizedString("can't create notebook(s): the account can contain a limited number of notebooks", this);
         error += QStringLiteral(": ");
         error += QString::number(m_account.notebookCountMax());
         QNINFO(error);
@@ -1379,16 +1376,16 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
 
 #define CHECK_NOTEBOOK_ITEM(notebookItem) \
             if (notebookItem->isSynchronizable()) { \
-                QNLocalizedString error = QT_TR_NOOP("one of notebooks being removed along with the stack containing it " \
-                                                     "is synchronizable, it can't be removed"); \
+                QNLocalizedString error = QNLocalizedString("one of notebooks being removed along with the stack containing it " \
+                                                            "is synchronizable, it can't be removed", this); \
                 QNINFO(error << QStringLiteral(", notebook: ") << *notebookItem); \
                 emit notifyError(error); \
                 return false; \
             } \
             \
             if (notebookItem->isLinkedNotebook()) { \
-                QNLocalizedString error = QT_TR_NOOP("one of notebooks being removed along with the stack containing it " \
-                                                     "is the linked notebook from another account, it can't be removed"); \
+                QNLocalizedString error = QNLocalizedString("one of notebooks being removed along with the stack containing it " \
+                                                            "is the linked notebook from another account, it can't be removed", this); \
                 QNINFO(error << QStringLiteral(", notebook: ") << *notebookItem); \
                 emit notifyError(error); \
                 return false; \
@@ -2773,25 +2770,25 @@ void NotebookModel::removeModelItemFromParent(const NotebookModelItem & modelIte
 {
     QNDEBUG(QStringLiteral("NotebookModel::removeModelItemFromParent: ") << modelItem);
 
-    const NotebookModelItem * parentItem = modelItem.parent();
-    if (Q_UNLIKELY(!parentItem)) {
+    const NotebookModelItem * pParentItem = modelItem.parent();
+    if (Q_UNLIKELY(!pParentItem)) {
         QNDEBUG(QStringLiteral("No parent item, nothing to do"));
         return;
     }
 
-    QNTRACE(QStringLiteral("Parent item: ") << *parentItem);
-    int row = parentItem->rowForChild(&modelItem);
+    QNTRACE(QStringLiteral("Parent item: ") << *pParentItem);
+    int row = pParentItem->rowForChild(&modelItem);
     if (Q_UNLIKELY(row < 0)) {
         QNWARNING(QStringLiteral("Can't find the child notebook model item's row within its parent; child item = ")
-                  << modelItem << QStringLiteral(", parent item = ") << *parentItem);
+                  << modelItem << QStringLiteral(", parent item = ") << *pParentItem);
         return;
     }
 
     QNTRACE(QStringLiteral("Will remove the child at row ") << row);
 
-    QModelIndex parentIndex = indexForItem(parentItem);
+    QModelIndex parentIndex = indexForItem(pParentItem);
     beginRemoveRows(parentIndex, row, row);
-    Q_UNUSED(parentItem->takeChild(row))
+    Q_UNUSED(pParentItem->takeChild(row))
     endRemoveRows();
 }
 
@@ -2829,38 +2826,38 @@ void NotebookModel::updateItemRowWithRespectToSorting(const NotebookModelItem & 
         return;
     }
 
-    const NotebookModelItem * parentItem = modelItem.parent();
-    if (!parentItem)
+    const NotebookModelItem * pParentItem = modelItem.parent();
+    if (!pParentItem)
     {
         if (!m_fakeRootItem) {
             m_fakeRootItem = new NotebookModelItem;
         }
 
-        parentItem = m_fakeRootItem;
-        int row = rowForNewItem(*parentItem, modelItem);
+        pParentItem = m_fakeRootItem;
+        int row = rowForNewItem(*pParentItem, modelItem);
 
         beginInsertRows(QModelIndex(), row, row);
-        parentItem->insertChild(row, &modelItem);
+        pParentItem->insertChild(row, &modelItem);
         endInsertRows();
         return;
     }
 
-    int currentItemRow = parentItem->rowForChild(&modelItem);
+    int currentItemRow = pParentItem->rowForChild(&modelItem);
     if (Q_UNLIKELY(currentItemRow < 0)) {
         QNWARNING(QStringLiteral("Can't update notebook model item's row: can't find its original row within parent: ")
                   << modelItem);
         return;
     }
 
-    QModelIndex parentIndex = indexForItem(parentItem);
+    QModelIndex parentIndex = indexForItem(pParentItem);
     beginRemoveRows(parentIndex, currentItemRow, currentItemRow);
-    Q_UNUSED(parentItem->takeChild(currentItemRow))
+    Q_UNUSED(pParentItem->takeChild(currentItemRow))
     endRemoveRows();
 
-    int appropriateRow = rowForNewItem(*parentItem, modelItem);
+    int appropriateRow = rowForNewItem(*pParentItem, modelItem);
 
     beginInsertRows(parentIndex, appropriateRow, appropriateRow);
-    parentItem->insertChild(appropriateRow, &modelItem);
+    pParentItem->insertChild(appropriateRow, &modelItem);
     endInsertRows();
 
     QNTRACE(QStringLiteral("Moved item from row ") << currentItemRow << QStringLiteral(" to row ") << appropriateRow

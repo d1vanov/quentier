@@ -44,6 +44,9 @@ Q_SIGNALS:
     void newTagCreationRequested();
     void tagInfoRequested();
 
+public Q_SLOTS:
+    void deleteSelectedItem();
+
 private Q_SLOTS:
     void onAllTagsListed();
 
@@ -53,11 +56,11 @@ private Q_SLOTS:
 
     void onEditTagAction();
     void onPromoteTagAction();
+    void onRemoveFromParentTagAction();
+    void onMoveTagToParentAction();
     void onShowTagInfoAction();
 
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
-
-
 
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;

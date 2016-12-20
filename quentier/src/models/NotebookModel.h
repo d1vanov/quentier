@@ -93,7 +93,7 @@ public:
     QModelIndex lastUsedNotebookIndex() const;
 
     /**
-     * @brief moveToStack - moves the notebook item pointed to by index to the specified stack
+     * @brief moveToStack - moves the notebook item pointed to by the index to the specified stack
      * @param index - the index of the notebook item to be moved to the stack
      * @param stack - the stack to which the notebook item needs to be moved
      * @return the index of the moved notebook item or invalid index if something went wrong,
@@ -102,7 +102,7 @@ public:
     QModelIndex moveToStack(const QModelIndex & index, const QString & stack);
 
     /**
-     * @brief removeFromStack - removed the notebook item pointed to by index from its stack
+     * @brief removeFromStack - removes the notebook item pointed to by the index from its stack (if any)
      * @param index - the index of the notebook item to be removed from its stack
      * @return the index of the notebook item removed from its stack or invalid index
      * if something went wrong, for example, if the passed in index did not really point
@@ -117,7 +117,7 @@ public:
     QStringList stacks() const;
 
     /**
-     * @brief createNotebook - convenience method to create the new notebook into the model
+     * @brief createNotebook - convenience method to create a new notebook within the model
      * @param notebookName - the name of the new notebook
      * @param notebookStack - the stack of the new notebook
      * @param errorDescription - the textual description of the error if notebook

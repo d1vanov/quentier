@@ -80,10 +80,37 @@ public:
     QModelIndexList persistentIndexes() const;
 
     /**
+     * @brief moveToParent - moves the tag item pointed to by the index under the specified parent tag item
+     * @param index - the index of the tag item to be moved under the new parent
+     * @param parentTagName - the name of the parent tag under which the tag item is to be moved
+     * @return the index of the moved tag item or invalid model index if something went wrong,
+     * for example, if the passed in index did not really point to the tag item
+     */
+    QModelIndex moveToParent(const QModelIndex & index, const QString & parentTagName);
+
+    /**
+     * @brief removeFromParent - removes the tag item pointed to by the index from its parent tag (if any)
+     * @param index - the index of the tag to be removed from its parent
+     * @return the index of the tag item removed from its parent or invalid index
+     * if something went wrong, for example if the passed in index did not really point to the tag item
+     */
+    QModelIndex removeFromParent(const QModelIndex & index);
+
+    /**
      * @brief tagNames
-     * @return the list of tag names existing within the tag model
+     * @return the sorted (in case insensitive manner) list of tag names existing within the tag model
      */
     QStringList tagNames() const;
+
+    /**
+     * @brief createTag - convenience method to create a new tag within the model
+     * @param tagName - the name of the new tag
+     * @param parentTagName - the name of the parent tag for the new tag (empty for no parent tag)
+     * @param errorDescription - the textual description of the error if tag was not created successfully
+     * @return either valid model index if tag was created successfully or invalid model index otherwise
+     */
+    QModelIndex createTag(const QString & tagName, const QString & parentTagName,
+                          QNLocalizedString & errorDescription);
 
     /**
      * @brief columnName
@@ -216,6 +243,8 @@ private:
 
     QString nameForNewTag() const;
     void removeItemByLocalUid(const QString & localUid);
+
+    void removeModelItemFromParent(const TagModelItem & item);
 
     // Returns the appropriate row before which the new item should be inserted according to the current sorting criteria and column
     int rowForNewItem(const TagModelItem & parentItem, const TagModelItem & newItem) const;

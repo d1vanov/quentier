@@ -151,9 +151,12 @@ private Q_SLOTS:
     void onSwitchPanelStyleToDarker();
 
     // View buttons slots
-    void onAddNotebookButtonPressed();
+    void onCreateNotebookButtonPressed();
     void onRemoveNotebookButtonPressed();
     void onNotebookInfoButtonPressed();
+
+    void onCreateTagButtonPressed();
+    void onRemoveTagButtonPressed();
 
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();

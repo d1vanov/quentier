@@ -28,6 +28,7 @@ private Q_SLOTS:
 
 private:
     void createConnections();
+    bool setupEditedTagItem(QStringList & tagNames, int & currentIndex);
 
 private:
     Ui::AddOrEditTagDialog *    m_pUi;

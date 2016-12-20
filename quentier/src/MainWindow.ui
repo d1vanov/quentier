@@ -1352,7 +1352,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="ItemView" name="tagsTreeView">
+          <widget class="TagItemView" name="tagsTreeView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -2207,7 +2207,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3761,6 +3761,11 @@ border-bottom: 1px solid black;</string>
    <class>NotebookItemView</class>
    <extends>QTreeView</extends>
    <header>views/NotebookItemView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>TagItemView</class>
+   <extends>QTreeView</extends>
+   <header>views/TagItemView.h</header>
   </customwidget>
  </customwidgets>
  <resources>
