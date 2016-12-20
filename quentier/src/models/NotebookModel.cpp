@@ -925,6 +925,13 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
             }
         case Columns::Synchronizable:
             {
+                if (m_account.type() == Account::Type::Local) {
+                    QNLocalizedString error = QNLocalizedString("Can't make the notebook synchronizable within the local account", this);
+                    QNINFO(error);
+                    emit notifyError(error);
+                    return false;
+                }
+
                 if (notebookItemCopy.isSynchronizable() && !value.toBool()) {
                     QNLocalizedString error = QNLocalizedString("Can't make the already synchronizable notebook not synchronizable", this);
                     QNINFO(error << QStringLiteral(", already synchronizable notebook item: ") << notebookItemCopy);

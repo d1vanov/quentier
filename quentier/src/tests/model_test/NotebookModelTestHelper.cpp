@@ -173,15 +173,36 @@ void NotebookModelTestHelper::test()
             FAIL(QStringLiteral("The dirty state appears to have changed after setData in notebook model even though the method returned false"));
         }
 
-        // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
+        // Should only be able to make the non-synchronizable (local) item synchronizable (non-local) with non-local account
+        // 1) Trying with local account
         secondIndex = model->index(secondIndex.row(), NotebookModel::Columns::Synchronizable, secondParentIndex);
         if (!secondIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid notebook model item index for synchronizable column"));
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        if (res) {
+            FAIL(QStringLiteral("Was able to change the synchronizable flag from false to true for notebook model item with local account"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the notebook model while expected to get the state of synchronizable flag"));
+        }
+
+        if (data.toBool()) {
+            FAIL(QStringLiteral("Even though setData returned false on attempt to make the notebook item synchronizable "
+                                "with the local account, the actual data within the model appears to have changed"));
+        }
+
+        // 2) Trying the non-local account
+        account = Account(QStringLiteral("Evernote user"), Account::Type::Evernote, qevercloud::UserID(1));
+        model->updateAccount(account);
+
+        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            FAIL(QStringLiteral("Can't change the synchronizable flag from false to true for notebook model item"));
+            FAIL(QStringLiteral("Wasn't able to change the synchronizable flag from false to true for notebook model item "
+                                "even with the account of Evernote type"));
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -190,7 +211,8 @@ void NotebookModelTestHelper::test()
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The synchronizable state appears to have not changed after setData in notebook model even though the method returned true"));
+            FAIL(QStringLiteral("The synchronizable state appears to have not changed after setData in notebook model "
+                                "even though the method returned true"));
         }
 
         // Verify the dirty flag has changed as a result of making the item synchronizable
@@ -250,7 +272,7 @@ void NotebookModelTestHelper::test()
                  << data.toString() << QStringLiteral(", expected ") << newName);
         }
 
-        // Should not be able to remove the row with a synchronizable (non-local) notebook
+        // Should not be able to remove row with a synchronizable (non-local) notebook
         res = model->removeRow(secondIndex.row(), secondParentIndex);
         if (res) {
             FAIL(QStringLiteral("Was able to remove the row with a synchronizable notebook which is not intended"));
@@ -265,7 +287,7 @@ void NotebookModelTestHelper::test()
             FAIL(QStringLiteral("Notebook model returned item index with a different row after the failed row removal attempt"));
         }
 
-        // Should be able to remove the row with a non-synchronizable (local) notebook
+        // Should be able to remove row with a non-synchronizable (local) notebook
         QModelIndex firstIndex = model->indexForLocalUid(first.localUid());
         if (!firstIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid notebook model item index for local uid"));
@@ -487,6 +509,42 @@ void NotebookModelTestHelper::test()
 
         if (!fourthItemRemovedFromStackNotebookItem->stack().isEmpty()) {
             FAIL(QStringLiteral("The notebook item's stack is still not empty after the model item has been removed from the stack"));
+        }
+
+        // Should be able to remove the last item from the stack and thus cause the stack item to disappear
+        seventhIndexMoved = model->indexForLocalUid(seventh.localUid());
+        if (!seventhIndexMoved.isValid()) {
+            FAIL(QStringLiteral("The model index of the notebook item is unexpectedly invalid"));
+        }
+
+        seventhIndexMoved = model->removeFromStack(seventhIndexMoved);
+        if (!seventhIndexMoved.isValid()) {
+            FAIL(QStringLiteral("The model returned invalid model index after the attempt to remove the last item from the stack"));
+        }
+
+        seventhItem = model->itemForIndex(seventhIndexMoved);
+        if (!seventhItem) {
+            FAIL(QStringLiteral("Can't get the notebook model item after its removal from the stack from model index"));
+        }
+
+        if (seventhItem->type() != NotebookModelItem::Type::Notebook) {
+            FAIL(QStringLiteral("Notebook model item has wrong type after being removed from its stack: ") << *seventhItem);
+        }
+
+        seventhNotebookItem = seventhItem->notebookItem();
+        if (!seventhNotebookItem) {
+            FAIL(QStringLiteral("Notebook model item has null pointer to the notebook item even though it's of notebook type"));
+        }
+
+        if (!seventhNotebookItem->stack().isEmpty()) {
+            FAIL(QStringLiteral("Notebook item has non-empty stack after the item's removal from the stack"));
+        }
+
+        // Ensure the stack item ceased to exist after the last notebook item has been removed from it
+        QModelIndex emptyStackItemIndex = model->indexForNotebookStack(newStack);
+        if (emptyStackItemIndex.isValid()) {
+            FAIL(QStringLiteral("Notebook model returned valid model index for stack which should have been removed from the model "
+                                "after the removal of the last notebook contained in this stack"));
         }
 
         // Check the sorting for notebook and stack items: by default should sort by name in ascending order
