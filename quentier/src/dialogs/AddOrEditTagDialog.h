@@ -25,6 +25,7 @@ public:
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
     void onTagNameEdited(const QString & tagName);
+    void onParentTagNameChanged(const QString & parentTagName);
 
 private:
     void createConnections();

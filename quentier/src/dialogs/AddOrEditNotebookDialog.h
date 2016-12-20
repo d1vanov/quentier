@@ -26,6 +26,7 @@ public:
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
     void onNotebookNameEdited(const QString & notebookName);
+    void onNotebookStackChanged(const QString & stack);
 
 private:
     void createConnections();

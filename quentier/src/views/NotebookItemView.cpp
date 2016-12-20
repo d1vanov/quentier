@@ -17,7 +17,7 @@
  */
 
 #include "NotebookItemView.h"
-#include "AccountToKey.h"
+#include "../AccountToKey.h"
 #include "../models/NotebookModel.h"
 #include "../dialogs/AddOrEditNotebookDialog.h"
 #include <quentier/logging/QuentierLogger.h>

@@ -1,9 +1,14 @@
 #include "AddOrEditTagDialog.h"
 #include "ui_AddOrEditTagDialog.h"
+#include "../AccountToKey.h"
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
+#include <QPushButton>
 #include <algorithm>
 #include <iterator>
+
+#define LAST_SELECTED_PARENT_TAG_NAME_KEY QStringLiteral("_LastSelectedParentTagName")
 
 namespace quentier {
 
@@ -25,17 +30,35 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
         tagNames.prepend(QString());    // Inserting empty parent tag name to allow no parent in the combo box
     }
 
-    createConnections();
-
     int parentTagNameIndex = -1;
     bool res = setupEditedTagItem(tagNames, parentTagNameIndex);
 
     m_pTagNamesModel = new QStringListModel(this);
     m_pTagNamesModel->setStringList(tagNames);
-
     m_pUi->parentTagNameComboBox->setModel(m_pTagNamesModel);
-    if (res) {
+
+    createConnections();
+
+    if (res)
+    {
         m_pUi->parentTagNameComboBox->setCurrentIndex(parentTagNameIndex);
+    }
+    else if (!tagNames.isEmpty() && !m_pTagModel.isNull())
+    {
+        QString accountKey = accountToKey(m_pTagModel->account());
+        if (Q_LIKELY(!accountKey.isEmpty()))
+        {
+            ApplicationSettings appSettings;
+            appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditTagDialog"));
+            QString lastSelectedParentTagName = appSettings.value(LAST_SELECTED_PARENT_TAG_NAME_KEY).toString();
+            appSettings.endGroup();
+
+            auto it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), lastSelectedParentTagName);
+            if ((it != tagNames.constEnd()) && (*it == lastSelectedParentTagName)) {
+                int index = static_cast<int>(std::distance(tagNames.constBegin(), it));
+                m_pUi->parentTagNameComboBox->setCurrentIndex(index);
+            }
+        }
     }
 
     m_pUi->tagNameLineEdit->setFocus();
@@ -143,8 +166,17 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
         return;
     }
 
+    QModelIndex itemIndex = m_pTagModel->indexForTagName(tagName);
+    if (itemIndex.isValid()) {
+        m_pUi->statusBar->setText(tr("The tag name must be unique in case insensitive manner"));
+        m_pUi->statusBar->setHidden(false);
+        m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+        return;
+    }
+
     m_pUi->statusBar->clear();
     m_pUi->statusBar->setHidden(true);
+    m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(false);
 
     QStringList tagNames;
     if (m_pTagNamesModel) {
@@ -203,10 +235,34 @@ void AddOrEditTagDialog::onTagNameEdited(const QString & tagName)
     }
 }
 
+void AddOrEditTagDialog::onParentTagNameChanged(const QString & parentTagName)
+{
+    QNDEBUG(QStringLiteral("AddOrEditTagDialog::onParentTagNameChanged: ") << parentTagName);
+
+    if (Q_UNLIKELY(m_pTagModel.isNull())) {
+        QNDEBUG(QStringLiteral("No tag model is set, nothing to do"));
+        return;
+    }
+
+    QString accountKey = accountToKey(m_pTagModel->account());
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        QNWARNING(QStringLiteral("Can't persist the last selected parent tag name: "
+                                 "can't convert the account to key string"));
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditTagDialog"));
+    appSettings.setValue(LAST_SELECTED_PARENT_TAG_NAME_KEY, parentTagName);
+    appSettings.endGroup();
+}
+
 void AddOrEditTagDialog::createConnections()
 {
     QObject::connect(m_pUi->tagNameLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString &),
                      this, QNSLOT(AddOrEditTagDialog,onTagNameEdited,const QString &));
+    QObject::connect(m_pUi->parentTagNameComboBox, SIGNAL(currentIndexChanged(QString)),
+                     this, SLOT(onParentTagNameChanged(QString)));
 }
 
 bool AddOrEditTagDialog::setupEditedTagItem(QStringList & tagNames, int & currentIndex)
@@ -252,7 +308,24 @@ bool AddOrEditTagDialog::setupEditedTagItem(QStringList & tagNames, int & curren
         return true;
     }
 
-    // 2) If the current tag has a parent, set it's name as the current one
+    // 2) Remove all the children of this tag from the list of possible parents for it
+    int numChildren = pItem->numChildren();
+    for(int i = 0; i < numChildren; ++i)
+    {
+        const TagModelItem * pChildItem = pItem->childAtRow(i);
+        if (Q_UNLIKELY(!pChildItem)) {
+            QNWARNING(QStringLiteral("Found null child item at row ") << i);
+            continue;
+        }
+
+        it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pItem->name());
+        if ((it != tagNames.constEnd()) && (pItem->name() == *it)) {
+            int pos = static_cast<int>(std::distance(tagNames.constBegin(), it));
+            tagNames.removeAt(pos);
+        }
+    }
+
+    // 3) If the current tag has a parent, set it's name as the current one
     QModelIndex editedTagParentIndex = editedTagIndex.parent();
     const TagModelItem * pParentItem = pItem->parent();
     if (editedTagParentIndex.isValid() && pParentItem)

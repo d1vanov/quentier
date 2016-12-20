@@ -253,6 +253,8 @@ private:
     void updatePersistentModelIndices();
     void updateTagInLocalStorage(const TagModelItem & item);
 
+    void tagFromItem(const TagModelItem & item, Tag & tag) const;
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};

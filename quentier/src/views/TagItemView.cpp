@@ -530,7 +530,8 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                             m_pTagItemContextMenu, onEditTagAction,
                             pItem->localUid(), canUpdate);
 
-    if (clickedItemIndex.parent().isValid())
+    QModelIndex clickedItemParentIndex = clickedItemIndex.parent();
+    if (clickedItemParentIndex.isValid())
     {
         m_pTagItemContextMenu->addSeparator();
 
@@ -543,10 +544,47 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     }
 
     QStringList tagNames = pTagModel->tagNames();
+
+    // 1) Remove the current tag's name from the list of possible new parents
     auto nameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pItem->name());
     if ((nameIt != tagNames.constEnd()) && (*nameIt == pItem->name())) {
         int pos = static_cast<int>(std::distance(tagNames.constBegin(), nameIt));
         tagNames.removeAt(pos);
+    }
+
+    // 2) Remove the current tag's parent tag's name from the list of possible new parents
+    if (clickedItemParentIndex.isValid())
+    {
+        const TagModelItem * pParentItem = pTagModel->itemForIndex(clickedItemParentIndex);
+        if (Q_UNLIKELY(!pParentItem))
+        {
+            QNWARNING(QStringLiteral("Can't find parent tag model item for valid parent tag item index"));
+        }
+        else
+        {
+            auto parentNameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pParentItem->name());
+            if ((parentNameIt != tagNames.constEnd()) && (*parentNameIt == pParentItem->name())) {
+                int pos = static_cast<int>(std::distance(tagNames.constBegin(), parentNameIt));
+                tagNames.removeAt(pos);
+            }
+        }
+    }
+
+    // 3) Remove the current tag's children names from the list of possible new parents
+    int numItemChildren = pItem->numChildren();
+    for(int i = 0; i < numItemChildren; ++i)
+    {
+        const TagModelItem * pChildItem = pItem->childAtRow(i);
+        if (Q_UNLIKELY(!pChildItem)) {
+            QNWARNING(QStringLiteral("Found null pointer to child tag model item"));
+            continue;
+        }
+
+        auto childNameIt = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), pChildItem->name());
+        if ((childNameIt != tagNames.constEnd()) && (*childNameIt == pChildItem->name())) {
+            int pos = static_cast<int>(std::distance(tagNames.constBegin(), childNameIt));
+            tagNames.removeAt(pos);
+        }
     }
 
     if (Q_LIKELY(!tagNames.isEmpty()))
@@ -634,11 +672,14 @@ void TagItemView::saveTagItemsState()
         }
 
         const TagModelItem * pItem = pTagModel->itemForIndex(index);
-        if (Q_UNLIKELY(pItem)) {
+        if (Q_UNLIKELY(!pItem)) {
+            QNWARNING(QStringLiteral("Tag model returned null pointer to tag model item "
+                                     "for valid model index"));
             continue;
         }
 
         result << pItem->localUid();
+        QNTRACE(QStringLiteral("Found expanded tag item: local uid = ") << pItem->localUid());
     }
 
     ApplicationSettings appSettings;
@@ -670,7 +711,8 @@ void TagItemView::restoreTagItemsState(const TagModel & model)
 
 void TagItemView::setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model)
 {
-    QNDEBUG(QStringLiteral("TagItemView::setTagsExpanded"));
+    QNDEBUG(QStringLiteral("TagItemView::setTagsExpanded: ") << tagLocalUids.size()
+            << QStringLiteral(" tag local uids: ") << tagLocalUids.join(QStringLiteral(",")));
 
     for(auto it = tagLocalUids.constBegin(), end = tagLocalUids.constEnd(); it != end; ++it)
     {

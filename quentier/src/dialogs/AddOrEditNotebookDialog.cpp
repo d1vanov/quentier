@@ -1,7 +1,12 @@
 #include "AddOrEditNotebookDialog.h"
 #include "ui_AddOrEditNotebookDialog.h"
+#include "../AccountToKey.h"
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
+#include <QPushButton>
+
+#define LAST_SELECTED_STACK QStringLiteral("_LastSelectedNotebookStack")
 
 namespace quentier {
 
@@ -61,6 +66,22 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(NotebookModel * pNotebookModel,
                 if (index >= 0) {
                     m_pUi->notebookStackComboBox->setCurrentIndex(index);
                 }
+            }
+        }
+    }
+    else if (!stacks.isEmpty() && !m_pNotebookModel.isNull())
+    {
+        QString accountKey = accountToKey(m_pNotebookModel->account());
+        if (Q_LIKELY(!accountKey.isEmpty()))
+        {
+            ApplicationSettings appSettings;
+            appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditNotebookDialog"));
+            QString lastSelectedStack = appSettings.value(LAST_SELECTED_STACK).toString();
+            appSettings.endGroup();
+
+            int index = stacks.indexOf(lastSelectedStack);
+            if (index >= 0) {
+                m_pUi->notebookStackComboBox->setCurrentIndex(index);
             }
         }
     }
@@ -176,14 +197,55 @@ void AddOrEditNotebookDialog::onNotebookNameEdited(const QString & notebookName)
 {
     QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::onNotebookNameEdited: ") << notebookName);
 
+    if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
+        QNDEBUG(QStringLiteral("Notebook model is missing"));
+        return;
+    }
+
+    QModelIndex itemIndex = m_pNotebookModel->indexForNotebookName(notebookName);
+    if (itemIndex.isValid()) {
+        m_pUi->statusBar->setText(tr("The notebook name must be unique in case insensitive manner"));
+        m_pUi->statusBar->setHidden(false);
+        m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(true);
+        return;
+    }
+
     m_pUi->statusBar->clear();
     m_pUi->statusBar->setHidden(true);
+    m_pUi->buttonBox->button(QDialogButtonBox::Ok)->setDisabled(false);
+}
+
+void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
+{
+    QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::onNotebookStackChanged: ") << stack);
+
+    if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
+        QNDEBUG(QStringLiteral("No notebook model is set, nothing to do"));
+        return;
+    }
+
+    QString accountKey = accountToKey(m_pNotebookModel->account());
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        QNWARNING(QStringLiteral("Can't persist the last selected notebook stack: "
+                                 "can't convert the account to key string"));
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditNotebookDialog"));
+    appSettings.setValue(LAST_SELECTED_STACK, stack);
+    appSettings.endGroup();
 }
 
 void AddOrEditNotebookDialog::createConnections()
 {
     QObject::connect(m_pUi->notebookNameLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString&),
                      this, QNSLOT(AddOrEditNotebookDialog,onNotebookNameEdited,const QString&));
+
+    QObject::connect(m_pUi->notebookStackComboBox, SIGNAL(currentIndexChanged(QString)),
+                     this, SLOT(onNotebookStackChanged(QString)));
+    QObject::connect(m_pUi->notebookStackComboBox, QNSIGNAL(QComboBox,editTextChanged,const QString&),
+                     this, QNSLOT(AddOrEditNotebookDialog,onNotebookStackChanged,const QString &));
 }
 
 } // namespace quentier

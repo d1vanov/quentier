@@ -46,6 +46,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libquentier/headers)
 
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
+    src/AccountToKey.h
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/NoteEditorTabWidgetManager.h
@@ -88,7 +89,6 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeConstraintsActionWidget.h
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
-    src/views/AccountToKey.h
     src/views/ItemView.h
     src/views/NotebookItemView.h
     src/views/TagItemView.h
@@ -104,6 +104,7 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
+    src/AccountToKey.cpp
     src/AccountManager.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
@@ -142,7 +143,6 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
-    src/views/AccountToKey.cpp
     src/views/ItemView.cpp
     src/views/NotebookItemView.cpp
     src/views/TagItemView.cpp
