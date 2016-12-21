@@ -74,7 +74,19 @@ public:
     QModelIndex indexForLocalUid(const QString & localUid) const;
     QModelIndex indexForTagName(const QString & tagName) const;
 
+    /**
+     * @brief promote - moves the tag item pointed by the index from its parent to its grandparent, if both exist
+     * @param index - the index of the tag item to be promoted
+     * @return the index of the promoted tag item or invalid model index if tag item could not be promoted
+     */
     QModelIndex promote(const QModelIndex & index);
+
+    /**
+     * @brief demote - moves the tag item pointed to by the index from its parent to its previous sibling within the
+     * current parent
+     * @param index - the index of the tag item to be demoted
+     * @return the index of the demoted tag item or invalid model index fi tag item could not be demoted
+     */
     QModelIndex demote(const QModelIndex & index);
 
     QModelIndexList persistentIndexes() const;

@@ -56,6 +56,7 @@ private Q_SLOTS:
 
     void onEditTagAction();
     void onPromoteTagAction();
+    void onDemoteTagAction();
     void onRemoveFromParentTagAction();
     void onMoveTagToParentAction();
     void onShowTagInfoAction();

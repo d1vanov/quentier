@@ -302,6 +302,48 @@ void TagItemView::onPromoteTagAction()
                                               "explaining why the tag could not be promoted")))
 }
 
+void TagItemView::onDemoteTagAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onDemoteTagAction"));
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't demote tag, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    QString itemLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't demote tag, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't demote tag: the model returned invalid "
+                     "index for the tag's local uid");
+        return;
+    }
+
+    QModelIndex demotedItemIndex = pTagModel->demote(itemIndex);
+    if (demotedItemIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Successfully demoted the tag"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The tag model refused to demote the tag; "
+                                              "Check the status bar for message from the tag model "
+                                              "explaining why the tag could not be demoted")))
+}
+
 void TagItemView::onRemoveFromParentTagAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onRemoveFromParentTagAction"));
@@ -491,6 +533,16 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         ADD_CONTEXT_MENU_ACTION(tr("Remove from parent"), m_pTagItemContextMenu,
                                 onRemoveFromParentTagAction, pItem->localUid(),
                                 canUpdate);
+    }
+
+    if (clickedItemIndex.row() != 0)
+    {
+        QModelIndex siblingItemIndex = pTagModel->index(clickedItemIndex.row() - 1, clickedItemIndex.column(),
+                                                        clickedItemIndex.parent());
+        bool canUpdateItemAndSibling = canUpdate && (pTagModel->flags(siblingItemIndex) & Qt::ItemIsEditable);
+        ADD_CONTEXT_MENU_ACTION(tr("Demote"), m_pTagItemContextMenu,
+                                onDemoteTagAction, pItem->localUid(),
+                                canUpdateItemAndSibling);
     }
 
     QStringList tagNames = pTagModel->tagNames();
