@@ -62,6 +62,7 @@ private Q_SLOTS:
     void onShowTagInfoAction();
 
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
+    void onTagParentChanged(const QModelIndex & index);
 
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;

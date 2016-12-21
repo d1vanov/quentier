@@ -81,6 +81,8 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
 
     QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyAllTagsListed),
                      this, QNSLOT(TagItemView,onAllTagsListed));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyTagParentChanged,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onTagParentChanged,const QModelIndex&));
 }
 
 QModelIndex TagItemView::currentlySelectedItemIndex() const
@@ -291,6 +293,8 @@ void TagItemView::onPromoteTagAction()
         return;
     }
 
+    saveTagItemsState();
+
     QModelIndex promotedItemIndex = pTagModel->promote(itemIndex);
     if (promotedItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully promoted the tag"));
@@ -333,6 +337,8 @@ void TagItemView::onDemoteTagAction()
         return;
     }
 
+    saveTagItemsState();
+
     QModelIndex demotedItemIndex = pTagModel->demote(itemIndex);
     if (demotedItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully demoted the tag"));
@@ -374,6 +380,8 @@ void TagItemView::onRemoveFromParentTagAction()
                      "index for the tag's local uid");
         return;
     }
+
+    saveTagItemsState();
 
     QModelIndex removedFromParentItemIndex = pTagModel->removeFromParent(itemIndex);
     if (removedFromParentItemIndex.isValid()) {
@@ -420,8 +428,9 @@ void TagItemView::onMoveTagToParentAction()
         return;
     }
 
-    const QString & parentTagName = itemLocalUidAndParentName.at(1);
+    saveTagItemsState();
 
+    const QString & parentTagName = itemLocalUidAndParentName.at(1);
     QModelIndex movedTagItemIndex = pTagModel->moveToParent(itemIndex, parentTagName);
     if (!movedTagItemIndex.isValid()) {
         REPORT_ERROR("Can't move tag to parent");
@@ -451,6 +460,21 @@ void TagItemView::onTagItemCollapsedOrExpanded(const QModelIndex & index)
     }
 
     saveTagItemsState();
+}
+
+void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
+{
+    QNDEBUG(QStringLiteral("TagItemView::onTagParentChanged"));
+
+    Q_UNUSED(tagIndex)
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    restoreTagItemsState(*pTagModel);
 }
 
 void TagItemView::selectionChanged(const QItemSelection & selected,

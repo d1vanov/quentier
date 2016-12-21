@@ -1931,6 +1931,8 @@ QModelIndex TagModel::promote(const QModelIndex & itemIndex)
     }
 
     updateTagInLocalStorage(copyItem);
+
+    emit notifyTagParentChanged(newIndex);
     return newIndex;
 }
 
@@ -2076,6 +2078,8 @@ QModelIndex TagModel::demote(const QModelIndex & itemIndex)
     }
 
     updateTagInLocalStorage(copyItem);
+
+    emit notifyTagParentChanged(newIndex);
     return newIndex;
 }
 
@@ -2150,15 +2154,15 @@ QModelIndex TagModel::moveToParent(const QModelIndex & index, const QString & pa
     updateTagInLocalStorage(tagItemCopy);
 
     QModelIndex parentIndex = indexForItem(pNewParentItem);
-    int newRow = pNewParentItem->numChildren();
+    int newRow = rowForNewItem(*pNewParentItem, *pItem);
 
     beginInsertRows(parentIndex, newRow, newRow);
-    pItem->setParent(pNewParentItem);
+    pNewParentItem->insertChild(newRow, pItem);
     endInsertRows();
 
-    updateItemRowWithRespectToSorting(*pItem);
-
-    return indexForItem(pItem);
+    QModelIndex newIndex = indexForItem(pItem);
+    emit notifyTagParentChanged(newIndex);
+    return newIndex;
 }
 
 QModelIndex TagModel::removeFromParent(const QModelIndex & index)
@@ -2194,14 +2198,15 @@ QModelIndex TagModel::removeFromParent(const QModelIndex & index)
     }
 
     QNDEBUG(QStringLiteral("Setting fake root item as the new parent for the tag"));
-    int newRow = m_fakeRootItem->numChildren();
+    int newRow = rowForNewItem(*m_fakeRootItem, *pItem);
 
     beginInsertRows(QModelIndex(), newRow, newRow);
-    pItem->setParent(m_fakeRootItem);
+    m_fakeRootItem->insertChild(newRow, pItem);
     endInsertRows();
 
-    updateItemRowWithRespectToSorting(*pItem);
-    return indexForItem(pItem);
+    QModelIndex newIndex = indexForItem(pItem);
+    emit notifyTagParentChanged(newIndex);
+    return newIndex;
 }
 
 QStringList TagModel::tagNames() const

@@ -174,6 +174,8 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
     void notifyAllTagsListed();
 
+    void notifyTagParentChanged(const QModelIndex & tagIndex);
+
 // private signals
     void addTag(Tag tag, QUuid requestId);
     void updateTag(Tag tag, QUuid requestId);
