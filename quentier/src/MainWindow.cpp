@@ -42,6 +42,7 @@
 using quentier::TabWidget;
 
 #include "widgets/NotebookModelItemInfoWidget.h"
+#include "widgets/TagModelItemInfoWidget.h"
 
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -299,6 +300,8 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onCreateTagButtonPressed));
     QObject::connect(m_pUI->removeTagButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onRemoveTagButtonPressed));
+    QObject::connect(m_pUI->tagInfoButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onTagInfoButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1362,6 +1365,29 @@ void MainWindow::onRemoveTagButtonPressed()
     m_pUI->tagsTreeView->deleteSelectedItem();
 }
 
+void MainWindow::onTagInfoButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onTagInfoButtonPressed"));
+
+    QModelIndex index = m_pUI->tagsTreeView->currentlySelectedItemIndex();
+    TagModelItemInfoWidget * pTagModelItemInfoWidget = new TagModelItemInfoWidget(index, this);
+    pTagModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pTagModelItemInfoWidget->setWindowModality(Qt::WindowModal);
+    pTagModelItemInfoWidget->adjustSize();
+#ifndef Q_OS_MAC
+    // Center the widget relative to the main window
+    const QRect & geometryRect = geometry();
+    const QRect & dialogGeometryRect = pTagModelItemInfoWidget->geometry();
+    if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
+        const QPoint center = geometryRect.center();
+        int x = center.x() - dialogGeometryRect.width() / 2;
+        int y = center.y() - dialogGeometryRect.height() / 2;
+        pTagModelItemInfoWidget->move(x, y);
+    }
+#endif
+    pTagModelItemInfoWidget->show();
+}
+
 void MainWindow::onSetTestNoteWithEncryptedData()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
@@ -2182,6 +2208,10 @@ void MainWindow::setupViews()
 
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,newTagCreationRequested),
                      this, QNSLOT(MainWindow,onCreateTagButtonPressed));
+    QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,tagInfoRequested),
+                     this, QNSLOT(MainWindow,onTagInfoButtonPressed));
+    QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,notifyError,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
 
     ItemView * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
     pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);

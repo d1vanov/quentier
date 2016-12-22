@@ -157,6 +157,7 @@ private Q_SLOTS:
 
     void onCreateTagButtonPressed();
     void onRemoveTagButtonPressed();
+    void onTagInfoButtonPressed();
 
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();

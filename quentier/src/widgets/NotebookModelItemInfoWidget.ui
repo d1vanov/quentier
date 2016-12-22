@@ -204,22 +204,6 @@
      </property>
     </widget>
    </item>
-   <item row="11" column="0">
-    <widget class="QLabel" name="statusBarLabel">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>26</height>
-      </size>
-     </property>
-    </widget>
-   </item>
    <item row="9" column="1" colspan="2">
     <widget class="QLineEdit" name="stackNumNotebooksLineEdit">
      <property name="readOnly">
@@ -453,6 +437,22 @@
       </spacer>
      </item>
     </layout>
+   </item>
+   <item row="11" column="0" colspan="3">
+    <widget class="QLabel" name="statusBarLabel">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>26</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>26</height>
+      </size>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

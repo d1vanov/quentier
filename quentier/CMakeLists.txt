@@ -99,6 +99,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/NoteEditorWidget.h
     src/widgets/NoteTagWidget.h
     src/widgets/NoteTagsWidget.h
+    src/widgets/TagModelItemInfoWidget.h
     src/widgets/TabWidget.h
     src/tests/ManualTestingHelper.h)
 
@@ -153,6 +154,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/NoteEditorWidget.cpp
     src/widgets/NoteTagWidget.cpp
     src/widgets/NoteTagsWidget.cpp
+    src/widgets/TagModelItemInfoWidget.cpp
     src/widgets/TabWidget.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
@@ -168,7 +170,8 @@ set(FORMS
     src/widgets/NewTagLineEditor.ui
     src/widgets/NotebookModelItemInfoWidget.ui
     src/widgets/NoteEditorWidget.ui
-    src/widgets/NoteTagWidget.ui)
+    src/widgets/NoteTagWidget.ui
+    src/widgets/TagModelItemInfoWidget.ui)
 
 if(USE_QT5)
   qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
