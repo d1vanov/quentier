@@ -272,6 +272,8 @@ QModelIndex NotebookModel::moveToStack(const QModelIndex & index, const QString 
     pNewParentItem->insertChild(newRow, pModelItem);
     endInsertRows();
 
+    QNTRACE(QStringLiteral("Emitting \"notifyNotebookStackChanged\" signal"));
+    emit notifyNotebookStackChanged(index);
     return indexForItem(pModelItem);
 }
 
@@ -346,13 +348,13 @@ QModelIndex NotebookModel::removeFromStack(const QModelIndex & index)
         checkAndRemoveEmptyStackItem(*pParentItem);
     }
 
-    int newRow = m_fakeRootItem->numChildren();
-
+    int newRow = rowForNewItem(*m_fakeRootItem, *pModelItem);
     beginInsertRows(QModelIndex(), newRow, newRow);
-    pModelItem->setParent(m_fakeRootItem);
+    m_fakeRootItem->insertChild(newRow, pModelItem);
     endInsertRows();
 
-    updateItemRowWithRespectToSorting(*pModelItem);
+    QNTRACE(QStringLiteral("Emitting \"notifyNotebookStackChanged\" signal"));
+    emit notifyNotebookStackChanged(index);
     return indexForItem(pModelItem);
 }
 
@@ -521,6 +523,26 @@ QString NotebookModel::columnName(const NotebookModel::Columns::type column) con
     default:
         return QString();
     }
+}
+
+void NotebookModel::favoriteNotebook(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::favoriteNotebook: index: is valid = ")
+            << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << index.row() << QStringLiteral(", column = ")
+            << index.column() << QStringLiteral(", internal id = ") << index.internalId());
+
+    setNotebookFavorited(index, true);
+}
+
+void NotebookModel::unfavoriteNotebook(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("NotebookModel::unfavoriteNotebook: index: is valid = ")
+            << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << index.row() << QStringLiteral(", column = ")
+            << index.column() << QStringLiteral(", internal id = ") << index.internalId());
+
+    setNotebookFavorited(index, false);
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
@@ -2381,6 +2403,7 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     notebook.setDefaultNotebook(item.isDefault());
     notebook.setLastUsed(item.isLastUsed());
     notebook.setPublished(item.isPublished());
+    notebook.setFavorited(item.isFavorited());
     notebook.setStack(item.stack());
 
     m_cache.put(item.localUid(), notebook);
@@ -2546,6 +2569,8 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
         return;
     }
 
+    bool notebookStackChanged = false;
+
     if (pParentItem->type() == NotebookModelItem::Type::Stack)
     {
         const NotebookStackItem * parentStackItem = pParentItem->notebookStackItem();
@@ -2618,6 +2643,8 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
                           << QStringLiteral("\nChild item = ") << *pModelItem);
                 return;
             }
+
+            notebookStackChanged = true;
         }
     }
     else if (pParentItem != m_fakeRootItem)
@@ -2643,6 +2670,10 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
     emit layoutAboutToBeChanged();
     updateItemRowWithRespectToSorting(*pModelItem);
     emit layoutChanged();
+
+    if (notebookStackChanged) {
+        emit notifyNotebookStackChanged(modelIndexFrom);
+    }
 }
 
 NotebookModel::ModelItems::iterator NotebookModel::addNewStackModelItem(const NotebookStackItem & stackItem)
@@ -2742,6 +2773,7 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
 
     item.setSynchronizable(!notebook.isLocal());
     item.setDirty(notebook.isDirty());
+    item.setFavorited(notebook.isFavorited());
 
     bool isDefaultNotebook = notebook.isDefaultNotebook();
     item.setDefault(isDefaultNotebook);
@@ -3024,6 +3056,51 @@ void NotebookModel::checkAndRemoveEmptyStackItem(const NotebookModelItem & model
             QNWARNING(QStringLiteral("Can't find stack model item to remove, stack ") << previousStack);
         }
     }
+}
+
+void NotebookModel::setNotebookFavorited(const QModelIndex & index, const bool favorited)
+{
+    if (Q_UNLIKELY(!index.isValid())) {
+        REPORT_ERROR("Can't set favorited flag for the notebook: the model index is invalid");
+        return;
+    }
+
+    const NotebookModelItem * pModelItem = itemForIndex(index);
+    if (Q_UNLIKELY(!pModelItem)) {
+        REPORT_ERROR("Can't set favorited flag for the notebook: can't find the model item corresponding to index");
+        return;
+    }
+
+    if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook)) {
+        REPORT_ERROR("Can't set favorited flag for the notebook: the modified item is not a notebook");
+        return;
+    }
+
+    const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem)) {
+        REPORT_ERROR("Can't set favorited flag for the notebook: the modified model item has null pointer to the notebook item");
+        return;
+    }
+
+    if (favorited == pNotebookItem->isFavorited()) {
+        QNDEBUG(QStringLiteral("Favorited flag's value hasn't changed"));
+        return;
+    }
+
+    NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto it = localUidIndex.find(pNotebookItem->localUid());
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        REPORT_ERROR("Can't set favorited flag for the notebook: the modified notebook item was not found within the model");
+        return;
+    }
+
+    NotebookItem itemCopy(*pNotebookItem);
+    itemCopy.setFavorited(favorited);
+
+    localUidIndex.replace(it, itemCopy);
+
+    updateNotebookInLocalStorage(itemCopy);
 }
 
 const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const

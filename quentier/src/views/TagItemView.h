@@ -60,6 +60,7 @@ private Q_SLOTS:
     void onRemoveFromParentTagAction();
     void onMoveTagToParentAction();
     void onShowTagInfoAction();
+    void onDeselectAction();
 
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
     void onTagParentChanged(const QModelIndex & index);
@@ -84,6 +85,7 @@ private:
 private:
     QMenu *     m_pTagItemContextMenu;
     bool        m_restoringTagItemsState;
+    bool        m_trackingSelection;
 };
 
 } // namespace quentier

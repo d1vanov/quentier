@@ -38,6 +38,7 @@ public:
                           const bool isLastUsed = false,
                           const bool isPublished = false,
                           const bool isLinkedNotebook = false,
+                          const bool isFavorited = false,
                           const int numNotesPerNotebook = -1);
     ~NotebookItem();
 
@@ -79,6 +80,9 @@ public:
     bool isLinkedNotebook() const { return m_isLinkedNotebook; }
     void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
 
+    bool isFavorited() const { return m_isFavorited; }
+    void setFavorited(const bool flag) { m_isFavorited = flag; }
+
     int numNotesPerNotebook() const { return m_numNotesPerNotebook; }
     void setNumNotesPerNotebook(const int numNotesPerNotebook) { m_numNotesPerNotebook = numNotesPerNotebook; }
 
@@ -97,6 +101,7 @@ private:
     bool        m_isLastUsed;
     bool        m_isPublished;
     bool        m_isLinkedNotebook;
+    bool        m_isFavorited;
     int         m_numNotesPerNotebook;
 };
 

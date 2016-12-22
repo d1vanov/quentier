@@ -142,6 +142,29 @@ public:
      */
     bool allNotebooksListed() const { return m_allNotebooksListed; }
 
+    /**
+     * @brief favoriteNotebook - marks the notebook pointed to by the index as favorited
+     *
+     * Favorited property of @link Notebook @endlink class is not represented as a column within
+     * the @link NotebookModel @endlink so this method doesn't change anything in the model but only
+     * the underlying notebook object persisted in the local storage
+     *
+     * @param index - the index of the notebook to be favorited
+     */
+    void favoriteNotebook(const QModelIndex & index);
+
+    /**
+     * @brief unfavoriteNotebook - removed the favorited mark from the notebook pointed to by the index; does nothing
+     * if the notebook has not been favorited prior to the call
+     *
+     * Favorited property of @link Notebook @endlink class is not represented as a column within
+     * the @link NotebookModel @endlink so this method doesn't change anything in the model but only
+     * the underlying notebook object persisted in the local storage
+     *
+     * @param index - the index of the notebook to be unfavorited
+     */
+    void unfavoriteNotebook(const QModelIndex & index);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -190,6 +213,12 @@ Q_SIGNALS:
      */
     void notifyNotebookStackRenamed(const QString & previousStackName,
                                     const QString & newStackName);
+
+    /**
+     * @brief notifyNotebookStackChanged - the signal emitted after the notebook has been assigned to another stack
+     * @param notebookIndex - the model index of the notebook which stack has been changed
+     */
+    void notifyNotebookStackChanged(const QModelIndex & notebookIndex);
 
 // private signals
     void addNotebook(Notebook notebook, QUuid requestId);
@@ -270,6 +299,8 @@ private:
     void switchLastUsedNotebookLocalUid(const QString & localUid);
 
     void checkAndRemoveEmptyStackItem(const NotebookModelItem & modelItem);
+
+    void setNotebookFavorited(const QModelIndex & index, const bool favorited);
 
 private:
     struct ByLocalUid{};

@@ -32,6 +32,7 @@ NotebookItem::NotebookItem(const QString & localUid,
                            const bool isLastUsed,
                            const bool isPublished,
                            const bool isLinkedNotebook,
+                           const bool isFavorited,
                            const int numNotesPerNotebook) :
     m_localUid(localUid),
     m_guid(guid),
@@ -45,6 +46,7 @@ NotebookItem::NotebookItem(const QString & localUid,
     m_isLastUsed(isLastUsed),
     m_isPublished(isPublished),
     m_isLinkedNotebook(isLinkedNotebook),
+    m_isFavorited(isFavorited),
     m_numNotesPerNotebook(numNotesPerNotebook)
 {}
 
@@ -63,6 +65,7 @@ QTextStream & NotebookItem::print(QTextStream & strm) const
          << QStringLiteral(", is last used = ") << (m_isLastUsed ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is published = ") << (m_isPublished ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is linked notebook = ") << (m_isLinkedNotebook ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", num notes per notebook = ") << m_numNotesPerNotebook;
     return strm;
 }

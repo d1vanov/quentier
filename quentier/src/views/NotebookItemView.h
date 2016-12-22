@@ -65,9 +65,13 @@ private Q_SLOTS:
     void onRenameNotebookStackAction();
     void onRemoveNotebooksFromStackAction();
 
+    void onFavoriteAction();
+    void onUnfavoriteAction();
+
     void onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index);
     void onNotebookStackRenamed(const QString & previousStackName,
                                 const QString & newStackName);
+    void onNotebookStackChanged(const QModelIndex & notebookIndex);
 
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
@@ -90,10 +94,13 @@ private:
     void selectionChangedImpl(const QItemSelection & selected,
                               const QItemSelection & deselected);
 
+    void setFavoritesFlag(const QAction & action, const bool favorited);
+
 private:
     QMenu *     m_pNotebookItemContextMenu;
     QMenu *     m_pNotebookStackItemContextMenu;
     bool        m_restoringNotebookStackItemsState;
+    bool        m_trackingSelection;
 };
 
 } // namespace quentier

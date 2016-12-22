@@ -69,6 +69,7 @@ void NotebookModelItemInfoWidget::setCheckboxesReadOnly()
     SET_CHECKBOX_READ_ONLY(Default);
     SET_CHECKBOX_READ_ONLY(LastUsed);
     SET_CHECKBOX_READ_ONLY(Published);
+    SET_CHECKBOX_READ_ONLY(Favorited);
     SET_CHECKBOX_READ_ONLY(FromLinkedNotebook);
 
 #undef SET_CHECKBOX_READ_ONLY
@@ -145,6 +146,8 @@ void NotebookModelItemInfoWidget::setNotebookStuffHidden(const bool flag)
     m_pUi->notebookLastUsedCheckBox->setHidden(flag);
     m_pUi->notebookPublishedLabel->setHidden(flag);
     m_pUi->notebookPublishedCheckBox->setHidden(flag);
+    m_pUi->notebookFavoritedLabel->setHidden(flag);
+    m_pUi->notebookFavoritedCheckBox->setHidden(flag);
     m_pUi->notebookFromLinkedNotebookLabel->setHidden(flag);
     m_pUi->notebookFromLinkedNotebookCheckBox->setHidden(flag);
     m_pUi->notebookGuidLabel->setHidden(flag);
@@ -188,6 +191,7 @@ void NotebookModelItemInfoWidget::setNotebookItem(const NotebookItem & item)
     m_pUi->notebookDefaultCheckBox->setChecked(item.isDefault());
     m_pUi->notebookLastUsedCheckBox->setChecked(item.isLastUsed());
     m_pUi->notebookPublishedCheckBox->setChecked(item.isPublished());
+    m_pUi->notebookFavoritedCheckBox->setChecked(item.isFavorited());
     m_pUi->notebookFromLinkedNotebookCheckBox->setChecked(item.isLinkedNotebook());
     m_pUi->notebookGuidLineEdit->setText(item.guid());
     m_pUi->notebookLocalUidLineEdit->setText(item.localUid());

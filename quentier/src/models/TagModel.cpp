@@ -2431,32 +2431,30 @@ void TagModel::mapChildItems(const TagModelItem & item)
     TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     const QString & parentLocalUid = item.parentLocalUid();
-    if (!parentLocalUid.isEmpty())
-    {
-        auto parentIt = localUidIndex.find(parentLocalUid);
-        if (Q_UNLIKELY(parentIt == localUidIndex.end()))
-        {
-            QNLocalizedString error = QT_TR_NOOP("Can't find parent tag for tag");
-            error += QStringLiteral(" \"");
-            error += item.name();
-            error += QStringLiteral("\"");
-            QNWARNING(error);
-            emit notifyError(error);
-        }
-        else
-        {
-            const TagModelItem & parentItem = *parentIt;
-            int row = parentItem.rowForChild(&item);
-            if (row < 0)
-            {
-                int row = rowForNewItem(parentItem, item);
-                QModelIndex parentIndex = indexForItem(&parentItem);
-                beginInsertRows(parentIndex, row, row);
-                parentItem.insertChild(row, &item);
-                endInsertRows();
-            }
-        }
+    if (parentLocalUid.isEmpty()) {
+        return;
     }
+
+    auto parentIt = localUidIndex.find(parentLocalUid);
+    if (Q_UNLIKELY(parentIt == localUidIndex.end())) {
+        // NOTE: this method might be called when the parent tag's item
+        // is not yet in the model, so will just silently ignore this
+        QNDEBUG(QStringLiteral("Tag item corresponding to local uid ")
+                << parentLocalUid << QStringLiteral(" is not yet in the model, skipping children mapping"));
+        return;
+    }
+
+    const TagModelItem & parentItem = *parentIt;
+    int row = parentItem.rowForChild(&item);
+    if (row >= 0) {
+        return;
+    }
+
+    row = rowForNewItem(parentItem, item);
+    QModelIndex parentIndex = indexForItem(&parentItem);
+    beginInsertRows(parentIndex, row, row);
+    parentItem.insertChild(row, &item);
+    endInsertRows();
 }
 
 QString TagModel::nameForNewTag() const

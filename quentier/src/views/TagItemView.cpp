@@ -42,7 +42,8 @@ namespace quentier {
 TagItemView::TagItemView(QWidget * parent) :
     ItemView(parent),
     m_pTagItemContextMenu(Q_NULLPTR),
-    m_restoringTagItemsState(false)
+    m_restoringTagItemsState(false),
+    m_trackingSelection(true)
 {
     QObject::connect(this, QNSIGNAL(TagItemView,expanded,const QModelIndex&),
                      this, QNSLOT(TagItemView,onTagItemCollapsedOrExpanded,const QModelIndex&));
@@ -295,7 +296,10 @@ void TagItemView::onPromoteTagAction()
 
     saveTagItemsState();
 
+    m_trackingSelection = false;
     QModelIndex promotedItemIndex = pTagModel->promote(itemIndex);
+    m_trackingSelection = true;
+
     if (promotedItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully promoted the tag"));
         return;
@@ -339,7 +343,10 @@ void TagItemView::onDemoteTagAction()
 
     saveTagItemsState();
 
+    m_trackingSelection = false;
     QModelIndex demotedItemIndex = pTagModel->demote(itemIndex);
+    m_trackingSelection = true;
+
     if (demotedItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully demoted the tag"));
         return;
@@ -383,7 +390,10 @@ void TagItemView::onRemoveFromParentTagAction()
 
     saveTagItemsState();
 
+    m_trackingSelection = false;
     QModelIndex removedFromParentItemIndex = pTagModel->removeFromParent(itemIndex);
+    m_trackingSelection = true;
+
     if (removedFromParentItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully removed the tag from parent"));
         return;
@@ -431,7 +441,11 @@ void TagItemView::onMoveTagToParentAction()
     saveTagItemsState();
 
     const QString & parentTagName = itemLocalUidAndParentName.at(1);
+
+    m_trackingSelection = false;
     QModelIndex movedTagItemIndex = pTagModel->moveToParent(itemIndex, parentTagName);
+    m_trackingSelection = true;
+
     if (!movedTagItemIndex.isValid()) {
         REPORT_ERROR("Can't move tag to parent");
         return;
@@ -444,6 +458,19 @@ void TagItemView::onShowTagInfoAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onShowTagInfoAction"));
     emit tagInfoRequested();
+}
+
+void TagItemView::onDeselectAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onDeselectAction"));
+
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (!pSelectionModel) {
+        REPORT_ERROR("Can't clear the tag selection: no selection model in the view");
+        return;
+    }
+
+    pSelectionModel->clearSelection();
 }
 
 void TagItemView::onTagItemCollapsedOrExpanded(const QModelIndex & index)
@@ -475,6 +502,7 @@ void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
     }
 
     restoreTagItemsState(*pTagModel);
+    restoreLastSavedSelection(*pTagModel);
 }
 
 void TagItemView::selectionChanged(const QItemSelection & selected,
@@ -626,6 +654,9 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                                     dataPair, canUpdate);
         }
     }
+
+    ADD_CONTEXT_MENU_ACTION(tr("Clear selection"), m_pTagItemContextMenu,
+                            onDeselectAction, QString(), true);
 
     m_pTagItemContextMenu->addSeparator();
 
@@ -798,6 +829,13 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
 void TagItemView::selectionChangedImpl(const QItemSelection & selected,
                                        const QItemSelection & deselected)
 {
+    QNTRACE(QStringLiteral("TagItemView::selectionChangedImpl"));
+
+    if (!m_trackingSelection) {
+        QNTRACE(QStringLiteral("Not tracking selection at this time, skipping"));
+        return;
+    }
+
     Q_UNUSED(deselected)
 
     TagModel * pTagModel = qobject_cast<TagModel*>(model());
