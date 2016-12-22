@@ -112,7 +112,7 @@ public:
 
     /**
      * @brief stacks
-     * @return the list of notebook stacks existing within the notebook model
+     * @return the sorted list of notebook stacks existing within the notebook model
      */
     QStringList stacks() const;
 

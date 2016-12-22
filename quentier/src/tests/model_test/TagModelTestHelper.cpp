@@ -189,15 +189,36 @@ void TagModelTestHelper::test()
             FAIL(QStringLiteral("The dirty state appears to have changed after setData in tag model even though the method returned false"));
         }
 
-        // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
+        // Should only be able to make the non-synchronizable (local) item synchronizable (non-local) with non-local account
+        // 1) Trying with local account
         secondIndex = model->index(secondIndex.row(), TagModel::Columns::Synchronizable, secondParentIndex);
         if (!secondIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid tag item model index for synchronizable column"));
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        if (res) {
+            FAIL(QStringLiteral("Was able to change the synchronizable flag from false to true for tag model item with local account"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the tag model while expected to get the state of synchronizable flag"));
+        }
+
+        if (data.toBool()) {
+            FAIL(QStringLiteral("Even though setData returned false on attempt to make the tag item synchronizable "
+                                "with the local account, the actual data within the model appears to have changed"));
+        }
+
+        // 2) Trying the non-local account
+        account = Account(QStringLiteral("Evernote user"), Account::Type::Evernote, qevercloud::UserID(1));
+        model->updateAccount(account);
+
+        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            FAIL(QStringLiteral("Can't change the synchronizable flag from false to true for tag model item"));
+            FAIL(QStringLiteral("Wasn't able to change the synchronizable flag from false to true for tag model item "
+                                "even with the account of Evernote type"));
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -206,7 +227,8 @@ void TagModelTestHelper::test()
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The synchronizable state appears to have not changed after setData in tag model even though the method returned true"));
+            FAIL(QStringLiteral("The synchronizable state appears to have not changed after setData in tag model "
+                                "even though the method returned true"));
         }
 
         // Verify the dirty flag has changed as a result of making the item synchronizable
