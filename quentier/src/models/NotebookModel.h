@@ -76,6 +76,9 @@ public:
     QModelIndex indexForNotebookName(const QString & notebookName) const;
     QModelIndex indexForNotebookStack(const QString & stack) const;
 
+    /**
+     * @return the list of indexes stored as persistent indexes in the model
+     */
     QModelIndexList persistentIndexes() const;
 
     /**
@@ -154,7 +157,7 @@ public:
     void favoriteNotebook(const QModelIndex & index);
 
     /**
-     * @brief unfavoriteNotebook - removed the favorited mark from the notebook pointed to by the index; does nothing
+     * @brief unfavoriteNotebook - removes the favorited mark from the notebook pointed to by the index; does nothing
      * if the notebook has not been favorited prior to the call
      *
      * Favorited property of @link Notebook @endlink class is not represented as a column within

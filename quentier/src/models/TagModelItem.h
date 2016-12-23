@@ -35,6 +35,7 @@ public:
                           const QString & parentGuid = QString(),
                           const bool isSynchronizable = false,
                           const bool isDirty = false,
+                          const bool isFavorited = false,
                           const int numNotesPerTag = -1,
                           TagModelItem * parent = Q_NULLPTR);
     ~TagModelItem();
@@ -65,10 +66,13 @@ public:
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
+    bool isFavorited() const { return m_isFavorited; }
+    void setFavorited(const bool favorited) { m_isFavorited = favorited; }
+
     int numNotesPerTag() const { return m_numNotesPerTag; }
     void setNumNotesPerTag(const int numNotesPerTag) { m_numNotesPerTag = numNotesPerTag; }
 
-    const TagModelItem * parent() const { return m_parent; }
+    const TagModelItem * parent() const { return m_pParent; }
     void setParent(const TagModelItem * parent) const;
 
     const TagModelItem * childAtRow(const int row) const;
@@ -97,6 +101,7 @@ private:
     QString     m_parentGuid;
     bool        m_isSynchronizable;
     bool        m_isDirty;
+    bool        m_isFavorited;
     int         m_numNotesPerTag;
 
     // NOTE: these are mutable in order to have the possibility to organize
@@ -104,7 +109,7 @@ private:
     // it doesn't allow the direct modification of its stored items,
     // however, these pointers to parent and children don't really affect
     // that container's indices
-    mutable const TagModelItem *          m_parent;
+    mutable const TagModelItem *          m_pParent;
     mutable QList<const TagModelItem*>    m_children;
 };
 

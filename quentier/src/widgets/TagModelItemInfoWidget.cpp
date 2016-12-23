@@ -48,6 +48,7 @@ void TagModelItemInfoWidget::setCheckboxesReadOnly()
 
     SET_CHECKBOX_READ_ONLY(synchronizable);
     SET_CHECKBOX_READ_ONLY(dirty);
+    SET_CHECKBOX_READ_ONLY(favorited);
 
 #undef SET_CHECKBOX_READ_ONLY
 }
@@ -94,6 +95,7 @@ void TagModelItemInfoWidget::setTagItem(const TagModelItem & item)
 
     m_pUi->synchronizableCheckBox->setChecked(item.isSynchronizable());
     m_pUi->dirtyCheckBox->setChecked(item.isDirty());
+    m_pUi->favoritedCheckBox->setChecked(item.isFavorited());
 
     m_pUi->linkedNotebookGuidLineEdit->setText(item.linkedNotebookGuid());
     m_pUi->guidLineEdit->setText(item.guid());
@@ -117,6 +119,8 @@ void TagModelItemInfoWidget::hideAll()
     m_pUi->synchronizableCheckBox->setHidden(true);
     m_pUi->dirtyLabel->setHidden(true);
     m_pUi->dirtyCheckBox->setHidden(true);
+    m_pUi->favoritedLabel->setHidden(true);
+    m_pUi->favoritedCheckBox->setHidden(true);
     m_pUi->linkedNotebookGuidLabel->setHidden(true);
     m_pUi->linkedNotebookGuidLineEdit->setHidden(true);
     m_pUi->guidLabel->setHidden(true);

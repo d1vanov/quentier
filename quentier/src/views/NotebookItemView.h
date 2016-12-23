@@ -94,7 +94,7 @@ private:
     void selectionChangedImpl(const QItemSelection & selected,
                               const QItemSelection & deselected);
 
-    void setFavoritesFlag(const QAction & action, const bool favorited);
+    void setFavoritedFlag(const QAction & action, const bool favorited);
 
 private:
     QMenu *     m_pNotebookItemContextMenu;

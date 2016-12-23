@@ -473,6 +473,34 @@ void TagItemView::onDeselectAction()
     pSelectionModel->clearSelection();
 }
 
+void TagItemView::onFavoriteAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onFavoriteAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't favorite tag, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    setFavoritedFlag(*pAction, true);
+}
+
+void TagItemView::onUnfavoriteAction()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onUnfavoriteAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't unfavorite tag, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    setFavoritedFlag(*pAction, false);
+}
+
 void TagItemView::onTagItemCollapsedOrExpanded(const QModelIndex & index)
 {
     QNTRACE(QStringLiteral("TagItemView::onTagItemCollapsedOrExpanded: index: valid = ")
@@ -655,10 +683,19 @@ void TagItemView::contextMenuEvent(QContextMenuEvent * pEvent)
         }
     }
 
-    ADD_CONTEXT_MENU_ACTION(tr("Clear selection"), m_pTagItemContextMenu,
-                            onDeselectAction, QString(), true);
+    if (pItem->isFavorited()) {
+        ADD_CONTEXT_MENU_ACTION(tr("Unfavorite"), m_pTagItemContextMenu,
+                                onUnfavoriteAction, pItem->localUid(), canUpdate);
+    }
+    else {
+        ADD_CONTEXT_MENU_ACTION(tr("Favorite"), m_pTagItemContextMenu,
+                                onFavoriteAction, pItem->localUid(), canUpdate);
+    }
 
     m_pTagItemContextMenu->addSeparator();
+
+    ADD_CONTEXT_MENU_ACTION(tr("Clear selection"), m_pTagItemContextMenu,
+                            onDeselectAction, QString(), true);
 
     ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pTagItemContextMenu,
                             onShowTagInfoAction, pItem->localUid(), true);
@@ -882,6 +919,36 @@ void TagItemView::selectionChangedImpl(const QItemSelection & selected,
 
     QNDEBUG(QStringLiteral("Persisted the currently selected tag local uid: ")
             << pTagItem->localUid());
+}
+
+void TagItemView::setFavoritedFlag(const QAction & action, const bool favorited)
+{
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    QString itemLocalUid = action.data().toString();
+    if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
+        REPORT_ERROR("Internal error: can't set the favorited flag for the tag, "
+                     "can't get tag's local uid from QAction")
+        return;
+    }
+
+    QModelIndex itemIndex = pTagModel->indexForLocalUid(itemLocalUid);
+    if (Q_UNLIKELY(!itemIndex.isValid())) {
+        REPORT_ERROR("Internal error: can't set the favorited flag for the tag, the model "
+                     "returned invalid index for the tag's local uid")
+        return;
+    }
+
+    if (favorited) {
+        pTagModel->favoriteTag(itemIndex);
+    }
+    else {
+        pTagModel->unfavoriteTag(itemIndex);
+    }
 }
 
 } // namespace quentier

@@ -507,7 +507,7 @@ void NotebookItemView::onFavoriteAction()
         return;
     }
 
-    setFavoritesFlag(*pAction, true);
+    setFavoritedFlag(*pAction, true);
 }
 
 void NotebookItemView::onUnfavoriteAction()
@@ -521,7 +521,7 @@ void NotebookItemView::onUnfavoriteAction()
         return;
     }
 
-    setFavoritesFlag(*pAction, false);
+    setFavoritedFlag(*pAction, false);
 }
 
 void NotebookItemView::onNotebookStackItemCollapsedOrExpanded(const QModelIndex & index)
@@ -832,9 +832,11 @@ void NotebookItemView::showNotebookItemContextMenu(const NotebookItem & item,
 
     m_pNotebookItemContextMenu->addSeparator();
 
-    ADD_CONTEXT_MENU_ACTION(tr("Set default"), m_pNotebookItemContextMenu,
-                            onSetNotebookDefaultAction, item.localUid(),
-                            item.isUpdatable());
+    if (!item.isDefault()) {
+        ADD_CONTEXT_MENU_ACTION(tr("Set default"), m_pNotebookItemContextMenu,
+                                onSetNotebookDefaultAction, item.localUid(),
+                                item.isUpdatable());
+    }
 
     if (item.isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(tr("Unfavorite"), m_pNotebookItemContextMenu,
@@ -1169,7 +1171,7 @@ void NotebookItemView::selectionChangedImpl(const QItemSelection & selected,
             << pNotebookItem->localUid());
 }
 
-void NotebookItemView::setFavoritesFlag(const QAction & action, const bool favorited)
+void NotebookItemView::setFavoritedFlag(const QAction & action, const bool favorited)
 {
     NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
@@ -1186,7 +1188,7 @@ void NotebookItemView::setFavoritesFlag(const QAction & action, const bool favor
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't remove the notebook from stack, the model "
+        REPORT_ERROR("Internal error: can't set the favorited flag for the notebook, the model "
                      "returned invalid index for the notebook's local uid")
         return;
     }

@@ -62,6 +62,9 @@ private Q_SLOTS:
     void onShowTagInfoAction();
     void onDeselectAction();
 
+    void onFavoriteAction();
+    void onUnfavoriteAction();
+
     void onTagItemCollapsedOrExpanded(const QModelIndex & index);
     void onTagParentChanged(const QModelIndex & index);
 
@@ -81,6 +84,8 @@ private:
 
     void selectionChangedImpl(const QItemSelection & selected,
                               const QItemSelection & deselected);
+
+    void setFavoritedFlag(const QAction & action, const bool favorited);
 
 private:
     QMenu *     m_pTagItemContextMenu;

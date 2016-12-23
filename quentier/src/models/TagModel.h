@@ -89,6 +89,9 @@ public:
      */
     QModelIndex demote(const QModelIndex & index);
 
+    /**
+     * @return the list of indexes stored as persistent indexes in the model
+     */
     QModelIndexList persistentIndexes() const;
 
     /**
@@ -137,6 +140,29 @@ public:
      * stored in the local storage by the moment; false otherwise
      */
     bool allTagsListed() const { return m_allTagsListed; }
+
+    /**
+     * @brief favoriteTag - marks the tag pointed to by the index as favorited
+     *
+     * Favorited property of @link Tag @endlink class is not represented as a column within
+     * the @link TagModel @endlink so this method doesn't change anything in the model but only
+     * the underlying tag object persisted in the local storage
+     *
+     * @param index - the index of the tag to be favorited
+     */
+    void favoriteTag(const QModelIndex & index);
+
+    /**
+     * @brief unfavoriteTag - removes the favorited mark from the tag pointed to by the index; does nothing
+     * if the tag has not been favorited prior to the call
+     *
+     * Favorited property of @link Tag @endlink class is not represented as a column within
+     * the @link TagModel @endlink so this method doesn't change anything in the model but only
+     * the underlying tag object persisted in the local storage
+     *
+     * @param index - the index of the tag to be favorited
+     */
+    void unfavoriteTag(const QModelIndex & index);
 
 public:
     // QAbstractItemModel interface
@@ -268,6 +294,8 @@ private:
     void updateTagInLocalStorage(const TagModelItem & item);
 
     void tagFromItem(const TagModelItem & item, Tag & tag) const;
+
+    void setTagFavorited(const QModelIndex & index, const bool favorited);
 
 private:
     struct ByLocalUid{};

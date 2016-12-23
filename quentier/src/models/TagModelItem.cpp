@@ -28,8 +28,9 @@ TagModelItem::TagModelItem(const QString & localUid,
                            const QString & parentGuid,
                            const bool isSynchronizable,
                            const bool isDirty,
+                           const bool isFavorited,
                            const int numNotesPerTag,
-                           TagModelItem * parent) :
+                           TagModelItem * pParent) :
     m_localUid(localUid),
     m_guid(guid),
     m_linkedNotebookGuid(linkedNotebookGuid),
@@ -38,25 +39,26 @@ TagModelItem::TagModelItem(const QString & localUid,
     m_parentGuid(parentGuid),
     m_isSynchronizable(isSynchronizable),
     m_isDirty(isDirty),
+    m_isFavorited(isFavorited),
     m_numNotesPerTag(numNotesPerTag),
-    m_parent(parent),
+    m_pParent(pParent),
     m_children()
 {
-    if (m_parent) {
-        m_parent->addChild(this);
+    if (m_pParent) {
+        m_pParent->addChild(this);
     }
 }
 
 TagModelItem::~TagModelItem()
 {}
 
-void TagModelItem::setParent(const TagModelItem * parent) const
+void TagModelItem::setParent(const TagModelItem * pParent) const
 {
-    m_parent = parent;
+    m_pParent = pParent;
 
-    int row = m_parent->rowForChild(this);
+    int row = m_pParent->rowForChild(this);
     if (row < 0) {
-        m_parent->addChild(this);
+        m_pParent->addChild(this);
     }
 }
 
@@ -74,24 +76,24 @@ int TagModelItem::rowForChild(const TagModelItem * child) const
     return m_children.indexOf(child);
 }
 
-void TagModelItem::insertChild(const int row, const TagModelItem * item) const
+void TagModelItem::insertChild(const int row, const TagModelItem * pItem) const
 {
-    if (Q_UNLIKELY(!item)) {
+    if (Q_UNLIKELY(!pItem)) {
         return;
     }
 
-    item->m_parent = this;
-    m_children.insert(row, item);
+    pItem->m_pParent = this;
+    m_children.insert(row, pItem);
 }
 
-void TagModelItem::addChild(const TagModelItem * item) const
+void TagModelItem::addChild(const TagModelItem * pItem) const
 {
-    if (Q_UNLIKELY(!item)) {
+    if (Q_UNLIKELY(!pItem)) {
         return;
     }
 
-    item->m_parent = this;
-    m_children.push_back(item);
+    pItem->m_pParent = this;
+    m_children.push_back(pItem);
 }
 
 bool TagModelItem::swapChildren(const int sourceRow, const int destRow) const
@@ -112,12 +114,12 @@ const TagModelItem * TagModelItem::takeChild(const int row) const
         return Q_NULLPTR;
     }
 
-    const TagModelItem * item = m_children.takeAt(row);
-    if (item) {
-        item->m_parent = Q_NULLPTR;
+    const TagModelItem * pItem = m_children.takeAt(row);
+    if (pItem) {
+        pItem->m_pParent = Q_NULLPTR;
     }
 
-    return item;
+    return pItem;
 }
 
 QTextStream & TagModelItem::print(QTextStream & strm) const
@@ -127,8 +129,9 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
          << QStringLiteral(", name = ") << m_name << QStringLiteral(", parent local uid = ") << m_parentLocalUid
          << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", num notes per tag = ") << m_numNotesPerTag
-         << QStringLiteral(", parent = ") << (m_parent ? m_parent->m_localUid : QStringLiteral("<null>"))
+         << QStringLiteral(", parent = ") << (m_pParent ? m_pParent->m_localUid : QStringLiteral("<null>"))
          << QStringLiteral(", children: ");
 
     if (m_children.isEmpty())
@@ -138,9 +141,9 @@ QTextStream & TagModelItem::print(QTextStream & strm) const
     else
     {
         strm << QStringLiteral("\n");
-        for(auto it = m_children.begin(), end = m_children.end(); it != end; ++it) {
-            const TagModelItem * child = *it;
-            strm << (child ? child->m_localUid : QStringLiteral("<null>")) << QStringLiteral("\n");
+        for(auto it = m_children.constBegin(), end = m_children.constEnd(); it != end; ++it) {
+            const TagModelItem * pChild = *it;
+            strm << (pChild ? pChild->m_localUid : QStringLiteral("<null>")) << QStringLiteral("\n");
         }
 
         strm << QStringLiteral("\n");
@@ -153,7 +156,7 @@ QDataStream & operator<<(QDataStream & out, const TagModelItem & item)
 {
     out << item.m_localUid << item.m_guid << item.m_linkedNotebookGuid << item.m_name
         << item.m_parentLocalUid << item.m_parentGuid << item.m_isSynchronizable << item.m_isDirty
-        << item.m_numNotesPerTag;
+        << item.m_isFavorited << item.m_numNotesPerTag;
 
     return out;
 }
@@ -162,7 +165,7 @@ QDataStream & operator>>(QDataStream & in, TagModelItem & item)
 {
     in >> item.m_localUid >> item.m_guid >> item.m_linkedNotebookGuid >> item.m_name
        >> item.m_parentLocalUid >> item.m_parentGuid >> item.m_isSynchronizable >> item.m_isDirty
-       >> item.m_numNotesPerTag;
+       >> item.m_isFavorited >> item.m_numNotesPerTag;
 
     return in;
 }

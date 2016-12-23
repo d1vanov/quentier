@@ -45,13 +45,13 @@ public:
     Type::type type() const { return m_type; }
     void setType(const Type::type type) { m_type = type; }
 
-    const NotebookItem * notebookItem() const { return m_notebookItem; }
-    void setNotebookItem(const NotebookItem * notebookItem) { m_notebookItem = notebookItem; }
+    const NotebookItem * notebookItem() const { return m_pNotebookItem; }
+    void setNotebookItem(const NotebookItem * notebookItem) { m_pNotebookItem = notebookItem; }
 
-    const NotebookStackItem * notebookStackItem() const { return m_notebookStackItem; }
-    void setNotebookStackItem(const NotebookStackItem * notebookStackItem) { m_notebookStackItem = notebookStackItem; }
+    const NotebookStackItem * notebookStackItem() const { return m_pNotebookStackItem; }
+    void setNotebookStackItem(const NotebookStackItem * notebookStackItem) { m_pNotebookStackItem = notebookStackItem; }
 
-    const NotebookModelItem * parent() const { return m_parent; }
+    const NotebookModelItem * parent() const { return m_pParent; }
     void setParent(const NotebookModelItem * parent) const;
 
     const NotebookModelItem * childAtRow(const int row) const;
@@ -74,15 +74,15 @@ public:
 
 private:
     Type::type                  m_type;
-    const NotebookItem *        m_notebookItem;
-    const NotebookStackItem *   m_notebookStackItem;
+    const NotebookItem *        m_pNotebookItem;
+    const NotebookStackItem *   m_pNotebookStackItem;
 
     // NOTE: this is mutable in order to have the possibility to organize
     // the efficient storage of TagModelItems in boost::multi_index_container:
     // it doesn't allow the direct modification of its stored items,
     // however, these pointers to parent and children don't really affect
     // that container's indices
-    mutable const NotebookModelItem *   m_parent;
+    mutable const NotebookModelItem *   m_pParent;
 
     mutable QList<const NotebookModelItem*>  m_children;
 };

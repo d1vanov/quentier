@@ -83,6 +83,28 @@ void TagModel::updateAccount(const Account & account)
     m_account = account;
 }
 
+void TagModel::favoriteTag(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("TagModel::favoriteTag: index: is valid = ")
+            << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << index.row()
+            << QStringLiteral(", column = ") << index.column()
+            << QStringLiteral(", internal id = ") << index.internalId());
+
+    setTagFavorited(index, true);
+}
+
+void TagModel::unfavoriteTag(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("TagModel::unfavoriteTag: index: is valid = ")
+            << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << index.row()
+            << QStringLiteral(", column = ") << index.column()
+            << QStringLiteral(", internal id = ") << index.internalId());
+
+    setTagFavorited(index, false);
+}
+
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
@@ -1611,6 +1633,7 @@ void TagModel::tagToItem(const Tag & tag, TagModelItem & item)
 
     item.setSynchronizable(!tag.isLocal());
     item.setDirty(tag.isDirty());
+    item.setFavorited(tag.isFavorited());
 
     QNTRACE(QStringLiteral("Created tag model item from tag; item: ") << item << QStringLiteral("\nTag: ") << tag);
 }
@@ -2690,8 +2713,43 @@ void TagModel::tagFromItem(const TagModelItem & item, Tag & tag) const
     tag.setName(item.name());
     tag.setLocal(!item.isSynchronizable());
     tag.setDirty(item.isDirty());
+    tag.setFavorited(item.isFavorited());
     tag.setParentLocalUid(item.parentLocalUid());
     tag.setParentGuid(item.parentGuid());
+}
+
+void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
+{
+    if (Q_UNLIKELY(!index.isValid())) {
+        REPORT_ERROR("Can't set favorited flag for the tag: model index is invalid");
+        return;
+    }
+
+    const TagModelItem * pItem = itemForIndex(index);
+    if (Q_UNLIKELY(!pItem)) {
+        REPORT_ERROR("Can't set favorited flag for the tag: can't find the model item corresponding to index");
+        return;
+    }
+
+    if (favorited == pItem->isFavorited()) {
+        QNDEBUG(QStringLiteral("Favorited flag's value hasn't changed"));
+        return;
+    }
+
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto it = localUidIndex.find(pItem->localUid());
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        REPORT_ERROR("Can't set favorited flag for the tag: the modified tag entry was not found within the model");
+        return;
+    }
+
+    TagModelItem itemCopy(*pItem);
+    itemCopy.setFavorited(favorited);
+
+    localUidIndex.replace(it, itemCopy);
+
+    updateTagInLocalStorage(itemCopy);
 }
 
 bool TagModel::LessByName::operator()(const TagModelItem & lhs, const TagModelItem & rhs) const
