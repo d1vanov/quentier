@@ -596,6 +596,9 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
             << parent.row() << QStringLiteral(", column = ") << parent.column()
             << QStringLiteral(", internal id = ") << parent.internalId());
 
+    RemoveRowsScopeGuard removeRowsScopeGuard(*this);
+    Q_UNUSED(removeRowsScopeGuard)
+
     if (!m_fakeRootItem) {
         QNDEBUG(QStringLiteral("No fake root item"));
         return false;
@@ -640,7 +643,7 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         }
     }
 
-    TagDataByLocalUid & index = m_data.get<ByLocalUid>();
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     // Need to re-parent all the children of each removed item to the parent of the removed items
     // But in order to not mess with the rows within the parent, first collect all the children
@@ -689,8 +692,8 @@ bool TagModel::removeRows(int row, int count, const QModelIndex & parent)
         QNTRACE(QStringLiteral("Emitted the request to expunge the tag from the local storage: request id = ")
                 << requestId << QStringLiteral(", tag local uid: ") << pItem->localUid());
 
-        auto it = index.find(pItem->localUid());
-        Q_UNUSED(index.erase(it))
+        auto it = localUidIndex.find(pItem->localUid());
+        Q_UNUSED(localUidIndex.erase(it))
     }
     endRemoveRows();
 
@@ -1075,7 +1078,9 @@ void TagModel::onExpungeTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
+    emit aboutToRemoveTags();
     removeItemByLocalUid(tag.localUid());
+    emit removedTags();
 }
 
 void TagModel::onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
@@ -1482,11 +1487,24 @@ void TagModel::onTagAddedOrUpdated(const Tag & tag)
 
     auto itemIt = localUidIndex.find(tag.localUid());
     bool newTag = (itemIt == localUidIndex.end());
-    if (newTag) {
+    if (newTag)
+    {
+        emit aboutToAddTag();
+
         onTagAdded(tag);
+
+        QModelIndex addedTagIndex = indexForLocalUid(tag.localUid());
+        emit addedTag(addedTagIndex);
     }
-    else {
+    else
+    {
+        QModelIndex tagIndexBefore = indexForLocalUid(tag.localUid());
+        emit aboutToUpdateTag(tagIndexBefore);
+
         onTagUpdated(tag, itemIt);
+
+        QModelIndex tagIndexAfter = indexForLocalUid(tag.localUid());
+        emit updatedTag(tagIndexAfter);
     }
 }
 
@@ -2360,9 +2378,6 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
 
     QModelIndex parentIndex = indexForItem(pParentItem);
 
-    // Will insert the notebook to the end of the parent item's children
-    int row = pParentItem->numChildren();
-
     TagModelItem item;
     item.setLocalUid(UidGenerator::Generate());
     Q_UNUSED(m_tagItemsNotYetInLocalStorageUids.insert(item.localUid()))
@@ -2375,29 +2390,23 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
         item.setParentLocalUid(pParentItem->localUid());
     }
 
+    emit aboutToAddTag();
+
     auto insertionResult = localUidIndex.insert(item);
+    const TagModelItem & insertedItem = *(insertionResult.first);
+
+    // Will insert the notebook to the end of the parent item's children
+    int row = rowForNewItem(*pParentItem, insertedItem);
 
     beginInsertRows(parentIndex, row, row);
-    insertionResult.first->setParent(pParentItem);
+    pParentItem->insertChild(row, &insertedItem);
     endInsertRows();
 
     updateTagInLocalStorage(item);
 
     QModelIndex addedTagIndex = indexForLocalUid(item.localUid());
 
-    if (m_sortedColumn != Columns::Name) {
-        QNDEBUG(QStringLiteral("Not sorting by name, returning"));
-        return addedTagIndex;
-    }
-
-    emit layoutAboutToBeChanged();
-    for(auto it = localUidIndex.begin(), end = localUidIndex.end(); it != end; ++it) {
-        updateItemRowWithRespectToSorting(*it);
-    }
-    emit layoutChanged();
-
-    // Need to update the index as the item's row could have changed as a result of sorting
-    addedTagIndex = indexForLocalUid(item.localUid());
+    emit addedTag(addedTagIndex);
 
     return addedTagIndex;
 }
@@ -2752,6 +2761,16 @@ void TagModel::setTagFavorited(const QModelIndex & index, const bool favorited)
     updateTagInLocalStorage(itemCopy);
 }
 
+void TagModel::beginRemoveTags()
+{
+    emit aboutToRemoveTags();
+}
+
+void TagModel::endRemoveTags()
+{
+    emit removedTags();
+}
+
 bool TagModel::LessByName::operator()(const TagModelItem & lhs, const TagModelItem & rhs) const
 {
     return (lhs.nameUpper().localeAwareCompare(rhs.nameUpper()) <= 0);
@@ -2786,6 +2805,17 @@ bool TagModel::GreaterByName::operator()(const TagModelItem * lhs, const TagMode
     else {
         return this->operator()(*lhs, *rhs);
     }
+}
+
+TagModel::RemoveRowsScopeGuard::RemoveRowsScopeGuard(TagModel & model) :
+    m_model(model)
+{
+    m_model.beginRemoveTags();
+}
+
+TagModel::RemoveRowsScopeGuard::~RemoveRowsScopeGuard()
+{
+    m_model.endRemoveTags();
 }
 
 } // namespace quentier

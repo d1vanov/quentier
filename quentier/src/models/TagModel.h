@@ -202,6 +202,17 @@ Q_SIGNALS:
 
     void notifyTagParentChanged(const QModelIndex & tagIndex);
 
+    // Informative signals for views, so that they can prepare to the changes in the tree of tags
+    // and do some recovery after that
+    void aboutToAddTag();
+    void addedTag(const QModelIndex & tagIndex);
+
+    void aboutToUpdateTag(const QModelIndex & tagIndex);
+    void updatedTag(const QModelIndex & tagIndex);
+
+    void aboutToRemoveTags();
+    void removedTags();
+
 // private signals
     void addTag(Tag tag, QUuid requestId);
     void updateTag(Tag tag, QUuid requestId);
@@ -297,6 +308,9 @@ private:
 
     void setTagFavorited(const QModelIndex & index, const bool favorited);
 
+    void beginRemoveTags();
+    void endRemoveTags();
+
 private:
     struct ByLocalUid{};
     struct ByParentLocalUid{};
@@ -343,6 +357,18 @@ private:
         bool operator()(const TagModelItem & lhs, const TagModelItem & rhs) const;
         bool operator()(const TagModelItem * lhs, const TagModelItem * rhs) const;
     };
+
+    class RemoveRowsScopeGuard
+    {
+    public:
+        RemoveRowsScopeGuard(TagModel & model);
+        ~RemoveRowsScopeGuard();
+
+    private:
+        TagModel & m_model;
+    };
+
+    friend class RemoveRowsScopeGuard;
 
 private:
     void onTagAddedOrUpdated(const Tag & tag);
