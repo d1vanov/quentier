@@ -69,7 +69,7 @@
 #undef QNSLOT
 #endif
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+#if (QT_VERSION < QT_VERSION_CHECK(5, 0, 0)) || (defined(_MSC_VER) && (_MSC_VER <= 1600))
 #define QNSIGNAL(className, methodName, ...) SIGNAL(methodName(__VA_ARGS__))
 #define QNSLOT(className, methodName, ...) SLOT(methodName(__VA_ARGS__))
 #else

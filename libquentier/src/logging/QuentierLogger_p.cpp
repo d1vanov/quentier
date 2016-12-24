@@ -12,6 +12,10 @@
 #include <QMutexLocker>
 #endif
 
+#if defined Q_OS_WIN
+#include <Windows.h>
+#endif
+
 namespace quentier {
 
 QuentierFileLogWriter::QuentierFileLogWriter(const MaxSizeBytes & maxSizeBytes,
@@ -169,7 +173,6 @@ QuentierConsoleLogWriter::QuentierConsoleLogWriter(QObject * parent) :
 void QuentierConsoleLogWriter::write(QString message)
 {
 #if defined Q_OS_WIN
-#include "Windows.h"
     OutputDebugStringW(reinterpret_cast<const WCHAR*>(message.utf16()));
     OutputDebugStringW(L"\n");
 #else

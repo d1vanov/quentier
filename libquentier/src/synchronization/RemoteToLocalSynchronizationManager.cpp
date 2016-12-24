@@ -31,6 +31,7 @@
 #include <algorithm>
 
 #if defined(Q_OS_WIN32)
+#define NOMINMAX
 #include <windows.h>
 #elif defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_OPENBSD)
 #include <sys/utsname.h>
@@ -4829,9 +4830,9 @@ QString RemoteToLocalSynchronizationManager::clientNameForProtocolVersionCheck()
     clientName += QStringLiteral("; ");
 
 #if defined(Q_OS_WIN32)
-    OSVERSIONINFOEX info;
-    ZeroMemory(&info, sizeof(OSVERSIONINFOEX));
-    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+    OSVERSIONINFOA info;
+    ZeroMemory(&info, sizeof(OSVERSIONINFOA));
+    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFOA);
     GetVersionEx(&info);
     clientName += QStringLiteral("Windows/");
     clientName += QString::number(info.dwMajorVersion);
