@@ -50,6 +50,15 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onAllTagsListed();
 
+    void onAboutToAddTag();
+    void onAddedTag(const QModelIndex & index);
+
+    void onAboutToUpdateTag(const QModelIndex & index);
+    void onUpdatedTag(const QModelIndex & index);
+
+    void onAboutToRemoveTags();
+    void onRemovedTags();
+
     void onCreateNewTagAction();
     void onRenameTagAction();
     void onDeleteTagAction();
@@ -87,10 +96,14 @@ private:
 
     void setFavoritedFlag(const QAction & action, const bool favorited);
 
+    void prepareForTagModelChange();
+    void postProcessTagModelChange();
+
 private:
     QMenu *     m_pTagItemContextMenu;
-    bool        m_restoringTagItemsState;
+    bool        m_trackingTagItemsState;
     bool        m_trackingSelection;
+    bool        m_modelReady;
 };
 
 } // namespace quentier

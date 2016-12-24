@@ -42,8 +42,9 @@ namespace quentier {
 TagItemView::TagItemView(QWidget * parent) :
     ItemView(parent),
     m_pTagItemContextMenu(Q_NULLPTR),
-    m_restoringTagItemsState(false),
-    m_trackingSelection(true)
+    m_trackingTagItemsState(false),
+    m_trackingSelection(false),
+    m_modelReady(false)
 {
     QObject::connect(this, QNSIGNAL(TagItemView,expanded,const QModelIndex&),
                      this, QNSLOT(TagItemView,onTagItemCollapsedOrExpanded,const QModelIndex&));
@@ -56,10 +57,31 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
     QNDEBUG(QStringLiteral("TagItemView::setModel"));
 
     TagModel * pPreviousModel = qobject_cast<TagModel*>(model());
-    if (pPreviousModel) {
+    if (pPreviousModel)
+    {
         QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,notifyError,QNLocalizedString),
                             this, QNSIGNAL(TagItemView,notifyError,QNLocalizedString));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,notifyAllTagsListed),
+                            this, QNSLOT(TagItemView,onAllTagsListed));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,notifyTagParentChanged,const QModelIndex&),
+                            this, QNSLOT(TagItemView,onTagParentChanged,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,aboutToAddTag),
+                            this, QNSLOT(TagItemView,onAboutToAddTag));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,addedTag,const QModelIndex&),
+                            this, QNSLOT(TagItemView,onAddedTag,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,aboutToUpdateTag,const QModelIndex&),
+                            this, QNSLOT(TagItemView,onAboutToUpdateTag,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,updatedTag,const QModelIndex&),
+                            this, QNSLOT(TagItemView,onUpdatedTag,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,aboutToRemoveTags),
+                            this, QNSLOT(TagItemView,onAboutToRemoveTags));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(TagModel,removedTags),
+                            this, QNSLOT(TagItemView,onRemovedTags));
     }
+
+    m_modelReady = false;
+    m_trackingSelection = false;
+    m_trackingTagItemsState = false;
 
     TagModel * pTagModel = qobject_cast<TagModel*>(pModel);
     if (Q_UNLIKELY(!pTagModel)) {
@@ -77,6 +99,9 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
         QNDEBUG(QStringLiteral("All tags are already listed within the model"));
         restoreTagItemsState(*pTagModel);
         restoreLastSavedSelection(*pTagModel);
+        m_modelReady = true;
+        m_trackingSelection = true;
+        m_trackingTagItemsState = true;
         return;
     }
 
@@ -84,6 +109,18 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
                      this, QNSLOT(TagItemView,onAllTagsListed));
     QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyTagParentChanged,const QModelIndex&),
                      this, QNSLOT(TagItemView,onTagParentChanged,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToAddTag),
+                     this, QNSLOT(TagItemView,onAboutToAddTag));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,addedTag,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onAddedTag,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToUpdateTag,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onAboutToUpdateTag,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,updatedTag,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onUpdatedTag,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToRemoveTags),
+                     this, QNSLOT(TagItemView,onAboutToRemoveTags));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,removedTags),
+                     this, QNSLOT(TagItemView,onRemovedTags));
 }
 
 QModelIndex TagItemView::currentlySelectedItemIndex() const
@@ -158,6 +195,52 @@ void TagItemView::onAllTagsListed()
 
     restoreTagItemsState(*pTagModel);
     restoreLastSavedSelection(*pTagModel);
+
+    m_modelReady = true;
+    m_trackingSelection = true;
+    m_trackingTagItemsState = true;
+}
+
+void TagItemView::onAboutToAddTag()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onAboutToAddTag"));
+    prepareForTagModelChange();
+}
+
+void TagItemView::onAddedTag(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("TagItemView::onAddedTag"));
+
+    Q_UNUSED(index)
+    postProcessTagModelChange();
+}
+
+void TagItemView::onAboutToUpdateTag(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("TagItemView::onAboutToUpdateTag"));
+
+    Q_UNUSED(index)
+    prepareForTagModelChange();
+}
+
+void TagItemView::onUpdatedTag(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("TagItemView::onUpdatedTag"));
+
+    Q_UNUSED(index)
+    postProcessTagModelChange();
+}
+
+void TagItemView::onAboutToRemoveTags()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onAboutToRemoveTags"));
+    prepareForTagModelChange();
+}
+
+void TagItemView::onRemovedTags()
+{
+    QNDEBUG(QStringLiteral("TagItemView::onRemovedTags"));
+    postProcessTagModelChange();
 }
 
 void TagItemView::onCreateNewTagAction()
@@ -296,9 +379,12 @@ void TagItemView::onPromoteTagAction()
 
     saveTagItemsState();
 
+    bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
+
     QModelIndex promotedItemIndex = pTagModel->promote(itemIndex);
-    m_trackingSelection = true;
+
+    m_trackingSelection = wasTrackingSelection;
 
     if (promotedItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully promoted the tag"));
@@ -343,9 +429,12 @@ void TagItemView::onDemoteTagAction()
 
     saveTagItemsState();
 
+    bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
+
     QModelIndex demotedItemIndex = pTagModel->demote(itemIndex);
-    m_trackingSelection = true;
+
+    m_trackingSelection = wasTrackingSelection;
 
     if (demotedItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully demoted the tag"));
@@ -390,9 +479,12 @@ void TagItemView::onRemoveFromParentTagAction()
 
     saveTagItemsState();
 
+    bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
+
     QModelIndex removedFromParentItemIndex = pTagModel->removeFromParent(itemIndex);
-    m_trackingSelection = true;
+
+    m_trackingSelection = wasTrackingSelection;
 
     if (removedFromParentItemIndex.isValid()) {
         QNDEBUG(QStringLiteral("Successfully removed the tag from parent"));
@@ -442,9 +534,12 @@ void TagItemView::onMoveTagToParentAction()
 
     const QString & parentTagName = itemLocalUidAndParentName.at(1);
 
+    bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
+
     QModelIndex movedTagItemIndex = pTagModel->moveToParent(itemIndex, parentTagName);
-    m_trackingSelection = true;
+
+    m_trackingSelection = wasTrackingSelection;
 
     if (!movedTagItemIndex.isValid()) {
         REPORT_ERROR("Can't move tag to parent");
@@ -509,8 +604,8 @@ void TagItemView::onTagItemCollapsedOrExpanded(const QModelIndex & index)
             << QStringLiteral(", parent: valid = ") << (index.parent().isValid() ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", row = ") << index.parent().row() << QStringLiteral(", column = ") << index.parent().column());
 
-    if (m_restoringTagItemsState) {
-        QNDEBUG(QStringLiteral("Ignoring the event as the tag items are being restored currently"));
+    if (!m_trackingTagItemsState) {
+        QNDEBUG(QStringLiteral("Not tracking the tag items state at this moment"));
         return;
     }
 
@@ -798,9 +893,12 @@ void TagItemView::restoreTagItemsState(const TagModel & model)
     QStringList expandedTagLocalUids = appSettings.value(LAST_EXPANDED_TAG_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
-    m_restoringTagItemsState = true;
+    bool wasTrackingTagItemsState = m_trackingTagItemsState;
+    m_trackingTagItemsState = false;
+
     setTagsExpanded(expandedTagLocalUids, model);
-    m_restoringTagItemsState = false;
+
+    m_trackingTagItemsState = wasTrackingTagItemsState;
 }
 
 void TagItemView::setTagsExpanded(const QStringList & tagLocalUids, const TagModel & model)
@@ -949,6 +1047,38 @@ void TagItemView::setFavoritedFlag(const QAction & action, const bool favorited)
     else {
         pTagModel->unfavoriteTag(itemIndex);
     }
+}
+
+void TagItemView::prepareForTagModelChange()
+{
+    if (!m_modelReady) {
+        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        return;
+    }
+
+    saveTagItemsState();
+    m_trackingSelection = false;
+    m_trackingTagItemsState = false;
+}
+
+void TagItemView::postProcessTagModelChange()
+{
+    if (!m_modelReady) {
+        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        return;
+    }
+
+    m_trackingSelection = true;
+    m_trackingTagItemsState = true;
+
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
+    restoreTagItemsState(*pTagModel);
+    restoreLastSavedSelection(*pTagModel);
 }
 
 } // namespace quentier
