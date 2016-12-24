@@ -215,6 +215,7 @@ set(PRIVATE_HEADERS
     src/utility/FileIOThreadWorker_p.h
     src/utility/FileSystemWatcher_p.h
     src/utility/ShortcutManager_p.h
+    src/utility/SysInfo_p.h
     src/utility/StringUtils_p.h)
 
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
@@ -377,6 +378,7 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/ShortcutManager_p.cpp
     src/utility/StringUtils.cpp
     src/utility/StringUtils_p.cpp
+    src/utility/SysInfo.cpp
     src/utility/Utility.cpp
     src/utility/UidGenerator.cpp)
 
@@ -397,12 +399,14 @@ else()
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/windows/SysInfoWindows.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/linux/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/SysInfoUnix.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/linux/SysInfoLinux.cpp)
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/StackTrace.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/darwin/SysInfo.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/SysInfoUnix.cpp)
+  list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/darwin/SysInfoDarwin.cpp)
   list(APPEND ${PROJECT_NAME}_SOURCES src/utility/unix/StackTrace.cpp)
 endif()
 

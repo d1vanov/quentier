@@ -89,8 +89,9 @@ void CoreTester::initTestCase()
 
 #define CATCH_EXCEPTION() \
     catch(const std::exception & exception) { \
+        SysInfo sysInfo; \
         QFAIL(qPrintable(QStringLiteral("Caught exception: ") + QString(exception.what()) + \
-                         QStringLiteral(", backtrace: ") + SysInfo::GetSingleton().GetStackTrace())); \
+                         QStringLiteral(", backtrace: ") + sysInfo.stackTrace())); \
     }
 
 

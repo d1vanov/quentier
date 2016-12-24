@@ -21,28 +21,30 @@
 
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
-#include <QtGlobal>
+#include <QScopedPointer>
 
 namespace quentier {
+
+QT_FORWARD_DECLARE_CLASS(SysInfoPrivate)
 
 class QUENTIER_EXPORT SysInfo
 {
 public:
-    static SysInfo & GetSingleton();
+    SysInfo();
+    ~SysInfo();
 
-    qint64 GetPageSize();
-    qint64 GetTotalMemoryBytes();
-    qint64 GetFreeMemoryBytes();
+    qint64 pageSize();
+    qint64 totalMemory();
+    qint64 freeMemory();
 
-    QString GetStackTrace();
+    QString stackTrace();
 
 private:
-    SysInfo();
-    SysInfo(const SysInfo & other) Q_DECL_EQ_DELETE;
-    SysInfo(SysInfo && other) Q_DECL_EQ_DELETE;
-    SysInfo & operator=(const SysInfo & other) Q_DECL_EQ_DELETE;
-    SysInfo & operator=(SysInfo && other) Q_DECL_EQ_DELETE;
-    ~SysInfo();
+    Q_DISABLE_COPY(SysInfo)
+
+private:
+    QScopedPointer<SysInfoPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(SysInfo)
 };
 
 } // namespace quentier

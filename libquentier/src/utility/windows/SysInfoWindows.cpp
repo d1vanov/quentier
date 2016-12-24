@@ -17,32 +17,24 @@
  */
 
 #include <quentier/utility/SysInfo.h>
+#include "../SysInfo_p.h"
 #include <QMutexLocker>
 #include <QString>
 #include <windows.h>
 
 namespace quentier {
 
-SysInfo & SysInfo::GetSingleton()
+qint64 SysInfo::pageSize()
 {
-    static SysInfo sysInfo;
-    return sysInfo;
-}
-
-qint64 SysInfo::GetPageSize()
-{
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
-
     SYSTEM_INFO systemInfo;
     GetNativeSystemInfo (&systemInfo);
     return static_cast<qint64>(systemInfo.dwPageSize);
 }
 
-qint64 SysInfo::GetFreeMemoryBytes()
+qint64 SysInfo::freeMemory()
 {
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
+    Q_D(SysInfo);
+    QMutexLocker mutexLocker(&d->m_mutex);
 
     MEMORYSTATUSEX memory_status;
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
@@ -55,10 +47,10 @@ qint64 SysInfo::GetFreeMemoryBytes()
     }
 }
 
-qint64 SysInfo::GetTotalMemoryBytes()
+qint64 SysInfo::totalMemory()
 {
-    QMutex mutex;
-    QMutexLocker mutexLocker(&mutex);
+    Q_D(SysInfo);
+    QMutexLocker mutexLocker(&d->m_mutex);
 
     MEMORYSTATUSEX memory_status;
     ZeroMemory(&memory_status, sizeof(MEMORYSTATUSEX));
@@ -71,13 +63,9 @@ qint64 SysInfo::GetTotalMemoryBytes()
     }
 }
 
-QString SysInfo::GetStackTrace()
+QString SysInfo::stackTrace()
 {
-    return "<stack trace obtaining is not implemented on Windows, patches are welcome>";
+    return QStringLiteral("Stack trace obtaining is not implemented on Windows, patches are welcome");
 }
-
-SysInfo::SysInfo() {}
-
-SysInfo::~SysInfo() {}
 
 } // namespace quentier

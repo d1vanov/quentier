@@ -583,7 +583,8 @@ void LocalStorageManagerPrivate::switchUser(const Account & account,
         throw DatabaseSqlErrorException(error);
     }
 
-    qint64 pageSize = SysInfo::GetSingleton().GetPageSize();
+    SysInfo sysInfo;
+    qint64 pageSize = sysInfo.pageSize();
     QString pageSizeQuery = QString("PRAGMA page_size = %1").arg(QString::number(pageSize));
     if (!query.exec(pageSizeQuery)) {
         QString lastErrorText = m_sqlDatabase.lastError().text();

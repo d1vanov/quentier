@@ -16,33 +16,41 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <quentier/utility/QuentierApplication.h>
-#include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
-#include <exception>
+#include "../../SysInfo_p.h"
+#include <unistd.h>
+#include <sys/sysinfo.h>
+#include <QString>
+#include <QMutexLocker>
 
 namespace quentier {
 
-QuentierApplication::QuentierApplication(int & argc, char * argv[]) :
-    QApplication(argc, argv)
-{}
-
-QuentierApplication::~QuentierApplication()
-{}
-
-bool QuentierApplication::notify(QObject * object, QEvent * event)
+qint64 SysInfo::totalMemory()
 {
-    try
-    {
-        return QApplication::notify(object, event);
+    Q_D(SysInfo);
+    QMutexLocker mutexLocker(&d->m_mutex);
+
+    struct sysinfo si;
+    int rc = sysinfo(&si);
+    if (rc) {
+        return -1;
     }
-    catch(const std::exception & e)
-    {
-        SysInfo sysInfo;
-        QNCRITICAL(QStringLiteral("Caught unhandled properly exception: ") << e.what()
-                   << QStringLiteral(", backtrace: ") << sysInfo.stackTrace());
-        return false;
+
+    return static_cast<qint64>(si.totalram);
+}
+
+qint64 SysInfo::freeMemory()
+{
+    Q_D(SysInfo);
+    QMutexLocker mutexLocker(&d->m_mutex);
+
+    struct sysinfo si;
+    int rc = sysinfo(&si);
+    if (rc) {
+        return -1;
     }
+
+    return static_cast<qint64>(si.freeram);
 }
 
 } // namespace quentier

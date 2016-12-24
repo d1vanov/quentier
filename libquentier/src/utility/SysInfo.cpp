@@ -16,33 +16,16 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <quentier/utility/QuentierApplication.h>
-#include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
-#include <exception>
+#include "SysInfo_p.h"
 
 namespace quentier {
 
-QuentierApplication::QuentierApplication(int & argc, char * argv[]) :
-    QApplication(argc, argv)
+SysInfo::SysInfo() :
+    d_ptr(new SysInfoPrivate)
 {}
 
-QuentierApplication::~QuentierApplication()
+SysInfo::~SysInfo()
 {}
-
-bool QuentierApplication::notify(QObject * object, QEvent * event)
-{
-    try
-    {
-        return QApplication::notify(object, event);
-    }
-    catch(const std::exception & e)
-    {
-        SysInfo sysInfo;
-        QNCRITICAL(QStringLiteral("Caught unhandled properly exception: ") << e.what()
-                   << QStringLiteral(", backtrace: ") << sysInfo.stackTrace());
-        return false;
-    }
-}
 
 } // namespace quentier

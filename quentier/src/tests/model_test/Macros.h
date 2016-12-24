@@ -28,17 +28,17 @@
 
 #define CATCH_EXCEPTION() \
     catch(const IQuentierException & exception) { \
-        SysInfo & sysInfo = SysInfo::GetSingleton(); \
+        SysInfo sysInfo; \
         QNWARNING(QStringLiteral("Caught Quentier exception: ") + exception.nonLocalizedErrorMessage() + \
-                  QStringLiteral(", what: ") + QString(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.GetStackTrace()); \
+                  QStringLiteral(", what: ") + QString(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace()); \
     } \
     catch(const std::exception & exception) { \
-        SysInfo & sysInfo = SysInfo::GetSingleton(); \
-        QNWARNING(QStringLiteral("Caught std::exception: ") + QString(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.GetStackTrace()); \
+        SysInfo sysInfo; \
+        QNWARNING(QStringLiteral("Caught std::exception: ") + QString(exception.what()) + QStringLiteral("; stack trace: ") + sysInfo.stackTrace()); \
     } \
     catch(...) { \
-        SysInfo & sysInfo = SysInfo::GetSingleton(); \
-        QNWARNING(QStringLiteral("Caught some unknown exception; stack trace: ") + sysInfo.GetStackTrace()); \
+        SysInfo sysInfo; \
+        QNWARNING(QStringLiteral("Caught some unknown exception; stack trace: ") + sysInfo.stackTrace()); \
     }
 
 #endif // QUENTIER_TESTS_MODEL_TEST_MACROS_H

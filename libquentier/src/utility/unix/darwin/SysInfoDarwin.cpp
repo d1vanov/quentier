@@ -17,6 +17,7 @@
  */
 
 #include <quentier/utility/SysInfo.h>
+#include "../../SysInfo_p.h"
 #include <unistd.h>
 #include <sys/sysctl.h>
 #include <mach/vm_statistics.h>
@@ -24,23 +25,16 @@
 #include <mach/mach_init.h>
 #include <mach/mach_host.h>
 #include "../StackTrace.h"
-#include <QDir>
+#include <QString>
+#include <QMutexLocker>
 
 namespace quentier {
 
-SysInfo & SysInfo::GetSingleton()
+qint64 SysInfo::totalMemory()
 {
-    static SysInfo sysInfo;
-    return sysInfo;
-}
+    Q_D(SysInfo);
+    QMutexLocker mutexLocker(&d->m_mutex);
 
-qint64 SysInfo::GetPageSize()
-{
-    return static_cast<qint64>(sysconf(_SC_PAGESIZE));
-}
-
-qint64 SysInfo::GetTotalMemoryBytes()
-{
     int mib[2];
     int64_t physical_memory;
     mib[0] = CTL_HW;
@@ -54,8 +48,11 @@ qint64 SysInfo::GetTotalMemoryBytes()
     return static_cast<qint64>(physical_memory);
 }
 
-qint64 SysInfo::GetFreeMemoryBytes()
+qint64 SysInfo::freeMemory()
 {
+    Q_D(SysInfo);
+    QMutexLocker mutexLocker(&d->m_mutex);
+
     vm_size_t page_size;
     mach_port_t mach_port;
     mach_msg_type_number_t count;
@@ -74,47 +71,5 @@ qint64 SysInfo::GetFreeMemoryBytes()
         return -1;
     }
 }
-
-QString SysInfo::GetStackTrace()
-{
-    fpos_t pos;
-
-    QString tmpFile = QDir::tempPath();
-    tmpFile += QStringLiteral("/QuentierStackTrace.txt");
-
-    // flush existing stderr and reopen it as file
-    fflush(stderr);
-    fgetpos(stderr, &pos);
-    int fd = dup(fileno(stderr));
-    FILE * fileHandle = freopen(tmpFile.toLocal8Bit().data(), "w", stderr);
-    if (!fileHandle) {
-        perror("Can't reopen stderr");
-        return QString();
-    }
-
-    stacktrace::displayCurrentStackTrace();
-
-    // revert stderr
-    fflush(stderr);
-    dup2(fd, fileno(stderr));
-    close(fd);
-    clearerr(stderr);
-    fsetpos(stderr, &pos);
-    fclose(fileHandle);
-
-    QFile file(tmpFile);
-    bool res = file.open(QIODevice::ReadOnly);
-    if (!res) {
-        return "<cannot open temporary file with stacktrace>";
-    }
-
-    QByteArray rawOutput = file.readAll();
-    QString output(rawOutput);
-    return output;
-}
-
-SysInfo::SysInfo() {}
-
-SysInfo::~SysInfo() {}
 
 } // namespace quentier

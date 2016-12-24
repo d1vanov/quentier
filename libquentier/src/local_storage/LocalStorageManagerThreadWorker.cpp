@@ -89,7 +89,8 @@ void LocalStorageManagerThreadWorker::init()
         error += QStringLiteral(", "); \
         error += QT_TR_NOOP("backtrace"); \
         error += QStringLiteral(": "); \
-        error += SysInfo::GetSingleton().GetStackTrace(); \
+        SysInfo sysInfo; \
+        error += sysInfo.stackTrace(); \
         QNCRITICAL(error); \
         emit failure(error); \
     }
