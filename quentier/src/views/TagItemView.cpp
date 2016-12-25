@@ -92,6 +92,20 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
 
     QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyError,QNLocalizedString),
                      this, QNSIGNAL(TagItemView,notifyError,QNLocalizedString));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyTagParentChanged,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onTagParentChanged,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToAddTag),
+                     this, QNSLOT(TagItemView,onAboutToAddTag));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,addedTag,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onAddedTag,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToUpdateTag,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onAboutToUpdateTag,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,updatedTag,const QModelIndex&),
+                     this, QNSLOT(TagItemView,onUpdatedTag,const QModelIndex&));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToRemoveTags),
+                     this, QNSLOT(TagItemView,onAboutToRemoveTags));
+    QObject::connect(pTagModel, QNSIGNAL(TagModel,removedTags),
+                     this, QNSLOT(TagItemView,onRemovedTags));
 
     ItemView::setModel(pModel);
 
@@ -107,20 +121,6 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
 
     QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyAllTagsListed),
                      this, QNSLOT(TagItemView,onAllTagsListed));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,notifyTagParentChanged,const QModelIndex&),
-                     this, QNSLOT(TagItemView,onTagParentChanged,const QModelIndex&));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToAddTag),
-                     this, QNSLOT(TagItemView,onAboutToAddTag));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,addedTag,const QModelIndex&),
-                     this, QNSLOT(TagItemView,onAddedTag,const QModelIndex&));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToUpdateTag,const QModelIndex&),
-                     this, QNSLOT(TagItemView,onAboutToUpdateTag,const QModelIndex&));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,updatedTag,const QModelIndex&),
-                     this, QNSLOT(TagItemView,onUpdatedTag,const QModelIndex&));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,aboutToRemoveTags),
-                     this, QNSLOT(TagItemView,onAboutToRemoveTags));
-    QObject::connect(pTagModel, QNSIGNAL(TagModel,removedTags),
-                     this, QNSLOT(TagItemView,onRemovedTags));
 }
 
 QModelIndex TagItemView::currentlySelectedItemIndex() const
@@ -953,12 +953,9 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
         return;
     }
 
-    QModelIndex left = model.index(lastSelectedTagIndex.row(), TagModel::Columns::Name,
-                                   lastSelectedTagIndex.parent());
-    QModelIndex right = model.index(lastSelectedTagIndex.row(), TagModel::Columns::NumNotesPerTag,
-                                    lastSelectedTagIndex.parent());
-    QItemSelection selection(left, right);
-    pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+    pSelectionModel->select(lastSelectedTagIndex, QItemSelectionModel::ClearAndSelect |
+                                                  QItemSelectionModel::Rows |
+                                                  QItemSelectionModel::Current);
 }
 
 void TagItemView::selectionChangedImpl(const QItemSelection & selected,
@@ -1068,9 +1065,6 @@ void TagItemView::postProcessTagModelChange()
         return;
     }
 
-    m_trackingSelection = true;
-    m_trackingTagItemsState = true;
-
     TagModel * pTagModel = qobject_cast<TagModel*>(model());
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG(QStringLiteral("Non-tag model is used"));
@@ -1078,7 +1072,10 @@ void TagItemView::postProcessTagModelChange()
     }
 
     restoreTagItemsState(*pTagModel);
+    m_trackingTagItemsState = true;
+
     restoreLastSavedSelection(*pTagModel);
+    m_trackingSelection = true;
 }
 
 } // namespace quentier

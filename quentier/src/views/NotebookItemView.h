@@ -52,6 +52,15 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onAllNotebooksListed();
 
+    void onAboutToAddNotebook();
+    void onAdddedNotebook(const QModelIndex & index);
+
+    void onAboutToUpdateNotebook(const QModelIndex & index);
+    void onUpdatedNotebook(const QModelIndex & index);
+
+    void onAboutToRemoveNotebooks();
+    void onRemovedNotebooks();
+
     void onCreateNewNotebookAction();
     void onRenameNotebookAction();
     void onDeleteNotebookAction();
@@ -96,11 +105,15 @@ private:
 
     void setFavoritedFlag(const QAction & action, const bool favorited);
 
+    void prepareForNotebookModelChange();
+    void postProcessNotebookModelChange();
+
 private:
     QMenu *     m_pNotebookItemContextMenu;
     QMenu *     m_pNotebookStackItemContextMenu;
-    bool        m_restoringNotebookStackItemsState;
+    bool        m_trackingNotebookStackItemsState;
     bool        m_trackingSelection;
+    bool        m_modelReady;
 };
 
 } // namespace quentier

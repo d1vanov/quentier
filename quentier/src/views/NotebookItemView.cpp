@@ -43,8 +43,9 @@ NotebookItemView::NotebookItemView(QWidget * parent) :
     ItemView(parent),
     m_pNotebookItemContextMenu(Q_NULLPTR),
     m_pNotebookStackItemContextMenu(Q_NULLPTR),
-    m_restoringNotebookStackItemsState(false),
-    m_trackingSelection(true)
+    m_trackingNotebookStackItemsState(false),
+    m_trackingSelection(false),
+    m_modelReady(false)
 {
     QObject::connect(this, QNSIGNAL(NotebookItemView,expanded,const QModelIndex&),
                      this, QNSLOT(NotebookItemView,onNotebookStackItemCollapsedOrExpanded,const QModelIndex&));
@@ -66,7 +67,23 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                             this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,const QModelIndex&),
                             this, QNSLOT(NotebookItemView,onNotebookStackChanged,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToAddNotebook),
+                            this, QNSLOT(NotebookItemView,onAboutToAddNotebook));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,addedNotebook,const QModelIndex&),
+                            this, QNSLOT(NotebookItemView,onAdddedNotebook,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToUpdateNotebook,const QModelIndex&),
+                            this, QNSLOT(NotebookItemView,onAboutToUpdateNotebook,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,updatedNotebook,const QModelIndex&),
+                            this, QNSLOT(NotebookItemView,onUpdatedNotebook,const QModelIndex&));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,aboutToRemoveNotebooks),
+                            this, QNSLOT(NotebookItemView,onAboutToRemoveNotebooks));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,removedNotebooks),
+                            this, QNSLOT(NotebookItemView,onRemovedNotebooks));
     }
+
+    m_modelReady = false;
+    m_trackingSelection = false;
+    m_trackingNotebookStackItemsState = false;
 
     NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(pModel);
     if (Q_UNLIKELY(!pNotebookModel)) {
@@ -81,6 +98,18 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                      this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,const QModelIndex&),
                      this, QNSLOT(NotebookItemView,onNotebookStackChanged,const QModelIndex&));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToAddNotebook),
+                     this, QNSLOT(NotebookItemView,onAboutToAddNotebook));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,addedNotebook,const QModelIndex&),
+                     this, QNSLOT(NotebookItemView,onAdddedNotebook,const QModelIndex&));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToUpdateNotebook,const QModelIndex&),
+                     this, QNSLOT(NotebookItemView,onAboutToUpdateNotebook,const QModelIndex&));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,updatedNotebook,const QModelIndex&),
+                     this, QNSLOT(NotebookItemView,onUpdatedNotebook,const QModelIndex&));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,aboutToRemoveNotebooks),
+                     this, QNSLOT(NotebookItemView,onAboutToRemoveNotebooks));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,removedNotebooks),
+                     this, QNSLOT(NotebookItemView,onRemovedNotebooks));
 
     ItemView::setModel(pModel);
 
@@ -89,6 +118,9 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
                                "the model, need to select the appropriate one"));
         restoreNotebookStackItemsState(*pNotebookModel);
         restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+        m_modelReady = true;
+        m_trackingSelection = true;
+        m_trackingNotebookStackItemsState = true;
         return;
     }
 
@@ -168,6 +200,52 @@ void NotebookItemView::onAllNotebooksListed()
 
     restoreNotebookStackItemsState(*pNotebookModel);
     restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+
+    m_modelReady = true;
+    m_trackingSelection = true;
+    m_trackingNotebookStackItemsState = true;
+}
+
+void NotebookItemView::onAboutToAddNotebook()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onAboutToAddNotebook"));
+    prepareForNotebookModelChange();
+}
+
+void NotebookItemView::onAdddedNotebook(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onAdddedNotebook"));
+
+    Q_UNUSED(index)
+    postProcessNotebookModelChange();
+}
+
+void NotebookItemView::onAboutToUpdateNotebook(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onAboutToUpdateNotebook"));
+
+    Q_UNUSED(index)
+    prepareForNotebookModelChange();
+}
+
+void NotebookItemView::onUpdatedNotebook(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onUpdatedNotebook"));
+
+    Q_UNUSED(index)
+    postProcessNotebookModelChange();
+}
+
+void NotebookItemView::onAboutToRemoveNotebooks()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onAboutToRemoveNotebooks"));
+    prepareForNotebookModelChange();
+}
+
+void NotebookItemView::onRemovedNotebooks()
+{
+    QNDEBUG(QStringLiteral("NotebookItemView::onRemovedNotebooks"));
+    postProcessNotebookModelChange();
 }
 
 void NotebookItemView::onCreateNewNotebookAction()
@@ -359,9 +437,10 @@ void NotebookItemView::onMoveNotebookToStackAction()
 
     const QString & targetStack = itemLocalUidAndStack.at(1);
 
+    bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
     QModelIndex index = pNotebookModel->moveToStack(itemIndex, targetStack);
-    m_trackingSelection = true;
+    m_trackingSelection = wasTrackingSelection;
 
     if (!index.isValid()) {
         REPORT_ERROR("Can't move notebook to stack")
@@ -402,9 +481,10 @@ void NotebookItemView::onRemoveNotebookFromStackAction()
         return;
     }
 
+    bool wasTrackingSelection = m_trackingSelection;
     m_trackingSelection = false;
     QModelIndex index = pNotebookModel->removeFromStack(itemIndex);
-    m_trackingSelection = true;
+    m_trackingSelection = wasTrackingSelection;
 
     if (!index.isValid()) {
         REPORT_ERROR("Can't remove the notebook from stack")
@@ -488,9 +568,10 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
             break;
         }
 
+        bool wasTrackingSelection = m_trackingSelection;
         m_trackingSelection = false;
         Q_UNUSED(pNotebookModel->removeFromStack(childIndex))
-        m_trackingSelection = true;
+        m_trackingSelection = wasTrackingSelection;
     }
 
     QNDEBUG(QStringLiteral("Successfully removed notebook items from the stack"));
@@ -532,8 +613,8 @@ void NotebookItemView::onNotebookStackItemCollapsedOrExpanded(const QModelIndex 
             << QStringLiteral(", parent: valid = ") << (index.parent().isValid() ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", row = ") << index.parent().row() << QStringLiteral(", column = ") << index.parent().column());
 
-    if (m_restoringNotebookStackItemsState) {
-        QNDEBUG(QStringLiteral("Ignoring the event as the stack items are being restored currently"));
+    if (!m_trackingNotebookStackItemsState) {
+        QNDEBUG(QStringLiteral("Not tracking the expanded/collapsed state of notebook stack items at the moment"));
         return;
     }
 
@@ -588,14 +669,9 @@ void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
         return;
     }
 
-    QModelIndex left = pNotebookModel->index(newStackItemIndex.row(), NotebookModel::Columns::Name,
-                                             newStackItemIndex.parent());
-    QModelIndex right = pNotebookModel->index(newStackItemIndex.row(), NotebookModel::Columns::NumNotesPerNotebook,
-                                              newStackItemIndex.parent());
-    QItemSelection selection(left, right);
-    pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
-
-    setFocus();
+    pSelectionModel->select(newStackItemIndex, QItemSelectionModel::ClearAndSelect |
+                                               QItemSelectionModel::Rows |
+                                               QItemSelectionModel::Current);
 }
 
 void NotebookItemView::onNotebookStackChanged(const QModelIndex & index)
@@ -983,9 +1059,10 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
     QStringList expandedStacks = appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
-    m_restoringNotebookStackItemsState = true;
+    bool wasTrackingNotebookItemsState = m_trackingNotebookStackItemsState;
+    m_trackingNotebookStackItemsState = false;
     setStacksExpanded(expandedStacks, model);
-    m_restoringNotebookStackItemsState = false;
+    m_trackingNotebookStackItemsState = wasTrackingNotebookItemsState;
 }
 
 void NotebookItemView::setStacksExpanded(const QStringList & expandedStackNames, const NotebookModel & model)
@@ -1034,15 +1111,18 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(const Noteb
         QModelIndex lastSelectedNotebookIndex = model.indexForLocalUid(lastSelectedNotebookLocalUid);
         if (lastSelectedNotebookIndex.isValid()) {
             QNDEBUG(QStringLiteral("Selecting the last selected notebook item: local uid = ")
-                    << lastSelectedNotebookLocalUid);
-            QModelIndex left = model.index(lastSelectedNotebookIndex.row(), NotebookModel::Columns::Name,
-                                           lastSelectedNotebookIndex.parent());
-            QModelIndex right = model.index(lastSelectedNotebookIndex.row(), NotebookModel::Columns::NumNotesPerNotebook,
-                                            lastSelectedNotebookIndex.parent());
-            QItemSelection selection(left, right);
-            pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+                    << lastSelectedNotebookLocalUid << QStringLiteral(", index: row = ")
+                    << lastSelectedNotebookIndex.row() << QStringLiteral(", column = ")
+                    << lastSelectedNotebookIndex.column() << QStringLiteral(", internal id = ")
+                    << lastSelectedNotebookIndex.internalId());
+            pSelectionModel->select(lastSelectedNotebookIndex, QItemSelectionModel::ClearAndSelect |
+                                                               QItemSelectionModel::Rows |
+                                                               QItemSelectionModel::Current);
             return;
         }
+
+        QNTRACE(QStringLiteral("The notebook model returned invalid index for local uid ") <<
+                lastSelectedNotebookLocalUid);
     }
 
     autoSelectNotebook(model);
@@ -1059,28 +1139,20 @@ void NotebookItemView::autoSelectNotebook(const NotebookModel & model)
     }
 
     QModelIndex lastUsedNotebookIndex = model.lastUsedNotebookIndex();
-    if (lastUsedNotebookIndex.isValid())
-    {
+    if (lastUsedNotebookIndex.isValid()) {
         QNDEBUG(QStringLiteral("Selecting the last used notebook item"));
-        QModelIndex left = model.index(lastUsedNotebookIndex.row(), NotebookModel::Columns::Name,
-                                       lastUsedNotebookIndex.parent());
-        QModelIndex right = model.index(lastUsedNotebookIndex.row(), NotebookModel::Columns::NumNotesPerNotebook,
-                                        lastUsedNotebookIndex.parent());
-        QItemSelection selection(left, right);
-        pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+        pSelectionModel->select(lastUsedNotebookIndex, QItemSelectionModel::ClearAndSelect |
+                                                       QItemSelectionModel::Rows |
+                                                       QItemSelectionModel::Current);
         return;
     }
 
     QModelIndex defaultNotebookIndex = model.defaultNotebookIndex();
-    if (defaultNotebookIndex.isValid())
-    {
+    if (defaultNotebookIndex.isValid()) {
         QNDEBUG(QStringLiteral("Selecting the default notebook item"));
-        QModelIndex left = model.index(defaultNotebookIndex.row(), NotebookModel::Columns::Name,
-                                       defaultNotebookIndex.parent());
-        QModelIndex right = model.index(defaultNotebookIndex.row(), NotebookModel::Columns::NumNotesPerNotebook,
-                                        defaultNotebookIndex.parent());
-        QItemSelection selection(left, right);
-        pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+        pSelectionModel->select(defaultNotebookIndex, QItemSelectionModel::ClearAndSelect |
+                                                      QItemSelectionModel::Rows |
+                                                      QItemSelectionModel::Current);
         return;
     }
 
@@ -1092,12 +1164,9 @@ void NotebookItemView::autoSelectNotebook(const NotebookModel & model)
 
     QNDEBUG(QStringLiteral("Selecting random notebook"));
     QModelIndex index = persistentIndexes.at(0);
-    QModelIndex left = model.index(index.row(), NotebookModel::Columns::Name,
-                                   index.parent());
-    QModelIndex right = model.index(index.row(), NotebookModel::Columns::NumNotesPerNotebook,
-                                    index.parent());
-    QItemSelection selection(left, right);
-    pSelectionModel->select(selection, QItemSelectionModel::ClearAndSelect);
+    pSelectionModel->select(index, QItemSelectionModel::ClearAndSelect |
+                                   QItemSelectionModel::Rows |
+                                   QItemSelectionModel::Current);
 }
 
 void NotebookItemView::selectionChangedImpl(const QItemSelection & selected,
@@ -1199,6 +1268,38 @@ void NotebookItemView::setFavoritedFlag(const QAction & action, const bool favor
     else {
         pNotebookModel->unfavoriteNotebook(itemIndex);
     }
+}
+
+void NotebookItemView::prepareForNotebookModelChange()
+{
+    if (!m_modelReady) {
+        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        return;
+    }
+
+    saveNotebookStackItemsState();
+    m_trackingSelection = false;
+    m_trackingNotebookStackItemsState = false;
+}
+
+void NotebookItemView::postProcessNotebookModelChange()
+{
+    if (!m_modelReady) {
+        QNDEBUG(QStringLiteral("The model is not ready yet"));
+        return;
+    }
+
+    NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
+    if (Q_UNLIKELY(!pNotebookModel)) {
+        QNDEBUG(QStringLiteral("Non-notebook model is used"));
+        return;
+    }
+
+    restoreNotebookStackItemsState(*pNotebookModel);
+    m_trackingNotebookStackItemsState = true;
+
+    restoreLastSavedSelectionOrAutoSelectNotebook(*pNotebookModel);
+    m_trackingSelection = true;
 }
 
 } // namespace quentier
