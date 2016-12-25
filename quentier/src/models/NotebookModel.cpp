@@ -100,6 +100,7 @@ QModelIndex NotebookModel::indexForItem(const NotebookModelItem * pItem) const
 
     const NotebookModelItem * pParentItem = pItem->parent();
     if (!pParentItem) {
+        QNWARNING(QStringLiteral("The notebook model item has no parent, returning invalid index for it: ") << *pItem);
         return QModelIndex();
     }
 
@@ -115,6 +116,7 @@ QModelIndex NotebookModel::indexForItem(const NotebookModelItem * pItem) const
 
     IndexId id = idForItem(*pItem);
     if (Q_UNLIKELY(id == 0)) {
+        QNWARNING(QStringLiteral("The notebook model item has the internal id of 0: ") << *pItem);
         return QModelIndex();
     }
 
@@ -125,6 +127,7 @@ QModelIndex NotebookModel::indexForLocalUid(const QString & localUid) const
 {
     auto it = m_modelItemsByLocalUid.find(localUid);
     if (it == m_modelItemsByLocalUid.end()) {
+        QNTRACE(QStringLiteral("Found no notebook model item for local uid ") << localUid);
         return QModelIndex();
     }
 
@@ -420,6 +423,8 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
 
     const NotebookModelItem * pParentItem = m_fakeRootItem;
 
+    emit aboutToAddNotebook();
+
     if (!notebookStack.isEmpty())
     {
         auto it = m_modelItemsByStack.end();
@@ -444,6 +449,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
             errorDescription = QNLocalizedString("Internal error: no notebook model item "
                                                  "while it's expected to be here; failed "
                                                  "to auto-fix the problem", this);
+            emit addedNotebook(QModelIndex());
             return QModelIndex();
         }
 
@@ -485,6 +491,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
 
     if (m_sortedColumn != Columns::Name) {
         QNDEBUG(QStringLiteral("Not sorting by name, returning"));
+        emit addedNotebook(addedNotebookIndex);
         return addedNotebookIndex;
     }
 
@@ -497,6 +504,7 @@ QModelIndex NotebookModel::createNotebook(const QString & notebookName,
     // Need to update the index as the item's row could have changed as a result of sorting
     addedNotebookIndex = indexForLocalUid(item.localUid());
 
+    emit addedNotebook(addedNotebookIndex);
     return addedNotebookIndex;
 }
 
@@ -1351,6 +1359,9 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             << parent.row() << QStringLiteral(", column = ") << parent.column()
             << QStringLiteral(", internal id = ") << parent.internalId());
 
+    RemoveRowsScopeGuard removeRowsScopeGuard(*this);
+    Q_UNUSED(removeRowsScopeGuard)
+
     if (!m_fakeRootItem) {
         QNDEBUG(QStringLiteral("No fake root item"));
         return false;
@@ -1921,7 +1932,9 @@ void NotebookModel::onExpungeNotebookComplete(Notebook notebook, QUuid requestId
         return;
     }
 
+    emit aboutToRemoveNotebooks();
     removeItemByLocalUid(notebook.localUid());
+    emit removedNotebooks();
 }
 
 void NotebookModel::onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
@@ -2458,6 +2471,17 @@ QString NotebookModel::nameForNewNotebook() const
     return newItemName<NotebookDataByNameUpper>(nameIndex, m_lastNewNotebookNameCounter, baseName);
 }
 
+NotebookModel::RemoveRowsScopeGuard::RemoveRowsScopeGuard(NotebookModel & model) :
+    m_model(model)
+{
+    m_model.beginRemoveNotebooks();
+}
+
+NotebookModel::RemoveRowsScopeGuard::~RemoveRowsScopeGuard()
+{
+    m_model.endRemoveNotebooks();
+}
+
 void NotebookModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 {
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
@@ -2466,11 +2490,24 @@ void NotebookModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
     auto itemIt = localUidIndex.find(notebook.localUid());
     bool newNotebook = (itemIt == localUidIndex.end());
-    if (newNotebook) {
+    if (newNotebook)
+    {
+        emit aboutToAddNotebook();
+
         onNotebookAdded(notebook);
+
+        QModelIndex addedNotebookIndex = indexForLocalUid(notebook.localUid());
+        emit addedNotebook(addedNotebookIndex);
     }
-    else {
+    else
+    {
+        QModelIndex notebookIndexBefore = indexForLocalUid(notebook.localUid());
+        emit aboutToUpdateNotebook(notebookIndexBefore);
+
         onNotebookUpdated(notebook, itemIt);
+
+        QModelIndex notebookIndexAfter = indexForLocalUid(notebook.localUid());
+        emit updatedNotebook(notebookIndexAfter);
     }
 }
 
@@ -3101,6 +3138,16 @@ void NotebookModel::setNotebookFavorited(const QModelIndex & index, const bool f
     localUidIndex.replace(it, itemCopy);
 
     updateNotebookInLocalStorage(itemCopy);
+}
+
+void NotebookModel::beginRemoveNotebooks()
+{
+    emit aboutToRemoveNotebooks();
+}
+
+void NotebookModel::endRemoveNotebooks()
+{
+    emit removedNotebooks();
 }
 
 const NotebookModelItem * NotebookModel::itemForId(const IndexId id) const

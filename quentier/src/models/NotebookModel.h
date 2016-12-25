@@ -223,6 +223,17 @@ Q_SIGNALS:
      */
     void notifyNotebookStackChanged(const QModelIndex & notebookIndex);
 
+    // Informative signals for views, so that they can prepare to the changes in the tree of notebooks/stacks
+    // and do some recovery after that
+    void aboutToAddNotebook();
+    void addedNotebook(const QModelIndex & index);
+
+    void aboutToUpdateNotebook(const QModelIndex & index);
+    void updatedNotebook(const QModelIndex & index);
+
+    void aboutToRemoveNotebooks();
+    void removedNotebooks();
+
 // private signals
     void addNotebook(Notebook notebook, QUuid requestId);
     void updateNotebook(Notebook notebook, QUuid requestId);
@@ -305,6 +316,9 @@ private:
 
     void setNotebookFavorited(const QModelIndex & index, const bool favorited);
 
+    void beginRemoveNotebooks();
+    void endRemoveNotebooks();
+
 private:
     struct ByLocalUid{};
     struct ByNameUpper{};
@@ -367,6 +381,18 @@ private:
 
     typedef boost::bimap<IndexId, QString> IndexIdToLocalUidBimap;
     typedef boost::bimap<IndexId, QString> IndexIdToStackBimap;
+
+    class RemoveRowsScopeGuard
+    {
+    public:
+        RemoveRowsScopeGuard(NotebookModel & model);
+        ~RemoveRowsScopeGuard();
+
+    private:
+        NotebookModel &     m_model;
+    };
+
+    friend class RemoveRowsScopeGuard;
 
 private:
     void onNotebookAddedOrUpdated(const Notebook & notebook);
