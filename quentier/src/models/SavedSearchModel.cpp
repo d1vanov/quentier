@@ -92,6 +92,21 @@ QModelIndex SavedSearchModel::indexForSavedSearchName(const QString & savedSearc
     return indexForItem(&item);
 }
 
+QStringList SavedSearchModel::savedSearchNames() const
+{
+    const SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
+    QStringList result;
+    result.reserve(static_cast<int>(nameIndex.size()));
+
+    for(auto it = nameIndex.begin(), end = nameIndex.end(); it != end; ++it) {
+        const QString savedSearchName = it->m_name;
+        result << savedSearchName;
+    }
+
+    return result;
+}
+
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);

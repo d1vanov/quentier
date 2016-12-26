@@ -69,6 +69,13 @@ public:
     QModelIndex indexForLocalUid(const QString & localUid) const;
     QModelIndex indexForSavedSearchName(const QString & savedSearchName) const;
 
+    /**
+     * @brief savedSearchNames
+     * @return the sorted (in case insensitive manner) list of saved search names
+     * existing within the saved search model
+     */
+    QStringList savedSearchNames() const;
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;

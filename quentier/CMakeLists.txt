@@ -55,6 +55,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/AddAccountDialog.h
     src/dialogs/AddOrEditNotebookDialog.h
     src/dialogs/AddOrEditTagDialog.h
+    src/dialogs/AddOrEditSavedSearchDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/models/ColumnChangeRerouter.h
     src/models/NewItemNameGenerator.hpp
@@ -115,6 +116,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/AddAccountDialog.cpp
     src/dialogs/AddOrEditNotebookDialog.cpp
     src/dialogs/AddOrEditTagDialog.cpp
+    src/dialogs/AddOrEditSavedSearchDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
@@ -164,6 +166,7 @@ set(FORMS
     src/dialogs/AddAccountDialog.ui
     src/dialogs/AddOrEditNotebookDialog.ui
     src/dialogs/AddOrEditTagDialog.ui
+    src/dialogs/AddOrEditSavedSearchDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
