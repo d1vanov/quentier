@@ -38,6 +38,12 @@ bool NoteSearchQuery::isEmpty() const
     return d->m_queryString.isEmpty();
 }
 
+void NoteSearchQuery::clear()
+{
+    Q_D(NoteSearchQuery);
+    d->clear();
+}
+
 const QString NoteSearchQuery::queryString() const
 {
     Q_D(const NoteSearchQuery);

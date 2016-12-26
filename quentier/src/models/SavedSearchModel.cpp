@@ -62,13 +62,33 @@ void SavedSearchModel::updateAccount(const Account & account)
     m_account = account;
 }
 
-QModelIndex SavedSearchModel::indexForItem(const SavedSearchModelItem * item) const
+const SavedSearchModelItem * SavedSearchModel::itemForIndex(const QModelIndex & modelIndex) const
 {
-    if (!item) {
+    QNTRACE(QStringLiteral("SavedSearchModel::itemForIndex: row = ") << modelIndex.row());
+
+    if (!modelIndex.isValid()) {
+        QNTRACE(QStringLiteral("Index is invalid"));
+        return Q_NULLPTR;
+    }
+
+    int row = modelIndex.row();
+
+    const SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    if (row >= static_cast<int>(index.size())) {
+        QNTRACE(QStringLiteral("Index's row is greater than the size of the row index"));
+        return Q_NULLPTR;
+    }
+
+    return &(index[static_cast<size_t>(row)]);
+}
+
+QModelIndex SavedSearchModel::indexForItem(const SavedSearchModelItem * pItem) const
+{
+    if (!pItem) {
         return QModelIndex();
     }
 
-    return indexForLocalUid(item->m_localUid);
+    return indexForLocalUid(pItem->m_localUid);
 
 }
 
@@ -105,6 +125,70 @@ QStringList SavedSearchModel::savedSearchNames() const
     }
 
     return result;
+}
+
+QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName, const QString & searchQuery,
+                                                QNLocalizedString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("SavedSearchModel::createSavedSearch: saved search name = ") << savedSearchName
+            << QStringLiteral(", search query = ") << searchQuery);
+
+    if (savedSearchName.isEmpty()) {
+        errorDescription = QNLocalizedString("Saved search name is empty", this);
+        return QModelIndex();
+    }
+
+    int savedSearchNameSize = savedSearchName.size();
+
+    if (savedSearchNameSize < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN) {
+        errorDescription = QNLocalizedString("Saved search name's minimal acceptable length is", this);
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QString::number(qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN);
+        return QModelIndex();
+    }
+
+    if (savedSearchNameSize > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX) {
+        errorDescription = QNLocalizedString("Saved search name's maximal acceptable length is", this);
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QString::number(qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX);
+        return QModelIndex();
+    }
+
+    QModelIndex existingItemIndex = indexForSavedSearchName(savedSearchName);
+    if (existingItemIndex.isValid()) {
+        errorDescription = QNLocalizedString("Saved search with such name already exists", this);
+        return QModelIndex();
+    }
+
+    SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    int numExistingSavedSearches = static_cast<int>(localUidIndex.size());
+    if (Q_UNLIKELY(numExistingSavedSearches + 1 >= m_account.savedSearchCountMax())) {
+        errorDescription = QNLocalizedString("Can't create saved search: the account can "
+                                             "contain a limited number of saved searches", this);
+        errorDescription += QStringLiteral(": ");
+        errorDescription += QString::number(m_account.savedSearchCountMax());
+        return QModelIndex();
+    }
+
+    SavedSearchModelItem item;
+    item.m_localUid = UidGenerator::Generate();
+    Q_UNUSED(m_savedSearchItemsNotYetInLocalStorageUids.insert(item.m_localUid))
+
+    item.m_name = savedSearchName;
+    item.m_query = searchQuery;
+    item.m_isDirty = true;
+    item.m_isSynchronizable = (m_account.type() != Account::Type::Local);
+
+    int row = rowForNewItem(item);
+
+    beginInsertRows(QModelIndex(), row, row);
+    Q_UNUSED(localUidIndex.insert(item))
+    endInsertRows();
+
+    updateSavedSearchInLocalStorage(item);
+
+    QModelIndex addedSavedSearchIndex = index(row, Columns::Name, QModelIndex());
+    return addedSavedSearchIndex;
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const

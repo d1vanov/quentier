@@ -76,6 +76,16 @@ public:
      */
     QStringList savedSearchNames() const;
 
+    /**
+     * @brief createSavedSearch - convenience method to create a new saved search within the model
+     * @param savedSearchName - the name of the new saved search
+     * @param searchQuery - the search query being saved
+     * @param errorDescription - the textual description of the error if saved search was not created successfully
+     * @return either valid model index if saved search was created successfully or invalid model index otherwise
+     */
+    QModelIndex createSavedSearch(const QString & savedSearchName, const QString & searchQuery,
+                                  QNLocalizedString & errorDescription);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;

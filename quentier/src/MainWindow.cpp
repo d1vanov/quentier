@@ -33,6 +33,7 @@
 #include "delegates/DeletedNoteTitleColumnDelegate.h"
 #include "dialogs/AddOrEditNotebookDialog.h"
 #include "dialogs/AddOrEditTagDialog.h"
+#include "dialogs/AddOrEditSavedSearchDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
 #include "views/NotebookItemView.h"
@@ -302,6 +303,9 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onRemoveTagButtonPressed));
     QObject::connect(m_pUI->tagInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onTagInfoButtonPressed));
+
+    QObject::connect(m_pUI->addSavedSearchButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1386,6 +1390,22 @@ void MainWindow::onTagInfoButtonPressed()
     }
 #endif
     pTagModelItemInfoWidget->show();
+}
+
+void MainWindow::onCreateSavedSearchButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onCreateSavedSearchButtonPressed"));
+
+    if (Q_UNLIKELY(!m_pSavedSearchModel)) {
+        QNLocalizedString error = QNLocalizedString("Can't create saved search: no saved search model is set up", this);
+        QNWARNING(error);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
+    pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
+    Q_UNUSED(pAddSavedSearchDialog->exec())
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()

@@ -2328,14 +2328,14 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
     int tagNameSize = tagName.size();
 
     if (tagNameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) {
-        errorDescription = QNLocalizedString("Tag name's minimal acceptable length is");
+        errorDescription = QNLocalizedString("Tag name's minimal acceptable length is", this);
         errorDescription += QStringLiteral(" ");
         errorDescription += QString::number(qevercloud::EDAM_TAG_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (tagNameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) {
-        errorDescription = QNLocalizedString("Tag name's maximal acceptable length is");
+        errorDescription = QNLocalizedString("Tag name's maximal acceptable length is", this);
         errorDescription += QStringLiteral(" ");
         errorDescription += QString::number(qevercloud::EDAM_TAG_NAME_LEN_MAX);
         return QModelIndex();
@@ -2395,7 +2395,6 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
     auto insertionResult = localUidIndex.insert(item);
     const TagModelItem & insertedItem = *(insertionResult.first);
 
-    // Will insert the notebook to the end of the parent item's children
     int row = rowForNewItem(*pParentItem, insertedItem);
 
     beginInsertRows(parentIndex, row, row);

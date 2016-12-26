@@ -272,18 +272,18 @@ bool AddOrEditTagDialog::setupEditedTagItem(QStringList & tagNames, int & curren
     currentIndex = -1;
 
     if (m_editedTagLocalUid.isEmpty()) {
-        QNDEBUG("Edited tag's local uid is empty");
+        QNDEBUG(QStringLiteral("Edited tag's local uid is empty"));
         return false;
     }
 
-    if (m_pTagModel.isNull()) {
+    if (Q_UNLIKELY(m_pTagModel.isNull())) {
         QNDEBUG(QStringLiteral("Tag model is null"));
         return false;
     }
 
     QModelIndex editedTagIndex = m_pTagModel->indexForLocalUid(m_editedTagLocalUid);
     const TagModelItem * pItem = m_pTagModel->itemForIndex(editedTagIndex);
-    if (!pItem) {
+    if (Q_UNLIKELY(!pItem)) {
         m_pUi->statusBar->setText(tr("Can't find the edited tag within the model"));
         m_pUi->statusBar->setHidden(false);
         return false;

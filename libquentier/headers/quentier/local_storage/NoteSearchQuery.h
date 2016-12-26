@@ -36,6 +36,8 @@ public:
 
     bool isEmpty() const;
 
+    void clear();
+
     /**
      * Returns the original non-parsed query string
      */

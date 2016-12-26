@@ -1,3 +1,21 @@
+/*
+ * Copyright 2016 Dmitry Ivanov
+ *
+ * This file is part of Quentier.
+ *
+ * Quentier is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 of the License.
+ *
+ * Quentier is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef QUENTIER_DIALOGS_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 #define QUENTIER_DIALOGS_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 
@@ -26,7 +44,12 @@ public:
 
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
-    void onSearchQueryEdited(const QString & searchQuery);
+    void onSavedSearchNameEdited(const QString & savedSearchName);
+    void onSearchQueryEdited();
+
+private:
+    void createConnections();
+    void setupEditedSavedSearchItem();
 
 private:
     Ui::AddOrEditSavedSearchDialog *    m_pUi;
