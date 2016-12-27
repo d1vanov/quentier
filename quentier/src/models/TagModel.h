@@ -392,8 +392,6 @@ private:
     mutable IndexIdToLocalUidBimap  m_indexIdToLocalUidBimap;
     mutable IndexId                 m_lastFreeIndexId;
 
-    QSet<QString>           m_lowerCaseTagNames;
-
     size_t                  m_listTagsOffset;
     QUuid                   m_listTagsRequestId;
     QSet<QUuid>             m_tagItemsNotYetInLocalStorageUids;

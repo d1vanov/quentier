@@ -47,7 +47,6 @@ NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadW
     m_indexIdToStackBimap(),
     m_lastFreeIndexId(1),
     m_cache(cache),
-    m_lowerCaseNotebookNames(),
     m_listNotebooksOffset(0),
     m_listNotebooksRequestId(),
     m_addNotebookRequestIds(),
@@ -862,6 +861,8 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
         return false;
     }
 
+    NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
     if (isNotebookItem)
     {
         const NotebookItem * pNotebookItem = pModelItem->notebookItem();
@@ -914,8 +915,8 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     return true;
                 }
 
-                auto nameIt = m_lowerCaseNotebookNames.find(newName.toLower());
-                if (nameIt != m_lowerCaseNotebookNames.end()) {
+                auto nameIt = nameIndex.find(newName.toUpper());
+                if (nameIt != nameIndex.end()) {
                     QNLocalizedString error = QNLocalizedString("Can't rename notebook: no two notebooks within the account are allowed "
                                                                 "to have the same name in a case-insensitive manner", this);
                     QNINFO(error << QStringLiteral(", suggested new name = ") << newName);
@@ -932,16 +933,6 @@ bool NotebookModel::setData(const QModelIndex & modelIndex, const QVariant & val
                     emit notifyError(error);
                     return false;
                 }
-
-                // Need to remove the previous name before accepting the new one
-                nameIt = m_lowerCaseNotebookNames.find(notebookItemCopy.name().toLower());
-                if (Q_LIKELY(nameIt != m_lowerCaseNotebookNames.end())) {
-                    QNTRACE(QStringLiteral("Erasing old name ") << notebookItemCopy.name()
-                            << QStringLiteral(" from the list of existing names"));
-                    m_lowerCaseNotebookNames.erase(nameIt);
-                }
-
-                Q_UNUSED(m_lowerCaseNotebookNames.insert(newName.toLower()))
 
                 dirty = true;
                 notebookItemCopy.setName(newName);
@@ -1436,13 +1427,6 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
             notebookLocalUidsToRemove << pNotebookItem->localUid();
             QNTRACE(QStringLiteral("Marked notebook local uid ") << pNotebookItem->localUid()
                     << QStringLiteral(" as the one scheduled for removal"));
-
-            auto nameIt = m_lowerCaseNotebookNames.find(pNotebookItem->name().toLower());
-            if (nameIt != m_lowerCaseNotebookNames.end()) {
-                Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
-                QNTRACE(QStringLiteral("Removed the notebook name ") << pNotebookItem->name()
-                        << QStringLiteral(" from the list of existing i.e. reserved notebook names"));
-            }
         }
         else
         {
@@ -1478,13 +1462,6 @@ bool NotebookModel::removeRows(int row, int count, const QModelIndex & parent)
                 notebookLocalUidsToRemove << pNotebookItem->localUid();
                 QNTRACE(QStringLiteral("Marked notebook local uid ") << pNotebookItem->localUid()
                         << QStringLiteral(" as the one scheduled for removal"));
-
-                auto nameIt = m_lowerCaseNotebookNames.find(pNotebookItem->name().toLower());
-                if (nameIt != m_lowerCaseNotebookNames.end()) {
-                    Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
-                        QNTRACE(QStringLiteral("Removed the notebook name ") << pNotebookItem->name()
-                                << QStringLiteral(" from the list of existing i.e. reserved notebook names"));
-                }
             }
 
             notebookStacksToRemove << pChildItem->notebookStackItem()->name();
@@ -2515,10 +2492,6 @@ void NotebookModel::onNotebookAdded(const Notebook & notebook)
 {
     QNDEBUG(QStringLiteral("NotebookModel::onNotebookAdded: notebook local uid = ") << notebook.localUid());
 
-    if (notebook.hasName()) {
-        Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
-    }
-
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     const NotebookModelItem * pParentItem = Q_NULLPTR;
@@ -2570,16 +2543,6 @@ void NotebookModel::onNotebookUpdated(const Notebook & notebook, NotebookDataByL
 {
     QNDEBUG(QStringLiteral("NotebookModel::onNotebookUpdated: notebook local uid = ")
             << notebook.localUid());
-
-    const NotebookItem & originalItem = *it;
-    auto nameIt = m_lowerCaseNotebookNames.find(originalItem.name().toLower());
-    if (nameIt != m_lowerCaseNotebookNames.end()) {
-        Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
-    }
-
-    if (notebook.hasName()) {
-        Q_UNUSED(m_lowerCaseNotebookNames.insert(notebook.name().toLower()))
-    }
 
     NotebookItem notebookItemCopy;
     notebookToItem(notebook, notebookItemCopy);
@@ -2751,10 +2714,6 @@ void NotebookModel::removeItemByLocalUid(const QString & localUid)
     }
 
     const NotebookItem & item = *itemIt;
-    auto nameIt = m_lowerCaseNotebookNames.find(item.name().toLower());
-    if (nameIt != m_lowerCaseNotebookNames.end()) {
-        Q_UNUSED(m_lowerCaseNotebookNames.erase(nameIt))
-    }
 
     auto notebookModelItemIt = m_modelItemsByLocalUid.find(item.localUid());
     if (Q_UNLIKELY(notebookModelItemIt == m_modelItemsByLocalUid.end())) {

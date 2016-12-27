@@ -39,7 +39,6 @@ SavedSearchModel::SavedSearchModel(const Account & account, LocalStorageManagerT
     m_listSavedSearchesRequestId(),
     m_savedSearchItemsNotYetInLocalStorageUids(),
     m_cache(cache),
-    m_lowerCaseSavedSearchNames(),
     m_addSavedSearchRequestIds(),
     m_updateSavedSearchRequestIds(),
     m_expungeSavedSearchRequestIds(),
@@ -358,6 +357,8 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
         return false;
     }
 
+    SavedSearchDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+
     SavedSearchDataByIndex & index = m_data.get<ByIndex>();
     SavedSearchModelItem item = index[static_cast<size_t>(rowIndex)];
 
@@ -371,8 +372,8 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
                 return true;
             }
 
-            auto nameIt = m_lowerCaseSavedSearchNames.find(name.toLower());
-            if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+            auto nameIt = nameIndex.find(name.toUpper());
+            if (nameIt != nameIndex.end()) {
                 QNLocalizedString error = QNLocalizedString("Can't rename saved search: no two saved searches within the account "
                                                             "are allowed to have the same name in a case-insensitive manner", this);
                 QNINFO(error << QStringLiteral(", suggested new name = ") << name);
@@ -389,16 +390,6 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
                 emit notifyError(error);
                 return false;
             }
-
-            // Need to remove the previous name before accepting the new one
-            nameIt = m_lowerCaseSavedSearchNames.find(item.m_name.toLower());
-            if (Q_LIKELY(nameIt != m_lowerCaseSavedSearchNames.end())) {
-                QNTRACE(QStringLiteral("Erasing old name ") << item.m_name
-                        << QStringLiteral(" from the list of existing names"));
-                m_lowerCaseSavedSearchNames.erase(nameIt);
-            }
-
-            Q_UNUSED(m_lowerCaseSavedSearchNames.insert(name.toLower()))
 
             item.m_isDirty = true;
             item.m_name = name;
@@ -533,11 +524,6 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
 
         SavedSearch savedSearch;
         savedSearch.setLocalUid(it->m_localUid);
-
-        auto nameIt = m_lowerCaseSavedSearchNames.find(it->m_name.toLower());
-        if (nameIt != m_lowerCaseSavedSearchNames.end()) {
-            Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
-        }
 
         QUuid requestId = QUuid::createUuid();
         Q_UNUSED(m_expungeSavedSearchRequestIds.insert(requestId))
@@ -837,10 +823,6 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
 
     int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
     beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
-    auto nameIt = m_lowerCaseSavedSearchNames.find(indexIt->m_name.toLower());
-    if (nameIt != m_lowerCaseSavedSearchNames.end()) {
-        Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
-    }
     Q_UNUSED(m_data.erase(indexIt))
     endRemoveRows();
 
@@ -954,10 +936,6 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     bool newSavedSearch = (itemIt == localUidIndex.end());
     if (newSavedSearch)
     {
-        if (search.hasName()) {
-            Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
-        }
-
         emit aboutToAddSavedSearch();
 
         int row = rowForNewItem(item);
@@ -972,16 +950,6 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         emit addedSavedSearch(addedSavedSearchIndex);
 
         return;
-    }
-
-    const SavedSearchModelItem & originalItem = *itemIt;
-    auto nameIt = m_lowerCaseSavedSearchNames.find(originalItem.m_name.toLower());
-    if (nameIt != m_lowerCaseSavedSearchNames.end()) {
-        Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
-    }
-
-    if (search.hasName()) {
-        Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
     }
 
     QModelIndex savedSearchIndexBefore = indexForLocalUid(search.localUid());
