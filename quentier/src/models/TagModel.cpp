@@ -503,9 +503,7 @@ bool TagModel::setData(const QModelIndex & modelIndex, const QVariant & value, i
     emit dataChanged(modelIndex, modelIndex);
 
     if (m_sortedColumn == Columns::Name) {
-        emit layoutAboutToBeChanged();
         updateItemRowWithRespectToSorting(itemCopy);
-        emit layoutChanged();
     }
 
     updateTagInLocalStorage(itemCopy);
@@ -874,9 +872,7 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
     pParentItem->insertChild(row, &(*it));
     endInsertRows();
 
-    emit layoutAboutToBeChanged();
     updateItemRowWithRespectToSorting(*it);
-    emit layoutChanged();
 
     return true;
 }
@@ -1620,9 +1616,7 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
     QModelIndex modelIndexTo = createIndex(row, NUM_TAG_MODEL_COLUMNS - 1, itemId);
     emit dataChanged(modelIndexFrom, modelIndexTo);
 
-    emit layoutAboutToBeChanged();
     updateItemRowWithRespectToSorting(*pItem);
-    emit layoutChanged();
 }
 
 void TagModel::tagToItem(const Tag & tag, TagModelItem & item)
