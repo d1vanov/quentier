@@ -47,7 +47,8 @@ SavedSearchModel::SavedSearchModel(const Account & account, LocalStorageManagerT
     m_findSavedSearchToPerformUpdateRequestIds(),
     m_sortedColumn(Columns::Name),
     m_sortOrder(Qt::AscendingOrder),
-    m_lastNewSavedSearchNameCounter(0)
+    m_lastNewSavedSearchNameCounter(0),
+    m_allSavedSearchesListed(false)
 {
     createConnections(localStorageManagerThreadWorker);
     requestSavedSearchesList();
@@ -741,11 +742,7 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
             << orderDirection << QStringLiteral(", num found searches = ") << foundSearches.size() << QStringLiteral(", request id = ")
             << requestId);
 
-    if (foundSearches.isEmpty()) {
-        return;
-    }
-
-    for(auto it = foundSearches.begin(), end = foundSearches.end(); it != end; ++it) {
+    for(auto it = foundSearches.constBegin(), end = foundSearches.constEnd(); it != end; ++it) {
         onSavedSearchAddedOrUpdated(*it);
     }
 
@@ -754,7 +751,11 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
         QNTRACE(QStringLiteral("The number of found saved searches matches the limit, requesting more saved searches from the local storage"));
         m_listSavedSearchesOffset += limit;
         requestSavedSearchesList();
+        return;
     }
+
+    m_allSavedSearchesListed = true;
+    emit notifyAllSavedSearchesListed();
 }
 
 void SavedSearchModel::onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,

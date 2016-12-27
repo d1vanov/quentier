@@ -86,6 +86,13 @@ public:
     QModelIndex createSavedSearch(const QString & savedSearchName, const QString & searchQuery,
                                   QNLocalizedString & errorDescription);
 
+    /**
+     * @brief allSavedSearchesListed
+     * @return true if the saved search model has received the information about all saved searches
+     * stored in the local storage by the moment; false otherwise
+     */
+    bool allSavedSearchesListed() const { return m_allSavedSearchesListed; }
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -106,6 +113,7 @@ public:
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
+    void notifyAllSavedSearchesListed();
 
 // private signals
     void addSavedSearch(SavedSearch search, QUuid requestId);
@@ -217,6 +225,8 @@ private:
     Qt::SortOrder           m_sortOrder;
 
     mutable int             m_lastNewSavedSearchNameCounter;
+
+    bool                    m_allSavedSearchesListed;
 };
 
 } // namespace quentier

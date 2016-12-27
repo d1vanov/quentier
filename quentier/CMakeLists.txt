@@ -93,6 +93,7 @@ set(${PROJECT_NAME}_HEADERS
     src/views/ItemView.h
     src/views/NotebookItemView.h
     src/views/TagItemView.h
+    src/views/SavedSearchItemView.h
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
@@ -149,6 +150,7 @@ set(${PROJECT_NAME}_SOURCES
     src/views/ItemView.cpp
     src/views/NotebookItemView.cpp
     src/views/TagItemView.cpp
+    src/views/SavedSearchItemView.cpp
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp

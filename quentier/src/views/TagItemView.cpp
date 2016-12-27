@@ -85,7 +85,7 @@ void TagItemView::setModel(QAbstractItemModel * pModel)
 
     TagModel * pTagModel = qobject_cast<TagModel*>(pModel);
     if (Q_UNLIKELY(!pTagModel)) {
-        QNDEBUG(QStringLiteral("Non-tag model has been set to the tag view"));
+        QNDEBUG(QStringLiteral("Non-tag model has been set to the tag item view"));
         ItemView::setModel(pModel);
         return;
     }
