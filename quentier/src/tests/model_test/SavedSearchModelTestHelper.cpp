@@ -116,15 +116,36 @@ void SavedSearchModelTestHelper::test()
             FAIL(QStringLiteral("The dirty state appears to have changed after setData in saved search model even though the method returned false"));
         }
 
-        // Should be able to make the non-synchronizable (local) item synchronizable (non-local)
+        // Should only be able to make the non-synchronizable (local) item synchronizable (non-local) with non-local account
+        // 1) Trying with local account
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Synchronizable, QModelIndex());
         if (!secondIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid saved search item model index for synchronizable column"));
         }
 
         res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
+        if (res) {
+            FAIL(QStringLiteral("Was able to change the synchronizable flag from false to true for saved search model item with local account"));
+        }
+
+        data = model->data(secondIndex, Qt::EditRole);
+        if (data.isNull()) {
+            FAIL(QStringLiteral("Null data was returned by the saved search model while expected to get the state of synchronizable flag"));
+        }
+
+        if (data.toBool()) {
+            FAIL(QStringLiteral("Even though setData returned false on attempt to make the saved search item synchronizable "
+                                "with the local account, the actual data within the model appears to have changed"));
+        }
+
+        // 2) Trying the non-local account
+        account = Account(QStringLiteral("Evernote user"), Account::Type::Evernote, qevercloud::UserID(1));
+        model->updateAccount(account);
+
+        res = model->setData(secondIndex, QVariant(true), Qt::EditRole);
         if (!res) {
-            FAIL(QStringLiteral("Can't change the synchronizable flag from false to true for saved search model"));
+            FAIL(QStringLiteral("Wasn't able to change the synchronizable flag from false to true for saved search model item "
+                                "even with the account of Evernote type"));
         }
 
         data = model->data(secondIndex, Qt::EditRole);
@@ -133,10 +154,11 @@ void SavedSearchModelTestHelper::test()
         }
 
         if (!data.toBool()) {
-            FAIL(QStringLiteral("The synchronizable state appears to have not changed after setData in saved search model even though the method returned true"));
+            FAIL(QStringLiteral("The synchronizable state appears to have not changed after setData in saved search model "
+                                "even though the method returned true"));
         }
 
-        // Verify the dirty flag has changed as a result of makind the item synchronizable
+        // Verify the dirty flag has changed as a result of making the item synchronizable
         secondIndex = model->index(secondIndex.row(), SavedSearchModel::Columns::Dirty, QModelIndex());
         if (!secondIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid saved search item model index for dirty column"));
