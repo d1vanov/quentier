@@ -115,6 +115,17 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
     void notifyAllSavedSearchesListed();
 
+    // Informative signals for views, so that they can prepare to the changes in the table of saved searches
+    // and do some recovery after that
+    void aboutToAddSavedSearch();
+    void addedSavedSearch(const QModelIndex & index);
+
+    void aboutToUpdateSavedSearch(const QModelIndex & index);
+    void updatedSavedSearch(const QModelIndex & index);
+
+    void aboutToRemoveSavedSearches();
+    void removedSavedSearches();
+
 // private signals
     void addSavedSearch(SavedSearch search, QUuid requestId);
     void updateSavedSearch(SavedSearch search, QUuid requestId);

@@ -180,6 +180,8 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
     item.m_isDirty = true;
     item.m_isSynchronizable = (m_account.type() != Account::Type::Local);
 
+    emit aboutToAddSavedSearch();
+
     int row = rowForNewItem(item);
 
     beginInsertRows(QModelIndex(), row, row);
@@ -189,6 +191,8 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
     updateSavedSearchInLocalStorage(item);
 
     QModelIndex addedSavedSearchIndex = index(row, Columns::Name, QModelIndex());
+    emit addedSavedSearch(addedSavedSearchIndex);
+
     return addedSavedSearchIndex;
 }
 
@@ -504,6 +508,8 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
         }
     }
 
+    emit aboutToRemoveSavedSearches();
+
     beginRemoveRows(QModelIndex(), row, row + count - 1);
     for(int i = 0; i < count; ++i)
     {
@@ -511,6 +517,11 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
 
         SavedSearch savedSearch;
         savedSearch.setLocalUid(it->m_localUid);
+
+        auto nameIt = m_lowerCaseSavedSearchNames.find(it->m_name.toLower());
+        if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+            Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
+        }
 
         QUuid requestId = QUuid::createUuid();
         Q_UNUSED(m_expungeSavedSearchRequestIds.insert(requestId))
@@ -520,6 +531,8 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
     }
     Q_UNUSED(index.erase(index.begin() + row, index.begin() + row + count))
     endRemoveRows();
+
+    emit removedSavedSearches();
 
     return true;
 }
@@ -782,14 +795,6 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
     QNDEBUG(QStringLiteral("SavedSearchModel::onExpungeSavedSearchComplete: search = ") << search << QStringLiteral("\nRequest id = ")
             << requestId);
 
-    if (search.hasName())
-    {
-        auto nameIt = m_lowerCaseSavedSearchNames.find(search.name().toLower());
-        if (nameIt != m_lowerCaseSavedSearchNames.end()) {
-            Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
-        }
-    }
-
     auto it = m_expungeSavedSearchRequestIds.find(requestId);
     if (it != m_expungeSavedSearchRequestIds.end()) {
         Q_UNUSED(m_expungeSavedSearchRequestIds.erase(it))
@@ -812,10 +817,18 @@ void SavedSearchModel::onExpungeSavedSearchComplete(SavedSearch search, QUuid re
         return;
     }
 
+    emit aboutToRemoveSavedSearches();
+
     int rowIndex = static_cast<int>(std::distance(index.begin(), indexIt));
     beginRemoveRows(QModelIndex(), rowIndex, rowIndex);
+    auto nameIt = m_lowerCaseSavedSearchNames.find(indexIt->m_name.toLower());
+    if (nameIt != m_lowerCaseSavedSearchNames.end()) {
+        Q_UNUSED(m_lowerCaseSavedSearchNames.erase(nameIt))
+    }
     Q_UNUSED(m_data.erase(indexIt))
     endRemoveRows();
+
+    emit removedSavedSearches();
 }
 
 void SavedSearchModel::onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
@@ -903,7 +916,7 @@ void SavedSearchModel::requestSavedSearchesList()
 
 void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 {
-    SavedSearchDataByIndex & index = m_data.get<ByIndex>();
+    SavedSearchDataByIndex & rowIndex = m_data.get<ByIndex>();
     SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
 
     m_cache.put(search.localUid(), search);
@@ -929,6 +942,8 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
             Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
         }
 
+        emit aboutToAddSavedSearch();
+
         int row = rowForNewItem(item);
         beginInsertRows(QModelIndex(), row, row);
         auto insertionResult = localUidIndex.insert(item);
@@ -938,6 +953,9 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         emit layoutAboutToBeChanged();
         updateRandomAccessIndexWithRespectToSorting(*itemIt);
         emit layoutChanged();
+
+        QModelIndex addedSavedSearchIndex = indexForLocalUid(search.localUid());
+        emit addedSavedSearch(addedSavedSearchIndex);
 
         return;
     }
@@ -952,21 +970,26 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
         Q_UNUSED(m_lowerCaseSavedSearchNames.insert(search.name().toLower()))
     }
 
+    QModelIndex savedSearchIndexBefore = indexForLocalUid(search.localUid());
+    emit aboutToUpdateSavedSearch(savedSearchIndexBefore);
+
     localUidIndex.replace(itemIt, item);
 
     auto indexIt = m_data.project<ByIndex>(itemIt);
-    if (Q_UNLIKELY(indexIt == index.end())) {
+    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
         QNLocalizedString error = QT_TR_NOOP("can't convert index by local uid into sequential index in saved searches model");
         QNWARNING(error);
         emit notifyError(error);
+        emit updatedSavedSearch(QModelIndex());
         return;
     }
 
-    qint64 position = std::distance(index.begin(), indexIt);
+    qint64 position = std::distance(rowIndex.begin(), indexIt);
     if (Q_UNLIKELY(position > static_cast<qint64>(std::numeric_limits<int>::max()))) {
         QNLocalizedString error = QT_TR_NOOP("too many stored elements to handle for saved searches model");
         QNWARNING(error);
         emit notifyError(error);
+        emit updatedSavedSearch(QModelIndex());
         return;
     }
 
@@ -977,6 +1000,9 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     emit layoutAboutToBeChanged();
     updateRandomAccessIndexWithRespectToSorting(item);
     emit layoutChanged();
+
+    QModelIndex savedSearchIndexAfter = indexForLocalUid(search.localUid());
+    emit updatedSavedSearch(savedSearchIndexAfter);
 }
 
 QVariant SavedSearchModel::dataImpl(const int row, const Columns::type column) const
