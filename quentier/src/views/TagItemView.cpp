@@ -253,16 +253,16 @@ void TagItemView::onRenameTagAction()
 {
     QNDEBUG(QStringLiteral("TagItemView::onRenameTagAction"));
 
+    TagModel * pTagModel = qobject_cast<TagModel*>(model());
+    if (Q_UNLIKELY(!pTagModel)) {
+        QNDEBUG(QStringLiteral("Non-tag model is used"));
+        return;
+    }
+
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
         REPORT_ERROR("Internal error: can't rename tag, "
                      "can't cast the slot invoker to QAction")
-        return;
-    }
-
-    TagModel * pTagModel = qobject_cast<TagModel*>(model());
-    if (Q_UNLIKELY(!pTagModel)) {
-        QNDEBUG(QStringLiteral("Non-tag model is used"));
         return;
     }
 
@@ -560,7 +560,7 @@ void TagItemView::onDeselectAction()
     QNDEBUG(QStringLiteral("TagItemView::onDeselectAction"));
 
     QItemSelectionModel * pSelectionModel = selectionModel();
-    if (!pSelectionModel) {
+    if (Q_UNLIKELY(!pSelectionModel)) {
         REPORT_ERROR("Can't clear the tag selection: no selection model in the view");
         return;
     }
@@ -949,7 +949,7 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
 
     QModelIndex lastSelectedTagIndex = model.indexForLocalUid(lastSelectedTagLocalUid);
     if (!lastSelectedTagIndex.isValid()) {
-        QNDEBUG(QStringLiteral("Tag model returned invalid index for the sast selected tag local uid"));
+        QNDEBUG(QStringLiteral("Tag model returned invalid index for the last selected tag local uid"));
         return;
     }
 

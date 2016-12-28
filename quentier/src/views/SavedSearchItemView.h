@@ -50,8 +50,41 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onAllSavedSearchesListed();
 
+    void onAboutToAddSavedSearch();
+    void onAddedSavedSearch(const QModelIndex & index);
+
+    void onAboutToUpdateSavedSearch(const QModelIndex & index);
+    void onUpdatedSavedSearch(const QModelIndex & index);
+
+    void onAboutToRemoveSavedSearches();
+    void onRemovedSavedSearches();
+
+    void onCreateNewSavedSearchAction();
+    void onRenameSavedSearchAction();
+    void onDeleteSavedSearchAction();
+
+    void onEditSavedSearchAction();
+    void onShowSavedSearchInfoAction();
+    void onDeselectAction();
+
+    void onFavoriteAction();
+    void onUnfavoriteAction();
+
+    virtual void selectionChanged(const QItemSelection & selected,
+                                  const QItemSelection & deselected) Q_DECL_OVERRIDE;
+
 private:
     void deleteItem(const QModelIndex & itemIndex, SavedSearchModel & model);
+
+    void restoreLastSavedSelection(const SavedSearchModel & model);
+
+    void selectionChangedImpl(const QItemSelection & selected,
+                              const QItemSelection & deselected);
+
+    void setFavoritedFlag(const QAction & action, const bool favorited);
+
+    void prepareForSavedSearchModelChange();
+    void postProcessSavedSearchModelChange();
 
 private:
     QMenu *     m_pSavedSearchItemContextMenu;
