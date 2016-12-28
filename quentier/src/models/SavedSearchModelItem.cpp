@@ -24,12 +24,14 @@ SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
                                            const QString & name,
                                            const QString & query,
                                            const bool isSynchronizable,
-                                           const bool isDirty) :
+                                           const bool isDirty,
+                                           const bool isFavorited) :
     m_localUid(localUid),
     m_name(name),
     m_query(query),
     m_isSynchronizable(isSynchronizable),
-    m_isDirty(isDirty)
+    m_isDirty(isDirty),
+    m_isFavorited(isFavorited)
 {}
 
 QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
@@ -37,7 +39,10 @@ QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
     strm << QStringLiteral("Saved search model item: local uid = ") << m_localUid
          << QStringLiteral(", name = ") << m_name << QStringLiteral(", query = ") << m_query
          << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral("\n");
+         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral("\n");
+
     return strm;
 }
 

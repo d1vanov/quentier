@@ -30,7 +30,8 @@ public:
                                   const QString & name = QString(),
                                   const QString & query = QString(),
                                   const bool isSynchronizable = false,
-                                  const bool isDirty = false);
+                                  const bool isDirty = false,
+                                  const bool isFavorited = false);
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
@@ -41,6 +42,7 @@ public:
     QString     m_query;
     bool        m_isSynchronizable;
     bool        m_isDirty;
+    bool        m_isFavorited;
 };
 
 } // namespace quentier

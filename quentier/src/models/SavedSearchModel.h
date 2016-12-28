@@ -93,6 +93,29 @@ public:
      */
     bool allSavedSearchesListed() const { return m_allSavedSearchesListed; }
 
+    /**
+     * @brief favoriteSavedSearch - marks the saved search pointed to by the index as favorited
+     *
+     * Favorited property of @link SavedSearch @endlink class is not represented as a column within
+     * the @link SavedSearchModel @endlink so this method doesn't change anything in the model but only
+     * the underlying saved search object persisted in the local storage
+     *
+     * @param index - the index of the saved search to be favorited
+     */
+    void favoriteSavedSearch(const QModelIndex & index);
+
+    /**
+     * @brief unfavoriteSavedSearch - removes the favorited mark from the saved search pointed to by the index;
+     * does nothing if the saved search was not favorited prior to the call
+     *
+     * Favorited property of @link SavedSearch @endlink class is not represented as a column within
+     * the @link SavedSearchModel @endlink so this method doesn't change anything in the model but only
+     * the underlying saved search object persisted in the local storage
+     *
+     * @param index - the index of the saved search to be unfavorited
+     */
+    void unfavoriteSavedSearch(const QModelIndex & index);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -175,6 +198,8 @@ private:
     void updateRandomAccessIndexWithRespectToSorting(const SavedSearchModelItem & item);
 
     void updateSavedSearchInLocalStorage(const SavedSearchModelItem & item);
+
+    void setSavedSearchFavorited(const QModelIndex & index, const bool favorited);
 
 private:
     struct ByLocalUid{};

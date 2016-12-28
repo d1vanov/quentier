@@ -28,6 +28,11 @@
 
 #define NUM_SAVED_SEARCH_MODEL_COLUMNS (4)
 
+#define REPORT_ERROR(error, ...) \
+    QNLocalizedString errorDescription = QNLocalizedString(error, this); \
+    QNWARNING(errorDescription << "" __VA_ARGS__ ); \
+    emit notifyError(errorDescription)
+
 namespace quentier {
 
 SavedSearchModel::SavedSearchModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
@@ -194,6 +199,26 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
     emit addedSavedSearch(addedSavedSearchIndex);
 
     return addedSavedSearchIndex;
+}
+
+void SavedSearchModel::favoriteSavedSearch(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("SavedSearchModel::favoriteSavedSearch: index: is valid = ")
+            << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << index.row()
+            << QStringLiteral(", column = ") << index.column());
+
+    setSavedSearchFavorited(index, true);
+}
+
+void SavedSearchModel::unfavoriteSavedSearch(const QModelIndex & index)
+{
+    QNDEBUG(QStringLiteral("SavedSearchModel::unfavoriteSavedSearch: index: is valid = ")
+            << (index.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << index.row()
+            << QStringLiteral(", column = ") << index.column());
+
+    setSavedSearchFavorited(index, false);
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
@@ -931,6 +956,7 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     item.m_isSynchronizable = !search.isLocal();
     item.m_isDirty = search.isDirty();
+    item.m_isFavorited = search.isFavorited();
 
     SavedSearchDataByLocalUid::iterator itemIt = localUidIndex.find(search.localUid());
     bool newSavedSearch = (itemIt == localUidIndex.end());
@@ -1156,6 +1182,7 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
     savedSearch.setQuery(item.m_query);
     savedSearch.setLocal(!item.m_isSynchronizable);
     savedSearch.setDirty(item.m_isDirty);
+    savedSearch.setFavorited(item.m_isFavorited);
 
     QUuid requestId = QUuid::createUuid();
 
@@ -1177,6 +1204,40 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
         QNTRACE(QStringLiteral("Emitted the request to update the saved search in the local storage: id = ") << requestId
                 << QStringLiteral(", saved search: ") << savedSearch);
     }
+}
+
+void SavedSearchModel::setSavedSearchFavorited(const QModelIndex & index, const bool favorited)
+{
+    if (Q_UNLIKELY(!index.isValid())) {
+        REPORT_ERROR("Can't set favorited flag for the saved search: model index is invalid");
+        return;
+    }
+
+    const SavedSearchModelItem * pItem = itemForIndex(index);
+    if (Q_UNLIKELY(!pItem)) {
+        REPORT_ERROR("Can't set favorited flag for the saved search: can't find the model item corresponding to index");
+        return;
+    }
+
+    if (favorited == pItem->m_isFavorited) {
+        QNDEBUG(QStringLiteral("Favorited flag's value hasn't changed"));
+        return;
+    }
+
+    SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+
+    auto it = localUidIndex.find(pItem->m_localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        REPORT_ERROR("Can't set favorited flag for the saved search: the modified saved search entry was not found within the model");
+        return;
+    }
+
+    SavedSearchModelItem itemCopy(*pItem);
+    itemCopy.m_isFavorited = favorited;
+
+    localUidIndex.replace(it, itemCopy);
+
+    updateSavedSearchInLocalStorage(itemCopy);
 }
 
 QModelIndex SavedSearchModel::indexForLocalUidIndexIterator(const SavedSearchDataByLocalUid::const_iterator it) const

@@ -158,7 +158,7 @@ public:
 
     /**
      * @brief unfavoriteNotebook - removes the favorited mark from the notebook pointed to by the index; does nothing
-     * if the notebook has not been favorited prior to the call
+     * if the notebook was not favorited prior to the call
      *
      * Favorited property of @link Notebook @endlink class is not represented as a column within
      * the @link NotebookModel @endlink so this method doesn't change anything in the model but only

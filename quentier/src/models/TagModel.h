@@ -154,13 +154,13 @@ public:
 
     /**
      * @brief unfavoriteTag - removes the favorited mark from the tag pointed to by the index; does nothing
-     * if the tag has not been favorited prior to the call
+     * if the tag was not favorited prior to the call
      *
      * Favorited property of @link Tag @endlink class is not represented as a column within
      * the @link TagModel @endlink so this method doesn't change anything in the model but only
      * the underlying tag object persisted in the local storage
      *
-     * @param index - the index of the tag to be favorited
+     * @param index - the index of the tag to be unfavorited
      */
     void unfavoriteTag(const QModelIndex & index);
 
