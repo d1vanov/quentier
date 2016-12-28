@@ -99,6 +99,16 @@ void AddOrEditSavedSearchDialog::accept()
             return;
         }
 
+        QModelIndex queryIndex = m_pSavedSearchModel->index(index.row(), SavedSearchModel::Columns::Query,
+                                                            index.parent());
+        if (pItem->m_query != savedSearchQuery)
+        {
+            bool res = m_pSavedSearchModel->setData(queryIndex, savedSearchQuery);
+            if (Q_UNLIKELY(!res)) {
+                REPORT_ERROR("Failed to set the saved search query to the model");
+            }
+        }
+
         // If needed, update the saved search name
         QModelIndex nameIndex = m_pSavedSearchModel->index(index.row(), SavedSearchModel::Columns::Name,
                                                            index.parent());

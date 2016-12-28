@@ -1637,7 +1637,7 @@ border: none;
           </widget>
          </item>
          <item>
-          <widget class="ItemView" name="savedSearchesTableView">
+          <widget class="SavedSearchItemView" name="savedSearchesTableView">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -2207,7 +2207,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -3766,6 +3766,11 @@ border-bottom: 1px solid black;</string>
    <class>TagItemView</class>
    <extends>QTreeView</extends>
    <header>views/TagItemView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SavedSearchItemView</class>
+   <extends>QTreeView</extends>
+   <header>views/SavedSearchItemView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

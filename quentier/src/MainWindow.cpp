@@ -38,6 +38,7 @@
 #include "views/ItemView.h"
 #include "views/NotebookItemView.h"
 #include "views/TagItemView.h"
+#include "views/SavedSearchItemView.h"
 
 #include "widgets/TabWidget.h"
 using quentier::TabWidget;
@@ -306,6 +307,8 @@ void MainWindow::connectViewButtonsToSlots()
 
     QObject::connect(m_pUI->addSavedSearchButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
+    QObject::connect(m_pUI->removeSavedSearchButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onRemoveSavedSearchButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -649,7 +652,7 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
     tagsTreeView->setColumnHidden(TagModel::Columns::FromLinkedNotebook, isLocal);
     tagsTreeView->setColumnHidden(TagModel::Columns::Dirty, isLocal);
 
-    ItemView * savedSearchesTableView = m_pUI->savedSearchesTableView;
+    SavedSearchItemView * savedSearchesTableView = m_pUI->savedSearchesTableView;
     savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Dirty, isLocal);
 
     ItemView * deletedNotesTableView = m_pUI->deletedNotesTableView;
@@ -1406,6 +1409,12 @@ void MainWindow::onCreateSavedSearchButtonPressed()
     QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
     pAddSavedSearchDialog->setWindowModality(Qt::WindowModal);
     Q_UNUSED(pAddSavedSearchDialog->exec())
+}
+
+void MainWindow::onRemoveSavedSearchButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRemoveSavedSearchButtonPressed"));
+    m_pUI->savedSearchesTableView->deleteSelectedItem();
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()
@@ -2233,7 +2242,7 @@ void MainWindow::setupViews()
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,notifyError,QNLocalizedString),
                      this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
 
-    ItemView * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
+    SavedSearchItemView * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
     pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
     pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Synchronizable, true);
     DirtyColumnDelegate * savedSearchesTableViewDirtyColumnDelegate =
@@ -2247,6 +2256,11 @@ void MainWindow::setupViews()
 #else
     pSavedSearchesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
+
+    QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,newSavedSearchCreationRequested),
+                     this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
+    QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
 
     QListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);

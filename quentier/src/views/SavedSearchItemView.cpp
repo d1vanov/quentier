@@ -385,6 +385,78 @@ void SavedSearchItemView::selectionChanged(const QItemSelection & selected,
     ItemView::selectionChanged(selected, deselected);
 }
 
+void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
+{
+    QNDEBUG(QStringLiteral("SavedSearchItemView::contextMenuEvent"));
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING(QStringLiteral("Detected Qt error: tag item view received "
+                                 "context menu event with null pointer "
+                                 "to the context menu event"));
+        return;
+    }
+
+    SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
+    if (Q_UNLIKELY(!pSavedSearchModel)) {
+        QNDEBUG(QStringLiteral("Non-saved search model is used"));
+        return;
+    }
+
+    QModelIndex clickedItemIndex = indexAt(pEvent->pos());
+    if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
+        QNDEBUG(QStringLiteral("Clicked item index is not valid, not doing anything"));
+        return;
+    }
+
+    const SavedSearchModelItem * pItem = pSavedSearchModel->itemForIndex(clickedItemIndex);
+    if (Q_UNLIKELY(!pItem)) {
+        REPORT_ERROR("Can't show the context menu for the saved search model item: "
+                     "no item corresponding to the clicked item's index");
+        return;
+    }
+
+    delete m_pSavedSearchItemContextMenu;
+    m_pSavedSearchItemContextMenu = new QMenu(this);
+
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
+    { \
+        QAction * pAction = new QAction(name, menu); \
+        pAction->setData(data); \
+        pAction->setEnabled(enabled); \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(SavedSearchItemView,slot)); \
+        menu->addAction(pAction); \
+    }
+
+    ADD_CONTEXT_MENU_ACTION(tr("Create new saved search") + QStringLiteral("..."),
+                            m_pSavedSearchItemContextMenu, onCreateNewSavedSearchAction,
+                            pItem->m_localUid, true);
+
+    m_pSavedSearchItemContextMenu->addSeparator();
+
+    bool canUpdate = (pSavedSearchModel->flags(clickedItemIndex) & Qt::ItemIsEditable);
+    ADD_CONTEXT_MENU_ACTION(tr("Rename"), m_pSavedSearchItemContextMenu,
+                            onRenameSavedSearchAction, pItem->m_localUid, canUpdate);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Delete"), m_pSavedSearchItemContextMenu,
+                            onDeleteSavedSearchAction, pItem->m_localUid,
+                            !pItem->m_isSynchronizable);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
+                            m_pSavedSearchItemContextMenu, onEditSavedSearchAction,
+                            pItem->m_localUid, canUpdate);
+
+    m_pSavedSearchItemContextMenu->addSeparator();
+
+    ADD_CONTEXT_MENU_ACTION(tr("Clear selection"), m_pSavedSearchItemContextMenu,
+                            onDeselectAction, QString(), true);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Info") + QStringLiteral("..."), m_pSavedSearchItemContextMenu,
+                            onShowSavedSearchInfoAction, pItem->m_localUid, true);
+
+    m_pSavedSearchItemContextMenu->show();
+    m_pSavedSearchItemContextMenu->exec(pEvent->globalPos());
+}
+
 void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex, SavedSearchModel & model)
 {
     QNDEBUG(QStringLiteral("SavedSearchItemView::deleteItem"));

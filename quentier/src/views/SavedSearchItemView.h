@@ -73,6 +73,8 @@ private Q_SLOTS:
     virtual void selectionChanged(const QItemSelection & selected,
                                   const QItemSelection & deselected) Q_DECL_OVERRIDE;
 
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+
 private:
     void deleteItem(const QModelIndex & itemIndex, SavedSearchModel & model);
 
