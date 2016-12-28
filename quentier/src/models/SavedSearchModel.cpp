@@ -195,7 +195,7 @@ QModelIndex SavedSearchModel::createSavedSearch(const QString & savedSearchName,
 
     updateSavedSearchInLocalStorage(item);
 
-    QModelIndex addedSavedSearchIndex = index(row, Columns::Name, QModelIndex());
+    QModelIndex addedSavedSearchIndex = indexForLocalUid(item.m_localUid);
     emit addedSavedSearch(addedSavedSearchIndex);
 
     return addedSavedSearchIndex;
@@ -364,6 +364,12 @@ bool SavedSearchModel::setHeaderData(int section, Qt::Orientation orientation, c
 
 bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & value, int role)
 {
+    QNDEBUG(QStringLiteral("SavedSearchModel::setData: index: is valid = ")
+            << (modelIndex.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", row = ") << modelIndex.row() << QStringLiteral(", column = ")
+            << modelIndex.column() << QStringLiteral(", value = ") << value
+            << QStringLiteral(", role = ") << role);
+
     if (!modelIndex.isValid()) {
         return false;
     }
@@ -374,11 +380,13 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
 
     int rowIndex = modelIndex.row();
     if ((rowIndex < 0) || (rowIndex >= static_cast<int>(m_data.size()))) {
+        QNDEBUG(QStringLiteral("Bad row"));
         return false;
     }
 
     int columnIndex = modelIndex.column();
     if ((columnIndex < 0) || (columnIndex >= NUM_SAVED_SEARCH_MODEL_COLUMNS)) {
+        QNDEBUG(QStringLiteral("Bad column"));
         return false;
     }
 
@@ -394,6 +402,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
             QString name = value.toString().trimmed();
             bool changed = (name != item.m_name);
             if (!changed) {
+                QNDEBUG(QStringLiteral("The name has not changed"));
                 return true;
             }
 
@@ -424,6 +433,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
         {
             QString query = value.toString();
             if (query.isEmpty()) {
+                QNDEBUG(QStringLiteral("Query is empty"));
                 return false;
             }
 
@@ -452,6 +462,7 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
             break;
         }
     default:
+        QNWARNING(QStringLiteral("Unidentified column: ") << modelIndex.column());
         return false;
     }
 
@@ -461,6 +472,8 @@ bool SavedSearchModel::setData(const QModelIndex & modelIndex, const QVariant & 
     updateRandomAccessIndexWithRespectToSorting(item);
 
     updateSavedSearchInLocalStorage(item);
+
+    QNDEBUG(QStringLiteral("Successfully set the data"));
     return true;
 }
 
@@ -518,7 +531,7 @@ bool SavedSearchModel::removeRows(int row, int count, const QModelIndex & parent
         return false;
     }
 
-    if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
+    if (Q_UNLIKELY((row + count - 1) >= static_cast<int>(m_data.size())))
     {
         QNLocalizedString error = QNLocalizedString("Detected attempt to remove more rows than the saved search model contains", this);
         QNINFO(error << QStringLiteral(", row = ") << row << QStringLiteral(", count = ") << count

@@ -267,6 +267,54 @@ void SavedSearchModelTestHelper::test()
             FAIL(QStringLiteral("Was able to get the valid model index for the removed saved search item by local uid which is not intended"));
         }
 
+        // Set the account to local again to test accounting for saved search name reservation in create/remove/create cycles
+        account = Account(QStringLiteral("Local user"), Account::Type::Local);
+        model->updateAccount(account);
+
+        // Should not be able to create the saved search with existing name
+        QNLocalizedString errorDescription;
+        QModelIndex fifthSavedSearchIndex = model->createSavedSearch(third.name(), QStringLiteral("My search"), errorDescription);
+        if (fifthSavedSearchIndex.isValid()) {
+            FAIL(QStringLiteral("Was able to create saved search with the same name as the already existing one"));
+        }
+
+        // The error description should say something about the inability to create the saved search
+        if (errorDescription.isEmpty()) {
+            FAIL(QStringLiteral("The error description about the inability to create the saved search due to name collision is empty"));
+        }
+
+        // Should be able to create the saved search with a new name
+        QString fifthSavedSearchName = QStringLiteral("Fifth");
+        errorDescription.clear();
+        fifthSavedSearchIndex = model->createSavedSearch(fifthSavedSearchName, QStringLiteral("My search"), errorDescription);
+        if (!fifthSavedSearchIndex.isValid()) {
+            FAIL(QStringLiteral("Wasn't able to create a saved search with the name not present within the saved search model"));
+        }
+
+        // Should no longer be able to create the saved search with the same name as the just added one
+        QModelIndex sixthSavedSearchIndex = model->createSavedSearch(fifthSavedSearchName, QStringLiteral("My search"), errorDescription);
+        if (sixthSavedSearchIndex.isValid()) {
+            FAIL(QStringLiteral("Was able to create a saved search with the same name as just created one"));
+        }
+
+        // The error description should say something about the inability to create the saved search
+        if (errorDescription.isEmpty()) {
+            FAIL(QStringLiteral("The error description about the inability to create the saved search due to name collision is empty"));
+        }
+
+        // Should be able to remove the just added local (non-synchronizable) saved search
+        res = model->removeRow(fifthSavedSearchIndex.row(), fifthSavedSearchIndex.parent());
+        if (!res) {
+            FAIL(QStringLiteral("Wasn't able to remove the non-synchronizable saved search just added to the saved search model"));
+        }
+
+        // Should again be able to create the saved search with the same name
+        errorDescription.clear();
+        fifthSavedSearchIndex = model->createSavedSearch(fifthSavedSearchName, QStringLiteral("My search"), errorDescription);
+        if (!fifthSavedSearchIndex.isValid()) {
+            FAIL(QStringLiteral("Wasn't able to create the saved search with the same name as the just removed one"));
+        }
+
         // Check the sorting for saved search items: by default should sort by name in ascending order
         res = checkSorting(*model);
         if (!res) {

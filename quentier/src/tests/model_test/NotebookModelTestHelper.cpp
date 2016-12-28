@@ -547,6 +547,54 @@ void NotebookModelTestHelper::test()
                                 "after the removal of the last notebook contained in this stack"));
         }
 
+        // Set the account to local again to test accounting for notebook name reservation in create/remove/create cycles
+        account = Account(QStringLiteral("Local user"), Account::Type::Local);
+        model->updateAccount(account);
+
+        // Should not be able to create the notebook with existing name
+        QNLocalizedString errorDescription;
+        QModelIndex eleventhNotebookIndex = model->createNotebook(tenth.name(), tenth.stack(), errorDescription);
+        if (eleventhNotebookIndex.isValid()) {
+            FAIL(QStringLiteral("Was able to create notebook with the same name as the already existing one"));
+        }
+
+        // The error description should say something about the inability to create the notebook
+        if (errorDescription.isEmpty()) {
+            FAIL(QStringLiteral("The error description about the inability to create the notebook due to name collision is empty"));
+        }
+
+        // Should be able to create the notebook with a new name
+        QString eleventhNotebookName = QStringLiteral("Eleventh");
+        errorDescription.clear();
+        eleventhNotebookIndex = model->createNotebook(eleventhNotebookName, tenth.stack(), errorDescription);
+        if (!eleventhNotebookIndex.isValid()) {
+            FAIL(QStringLiteral("Wasn't able to create a notebook with the name not present within the notebook model"));
+        }
+
+        // Should no longer be able to create the notebook with the same name as the just added one
+        QModelIndex twelvethNotebookIndex = model->createNotebook(eleventhNotebookName, fifth.stack(), errorDescription);
+        if (twelvethNotebookIndex.isValid()) {
+            FAIL(QStringLiteral("Was able to create a notebook with the same name as just created one"));
+        }
+
+        // The error description should say something about the inability to create the notebook
+        if (errorDescription.isEmpty()) {
+            FAIL(QStringLiteral("The error description about the inability to create the notebook due to name collision is empty"));
+        }
+
+        // Should be able to remove the just added local (non-synchronizable) notebook
+        res = model->removeRow(eleventhNotebookIndex.row(), eleventhNotebookIndex.parent());
+        if (!res) {
+            FAIL(QStringLiteral("Wasn't able to remove the non-synchronizable notebook just added to the notebook model"));
+        }
+
+        // Should again be able to create the notebook with the same name
+        errorDescription.clear();
+        eleventhNotebookIndex = model->createNotebook(eleventhNotebookName, QString(), errorDescription);
+        if (!eleventhNotebookIndex.isValid()) {
+            FAIL(QStringLiteral("Wasn't able to create the notebook with the same name as the just removed one"));
+        }
+
         // Check the sorting for notebook and stack items: by default should sort by name in ascending order
         res = checkSorting(*model, fourthItemNoStackParent);
         if (!res) {
