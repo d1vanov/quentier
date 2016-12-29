@@ -19,7 +19,7 @@ FavoriteItemDelegate::FavoriteItemDelegate(QObject * parent) :
     m_unknownTypeIcon(QIcon::fromTheme(QStringLiteral("image-missing"))),
     m_iconSize(ICON_SIDE_SIZE, ICON_SIDE_SIZE)
 {
-    m_tagIcon.addFile(QStringLiteral(":/label/tag.png"), m_iconSize);
+    m_tagIcon.addFile(QStringLiteral(":/tag/tag.png"), m_iconSize);
 }
 
 int FavoriteItemDelegate::sideSize() const
