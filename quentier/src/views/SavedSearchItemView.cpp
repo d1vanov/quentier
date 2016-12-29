@@ -445,6 +445,15 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
                             m_pSavedSearchItemContextMenu, onEditSavedSearchAction,
                             pItem->m_localUid, canUpdate);
 
+    if (!pItem->m_isFavorited) {
+        ADD_CONTEXT_MENU_ACTION(tr("Favorite"), m_pSavedSearchItemContextMenu,
+                                onFavoriteAction, pItem->m_localUid, canUpdate);
+    }
+    else {
+        ADD_CONTEXT_MENU_ACTION(tr("Unfavorite"), m_pSavedSearchItemContextMenu,
+                                onUnfavoriteAction, pItem->m_localUid, canUpdate);
+    }
+
     m_pSavedSearchItemContextMenu->addSeparator();
 
     ADD_CONTEXT_MENU_ACTION(tr("Clear selection"), m_pSavedSearchItemContextMenu,
