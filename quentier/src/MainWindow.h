@@ -161,6 +161,7 @@ private Q_SLOTS:
 
     void onCreateSavedSearchButtonPressed();
     void onRemoveSavedSearchButtonPressed();
+    void onSavedSearchInfoButtonPressed();
 
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();

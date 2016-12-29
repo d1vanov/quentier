@@ -27,6 +27,7 @@ class SavedSearchModelItem: public Printable
 {
 public:
     explicit SavedSearchModelItem(const QString & localUid = QString(),
+                                  const QString & guid = QString(),
                                   const QString & name = QString(),
                                   const QString & query = QString(),
                                   const bool isSynchronizable = false,
@@ -38,6 +39,7 @@ public:
     QString nameUpper() const { return m_name.toUpper(); }
 
     QString     m_localUid;
+    QString     m_guid;
     QString     m_name;
     QString     m_query;
     bool        m_isSynchronizable;

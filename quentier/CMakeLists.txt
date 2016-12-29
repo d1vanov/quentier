@@ -98,6 +98,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/FlowLayout.h
     src/widgets/NewTagLineEditor.h
     src/widgets/NotebookModelItemInfoWidget.h
+    src/widgets/SavedSearchModelItemInfoWidget.h
     src/widgets/NoteEditorWidget.h
     src/widgets/NoteTagWidget.h
     src/widgets/NoteTagsWidget.h
@@ -155,6 +156,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/FlowLayout.cpp
     src/widgets/NewTagLineEditor.cpp
     src/widgets/NotebookModelItemInfoWidget.cpp
+    src/widgets/SavedSearchModelItemInfoWidget.cpp
     src/widgets/NoteEditorWidget.cpp
     src/widgets/NoteTagWidget.cpp
     src/widgets/NoteTagsWidget.cpp
@@ -174,6 +176,7 @@ set(FORMS
     src/widgets/FindAndReplaceWidget.ui
     src/widgets/NewTagLineEditor.ui
     src/widgets/NotebookModelItemInfoWidget.ui
+    src/widgets/SavedSearchModelItemInfoWidget.ui
     src/widgets/NoteEditorWidget.ui
     src/widgets/NoteTagWidget.ui
     src/widgets/TagModelItemInfoWidget.ui)

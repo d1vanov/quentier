@@ -21,12 +21,14 @@
 namespace quentier {
 
 SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
+                                           const QString & guid,
                                            const QString & name,
                                            const QString & query,
                                            const bool isSynchronizable,
                                            const bool isDirty,
                                            const bool isFavorited) :
     m_localUid(localUid),
+    m_guid(guid),
     m_name(name),
     m_query(query),
     m_isSynchronizable(isSynchronizable),
@@ -37,6 +39,7 @@ SavedSearchModelItem::SavedSearchModelItem(const QString & localUid,
 QTextStream & SavedSearchModelItem::print(QTextStream & strm) const
 {
     strm << QStringLiteral("Saved search model item: local uid = ") << m_localUid
+         << QStringLiteral(", guid = ") << m_guid
          << QStringLiteral(", name = ") << m_name << QStringLiteral(", query = ") << m_query
          << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))

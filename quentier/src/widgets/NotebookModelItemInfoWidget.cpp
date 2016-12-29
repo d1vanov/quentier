@@ -12,6 +12,8 @@ NotebookModelItemInfoWidget::NotebookModelItemInfoWidget(const QModelIndex & ind
     m_pUi(new Ui::NotebookModelItemInfoWidget)
 {
     m_pUi->setupUi(this);
+
+    setWindowTitle(tr("Notebook info"));    // Assume it's notebook for now
     setCheckboxesReadOnly();
 
     QObject::connect(m_pUi->okButton, QNSIGNAL(QPushButton,clicked),

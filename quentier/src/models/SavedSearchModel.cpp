@@ -959,6 +959,10 @@ void SavedSearchModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
 
     SavedSearchModelItem item(search.localUid());
 
+    if (search.hasGuid()) {
+        item.m_guid = search.guid();
+    }
+
     if (search.hasName()) {
         item.m_name = search.name();
     }
@@ -1191,6 +1195,7 @@ void SavedSearchModel::updateSavedSearchInLocalStorage(const SavedSearchModelIte
     }
 
     savedSearch.setLocalUid(item.m_localUid);
+    savedSearch.setGuid(item.m_guid);
     savedSearch.setName(item.m_name);
     savedSearch.setQuery(item.m_query);
     savedSearch.setLocal(!item.m_isSynchronizable);

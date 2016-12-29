@@ -45,6 +45,7 @@ using quentier::TabWidget;
 
 #include "widgets/NotebookModelItemInfoWidget.h"
 #include "widgets/TagModelItemInfoWidget.h"
+#include "widgets/SavedSearchModelItemInfoWidget.h"
 
 #include <quentier/note_editor/NoteEditor.h>
 #include "ui_MainWindow.h"
@@ -309,6 +310,8 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
     QObject::connect(m_pUI->removeSavedSearchButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onRemoveSavedSearchButtonPressed));
+    QObject::connect(m_pUI->savedSearchInfoButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1417,6 +1420,29 @@ void MainWindow::onRemoveSavedSearchButtonPressed()
     m_pUI->savedSearchesTableView->deleteSelectedItem();
 }
 
+void MainWindow::onSavedSearchInfoButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSavedSearchInfoButtonPressed"));
+
+    QModelIndex index = m_pUI->savedSearchesTableView->currentlySelectedItemIndex();
+    SavedSearchModelItemInfoWidget * pSavedSearchModelItemInfoWidget = new SavedSearchModelItemInfoWidget(index, this);
+    pSavedSearchModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pSavedSearchModelItemInfoWidget->setWindowModality(Qt::WindowModal);
+    pSavedSearchModelItemInfoWidget->adjustSize();
+#ifndef Q_OS_MAC
+    // Center the widget relative to the main window
+    const QRect & geometryRect = geometry();
+    const QRect & dialogGeometryRect = pSavedSearchModelItemInfoWidget->geometry();
+    if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
+        const QPoint center = geometryRect.center();
+        int x = center.x() - dialogGeometryRect.width() / 2;
+        int y = center.y() - dialogGeometryRect.height() / 2;
+        pSavedSearchModelItemInfoWidget->move(x, y);
+    }
+#endif
+    pSavedSearchModelItemInfoWidget->show();
+}
+
 void MainWindow::onSetTestNoteWithEncryptedData()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
@@ -2257,6 +2283,8 @@ void MainWindow::setupViews()
     pSavedSearchesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
 
+    QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,savedSearchInfoRequested),
+                     this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed));
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,newSavedSearchCreationRequested),
                      this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,QNLocalizedString),

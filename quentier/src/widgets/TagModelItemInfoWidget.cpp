@@ -10,6 +10,8 @@ TagModelItemInfoWidget::TagModelItemInfoWidget(const QModelIndex & index, QWidge
     m_pUi(new Ui::TagModelItemInfoWidget)
 {
     m_pUi->setupUi(this);
+
+    setWindowTitle(tr("Tag info"));
     setCheckboxesReadOnly();
 
     QObject::connect(m_pUi->okButton, QNSIGNAL(QPushButton,clicked),
@@ -102,11 +104,11 @@ void TagModelItemInfoWidget::setTagItem(const TagModelItem & item)
     m_pUi->localUidLineEdit->setText(item.localUid());
 
     setMinimumWidth(475);
-    setWindowTitle(tr("Tag info"));
 }
 
 void TagModelItemInfoWidget::hideAll()
 {
+    m_pUi->tagLabel->setHidden(true);
     m_pUi->tagNameLabel->setHidden(true);
     m_pUi->tagNameLineEdit->setHidden(true);
     m_pUi->parentTagLabel->setHidden(true);
