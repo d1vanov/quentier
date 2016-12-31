@@ -1905,9 +1905,13 @@ void FavoritesModel::removeItemByLocalUid(const QString & localUid)
         return;
     }
 
+    emit aboutToRemoveItems();
+
     beginRemoveRows(QModelIndex(), row, row);
     Q_UNUSED(localUidIndex.erase(itemIt))
     endRemoveRows();
+
+    emit removedItems();
 }
 
 void FavoritesModel::updateItemRowWithRespectToSorting(const FavoritesModelItem & item)
@@ -2344,34 +2348,45 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
     {
         QNDEBUG(QStringLiteral("Detected newly favorited note"));
 
+        emit aboutToAddItem();
+
         int row = static_cast<int>(rowIndex.size());
         beginInsertRows(QModelIndex(), row, row);
         rowIndex.push_back(item);
         endInsertRows();
 
         updateItemRowWithRespectToSorting(item);
+
+        QModelIndex addedNoteIndex = indexForLocalUid(item.localUid());
+        emit addedItem(addedNoteIndex);
+
+        return;
     }
-    else
-    {
-        QNDEBUG(QStringLiteral("Updating the already favorited item"));
 
-        auto indexIt = m_data.project<ByIndex>(itemIt);
-        if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-            QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited note item "
-                                                        "to the random access index iterator", this);
-            QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
-            emit notifyError(error);
-            return;
-        }
+    QNDEBUG(QStringLiteral("Updating the already favorited item"));
 
-        int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
-
-        Q_UNUSED(localUidIndex.replace(itemIt, item));
-        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
-        emit dataChanged(modelIndex, modelIndex);
-
-        updateItemRowWithRespectToSorting(item);
+    auto indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
+        QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited note item "
+                                                    "to the random access index iterator", this);
+        QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
+        emit notifyError(error);
+        return;
     }
+
+    int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
+
+    Q_UNUSED(localUidIndex.replace(itemIt, item));
+
+    QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
+    emit aboutToUpdateItem(modelIndex);
+
+    emit dataChanged(modelIndex, modelIndex);
+
+    updateItemRowWithRespectToSorting(item);
+
+    modelIndex = indexForLocalUid(item.localUid());
+    emit updatedItem(modelIndex);
 }
 
 void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
@@ -2449,6 +2464,8 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
     {
         QNDEBUG(QStringLiteral("Detected newly favorited notebook"));
 
+        emit aboutToAddItem();
+
         int row = static_cast<int>(rowIndex.size());
         beginInsertRows(QModelIndex(), row, row);
         rowIndex.push_back(item);
@@ -2456,33 +2473,41 @@ void FavoritesModel::onNotebookAddedOrUpdated(const Notebook & notebook)
 
         updateItemRowWithRespectToSorting(item);
 
+        QModelIndex addedNotebookIndex = indexForLocalUid(item.localUid());
+        emit addedItem(addedNotebookIndex);
+
         // Need to figure out how many notes this notebook targets
         requestNoteCountForNotebook(notebook.localUid(), NoteCountRequestOption::IfNotAlreadyRunning);
+
+        return;
     }
-    else
-    {
-        QNDEBUG(QStringLiteral("Updating the already favorited notebook item"));
 
-        const FavoritesModelItem & originalItem = *itemIt;
-        item.setNumNotesTargeted(originalItem.numNotesTargeted());
+    QNDEBUG(QStringLiteral("Updating the already favorited notebook item"));
 
-        auto indexIt = m_data.project<ByIndex>(itemIt);
-        if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-            QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited notebook item "
-                                                        "to the random access index iterator", this);
-            QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
-            emit notifyError(error);
-            return;
-        }
+    const FavoritesModelItem & originalItem = *itemIt;
+    item.setNumNotesTargeted(originalItem.numNotesTargeted());
 
-        int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
-        Q_UNUSED(localUidIndex.replace(itemIt, item))
-
-        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
-        emit dataChanged(modelIndex, modelIndex);
-
-        updateItemRowWithRespectToSorting(item);
+    auto indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
+        QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited notebook item "
+                                                    "to the random access index iterator", this);
+        QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
+        emit notifyError(error);
+        return;
     }
+
+    int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
+    Q_UNUSED(localUidIndex.replace(itemIt, item))
+
+    QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
+    emit aboutToUpdateItem(modelIndex);
+
+    emit dataChanged(modelIndex, modelIndex);
+
+    updateItemRowWithRespectToSorting(item);
+
+    modelIndex = indexForLocalUid(item.localUid());
+    emit updatedItem(modelIndex);
 }
 
 void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
@@ -2565,6 +2590,8 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
     {
         QNDEBUG(QStringLiteral("Detected newly favorited tag"));
 
+        emit aboutToAddItem();
+
         int row = static_cast<int>(rowIndex.size());
         beginInsertRows(QModelIndex(), row, row);
         rowIndex.push_back(item);
@@ -2572,33 +2599,41 @@ void FavoritesModel::onTagAddedOrUpdated(const Tag & tag)
 
         updateItemRowWithRespectToSorting(item);
 
+        QModelIndex addedTagIndex = indexForLocalUid(item.localUid());
+        emit addedItem(addedTagIndex);
+
         // Need to figure out how many notes this tag targets
         requestNoteCountForTag(tag.localUid(), NoteCountRequestOption::IfNotAlreadyRunning);
+
+        return;
     }
-    else
-    {
-        QNDEBUG(QStringLiteral("Updating the already favorited tag item"));
 
-        const FavoritesModelItem & originalItem = *itemIt;
-        item.setNumNotesTargeted(originalItem.numNotesTargeted());
+    QNDEBUG(QStringLiteral("Updating the already favorited tag item"));
 
-        auto indexIt = m_data.project<ByIndex>(itemIt);
-        if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-            QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited tag item "
-                                                        "to the random access index iterator", this);
-            QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
-            emit notifyError(error);
-            return;
-        }
+    const FavoritesModelItem & originalItem = *itemIt;
+    item.setNumNotesTargeted(originalItem.numNotesTargeted());
 
-        int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
-        Q_UNUSED(localUidIndex.replace(itemIt, item))
-
-        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
-        emit dataChanged(modelIndex, modelIndex);
-
-        updateItemRowWithRespectToSorting(item);
+    auto indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
+        QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited tag item "
+                                                    "to the random access index iterator", this);
+        QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
+        emit notifyError(error);
+        return;
     }
+
+    int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
+    Q_UNUSED(localUidIndex.replace(itemIt, item))
+
+    QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
+    emit aboutToUpdateItem(modelIndex);
+
+    emit dataChanged(modelIndex, modelIndex);
+
+    updateItemRowWithRespectToSorting(item);
+
+    modelIndex = indexForLocalUid(item.localUid());
+    emit updatedItem(modelIndex);
 }
 
 void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
@@ -2646,35 +2681,44 @@ void FavoritesModel::onSavedSearchAddedOrUpdated(const SavedSearch & search)
     {
         QNDEBUG(QStringLiteral("Detected newly favorited saved search"));
 
+        emit aboutToAddItem();
+
         int row = static_cast<int>(rowIndex.size());
         beginInsertRows(QModelIndex(), row, row);
         rowIndex.push_back(item);
         endInsertRows();
 
         updateItemRowWithRespectToSorting(item);
+
+        QModelIndex addedSavedSearchIndex = indexForLocalUid(item.localUid());
+        emit addedItem(addedSavedSearchIndex);
+
+        return;
     }
-    else
-    {
-        QNDEBUG(QStringLiteral("Updating the already favorited saved search item"));
 
-        FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
-        auto indexIt = m_data.project<ByIndex>(itemIt);
-        if (Q_UNLIKELY(indexIt == rowIndex.end())) {
-            QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited saved search item "
-                                                        "to the random access index iterator", this);
-            QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
-            emit notifyError(error);
-            return;
-        }
+    QNDEBUG(QStringLiteral("Updating the already favorited saved search item"));
 
-        int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
-
-        localUidIndex.replace(itemIt, item);
-        QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
-        emit dataChanged(modelIndex, modelIndex);
-
-        updateItemRowWithRespectToSorting(item);
+    auto indexIt = m_data.project<ByIndex>(itemIt);
+    if (Q_UNLIKELY(indexIt == rowIndex.end())) {
+        QNLocalizedString error = QNLocalizedString("Can't project the local uid index to the favorited saved search item "
+                                                    "to the random access index iterator", this);
+        QNWARNING(error << QStringLiteral(", favorites model item: ") << item);
+        emit notifyError(error);
+        return;
     }
+
+    int row = static_cast<int>(std::distance(rowIndex.begin(), indexIt));
+
+    localUidIndex.replace(itemIt, item);
+    QModelIndex modelIndex = createIndex(row, Columns::DisplayName);
+    emit aboutToUpdateItem(modelIndex);
+
+    emit dataChanged(modelIndex, modelIndex);
+
+    updateItemRowWithRespectToSorting(item);
+
+    modelIndex = indexForLocalUid(item.localUid());
+    emit updatedItem(modelIndex);
 }
 
 void FavoritesModel::checkNotebookUpdateForNote(const QString & noteLocalUid, const QString & notebookLocalUid)

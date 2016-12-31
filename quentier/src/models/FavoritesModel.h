@@ -94,6 +94,17 @@ public:
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
 
+    // Informative signals for views, so that they can prepare to the changes in the table of favorited items
+    // and do some recovery after that
+    void aboutToAddItem();
+    void addedItem(const QModelIndex & index);
+
+    void aboutToUpdateItem(const QModelIndex & index);
+    void updatedItem(const QModelIndex & index);
+
+    void aboutToRemoveItems();
+    void removedItems();
+
 // private signals
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
