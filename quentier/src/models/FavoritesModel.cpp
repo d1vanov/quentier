@@ -74,7 +74,8 @@ FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageMan
     m_notebookLocalUidToNoteCountRequestIdBimap(),
     m_tagLocalUidToNoteCountRequestIdBimap(),
     m_sortedColumn(Columns::DisplayName),
-    m_sortOrder(Qt::AscendingOrder)
+    m_sortOrder(Qt::AscendingOrder),
+    m_allItemsListed(false)
 {
     createConnections(localStorageManagerThreadWorker);
     requestNotebooksList();
@@ -763,7 +764,10 @@ void FavoritesModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions
         QNTRACE(QStringLiteral("The number of found notes matches the limit, requesting more notes from the local storage"));
         m_listNotesOffset += limit;
         requestNotesList();
+        return;
     }
+
+    checkAllItemsListed();
 }
 
 void FavoritesModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -931,7 +935,10 @@ void FavoritesModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpt
         QNTRACE(QStringLiteral("The number of found notebooks matches the limit, requesting more notebooks from the local storage"));
         m_listNotebooksOffset += limit;
         requestNotebooksList();
+        return;
     }
+
+    checkAllItemsListed();
 }
 
 void FavoritesModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -1094,7 +1101,10 @@ void FavoritesModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions 
         QNTRACE(QStringLiteral("The number of found tags matches the limit, requesting more tags from the local storage"));
         m_listTagsOffset += limit;
         requestTagsList();
+        return;
     }
+
+    checkAllItemsListed();
 }
 
 void FavoritesModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -1271,11 +1281,15 @@ void FavoritesModel::onListSavedSearchesComplete(LocalStorageManager::ListObject
     }
 
     m_listSavedSearchesRequestId = QUuid();
+
     if (foundSearches.size() == static_cast<int>(limit)) {
         QNTRACE(QStringLiteral("The number of found saved searches matches the limit, requesting more saved searches from the local storage"));
         m_listSavedSearchesOffset += limit;
         requestSavedSearchesList();
+        return;
     }
+
+    checkAllItemsListed();
 }
 
 void FavoritesModel::onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
@@ -2904,6 +2918,19 @@ void FavoritesModel::updateItemColumnInView(const FavoritesModelItem & item, con
     }
 
     updateItemRowWithRespectToSorting(item);
+}
+
+void FavoritesModel::checkAllItemsListed()
+{
+    if (m_allItemsListed) {
+        return;
+    }
+
+    if (m_listNotesRequestId.isNull() && m_listNotebooksRequestId.isNull() && m_listTagsRequestId.isNull() && m_listSavedSearchesRequestId.isNull()) {
+        QNDEBUG(QStringLiteral("Listed all favorites model's items"));
+        m_allItemsListed = true;
+        emit notifyAllItemsListed();
+    }
 }
 
 bool FavoritesModel::Comparator::operator()(const FavoritesModelItem & lhs, const FavoritesModelItem & rhs) const

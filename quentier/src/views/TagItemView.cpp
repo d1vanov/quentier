@@ -17,7 +17,7 @@
  */
 
 #include "TagItemView.h"
-#include "AccountToKey.h"
+#include "../AccountToKey.h"
 #include "../models/TagModel.h"
 #include "../dialogs/AddOrEditTagDialog.h"
 #include <quentier/logging/QuentierLogger.h>

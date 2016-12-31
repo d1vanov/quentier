@@ -91,6 +91,7 @@ set(${PROJECT_NAME}_HEADERS
     src/insert-table-tool-button/TableSizeSelectorActionWidget.h
     src/insert-table-tool-button/TableSizeSelector.h
     src/views/ItemView.h
+    src/views/FavoriteItemView.h
     src/views/NotebookItemView.h
     src/views/TagItemView.h
     src/views/SavedSearchItemView.h
@@ -149,6 +150,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/SynchronizableColumnDelegate.cpp
     src/delegates/TagItemDelegate.cpp
     src/views/ItemView.cpp
+    src/views/FavoriteItemView.cpp
     src/views/NotebookItemView.cpp
     src/views/TagItemView.cpp
     src/views/SavedSearchItemView.cpp

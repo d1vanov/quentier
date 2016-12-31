@@ -30,7 +30,7 @@ class TagItemView: public ItemView
 {
     Q_OBJECT
 public:
-    TagItemView(QWidget * parent = Q_NULLPTR);
+    explicit TagItemView(QWidget * parent = Q_NULLPTR);
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 

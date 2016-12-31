@@ -17,7 +17,7 @@
  */
 
 #include "SavedSearchItemView.h"
-#include "AccountToKey.h"
+#include "../AccountToKey.h"
 #include "../models/SavedSearchModel.h"
 #include "../dialogs/AddOrEditSavedSearchDialog.h"
 #include <quentier/logging/QuentierLogger.h>

@@ -73,6 +73,13 @@ public:
     const FavoritesModelItem * itemForLocalUid(const QString & localUid) const;
     const FavoritesModelItem * itemAtRow(const int row) const;
 
+    /**
+     * @brief allItemsListed
+     * @return true if the favorites model has received the information about all favorited notes, notebooks,
+     * tags and saved searches stored in the local storage by the moment; false otherwise
+     */
+    bool allItemsListed() const { return m_allItemsListed; }
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -93,6 +100,8 @@ public:
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
+
+    void notifyAllItemsListed();
 
     // Informative signals for views, so that they can prepare to the changes in the table of favorited items
     // and do some recovery after that
@@ -285,6 +294,8 @@ private:
 
     void updateItemColumnInView(const FavoritesModelItem & item, const Columns::type column);
 
+    void checkAllItemsListed();
+
 private:
     struct ByLocalUid{};
     struct ByIndex{};
@@ -394,6 +405,8 @@ private:
 
     Columns::type           m_sortedColumn;
     Qt::SortOrder           m_sortOrder;
+
+    bool                    m_allItemsListed;
 };
 
 } // namespace quentier

@@ -30,7 +30,7 @@ class SavedSearchItemView: public ItemView
 {
     Q_OBJECT
 public:
-    SavedSearchItemView(QWidget * parent = Q_NULLPTR);
+    explicit SavedSearchItemView(QWidget * parent = Q_NULLPTR);
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 
