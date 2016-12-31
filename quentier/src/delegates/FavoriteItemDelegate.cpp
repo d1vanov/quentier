@@ -29,18 +29,19 @@ int FavoriteItemDelegate::sideSize() const
 
 QString FavoriteItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
 {
-    Q_UNUSED(value)
-    Q_UNUSED(locale)
-    return QString();
+    return QStyledItemDelegate::displayText(value, locale);
 }
 
 QWidget * FavoriteItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
                                              const QModelIndex & index) const
 {
-    Q_UNUSED(parent)
-    Q_UNUSED(option)
-    Q_UNUSED(index)
-    return Q_NULLPTR;
+    // Only allow to edit the favorited item's display name but no other favorites model columns
+    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+        return QStyledItemDelegate::createEditor(parent, option, index);
+    }
+    else {
+        return Q_NULLPTR;
+    }
 }
 
 void FavoriteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
@@ -96,16 +97,17 @@ void FavoriteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
 
 void FavoriteItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
 {
-    Q_UNUSED(editor)
-    Q_UNUSED(index)
+    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+        QStyledItemDelegate::setEditorData(editor, index);
+    }
 }
 
 void FavoriteItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
                                         const QModelIndex & index) const
 {
-    Q_UNUSED(editor)
-    Q_UNUSED(model)
-    Q_UNUSED(index)
+    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+        QStyledItemDelegate::setModelData(editor, model, index);
+    }
 }
 
 QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
@@ -123,9 +125,9 @@ QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
 void FavoriteItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
                                                 const QModelIndex & index) const
 {
-    Q_UNUSED(editor)
-    Q_UNUSED(option)
-    Q_UNUSED(index)
+    if (index.isValid() && (index.column() == FavoritesModel::Columns::DisplayName)) {
+        QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+    }
 }
 
 QSize FavoriteItemDelegate::favoriteItemNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
