@@ -24,6 +24,7 @@
 #include "NotebookCache.h"
 #include "TagCache.h"
 #include "SavedSearchCache.h"
+#include <quentier/types/Account.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
@@ -51,10 +52,13 @@ class FavoritesModel: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    explicit FavoritesModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+    explicit FavoritesModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                             NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                             SavedSearchCache & savedSearchCache, QObject * parent = Q_NULLPTR);
     virtual ~FavoritesModel();
+
+    const Account & account() const { return m_account; }
+    void updateAccount(const Account & account);
 
     struct Columns
     {
@@ -348,6 +352,7 @@ private:
     typedef boost::bimap<QString, QUuid> LocalUidToRequestIdBimap;
 
 private:
+    Account                 m_account;
     FavoritesData           m_data;
     NoteCache &             m_noteCache;
     NotebookCache &         m_notebookCache;

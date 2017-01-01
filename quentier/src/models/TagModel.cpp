@@ -1565,11 +1565,7 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
     TagModelItem itemCopy;
     tagToItem(tag, itemCopy);
 
-    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
-    Q_UNUSED(localUidIndex.replace(it, itemCopy))
-
     const TagModelItem * pItem = &(*it);
-
     const TagModelItem * pParentItem = pItem->parent();
     if (Q_UNLIKELY(!pParentItem)) {
         QNLocalizedString error = QT_TR_NOOP("tag item being updated does not have a parent item linked with it");
@@ -1585,6 +1581,19 @@ void TagModel::onTagUpdated(const Tag & tag, TagDataByLocalUid::iterator it)
         emit notifyError(error);
         return;
     }
+
+    // 1) Remove the original row from the parent
+    QModelIndex parentItemIndex = indexForLocalUid(pParentItem->localUid());
+    beginRemoveRows(parentItemIndex, row, row);
+    Q_UNUSED(pParentItem->takeChild(row))
+    endRemoveRows();
+
+    // 2) Insert the replacement row
+    beginInsertRows(parentItemIndex, row, row);
+    TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    Q_UNUSED(localUidIndex.replace(it, itemCopy))
+    pParentItem->insertChild(row, pItem);
+    endInsertRows();
 
     IndexId itemId = idForItem(*pItem);
 

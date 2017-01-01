@@ -146,10 +146,10 @@ void SavedSearchItemView::deleteSelectedItem()
 
     QModelIndexList indexes = selectedIndexes();
     if (indexes.isEmpty()) {
-        QNDEBUG(QStringLiteral("No saved searches are selected, nothing to deete"));
+        QNDEBUG(QStringLiteral("No saved searches are selected, nothing to delete"));
         Q_UNUSED(informationMessageBox(this, tr("Cannot delete current saved search"),
                                        tr("No saved search is selected currently"),
-                                       tr("Please select the saved seaarch you want to delete")))
+                                       tr("Please select the saved search you want to delete")))
         return;
     }
 
@@ -390,7 +390,7 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     QNDEBUG(QStringLiteral("SavedSearchItemView::contextMenuEvent"));
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNWARNING(QStringLiteral("Detected Qt error: tag item view received "
+        QNWARNING(QStringLiteral("Detected Qt error: saved search item view received "
                                  "context menu event with null pointer "
                                  "to the context menu event"));
         return;

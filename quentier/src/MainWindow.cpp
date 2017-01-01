@@ -39,6 +39,7 @@
 #include "views/NotebookItemView.h"
 #include "views/TagItemView.h"
 #include "views/SavedSearchItemView.h"
+#include "views/FavoriteItemView.h"
 
 #include "widgets/TabWidget.h"
 using quentier::TabWidget;
@@ -312,6 +313,11 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onRemoveSavedSearchButtonPressed));
     QObject::connect(m_pUI->savedSearchInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed));
+
+    QObject::connect(m_pUI->unfavoritePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onUnfavoriteItemButtonPressed));
+    QObject::connect(m_pUI->favoriteInfoButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1336,21 +1342,7 @@ void MainWindow::onNotebookInfoButtonPressed()
 
     QModelIndex index = m_pUI->notebooksTreeView->currentlySelectedItemIndex();
     NotebookModelItemInfoWidget * pNotebookModelItemInfoWidget = new NotebookModelItemInfoWidget(index, this);
-    pNotebookModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
-    pNotebookModelItemInfoWidget->setWindowModality(Qt::WindowModal);
-    pNotebookModelItemInfoWidget->adjustSize();
-#ifndef Q_OS_MAC
-    // Center the widget relative to the main window
-    const QRect & geometryRect = geometry();
-    const QRect & dialogGeometryRect = pNotebookModelItemInfoWidget->geometry();
-    if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
-        const QPoint center = geometryRect.center();
-        int x = center.x() - dialogGeometryRect.width() / 2;
-        int y = center.y() - dialogGeometryRect.height() / 2;
-        pNotebookModelItemInfoWidget->move(x, y);
-    }
-#endif
-    pNotebookModelItemInfoWidget->show();
+    showInfoWidget(pNotebookModelItemInfoWidget);
 }
 
 void MainWindow::onCreateTagButtonPressed()
@@ -1381,21 +1373,7 @@ void MainWindow::onTagInfoButtonPressed()
 
     QModelIndex index = m_pUI->tagsTreeView->currentlySelectedItemIndex();
     TagModelItemInfoWidget * pTagModelItemInfoWidget = new TagModelItemInfoWidget(index, this);
-    pTagModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
-    pTagModelItemInfoWidget->setWindowModality(Qt::WindowModal);
-    pTagModelItemInfoWidget->adjustSize();
-#ifndef Q_OS_MAC
-    // Center the widget relative to the main window
-    const QRect & geometryRect = geometry();
-    const QRect & dialogGeometryRect = pTagModelItemInfoWidget->geometry();
-    if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
-        const QPoint center = geometryRect.center();
-        int x = center.x() - dialogGeometryRect.width() / 2;
-        int y = center.y() - dialogGeometryRect.height() / 2;
-        pTagModelItemInfoWidget->move(x, y);
-    }
-#endif
-    pTagModelItemInfoWidget->show();
+    showInfoWidget(pTagModelItemInfoWidget);
 }
 
 void MainWindow::onCreateSavedSearchButtonPressed()
@@ -1426,21 +1404,105 @@ void MainWindow::onSavedSearchInfoButtonPressed()
 
     QModelIndex index = m_pUI->savedSearchesTableView->currentlySelectedItemIndex();
     SavedSearchModelItemInfoWidget * pSavedSearchModelItemInfoWidget = new SavedSearchModelItemInfoWidget(index, this);
-    pSavedSearchModelItemInfoWidget->setAttribute(Qt::WA_DeleteOnClose, true);
-    pSavedSearchModelItemInfoWidget->setWindowModality(Qt::WindowModal);
-    pSavedSearchModelItemInfoWidget->adjustSize();
+    showInfoWidget(pSavedSearchModelItemInfoWidget);
+}
+
+void MainWindow::onUnfavoriteItemButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onUnfavoriteItemButtonPressed"));
+    m_pUI->favoritesTableView->deleteSelectedItems();
+}
+
+void MainWindow::onFavoritedItemInfoButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onFavoritedItemInfoButtonPressed"));
+    QModelIndex index = m_pUI->favoritesTableView->currentlySelectedItemIndex();
+    if (!index.isValid()) {
+        Q_UNUSED(informationMessageBox(this, tr("Not exactly one favorited item is selected"),
+                                       tr("Please select the only one favorited item to "
+                                          "see its detailed info")));
+        return;
+    }
+
+    FavoritesModel * pFavoritesModel = qobject_cast<FavoritesModel*>(m_pUI->favoritesTableView->model());
+    if (Q_UNLIKELY(!pFavoritesModel)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Failed to cast the favorited table "
+                                                  "view's model to favorites model")))
+        return;
+    }
+
+    const FavoritesModelItem * pItem = pFavoritesModel->itemAtRow(index.row());
+    if (Q_UNLIKELY(!pItem)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Favorites model returned null pointer "
+                                                  "to favorited item for the selected index")))
+        return;
+    }
+
+    switch(pItem->type())
+    {
+    case FavoritesModelItem::Type::Note:
+        // TODO: show note info widget when it's done
+        break;
+    case FavoritesModelItem::Type::Notebook:
+        {
+            if (Q_LIKELY(m_pNotebookModel)) {
+                QModelIndex notebookIndex = m_pNotebookModel->indexForLocalUid(pItem->localUid());
+                NotebookModelItemInfoWidget * pNotebookItemInfoWidget = new NotebookModelItemInfoWidget(notebookIndex, this);
+                showInfoWidget(pNotebookItemInfoWidget);
+            }
+            else {
+                Q_UNUSED(internalErrorMessageBox(this, tr("No notebook model exists at the moment")))
+            }
+            break;
+        }
+    case FavoritesModelItem::Type::SavedSearch:
+        {
+            if (Q_LIKELY(m_pSavedSearchModel)) {
+                QModelIndex savedSearchIndex = m_pSavedSearchModel->indexForLocalUid(pItem->localUid());
+                SavedSearchModelItemInfoWidget * pSavedSearchItemInfoWidget = new SavedSearchModelItemInfoWidget(savedSearchIndex, this);
+                showInfoWidget(pSavedSearchItemInfoWidget);
+            }
+            else {
+                Q_UNUSED(internalErrorMessageBox(this, tr("No saved search model exists at the moment"));)
+            }
+            break;
+        }
+    case FavoritesModelItem::Type::Tag:
+        {
+            if (Q_LIKELY(m_pTagModel)) {
+                QModelIndex tagIndex = m_pTagModel->indexForLocalUid(pItem->localUid());
+                TagModelItemInfoWidget * pTagItemInfoWidget = new TagModelItemInfoWidget(tagIndex, this);
+                showInfoWidget(pTagItemInfoWidget);
+            }
+            else {
+                Q_UNUSED(internalErrorMessageBox(this, tr("No tag model exists at the moment"));)
+            }
+            break;
+        }
+    default:
+        Q_UNUSED(internalErrorMessageBox(this, tr("Incorrect favorited item type") +
+                                         QStringLiteral(": ") + QString::number(pItem->type())))
+        break;
+    }
+}
+
+void MainWindow::showInfoWidget(QWidget * pWidget)
+{
+    pWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+    pWidget->setWindowModality(Qt::WindowModal);
+    pWidget->adjustSize();
 #ifndef Q_OS_MAC
     // Center the widget relative to the main window
     const QRect & geometryRect = geometry();
-    const QRect & dialogGeometryRect = pSavedSearchModelItemInfoWidget->geometry();
+    const QRect & dialogGeometryRect = pWidget->geometry();
     if (geometryRect.isValid() && dialogGeometryRect.isValid()) {
         const QPoint center = geometryRect.center();
         int x = center.x() - dialogGeometryRect.width() / 2;
         int y = center.y() - dialogGeometryRect.height() / 2;
-        pSavedSearchModelItemInfoWidget->move(x, y);
+        pWidget->move(x, y);
     }
 #endif
-    pSavedSearchModelItemInfoWidget->show();
+    pWidget->show();
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()
@@ -2082,7 +2144,7 @@ void MainWindow::setupModels()
 
     clearModels();
 
-    m_pFavoritesModel = new FavoritesModel(*m_pLocalStorageManager, m_noteCache,
+    m_pFavoritesModel = new FavoritesModel(*m_pAccount, *m_pLocalStorageManager, m_noteCache,
                                            m_notebookCache, m_tagCache, m_savedSearchCache, this);
     m_pNotebookModel = new NotebookModel(*m_pAccount, *m_pLocalStorageManager,
                                          m_notebookCache, this);
@@ -2186,7 +2248,7 @@ void MainWindow::setupViews()
     // NOTE: only a few columns would be shown for each view because otherwise there are problems finding space for everyting
     // TODO: in future should implement the persistent setting of which columns to show or not to show
 
-    ItemView * pFavoritesTableView = m_pUI->favoritesTableView;
+    FavoriteItemView * pFavoritesTableView = m_pUI->favoritesTableView;
     FavoriteItemDelegate * favoriteItemDelegate = new FavoriteItemDelegate(pFavoritesTableView);
     pFavoritesTableView->setItemDelegate(favoriteItemDelegate);
     pFavoritesTableView->setColumnHidden(FavoritesModel::Columns::NumNotesTargeted, true);   // This column's values would be displayed along with the favorite item's name
@@ -2197,6 +2259,11 @@ void MainWindow::setupViews()
 #else
     pFavoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
+
+    QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,notifyError,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
+    QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,favoritedItemInfoRequested),
+                     this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
 
     NotebookItemView * pNotebooksTreeView = m_pUI->notebooksTreeView;
     NotebookItemDelegate * notebookItemDelegate = new NotebookItemDelegate(pNotebooksTreeView);

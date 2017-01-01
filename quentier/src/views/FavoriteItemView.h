@@ -34,12 +34,48 @@ public:
 
     virtual void setModel(QAbstractItemModel * pModel) Q_DECL_OVERRIDE;
 
+    /**
+     * @return valid model index if the selection exists and contains exactly one row and invalid model index otherwise
+     */
+    QModelIndex currentlySelectedItemIndex() const;
+
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
     void favoritedItemInfoRequested();
 
+public Q_SLOTS:
+    void deleteSelectedItems();
+
 private Q_SLOTS:
     void onAllItemsListed();
+
+    void onAboutToAddItem();
+    void onAddedItem(const QModelIndex & index);
+
+    void onAboutToUpdateItem(const QModelIndex & index);
+    void onUpdatedItem(const QModelIndex & index);
+
+    void onAboutToRemoveItems();
+    void onRemovedItems();
+
+    void onRenameFavoritedItemAction();
+    void onUnfavoriteItemAction();
+    void onDeselectAction();
+    void onShowFavoritedItemInfoAction();
+
+    virtual void selectionChanged(const QItemSelection & selected,
+                                  const QItemSelection & deselected) Q_DECL_OVERRIDE;
+
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+
+private:
+    void restoreLastSavedSelection(const FavoritesModel & model);
+
+    void selectionChangedImpl(const QItemSelection & selected,
+                              const QItemSelection & deselected);
+
+    void prepareForFavoritesModelChange();
+    void postProcessFavoritedModelChange();
 
 private:
     QMenu *     m_pFavoriteItemContextMenu;

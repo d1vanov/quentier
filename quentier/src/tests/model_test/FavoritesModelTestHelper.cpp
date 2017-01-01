@@ -268,7 +268,9 @@ void FavoritesModelTestHelper::launchTest()
         TagCache tagCache(5);
         SavedSearchCache savedSearchCache(5);
 
-        FavoritesModel * model = new FavoritesModel(*m_pLocalStorageManagerThreadWorker, noteCache,
+        Account account(QStringLiteral("Default user"), Account::Type::Local);
+
+        FavoritesModel * model = new FavoritesModel(account, *m_pLocalStorageManagerThreadWorker, noteCache,
                                                     notebookCache, tagCache, savedSearchCache, this);
         ModelTest t1(model);
         Q_UNUSED(t1)

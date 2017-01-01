@@ -29,10 +29,11 @@
 
 namespace quentier {
 
-FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
+FavoritesModel::FavoritesModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                                SavedSearchCache & savedSearchCache, QObject * parent) :
     QAbstractItemModel(parent),
+    m_account(account),
     m_data(),
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
@@ -86,6 +87,12 @@ FavoritesModel::FavoritesModel(LocalStorageManagerThreadWorker & localStorageMan
 
 FavoritesModel::~FavoritesModel()
 {}
+
+void FavoritesModel::updateAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("FavoritesModel::updateAccount: ") << account);
+    m_account = account;
+}
 
 QModelIndex FavoritesModel::indexForLocalUid(const QString & localUid) const
 {

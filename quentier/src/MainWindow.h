@@ -163,6 +163,11 @@ private Q_SLOTS:
     void onRemoveSavedSearchButtonPressed();
     void onSavedSearchInfoButtonPressed();
 
+    void onUnfavoriteItemButtonPressed();
+    void onFavoritedItemInfoButtonPressed();
+
+    void showInfoWidget(QWidget * pWidget);
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
