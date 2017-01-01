@@ -24,7 +24,8 @@
 #define MAX_ALLOWED_MILLISECONDS 600000
 
 ModelTester::ModelTester(QObject * parent) :
-    QObject(parent)
+    QObject(parent),
+    m_pLocalStorageWorker(Q_NULLPTR)
 {}
 
 ModelTester::~ModelTester()
