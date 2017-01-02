@@ -16,47 +16,48 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_NOTE_TAG_WIDGET_H
-#define QUENTIER_WIDGETS_NOTE_TAG_WIDGET_H
+#ifndef QUENTIER_WIDGETS_LIST_ITEM_WIDGET_H
+#define QUENTIER_WIDGETS_LIST_ITEM_WIDGET_H
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QWidget>
 
 namespace Ui {
-class NoteTagWidget;
+class ListItemWidget;
 }
 
 namespace quentier {
 
 /**
- * @brief The NoteTagWidget class represents a single tag within the list of currently selected note's tags
+ * @brief The ListItemWidget class represents a single item within some list,
+ * for example, a tag within the list of currently selected note's tags
  *
- * It is a very simple class combining tag name label and the button intended to signal
- * the desire to remove the tag from the note
+ * It is a very simple widget combining the item name label and the button intended to signal
+ * the desire to remove the item from the list
  */
-class NoteTagWidget: public QWidget
+class ListItemWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit NoteTagWidget(const QString & tagName, QWidget * parent = Q_NULLPTR);
-    ~NoteTagWidget();
+    explicit ListItemWidget(const QString & itemName, QWidget * parent = Q_NULLPTR);
+    ~ListItemWidget();
 
-    QString tagName() const;
-    void setTagName(const QString & name);
+    QString name() const;
+    void setName(const QString & name);
 
 Q_SIGNALS:
-    void removeTagFromNote(QString name);
+    void itemRemovedFromList(QString name);
 
 public Q_SLOTS:
-    void onCanCreateTagRestrictionChanged(bool canCreateTag);
+    void setItemRemovable(bool removable);
 
 private Q_SLOTS:
-    void onRemoveTagButtonPressed();
+    void onRemoveItemButtonPressed();
 
 private:
-    Ui::NoteTagWidget * m_pUi;
+    Ui::ListItemWidget * m_pUi;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_NOTE_TAG_WIDGET_H
+#endif // QUENTIER_WIDGETS_LIST_ITEM_WIDGET_H

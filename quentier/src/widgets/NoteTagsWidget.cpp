@@ -17,7 +17,7 @@
  */
 
 #include "NoteTagsWidget.h"
-#include "NoteTagWidget.h"
+#include "ListItemWidget.h"
 #include "NewTagLineEditor.h"
 #include "FlowLayout.h"
 #include "../models/TagModel.h"
@@ -164,7 +164,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         m_currentNote.removeTagGuid(tagGuid);
     }
 
-    NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(sender());
+    ListItemWidget * pNoteTagWidget = qobject_cast<ListItemWidget*>(sender());
     if (Q_LIKELY(pNoteTagWidget))
     {
         m_pLayout->removeWidget(pNoteTagWidget);
@@ -353,12 +353,12 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
             continue;
         }
 
-        NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(pItem->widget());
+        ListItemWidget * pNoteTagWidget = qobject_cast<ListItemWidget*>(pItem->widget());
         if (!pNoteTagWidget) {
             continue;
         }
 
-        if (pNoteTagWidget->tagName() != previousName) {
+        if (pNoteTagWidget->name() != previousName) {
             continue;
         }
 
@@ -369,7 +369,7 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
             delete pItem;
         }
         else {
-            pNoteTagWidget->setTagName(tag.name());
+            pNoteTagWidget->setName(tag.name());
         }
 
         break;
@@ -418,12 +418,12 @@ void NoteTagsWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
             continue;
         }
 
-        NoteTagWidget * pNoteTagWidget = qobject_cast<NoteTagWidget*>(pItem->widget());
+        ListItemWidget * pNoteTagWidget = qobject_cast<ListItemWidget*>(pItem->widget());
         if (!pNoteTagWidget) {
             continue;
         }
 
-        if (pNoteTagWidget->tagName() != tagName) {
+        if (pNoteTagWidget->name() != tagName) {
             continue;
         }
 
@@ -536,11 +536,11 @@ void NoteTagsWidget::updateLayout()
     {
         const QString & tagName = tagNames[i];
 
-        NoteTagWidget * pTagWidget = new NoteTagWidget(tagName, this);
-        QObject::connect(pTagWidget, QNSIGNAL(NoteTagWidget,removeTagFromNote,QString),
+        ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
+        QObject::connect(pTagWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                          this, QNSLOT(NoteTagsWidget,onTagRemoved,QString));
         QObject::connect(this, QNSIGNAL(NoteTagsWidget,canUpdateNoteRestrictionChanged,bool),
-                         pTagWidget, QNSLOT(NoteTagWidget,onCanCreateTagRestrictionChanged,bool));
+                         pTagWidget, QNSLOT(ListItemWidget,setItemRemovable,bool));
 
         m_pLayout->addWidget(pTagWidget);
     }

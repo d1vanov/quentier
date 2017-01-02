@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NoteTagWidget</class>
- <widget class="QWidget" name="NoteTagWidget">
+ <class>ListItemWidget</class>
+ <widget class="QWidget" name="ListItemWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -32,7 +32,7 @@
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget#NoteTagWidget {
+   <string notr="true">QWidget#ListItemWidget {
 border: 1px solid #555;
 border-radius: 4px;
 padding: 0px;
@@ -40,7 +40,7 @@ background-color: rgb(223, 231, 236);
 border-color: rgb(182, 189, 195);
 }
 
-QWidget#NoteTagWidget:hover {
+QWidget#ListItemWidget:hover {
 background-color: rgb(205, 221, 229);
 }</string>
   </property>
@@ -64,7 +64,7 @@ background-color: rgb(205, 221, 229);
     <number>0</number>
    </property>
    <item>
-    <widget class="QLabel" name="tagNameLabel">
+    <widget class="QLabel" name="itemNameLabel">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
@@ -74,16 +74,13 @@ background-color: rgb(205, 221, 229);
      <property name="lineWidth">
       <number>0</number>
      </property>
-     <property name="text">
-      <string notr="true">&lt;Tag&gt;</string>
-     </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="deleteTagButton">
+    <widget class="QPushButton" name="deleteItemButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>

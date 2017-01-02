@@ -97,11 +97,11 @@ set(${PROJECT_NAME}_HEADERS
     src/views/SavedSearchItemView.h
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
+    src/widgets/ListItemWidget.h
     src/widgets/NewTagLineEditor.h
     src/widgets/NotebookModelItemInfoWidget.h
     src/widgets/SavedSearchModelItemInfoWidget.h
     src/widgets/NoteEditorWidget.h
-    src/widgets/NoteTagWidget.h
     src/widgets/NoteTagsWidget.h
     src/widgets/TagModelItemInfoWidget.h
     src/widgets/TabWidget.h
@@ -156,11 +156,11 @@ set(${PROJECT_NAME}_SOURCES
     src/views/SavedSearchItemView.cpp
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
+    src/widgets/ListItemWidget.cpp
     src/widgets/NewTagLineEditor.cpp
     src/widgets/NotebookModelItemInfoWidget.cpp
     src/widgets/SavedSearchModelItemInfoWidget.cpp
     src/widgets/NoteEditorWidget.cpp
-    src/widgets/NoteTagWidget.cpp
     src/widgets/NoteTagsWidget.cpp
     src/widgets/TagModelItemInfoWidget.cpp
     src/widgets/TabWidget.cpp
@@ -176,11 +176,11 @@ set(FORMS
     src/dialogs/ManageAccountsDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
+    src/widgets/ListItemWidget.ui
     src/widgets/NewTagLineEditor.ui
     src/widgets/NotebookModelItemInfoWidget.ui
-    src/widgets/SavedSearchModelItemInfoWidget.ui
     src/widgets/NoteEditorWidget.ui
-    src/widgets/NoteTagWidget.ui
+    src/widgets/SavedSearchModelItemInfoWidget.ui
     src/widgets/TagModelItemInfoWidget.ui)
 
 if(USE_QT5)
