@@ -7,8 +7,26 @@
     <x>0</x>
     <y>0</y>
     <width>90</width>
-    <height>30</height>
+    <height>23</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>23</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>23</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -16,11 +34,10 @@
   <property name="styleSheet">
    <string notr="true">QWidget#NoteTagWidget {
 border: 1px solid #555;
-border-radius: 13px;
-padding: 4px;
+border-radius: 4px;
+padding: 0px;
 background-color: rgb(223, 231, 236);
 border-color: rgb(182, 189, 195);
-min-width: 80px;
 }
 
 QWidget#NoteTagWidget:hover {
@@ -29,42 +46,33 @@ background-color: rgb(205, 221, 229);
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
    <property name="spacing">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="sizeConstraint">
     <enum>QLayout::SetMinimumSize</enum>
    </property>
    <property name="leftMargin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="topMargin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="bottomMargin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <item>
     <widget class="QLabel" name="tagNameLabel">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <property name="minimumSize">
-      <size>
-       <width>30</width>
-       <height>26</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>26</height>
-      </size>
+     <property name="lineWidth">
+      <number>0</number>
      </property>
      <property name="text">
       <string notr="true">&lt;Tag&gt;</string>
@@ -76,19 +84,18 @@ background-color: rgb(205, 221, 229);
    </item>
    <item>
     <widget class="QPushButton" name="deleteTagButton">
-     <property name="maximumSize">
-      <size>
-       <width>26</width>
-       <height>26</height>
-      </size>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
      <property name="text">
       <string/>
      </property>
      <property name="icon">
       <iconset theme="edit-delete">
-       <normaloff/>
-      </iconset>
+       <normaloff>.</normaloff>.</iconset>
      </property>
      <property name="iconSize">
       <size>
