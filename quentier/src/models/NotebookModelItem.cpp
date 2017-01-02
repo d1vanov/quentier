@@ -188,20 +188,20 @@ QDataStream & operator<<(QDataStream & out, const NotebookModelItem & item)
     qint32 type = item.m_type;
     out << type;
 
-    qulonglong notebookItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_pNotebookItem));
+    qulonglong notebookItemPtr = reinterpret_cast<qulonglong>(item.m_pNotebookItem);
     out << notebookItemPtr;
 
-    qulonglong notebookStackItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_pNotebookStackItem));
+    qulonglong notebookStackItemPtr = reinterpret_cast<qulonglong>(item.m_pNotebookStackItem);
     out << notebookStackItemPtr;
 
-    qulonglong parentItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_pParent));
+    qulonglong parentItemPtr = reinterpret_cast<qulonglong>(item.m_pParent);
     out << parentItemPtr;
 
     qint32 numChildren = item.m_children.size();
     out << numChildren;
 
     for(qint32 i = 0; i < numChildren; ++i) {
-        qulonglong childItemPtr = *(reinterpret_cast<const qulonglong*>(item.m_children[i]));
+        qulonglong childItemPtr = reinterpret_cast<qulonglong>(item.m_children[i]);
         out << childItemPtr;
     }
 

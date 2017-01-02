@@ -568,64 +568,77 @@ Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const
         return indexFlags;
     }
 
-    if (index.column() == Columns::Synchronizable)
+    const NotebookModelItem * pItem = itemForIndex(index);
+    if (Q_UNLIKELY(!pItem)) {
+        QNWARNING(QStringLiteral("Can't find notebook model item for a given index: row = ") << index.row()
+                  << QStringLiteral(", column = ") << index.column());
+        return indexFlags;
+    }
+
+    if (pItem->type() == NotebookModelItem::Type::Stack)
     {
-        const NotebookModelItem * pItem = itemForIndex(index);
-        if (Q_UNLIKELY(!pItem)) {
-            QNWARNING(QStringLiteral("Can't find notebook model item for a given index: row = ") << index.row()
-                      << QStringLiteral(", column = ") << index.column());
+        const NotebookStackItem * pStackItem = pItem->notebookStackItem();
+        if (Q_UNLIKELY(!pStackItem)) {
+            QNWARNING(QStringLiteral("Internal inconsistency detected: notebook model item has stack type "
+                                     "but the pointer to the stack item is null"));
             return indexFlags;
         }
 
-        if (pItem->type() == NotebookModelItem::Type::Stack)
+        indexFlags |= Qt::ItemIsDropEnabled;
+
+        // Check whether all the notebooks in the stack are eligible for editing
+        // of the column in question
+        QList<const NotebookModelItem*> children = pItem->children();
+        for(auto it = children.begin(), end = children.end(); it != end; ++it)
         {
-            const NotebookStackItem * pStackItem = pItem->notebookStackItem();
-            if (Q_UNLIKELY(!pStackItem)) {
-                QNWARNING(QStringLiteral("Internal inconsistency detected: notebook model item has stack type "
-                                         "but the pointer to the stack item is null"));
-                return indexFlags;
+            const NotebookModelItem * pChildItem = *it;
+            if (Q_UNLIKELY(!pChildItem)) {
+                QNWARNING(QStringLiteral("Detected null pointer to notebook model item within the children of another notebook model item"));
+                continue;
             }
 
-            QList<const NotebookModelItem*> children = pItem->children();
-            for(auto it = children.begin(), end = children.end(); it != end; ++it)
-            {
-                const NotebookModelItem * pChildItem = *it;
-                if (Q_UNLIKELY(!pChildItem)) {
-                    QNWARNING(QStringLiteral("Detected null pointer to notebook model item within the children of another notebook model item"));
-                    continue;
-                }
-
-                if (Q_UNLIKELY(pChildItem->type() == NotebookModelItem::Type::Stack)) {
-                    QNWARNING(QStringLiteral("Detected nested notebook stack items which is unexpected and most probably incorrect"));
-                    continue;
-                }
-
-                const NotebookItem * pNotebookItem = pChildItem->notebookItem();
-                if (Q_UNLIKELY(!pNotebookItem)) {
-                    QNWARNING(QStringLiteral("Detected null pointer to notebook item in notebook model item having a type of notebook (not stack)"));
-                    continue;
-                }
-
-                if (pNotebookItem->isSynchronizable()) {
-                    return indexFlags;
-                }
+            if (Q_UNLIKELY(pChildItem->type() == NotebookModelItem::Type::Stack)) {
+                QNWARNING(QStringLiteral("Detected nested notebook stack items which is unexpected and most probably incorrect"));
+                continue;
             }
-        }
-        else
-        {
-            const NotebookItem * pNotebookItem = pItem->notebookItem();
+
+            const NotebookItem * pNotebookItem = pChildItem->notebookItem();
             if (Q_UNLIKELY(!pNotebookItem)) {
-                QNWARNING(QStringLiteral("Detected null pointer to notebook item within the notebook model"));
+                QNWARNING(QStringLiteral("Detected null pointer to notebook item in notebook model item having a type of notebook (not stack)"));
+                continue;
+            }
+
+            if ((index.column() == Columns::Synchronizable) && pNotebookItem->isSynchronizable()) {
                 return indexFlags;
             }
 
-            if (pNotebookItem->isSynchronizable()) {
+            if ((index.column() == Columns::Name) && !canUpdateNotebookItem(*pNotebookItem)) {
                 return indexFlags;
             }
         }
     }
+    else
+    {
+        const NotebookItem * pNotebookItem = pItem->notebookItem();
+        if (Q_UNLIKELY(!pNotebookItem)) {
+            QNWARNING(QStringLiteral("Detected null pointer to notebook item within the notebook model"));
+            return indexFlags;
+        }
 
-    indexFlags |= Qt::ItemIsEditable;
+        indexFlags |= Qt::ItemIsDragEnabled;
+
+        if ((index.column() == Columns::Synchronizable) && pNotebookItem->isSynchronizable()) {
+            return indexFlags;
+        }
+
+        if ((index.column() == Columns::Name) && !canUpdateNotebookItem(*pNotebookItem)) {
+            return indexFlags;
+        }
+    }
+
+    if (index.column() == Columns::Name) {
+        indexFlags |= Qt::ItemIsEditable;
+    }
 
     return indexFlags;
 }
@@ -1636,7 +1649,7 @@ QStringList NotebookModel::mimeTypes() const
 
 QMimeData * NotebookModel::mimeData(const QModelIndexList & indexes) const
 {
-    if (indexes.count() != 1) {
+    if (indexes.isEmpty()) {
         return Q_NULLPTR;
     }
 
@@ -1677,12 +1690,16 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
         return false;
     }
 
-    const NotebookModelItem * pParentItem = itemForIndex(parentIndex);
-    if (!pParentItem) {
+    const NotebookModelItem * pNewParentItem = itemForIndex(parentIndex);
+    if (!pNewParentItem) {
+        REPORT_ERROR("Internal error, can't drop notebook: no new parent item was found in the notebook model");
         return false;
     }
 
-    if ((pParentItem != m_fakeRootItem) && (pParentItem->type() != NotebookModelItem::Type::Stack)) {
+    if ((pNewParentItem != m_fakeRootItem) && (pNewParentItem->type() != NotebookModelItem::Type::Stack)) {
+        QNLocalizedString error = QNLocalizedString("Can't drop the notebook onto another notebook");
+        QNINFO(error);
+        emit notifyError(error);
         return false;
     }
 
@@ -1692,11 +1709,13 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
     in >> item;
 
     if (item.type() != NotebookModelItem::Type::Notebook) {
+        REPORT_ERROR("Internal error: dropped item type is not notebook");
         return false;
     }
 
     auto it = m_modelItemsByLocalUid.find(item.notebookItem()->localUid());
     if (it == m_modelItemsByLocalUid.end()) {
+        REPORT_ERROR("Internal error: can't find the dropped model item by local uid in the notebook model");
         return false;
     }
 
@@ -1718,11 +1737,23 @@ bool NotebookModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction act
     it = m_modelItemsByLocalUid.insert(item.notebookItem()->localUid(), item);
 
     beginInsertRows(parentIndex, row, row);
-    pParentItem->insertChild(row, &(*it));
+    pNewParentItem->insertChild(row, &(*it));
     endInsertRows();
 
-    updateItemRowWithRespectToSorting(*it);
+    NotebookItem itemCopy(*(item.notebookItem()));
+    itemCopy.setStack(pNewParentItem->notebookStackItem()->name());
 
+    NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto notebookItemIt = localUidIndex.find(item.notebookItem()->localUid());
+    if (Q_LIKELY(notebookItemIt != localUidIndex.end())) {
+        Q_UNUSED(localUidIndex.replace(notebookItemIt, itemCopy))
+    }
+    else {
+        Q_UNUSED(localUidIndex.insert(itemCopy))
+    }
+
+    updateItemRowWithRespectToSorting(*it);
+    updateNotebookInLocalStorage(*(it->notebookItem()));
     return true;
 }
 
