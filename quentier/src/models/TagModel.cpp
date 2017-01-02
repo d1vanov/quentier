@@ -113,6 +113,8 @@ Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 
     indexFlags |= Qt::ItemIsSelectable;
     indexFlags |= Qt::ItemIsEnabled;
+    indexFlags |= Qt::ItemIsDragEnabled;
+    indexFlags |= Qt::ItemIsDropEnabled;
 
     if ((index.column() == Columns::Dirty) ||
         (index.column() == Columns::FromLinkedNotebook))
@@ -745,7 +747,7 @@ QStringList TagModel::mimeTypes() const
 
 QMimeData * TagModel::mimeData(const QModelIndexList & indexes) const
 {
-    if (indexes.count() != 1) {
+    if (indexes.isEmpty()) {
         return Q_NULLPTR;
     }
 
@@ -766,11 +768,13 @@ QMimeData * TagModel::mimeData(const QModelIndexList & indexes) const
 bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
                             int row, int column, const QModelIndex & parentIndex)
 {
-    QNDEBUG(QStringLiteral("TagModel::dropMimeData: action = ") << action << QStringLiteral(", row = ") << row
-            << QStringLiteral(", column = ") << column << QStringLiteral(", parent index: is valid = ")
+    QNDEBUG(QStringLiteral("TagModel::dropMimeData: action = ") << action
+            << QStringLiteral(", row = ") << row << QStringLiteral(", column = ")
+            << column << QStringLiteral(", parent index: is valid = ")
             << (parentIndex.isValid() ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", parent row = ") << parentIndex.row() << QStringLiteral(", parent column = ")
-            << (parentIndex.column()) << QStringLiteral(", parent internal id: ") << parentIndex.internalId()
+            << QStringLiteral(", parent row = ") << parentIndex.row()
+            << QStringLiteral(", parent column = ") << (parentIndex.column())
+            << QStringLiteral(", parent internal id: ")  << parentIndex.internalId()
             << QStringLiteral(", mime data formats: ")
             << (pMimeData ? pMimeData->formats().join(QStringLiteral("; ")) : QStringLiteral("<null>")));
 
@@ -786,12 +790,16 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
         return false;
     }
 
-    const TagModelItem * pParentItem = itemForIndex(parentIndex);
-    if (!pParentItem) {
+    const TagModelItem * pNewParentItem = itemForIndex(parentIndex);
+    if (!pNewParentItem) {
+        REPORT_ERROR("Internal error, can't move tag: new parent item was not found "
+                     "in the model by index");
         return false;
     }
 
-    if ((pParentItem != m_fakeRootItem) && !canCreateTagItem(*pParentItem)) {
+    if ((pNewParentItem != m_fakeRootItem) && !canCreateTagItem(*pNewParentItem)) {
+        REPORT_ERROR("Can't move the tag under the new parent: restrictions apply "
+                     "or not fetched yet");
         return false;
     }
 
@@ -800,8 +808,27 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
     QDataStream in(&data, QIODevice::ReadOnly);
     in >> item;
 
-    item.setParentLocalUid(pParentItem->localUid());
-    item.setParentGuid(pParentItem->guid());
+    // Check that we aren't trying to move the tag under one of its children
+    const TagModelItem * pTrackedParentItem = pNewParentItem;
+    while(pTrackedParentItem && (pTrackedParentItem != m_fakeRootItem))
+    {
+        if (pTrackedParentItem->localUid() == item.localUid()) {
+            QNLocalizedString error = QNLocalizedString("Can't move the tag under one of its child tags", this);
+            QNINFO(error);
+            emit notifyError(error);
+            return false;
+        }
+
+        pTrackedParentItem = pTrackedParentItem->parent();
+    }
+
+    if (item.parentLocalUid() == pNewParentItem->localUid()) {
+        QNDEBUG(QStringLiteral("Item is already under the chosen parent, nothing to do"));
+        return true;
+    }
+
+    item.setParentLocalUid(pNewParentItem->localUid());
+    item.setParentGuid(pNewParentItem->guid());
 
     if (row == -1)
     {
@@ -827,13 +854,15 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
             }
 
             pOriginalItemParent = m_fakeRootItem;
+
+            int row = pOriginalItemParent->numChildren();
+            beginInsertRows(QModelIndex(), row, row);
             originalItem.setParent(pOriginalItemParent);
+            endInsertRows();
         }
 
         if (!pOriginalItemParent->linkedNotebookGuid().isEmpty()) {
-            QNLocalizedString error = QT_TR_NOOP("can't drag tag items from parent tags coming from linked notebook");
-            QNINFO(error);
-            emit notifyError(error);
+            REPORT_ERROR("Can't drag tag items from parent tags coming from linked notebook");
             return false;
         }
 
@@ -851,19 +880,19 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
     auto it = localUidIndex.end();
     if (originalItemIt != localUidIndex.end()) {
         localUidIndex.replace(originalItemIt, item);
-        mapChildItems(*originalItemIt);
         it = originalItemIt;
     }
     else {
         auto insertionResult = localUidIndex.insert(item);
         it = insertionResult.first;
-        mapChildItems(*it);
     }
 
-    pParentItem->insertChild(row, &(*it));
+    pNewParentItem->insertChild(row, &(*it));
     endInsertRows();
 
     updateItemRowWithRespectToSorting(*it);
+
+    updateTagInLocalStorage(*it);
 
     return true;
 }
