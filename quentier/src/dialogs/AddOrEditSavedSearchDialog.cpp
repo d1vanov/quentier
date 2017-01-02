@@ -54,6 +54,12 @@ AddOrEditSavedSearchDialog::~AddOrEditSavedSearchDialog()
     delete m_pUi;
 }
 
+void AddOrEditSavedSearchDialog::setQuery(const QString & query)
+{
+    QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::setQuery: ") << query);
+    m_pUi->searchQueryPlainTextEdit->setPlainText(query);
+}
+
 void AddOrEditSavedSearchDialog::accept()
 {
     QString savedSearchName = m_pUi->savedSearchNameLineEdit->text();

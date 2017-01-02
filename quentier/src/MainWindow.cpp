@@ -56,6 +56,7 @@ using quentier::TabWidget;
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <cmath>
 #include <QPushButton>
@@ -77,6 +78,7 @@ using quentier::TabWidget;
 #include <QDateTime>
 #include <QCheckBox>
 #include <QPalette>
+#include <QToolTip>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -118,6 +120,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_testNotebook(),
     m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
+    m_noteSearchQueryValidated(false),
     m_styleSheetInfo(),
     m_currentPanelStyle(),
     m_shortcutManager(this)
@@ -142,6 +145,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     fixupQt4StyleSheets();
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
+    m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
+#endif
+
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
@@ -160,6 +167,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     connectActionsToSlots();
     connectViewButtonsToSlots();
+    connectNoteSearchActionsToSlots();
 
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
@@ -188,6 +196,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectActionsToSlots()
 {
+    QNDEBUG(QStringLiteral("MainWindow::connectActionsToSlots"));
+
     QObject::connect(m_pUI->ActionFindInsideNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onFindInsideNoteAction));
     QObject::connect(m_pUI->ActionFindNext, QNSIGNAL(QAction,triggered),
@@ -318,6 +328,18 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onUnfavoriteItemButtonPressed));
     QObject::connect(m_pUI->favoriteInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
+}
+
+void MainWindow::connectNoteSearchActionsToSlots()
+{
+    QNDEBUG(QStringLiteral("MainWindow::connectNoteSearchActionsToSlots"));
+
+    QObject::connect(m_pUI->searchQueryLineEdit, QNSIGNAL(QLineEdit,textChanged,const QString&),
+                     this, QNSLOT(MainWindow,onNoteSearchQueryChanged,const QString&));
+    QObject::connect(m_pUI->searchQueryLineEdit, QNSIGNAL(QLineEdit,returnPressed),
+                     this, QNSLOT(MainWindow,onNoteSearchQueryReady));
+    QObject::connect(m_pUI->saveSearchPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onSaveNoteSearchQueryButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -488,6 +510,29 @@ void MainWindow::disconnectSynchronizationManager()
 void MainWindow::onSyncStopped()
 {
     onSetStatusBarText(tr("Synchronization was stopped"));
+}
+
+bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
+{
+    QNDEBUG(QStringLiteral("MainWindow::checkNoteSearchQuery: ") << noteSearchQuery);
+
+    if (m_noteSearchQueryValidated) {
+        QNTRACE(QStringLiteral("Note search query validated"));
+        return true;
+    }
+
+    NoteSearchQuery query;
+    QNLocalizedString errorDescription;
+    bool res = query.setQueryString(noteSearchQuery, errorDescription);
+    if (!res) {
+        QToolTip::showText(m_pUI->searchQueryLineEdit->mapToGlobal(QPoint(0, m_pUI->searchQueryLineEdit->height())),
+                           errorDescription.localizedString(), m_pUI->searchQueryLineEdit);
+        m_noteSearchQueryValidated = false;
+        return false;
+    }
+
+    m_noteSearchQueryValidated = true;
+    return true;
 }
 
 void MainWindow::prepareTestNoteWithResources()
@@ -1503,6 +1548,48 @@ void MainWindow::showInfoWidget(QWidget * pWidget)
     }
 #endif
     pWidget->show();
+}
+
+void MainWindow::onNoteSearchQueryChanged(const QString & query)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
+    m_noteSearchQueryValidated = false;
+}
+
+void MainWindow::onNoteSearchQueryReady()
+{
+    QString noteSearchQuery = m_pUI->searchQueryLineEdit->text();
+    QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryReady: query = ") << noteSearchQuery);
+
+    if (noteSearchQuery.isEmpty()) {
+        // TODO: remove search query from NoteFilterModel
+        return;
+    }
+
+    bool res = checkNoteSearchQuery(noteSearchQuery);
+    if (!res) {
+        // TODO: remove search query from NoteFilterModel
+        return;
+    }
+
+    // TODO: set the search query to the NoteFilterModel
+}
+
+void MainWindow::onSaveNoteSearchQueryButtonPressed()
+{
+    QString noteSearchQuery = m_pUI->searchQueryLineEdit->text();
+    QNDEBUG(QStringLiteral("MainWindow::onSaveNoteSearchQueryButtonPressed, query = ")
+            << noteSearchQuery);
+
+    bool res = checkNoteSearchQuery(noteSearchQuery);
+    if (!res) {
+        // TODO: remove search query from NoteFilterModel
+        return;
+    }
+
+    QScopedPointer<AddOrEditSavedSearchDialog> pAddSavedSearchDialog(new AddOrEditSavedSearchDialog(m_pSavedSearchModel, this));
+    pAddSavedSearchDialog->setQuery(noteSearchQuery);
+    Q_UNUSED(pAddSavedSearchDialog->exec())
 }
 
 void MainWindow::onSetTestNoteWithEncryptedData()

@@ -210,7 +210,7 @@ bool NoteSearchQueryPrivate::parseQueryString(const QString & queryString, QNLoc
 
     int notebookScopeModifierPosition = words.indexOf(notebookModifierRegex);
     if (notebookScopeModifierPosition > 0) {
-        error = QT_TR_NOOP("Incorrect position of \"notebook:\" scope modified in the search query: "
+        error = QT_TR_NOOP("Incorrect position of \"notebook:\" scope modifier in the search query: "
                            "when present in the query, it should be the first term in the search");
         return false;
     }

@@ -168,6 +168,11 @@ private Q_SLOTS:
 
     void showInfoWidget(QWidget * pWidget);
 
+    // Note search-related slots
+    void onNoteSearchQueryChanged(const QString & query);
+    void onNoteSearchQueryReady();
+    void onSaveNoteSearchQueryButtonPressed();
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
@@ -213,6 +218,7 @@ private:
 
     void connectActionsToSlots();
     void connectViewButtonsToSlots();
+    void connectNoteSearchActionsToSlots();
 
     void addMenuActionsToMainWindow();
 
@@ -221,6 +227,8 @@ private:
     void connectSynchronizationManager();
     void disconnectSynchronizationManager();
     void onSyncStopped();
+
+    bool checkNoteSearchQuery(const QString & noteSearchQuery);
 
     void prepareTestNoteWithResources();
     void prepareTestInkNote();
@@ -327,6 +335,8 @@ private:
     Note                    m_testNote;
 
     QUndoStack *            m_pUndoStack;
+
+    bool                    m_noteSearchQueryValidated;
 
     struct StyleSheetInfo
     {

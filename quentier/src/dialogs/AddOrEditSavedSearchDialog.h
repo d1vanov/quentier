@@ -42,6 +42,8 @@ public:
                                         const QString & editedSavedSearchLocalUid = QString());
     ~AddOrEditSavedSearchDialog();
 
+    void setQuery(const QString & query);
+
 private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
     void onSavedSearchNameEdited(const QString & savedSearchName);
