@@ -891,8 +891,10 @@ bool TagModel::dropMimeData(const QMimeData * pMimeData, Qt::DropAction action,
     endInsertRows();
 
     updateItemRowWithRespectToSorting(*it);
-
     updateTagInLocalStorage(*it);
+
+    QModelIndex index = indexForLocalUid(item.localUid());
+    emit notifyTagParentChanged(index);
 
     return true;
 }

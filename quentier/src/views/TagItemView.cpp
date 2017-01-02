@@ -616,12 +616,23 @@ void TagItemView::onTagParentChanged(const QModelIndex & tagIndex)
 {
     QNDEBUG(QStringLiteral("TagItemView::onTagParentChanged"));
 
-    Q_UNUSED(tagIndex)
-
     TagModel * pTagModel = qobject_cast<TagModel*>(model());
     if (Q_UNLIKELY(!pTagModel)) {
         QNDEBUG(QStringLiteral("Non-tag model is used"));
         return;
+    }
+
+    const TagModelItem * pItem = pTagModel->itemForIndex(tagIndex);
+    if (Q_LIKELY(pItem && pItem->parent()))
+    {
+        QModelIndex parentIndex = pTagModel->indexForItem(pItem->parent());
+
+        bool wasTrackingTagItemsState = m_trackingTagItemsState;
+        m_trackingTagItemsState = false;
+
+        setExpanded(parentIndex, true);
+
+        m_trackingTagItemsState = wasTrackingTagItemsState;
     }
 
     restoreTagItemsState(*pTagModel);
