@@ -35,7 +35,7 @@ namespace quentier {
 
 NotebookModel::NotebookModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                              NotebookCache & cache, QObject * parent) :
-    QAbstractItemModel(parent),
+    ItemModel(parent),
     m_account(account),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),
@@ -550,6 +550,18 @@ void NotebookModel::unfavoriteNotebook(const QModelIndex & index)
             << index.column() << QStringLiteral(", internal id = ") << index.internalId());
 
     setNotebookFavorited(index, false);
+}
+
+QStringList NotebookModel::itemNames() const
+{
+    QStringList result;
+    const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+    result.reserve(static_cast<int>(nameIndex.size()));
+    for(auto it = nameIndex.begin(), end = nameIndex.end(); it != end; ++it) {
+        result << it->name();
+    }
+
+    return result;
 }
 
 Qt::ItemFlags NotebookModel::flags(const QModelIndex & index) const

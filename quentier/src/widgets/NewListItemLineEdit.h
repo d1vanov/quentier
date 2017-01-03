@@ -16,31 +16,32 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_NEW_TAG_LINE_EDIT_H
-#define QUENTIER_WIDGETS_NEW_TAG_LINE_EDIT_H
+#ifndef QUENTIER_WIDGETS_NEW_LIST_ITEM_LINE_EDIT_H
+#define QUENTIER_WIDGETS_NEW_LIST_ITEM_LINE_EDIT_H
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QLineEdit>
 
 namespace Ui {
-class NewTagLineEdit;
+class NewListItemLineEdit;
 }
 
 QT_FORWARD_DECLARE_CLASS(QCompleter)
+QT_FORWARD_DECLARE_CLASS(QStringListModel)
 
 namespace quentier {
 
-QT_FORWARD_DECLARE_CLASS(TagModel)
+QT_FORWARD_DECLARE_CLASS(ItemModel)
 
-class NewTagLineEdit: public QLineEdit
+class NewListItemLineEdit: public QLineEdit
 {
     Q_OBJECT
 public:
-    explicit NewTagLineEdit(TagModel * pTagModel, QWidget * parent = Q_NULLPTR);
-    virtual ~NewTagLineEdit();
+    explicit NewListItemLineEdit(ItemModel * pItemModel, const QStringList & reservedItemNames,
+                                 QWidget * parent = Q_NULLPTR);
+    virtual ~NewListItemLineEdit();
 
-private Q_SLOTS:
-    void onTagModelSortingChanged();
+    void updateReservedItemNames(const QStringList & reservedItemNames);
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
@@ -49,11 +50,13 @@ private:
     void setupCompleter();
 
 private:
-    Ui::NewTagLineEdit *    m_pUi;
-    TagModel *              m_pTagModel;
-    QCompleter *            m_pCompleter;
+    Ui::NewListItemLineEdit *   m_pUi;
+    ItemModel *                 m_pItemModel;
+    QStringList                 m_reservedItemNames;
+    QStringListModel *          m_pItemNamesModel;
+    QCompleter *                m_pCompleter;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_NEW_TAG_LINE_EDIT_H
+#endif // QUENTIER_WIDGETS_NEW_LIST_ITEM_LINE_EDIT_H

@@ -37,7 +37,7 @@ namespace quentier {
 
 SavedSearchModel::SavedSearchModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                                    SavedSearchCache & cache, QObject * parent) :
-    QAbstractItemModel(parent),
+    ItemModel(parent),
     m_account(account),
     m_data(),
     m_listSavedSearchesOffset(0),

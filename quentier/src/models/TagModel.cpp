@@ -42,7 +42,7 @@ namespace quentier {
 
 TagModel::TagModel(const Account & account, LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
                    TagCache & cache, QObject * parent) :
-    QAbstractItemModel(parent),
+    ItemModel(parent),
     m_account(account),
     m_data(),
     m_fakeRootItem(Q_NULLPTR),

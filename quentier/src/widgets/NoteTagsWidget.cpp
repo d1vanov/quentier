@@ -18,7 +18,7 @@
 
 #include "NoteTagsWidget.h"
 #include "ListItemWidget.h"
-#include "NewTagLineEdit.h"
+#include "NewListItemLineEdit.h"
 #include "FlowLayout.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -172,8 +172,19 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         if (m_tagRestrictions.m_canUpdateNote &&
             ((m_lastDisplayedTagLocalUids.size() - 1) < m_pTagModel->account().noteTagCountMax()))
         {
-            NewTagLineEdit * pNewTagLineEditorWidget = m_pLayout->findChild<NewTagLineEdit*>();
-            if (!pNewTagLineEditorWidget) {
+            NewListItemLineEdit * pNewTagLineEditorWidget = m_pLayout->findChild<NewListItemLineEdit*>();
+            if (pNewTagLineEditorWidget)
+            {
+                int index = m_pLayout->indexOf(pNewTagLineEditorWidget);
+                if (Q_LIKELY(index >= 0)) {
+                    QLayoutItem * pItem = m_pLayout->takeAt(index);
+                    delete pItem->widget();
+                    delete pItem;
+                    addNewTagWidgetToLayout();
+                }
+            }
+            else
+            {
                 addNewTagWidgetToLayout();
             }
         }
@@ -566,7 +577,23 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::addNewTagWidgetToLayout"));
 
-    NewTagLineEdit * pNewTagLineEdit = new NewTagLineEdit(m_pTagModel, this);
+    QStringList existingTagNames;
+    existingTagNames.reserve(static_cast<int>(m_currentNoteTagLocalUidToNameBimap.size()));
+    for(auto it = m_currentNoteTagLocalUidToNameBimap.right.begin(), end = m_currentNoteTagLocalUidToNameBimap.right.end();
+        it != end; ++it)
+    {
+        const QString & localUid = it->first;
+
+        const TagModelItem * pItem = m_pTagModel->itemForLocalUid(localUid);
+        if (Q_UNLIKELY(!pItem)) {
+            QNWARNING(QStringLiteral("Couldn't find tag model item for local uid: ") << localUid);
+            continue;
+        }
+
+        existingTagNames << pItem->name();
+    }
+
+    NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(m_pTagModel, existingTagNames, this);
     m_pLayout->addWidget(pNewTagLineEdit);
 }
 
@@ -582,7 +609,7 @@ void NoteTagsWidget::removeNewTagWidgetFromLayout()
             continue;
         }
 
-        NewTagLineEdit * pNewTagLineEdit = qobject_cast<NewTagLineEdit*>(pItem->widget());
+        NewListItemLineEdit * pNewTagLineEdit = qobject_cast<NewListItemLineEdit*>(pItem->widget());
         if (!pNewTagLineEdit) {
             continue;
         }

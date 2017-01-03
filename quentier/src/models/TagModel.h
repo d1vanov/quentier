@@ -19,6 +19,7 @@
 #ifndef QUENTIER_MODELS_TAG_MODEL_H
 #define QUENTIER_MODELS_TAG_MODEL_H
 
+#include "ItemModel.h"
 #include "TagModelItem.h"
 #include "TagCache.h"
 #include <quentier/types/Tag.h>
@@ -43,7 +44,7 @@
 
 namespace quentier {
 
-class TagModel: public QAbstractItemModel
+class TagModel: public ItemModel
 {
     Q_OBJECT
 public:
@@ -64,9 +65,6 @@ public:
             NumNotesPerTag
         };
     };
-
-    int sortingColumn() const { return m_sortedColumn; }
-    Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
     const TagModelItem * itemForIndex(const QModelIndex & index) const;
     const TagModelItem * itemForLocalUid(const QString & localUid) const;
@@ -163,6 +161,13 @@ public:
      * @param index - the index of the tag to be unfavorited
      */
     void unfavoriteTag(const QModelIndex & index);
+
+public:
+    // ItemModel interface
+    virtual QStringList itemNames() const Q_DECL_OVERRIDE { return tagNames(); }
+    virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
+    virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
+    virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
 
 public:
     // QAbstractItemModel interface

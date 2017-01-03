@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NewTagLineEdit</class>
- <widget class="QLineEdit" name="NewTagLineEdit">
+ <class>NewListItemLineEdit</class>
+ <widget class="QLineEdit" name="NewListItemLineEdit">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="styleSheet">
-   <string notr="true">QLineEdit#NewTagLineEdit {
+   <string notr="true">QLineEdit#NewListItemLineEdit {
 border: 1px solid #555;
 border-radius: 4px;
 padding: 0px;
@@ -31,7 +31,7 @@ background-color: rgb(223, 231, 236);
 border-color: rgb(182, 189, 195);
 }
 
-QLineEdit#NewTagLineEdit:hover {
+QLineEdit#NewListItemLineEdit:hover {
 background-color: rgb(205, 221, 229);
 }</string>
   </property>

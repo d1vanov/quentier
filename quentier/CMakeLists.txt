@@ -58,6 +58,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/AddOrEditSavedSearchDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/models/ColumnChangeRerouter.h
+    src/models/ItemModel.h
     src/models/NewItemNameGenerator.hpp
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
@@ -98,7 +99,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/ListItemWidget.h
-    src/widgets/NewTagLineEdit.h
+    src/widgets/NewListItemLineEdit.h
     src/widgets/NotebookModelItemInfoWidget.h
     src/widgets/SavedSearchModelItemInfoWidget.h
     src/widgets/NoteEditorWidget.h
@@ -127,6 +128,7 @@ set(${PROJECT_NAME}_SOURCES
     src/insert-table-tool-button/TableSizeSelectorActionWidget.cpp
     src/insert-table-tool-button/TableSizeSelector.cpp
     src/models/ColumnChangeRerouter.cpp
+    src/models/ItemModel.cpp
     src/models/SavedSearchModel.cpp
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp
@@ -157,7 +159,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/ListItemWidget.cpp
-    src/widgets/NewTagLineEdit.cpp
+    src/widgets/NewListItemLineEdit.cpp
     src/widgets/NotebookModelItemInfoWidget.cpp
     src/widgets/SavedSearchModelItemInfoWidget.cpp
     src/widgets/NoteEditorWidget.cpp
@@ -177,7 +179,7 @@ set(FORMS
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
     src/widgets/ListItemWidget.ui
-    src/widgets/NewTagLineEdit.ui
+    src/widgets/NewListItemLineEdit.ui
     src/widgets/NotebookModelItemInfoWidget.ui
     src/widgets/NoteEditorWidget.ui
     src/widgets/SavedSearchModelItemInfoWidget.ui
@@ -222,6 +224,7 @@ set(MODEL_TEST_HEADERS
     src/tests/model_test/NoteModelTestHelper.h
     src/tests/model_test/FavoritesModelTestHelper.h
     src/tests/model_test/ModelTester.h
+    src/models/ItemModel.h
     src/models/SavedSearchModel.h
     src/models/SavedSearchModelItem.h
     src/models/SavedSearchCache.h
@@ -248,6 +251,7 @@ set(MODEL_TEST_SOURCES
     src/tests/model_test/NoteModelTestHelper.cpp
     src/tests/model_test/FavoritesModelTestHelper.cpp
     src/tests/model_test/ModelTester.cpp
+    src/models/ItemModel.cpp
     src/models/SavedSearchModel.cpp
     src/models/SavedSearchModelItem.cpp
     src/models/TagModel.cpp

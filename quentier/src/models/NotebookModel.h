@@ -19,6 +19,7 @@
 #ifndef QUENTIER_MODELS_NOTEBOOK_MODEL_H
 #define QUENTIER_MODELS_NOTEBOOK_MODEL_H
 
+#include "ItemModel.h"
 #include "NotebookModelItem.h"
 #include "NotebookCache.h"
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
@@ -41,7 +42,7 @@
 
 namespace quentier {
 
-class NotebookModel: public QAbstractItemModel
+class NotebookModel: public ItemModel
 {
     Q_OBJECT
 public:
@@ -66,9 +67,6 @@ public:
             NumNotesPerNotebook
         };
     };
-
-    int sortingColumn() const { return m_sortedColumn; }
-    Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
     const NotebookModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const NotebookModelItem * item) const;
@@ -167,6 +165,13 @@ public:
      * @param index - the index of the notebook to be unfavorited
      */
     void unfavoriteNotebook(const QModelIndex & index);
+
+public:
+    // ItemModel interface
+    virtual QStringList itemNames() const Q_DECL_OVERRIDE;
+    virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
+    virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
+    virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
 
 public:
     // QAbstractItemModel interface

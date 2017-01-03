@@ -19,6 +19,7 @@
 #ifndef QUENTIER_MODELS_SAVED_SEARCH_MODEL_H
 #define QUENTIER_MODELS_SAVED_SEARCH_MODEL_H
 
+#include "ItemModel.h"
 #include "SavedSearchModelItem.h"
 #include "SavedSearchCache.h"
 #include <quentier/types/SavedSearch.h>
@@ -40,7 +41,7 @@
 
 namespace quentier {
 
-class SavedSearchModel: public QAbstractItemModel
+class SavedSearchModel: public ItemModel
 {
     Q_OBJECT
 public:
@@ -60,9 +61,6 @@ public:
             Dirty
         };
     };
-
-    int sortingColumn() const { return m_sortedColumn; }
-    Qt::SortOrder sortOrder() const { return m_sortOrder; }
 
     const SavedSearchModelItem * itemForIndex(const QModelIndex & index) const;
     QModelIndex indexForItem(const SavedSearchModelItem * item) const;
@@ -115,6 +113,13 @@ public:
      * @param index - the index of the saved search to be unfavorited
      */
     void unfavoriteSavedSearch(const QModelIndex & index);
+
+public:
+    // ItemModel interface
+    virtual QStringList itemNames() const Q_DECL_OVERRIDE { return savedSearchNames(); }
+    virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
+    virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
+    virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
 
 public:
     // QAbstractItemModel interface
