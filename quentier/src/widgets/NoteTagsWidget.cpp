@@ -18,7 +18,7 @@
 
 #include "NoteTagsWidget.h"
 #include "ListItemWidget.h"
-#include "NewTagLineEditor.h"
+#include "NewTagLineEdit.h"
 #include "FlowLayout.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -172,7 +172,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         if (m_tagRestrictions.m_canUpdateNote &&
             ((m_lastDisplayedTagLocalUids.size() - 1) < m_pTagModel->account().noteTagCountMax()))
         {
-            NewTagLineEditor * pNewTagLineEditorWidget = m_pLayout->findChild<NewTagLineEditor*>();
+            NewTagLineEdit * pNewTagLineEditorWidget = m_pLayout->findChild<NewTagLineEdit*>();
             if (!pNewTagLineEditorWidget) {
                 addNewTagWidgetToLayout();
             }
@@ -566,8 +566,8 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::addNewTagWidgetToLayout"));
 
-    NewTagLineEditor * pNewTagLineEditor = new NewTagLineEditor(m_pTagModel, this);
-    m_pLayout->addWidget(pNewTagLineEditor);
+    NewTagLineEdit * pNewTagLineEdit = new NewTagLineEdit(m_pTagModel, this);
+    m_pLayout->addWidget(pNewTagLineEdit);
 }
 
 void NoteTagsWidget::removeNewTagWidgetFromLayout()
@@ -582,8 +582,8 @@ void NoteTagsWidget::removeNewTagWidgetFromLayout()
             continue;
         }
 
-        NewTagLineEditor * pNewTagLineEditor = qobject_cast<NewTagLineEditor*>(pItem->widget());
-        if (!pNewTagLineEditor) {
+        NewTagLineEdit * pNewTagLineEdit = qobject_cast<NewTagLineEdit*>(pItem->widget());
+        if (!pNewTagLineEdit) {
             continue;
         }
 

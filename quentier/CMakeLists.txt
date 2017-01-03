@@ -98,7 +98,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FlowLayout.h
     src/widgets/ListItemWidget.h
-    src/widgets/NewTagLineEditor.h
+    src/widgets/NewTagLineEdit.h
     src/widgets/NotebookModelItemInfoWidget.h
     src/widgets/SavedSearchModelItemInfoWidget.h
     src/widgets/NoteEditorWidget.h
@@ -157,7 +157,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/ListItemWidget.cpp
-    src/widgets/NewTagLineEditor.cpp
+    src/widgets/NewTagLineEdit.cpp
     src/widgets/NotebookModelItemInfoWidget.cpp
     src/widgets/SavedSearchModelItemInfoWidget.cpp
     src/widgets/NoteEditorWidget.cpp
@@ -177,7 +177,7 @@ set(FORMS
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
     src/widgets/ListItemWidget.ui
-    src/widgets/NewTagLineEditor.ui
+    src/widgets/NewTagLineEdit.ui
     src/widgets/NotebookModelItemInfoWidget.ui
     src/widgets/NoteEditorWidget.ui
     src/widgets/SavedSearchModelItemInfoWidget.ui

@@ -16,14 +16,14 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_NEW_TAG_LINE_EDITOR_H
-#define QUENTIER_WIDGETS_NEW_TAG_LINE_EDITOR_H
+#ifndef QUENTIER_WIDGETS_NEW_TAG_LINE_EDIT_H
+#define QUENTIER_WIDGETS_NEW_TAG_LINE_EDIT_H
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QLineEdit>
 
 namespace Ui {
-class NewTagLineEditor;
+class NewTagLineEdit;
 }
 
 QT_FORWARD_DECLARE_CLASS(QCompleter)
@@ -32,12 +32,12 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
 
-class NewTagLineEditor: public QLineEdit
+class NewTagLineEdit: public QLineEdit
 {
     Q_OBJECT
 public:
-    explicit NewTagLineEditor(TagModel * pTagModel, QWidget * parent = Q_NULLPTR);
-    virtual ~NewTagLineEditor();
+    explicit NewTagLineEdit(TagModel * pTagModel, QWidget * parent = Q_NULLPTR);
+    virtual ~NewTagLineEdit();
 
 private Q_SLOTS:
     void onTagModelSortingChanged();
@@ -49,11 +49,11 @@ private:
     void setupCompleter();
 
 private:
-    Ui::NewTagLineEditor *  m_pUi;
+    Ui::NewTagLineEdit *    m_pUi;
     TagModel *              m_pTagModel;
     QCompleter *            m_pCompleter;
 };
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_NEW_TAG_LINE_EDITOR_H
+#endif // QUENTIER_WIDGETS_NEW_TAG_LINE_EDIT_H

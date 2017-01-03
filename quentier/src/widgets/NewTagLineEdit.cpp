@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "NewTagLineEditor.h"
-#include "ui_NewTagLineEditor.h"
+#include "NewTagLineEdit.h"
+#include "ui_NewTagLineEdit.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QKeyEvent>
@@ -25,9 +25,9 @@
 
 namespace quentier {
 
-NewTagLineEditor::NewTagLineEditor(TagModel * pTagModel, QWidget *parent) :
+NewTagLineEdit::NewTagLineEdit(TagModel * pTagModel, QWidget *parent) :
     QLineEdit(parent),
-    m_pUi(new Ui::NewTagLineEditor),
+    m_pUi(new Ui::NewTagLineEdit),
     m_pTagModel(pTagModel),
     m_pCompleter(new QCompleter(this))
 {
@@ -36,29 +36,29 @@ NewTagLineEditor::NewTagLineEditor(TagModel * pTagModel, QWidget *parent) :
     setupCompleter();
 
     QObject::connect(m_pTagModel, QNSIGNAL(TagModel,sortingChanged),
-                     this, QNSLOT(NewTagLineEditor,onTagModelSortingChanged));
+                     this, QNSLOT(NewTagLineEdit,onTagModelSortingChanged));
 }
 
-NewTagLineEditor::~NewTagLineEditor()
+NewTagLineEdit::~NewTagLineEdit()
 {
     delete m_pUi;
 }
 
-void NewTagLineEditor::onTagModelSortingChanged()
+void NewTagLineEdit::onTagModelSortingChanged()
 {
-    QNDEBUG(QStringLiteral("NewTagLineEditor::onTagModelSortingChanged"));
+    QNDEBUG(QStringLiteral("NewTagLineEdit::onTagModelSortingChanged"));
     m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
                                    ? QCompleter::CaseSensitivelySortedModel : QCompleter::UnsortedModel);
 }
 
-void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
+void NewTagLineEdit::keyPressEvent(QKeyEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
         return;
     }
 
     int key = pEvent->key();
-    QNTRACE(QStringLiteral("NewTagLineEditor::keyPressEvent: key = ") << key);
+    QNTRACE(QStringLiteral("NewTagLineEdit::keyPressEvent: key = ") << key);
 
     if (key == Qt::Key_Tab) {
         emit editingFinished();
@@ -68,14 +68,15 @@ void NewTagLineEditor::keyPressEvent(QKeyEvent * pEvent)
     QLineEdit::keyPressEvent(pEvent);
 }
 
-void NewTagLineEditor::setupCompleter()
+void NewTagLineEdit::setupCompleter()
 {
-    QNDEBUG(QStringLiteral("NewTagLineEditor::setupCompleter"));
+    QNDEBUG(QStringLiteral("NewTagLineEdit::setupCompleter"));
 
     m_pCompleter->setCaseSensitivity(Qt::CaseSensitive);
     m_pCompleter->setModelSorting((m_pTagModel->sortingColumn() == TagModel::Columns::Name)
                                    ? QCompleter::CaseSensitivelySortedModel : QCompleter::UnsortedModel);
     m_pCompleter->setModel(m_pTagModel);
+    m_pCompleter->setCompletionColumn(TagModel::Columns::Name);
     setCompleter(m_pCompleter);
 }
 
