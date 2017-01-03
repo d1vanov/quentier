@@ -105,6 +105,7 @@ set(${PROJECT_NAME}_HEADERS
     src/widgets/NoteEditorWidget.h
     src/widgets/NoteTagsWidget.h
     src/widgets/TagModelItemInfoWidget.h
+    src/widgets/TagsFilterWidget.h
     src/widgets/TabWidget.h
     src/tests/ManualTestingHelper.h)
 
@@ -165,6 +166,7 @@ set(${PROJECT_NAME}_SOURCES
     src/widgets/NoteEditorWidget.cpp
     src/widgets/NoteTagsWidget.cpp
     src/widgets/TagModelItemInfoWidget.cpp
+    src/widgets/TagsFilterWidget.cpp
     src/widgets/TabWidget.cpp
     src/tests/ManualTestingHelper.cpp
     src/main.cpp)
