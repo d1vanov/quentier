@@ -58,6 +58,12 @@ public:
     bool operator!=(const Account & other) const;
 
     /**
+     * @return true if either the account is local but the name is empty or if the account is Evernote but user id is negative;
+     * in all other cases return false
+     */
+    bool isEmpty() const;
+
+    /**
      * @return username for either local or Evernote account
      */
     QString name() const;

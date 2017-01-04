@@ -73,6 +73,16 @@ bool Account::operator!=(const Account & other) const
     return !(operator==(other));
 }
 
+bool Account::isEmpty() const
+{
+    if (d->m_accountType == Account::Type::Local) {
+        return d->m_name.isEmpty();
+    }
+    else {
+        return (d->m_userId < 0);
+    }
+}
+
 void Account::setEvernoteAccountType(const EvernoteAccountType::type evernoteAccountType)
 {
     d->switchEvernoteAccountType(evernoteAccountType);
