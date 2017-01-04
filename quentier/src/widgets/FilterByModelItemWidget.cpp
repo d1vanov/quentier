@@ -11,7 +11,6 @@ FilterByModelItemWidget::FilterByModelItemWidget(QWidget * parent) :
     QWidget(parent),
     m_pLayout(new FlowLayout(this)),
     m_account(),
-    m_pModel(Q_NULLPTR),
     m_filteredItemsLocalUidToNameBimap()
 {}
 
@@ -25,30 +24,6 @@ void FilterByModelItemWidget::setAccount(const Account & account)
     }
 
     m_account = account;
-
-    // TODO: disconnect from the previous model, if any
-    m_pModel = Q_NULLPTR;
-}
-
-void FilterByModelItemWidget::setModel(ItemModel * pModel)
-{
-    QNDEBUG(QStringLiteral("FilterByModelItemWidget::setModel"));
-
-    if (m_pModel.data() == pModel) {
-        QNDEBUG(QStringLiteral("Already set this model"));
-        return;
-    }
-
-    // TODO: disconnect from the previous model, if any
-
-    m_pModel = pModel;
-    if (Q_UNLIKELY(m_pModel.isNull())) {
-        QNDEBUG(QStringLiteral("Null model was set to the filter by model items widget"));
-        return;
-    }
-
-    // TODO: create the connections with the new model
-    // TODO: restore the last saved filter for the current account
 }
 
 QStringList FilterByModelItemWidget::itemsInFilter() const
@@ -75,49 +50,108 @@ QStringList FilterByModelItemWidget::itemsInFilter() const
     return result;
 }
 
-void FilterByModelItemWidget::addItemToFilter(const QString & itemName)
+void FilterByModelItemWidget::addItemToFilter(const QString & localUid, const QString & itemName)
 {
-    QNDEBUG(QStringLiteral("FilterByModelItemWidget::addItemToFilter: ") << itemName);
+    QNDEBUG(QStringLiteral("FilterByModelItemWidget::addItemToFilter: local uid = ")
+            << localUid << QStringLiteral(", name = ") << itemName);
+
+    auto it = m_filteredItemsLocalUidToNameBimap.left.find(localUid);
+    if (it != m_filteredItemsLocalUidToNameBimap.left.end()) {
+        QNDEBUG(QStringLiteral("Item is already within filter"));
+        // Just in case ensure the name would match
+        onItemUpdatedInLocalStorage(localUid, itemName);
+        return;
+    }
+
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, itemName)))
+
+    ListItemWidget * pNewListItemWidget = new ListItemWidget(itemName, this);
+    m_pLayout->addWidget(pNewListItemWidget);
+}
+
+void FilterByModelItemWidget::onItemUpdatedInLocalStorage(const QString & localUid, const QString & name)
+{
+    QNDEBUG(QStringLiteral("FilterByModelItemWidget::onItemUpdatedInLocalStorage: local uid = ")
+            << localUid << QStringLiteral(", name = ") << name);
+
+    auto it = m_filteredItemsLocalUidToNameBimap.left.find(localUid);
+    if (it == m_filteredItemsLocalUidToNameBimap.left.end()) {
+        QNDEBUG(QStringLiteral("Item is not within filter"));
+        return;
+    }
+
+    if (it->second == name) {
+        QNDEBUG(QStringLiteral("Filtered item's name hasn't changed"));
+        return;
+    }
+
+    QString previousName = it->second;
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.left.erase(it))
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, name)))
+
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        ListItemWidget * pItemWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        if (!pItemWidget) {
+            continue;
+        }
+
+        if (pItemWidget->name() != previousName) {
+            continue;
+        }
+
+        pItemWidget->setName(name);
+        break;
+    }
+}
+
+void FilterByModelItemWidget::onItemRemovedFromLocalStorage(const QString & localUid)
+{
+    QNDEBUG(QStringLiteral("FilterByModelItemWidget::onItemRemovedFromLocalStorage: local uid = ")
+            << localUid);
+
+    auto it = m_filteredItemsLocalUidToNameBimap.left.find(localUid);
+    if (it == m_filteredItemsLocalUidToNameBimap.left.end()) {
+        QNDEBUG(QStringLiteral("Item is not within filter"));
+        return;
+    }
+
+    QString itemName = it->second;
+    Q_UNUSED(m_filteredItemsLocalUidToNameBimap.left.erase(it))
+
+    int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        ListItemWidget * pItemWidget = qobject_cast<ListItemWidget*>(pItem->widget());
+        if (!pItemWidget) {
+            continue;
+        }
+
+        if (pItemWidget->name() == itemName) {
+            pItem = m_pLayout->takeAt(i);
+            delete pItem->widget();
+            delete pItem;
+            break;
+        }
+    }
+}
+
+void FilterByModelItemWidget::clear()
+{
+    QNDEBUG(QStringLiteral("FilterByModelItemWidget::clear"));
 
     // TODO: implement
-}
-
-void FilterByModelItemWidget::onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
-#if QT_VERSION < QT_VERSION_CHECK(5,0,0)
-                                                 )
-#else
-                                                 , const QVector<int> & roles)
-#endif
-{
-    QNDEBUG(QStringLiteral("FilterByModelItemWidget::onModelDataChanged"));
-
-    Q_UNUSED(topLeft)
-    Q_UNUSED(bottomRight)
-
-#if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
-    Q_UNUSED(roles)
-#endif
-
-    // TODO: examine the existing items within the filter, rename those which names have changed
-    // (use local uid to name bimap to determine that), remove those that no longer exist in the model
-}
-
-void FilterByModelItemWidget::onModelRowsRemoved(const QModelIndex & parent, int first, int last)
-{
-    QNDEBUG(QStringLiteral("FilterByModelItemWidget::onModelRowsRemoved"));
-
-    Q_UNUSED(parent)
-    Q_UNUSED(first)
-    Q_UNUSED(last)
-
-    // TODO: examine the existing tags within the filter, remove those that no longer exist in the model
-}
-
-void FilterByModelItemWidget::onModelReset()
-{
-    QNDEBUG(QStringLiteral("FilterByModelItemWidget::onModelReset"));
-
-    // TODO: clear the items within the filter
 }
 
 } // namespace quentier
