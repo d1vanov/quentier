@@ -923,14 +923,14 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
                 // for the same note during the sync process
                 Q_UNUSED(m_noteGuidsPendingThumbnailDownload.insert(note.guid()))
 
-                QNTRACE(QStringLiteral("Emitting the request to find notebook for note thumbnail download setup: ")
+                QNTRACE(QStringLiteral("Emitting the request to find a notebook for the note thumbnail download setup: ")
                         << findNotebookForNoteThumbnailDownloadRequestId << QStringLiteral(", note guid = ") << note.guid()
                         << ", notebook: " << dummyNotebook);
                 emit findNotebook(dummyNotebook, findNotebookForNoteThumbnailDownloadRequestId);
             }
             else
             {
-                QNWARNING(QStringLiteral("Can't download the note thumbnail: note has neither notebook local uid "
+                QNWARNING(QStringLiteral("Can't download the note thumbnail: the note has neither notebook local uid "
                                          "nor notebook guid: ") << note);
             }
         }
@@ -964,7 +964,7 @@ void RemoteToLocalSynchronizationManager::onFindNoteCompleted(Note note, bool wi
 
                 QUuid findNotebookForInkNoteSetupRequestId = QUuid::createUuid();
                 m_inkNoteResourceDataPerFindNotebookRequestId[findNotebookForInkNoteSetupRequestId] = resourceData;
-                QNTRACE(QStringLiteral("Emitting the request to find notebook for ink note image download resolution: ")
+                QNTRACE(QStringLiteral("Emitting the request to find a notebook for the ink note image download resolution: ")
                         << findNotebookForInkNoteSetupRequestId << QStringLiteral(", resource guid = ") << resourceData.m_resourceGuid
                         << QStringLiteral(", resource height = ") << resourceData.m_resourceHeight << QStringLiteral(", resource width = ")
                         << resourceData.m_resourceWidth << QStringLiteral(", notebook: ") << dummyNotebook);

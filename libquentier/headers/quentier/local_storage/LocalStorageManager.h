@@ -50,13 +50,12 @@ class QUENTIER_EXPORT LocalStorageManager: public QObject
     Q_OBJECT
 public:
     /**
-     * @brief LocalStorageManager - constructor. Accepts name and id of user
-     * for which the LocalStorageManager instance is created and some parameters
-     * determining the startup behaviour
+     * @brief LocalStorageManager - constructor. Takes in the account for which the LocalStorageManager instance is created
+     * plus some other parameters determining the startup behaviour
      *
-     * @param account - the account for which the local storage is being created or initialized
+     * @param account - the account for which the local storage is being created and initialized
      * @param startFromScratch - if set to true, the existing database file for this account (if any) would be purged
-     * during the local storage manager construction (mostly used in tests)
+     * during the local storage manager construction (used in tests)
      * @param overrideLock - if set to true, the constructor would ignore the existing advisory lock (if any) put on the database file;
      * otherwise the presence of advisory lock on the database file would cause the constructor to throw @link DatabaseLockedException @endlink
      */
@@ -66,8 +65,11 @@ public:
 
 Q_SIGNALS:
     /**
-     * @brief LocalStorageManager is capable of performing the automatic database upgrades when it is necessary
-     * as it can be a lengthy operation, this signal is meant to provide some feedback on the progress of the upgrade
+     * @brief LocalStorageManager is capable of performing the automatic database upgrades if/when it is necessary
+     *
+     * As the database upgrade can be a lengthy operation, this signal is meant to provide some feedback on the progress
+     * of the upgrade
+     *
      * @param progress - the value from 0 to 1 denoting the database upgrade progress
      */
     void upgradeProgress(double progress);
@@ -75,10 +77,11 @@ Q_SIGNALS:
 public:
     /**
      * @brief The ListObjectsOption enum is the base enum for QFlags which allows to specify
-     * the desired local stortage elements in calls to methods listing them from local storage:
-     * for example, one can either list all available elements of certain kind from local storage
-     * or only elements marked as dirty (modified locally) or elements never synchronized with
-     * the remote storage or elements which are synchronizable with the remote storage etc.
+     * the desired local storage elements in calls to methods listing them from the database
+     *
+     * For example, one can either list all available elements of certain type from local storage
+     * or only elements marked as dirty (modified locally, not yet synchronized) or elements never synchronized
+     * with the remote storage or elements which are synchronizable with the remote storage etc.
      */
     enum ListObjectsOption {
         ListAll                      = 0,
@@ -94,8 +97,10 @@ public:
     Q_DECLARE_FLAGS(ListObjectsOptions, ListObjectsOption)
 
     /**
-     * @brief switchUser - switches to another local database file associated with passed in
-     * account. If optional "startFromScratch" parameter is set to true (it is false
+     * @brief switchUser - switches to another local storage database file associated with the passed in
+     * account
+     *
+     * If optional "startFromScratch" parameter is set to true (it is false
      * by default), the database file would be erased and only then - opened. If optional "overrideLock" parameter
      * is set to true, the advisory lock set on the database file (if any) would be forcefully removed;
      * otherwise, if this parameter if set to false, the presence of advisory lock on the database file woud cause
@@ -104,138 +109,152 @@ public:
      * @param account - the account to which the local storage is to be switched
      * @param startFromScratch - optional, false by default; if true and database file
      * for this user existed previously, it is erased before open
-     * @param overrideLock - optional, false by default; if true and database file has advisory lock put on it,
+     * @param overrideLock - optional, false by default; if true and the database file does have the advisory lock put on it,
      * the lock would be forcefully removed; otherwise the presence of advisory lock on the database file
-     * would cause the method to throw DatabaseLockedException
+     * would cause the method to throw @link DatabaseLockedException @endlink
      */
     void switchUser(const Account & account, const bool startFromScratch = false,
                     const bool overrideLock = false);
 
     /**
-     * @brief userCount - returns the number of non-deleted users currently stored in local storage database
+     * @brief userCount - returns the number of non-deleted users currently stored in the local storage database
      * @param errorDescription - error description if the number of users could not be returned
-     * @return either non-negative value with the number of users or -1 which means some error occured
+     * @return either non-negative value with the number of users or -1 which means some error has occurred
      */
     int userCount(QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief addUser - adds passed in by const reference User object
-     * to the local storage database; basically the table with Users is only involved
-     * in operations with Notebooks which have "contact" field set which in turn is
-     * intended to use with business accounts.
-     * @param user - user to be added to local storage database
-     * @param errorDescription - error description if user could not be added
-     * @return true if user was added successfully, false otherwise
+     * @brief addUser - adds the passed in User object to the local storage database
+     *
+     * The table with Users is only involved in operations with notebooks which have "contact" field
+     * set which in turn is used with business accounts
+     *
+     * @param user - the user to be added to the local storage database
+     * @param errorDescription - error description if the user could not be added
+     * @return true if the user was added successfully, false otherwise
      */
     bool addUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
-     * @brief updateUser - updates passed in by const reference User object
-     * in the local storage database; basically the table with Users is only involved
-     * in operations with Notebooks which have "contact" field set which in turn is
-     * intended to use with business accounts.
-     * @param user - user to be updated  in the local storage database
-     * @param errorDescription - error description if user could not be added
-     * @return true if user was updated successfully, false otherwise
+     * @brief updateUser - updates the passed in User object in the local storage database
+     *
+     * The table with Users is only involved in operations with notebooks which have "contact" field
+     * set which in turn is used with business accounts
+     *
+     * @param user - the user to be updated in the local storage database
+     * @param errorDescription - error description if the user could not be updated
+     * @return true if the user was updated successfully, false otherwise
      */
     bool updateUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
-     * @brief findUser - attempts to find and fill the fields of passed in user object which must have
-     * "id" field set as this value is the identifier of user objects in the local storage database.
-     * @param user - user to be found. Must have "id" field set.
-     * @param errorDescription - error description if user could not be found
-     * @return true if user was found successfully, false otherwise
+     * @brief findUser - attempts to find and fill the fields of the passed in User object which must have
+     * "id" field set as this value is used as the identifier of User objects in the local storage database
+     *
+     * @param user - the user to be found. Must have "id" field set
+     * @param errorDescription - error description if the user could not be found
+     * @return true if the user was found successfully, false otherwise
      */
     bool findUser(User & user, QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief deleteUser - marks user as deleted in local storage.
-     * @param user - user to be deleted
-     * @param errorDescription - error description if user could not be deleted
-     * @return true if user was deleted successfully, false otherwise
+     * @brief deleteUser - marks the user as deleted in local storage
+     * @param user - the user to be marked as deleted
+     * @param errorDescription - error description if the user could not be marked as deleted
+     * @return true if the user was marked as deleted successfully, false otherwise
      */
     bool deleteUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
-     * @brief expungeUser - permanently deletes user from local storage database.
-     * @param user - user to be expunged
-     * @param errorDescription - error description if user could not be expunged
-     * @return true if user was expunged successfully, false otherwise
+     * @brief expungeUser - permanently deletes the user from the local storage database
+     * @param user - the user to be expunged
+     * @param errorDescription - error description if the user could not be expunged
+     * @return true if the user was expunged successfully, false otherwise
      */
     bool expungeUser(const User & user, QNLocalizedString & errorDescription);
 
     /**
-     * @brief notebookCount returns the number of notebooks currently stored in local storage database
+     * @brief notebookCount returns the number of notebooks currently stored in the local storage database
      * @param errorDescription - error description if the number of notebooks could not be returned
-     * @return either non-negative value with the number of notebooks or -1 which means some error occured
+     * @return either non-negative value with the number of notebooks or -1 which means some error has occurred
      */
     int notebookCount(QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief addNotebook - adds passed in Notebook to the local storage database;
-     * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
-     * in local storage database. Otherwise it is identified by its local uid.
-     * @param notebook - notebook to be added to the local storage database; may be changed as a result of the call,
-     * filled with autogenerated fields like local uid if it was empty before the call
-     * @param errorDescription - error description if notebook could not be added
-     * @return true if notebook was added successfully, false otherwise
+     * @brief addNotebook - adds the passed in Notebook to the local storage database
+     *
+     * If the notebook has "remote" Evernote service's guid set, it is identified by this guid
+     * in the local storage database. Otherwise it is identified by the local uid
+     *
+     * @param notebook - the notebook to be added to the local storage database; the object is passed by reference
+     * and may be changed as a result of the call (filled with autocompleted fields like local uid if it was empty
+     * before the call)
+     * @param errorDescription - error description if the notebook could not be added
+     * @return true if the notebook was added successfully, false otherwise
      */
     bool addNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
 
     /**
-     * @brief updateNotebook - updates passed in Notebook in the local storage database;
-     * if Notebook has "remote" Evernote service's guid set, it is identified by this guid
-     * in local storage database. Otherwise it is identified by its local uid.
-     * @param notebook - notebook to be updated in the local storage database; may be changed as a result of the call,
-     * filled with local uid if it was empty before the call
-     * @param errorDescription - error description if notebook could not be updated
-     * @return true if notebook was updated successfully, false otherwise
+     * @brief updateNotebook - updates the passed in Notebook in the local storage database
+     *
+     * If the notebook has "remote" Evernote service's guid set, it is identified by this guid
+     * in the local storage database. Otherwise it is identified by the local uid
+     *
+     * @param notebook - notebook to be updated in the local storage database; the object is passed by reference
+     * and may be changed as a result of the call (filled with autocompleted fields like local uid if it was empty
+     * before the call)
+     * @param errorDescription - error description if the notebook could not be updated
+     * @return true if the notebook was updated successfully, false otherwise
      */
     bool updateNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
 
     /**
-     * @brief findNotebook - attempts to find and set all found fields for passed in
-     * by reference Notebook object. If "remote" Evernote service's guid for Notebook is set,
-     * it is used to identify the Notebook in local storage database. Otherwise it is
-     * identified by its local uid. If it's empty, the search would attempt to find Notebook
-     * by its name. If linked notebook guid is set for notebook, the search would try to find
+     * @brief findNotebook - attempts to find and set all found fields of the passed in
+     * Notebook object
+     *
+     * If "remote" Evernote service's guid for the notebook is set,
+     * it is used to identify the notebook in the local storage database. Otherwise the notebook is
+     * identified by its local uid. If it's empty, the search would attempt to find the notebook
+     * by its name (if it is set)
+     *
+     * If linked notebook guid is set for notebook, the search would try to find
      * the notebook corresponding to that linked notebook; otherwise, the search would consider only notebooks
      * from user's own account
-     * @param notebook - notebook to be found. Must have either "remote" or local uid or title set
-     * @param errorDescription - error description if notebook could not be found
-     * @return true if notebook was found, false otherwise
+     *
+     * @param notebook - the notebook to be found. Must have either "remote" or local uid or name set
+     * @param errorDescription - error description if the notebook could not be found
+     * @return true if the notebook was found, false otherwise
      */
     bool findNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief findDefaultNotebook - attempts to find default notebook in the local storage database.
-     * @param notebook - default notebook to be found
-     * @param errorDescription - error description if default notebook could not be found
-     * @return true if default notebook was found, false otherwise
+     * @brief findDefaultNotebook - attempts to find the default notebook in the local storage database.
+     * @param notebook - the default notebook to be found
+     * @param errorDescription - error description if the default notebook could not be found
+     * @return true if the default notebook was found, false otherwise
      */
     bool findDefaultNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief findLastUsedNotebook - attempts to find last used notebook in the local storage database.
-     * @param notebook - last used notebook to be found
-     * @param errorDescription - error description if last used notebook could not be found
-     * @return true if last used notebook was found, false otherwise
+     * @brief findLastUsedNotebook - attempts to find the last used notebook in the local storage database.
+     * @param notebook - the last used notebook to be found
+     * @param errorDescription - error description if the last used notebook could not be found
+     * @return true if the last used notebook was found, false otherwise
      */
     bool findLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief findDefaultOrLastUsedNotebook - attempts to find either default or last used notebook
+     * @brief findDefaultOrLastUsedNotebook - attempts to find either the default or the last used notebook
      * in the local storage database
-     * @param notebook - default or last used notebook to be found
-     * @param errorDescription - error description if default or last used notebook could not be found
-     * @return true if default or last used notebook was found, false otherwise
+     * @param notebook - either the default or the last used notebook to be found
+     * @param errorDescription - error description if the default or the last used notebook could not be found
+     * @return true if the default or the last used notebook were found, false otherwise
      */
     bool findDefaultOrLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
 
     /**
      * @brief The OrderDirection struct is a C++98 style scoped enum which specifies the direction of ordering
-     * of the results of methods listing objects from local storage
+     * of the results for methods listing the objects from the local storage database
      */
     struct OrderDirection
     {
@@ -248,7 +267,7 @@ public:
 
     /**
      * @brief The ListNotebooksOrder struct is a C++98 style scoped enum which allows to specify the ordering
-     * of the results of methods listing notebooks from local storage
+     * of the results for methods listing the notebooks from the local storage database
      */
     struct ListNotebooksOrder
     {
@@ -263,18 +282,19 @@ public:
     };
 
     /**
-     * @brief listAllNotebooks - attempts to list all notebooks within the account
-     * @param errorDescription - error description if notebooks could not be listed;
+     * @brief listAllNotebooks - attempts to list all notebooks within the current account from the local storage
+     * database
+     * @param errorDescription - error description if all notebooks could not be listed;
      * if no error happens, this parameter is untouched
-     * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
-     * @param offset - number of notebooks to skip in the beginning of the result, zero by default
-     * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
+     * @param limit - the limit for the max number of notebooks in the result, zero by default which means no limit is set
+     * @param offset - the number of notebooks to skip in the beginning of the result, zero by default
+     * @param order - allows to specify a particular ordering of notebooks in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
-     * @param linkedNotebookGuid - if it's null, the method would list notebooks ignoring their belonging to the current account
-     * or to some linked notebook; if it's empty, the notebooks from user's own account would be listed;
-     * otherwise, the only one notebook from corresponding linked notebook would be listed
-     * @return either list of all notebooks within the account or empty list in cases of
+     * @param linkedNotebookGuid - if it's null, the method would list the notebooks ignoring their belonging
+     * to the current account or to some linked notebook; if it's empty, only the non-linked notebooks  would be listed;
+     * otherwise, the only one notebook from the corresponding linked notebook would be listed
+     * @return either the list of all notebooks within the account or empty list in cases of
      * error or no notebooks presence within the account
      */
     QList<Notebook> listAllNotebooks(QNLocalizedString & errorDescription, const size_t limit = 0,
@@ -288,15 +308,15 @@ public:
      * @param flag - input parameter used to set the filter for the desired notebooks to be listed
      * @param errorDescription - error description if notebooks within the account could not be listed;
      * if no error happens, this parameter is untouched
-     * @param limit - limit for the max number of notebooks in the result, zero by default which means no limit is set
-     * @param offset - number of notebooks to skip in the beginning of the result, zero by default
-     * @param order - allows to specify particular ordering of notebooks in the result, NoOrder by default
+     * @param limit - the limit for the max number of notebooks in the result, zero by default which means no limit is set
+     * @param offset - the number of notebooks to skip in the beginning of the result, zero by default
+     * @param order - allows to specify a particular ordering of notebooks in the result, NoOrder by default
      * @param orderDirection - specifies the direction of ordering, by defauls ascending direction is used;
      * this parameter has no meaning if order is equal to NoOrder
-     * @param linkedNotebookGuid - if it's null, the method would list notebooks ignoring their belonging to the current account
-     * or to some linked notebook; if it's empty, the notebooks from user's own account would be listed;
-     * otherwise, the only one notebook from corresponding linked notebook would be listed
-     * @return either list of notebooks within the account conforming to the filter or empty list
+     * @param linkedNotebookGuid - if it's null, the method would list the notebooks ignoring their belonging
+     * to the current account or to some linked notebook; if it's empty, only the non-linked notebooks would be listed;
+     * otherwise, the only one notebook from the corresponding linked notebook would be listed
+     * @return either the list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
     QList<Notebook> listNotebooks(const ListObjectsOptions flag, QNLocalizedString & errorDescription,
@@ -309,35 +329,37 @@ public:
      * @brief listAllSharedNotebooks - attempts to list all shared notebooks within the account
      * @param errorDescription - error description if shared notebooks could not be listed;
      * if no error happens, this parameter is untouched
-     * @return either list of all shared notebooks within the account or empty list in cases of
+     * @return either the list of all shared notebooks within the account or empty list in cases of
      * error or no shared notebooks presence within the account
      */
     QList<SharedNotebook> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
 
     /**
      * @brief listSharedNotebooksPerNotebookGuid - attempts to list all shared notebooks
-     * per given notebook's remote guid. It is important, guid here is the remote one,
-     * the one used by Evernote service, not the local uid!
-     * @param notebookGuid - remote Evernote service's guid of notebook for which
-     * shared notebooks are requested
+     * per given notebook's remote guid (not local uid, it's important)
+     * @param notebookGuid - remote Evernote service's guid of the notebook for which
+     * the shared notebooks are requested
      * @param errorDescription - error description if shared notebooks per notebook guid
      * could not be listed; if no error happens, this parameter is untouched
-     * @return either list of shared notebooks per notebook guid or empy list
-     * in case of error of no shared notebooks presence per given notebook guid
+     * @return either the list of shared notebooks per notebook guid or empty list
+     * in case of error or no shared notebooks presence per given notebook guid
      */
     QList<SharedNotebook> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
                                                              QNLocalizedString & errorDescription) const;
 
     /**
-     * @brief expungeNotebook - permanently deletes specified notebook from local storage.
-     * Evernote API doesn't allow to delete notebooks from remote storage, it can
-     * only be done by official desktop client or web GUI. So this method should be called
-     * only during the synchronization with remote database, when some notebook is found to be
-     * deleted via either official desktop client or web GUI.
-     * @param notebook - notebook to be expunged. Must have either "remote" or local uid set;
-     * may be changed as a result of the call, filled with local uid if it was empty before the call
-     * @param errorDescription - error description if notebook could not be expunged
-     * @return true if notebook was expunged successfully, false otherwise
+     * @brief expungeNotebook - permanently deletes the specified notebook from the local storage database
+     *
+     * Evernote API doesn't allow to delete the notebooks from the remote storage, it can
+     * only be done by the official desktop Evernote client or via its web client. So this method should be called
+     * only during the synchronization with the remote storage, when some notebook is found to be
+     * deleted via either the official desktop client or via the web client; also, this method can be called
+     * for local notebooks not synchronized with Evernote at all
+     *
+     * @param notebook - the notebook to be expunged. Must have either "remote" or local uid set; the object is passed
+     * by reference and may be changed as a result of the call (filled with local uid if it was empty before the call)
+     * @param errorDescription - error description if the notebook could not be expunged
+     * @return true if the notebook was expunged successfully, false otherwise
      */
     bool expungeNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
 
