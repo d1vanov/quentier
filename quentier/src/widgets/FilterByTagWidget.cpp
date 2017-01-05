@@ -4,21 +4,25 @@
 
 namespace quentier {
 
-FilterByTagWidget::FilterByTagWidget(LocalStorageManagerThreadWorker & localStorageManager,
-                                     QWidget * parent) :
+FilterByTagWidget::FilterByTagWidget(QWidget * parent) :
     AbstractFilterByModelItemWidget(QStringLiteral("Tag"), parent),
-    m_localStorageManager(localStorageManager),
+    m_pLocalStorageManager(),
     m_findTagRequestIds()
+{}
+
+void FilterByTagWidget::setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager)
 {
+    m_pLocalStorageManager = &localStorageManager;
+
     QObject::connect(this, QNSIGNAL(FilterByTagWidget,findTag,Tag,QUuid),
-                     &m_localStorageManager, QNSLOT(LocalStorageManagerThreadWorker,onFindTagRequest,Tag,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
+                     m_pLocalStorageManager.data(), QNSLOT(LocalStorageManagerThreadWorker,onFindTagRequest,Tag,QUuid));
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
                      this, QNSLOT(FilterByTagWidget,onFindTagCompleted,Tag,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
                      this, QNSLOT(FilterByTagWidget,onFindTagFailed,Tag,QNLocalizedString,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(FilterByTagWidget,onUpdateTagCompleted,Tag,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
                      this, QNSLOT(FilterByTagWidget,onExpungeTagCompleted,Tag,QUuid));
 }
 

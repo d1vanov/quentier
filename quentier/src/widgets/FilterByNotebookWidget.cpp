@@ -4,21 +4,25 @@
 
 namespace quentier {
 
-FilterByNotebookWidget::FilterByNotebookWidget(LocalStorageManagerThreadWorker & localStorageManager,
-                                               QWidget * parent) :
+FilterByNotebookWidget::FilterByNotebookWidget(QWidget * parent) :
     AbstractFilterByModelItemWidget(QStringLiteral("Notebook"), parent),
-    m_localStorageManager(localStorageManager),
+    m_pLocalStorageManager(),
     m_findNotebookRequestIds()
+{}
+
+void FilterByNotebookWidget::setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager)
 {
+    m_pLocalStorageManager = &localStorageManager;
+
     QObject::connect(this, QNSIGNAL(FilterByNotebookWidget,findNotebook,Notebook,QUuid),
-                     &m_localStorageManager, QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
+                     m_pLocalStorageManager.data(), QNSLOT(LocalStorageManagerThreadWorker,onFindNotebookRequest,Notebook,QUuid));
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onFindNotebookCompleted,Notebook,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onUpdateNotebookCompleted,Notebook,QUuid));
-    QObject::connect(&m_localStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
+    QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onExpungeNotebookCompleted,Notebook,QUuid));
 }
 

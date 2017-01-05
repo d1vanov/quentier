@@ -44,6 +44,12 @@
 #include "widgets/TabWidget.h"
 using quentier::TabWidget;
 
+#include "widgets/FilterByNotebookWidget.h"
+using quentier::FilterByNotebookWidget;
+
+#include "widgets/FilterByTagWidget.h"
+using quentier::FilterByTagWidget;
+
 #include "widgets/NotebookModelItemInfoWidget.h"
 #include "widgets/TagModelItemInfoWidget.h"
 #include "widgets/SavedSearchModelItemInfoWidget.h"
@@ -1052,10 +1058,10 @@ void MainWindow::fixupQt4StyleSheets()
     m_pUI->centralWidget->setStyleSheet(alternateCentralWidgetStylesheet);
 
     QString alternateNoteListFrameStylesheet(
-                "#notesListFrame {"
+                "#notesListAndFiltersFrame {"
                 "   border: none;"
                 "}");
-    m_pUI->notesListFrame->setStyleSheet(alternateNoteListFrameStylesheet);
+    m_pUI->notesListAndFiltersFrame->setStyleSheet(alternateNoteListFrameStylesheet);
 
     QString alternateViewStylesheetBase(
                 "{"
@@ -1892,10 +1898,10 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
     appSettings.endGroup();
 
     if (checked) {
-        m_pUI->notesListFrame->show();
+        m_pUI->notesListAndFiltersFrame->show();
     }
     else {
-        m_pUI->notesListFrame->hide();
+        m_pUI->notesListAndFiltersFrame->hide();
     }
 }
 
@@ -2319,7 +2325,7 @@ void MainWindow::setupShowHideStartupSettings()
     CHECK_AND_SET_SHOW_SETTING("ShowTags", ShowTags, tagsWidget)
     CHECK_AND_SET_SHOW_SETTING("ShowSavedSearches", ShowSavedSearches, savedSearchesWidget)
     CHECK_AND_SET_SHOW_SETTING("ShowDeletedNotes", ShowDeletedNotes, deletedNotesWidget)
-    CHECK_AND_SET_SHOW_SETTING("ShowNotesList", ShowNotesList, notesListFrame)
+    CHECK_AND_SET_SHOW_SETTING("ShowNotesList", ShowNotesList, notesListAndFiltersFrame)
     CHECK_AND_SET_SHOW_SETTING("ShowToolbar", ShowToolbar, upperBarPanel)
     CHECK_AND_SET_SHOW_SETTING("ShowStatusBar", ShowStatusBar, upperBarPanel)
 

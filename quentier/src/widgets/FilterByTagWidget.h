@@ -5,6 +5,7 @@
 #include <quentier/types/Tag.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QUuid>
+#include <QPointer>
 #include <QSet>
 
 namespace quentier {
@@ -15,8 +16,9 @@ class FilterByTagWidget: public AbstractFilterByModelItemWidget
 {
     Q_OBJECT
 public:
-    explicit FilterByTagWidget(LocalStorageManagerThreadWorker & localStorageManager,
-                               QWidget * parent = Q_NULLPTR);
+    explicit FilterByTagWidget(QWidget * parent = Q_NULLPTR);
+
+    void setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager);
 
 Q_SIGNALS:
     // private signals
@@ -35,8 +37,8 @@ private:
     virtual void findItemInLocalStorage(const QString & localUid) Q_DECL_OVERRIDE;
 
 private:
-    LocalStorageManagerThreadWorker &   m_localStorageManager;
-    QSet<QUuid>                         m_findTagRequestIds;
+    QPointer<LocalStorageManagerThreadWorker>   m_pLocalStorageManager;
+    QSet<QUuid>                                 m_findTagRequestIds;
 };
 
 } // namespace quentier
