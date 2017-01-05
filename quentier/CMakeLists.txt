@@ -98,6 +98,7 @@ set(${PROJECT_NAME}_HEADERS
     src/views/SavedSearchItemView.h
     src/widgets/FindAndReplaceWidget.h
     src/widgets/FilterByNotebookWidget.h
+    src/widgets/FilterByTagWidget.h
     src/widgets/FlowLayout.h
     src/widgets/ListItemWidget.h
     src/widgets/NewListItemLineEdit.h
@@ -160,6 +161,7 @@ set(${PROJECT_NAME}_SOURCES
     src/views/SavedSearchItemView.cpp
     src/widgets/FindAndReplaceWidget.cpp
     src/widgets/FilterByNotebookWidget.cpp
+    src/widgets/FilterByTagWidget.cpp
     src/widgets/FlowLayout.cpp
     src/widgets/ListItemWidget.cpp
     src/widgets/NewListItemLineEdit.cpp

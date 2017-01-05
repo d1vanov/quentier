@@ -35,7 +35,7 @@ void FilterByNotebookWidget::onFindNotebookCompleted(Notebook notebook, QUuid re
     Q_UNUSED(m_findNotebookRequestIds.erase(it))
 
     if (Q_UNLIKELY(!notebook.hasName())) {
-        QNWARNING(QStringLiteral("Found notebook without name: ") << notebook);
+        QNWARNING(QStringLiteral("Found notebook without a name: ") << notebook);
         onItemNotFoundInLocalStorage(notebook.localUid());
         return;
     }
@@ -64,7 +64,7 @@ void FilterByNotebookWidget::onUpdateNotebookCompleted(Notebook notebook, QUuid 
             << requestId << QStringLiteral(", notebook = ") << notebook);
 
     if (Q_UNLIKELY(!notebook.hasName())) {
-        QNWARNING(QStringLiteral("Found notebook without name: ") << notebook);
+        QNWARNING(QStringLiteral("Found notebook without a name: ") << notebook);
         onItemRemovedFromLocalStorage(notebook.localUid());
         return;
     }
@@ -88,7 +88,7 @@ void FilterByNotebookWidget::findItemInLocalStorage(const QString & localUid)
     Q_UNUSED(m_findNotebookRequestIds.insert(requestId))
     Notebook dummy;
     dummy.setLocalUid(localUid);
-    QNTRACE(QStringLiteral("Emitting the request to find notebook in the local storage: local uid = ")
+    QNTRACE(QStringLiteral("Emitting the request to find a notebook in the local storage: local uid = ")
             << localUid << QStringLiteral(", request id = ") << requestId);
     emit findNotebook(dummy, requestId);
 }
