@@ -35,6 +35,7 @@ QT_FORWARD_DECLARE_CLASS(FlowLayout)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
+QT_FORWARD_DECLARE_CLASS(NewListItemLineEdit)
 
 /**
  * @brief The NoteTagsWidget class demonstrates the tags of a particular note
@@ -77,6 +78,8 @@ private Q_SLOTS:
     void onTagRemoved(QString tagName);
 
 private Q_SLOTS:
+    void onNewTagNameEntered();
+
     // Slots for response to events from local storage
 
     // Slots for notes events: finding, updating & expunging
@@ -104,6 +107,8 @@ private:
 
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
 
+    NewListItemLineEdit * findNewItemWidget();
+
 private:
     Note                    m_currentNote;
     QString                 m_currentNotebookLocalUid;
@@ -115,7 +120,9 @@ private:
 
     QPointer<TagModel>      m_pTagModel;
 
-    QHash<QUuid, std::pair<QString, QString> >  m_updateNoteRequestIdToRemovedTagLocalUidAndGuid;
+    typedef QHash<QUuid, std::pair<QString, QString> > RequestIdToTagLocalUidAndGuid;
+    RequestIdToTagLocalUidAndGuid   m_updateNoteRequestIdToRemovedTagLocalUidAndGuid;
+    RequestIdToTagLocalUidAndGuid   m_updateNoteRequestIdToAddedTagLocalUidAndGuid;
 
     struct Restrictions
     {
