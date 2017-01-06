@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include "NoteEditorTabWidgetManager.h"
+#include "AccountToKey.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
 #include "insert-table-tool-button/InsertTableToolButton.h"
 #include "insert-table-tool-button/TableSettingsDialog.h"
@@ -90,6 +91,8 @@ using quentier::FilterByTagWidget;
     QNWARNING(error); \
     onSetStatusBarText(error)
 
+#define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
+
 using namespace quentier;
 
 MainWindow::MainWindow(QWidget * pParentWidget) :
@@ -129,7 +132,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_noteSearchQueryValidated(false),
     m_styleSheetInfo(),
     m_currentPanelStyle(),
-    m_shortcutManager(this)
+    m_shortcutManager(this),
+    m_filtersViewExpanded(false)
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
@@ -199,6 +203,16 @@ MainWindow::~MainWindow()
     }
 
     delete m_pUI;
+}
+
+void MainWindow::show()
+{
+    QWidget::show();
+
+    // sadly, can't get it to work any other way :(
+    if (!m_filtersViewExpanded) {
+        foldFiltersView();
+    }
 }
 
 void MainWindow::connectActionsToSlots()
@@ -335,6 +349,9 @@ void MainWindow::connectViewButtonsToSlots()
                      this, QNSLOT(MainWindow,onUnfavoriteItemButtonPressed));
     QObject::connect(m_pUI->favoriteInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
+
+    QObject::connect(m_pUI->filtersViewTogglePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onFiltersViewTogglePushButtonPressed));
 }
 
 void MainWindow::connectNoteSearchActionsToSlots()
@@ -718,6 +735,46 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
 
     ItemView * deletedNotesTableView = m_pUI->deletedNotesTableView;
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::Dirty, isLocal);
+}
+
+void MainWindow::expandFiltersView()
+{
+    QNDEBUG(QStringLiteral("MainWindow::expandFiltersView"));
+
+    m_pUI->filtersViewTogglePushButton->setIcon(QIcon::fromTheme(QStringLiteral("go-down")));
+    m_pUI->filterBodyFrame->show();
+    m_pUI->filterFrameBottomBoundary->hide();
+    m_pUI->filterFrame->adjustSize();
+}
+
+void MainWindow::foldFiltersView()
+{
+    QNDEBUG(QStringLiteral("MainWindow::foldFiltersView"));
+
+    m_pUI->filtersViewTogglePushButton->setIcon(QIcon::fromTheme(QStringLiteral("go-next")));
+    m_pUI->filterBodyFrame->hide();
+    m_pUI->filterFrameBottomBoundary->show();
+
+    QList<int> splitterSizes = m_pUI->noteListAndFiltersSplitter->sizes();
+    int count = splitterSizes.count();
+    if (Q_UNLIKELY(count != 2)) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't properly resize "
+                                                    "the splitter after folding the filter view: "
+                                                    "wrong number of sizes within the splitter");
+        QNWARNING(error << QStringLiteral("Sizes count: ") << count);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    int filterHeaderPanelHeight = m_pUI->noteFilterHeaderPanel->height();
+    int heightDiff = std::max(splitterSizes[0] - filterHeaderPanelHeight, 0);
+    splitterSizes[0] = filterHeaderPanelHeight;
+    splitterSizes[1] = splitterSizes[1] + heightDiff;
+    m_pUI->noteListAndFiltersSplitter->setSizes(splitterSizes);
+
+    // Need to schedule the repaint because otherwise the actions above
+    // seem to have no effect
+    m_pUI->noteListAndFiltersSplitter->update();
 }
 
 void MainWindow::collectBaseStyleSheets()
@@ -1564,6 +1621,36 @@ void MainWindow::showInfoWidget(QWidget * pWidget)
     }
 #endif
     pWidget->show();
+}
+
+void MainWindow::onFiltersViewTogglePushButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onFiltersViewTogglePushButtonPressed"));
+
+    m_filtersViewExpanded = !m_filtersViewExpanded;
+
+    if (m_filtersViewExpanded) {
+        expandFiltersView();
+    }
+    else {
+        foldFiltersView();
+    }
+
+    QString accountKey = accountToKey(*m_pAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't save "
+                                                    "the filters view expanded state, "
+                                                    "can't convert the last used account "
+                                                    "to the string key", this);
+        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/FiltersView"));
+    appSettings.setValue(FILTERS_VIEW_STATUS_KEY, QVariant(m_filtersViewExpanded));
+    appSettings.endGroup();
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
@@ -2507,6 +2594,8 @@ void MainWindow::setupNoteFilters()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupNoteFilters"));
 
+    m_pUI->filterFrameBottomBoundary->hide();
+
     m_pUI->filterByNotebooksWidget->setLocalStorageManager(*m_pLocalStorageManager);
     m_pUI->filterByTagsWidget->setLocalStorageManager(*m_pLocalStorageManager);
 
@@ -2517,6 +2606,28 @@ void MainWindow::setupNoteFilters()
 
     // TODO: set up the object which would watch for changes in these widgets and
     // set stuff to the NoteFilterModel accordingly
+
+    QString accountKey = accountToKey(*m_pAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't restore "
+                                                    "the filters view expanded state, "
+                                                    "can't convert the last used account "
+                                                    "to the string key", this);
+        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/FiltersView"));
+    m_filtersViewExpanded = appSettings.value(FILTERS_VIEW_STATUS_KEY).toBool();
+    appSettings.endGroup();
+
+    // NOTE: won't apply this setting immediately: if m_filtersViewExpanded is true,
+    // the default settings from the loaded UI are just what's needed. Otherwise
+    // the necessary size adjustments would be done in MainWindow::show() method.
+    // Why so? Because it seems trying to adjust the sizes of QSplitter before
+    // the widget is shown just silently fail for unknown reason.
 }
 
 void MainWindow::setupNoteEditorTabWidgetManager()

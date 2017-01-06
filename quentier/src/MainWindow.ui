@@ -163,6 +163,9 @@ padding-right: 2px;
            <height>32</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Move focus to the previous widget</string>
+         </property>
          <property name="icon">
           <iconset theme="go-previous">
            <normaloff>.</normaloff>.</iconset>
@@ -191,6 +194,9 @@ padding-right: 2px;
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Move focus to the next widget</string>
          </property>
          <property name="icon">
           <iconset theme="go-next">
@@ -221,6 +227,9 @@ padding-right: 2px;
            <height>32</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Synchronize the account with the remote Evernote storage</string>
+         </property>
          <property name="icon">
           <iconset resource="../resource/icons/other/icons.qrc">
            <normaloff>:/sync/sync.png</normaloff>:/sync/sync.png</iconset>
@@ -249,6 +258,9 @@ padding-right: 2px;
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Information about the currently viewed or edited note</string>
          </property>
          <property name="icon">
           <iconset theme="dialog-information">
@@ -279,6 +291,9 @@ padding-right: 2px;
            <height>32</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Print the currently viewed or edited note</string>
+         </property>
          <property name="icon">
           <iconset theme="document-print">
            <normaloff>.</normaloff>.</iconset>
@@ -307,6 +322,9 @@ padding-right: 2px;
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>E-mail the currently viewed or edited note</string>
          </property>
          <property name="icon">
           <iconset theme="mail-send">
@@ -337,6 +355,9 @@ padding-right: 2px;
            <height>32</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Delete the currently viewed or edited note</string>
+         </property>
          <property name="icon">
           <iconset theme="edit-delete">
            <normaloff>.</normaloff>.</iconset>
@@ -365,6 +386,9 @@ padding-right: 2px;
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Create a new note</string>
          </property>
          <property name="icon">
           <iconset theme="document-new">
@@ -2020,14 +2044,23 @@ margin: 0px;
         </property>
         <item>
          <widget class="QSplitter" name="noteListAndFiltersSplitter">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="lineWidth">
            <number>0</number>
           </property>
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
+          <property name="childrenCollapsible">
+           <bool>false</bool>
+          </property>
           <widget class="QFrame" name="filterFrame">
-           <layout class="QVBoxLayout" name="verticalLayout_5">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
             <property name="spacing">
              <number>0</number>
             </property>
@@ -2044,9 +2077,9 @@ margin: 0px;
              <number>0</number>
             </property>
             <item>
-             <widget class="QFrame" name="noteFilterLabelFrame">
+             <widget class="QFrame" name="noteFilterHeaderPanel">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -2065,11 +2098,52 @@ margin: 0px;
               </property>
               <property name="styleSheet">
                <string notr="true">QWidget {
+border: none;
 background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
 stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
 stop: 0.39999 #717171, stop: 0.4 #626262,
 stop: 0.9 #4c4c4c, stop: 1 #333333);
 color: rgb(255, 255, 255);
+}
+
+QPushButton {
+border: none;
+padding: 0px;
+}
+
+QPushButton:focus {
+outline: none;
+}
+
+QPushButton:hover:!pressed {
+background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #bcbcbc, stop: 0.08 #9f9f9f,
+stop: 0.39999 #949494, stop: 0.4 #898989,
+stop: 0.9 #787878, stop: 1 #666666);
+}
+
+QPushButton:pressed {
+background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #535353, stop: 0.08 #3f3f3f,
+stop: 0.39999 #393939, stop: 0.4 #313131,
+stop: 0.9 #262626, stop: 1 #1a1a1a);
+}
+
+QPushButton#favoritesPanelIconPseudoPushButton:hover {
+background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+}
+
+QPushButton#favoritesPanelIconPseudoPushButton:pressed {
+background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+stop: 0 #a6a6a6, stop: 0.08 #7f7f7f,
+stop: 0.39999 #717171, stop: 0.4 #626262,
+stop: 0.9 #4c4c4c, stop: 1 #333333);
+}
+
+QLabel {
 border: none;
 }</string>
               </property>
@@ -2096,7 +2170,7 @@ border: none;
                 <number>0</number>
                </property>
                <item>
-                <widget class="QPushButton" name="pushButton">
+                <widget class="QPushButton" name="filtersViewTogglePushButton">
                  <property name="minimumSize">
                   <size>
                    <width>20</width>
@@ -2108,25 +2182,28 @@ border: none;
                    <width>20</width>
                    <height>20</height>
                   </size>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="go-next"/>
+                 </property>
+                 <property name="flat">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QLabel" name="noteFilterLabel">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>22</height>
+                   <height>20</height>
                   </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>22</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true"/>
                  </property>
                  <property name="text">
                   <string>Filters</string>
@@ -2247,7 +2324,7 @@ border-bottom: 1px solid black;
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>38</height>
+                      <height>25</height>
                      </size>
                     </property>
                    </widget>
@@ -2258,7 +2335,7 @@ border-bottom: 1px solid black;
                <item row="1" column="0">
                 <widget class="QLabel" name="filterByTagsLabel">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -2279,7 +2356,7 @@ margin-top: 4px;
                <item row="0" column="0">
                 <widget class="QLabel" name="filterByNotebooksLabel">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -2318,7 +2395,7 @@ border: none;</string>
                <item row="2" column="0">
                 <widget class="QLabel" name="filterBySavedSearchLabel">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -2374,7 +2451,7 @@ border-right: none;
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>38</height>
+                      <height>25</height>
                      </size>
                     </property>
                    </widget>
@@ -2401,6 +2478,32 @@ border-right: none;
               </layout>
              </widget>
             </item>
+            <item>
+             <widget class="QFrame" name="filterFrameBottomBoundary">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>1</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>1</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">border: none;
+border-bottom: 1px solid black;</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
           <widget class="QWidget" name="layoutWidget">
@@ -2419,13 +2522,13 @@ border-right: none;
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>22</height>
+                <height>20</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>22</height>
+                <height>20</height>
                </size>
               </property>
               <property name="styleSheet">
@@ -2488,6 +2591,12 @@ padding-right: 1px;
                    <verstretch>0</verstretch>
                   </sizepolicy>
                  </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>20</height>
+                  </size>
+                 </property>
                  <property name="lineWidth">
                   <number>0</number>
                  </property>
@@ -2508,7 +2617,7 @@ padding-right: 1px;
                  </property>
                  <widget class="QLabel" name="noteSortingModeLabelPanel">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -2516,13 +2625,13 @@ padding-right: 1px;
                   <property name="minimumSize">
                    <size>
                     <width>80</width>
-                    <height>22</height>
+                    <height>20</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
                     <width>140</width>
-                    <height>22</height>
+                    <height>20</height>
                    </size>
                   </property>
                   <property name="lineWidth">

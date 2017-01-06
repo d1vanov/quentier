@@ -70,6 +70,8 @@ public:
     explicit MainWindow(QWidget * pParentWidget = Q_NULLPTR);
     virtual ~MainWindow();
 
+    void show();
+
 public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
 
@@ -168,6 +170,8 @@ private Q_SLOTS:
 
     void showInfoWidget(QWidget * pWidget);
 
+    void onFiltersViewTogglePushButtonPressed();
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();
@@ -242,6 +246,9 @@ private:
     void refreshThemeIcons();
 
     void showHideViewColumnsForAccountType(const Account::Type::type accountType);
+
+    void expandFiltersView();
+    void foldFiltersView();
 
     class StyleSheetProperty
     {
@@ -352,6 +359,8 @@ private:
     QString                 m_currentPanelStyle;
 
     quentier::ShortcutManager   m_shortcutManager;
+
+    bool                    m_filtersViewExpanded;
 };
 
 #endif // QUENTIER_MAINWINDOW_H
