@@ -161,6 +161,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupLocalStorageManager();
     setupModels();
     setupViews();
+    setupNoteFilters();
 
     setupNoteEditorTabWidgetManager();
 
@@ -1062,6 +1063,15 @@ void MainWindow::fixupQt4StyleSheets()
                 "   border: none;"
                 "}");
     m_pUI->notesListAndFiltersFrame->setStyleSheet(alternateNoteListFrameStylesheet);
+
+    QString alternateFilterBodyFrameStylesheet(
+                "#filterBodyFrame {"
+                "padding: 0px;"
+                "margin: 0px;"
+                "border: none;"
+                "border-top: 1px solid black;"
+                "}");
+    m_pUI->filterBodyFrame->setStyleSheet(alternateFilterBodyFrameStylesheet);
 
     QString alternateViewStylesheetBase(
                 "{"
@@ -2491,6 +2501,22 @@ void MainWindow::clearViews()
 
     m_pUI->noteListView->setModel(&m_blankModel);
     m_pUI->deletedNotesTableView->setModel(&m_blankModel);
+}
+
+void MainWindow::setupNoteFilters()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupNoteFilters"));
+
+    m_pUI->filterByNotebooksWidget->setLocalStorageManager(*m_pLocalStorageManager);
+    m_pUI->filterByTagsWidget->setLocalStorageManager(*m_pLocalStorageManager);
+
+    m_pUI->filterByNotebooksWidget->switchAccount(*m_pAccount, m_pNotebookModel);
+    m_pUI->filterByTagsWidget->switchAccount(*m_pAccount, m_pTagModel);
+
+    m_pUI->filterStatusBarLabel->hide();
+
+    // TODO: set up the object which would watch for changes in these widgets and
+    // set stuff to the NoteFilterModel accordingly
 }
 
 void MainWindow::setupNoteEditorTabWidgetManager()

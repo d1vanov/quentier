@@ -552,6 +552,46 @@ void NotebookModel::unfavoriteNotebook(const QModelIndex & index)
     setNotebookFavorited(index, false);
 }
 
+QString NotebookModel::localUidForItemName(const QString & itemName) const
+{
+    QNDEBUG(QStringLiteral("NotebookModel::localUidForItemName: ") << itemName);
+
+    QModelIndex index = indexForNotebookName(itemName);
+    const NotebookModelItem * pModelItem = itemForIndex(index);
+    if (!pModelItem) {
+        QNTRACE(QStringLiteral("No notebook model item found for index found for this notebook name"));
+        return QString();
+    }
+
+    if (Q_UNLIKELY(pModelItem->type() != NotebookModelItem::Type::Notebook)) {
+        QNTRACE(QStringLiteral("Found notebook model item has wrong type"));
+        return QString();
+    }
+
+    const NotebookItem * pNotebookItem = pModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem)) {
+        QNWARNING(QStringLiteral("Found notebook model item of notebook type but "
+                                 "with null pointer to the actual notebook item: ") << *pModelItem);
+        return QString();
+    }
+
+    return pNotebookItem->localUid();
+}
+
+QString NotebookModel::itemNameForLocalUid(const QString & localUid) const
+{
+    QNDEBUG(QStringLiteral("NotebookModel::itemNameForLocalUid: ") << localUid);
+
+    const NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNTRACE(QStringLiteral("No notebook item with such local uid"));
+        return QString();
+    }
+
+    return it->name();
+}
+
 QStringList NotebookModel::itemNames() const
 {
     QStringList result;
@@ -1918,6 +1958,7 @@ void NotebookModel::onListNotebooksComplete(LocalStorageManager::ListObjectsOpti
 
     m_allNotebooksListed = true;
     emit notifyAllNotebooksListed();
+    emit notifyAllItemsListed();
 }
 
 void NotebookModel::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag,

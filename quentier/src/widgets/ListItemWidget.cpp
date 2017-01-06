@@ -29,6 +29,8 @@ ListItemWidget::ListItemWidget(const QString & name, QWidget *parent) :
     m_pUi->setupUi(this);
 
     setName(name);
+    adjustSize();
+
     QObject::connect(m_pUi->deleteItemButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(ListItemWidget,onRemoveItemButtonPressed));
 }

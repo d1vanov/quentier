@@ -42,6 +42,22 @@ public:
     virtual ~ItemModel();
 
     /**
+     * @brief localUidForItemName - finds local uid for item name
+     * @param itemName - the name of the item for which the local uid is required
+     * @return the local uid corresponding to the item name; empty string if no item
+     * with such name exists
+     */
+    virtual QString localUidForItemName(const QString & itemName) const = 0;
+
+    /**
+     * @brief itemNameForLocalUid - finds item name for local uid
+     * @param localUid - the local uid of the item for which the name is required
+     * @return the name of the item corresponding to the local uid; empty string
+     * if no item with such local uid exists
+     */
+    virtual QString itemNameForLocalUid(const QString & localUid) const = 0;
+
+    /**
      * @brief itemNames
      * @return the sorted list of names of the items stored within the model
      */
@@ -64,6 +80,20 @@ public:
      * @return the order with respect to which the model is sorted
      */
     virtual Qt::SortOrder sortOrder() const = 0;
+
+    /**
+     * @brief allItemsListed
+     * @return true if the model has received all items from the local storage,
+     * false otherwise
+     */
+    virtual bool allItemsListed() const = 0;
+
+Q_SIGNALS:
+    /**
+     * @brief allItemsListed - this signal should be emitted when the model has
+     * received all items from the local storage
+     */
+    void notifyAllItemsListed();
 };
 
 } // namespace quentier

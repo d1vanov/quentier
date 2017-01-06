@@ -206,6 +206,8 @@ private:
     void setupViews();
     void clearViews();
 
+    void setupNoteFilters();
+
     void setupNoteEditorTabWidgetManager();
 
     void setupSynchronizationManager();

@@ -221,6 +221,35 @@ void SavedSearchModel::unfavoriteSavedSearch(const QModelIndex & index)
     setSavedSearchFavorited(index, false);
 }
 
+QString SavedSearchModel::localUidForItemName(const QString & itemName) const
+{
+    QNDEBUG(QStringLiteral("SavedSearchModel::localUidForItemName: ") << itemName);
+
+    QModelIndex index = indexForSavedSearchName(itemName);
+    const SavedSearchModelItem * pItem = itemForIndex(index);
+    if (!pItem) {
+        QNTRACE(QStringLiteral("No saved search with such name was found"));
+        return QString();
+    }
+
+    return pItem->m_localUid;
+}
+
+QString SavedSearchModel::itemNameForLocalUid(const QString & localUid) const
+{
+    QNDEBUG(QStringLiteral("SavedSearchModel::itemNameForLocalUid: ") << localUid);
+
+    const SavedSearchDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNTRACE(QStringLiteral("No saved search with such local uid"));
+        return QString();
+    }
+
+    const SavedSearchModelItem & item = *it;
+    return item.m_localUid;
+}
+
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
@@ -809,6 +838,7 @@ void SavedSearchModel::onListSavedSearchesComplete(LocalStorageManager::ListObje
 
     m_allSavedSearchesListed = true;
     emit notifyAllSavedSearchesListed();
+    emit notifyAllItemsListed();
 }
 
 void SavedSearchModel::onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,

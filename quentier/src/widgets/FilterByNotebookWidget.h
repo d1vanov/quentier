@@ -6,7 +6,6 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <QUuid>
 #include <QPointer>
-#include <QSet>
 
 namespace quentier {
 
@@ -20,23 +19,12 @@ public:
 
     void setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager);
 
-Q_SIGNALS:
-    // private signals
-    void findNotebook(Notebook notebook, QUuid requestId);
-
 private Q_SLOTS:
-    void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
-
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
     void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
 
 private:
-    virtual void findItemInLocalStorage(const QString & localUid) Q_DECL_OVERRIDE;
-
-private:
     QPointer<LocalStorageManagerThreadWorker>   m_pLocalStorageManager;
-    QSet<QUuid>                                 m_findNotebookRequestIds;
 };
 
 } // namespace quentier

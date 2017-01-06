@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Qt4Helper.h>
 #include <QLineEdit>
+#include <QPointer>
 
 namespace Ui {
 class NewListItemLineEdit;
@@ -51,7 +52,7 @@ private:
 
 private:
     Ui::NewListItemLineEdit *   m_pUi;
-    ItemModel *                 m_pItemModel;
+    QPointer<ItemModel>         m_pItemModel;
     QStringList                 m_reservedItemNames;
     QStringListModel *          m_pItemNamesModel;
     QCompleter *                m_pCompleter;

@@ -104,6 +104,34 @@ void TagModel::unfavoriteTag(const QModelIndex & index)
     setTagFavorited(index, false);
 }
 
+QString TagModel::localUidForItemName(const QString & itemName) const
+{
+    QNDEBUG(QStringLiteral("TagModel::localUidForItemName: ") << itemName);
+
+    QModelIndex index = indexForTagName(itemName);
+    const TagModelItem * pItem = itemForIndex(index);
+    if (!pItem) {
+        QNTRACE(QStringLiteral("No tag with such name was found"));
+        return QString();
+    }
+
+    return pItem->localUid();
+}
+
+QString TagModel::itemNameForLocalUid(const QString & localUid) const
+{
+    QNDEBUG(QStringLiteral("TagModel::itemNameForLocalUid: ") << localUid);
+
+    const TagDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto it = localUidIndex.find(localUid);
+    if (Q_UNLIKELY(it == localUidIndex.end())) {
+        QNTRACE(QStringLiteral("No tag item with such local uid"));
+        return QString();
+    }
+
+    return it->name();
+}
+
 Qt::ItemFlags TagModel::flags(const QModelIndex & index) const
 {
     Qt::ItemFlags indexFlags = QAbstractItemModel::flags(index);
@@ -1063,6 +1091,7 @@ void TagModel::onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
 
     m_allTagsListed = true;
     emit notifyAllTagsListed();
+    emit notifyAllItemsListed();
 }
 
 void TagModel::onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,

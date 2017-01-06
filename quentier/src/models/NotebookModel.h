@@ -168,10 +168,13 @@ public:
 
 public:
     // ItemModel interface
+    virtual QString localUidForItemName(const QString & itemName) const Q_DECL_OVERRIDE;
+    virtual QString itemNameForLocalUid(const QString & localUid) const Q_DECL_OVERRIDE;
     virtual QStringList itemNames() const Q_DECL_OVERRIDE;
     virtual int nameColumn() const Q_DECL_OVERRIDE { return Columns::Name; }
     virtual int sortingColumn() const Q_DECL_OVERRIDE { return m_sortedColumn; }
     virtual Qt::SortOrder sortOrder() const Q_DECL_OVERRIDE { return m_sortOrder; }
+    virtual bool allItemsListed() const Q_DECL_OVERRIDE { return m_allNotebooksListed; }
 
 public:
     // QAbstractItemModel interface

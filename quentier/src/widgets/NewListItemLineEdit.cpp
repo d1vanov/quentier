@@ -27,7 +27,9 @@
 
 namespace quentier {
 
-NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel, const QStringList & reservedItemNames, QWidget * parent) :
+NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
+                                         const QStringList & reservedItemNames,
+                                         QWidget * parent) :
     QLineEdit(parent),
     m_pUi(new Ui::NewListItemLineEdit),
     m_pItemModel(pItemModel),
@@ -36,7 +38,7 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel, const QStringLi
     m_pCompleter(new QCompleter(this))
 {
     m_pUi->setupUi(this);
-    setPlaceholderText(QStringLiteral("+"));
+    setPlaceholderText(tr("Click here to add") + QStringLiteral("..."));
     setupCompleter();
 }
 
@@ -78,18 +80,25 @@ void NewListItemLineEdit::setupCompleter()
     m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     m_pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
 
-    QStringList itemNames = m_pItemModel->itemNames();
-    for(auto it = m_reservedItemNames.constBegin(), end = m_reservedItemNames.constEnd(); it != end; ++it)
+    QStringList itemNames;
+    if (!m_pItemModel.isNull())
     {
-        auto nit = std::lower_bound(itemNames.constBegin(), itemNames.constEnd(), *it);
-        if ((nit != itemNames.constEnd()) && (*nit == *it)) {
-            int offset = static_cast<int>(std::distance(itemNames.constBegin(), nit));
-            Q_UNUSED(itemNames.erase(QStringList::iterator(itemNames.begin() + offset)))
+        itemNames = m_pItemModel->itemNames();
+        for(auto it = m_reservedItemNames.constBegin(), end = m_reservedItemNames.constEnd(); it != end; ++it)
+        {
+            auto nit = std::lower_bound(itemNames.constBegin(), itemNames.constEnd(), *it);
+            if ((nit != itemNames.constEnd()) && (*nit == *it)) {
+                int offset = static_cast<int>(std::distance(itemNames.constBegin(), nit));
+                Q_UNUSED(itemNames.erase(QStringList::iterator(itemNames.begin() + offset)))
+            }
         }
     }
 
-    m_pItemNamesModel->setStringList(itemNames);
-    m_pCompleter->setModel(m_pItemNamesModel);
+    if (!itemNames.isEmpty()) {
+        m_pItemNamesModel->setStringList(itemNames);
+        m_pCompleter->setModel(m_pItemNamesModel);
+    }
+
     setCompleter(m_pCompleter);
 }
 
