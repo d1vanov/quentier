@@ -22,6 +22,7 @@
 #include <quentier/utility/Qt4Helper.h>
 #include <QLineEdit>
 #include <QPointer>
+#include <QVector>
 
 namespace Ui {
 class NewListItemLineEdit;
@@ -29,6 +30,7 @@ class NewListItemLineEdit;
 
 QT_FORWARD_DECLARE_CLASS(QCompleter)
 QT_FORWARD_DECLARE_CLASS(QStringListModel)
+QT_FORWARD_DECLARE_CLASS(QModelIndex)
 
 namespace quentier {
 
@@ -46,6 +48,17 @@ public:
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+
+private Q_SLOTS:
+    void onModelRowsInserted(const QModelIndex & parent, int start, int end);
+    void onModelRowsRemoved(const QModelIndex & parent, int start, int end);
+
+    void onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+#if QT_VERSION < 0x050000
+                            );
+#else
+                            , const QVector<int> & roles = QVector<int>());
+#endif
 
 private:
     void setupCompleter();

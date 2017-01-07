@@ -22,6 +22,7 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QKeyEvent>
 #include <QCompleter>
+#include <QModelIndex>
 #include <QStringListModel>
 #include <algorithm>
 
@@ -40,6 +41,18 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
     m_pUi->setupUi(this);
     setPlaceholderText(tr("Click here to add") + QStringLiteral("..."));
     setupCompleter();
+
+    QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,rowsInserted,const QModelIndex&,int,int),
+                     this, QNSLOT(NewListItemLineEdit,onModelRowsInserted,const QModelIndex&,int,int));
+    QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,rowsRemoved,const QModelIndex&,int,int),
+                     this, QNSLOT(NewListItemLineEdit,onModelRowsRemoved,const QModelIndex&,int,int));
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+    QObject::connect(m_pItemModel.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                     this, SLOT(onModelDataChanged(QModelIndex,QModelIndex)));
+#else
+    QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged, this, &NewListItemLineEdit::onModelDataChanged);
+#endif
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
@@ -71,6 +84,47 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
     }
 
     QLineEdit::keyPressEvent(pEvent);
+}
+
+void NewListItemLineEdit::onModelRowsInserted(const QModelIndex & parent, int start, int end)
+{
+    QNDEBUG(QStringLiteral("NewListItemLineEdit::onModelRowsInserted"));
+
+    Q_UNUSED(parent)
+    Q_UNUSED(start)
+    Q_UNUSED(end)
+
+    setupCompleter();
+}
+
+void NewListItemLineEdit::onModelRowsRemoved(const QModelIndex & parent, int start, int end)
+{
+    QNDEBUG(QStringLiteral("NewListItemLineEdit::onModelRowsRemoved"));
+
+    Q_UNUSED(parent)
+    Q_UNUSED(start)
+    Q_UNUSED(end)
+
+    setupCompleter();
+}
+
+void NewListItemLineEdit::onModelDataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+                                             )
+#else
+                                             , const QVector<int> & roles)
+#endif
+{
+    QNDEBUG(QStringLiteral("NewListItemLineEdit::onModelDataChanged"));
+
+    Q_UNUSED(topLeft)
+    Q_UNUSED(bottomRight)
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    Q_UNUSED(roles)
+#endif
+
+    setupCompleter();
 }
 
 void NewListItemLineEdit::setupCompleter()
