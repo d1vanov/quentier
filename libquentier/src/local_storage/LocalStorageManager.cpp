@@ -18,7 +18,6 @@
 
 #include <quentier/local_storage/LocalStorageManager.h>
 #include "LocalStorageManager_p.h"
-#include <quentier/local_storage/NoteSearchQuery.h>
 
 namespace quentier {
 

@@ -26,6 +26,7 @@
 #include <quentier/types/SavedSearch.h>
 #include <quentier/types/SharedNotebook.h>
 #include <quentier/local_storage/LocalStorageManager.h>
+#include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QMetaType>
 
@@ -66,6 +67,8 @@ void registerMetatypes()
     qRegisterMetaType<QHash<QString,QString> >("QHash<QString,QString>");
     qRegisterMetaType<QHash<QString,qevercloud::Timestamp> >("QHash<QString,qevercloud::Timestamp>");
     qRegisterMetaType<QHash<QString,qint32> >("QHash<QString,qint32>");
+
+    qRegisterMetaType<NoteSearchQuery>("NoteSearchQuery");
 
     qRegisterMetaType<QNLocalizedString>("QNLocalizedString");
 }

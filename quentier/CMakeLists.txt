@@ -50,6 +50,7 @@ set(${PROJECT_NAME}_HEADERS
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/NoteEditorTabWidgetManager.h
+    src/NoteFiltersManager.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/dialogs/AddAccountDialog.h
@@ -118,6 +119,7 @@ set(${PROJECT_NAME}_SOURCES
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/NoteEditorTabWidgetManager.cpp
+    src/NoteFiltersManager.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp
     src/dialogs/AddAccountDialog.cpp

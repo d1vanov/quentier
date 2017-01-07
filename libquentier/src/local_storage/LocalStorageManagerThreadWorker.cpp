@@ -17,6 +17,7 @@
  */
 
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
 
@@ -880,6 +881,23 @@ void LocalStorageManagerThreadWorker::onListNotesRequest(LocalStorageManager::Li
         }
 
         emit listNotesComplete(flag, withResourceBinaryData, limit, offset, order, orderDirection, notes, requestId);
+    }
+    CATCH_EXCEPTION
+}
+
+void LocalStorageManagerThreadWorker::onFindNoteLocalUidsWithSearchQuery(NoteSearchQuery noteSearchQuery, QUuid requestId)
+{
+    try
+    {
+        QNLocalizedString errorDescription;
+        QStringList noteLocalUids = m_pLocalStorageManager->findNoteLocalUidsWithSearchQuery(noteSearchQuery,
+                                                                                             errorDescription);
+        if (noteLocalUids.isEmpty() && !errorDescription.isEmpty()) {
+            emit findNoteLocalUidsWithSearchQueryFailed(noteSearchQuery, errorDescription, requestId);
+            return;
+        }
+
+        emit findNoteLocalUidsWithSearchQueryComplete(noteLocalUids, noteSearchQuery, requestId);
     }
     CATCH_EXCEPTION
 }

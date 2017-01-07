@@ -1,15 +1,18 @@
-#ifndef LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
-#define LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
+#ifndef LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_DATA_H
+#define LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_DATA_H
 
 #include <quentier/utility/QNLocalizedString.h>
 #include <QStringList>
+#include <QSharedData>
 
 namespace quentier {
 
-class NoteSearchQueryPrivate : public Printable
+class NoteSearchQueryData: public QSharedData,
+                           public Printable
 {
 public:
-    NoteSearchQueryPrivate();
+    NoteSearchQueryData();
+    NoteSearchQueryData(const NoteSearchQueryData & other);
 
     void clear();
 
@@ -123,4 +126,4 @@ private:
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_P_H
+#endif // LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_DATA_H

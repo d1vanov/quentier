@@ -20,19 +20,21 @@
 #define LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_H
 
 #include <quentier/utility/QNLocalizedString.h>
+#include <QSharedDataPointer>
 
 namespace quentier {
 
-class NoteSearchQueryPrivate;
-class QUENTIER_EXPORT NoteSearchQuery : public Printable
+QT_FORWARD_DECLARE_CLASS(NoteSearchQueryData)
+
+class QUENTIER_EXPORT NoteSearchQuery: public Printable
 {
 public:
     NoteSearchQuery();
-    NoteSearchQuery(const NoteSearchQuery & other) Q_DECL_EQ_DELETE;
+    NoteSearchQuery(const NoteSearchQuery & other);
     NoteSearchQuery(NoteSearchQuery && other);
-    NoteSearchQuery & operator=(const NoteSearchQuery & other) Q_DECL_EQ_DELETE;
+    NoteSearchQuery & operator=(const NoteSearchQuery & other);
     NoteSearchQuery & operator=(NoteSearchQuery && other);
-    ~NoteSearchQuery();
+    virtual ~NoteSearchQuery();
 
     bool isEmpty() const;
 
@@ -165,8 +167,7 @@ public:
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:
-    NoteSearchQueryPrivate * const d_ptr;
-    Q_DECLARE_PRIVATE(NoteSearchQuery)
+    QSharedDataPointer<NoteSearchQueryData> d;
 };
 
 } // namespace quentier

@@ -21,6 +21,7 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/local_storage/Lists.h>
+#include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Qt4Helper.h>
 #include <quentier/utility/QNLocalizedString.h>
@@ -43,7 +44,6 @@ QT_FORWARD_DECLARE_STRUCT(NotebookRestrictions)
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerPrivate)
-QT_FORWARD_DECLARE_CLASS(NoteSearchQuery)
 
 class QUENTIER_EXPORT LocalStorageManager: public QObject
 {
