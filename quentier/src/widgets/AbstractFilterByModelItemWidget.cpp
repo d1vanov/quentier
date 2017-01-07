@@ -49,6 +49,10 @@ void AbstractFilterByModelItemWidget::switchAccount(const Account & account, Ite
     }
 
     m_pItemModel = pItemModel;
+    if (!m_pItemModel.isNull() && !m_pItemModel->allItemsListed()) {
+        QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
+                         this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
+    }
 
     if (m_account == account) {
         QNDEBUG(QStringLiteral("Already set this account"));
@@ -70,9 +74,6 @@ void AbstractFilterByModelItemWidget::switchAccount(const Account & account, Ite
         restoreFilteredItems();
         return;
     }
-
-    QObject::connect(m_pItemModel.data(), QNSIGNAL(ItemModel,notifyAllItemsListed),
-                     this, QNSLOT(AbstractFilterByModelItemWidget,onModelReady));
 }
 
 QStringList AbstractFilterByModelItemWidget::itemsInFilter() const

@@ -51,6 +51,9 @@ using quentier::FilterByNotebookWidget;
 #include "widgets/FilterByTagWidget.h"
 using quentier::FilterByTagWidget;
 
+#include "widgets/FilterBySavedSearchWidget.h"
+using quentier::FilterBySavedSearchWidget;
+
 #include "widgets/NotebookModelItemInfoWidget.h"
 #include "widgets/TagModelItemInfoWidget.h"
 #include "widgets/SavedSearchModelItemInfoWidget.h"
@@ -2203,6 +2206,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     }
 
     setupModels();
+
+    m_pUI->filterByNotebooksWidget->switchAccount(*m_pAccount, m_pNotebookModel);
+    m_pUI->filterByTagsWidget->switchAccount(*m_pAccount, m_pTagModel);
+    m_pUI->filterBySavedSearchComboBox->switchAccount(*m_pAccount, m_pSavedSearchModel);
+
     showHideViewColumnsForAccountType(m_pAccount->type());
 }
 
@@ -2601,6 +2609,7 @@ void MainWindow::setupNoteFilters()
 
     m_pUI->filterByNotebooksWidget->switchAccount(*m_pAccount, m_pNotebookModel);
     m_pUI->filterByTagsWidget->switchAccount(*m_pAccount, m_pTagModel);
+    m_pUI->filterBySavedSearchComboBox->switchAccount(*m_pAccount, m_pSavedSearchModel);
 
     m_pUI->filterStatusBarLabel->hide();
 

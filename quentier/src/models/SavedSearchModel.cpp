@@ -247,7 +247,7 @@ QString SavedSearchModel::itemNameForLocalUid(const QString & localUid) const
     }
 
     const SavedSearchModelItem & item = *it;
-    return item.m_localUid;
+    return item.m_name;
 }
 
 Qt::ItemFlags SavedSearchModel::flags(const QModelIndex & index) const

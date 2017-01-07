@@ -2184,7 +2184,8 @@ border: none;
                   </size>
                  </property>
                  <property name="icon">
-                  <iconset theme="go-next"/>
+                  <iconset theme="go-next">
+                   <normaloff>.</normaloff>.</iconset>
                  </property>
                  <property name="flat">
                   <bool>true</bool>
@@ -2253,7 +2254,7 @@ border-top: 1px solid black;
                 <number>6</number>
                </property>
                <item row="2" column="1" colspan="2">
-                <widget class="QComboBox" name="savedSearchFilterComboBox">
+                <widget class="FilterBySavedSearchWidget" name="filterBySavedSearchComboBox">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
                    <horstretch>0</horstretch>
@@ -2754,7 +2755,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>23</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -4335,6 +4336,11 @@ border-bottom: 1px solid black;</string>
    <extends>QWidget</extends>
    <header>widgets/FilterByTagWidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FilterBySavedSearchWidget</class>
+   <extends>QComboBox</extends>
+   <header>widgets/FilterBySavedSearchWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

@@ -114,7 +114,7 @@ private:
     Account                     m_account;
     QPointer<ItemModel>         m_pItemModel;
 
-    typedef  boost::bimap<QString, QString>  ItemLocalUidToNameBimap;
+    typedef boost::bimap<QString, QString> ItemLocalUidToNameBimap;
     ItemLocalUidToNameBimap     m_filteredItemsLocalUidToNameBimap;
 };
 
