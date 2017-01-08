@@ -21,7 +21,7 @@ QT_FORWARD_DECLARE_CLASS(AccountData)
  * whether it is local or synchronized to Evernote and for the latter case -
  * some additional details like upload limit etc.
  */
-class Account: public Printable
+class QUENTIER_EXPORT Account: public Printable
 {
 public:
     struct Type
