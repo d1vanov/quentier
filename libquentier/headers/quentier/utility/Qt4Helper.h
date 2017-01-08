@@ -20,6 +20,7 @@
 #define LIB_QUENTIER_UTILITY_QT4HELPER_H
 
 #include <QtGlobal>
+#include <QString>
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 
@@ -75,6 +76,13 @@
 #else
 #define QNSIGNAL(className, methodName, ...) &className::methodName
 #define QNSLOT(className, methodName, ...) &className::methodName
+#endif
+
+#if defined(_MSC_VER) && (_MSC_VER <= 1800)
+#ifdef QStringLiteral
+#undef QStringLiteral
+#define QStringLiteral(x) QString(QLatin1String(x))
+#endif
 #endif
 
 #ifndef Q_DECL_EQ_DELETE
