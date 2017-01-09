@@ -42,6 +42,9 @@ public:
     const QStringList & noteLocalUids() const { return m_noteLocalUids; }
     void setNoteLocalUids(const QStringList & noteLocalUids);
 
+    void beginUpdateFilter();
+    void endUpdateFilter();
+
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
@@ -54,6 +57,8 @@ private:
     QStringList m_notebookLocalUids;
     QStringList m_tagNames;
     QStringList m_noteLocalUids;
+    bool        m_pendingFilterUpdate;
+    bool        m_modifiedWhilePendingFilterUpdate;
 };
 
 } // namespace quentier

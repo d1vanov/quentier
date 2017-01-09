@@ -17,6 +17,7 @@
  */
 
 #include "FilterByNotebookWidget.h"
+#include "../models/NotebookModel.h"
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
 
@@ -35,6 +36,16 @@ void FilterByNotebookWidget::setLocalStorageManager(LocalStorageManagerThreadWor
                      this, QNSLOT(FilterByNotebookWidget,onUpdateNotebookCompleted,Notebook,QUuid));
     QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(FilterByNotebookWidget,onExpungeNotebookCompleted,Notebook,QUuid));
+}
+
+const NotebookModel * FilterByNotebookWidget::notebookModel() const
+{
+    const ItemModel * pItemModel = model();
+    if (!pItemModel) {
+        return Q_NULLPTR;
+    }
+
+    return qobject_cast<const NotebookModel*>(pItemModel);
 }
 
 void FilterByNotebookWidget::onUpdateNotebookCompleted(Notebook notebook, QUuid requestId)

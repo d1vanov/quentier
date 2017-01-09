@@ -17,6 +17,7 @@
  */
 
 #include "FilterByTagWidget.h"
+#include "../models/TagModel.h"
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
 
@@ -37,6 +38,16 @@ void FilterByTagWidget::setLocalStorageManager(LocalStorageManagerThreadWorker &
                      this, QNSLOT(FilterByTagWidget,onExpungeTagCompleted,Tag,QUuid));
     QObject::connect(m_pLocalStorageManager.data(), QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotelessTagsFromLinkedNotebooksComplete,QUuid),
                      this, QNSLOT(FilterByTagWidget,onExpungeNotelessTagsFromLinkedNotebooksCompleted,QUuid));
+}
+
+const TagModel * FilterByTagWidget::tagModel() const
+{
+    const ItemModel * pItemModel = model();
+    if (!pItemModel) {
+        return Q_NULLPTR;
+    }
+
+    return qobject_cast<const TagModel*>(pItemModel);
 }
 
 void FilterByTagWidget::onUpdateTagCompleted(Tag tag, QUuid requestId)

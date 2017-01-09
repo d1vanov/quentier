@@ -90,6 +90,15 @@ void FilterBySavedSearchWidget::switchAccount(const Account & account, SavedSear
     }
 }
 
+const SavedSearchModel * FilterBySavedSearchWidget::savedSearchModel() const
+{
+    if (m_pSavedSearchModel.isNull()) {
+        return Q_NULLPTR;
+    }
+
+    return m_pSavedSearchModel.data();
+}
+
 void FilterBySavedSearchWidget::onAllSavedSearchesListed()
 {
     QNDEBUG(QStringLiteral("FilterBySavedSearchWidget::onAllSavedSearchesListed"));

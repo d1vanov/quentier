@@ -25,13 +25,13 @@
 #include <QObject>
 #include <QUuid>
 
-QT_FORWARD_DECLARE_CLASS(QComboBox)
 QT_FORWARD_DECLARE_CLASS(QLineEdit)
 
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(FilterByTagWidget)
 QT_FORWARD_DECLARE_CLASS(FilterByNotebookWidget)
+QT_FORWARD_DECLARE_CLASS(FilterBySavedSearchWidget)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 
@@ -42,7 +42,7 @@ public:
     explicit NoteFiltersManager(FilterByTagWidget & filterByTagWidget,
                                 FilterByNotebookWidget & filterByNotebookWidget,
                                 NoteFilterModel & noteFilterModel,
-                                QComboBox & filterBySavedSearchComboBox,
+                                FilterBySavedSearchWidget & filterBySavedSearchWidget,
                                 QLineEdit & searchLineEdit,
                                 LocalStorageManagerThreadWorker & localStorageManager,
                                 QObject * parent = Q_NULLPTR);
@@ -82,14 +82,23 @@ private Q_SLOTS:
 
 private:
     void createConnections();
+    void evaluate();
+
+    bool setFilterBySearchString();
+    bool setFilterBySavedSearch();
+    void setFilterByNotebooks();
+    void setFilterByTags();
 
 private:
     FilterByTagWidget &                 m_filterByTagWidget;
     FilterByNotebookWidget &            m_filterByNotebookWidget;
     NoteFilterModel &                   m_noteFilterModel;
-    QComboBox &                         m_filterBySavedSearchComboBox;
+    FilterBySavedSearchWidget &         m_filterBySavedSearchWidget;
     QLineEdit &                         m_searchLineEdit;
     LocalStorageManagerThreadWorker &   m_localStorageManager;
+
+    QUuid                               m_findNoteLocalUidsForSearchStringRequestId;
+    QUuid                               m_findNoteLocalUidsForSavedSearchQueryRequestId;
 };
 
 } // namespace quentier

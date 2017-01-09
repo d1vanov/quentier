@@ -28,6 +28,7 @@
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(TagModel)
 
 class FilterByTagWidget: public AbstractFilterByModelItemWidget
 {
@@ -36,6 +37,8 @@ public:
     explicit FilterByTagWidget(QWidget * parent = Q_NULLPTR);
 
     void setLocalStorageManager(LocalStorageManagerThreadWorker & localStorageManager);
+
+    const TagModel * tagModel() const;
 
 private Q_SLOTS:
     void onUpdateTagCompleted(Tag tag, QUuid requestId);

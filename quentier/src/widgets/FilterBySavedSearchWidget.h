@@ -39,6 +39,8 @@ public:
 
     void switchAccount(const Account & account, SavedSearchModel * pSavedSearchModel);
 
+    const SavedSearchModel * savedSearchModel() const;
+
 private Q_SLOTS:
     void onAllSavedSearchesListed();
 

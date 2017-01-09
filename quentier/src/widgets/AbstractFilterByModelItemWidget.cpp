@@ -76,6 +76,15 @@ void AbstractFilterByModelItemWidget::switchAccount(const Account & account, Ite
     }
 }
 
+const ItemModel * AbstractFilterByModelItemWidget::model() const
+{
+    if (m_pItemModel.isNull()) {
+        return Q_NULLPTR;
+    }
+
+    return m_pItemModel.data();
+}
+
 QStringList AbstractFilterByModelItemWidget::itemsInFilter() const
 {
     QStringList result;

@@ -51,6 +51,8 @@ public:
 
     void switchAccount(const Account & account, ItemModel * pItemModel);
 
+    const ItemModel * model() const;
+
     QStringList itemsInFilter() const;
 
 Q_SIGNALS:
