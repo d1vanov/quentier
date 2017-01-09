@@ -26,6 +26,7 @@
 #include <openssl/sha.h>
 #include <openssl/hmac.h>
 #include <openssl/conf.h>
+#include <openssl/evp.h>
 #include <QCryptographicHash>
 #include <stdlib.h>
 
@@ -250,8 +251,8 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
     int bytesWritten = 0;
     int cipherTextSize = 0;
 
-    EVP_CIPHER_CTX context;
-    int res = EVP_EncryptInit(&context, EVP_aes_128_cbc(), m_key, m_iv);
+    EVP_CIPHER_CTX * pContext = EVP_CIPHER_CTX_new();
+    int res = EVP_EncryptInit(pContext, EVP_aes_128_cbc(), m_key, m_iv);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("can't encrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
@@ -259,10 +260,11 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
                   << QStringLiteral(": lib: ") << errorLib << QStringLiteral("; func: ") << errorFunc
                   << QStringLiteral(", reason: ") << errorReason);
         free(cipherText);
+        EVP_CIPHER_CTX_free(pContext);
         return false;
     }
 
-    res = EVP_EncryptUpdate(&context, cipherText, &bytesWritten, rawTextToEncrypt, rawTextToEncryptSize);
+    res = EVP_EncryptUpdate(pContext, cipherText, &bytesWritten, rawTextToEncrypt, rawTextToEncryptSize);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("can't encrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
@@ -270,12 +272,13 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
                   << QStringLiteral(": lib: ") << errorLib << QStringLiteral("; func: ") << errorFunc
                   << QStringLiteral(", reason: ") << errorReason);
         free(cipherText);
+        EVP_CIPHER_CTX_free(pContext);
         return false;
     }
 
     cipherTextSize += bytesWritten;
 
-    res = EVP_EncryptFinal(&context, cipherText + bytesWritten, &bytesWritten);
+    res = EVP_EncryptFinal(pContext, cipherText + bytesWritten, &bytesWritten);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("can't encrypt the text using AES algorithm");
         GET_OPENSSL_ERROR;
@@ -283,6 +286,7 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
                   << QStringLiteral(": lib: ") << errorLib << QStringLiteral("; func: ") << errorFunc
                   << QStringLiteral(", reason: ") << errorReason);
         free(cipherText);
+        EVP_CIPHER_CTX_free(pContext);
         return false;
     }
 
@@ -290,8 +294,8 @@ bool EncryptionManagerPrivate::encyptWithAes(const QByteArray & textToEncryptDat
 
     encryptedTextData.append(reinterpret_cast<const char*>(cipherText), cipherTextSize);
 
-    Q_UNUSED(EVP_CIPHER_CTX_cleanup(&context));
     free(cipherText);
+    EVP_CIPHER_CTX_free(pContext);
     return true;
 }
 
@@ -350,8 +354,8 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
     int bytesWritten = 0;
     int decipheredTextSize = 0;
 
-    EVP_CIPHER_CTX context;
-    int res = EVP_DecryptInit(&context, EVP_aes_128_cbc(), m_key, m_iv);
+    EVP_CIPHER_CTX * pContext = EVP_CIPHER_CTX_new();
+    int res = EVP_DecryptInit(pContext, EVP_aes_128_cbc(), m_key, m_iv);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("can't decrypt the text");
         GET_OPENSSL_ERROR;
@@ -359,10 +363,11 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
                   << QStringLiteral(": lib: ") << errorLib << QStringLiteral("; func: ") << errorFunc
                   << QStringLiteral(", reason: ") << errorReason);
         free(decipheredText);
+        EVP_CIPHER_CTX_free(pContext);
         return false;
     }
 
-    res = EVP_DecryptUpdate(&context, decipheredText, &bytesWritten, rawCipherText, rawCipherTextSize);
+    res = EVP_DecryptUpdate(pContext, decipheredText, &bytesWritten, rawCipherText, rawCipherTextSize);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("can't decrypt the text");
         GET_OPENSSL_ERROR;
@@ -370,12 +375,13 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
                   << QStringLiteral(": lib: ") << errorLib << QStringLiteral("; func: ") << errorFunc
                   << QStringLiteral(", reason: ") << errorReason);
         free(decipheredText);
+        EVP_CIPHER_CTX_free(pContext);
         return false;
     }
 
     decipheredTextSize += bytesWritten;
 
-    res = EVP_DecryptFinal(&context, decipheredText + bytesWritten, &bytesWritten);
+    res = EVP_DecryptFinal(pContext, decipheredText + bytesWritten, &bytesWritten);
     if (res != 1) {
         errorDescription = QT_TR_NOOP("can't decrypt the text");
         GET_OPENSSL_ERROR;
@@ -383,14 +389,15 @@ bool EncryptionManagerPrivate::decryptAes(const QString & encryptedText, const Q
                   << QStringLiteral(": lib: ") << errorLib << QStringLiteral("; func: ") << errorFunc
                   << QStringLiteral(", reason: ") << errorReason);
         free(decipheredText);
+        EVP_CIPHER_CTX_free(pContext);
         return false;
     }
 
     decipheredTextSize += bytesWritten;
     decryptedText = QByteArray(reinterpret_cast<const char*>(decipheredText), decipheredTextSize);
 
-    Q_UNUSED(EVP_CIPHER_CTX_cleanup(&context));
     free(decipheredText);
+    EVP_CIPHER_CTX_free(pContext);
     return true;
 }
 
