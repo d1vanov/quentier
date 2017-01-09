@@ -6,12 +6,9 @@ endif()
 
 include_directories(${QEVERCLOUD_INCLUDE_DIRS})
 
-get_property(QEVERCLOUD_LIBRARY_LOCATION_SET TARGET ${QEVERCLOUD_LIBRARIES} PROPERTY LOCATION SET)
-if(QEVERCLOUD_LIBRARY_LOCATION_SET)
+# Not sure why but sometimes CMake fails to recognize that ${QEVERCLOUD_LIBRARIES} is a target and issues a weird error message
+if(TARGET ${QEVERCLOUD_LIBRARIES})
   get_property(QEVERCLOUD_LIBRARY_LOCATION TARGET ${QEVERCLOUD_LIBRARIES} PROPERTY LOCATION)
-endif()
-
-if(QEVERCLOUD_LIBRARY_LOCATION)
   message(STATUS "Found QEverCloud library: ${QEVERCLOUD_LIBRARY_LOCATION}")
 else()
   message(STATUS "Found QEverCloud library")
