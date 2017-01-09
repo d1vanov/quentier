@@ -16,8 +16,8 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_UTILITY_QT4HELPER_H
-#define LIB_QUENTIER_UTILITY_QT4HELPER_H
+#ifndef LIB_QUENTIER_UTILITY_MACROS_H
+#define LIB_QUENTIER_UTILITY_MACROS_H
 
 #include <QtGlobal>
 #include <QString>
@@ -49,7 +49,7 @@
 #endif // Q_STATIC_ASSERT_X
 
 #ifndef QStringLiteral
-#define QStringLiteral(x) QString(QLatin1String(x))
+#define QStringLiteral(x) QString::fromUtf8(x, sizeof(x) - 1)
 #endif
 
 #ifndef Q_NULLPTR
@@ -81,7 +81,7 @@
 #if defined(_MSC_VER) && (_MSC_VER <= 1800)
 #ifdef QStringLiteral
 #undef QStringLiteral
-#define QStringLiteral(x) QString(QLatin1String(x))
+#define QStringLiteral(x) QString::fromUtf8(x, sizeof(x) - 1)
 #endif
 #endif
 
@@ -93,4 +93,4 @@
 #endif
 #endif // Q_DECL_EQ_DELETE
 
-#endif // LIB_QUENTIER_UTILITY_QT4HELPER_H
+#endif // LIB_QUENTIER_UTILITY_MACROS_H

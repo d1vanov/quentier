@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_UTILITY_LIMITED_STACK_H
 #define LIB_QUENTIER_UTILITY_LIMITED_STACK_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QStack>
 
 namespace quentier {

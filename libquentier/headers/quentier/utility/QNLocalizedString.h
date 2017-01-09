@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_UTILITY_LOCALIZED_STRING_H
 
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/Printable.h>
 #include <QString>
 #include <QObject>

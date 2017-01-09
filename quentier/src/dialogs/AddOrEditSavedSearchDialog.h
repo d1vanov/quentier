@@ -20,7 +20,7 @@
 #define QUENTIER_DIALOGS_ADD_OR_EDIT_SAVED_SEARCH_DIALOG_H
 
 #include "../models/SavedSearchModel.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QDialog>
 #include <QPointer>
 #include <QScopedPointer>

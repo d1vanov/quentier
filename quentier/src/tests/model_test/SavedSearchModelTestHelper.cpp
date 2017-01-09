@@ -19,7 +19,7 @@
 #include "SavedSearchModelTestHelper.h"
 #include "../../models/SavedSearchModel.h"
 #include "modeltest.h"
-#include "Macros.h"
+#include "TestMacros.h"
 #include <quentier/utility/SysInfo.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/exception/IQuentierException.h>

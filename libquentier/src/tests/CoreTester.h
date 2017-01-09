@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_TESTS_CORE_TESTER_H
 #define LIB_QUENTIER_TESTS_CORE_TESTER_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QObject>
 
 namespace quentier {

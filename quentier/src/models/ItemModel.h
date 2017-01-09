@@ -19,7 +19,7 @@
 #ifndef QUENTIER_MODELS_ITEM_MODEL_H
 #define QUENTIER_MODELS_ITEM_MODEL_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QAbstractItemModel>
 #include <QStringList>
 

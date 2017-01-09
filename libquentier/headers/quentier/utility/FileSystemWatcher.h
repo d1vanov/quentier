@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_UTILITY_FILE_SYSTEM_WATCHER_H
 #define LIB_QUENTIER_UTILITY_FILE_SYSTEM_WATCHER_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QObject>
 #include <QStringList>
 

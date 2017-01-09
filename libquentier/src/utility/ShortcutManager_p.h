@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_UTILITY_SHORTCUT_MANAGER_PRIVATE_H
 #define LIB_QUENTIER_UTILITY_SHORTCUT_MANAGER_PRIVATE_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QObject>
 #include <QKeySequence>
 

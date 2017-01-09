@@ -17,7 +17,7 @@
  */
 
 #include "SendLocalChangesManager.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>

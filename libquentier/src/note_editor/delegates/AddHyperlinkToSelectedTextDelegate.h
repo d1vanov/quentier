@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_DELEGATES_ADD_HYPERLINK_TO_SELECTED_TEXT_DELEGATE_H
 
 #include "JsResultCallbackFunctor.hpp"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
 #include <QObject>

@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_UTILITY_LRU_CACHE_HPP
 #define LIB_QUENTIER_UTILITY_LRU_CACHE_HPP
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <list>
 #include <cstddef>
 #include <QHash>

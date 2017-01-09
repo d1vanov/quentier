@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_TESTS_NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 #define LIB_QUENTIER_TESTS_NOTE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>

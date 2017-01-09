@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_ENML_ENML_CONVERTER_P_H
 
 #include <quentier/enml/ENMLConverter.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QtGlobal>
 #include <QStringList>

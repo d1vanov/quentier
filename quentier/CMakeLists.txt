@@ -41,7 +41,6 @@ include(QuentierAdditionalCompilerWarnings)
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libquentier/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libquentier/headers)
 
 set(${PROJECT_NAME}_HEADERS

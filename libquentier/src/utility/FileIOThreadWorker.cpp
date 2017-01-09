@@ -17,7 +17,7 @@
  */
 
 #include <quentier/utility/FileIOThreadWorker.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include "FileIOThreadWorker_p.h"
 
 namespace quentier {

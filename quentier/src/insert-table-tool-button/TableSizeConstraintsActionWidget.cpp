@@ -17,7 +17,7 @@
  */
 
 #include "TableSizeConstraintsActionWidget.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QHBoxLayout>
 #include <QDoubleSpinBox>
 #include <QComboBox>

@@ -17,7 +17,7 @@
  */
 
 #include "BasicXMLSyntaxHighlighter.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QTextDocument * parent) :
     QSyntaxHighlighter(parent)

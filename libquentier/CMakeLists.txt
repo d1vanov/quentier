@@ -114,7 +114,7 @@ set(UTILITY_HEADERS
     headers/quentier/utility/QuentierApplication.h
     headers/quentier/utility/QuentierCheckPtr.h
     headers/quentier/utility/QuentierUndoCommand.h
-    headers/quentier/utility/Qt4Helper.h
+    headers/quentier/utility/Macros.h
     headers/quentier/utility/UidGenerator.h
     headers/quentier/utility/Utility.h)
 

@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_DECRYPTION_DIALOG_H
 
 #include <quentier/utility/EncryptionManager.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QDialog>
 #include <QSharedPointer>

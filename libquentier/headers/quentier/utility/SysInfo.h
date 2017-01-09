@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_UTILITY_SYS_INFO_H
 
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QScopedPointer>
 
 namespace quentier {

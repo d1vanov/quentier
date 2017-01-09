@@ -19,7 +19,7 @@
 #ifndef QUENTIER_VIEWS_ITEM_VIEW_H
 #define QUENTIER_VIEWS_ITEM_VIEW_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QTreeView>
 
 namespace quentier {

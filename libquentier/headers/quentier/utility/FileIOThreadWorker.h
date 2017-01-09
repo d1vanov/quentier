@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_UTILITY_FILE_IO_THREAD_WORKER_H
 
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QString>

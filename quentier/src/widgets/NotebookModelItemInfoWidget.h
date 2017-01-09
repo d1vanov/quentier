@@ -19,7 +19,7 @@
 #ifndef QUENTIER_WIDGETS_NOTEBOOK_MODEL_ITEM_INFO_WIDGET_H
 #define QUENTIER_WIDGETS_NOTEBOOK_MODEL_ITEM_INFO_WIDGET_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QWidget>
 
 namespace Ui {

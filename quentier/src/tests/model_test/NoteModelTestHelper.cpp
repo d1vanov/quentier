@@ -19,7 +19,7 @@
 #include "NoteModelTestHelper.h"
 #include "../../models/NoteModel.h"
 #include "modeltest.h"
-#include "Macros.h"
+#include "TestMacros.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/SysInfo.h>
 #include <quentier/exception/IQuentierException.h>

@@ -21,7 +21,7 @@
 
 #include <quentier/types/Account.h>
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 

@@ -19,7 +19,7 @@
 #ifndef QUENTIER_DELEGATES_NOTE_ITEM_DELEGATE_H
 #define QUENTIER_DELEGATES_NOTE_ITEM_DELEGATE_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QStyledItemDelegate>
 #include <QTextDocument>

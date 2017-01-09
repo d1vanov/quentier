@@ -17,7 +17,7 @@
  */
 
 #include "ManualTestingHelper.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QFile>
 
 namespace quentier {

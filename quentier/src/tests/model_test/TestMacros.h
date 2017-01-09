@@ -16,10 +16,10 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_TESTS_MODEL_TEST_MACROS_H
-#define QUENTIER_TESTS_MODEL_TEST_MACROS_H
+#ifndef QUENTIER_TESTS_MODEL_TEST_TEST_MACROS_H
+#define QUENTIER_TESTS_MODEL_TEST_TEST_MACROS_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 #define FAIL(text) \
     QNWARNING(text); \
@@ -41,4 +41,4 @@
         QNWARNING(QStringLiteral("Caught some unknown exception; stack trace: ") + sysInfo.stackTrace()); \
     }
 
-#endif // QUENTIER_TESTS_MODEL_TEST_MACROS_H
+#endif // QUENTIER_TESTS_MODEL_TEST_TEST_MACROS_H

@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_TYPES_DATA_SHARED_NOTE_DATA_H
 #define LIB_QUENTIER_TYPES_DATA_SHARED_NOTE_DATA_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>

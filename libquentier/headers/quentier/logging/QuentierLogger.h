@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_LOGGING_QUENTIER_LOGGER_H
 
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QDebug>
 #include <QString>
 #include <QLatin1String>

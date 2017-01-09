@@ -1,7 +1,7 @@
 #ifndef QUENTIER_MODELS_COLUMN_CHANGE_REROUTER_H
 #define QUENTIER_MODELS_COLUMN_CHANGE_REROUTER_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QAbstractItemModel>
 
 /**

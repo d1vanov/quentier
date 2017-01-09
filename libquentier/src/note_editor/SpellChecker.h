@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_H
 
 #include "SpellCheckerDictionariesFinder.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QStringList>

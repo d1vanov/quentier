@@ -20,7 +20,7 @@
 #define QUENTIER_TABLE_SETTINGS_DIALOG_H
 
 #include <QDialog>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 namespace Ui {
 class TableSettingsDialog;

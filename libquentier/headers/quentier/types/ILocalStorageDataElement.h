@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TYPES_I_LOCAL_STORAGE_DATA_ELEMENT_H
 
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/UidGenerator.h>
 #include <QString>
 #include <QUuid>

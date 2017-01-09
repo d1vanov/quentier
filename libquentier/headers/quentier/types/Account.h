@@ -2,7 +2,7 @@
 #define LIB_QUENTIER_TYPES_ACCOUNT_H
 
 #include <quentier/utility/Printable.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QString>
 #include <QSharedDataPointer>
 

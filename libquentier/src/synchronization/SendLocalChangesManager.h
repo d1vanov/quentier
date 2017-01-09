@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_SYNCHRONIZATION_SEND_LOCAL_CHANGES_MANAGER_H
 
 #include "NoteStore.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Tag.h>

@@ -3,7 +3,7 @@
 
 #include "INoteEditorUndoCommand.h"
 #include "../NoteEditorPage.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/types/Resource.h>
 
 namespace quentier {

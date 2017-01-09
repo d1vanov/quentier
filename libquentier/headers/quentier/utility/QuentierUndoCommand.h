@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_UTILITY_QUENTIER_UNDO_COMMAND_H
 #define LIB_QUENTIER_UTILITY_QUENTIER_UNDO_COMMAND_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QObject>
 #include <QUndoCommand>

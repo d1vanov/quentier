@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_NOTE_EDITOR_H
 
 #include <quentier/types/Note.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QWidget>

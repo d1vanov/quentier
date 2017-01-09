@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TYPES_DATA_FAVORITABLE_DATA_ELEMENT_DATA_H
 
 #include "NoteStoreDataElementData.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 namespace quentier {
 

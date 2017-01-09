@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_DELEGATES_RENAME_RESOURCE_DELEGATE_H
 
 #include "JsResultCallbackFunctor.hpp"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>

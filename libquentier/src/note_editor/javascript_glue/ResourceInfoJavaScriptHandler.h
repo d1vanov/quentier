@@ -21,7 +21,7 @@
 
 #include <QObject>
 #include <QString>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 namespace quentier {
 

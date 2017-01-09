@@ -1,7 +1,7 @@
 #ifndef QUENTIER_DELEGATES_ABSTRACT_STYLED_ITEM_DELEGATE_H
 #define QUENTIER_DELEGATES_ABSTRACT_STYLED_ITEM_DELEGATE_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QStyledItemDelegate>
 
 namespace quentier {

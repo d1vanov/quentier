@@ -19,7 +19,7 @@
 #ifndef QUENTIER_NOTE_EDITOR_FIND_AND_REPLACE_WIDGET_H
 #define QUENTIER_NOTE_EDITOR_FIND_AND_REPLACE_WIDGET_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QWidget>
 #include <QString>
 

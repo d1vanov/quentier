@@ -19,7 +19,7 @@
 #ifndef QUENTIER_MODELS_NOTE_FILTER_NODEL_H
 #define QUENTIER_MODELS_NOTE_FILTER_NODEL_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/utility/Printable.h>
 #include <QSortFilterProxyModel>

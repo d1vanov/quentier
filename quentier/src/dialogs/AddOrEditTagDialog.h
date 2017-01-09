@@ -2,7 +2,7 @@
 #define QUENTIER_DIALOGS_ADD_OR_EDIT_TAG_DIALOG_H
 
 #include "../models/TagModel.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QDialog>
 #include <QPointer>
 

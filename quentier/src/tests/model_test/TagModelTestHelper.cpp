@@ -19,7 +19,7 @@
 #include "TagModelTestHelper.h"
 #include "../../models/TagModel.h"
 #include "modeltest.h"
-#include "Macros.h"
+#include "TestMacros.h"
 #include <quentier/utility/SysInfo.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/UidGenerator.h>

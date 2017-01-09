@@ -2,7 +2,7 @@
 #define QUENTIER_DIALOGS_ADD_NOTEBOOK_DIALOG_H
 
 #include "../models/NotebookModel.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QDialog>
 #include <QPointer>
 

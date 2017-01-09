@@ -2,7 +2,7 @@
 #define LIB_QUENTIER_LOGGING_QUENTIER_LOGGER_PRIVATE_H
 
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QObject>
 #include <QString>
 #include <QFile>

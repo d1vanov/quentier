@@ -19,7 +19,7 @@
 #ifndef QUENTIER_WIDGETS_NEW_LIST_ITEM_LINE_EDIT_H
 #define QUENTIER_WIDGETS_NEW_LIST_ITEM_LINE_EDIT_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QLineEdit>
 #include <QPointer>
 #include <QVector>

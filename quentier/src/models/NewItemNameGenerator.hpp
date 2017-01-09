@@ -20,7 +20,7 @@
 #define QUENTIER_MODELS_NEW_ITEM_NAME_GENERATOR_HPP
 
 #include <QString>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 namespace quentier {
 

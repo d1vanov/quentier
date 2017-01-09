@@ -51,7 +51,7 @@
 #ifndef FLOWLAYOUT_H
 #define FLOWLAYOUT_H
 
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QLayout>
 #include <QRect>
 #include <QStyle>

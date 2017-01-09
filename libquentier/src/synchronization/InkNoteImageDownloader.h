@@ -22,7 +22,7 @@
 #include <QObject>
 #include <QRunnable>
 #include <quentier/utility/QNLocalizedString.h>
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 
 namespace quentier {
 

@@ -22,7 +22,7 @@
 #include "../models/NoteCache.h"
 #include "../models/NotebookCache.h"
 #include "../models/TagCache.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>

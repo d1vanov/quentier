@@ -17,7 +17,7 @@
  */
 
 #include "TableSizeSelector.h"
-#include <quentier/utility/Qt4Helper.h>
+#include <quentier/utility/Macros.h>
 #include <QPainter>
 #include <QMouseEvent>
 #include <QToolTip>
