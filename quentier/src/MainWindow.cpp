@@ -1660,6 +1660,55 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
     appSettings.endGroup();
 }
 
+void MainWindow::onNoteSortingModeChanged(int index)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNoteSortingModeChanged: index = ") << index);
+
+    // TODO: persist the selected sorting mode in the app settings
+
+    if (Q_UNLIKELY(!m_pNoteModel)) {
+        QNDEBUG(QStringLiteral("No note model, ignoring the change"));
+        return;
+    }
+
+    switch(index)
+    {
+    case NoteSortingModes::CreatedAscending:
+        m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
+        break;
+    case NoteSortingModes::CreatedDescending:
+        m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp, Qt::DescendingOrder);
+        break;
+    case NoteSortingModes::ModifiedAscending:
+        m_pNoteModel->sort(NoteModel::Columns::ModificationTimestamp, Qt::AscendingOrder);
+        break;
+    case NoteSortingModes::ModifiedDescending:
+        m_pNoteModel->sort(NoteModel::Columns::ModificationTimestamp, Qt::DescendingOrder);
+        break;
+    case NoteSortingModes::TitleAscending:
+        m_pNoteModel->sort(NoteModel::Columns::Title, Qt::AscendingOrder);
+        break;
+    case NoteSortingModes::TitleDescending:
+        m_pNoteModel->sort(NoteModel::Columns::Title, Qt::DescendingOrder);
+        break;
+    case NoteSortingModes::SizeAscending:
+        m_pNoteModel->sort(NoteModel::Columns::Size, Qt::AscendingOrder);
+        break;
+    case NoteSortingModes::SizeDescending:
+        m_pNoteModel->sort(NoteModel::Columns::Size, Qt::DescendingOrder);
+        break;
+    default:
+        {
+            QNLocalizedString error = QNLocalizedString("Internal error: got unknown note sorting order, fallback to the default", this);
+            QNWARNING(error << QStringLiteral(", sorting mode index = ") << index);
+            onSetStatusBarText(error.localizedString());
+
+            m_pNoteModel->sort(NoteModel::Columns::CreationTimestamp, Qt::AscendingOrder);
+            break;
+        }
+    }
+}
+
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
@@ -2571,6 +2620,26 @@ void MainWindow::setupViews()
     QListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
     pNoteListView->setItemDelegate(new NoteItemDelegate(pNoteListView));
+
+    QStringList noteSortingModes;
+    noteSortingModes.reserve(8);
+    noteSortingModes << tr("Created (ascending)");
+    noteSortingModes << tr("Created (descending)");
+    noteSortingModes << tr("Modified (ascending)");
+    noteSortingModes << tr("Modified (descending)");
+    noteSortingModes << tr("Title (ascending)");
+    noteSortingModes << tr("Title (descending)");
+    noteSortingModes << tr("Size (ascending)");
+    noteSortingModes << tr("Size (descending)");
+
+    QStringListModel * pNoteSortingModeModel = new QStringListModel(this);
+    pNoteSortingModeModel->setStringList(noteSortingModes);
+
+    m_pUI->noteSortingModeComboBox->setModel(pNoteSortingModeModel);
+    m_pUI->noteSortingModeComboBox->setCurrentIndex(0);     // TODO: later should save & restore the last used sorting mode
+
+    QObject::connect(m_pUI->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(onNoteSortingModeChanged(int)));
 
     ItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);

@@ -174,6 +174,8 @@ private Q_SLOTS:
 
     void onFiltersViewTogglePushButtonPressed();
 
+    void onNoteSortingModeChanged(int index);
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();
@@ -342,6 +344,22 @@ private:
 
     NoteFilterModel *       m_pNoteFilterModel;
     NoteFiltersManager *    m_pNoteFiltersManager;
+
+    struct NoteSortingModes
+    {
+        // This enum defines the order in which the items are stored in the combobox determining the notes sorting order
+        enum type
+        {
+            CreatedAscending = 0,
+            CreatedDescending,
+            ModifiedAscending,
+            ModifiedDescending,
+            TitleAscending,
+            TitleDescending,
+            SizeAscending,
+            SizeDescending
+        };
+    };
 
     NoteEditorTabWidgetManager *    m_pNoteEditorTabWidgetManager;
 
