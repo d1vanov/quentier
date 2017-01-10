@@ -115,7 +115,9 @@ QSize FavoriteItemDelegate::sizeHint(const QStyleOptionViewItem & option,
 {
     int column = index.column();
     if (column == FavoritesModel::Columns::Type) {
-        return m_iconSize;
+        QSize size = m_iconSize;
+        size.setWidth(size.width() + 15);    // Some margin so that the icon is not tightly near the text
+        return size;
     }
     else {
         return favoriteItemNameSizeHint(option, index);
