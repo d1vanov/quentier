@@ -97,6 +97,7 @@ using quentier::FilterBySavedSearchWidget;
     onSetStatusBarText(error)
 
 #define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
+#define NOTE_SORTING_MODE_KEY QStringLiteral("NoteSortingMode")
 
 using namespace quentier;
 
@@ -1664,7 +1665,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSortingModeChanged: index = ") << index);
 
-    // TODO: persist the selected sorting mode in the app settings
+    persistChosenNoteSortingMode(index);
 
     if (Q_UNLIKELY(!m_pNoteModel)) {
         QNDEBUG(QStringLiteral("No note model, ignoring the change"));
@@ -2636,10 +2637,14 @@ void MainWindow::setupViews()
     pNoteSortingModeModel->setStringList(noteSortingModes);
 
     m_pUI->noteSortingModeComboBox->setModel(pNoteSortingModeModel);
-    m_pUI->noteSortingModeComboBox->setCurrentIndex(0);     // TODO: later should save & restore the last used sorting mode
-
     QObject::connect(m_pUI->noteSortingModeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onNoteSortingModeChanged(int)));
+
+    restoreNoteSortingMode();
+    if (m_pUI->noteSortingModeComboBox->currentIndex() < 0) {
+        // Couldn't restore, fallback to the default
+        m_pUI->noteSortingModeComboBox->setCurrentIndex(0);
+    }
 
     ItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);
@@ -2882,6 +2887,67 @@ void MainWindow::setupConsumerKeyAndSecret(QString & consumerKey, QString & cons
 
     consumerSecretObf = qUncompress(consumerSecretObf);
     consumerSecret = QString::fromUtf8(consumerSecretObf.constData(), consumerSecretObf.size());
+}
+
+void MainWindow::persistChosenNoteSortingMode(int index)
+{
+    QNDEBUG(QStringLiteral("MainWindow::persistChosenNoteSortingMode: index = ") << index);
+
+    QString accountKey = accountToKey(*m_pAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't persist "
+                                                    "the selected note sorting mode, "
+                                                    "can't convert the current account "
+                                                    "to the string key", this);
+        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/NoteListView"));
+    appSettings.setValue(NOTE_SORTING_MODE_KEY, index);
+    appSettings.endGroup();
+}
+
+void MainWindow::restoreNoteSortingMode()
+{
+    QNDEBUG(QStringLiteral("MainWindow::restoreNoteSortingMode"));
+
+    QString accountKey = accountToKey(*m_pAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't restore "
+                                                    "the last used note sorting mode, "
+                                                    "can't convert the current account "
+                                                    "to the string key", this);
+        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(accountKey + QStringLiteral("/NoteListView"));
+    QVariant data = appSettings.value(NOTE_SORTING_MODE_KEY);
+    appSettings.endGroup();
+
+    if (data.isNull()) {
+        QNDEBUG(QStringLiteral("No persisted note sorting mode, nothing to restore"));
+        return;
+    }
+
+    bool conversionResult = false;
+    int index = data.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't restore "
+                                                    "the last used note sorting mode, "
+                                                    "can't convert the persisted setting "
+                                                    "to the integer index", this);
+        QNWARNING(error << QStringLiteral(", persisted data: ") << data);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
+
+    m_pUI->noteSortingModeComboBox->setCurrentIndex(index);
 }
 
 template <class T>

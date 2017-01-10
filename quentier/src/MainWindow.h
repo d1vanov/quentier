@@ -246,6 +246,9 @@ private:
     void persistChosenIconTheme(const QString & iconThemeName);
     void refreshChildWidgetsThemeIcons();
 
+    void persistChosenNoteSortingMode(int index);
+    void restoreNoteSortingMode();
+
     template <class T>
     void refreshThemeIcons();
 
