@@ -59,6 +59,8 @@ QT_FORWARD_DECLARE_CLASS(ColumnChangeRerouter)
 namespace quentier {
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteEditorTabWidgetManager)
+QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
+QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 }
 
 using namespace quentier;
@@ -337,6 +339,9 @@ private:
     FavoritesModel *        m_pFavoritesModel;
 
     QStandardItemModel      m_blankModel;
+
+    NoteFilterModel *       m_pNoteFilterModel;
+    NoteFiltersManager *    m_pNoteFiltersManager;
 
     NoteEditorTabWidgetManager *    m_pNoteEditorTabWidgetManager;
 
