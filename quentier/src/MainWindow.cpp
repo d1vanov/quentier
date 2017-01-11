@@ -187,6 +187,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     connectActionsToSlots();
     connectViewButtonsToSlots();
     connectNoteSearchActionsToSlots();
+    connectToolbarButtonsToSlots();
 
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
@@ -372,6 +373,14 @@ void MainWindow::connectNoteSearchActionsToSlots()
                      this, QNSLOT(MainWindow,onNoteSearchQueryReady));
     QObject::connect(m_pUI->saveSearchPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onSaveNoteSearchQueryButtonPressed));
+}
+
+void MainWindow::connectToolbarButtonsToSlots()
+{
+    QNDEBUG(QStringLiteral("MainWindow::connectToolbarButtonsToSlots"));
+
+    QObject::connect(m_pUI->addNotePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onNewNoteButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -1708,6 +1717,57 @@ void MainWindow::onNoteSortingModeChanged(int index)
             break;
         }
     }
+}
+
+void MainWindow::onNewNoteButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNewNoteButtonPressed"));
+
+    if (Q_UNLIKELY(!m_pNoteEditorTabWidgetManager)) {
+        QNDEBUG(QStringLiteral("No note editor tab widget manager, probably the button was pressed too quickly on startup, skipping"));
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNoteModel)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: note model is unexpectedly null")))
+        return;
+    }
+
+    if (Q_UNLIKELY(!m_pNotebookModel)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: notebook model is unexpectedly null")))
+        return;
+    }
+
+    QModelIndex currentNotebookIndex = m_pUI->notebooksTreeView->currentlySelectedItemIndex();
+    if (Q_UNLIKELY(!currentNotebookIndex.isValid())) {
+        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
+                                       tr("Please select the notebook in which you want to create the note; "
+                                          "if you don't have any notebooks yet, create one")))
+        return;
+    }
+
+    const NotebookModelItem * pNotebookModelItem = m_pNotebookModel->itemForIndex(currentNotebookIndex);
+    if (Q_UNLIKELY(!pNotebookModelItem)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: can't find the notebook model item "
+                                                  "corresponding to the currently selected notebook")))
+        return;
+    }
+
+    if (Q_UNLIKELY(pNotebookModelItem->type() != NotebookModelItem::Type::Notebook)) {
+        Q_UNUSED(informationMessageBox(this, tr("No notebook is selected"),
+                                       tr("Please select the notebook in which you want to create the note (currently "
+                                          "the notebook stack seems to be selected)")))
+        return;
+    }
+
+    const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
+    if (Q_UNLIKELY(!pNotebookItem)) {
+        Q_UNUSED(internalErrorMessageBox(this, tr("Can't create a new note: the notebook model item has notebook type "
+                                                  "but null pointer to the actual notebook item")))
+        return;
+    }
+
+    m_pNoteEditorTabWidgetManager->createNewNote(pNotebookItem->localUid(), pNotebookItem->guid());
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)

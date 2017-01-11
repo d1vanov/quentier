@@ -1253,6 +1253,11 @@ void NoteEditorPrivate::onTextCursorFontSizeChanged(int fontSize)
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId)
 {
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::onWriteFileRequestProcessed: success = ")
+            << (success ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error description: ") << errorDescription
+            << QStringLiteral(", request id = ") << requestId);
+
     if (requestId == m_writeNoteHtmlToFileRequestId)
     {
         QNDEBUG(QStringLiteral("Write note html to file completed: success = ") << (success ? QStringLiteral("true") : QStringLiteral("false"))
@@ -2546,9 +2551,9 @@ void NoteEditorPrivate::noteToEditorContent()
     }
 
     if (!m_pNote->hasContent()) {
-        QNDEBUG(QStringLiteral("Note without content was inserted into NoteEditor"));
-        clearEditorContent();
-        return;
+        QNDEBUG(QStringLiteral("Note without content was inserted into the NoteEditor, "
+                               "setting up the empty note content"));
+        m_pNote->setContent(QStringLiteral("<en-note><div></div></en-note>"));
     }
 
     m_htmlCachedMemory.resize(0);
@@ -4260,9 +4265,9 @@ void NoteEditorPrivate::writeNotePageFile(const QString & html)
     m_writeNoteHtmlToFileRequestId = QUuid::createUuid();
     m_pendingIndexHtmlWritingToFile = true;
     QString pagePath = noteEditorPagePath();
+    QNTRACE(QStringLiteral("Emitting the request to write the note html to file: request id = ") << m_writeNoteHtmlToFileRequestId);
     emit writeNoteHtmlToFile(pagePath, html.toLocal8Bit(),
                              m_writeNoteHtmlToFileRequestId, /* append = */ false);
-    QNTRACE(QStringLiteral("Emitted the request to write the note html to file: id = ") << m_writeNoteHtmlToFileRequestId);
 }
 
 bool NoteEditorPrivate::parseEncryptedTextContextMenuExtraData(const QStringList & extraData, QString & encryptedText,
@@ -4796,7 +4801,8 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
             }
 
             if (!noteChanged) {
-                QNDEBUG(QStringLiteral("Haven't found the updates within the note which would be sufficient enough to reload the note editor"));
+                QNDEBUG(QStringLiteral("Haven't found the updates within the note which would be sufficient enough "
+                                       "to reload the note editor"));
                 *m_pNote = note;
                 noteToEditorContent();
                 return;

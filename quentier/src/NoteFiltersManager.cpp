@@ -391,6 +391,9 @@ bool NoteFiltersManager::setFilterBySavedSearch()
             << QStringLiteral("\nSaved search item: ") << *pItem);
     emit findNoteLocalUidsForNoteSearchQuery(query, m_findNoteLocalUidsForSavedSearchQueryRequestId);
 
+    m_filterByTagWidget.setDisabled(true);
+    m_filterByNotebookWidget.setDisabled(true);
+
     return true;
 }
 

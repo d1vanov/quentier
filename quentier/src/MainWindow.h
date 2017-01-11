@@ -174,7 +174,9 @@ private Q_SLOTS:
 
     void onFiltersViewTogglePushButtonPressed();
 
+    // Various note-related slots
     void onNoteSortingModeChanged(int index);
+    void onNewNoteButtonPressed();
 
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
@@ -229,6 +231,7 @@ private:
     void connectActionsToSlots();
     void connectViewButtonsToSlots();
     void connectNoteSearchActionsToSlots();
+    void connectToolbarButtonsToSlots();
 
     void addMenuActionsToMainWindow();
 

@@ -24,7 +24,10 @@
 #include "models/TagCache.h"
 #include <quentier/types/Account.h>
 #include <quentier/utility/LRUCache.hpp>
+#include <quentier/types/Note.h>
 #include <QTabWidget>
+#include <QSet>
+#include <QUuid>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -57,13 +60,21 @@ public:
 
     void addNote(const QString & noteLocalUid);
 
+    void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid);
+
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
+
+    // private signals
+    void requestAddNote(Note note, QUuid requestId);
 
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
     void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);
     void onNoteEditorTabCloseRequested(int tabIndex);
+
+    void onAddNoteComplete(Note note, QUuid requestId);
+    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
@@ -71,6 +82,11 @@ private:
 
 private:
     virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
+
+    void connectToLocalStorage();
+    void disconnectFromLocalStorage();
+
+    QString shortenTabName(const QString & tabName) const;
 
 private:
     Account                             m_currentAccount;
@@ -86,6 +102,8 @@ private:
     int                                 m_maxNumNotes;
 
     boost::circular_buffer<QString>     m_shownNoteLocalUids;
+
+    QSet<QUuid>                         m_createNoteRequestIds;
 };
 
 } // namespace quentier

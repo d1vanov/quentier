@@ -20,9 +20,9 @@
 #include "models/TagModel.h"
 #include "widgets/NoteEditorWidget.h"
 #include "widgets/TabWidget.h"
-#include <quentier/types/Note.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/DesktopServices.h>
 #include <QUndoStack>
 #include <QTabBar>
 #include <QCloseEvent>
@@ -30,6 +30,7 @@
 
 #define DEFAULT_MAX_NUM_NOTES (5)
 #define BLANK_NOTE_KEY QStringLiteral("BlankNoteId")
+#define MAX_TAB_NAME_SIZE (10)
 
 namespace quentier {
 
@@ -47,7 +48,8 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_pTabWidget(tabWidget),
     m_pBlankNoteEditor(Q_NULLPTR),
     m_maxNumNotes(-1),
-    m_shownNoteLocalUids()
+    m_shownNoteLocalUids(),
+    m_createNoteRequestIds()
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup(QStringLiteral("NoteEditor"));
@@ -159,6 +161,30 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
     insertNoteEditorWidget(pNoteEditorWidget);
 }
 
+void NoteEditorTabWidgetManager::createNewNote(const QString & notebookLocalUid, const QString & notebookGuid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::createNewNote: notebook local uid = ")
+            << notebookLocalUid << QStringLiteral(", notebook guid = ") << notebookGuid);
+
+    Note newNote;
+    newNote.setNotebookLocalUid(notebookLocalUid);
+    newNote.setLocal(m_currentAccount.type() == Account::Type::Local);
+    newNote.setDirty(true);
+    newNote.setContent(QStringLiteral("<en-note><div></div></en-note>"));
+
+    if (!notebookGuid.isEmpty()) {
+        newNote.setNotebookGuid(notebookGuid);
+    }
+
+    connectToLocalStorage();
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_createNoteRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to add a new note to the local storage: request id = ")
+            << requestId << QStringLiteral(", note = ") << newNote);
+    emit requestAddNote(newNote, requestId);
+}
+
 void NoteEditorTabWidgetManager::onNoteEditorWidgetResolved()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteEditorWidgetResolved"));
@@ -195,7 +221,8 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
             continue;
         }
 
-        m_pTabWidget->setTabText(i, titleOrPreview);
+        QString tabName = shortenTabName(titleOrPreview);
+        m_pTabWidget->setTabText(i, tabName);
         return;
     }
 
@@ -208,7 +235,7 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
 {
     if (m_pTabWidget->count() == 1)
     {
-        // We shouldn't have ended up here really but if we have, let's try to play nice
+        // We shouldn't have ended up here really but if we have, let's try to play it nice
         NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
         if (Q_UNLIKELY(!pNoteEditorWidget)) {
             QNWARNING(QStringLiteral("Detected attempt to close the note editor tab but can't cast the tab widget's tab to note editor"));
@@ -228,22 +255,71 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
     m_pTabWidget->removeTab(tabIndex);
 }
 
+void NoteEditorTabWidgetManager::onAddNoteComplete(Note note, QUuid requestId)
+{
+    auto it = m_createNoteRequestIds.find(requestId);
+    if (it == m_createNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onAddNoteComplete: request id = ")
+            << requestId << QStringLiteral(", note: ") << note);
+
+    Q_UNUSED(m_createNoteRequestIds.erase(it))
+    disconnectFromLocalStorage();
+
+    m_noteCache.put(note.localUid(), note);
+    addNote(note.localUid());
+}
+
+void NoteEditorTabWidgetManager::onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
+{
+    auto it = m_createNoteRequestIds.find(requestId);
+    if (it == m_createNoteRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING(QStringLiteral("NoteEditorTabWidgetManager::onAddNoteFailed: request id = ")
+              << requestId << QStringLiteral(", note: ") << note << QStringLiteral("\nError description: ")
+              << errorDescription);
+
+    Q_UNUSED(m_createNoteRequestIds.erase(it))
+    disconnectFromLocalStorage();
+
+    Q_UNUSED(internalErrorMessageBox(m_pTabWidget,
+                                     tr("Note creation in local storage has failed") +
+                                     QStringLiteral(": ") + errorDescription.localizedString()))
+}
+
 void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::insertNoteEditorWidget: ") << pNoteEditorWidget->noteLocalUid());
 
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,titleOrPreviewChanged,QString),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteTitleOrPreviewTextChanged,QString));
+    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,resolved),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetResolved));
 
-    QString titleOrPreview = pNoteEditorWidget->titleOrPreview();
-    Q_UNUSED(m_pTabWidget->addTab(pNoteEditorWidget, titleOrPreview))
+    QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
+    Q_UNUSED(m_pTabWidget->addTab(pNoteEditorWidget, tabName))
 
     m_shownNoteLocalUids.push_back(pNoteEditorWidget->noteLocalUid());
 
     int currentNumNotes = numNotes();
-    if (currentNumNotes <= m_maxNumNotes) {
+    if (currentNumNotes <= m_maxNumNotes)
+    {
         QNDEBUG(QStringLiteral("The addition of note ") << pNoteEditorWidget->noteLocalUid()
                 << QStringLiteral(" doesn't cause the overflow of max allowed number of note editor tabs"));
+
+        if (currentNumNotes >= 1) {
+            m_pTabWidget->tabBar()->show();
+            m_pTabWidget->setTabsClosable(true);
+        }
+        else {
+            m_pTabWidget->tabBar()->hide();
+            m_pTabWidget->setTabsClosable(false);
+        }
+
         return;
     }
 
@@ -325,6 +401,42 @@ bool NoteEditorTabWidgetManager::eventFilter(QObject * pWatched, QEvent * pEvent
     }
 
     return false;
+}
+
+void NoteEditorTabWidgetManager::connectToLocalStorage()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::connectToLocalStorage"));
+
+    QObject::connect(this, QNSIGNAL(NoteEditorTabWidgetManager,requestAddNote,Note,QUuid),
+                     &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteComplete,Note,QUuid));
+    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,QNLocalizedString,QUuid));
+}
+
+void NoteEditorTabWidgetManager::disconnectFromLocalStorage()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::disconnectFromLocalStorage"));
+
+    QObject::disconnect(this, QNSIGNAL(NoteEditorTabWidgetManager,requestAddNote,Note,QUuid),
+                        &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
+    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
+                        this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteComplete,Note,QUuid));
+    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
+                        this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,QNLocalizedString,QUuid));
+}
+
+QString NoteEditorTabWidgetManager::shortenTabName(const QString & tabName) const
+{
+    if (tabName.size() <= MAX_TAB_NAME_SIZE) {
+        return tabName;
+    }
+
+    QString result = tabName;
+    result.truncate(std::max(MAX_TAB_NAME_SIZE - 3, 0));
+    result += QStringLiteral("...");
+    return result;
 }
 
 } // namespace quentier

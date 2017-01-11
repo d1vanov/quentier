@@ -46,7 +46,7 @@ QuentierFileLogWriter::QuentierFileLogWriter(const MaxSizeBytes & maxSizeBytes,
                           QStringLiteral("-log.txt");
     m_logFile.setFileName(logFileName);
 
-    bool opened = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered);
+    bool opened = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered | QIODevice::Text);
     if (Q_UNLIKELY(!opened)) {
         QNLocalizedString error = QT_TR_NOOP("Can't open the log file for writing/appending");
         error += QStringLiteral(": ");
@@ -134,7 +134,7 @@ void QuentierFileLogWriter::rotate()
 
     // 3) Open the new file
     m_logFile.setFileName(logFileDirPath + QStringLiteral("/") + QApplication::applicationName() + QStringLiteral("-log.txt"));
-    bool opened = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered);
+    bool opened = m_logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Unbuffered | QIODevice::Text);
     if (Q_UNLIKELY(!opened)) {
         std::cerr << "Can't open the renamed/rotated libquentier log file, error: " << qPrintable(m_logFile.errorString())
                   << " (error code " << qPrintable(QString::number(m_logFile.error())) << ")\n";

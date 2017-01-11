@@ -1428,7 +1428,7 @@ void NoteEditorWidget::clear()
     m_pCurrentNotebook.reset(Q_NULLPTR);
     m_pUi->noteEditor->clear();
     m_pUi->tagNameLabelsContainer->clear();
-    m_pUi->noteNameLabel->clear();
+    m_pUi->noteNameLineEdit->clear();
 
     m_lastNoteTitleOrPreviewText.clear();
 
@@ -1450,11 +1450,13 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
     QNDEBUG(QStringLiteral("NoteEditorWidget::setCurrentNoteAndNotebook"));
     QNTRACE(QStringLiteral("Note: ") << note << QStringLiteral("\nNotebook: ") << notebook);
 
+    m_pUi->noteNameLineEdit->show();
+    m_pUi->tagNameLabelsContainer->show();
+
     if (note.hasTitle())
     {
         QString title = note.title();
-        m_pUi->noteNameLabel->setText(title);
-        m_pUi->noteNameLabel->show();
+        m_pUi->noteNameLineEdit->setText(title);
         if (m_lastNoteTitleOrPreviewText != title) {
             m_lastNoteTitleOrPreviewText = title;
             emit titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
@@ -1462,8 +1464,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
     }
     else
     {
-        m_pUi->noteNameLabel->clear();
-        m_pUi->noteNameLabel->hide();
+        m_pUi->noteNameLineEdit->clear();
 
         QString previewText;
         if (note.hasContent()) {
@@ -1528,7 +1529,7 @@ void NoteEditorWidget::setupBlankEditor()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::setupBlankEditor"));
 
-    m_pUi->noteNameLabel->hide();
+    m_pUi->noteNameLineEdit->hide();
     m_pUi->tagNameLabelsContainer->hide();
 
     QString initialHtml = blankPageHtml();
