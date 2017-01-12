@@ -739,6 +739,9 @@ QVariant NotebookModel::data(const QModelIndex & index, int role) const
     case Columns::FromLinkedNotebook:
         column = Columns::FromLinkedNotebook;
         break;
+    case Columns::NumNotesPerNotebook:
+        column = Columns::NumNotesPerNotebook;
+        break;
     default:
         return QVariant();
     }
@@ -3277,26 +3280,29 @@ bool NotebookModel::updateNoteCountPerNotebookIndex(const NotebookItem & item, c
         return false;
     }
 
-    const NotebookModelItem * modelItem = &(modelItemIt.value());
+    const NotebookModelItem * pModelItem = &(modelItemIt.value());
 
-    const NotebookModelItem * parentItem = modelItem->parent();
-    if (Q_UNLIKELY(!parentItem)) {
-        QNWARNING(QStringLiteral("Can't find the parent notebook model item for the notebook item into which the note was inserted: ") << *modelItem);
+    const NotebookModelItem * pParentItem = pModelItem->parent();
+    if (Q_UNLIKELY(!pParentItem)) {
+        QNWARNING(QStringLiteral("Can't find the parent notebook model item for the notebook item into which the note was inserted: ")
+                  << *pModelItem);
         return false;
     }
 
-    int row = parentItem->rowForChild(modelItem);
+    int row = pParentItem->rowForChild(pModelItem);
     if (Q_UNLIKELY(row < 0)) {
         QNWARNING(QStringLiteral("Can't find the row of the child notebook model item within its parent model item: parent item = ")
-                  << *parentItem << QStringLiteral("\nChild item = ") << *modelItem);
+                  << *pParentItem << QStringLiteral("\nChild item = ") << *pModelItem);
         return false;
     }
 
     NotebookDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
     localUidIndex.replace(it, item);
 
-    IndexId modelItemId = idForItem(*modelItem);
+    IndexId modelItemId = idForItem(*pModelItem);
 
+    QNTRACE(QStringLiteral("Emitting num notes per notebook update dataChanged signal: row = ") << row
+            << QStringLiteral(", model item: ") << *pModelItem);
     QModelIndex modelIndexFrom = createIndex(row, Columns::NumNotesPerNotebook, modelItemId);
     QModelIndex modelIndexTo = createIndex(row, Columns::NumNotesPerNotebook, modelItemId);
     emit dataChanged(modelIndexFrom, modelIndexTo);
