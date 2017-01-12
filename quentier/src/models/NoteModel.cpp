@@ -55,7 +55,8 @@ NoteModel::NoteModel(const Account & account, LocalStorageManagerThreadWorker & 
     m_noteItemsPendingNotebookDataUpdate(),
     m_tagDataByTagLocalUid(),
     m_findTagRequestForTagLocalUid(),
-    m_tagLocalUidToNoteLocalUid()
+    m_tagLocalUidToNoteLocalUid(),
+    m_allNotesListed(false)
 {
     createConnections(localStorageManagerThreadWorker);
     requestNotesList();
@@ -786,7 +787,11 @@ void NoteModel::onListNotesComplete(LocalStorageManager::ListObjectsOptions flag
         QNTRACE(QStringLiteral("The number of found notes matches the limit, requesting more notes from the local storage"));
         m_listNotesOffset += limit;
         requestNotesList();
+        return;
     }
+
+    m_allNotesListed = true;
+    emit notifyAllNotesListed();
 }
 
 void NoteModel::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
@@ -1564,6 +1569,10 @@ void NoteModel::onNoteAddedOrUpdated(const Note & note)
                     << QStringLiteral(", request id = ") << requestId);
             emit findNotebook(notebook, requestId);
         }
+        else
+        {
+            QNTRACE(QStringLiteral("The request to find notebook for this note has already been sent"));
+        }
 
         return;
     }
@@ -1631,7 +1640,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         switch(m_includedNotes)
         {
         case IncludedNotes::All:
-                break;
+            break;
         case IncludedNotes::Deleted:
             {
                 if (item.deletionTimestamp() == 0) {
@@ -1650,7 +1659,15 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             }
         }
 
+
+        int row = static_cast<int>(localUidIndex.size());
+        beginInsertRows(QModelIndex(), row, row);
         Q_UNUSED(localUidIndex.insert(item))
+        endInsertRows();
+
+        emit layoutAboutToBeChanged();
+        updateItemRowWithRespectToSorting(item);
+        emit layoutChanged();
     }
     else
     {

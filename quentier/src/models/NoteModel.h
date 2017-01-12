@@ -93,6 +93,8 @@ public:
 
     QModelIndex createNoteItem(const QString & notebookLocalUid);
 
+    bool allNotesListed() const { return m_allNotesListed; }
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -113,6 +115,8 @@ public:
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
+
+    void notifyAllNotesListed();
 
 // private signals
     void addNote(Note note, QUuid requestId);
@@ -276,6 +280,8 @@ private:
     QHash<QString, TagData>             m_tagDataByTagLocalUid;
     LocalUidToRequestIdBimap            m_findTagRequestForTagLocalUid;
     QMultiHash<QString, QString>        m_tagLocalUidToNoteLocalUid;
+
+    bool                    m_allNotesListed;
 };
 
 } // namespace quentier
