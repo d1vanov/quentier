@@ -103,6 +103,8 @@ Q_SIGNALS:
     void spellCheckerNotReady();
     void spellCheckerReady();
 
+    void noteLoaded();
+
     // Signals to notify anyone interested of the formatting at the current cursor position
     void textBoldState(bool state);
     void textItalicState(bool state);

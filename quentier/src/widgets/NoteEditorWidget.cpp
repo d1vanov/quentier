@@ -43,6 +43,7 @@ using quentier::NoteTagsWidget;
 #include <QColor>
 #include <QPalette>
 #include <QTimer>
+#include <QToolTip>
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
@@ -77,7 +78,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_lastSuggestedFontSize(-1),
     m_lastActualFontSize(-1),
     m_pendingEditorSpellChecker(false),
-    m_currentNoteWasExpunged(false)
+    m_currentNoteWasExpunged(false),
+    m_noteTitleIsEdited(false)
 {
     m_pUi->setupUi(this);
 
@@ -313,6 +315,23 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
     }
 
     return NoteSaveStatus::Ok;
+}
+
+void NoteEditorWidget::setFocusToEditor()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setFocusToEditor"));
+    m_pUi->noteEditor->setFocus();
+}
+
+void NoteEditorWidget::setFocusToTitle()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setFocusToTitle"));
+    m_pUi->noteNameLineEdit->setFocus();
+}
+
+bool NoteEditorWidget::isNoteTitleEdited() const
+{
+    return m_noteTitleIsEdited;
 }
 
 void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
@@ -814,6 +833,64 @@ void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString
     emit notifyError(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor"));
 }
 
+void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
+{
+    QNTRACE(QStringLiteral("NoteEditorWidget::onNoteTitleEdited: ") << noteTitle);
+    m_noteTitleIsEdited = true;
+}
+
+void NoteEditorWidget::onNoteTitleUpdated()
+{
+    QString noteTitle = m_pUi->noteNameLineEdit->text().trimmed();
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteTitleUpdated: ") << noteTitle);
+
+    m_noteTitleIsEdited = false;
+
+    if (Q_UNLIKELY(!m_pCurrentNote)) {
+        // That shouldn't really happen in normal circumstances but it could in theory be some old event
+        // which has reached this object after the note has already been cleaned up
+        QNDEBUG(QStringLiteral("No current note in the note editor widget! Ignoring the note title update"));
+        return;
+    }
+
+    if (m_pCurrentNote->hasTitle() && (m_pCurrentNote->title() == noteTitle)) {
+        QNDEBUG(QStringLiteral("Note's title hasn't changed, nothing to do"));
+        return;
+    }
+
+    if (!noteTitle.isEmpty())
+    {
+        int noteTitleSize = noteTitle.size();
+
+        if (noteTitleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) {
+            QNDEBUG(QStringLiteral("Too short title, should be at least ") << qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
+            QToolTip::showText(m_pUi->noteNameLineEdit->mapToGlobal(QPoint(0, m_pUi->noteNameLineEdit->height())),
+                               tr("Too short title, should be at least") + QStringLiteral(" ") + QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN));
+            return;
+        }
+
+        if (noteTitleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) {
+            QNDEBUG(QStringLiteral("Too long title, should be no longer than ") << qevercloud::EDAM_NOTE_TITLE_LEN_MAX);
+            QToolTip::showText(m_pUi->noteNameLineEdit->mapToGlobal(QPoint(0, m_pUi->noteNameLineEdit->height())),
+                               tr("Too long title, max allowed length is") + QStringLiteral(" ") + QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MAX));
+            return;
+        }
+    }
+
+    m_pCurrentNote->setTitle(noteTitle);
+
+    qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
+    attributes.noteTitleQuality.clear();    // indicate learly that the note's title has been changed manually and not generated automatically
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to update note due to note title update: request id = ") << requestId
+            << QStringLiteral(", note = ") << *m_pCurrentNote);
+    emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+
+    emit titleOrPreviewChanged(noteTitle);
+}
+
 void NoteEditorWidget::onEditorNoteUpdate(Note note)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorNoteUpdate: note local uid = ") << note.localUid());
@@ -1310,6 +1387,12 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNotebookComplete,Notebook,QUuid));
 
+    // Connect to note title updates
+    QObject::connect(m_pUi->noteNameLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString&),
+                     this, QNSLOT(NoteEditorWidget,onNoteTitleEdited,const QString&));
+    QObject::connect(m_pUi->noteNameLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+                     this, QNSLOT(NoteEditorWidget,onNoteTitleUpdated));
+
     // Connect note editor's signals to local slots
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,convertedToNote,Note),
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
@@ -1319,6 +1402,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
                      this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteLoaded),
+                     this, QNSIGNAL(NoteEditorWidget,noteLoaded));
 
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textBoldState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldStateChanged,bool));
@@ -1453,7 +1538,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
     m_pUi->noteNameLineEdit->show();
     m_pUi->tagNameLabelsContainer->show();
 
-    if (note.hasTitle())
+    if (!m_noteTitleIsEdited && note.hasTitle())
     {
         QString title = note.title();
         m_pUi->noteNameLineEdit->setText(title);
@@ -1462,7 +1547,7 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
             emit titleOrPreviewChanged(m_lastNoteTitleOrPreviewText);
         }
     }
-    else
+    else if (!m_noteTitleIsEdited)
     {
         m_pUi->noteNameLineEdit->clear();
 

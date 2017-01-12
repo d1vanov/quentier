@@ -141,6 +141,7 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
 
     if (m_shownNoteLocalUids.empty() && m_pBlankNoteEditor)
     {
+        QNDEBUG(QStringLiteral("Currently only the blank note tab is displayed, inserting the new note into its editor"));
         // There's only the blank note's note editor displayed, just set the note into it
         NoteEditorWidget * pNoteEditorWidget = m_pBlankNoteEditor;
         m_pBlankNoteEditor = Q_NULLPTR;
@@ -156,6 +157,8 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 m_tagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
+
+    pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
     pNoteEditorWidget->installEventFilter(this);
 
     insertNoteEditorWidget(pNoteEditorWidget);
@@ -255,6 +258,24 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
     m_pTabWidget->removeTab(tabIndex);
 }
 
+void NoteEditorTabWidgetManager::onNoteLoadedInEditor()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteLoadedInEditor"));
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        QNWARNING(QStringLiteral("Failed to cast the sender of note loaded signal to NoteEditorWidget"));
+        return;
+    }
+
+    if (pNoteEditorWidget->isNoteTitleEdited()) {
+        pNoteEditorWidget->setFocusToTitle();
+    }
+    else {
+        pNoteEditorWidget->setFocusToEditor();
+    }
+}
+
 void NoteEditorTabWidgetManager::onAddNoteComplete(Note note, QUuid requestId)
 {
     auto it = m_createNoteRequestIds.find(requestId);
@@ -299,9 +320,12 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteTitleOrPreviewTextChanged,QString));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,resolved),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetResolved));
+    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,noteLoaded),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteLoadedInEditor));
 
     QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
-    Q_UNUSED(m_pTabWidget->addTab(pNoteEditorWidget, tabName))
+    int tabIndex = m_pTabWidget->addTab(pNoteEditorWidget, tabName);
+    m_pTabWidget->setCurrentIndex(tabIndex);
 
     m_shownNoteLocalUids.push_back(pNoteEditorWidget->noteLocalUid());
 

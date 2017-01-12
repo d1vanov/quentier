@@ -144,6 +144,22 @@ public:
      */
     NoteSaveStatus::type checkAndSaveModifiedNote(QNLocalizedString & errorDescription);
 
+    /**
+     * @brief setFocusToEditor - sets the focus to the note editor widget
+     */
+    void setFocusToEditor();
+
+    /**
+     * @brief setFocusToTitle - sets the focus to the note title editor widget
+     */
+    void setFocusToTitle();
+
+    /**
+     * @brief isNoteTitleEdited
+     * @return true if the note's title is being edited at the moment, false otherwise
+     */
+    bool isNoteTitleEdited() const;
+
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
 
@@ -160,6 +176,11 @@ Q_SIGNALS:
      * by the widget so it can continue its work after setting the note local uid initially
      */
     void resolved();
+
+    /**
+     * The signal is emitted after the note has been fully loaded into the editor and is ready for the actual editing
+     */
+    void noteLoaded();
 
 // private signals
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
@@ -230,6 +251,19 @@ private Q_SLOTS:
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
+
+    // Slot for note's title updates handling
+
+    /**
+     * This slot is called when the editing is still going on, so here we just set the flag that the note title
+     * edit has started (so the line edit has "more recent" title that the note itself)
+     */
+    void onNoteTitleEdited(const QString & noteTitle);
+
+    /**
+     * This slot is called when the editing of the note title should be considered finished
+     */
+    void onNoteTitleUpdated();
 
     // Slots for updates from the actual note editor
     void onEditorNoteUpdate(Note note);
@@ -304,6 +338,8 @@ private:
 
     bool                        m_pendingEditorSpellChecker;
     bool                        m_currentNoteWasExpunged;
+
+    bool                        m_noteTitleIsEdited;
 };
 
 } // namespace quentier

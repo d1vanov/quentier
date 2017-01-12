@@ -923,6 +923,9 @@ void NoteEditorPrivate::onJavaScriptLoaded()
 #else
         page->toHtml(NoteEditorCallbackFunctor<QString>(this, &NoteEditorPrivate::onPageHtmlReceived));
 #endif
+
+        QNTRACE(QStringLiteral("Emitting noteLoaded signal"));
+        emit noteLoaded();
     }
 }
 
@@ -1253,11 +1256,6 @@ void NoteEditorPrivate::onTextCursorFontSizeChanged(int fontSize)
 
 void NoteEditorPrivate::onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId)
 {
-    QNDEBUG(QStringLiteral("NoteEditorPrivate::onWriteFileRequestProcessed: success = ")
-            << (success ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", error description: ") << errorDescription
-            << QStringLiteral(", request id = ") << requestId);
-
     if (requestId == m_writeNoteHtmlToFileRequestId)
     {
         QNDEBUG(QStringLiteral("Write note html to file completed: success = ") << (success ? QStringLiteral("true") : QStringLiteral("false"))
@@ -2550,17 +2548,21 @@ void NoteEditorPrivate::noteToEditorContent()
         return;
     }
 
-    if (!m_pNote->hasContent()) {
+    QString noteContent;
+    if (m_pNote->hasContent()) {
+        noteContent = m_pNote->content();
+    }
+    else {
         QNDEBUG(QStringLiteral("Note without content was inserted into the NoteEditor, "
                                "setting up the empty note content"));
-        m_pNote->setContent(QStringLiteral("<en-note><div></div></en-note>"));
+        noteContent = QStringLiteral("<en-note><div></div></en-note>");
     }
 
     m_htmlCachedMemory.resize(0);
 
     QNLocalizedString error;
     ENMLConverter::NoteContentToHtmlExtraData extraData;
-    bool res = m_enmlConverter.noteContentToHtml(m_pNote->content(), m_htmlCachedMemory,
+    bool res = m_enmlConverter.noteContentToHtml(noteContent, m_htmlCachedMemory,
                                                  error, *m_decryptedTextManager,
                                                  extraData);
     if (!res) {
@@ -3929,6 +3931,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
                      q, QNSIGNAL(NoteEditor,spellCheckerNotReady));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerReady),
                      q, QNSIGNAL(NoteEditor,spellCheckerReady));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteLoaded),
+                     q, QNSIGNAL(NoteEditor,noteLoaded));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,insertTableDialogRequested),
                      q, QNSIGNAL(NoteEditor,insertTableDialogRequested));
 }
