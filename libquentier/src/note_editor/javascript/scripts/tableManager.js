@@ -67,7 +67,9 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
 
         try {
             table.insertRow(rowIndex + 1);
@@ -87,7 +89,9 @@ function TableManager() {
             }
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 
@@ -179,7 +183,9 @@ function TableManager() {
                         "all the other columns would need their width multiplied by " + columnWidthProportion + " to compensate");
         }
 
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
 
         try {
             this.disableColumnHandlesImpl(table);
@@ -218,7 +224,9 @@ function TableManager() {
             this.updateColumnHandlesImpl(table);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 
@@ -255,13 +263,17 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
 
         try {
             currentRow.parentNode.removeChild(currentRow);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 
@@ -309,7 +321,9 @@ function TableManager() {
         undoNodes.push(table);
         undoNodeInnerHtmls.push(table.innerHTML);
 
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
 
         try {
             this.disableColumnHandlesImpl(table);
@@ -321,7 +335,9 @@ function TableManager() {
             this.updateColumnHandlesImpl(table);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 
@@ -403,7 +419,9 @@ function TableManager() {
 
         console.log("Html before: " + sourceNode.innerHTML + "; html to paste: " + sourceNodeInnerHtml);
 
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
 
         try {
             this.disableColumnHandlesImpl(sourceNode);
@@ -411,7 +429,9 @@ function TableManager() {
             this.updateColumnHandlesImpl(sourceNode);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 
@@ -422,12 +442,17 @@ function TableManager() {
     }
 
     this.disableColumnHandles = function(table) {
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
+
         try {
             this.disableColumnHandlesImpl(table);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 
@@ -470,12 +495,17 @@ function TableManager() {
     }
 
     this.updateColumnHandles = function(table) {
-        observer.stop();
+        if (window.hasOwnProperty('observer')) {
+            observer.stop();
+        }
+
         try {
             this.updateColumnHandlesImpl(table);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty('observer')) {
+                observer.start();
+            }
         }
     }
 }
