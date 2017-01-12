@@ -190,7 +190,9 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
     nameSuffix += QString::number(numNotesPerNotebookInt);
     nameSuffix += QStringLiteral(")");
 
-    painter->setPen(painter->pen().color().lighter());
+    painter->setPen(option.state & QStyle::State_Selected
+                    ? option.palette.color(QPalette::Active, QPalette::WindowText)
+                    : option.palette.color(QPalette::Active, QPalette::Highlight));
     painter->drawText(QRectF(option.rect.translated(nameWidth, 0)), nameSuffix,
                       QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }

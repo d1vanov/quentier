@@ -225,6 +225,8 @@ void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter, const QModel
     nameSuffix += QString::number(numNotesPerItemInt);
     nameSuffix += QStringLiteral(")");
 
-    painter->setPen(painter->pen().color().lighter());
+    painter->setPen(option.state & QStyle::State_Selected
+                    ? option.palette.color(QPalette::Active, QPalette::WindowText)
+                    : option.palette.color(QPalette::Active, QPalette::Highlight));
     painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
 }
