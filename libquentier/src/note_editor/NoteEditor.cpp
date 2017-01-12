@@ -83,6 +83,11 @@ bool NoteEditor::isModified() const
     return m_backend->isModified();
 }
 
+void NoteEditor::setFocus()
+{
+    m_backend->setFocusToEditor();
+}
+
 void NoteEditor::convertToNote()
 {
     m_backend->convertToNote();
@@ -366,14 +371,6 @@ void NoteEditor::removeHyperlink()
 void NoteEditor::onNoteLoadCancelled()
 {
     m_backend->onNoteLoadCancelled();
-}
-
-void NoteEditor::setFocus()
-{
-    QWidget * pWidget = m_backend->widget();
-    if (Q_LIKELY(pWidget)) {
-        pWidget->setFocus();
-    }
 }
 
 void NoteEditor::dragMoveEvent(QDragMoveEvent * pEvent)

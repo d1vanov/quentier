@@ -194,6 +194,8 @@ Q_SIGNALS:
 public Q_SLOTS:
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
 
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
+
     // Slots for toolbar button actions or external actions
     void onEditorTextBoldToggled();
     void onEditorTextItalicToggled();

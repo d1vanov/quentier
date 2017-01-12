@@ -2484,6 +2484,7 @@ void MainWindow::setupModels()
     m_pUI->savedSearchesTableView->setModel(m_pSavedSearchModel);
     m_pUI->noteListView->setModel(m_pNoteFilterModel);
     m_pUI->deletedNotesTableView->setModel(m_pDeletedNotesModel);
+
     m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
     m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
 }
@@ -2681,6 +2682,7 @@ void MainWindow::setupViews()
     QListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
     pNoteListView->setItemDelegate(new NoteItemDelegate(pNoteListView));
+    // TODO: install the column change rerouter for preview text column
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);

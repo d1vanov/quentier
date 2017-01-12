@@ -17,6 +17,7 @@
  */
 
 #include "ItemView.h"
+#include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {
 
@@ -31,6 +32,10 @@ void ItemView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bott
                            , const QVector<int> & roles)
 #endif
 {
+    QNTRACE(QStringLiteral("ItemView::dataChanged: top left: row = ") << topLeft.row()
+            << QStringLiteral(", column = ") << topLeft.column() << QStringLiteral(", bottom right: row = ")
+            << bottomRight.row() << QStringLiteral(", column = ") << bottomRight.column());
+
     QTreeView::dataChanged(topLeft, bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                            );

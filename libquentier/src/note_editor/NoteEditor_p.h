@@ -278,6 +278,7 @@ public Q_SLOTS:
     virtual void setNoteAndNotebook(const Note & note, const Notebook & notebook) Q_DECL_OVERRIDE;
     virtual void clear() Q_DECL_OVERRIDE;
     virtual bool isModified() const Q_DECL_OVERRIDE;
+    virtual void setFocusToEditor() Q_DECL_OVERRIDE;
     virtual void convertToNote() Q_DECL_OVERRIDE;
 
     void undoPageAction();

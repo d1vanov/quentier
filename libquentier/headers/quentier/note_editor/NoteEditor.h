@@ -89,6 +89,11 @@ public:
      */
     bool isModified() const;
 
+    /**
+     * Sets the focus to the backend note editor widget
+     */
+    void setFocus();
+
 Q_SIGNALS:
     void contentChanged();
     void notifyError(QNLocalizedString error);
@@ -202,8 +207,6 @@ public Q_SLOTS:
     void removeHyperlink();
 
     void onNoteLoadCancelled();
-
-    void setFocus();
 
 protected:
     virtual void dragMoveEvent(QDragMoveEvent * pEvent) Q_DECL_OVERRIDE;

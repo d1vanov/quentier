@@ -5051,6 +5051,12 @@ bool NoteEditorPrivate::isModified() const
     return m_modified;
 }
 
+void NoteEditorPrivate::setFocusToEditor()
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::setFocusToEditor"));
+    setFocus();
+}
+
 QString NoteEditorPrivate::noteEditorPagePath() const
 {
     if (m_pNote.isNull()) {

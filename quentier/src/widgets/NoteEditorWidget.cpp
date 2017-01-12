@@ -83,6 +83,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
 {
     m_pUi->setupUi(this);
 
+    m_pUi->noteNameLineEdit->installEventFilter(this);
+
     m_pUi->noteEditor->setAccount(m_currentAccount);
     m_pUi->noteEditor->setUndoStack(m_pUndoStack.data());
 
@@ -349,6 +351,33 @@ void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
     pEvent->accept();
 }
 
+bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pWatched)) {
+        QNWARNING(QStringLiteral("NoteEditorWidget: caught event for null watched object in the eventFilter method"));
+        return true;
+    }
+
+    if (Q_UNLIKELY(!pEvent)) {
+        QNWARNING(QStringLiteral("NoteEditorWidget: caught null event in the eventFilter method for object ")
+                  << pWatched->objectName() << QStringLiteral(" of class ") << pWatched->metaObject()->className());
+        return true;
+    }
+
+    if (pWatched == m_pUi->noteNameLineEdit)
+    {
+        QEvent::Type eventType = pEvent->type();
+        if (eventType == QEvent::FocusIn) {
+            QNDEBUG(QStringLiteral("Note title editor gained focus"));
+        }
+        else if (eventType == QEvent::FocusOut) {
+            QNDEBUG(QStringLiteral("Note title editor lost focus"));
+        }
+    }
+
+    return false;
+}
+
 void NoteEditorWidget::onEditorTextBoldToggled()
 {
     m_pUi->noteEditor->textBold();
@@ -566,13 +595,15 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
             << QStringLiteral(", request id = ") << requestId << QStringLiteral(", update resources = ")
             << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false")));
-    QNTRACE(QStringLiteral("Updated note: ") << note);
 
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
         Q_UNUSED(m_updateNoteRequestIds.erase(it))
         emit noteSavedInLocalStorage();
+        return;
     }
+
+    QNTRACE(QStringLiteral("External update, note: ") << note);
 
     QList<Resource> backupResources;
     if (!updateResources) {

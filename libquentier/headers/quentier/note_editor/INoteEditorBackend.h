@@ -149,6 +149,8 @@ public:
 
     virtual bool isModified() const = 0;
 
+    virtual void setFocusToEditor() = 0;
+
 protected:
     INoteEditorBackend(NoteEditor * parent);
     NoteEditor *    m_pNoteEditor;
