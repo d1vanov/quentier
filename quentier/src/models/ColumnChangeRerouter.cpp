@@ -42,12 +42,12 @@ void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft, const
     int columnLeft = topLeft.column();
     int columnRight = bottomRight.column();
 
-    if ((columnLeft <= m_columnTo) || (columnRight >= m_columnTo)) {
+    if ((columnLeft <= m_columnTo) && (columnRight >= m_columnTo)) {
         QNTRACE(QStringLiteral("Already includes column to"));
         return;
     }
 
-    if ((columnLeft >= m_columnFrom) || (columnRight <= m_columnFrom)) {
+    if ((columnLeft > m_columnFrom) || (columnRight < m_columnFrom)) {
         QNTRACE(QStringLiteral("Doesn't include column from"));
         return;
     }
@@ -62,13 +62,10 @@ void ColumnChangeRerouter::onModelDataChanged(const QModelIndex & topLeft, const
         return;
     }
 
-    int newColumnLeft = std::min(columnLeft, m_columnTo);
-    int newColumnRight = std::max(columnRight, m_columnTo);
-    QNTRACE(QStringLiteral("New column left = ") << newColumnLeft << QStringLiteral(", new column right = ") << newColumnRight);
+    QModelIndex newTopLeft = model->index(topLeft.row(), m_columnTo, topLeft.parent());
+    QModelIndex newBottomRight = model->index(bottomRight.row(), m_columnTo, bottomRight.parent());
 
-    QModelIndex newTopLeft = model->index(topLeft.row(), newColumnLeft, topLeft.parent());
-    QModelIndex newBottomRight = model->index(bottomRight.row(), newColumnRight, bottomRight.parent());
-
+    QNDEBUG(QStringLiteral("Emitting the dataChanged signal for column ") << m_columnTo);
     emit dataChanged(newTopLeft, newBottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                     );
