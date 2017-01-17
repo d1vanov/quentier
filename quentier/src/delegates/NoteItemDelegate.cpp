@@ -18,9 +18,11 @@
 
 #include "NoteItemDelegate.h"
 #include "../models/NoteModel.h"
+#include "../models/NoteFilterModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QPainter>
 #include <QDateTime>
+#include <QTextOption>
 #include <cmath>
 
 #define MSEC_PER_DAY (864e5)
@@ -31,10 +33,10 @@ namespace quentier {
 NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
     m_itemRect(0, 0, 350, 120),
-    m_leftMargin(15),
-    m_rightMargin(15),
-    m_topMargin(8),
-    m_bottomMargin(12)
+    m_leftMargin(2),
+    m_rightMargin(2),
+    m_topMargin(2),
+    m_bottomMargin(2)
 {}
 
 QWidget * NoteItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
@@ -49,15 +51,26 @@ QWidget * NoteItemDelegate::createEditor(QWidget * parent, const QStyleOptionVie
 void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option,
                              const QModelIndex & index) const
 {
-    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(index.model());
-    if (Q_UNLIKELY(!pNoteModel)) {
+    QNTRACE(QStringLiteral("NoteItemDelegate::paint: row = ") << index.row() << QStringLiteral(", column = ") << index.column());
+
+    const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(index.model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
         QNLocalizedString error = QT_TR_NOOP("wrong model connected to the note item delegate");
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
 
-    const NoteModelItem * pItem = pNoteModel->itemForIndex(index);
+    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNLocalizedString error = QT_TR_NOOP("can't get the source model from the note filter model connected to the note item delegate");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QModelIndex sourceIndex = pNoteFilterModel->mapToSource(index);
+    const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pItem)) {
         QNLocalizedString error = QT_TR_NOOP("can't retrieve item to paint for note model index");
         QNWARNING(error);
@@ -65,11 +78,16 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         return;
     }
 
+    QNTRACE(QStringLiteral("Option rect: top = ") << option.rect.top()
+            << QStringLiteral(", bottom = ") << option.rect.bottom()
+            << QStringLiteral(", left = ") << option.rect.left()
+            << QStringLiteral(", right = ") << option.rect.right());
+
     painter->save();
 
     painter->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
-    painter->fillRect(m_itemRect, option.palette.background());
+    painter->fillRect(option.rect, option.palette.background());
     painter->setPen(option.palette.windowText().color());
 
     if (option.state & QStyle::State_Selected) {
@@ -78,7 +96,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         pen.setWidth(1);
         pen.setColor(option.palette.highlightedText().color());
         painter->setPen(pen);
-        painter->drawRoundedRect(QRectF(m_itemRect.adjusted(1, 1, -1, -1)), 2, 2);
+        painter->drawRoundedRect(QRectF(option.rect.adjusted(1, 1, -1, -1)), 2, 2);
         painter->setPen(originalPen);
     }
 
@@ -92,29 +110,30 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     const QImage & thumbnail = pItem->thumbnail();
 
-    int left = m_itemRect.left() + m_leftMargin;
-    int width = m_itemRect.width() - m_leftMargin - m_rightMargin;
+    int left = option.rect.left() + m_leftMargin;
+    int width = option.rect.width() - m_leftMargin - m_rightMargin;
     if (!thumbnail.isNull()) {
         width -= 120;
     }
 
     // 1) Painting the title (or a piece of preview text if there's no title)
-    QRect titleRect(left, m_itemRect.top() + m_topMargin,
-                    width, boldFontMetrics.height());
+
+    QFont originalFont = painter->font();
+    painter->setFont(boldFont);
+
+    QRect titleRect(left, option.rect.top() + m_topMargin, width, boldFontMetrics.height());
+
+    QNTRACE(QStringLiteral("Title rect: top = ") << titleRect.top() << QStringLiteral(", bottom = ")
+            << titleRect.bottom() << QStringLiteral(", left = ") << titleRect.left()
+            << QStringLiteral(", right = ") << titleRect.right());
 
     QString title = pItem->title();
     if (title.isEmpty()) {
         title = pItem->previewText();
     }
 
-    if (!title.isEmpty()) {
-        m_doc.setHtml(QStringLiteral("<b>") + title + QStringLiteral("</b>"));
-    }
-    else {
-        m_doc.setPlainText(QString());
-    }
-
-    m_doc.drawContents(painter, titleRect);
+    title = boldFontMetrics.elidedText(title, Qt::ElideRight, titleRect.width());
+    painter->drawText(QRectF(titleRect), title, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     // 2) Painting the created/modified/deleted datetime
     qint64 targetTimestamp = 0;
@@ -173,23 +192,50 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         CHECK_AND_SET_DELETED_PREFIX(text)
     }
 
-    int top = m_itemRect.top() + m_topMargin + boldFontMetrics.height() + 2;
-    QRect dateTimeRect(left, top, width, m_itemRect.height() - top);
+    QRect dateTimeRect(left, titleRect.bottom() + m_topMargin, width, smallerFontMetrics.height());
 
-    m_doc.setDefaultFont(smallerFont);
-    m_doc.setPlainText(text);
-    m_doc.drawContents(painter, dateTimeRect);
+    QNTRACE(QStringLiteral("date time rect: top = ") << dateTimeRect.top() << QStringLiteral(", bottom = ")
+            << dateTimeRect.bottom() << QStringLiteral(", left = ") << dateTimeRect.left()
+            << QStringLiteral(", right = ") << dateTimeRect.right());
+
+    text = smallerFontMetrics.elidedText(text, Qt::ElideRight, dateTimeRect.width());
+
+    painter->setFont(smallerFont);
+    painter->drawText(QRectF(dateTimeRect), text, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
 #undef CHECK_AND_SET_DELETED_PREFIX
 
     // 3) Painting the preview text
 
-    top = m_itemRect.top() + m_topMargin + boldFontMetrics.height() + smallerFontMetrics.height() + 4;
-    QRect previewTextRect(left, top, width, m_itemRect.height() - top);
+    QRect previewTextRect(left, dateTimeRect.bottom() + m_topMargin, width, smallerFontMetrics.height());
 
-    m_doc.setDefaultFont(painter->font());
-    m_doc.setPlainText(pItem->previewText());
-    m_doc.drawContents(painter, previewTextRect);
+    QNTRACE(QStringLiteral("Preview text rect: top = ") << previewTextRect.top()
+            << QStringLiteral(", bottom = ") << previewTextRect.bottom()
+            << QStringLiteral(", left = ") << previewTextRect.left()
+            << QStringLiteral(", right = ") << previewTextRect.right());
+
+    text = pItem->previewText();
+    QFontMetrics originalFontMetrics(originalFont);
+
+    int linesForText = static_cast<int>(std::floor(originalFontMetrics.width(text) / previewTextRect.width() + 0.5));
+    int linesAvailable = static_cast<int>(std::floor(previewTextRect.height() / originalFontMetrics.lineSpacing()));
+    if ((linesForText > linesAvailable) && (linesAvailable > 0))
+    {
+        double multiple = static_cast<double>(linesForText) / linesAvailable;
+        int textSize = text.size();
+        int newTextSize = static_cast<int>(textSize / multiple);
+        int redundantSize = textSize - newTextSize - 3;
+        if (redundantSize > 0) {
+            QNTRACE(QStringLiteral("Chopping ") << redundantSize << QStringLiteral(" off the text: original size = ")
+                    << textSize << QStringLiteral(", more appropriate text size = ") << newTextSize
+                    << QStringLiteral(", lines for text without eliding = ") << linesForText
+                    << QStringLiteral(", lines available = ") << linesAvailable);
+            text.chop(redundantSize);
+        }
+    }
+
+    painter->setFont(originalFont);
+    painter->drawText(QRectF(previewTextRect), text, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     // 4) Painting the thumbnail (if any)
     if (!thumbnail.isNull()) {
@@ -197,6 +243,9 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         int bottom = m_itemRect.bottom() - m_bottomMargin;
         QRect thumbnailRect(m_itemRect.width() - 110, top, 100, bottom);
 
+        QNTRACE(QStringLiteral("Thumbnail rect: top = ") << thumbnailRect.top() << QStringLiteral(", bottom = ")
+                << thumbnailRect.bottom() << QStringLiteral(", left = ") << thumbnailRect.left()
+                << QStringLiteral(", right = ") << thumbnailRect.right());
         painter->drawImage(thumbnailRect, thumbnail, thumbnail.rect());
     }
 
