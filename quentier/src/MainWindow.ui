@@ -2696,7 +2696,7 @@ padding-left: 2px;
              </widget>
             </item>
             <item>
-             <widget class="QListView" name="noteListView">
+             <widget class="NoteListView" name="noteListView">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -2789,7 +2789,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -4375,6 +4375,11 @@ border-bottom: 1px solid black;</string>
    <class>FilterBySavedSearchWidget</class>
    <extends>QComboBox</extends>
    <header>widgets/FilterBySavedSearchWidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NoteListView</class>
+   <extends>QListView</extends>
+   <header>views/NoteListView.h</header>
   </customwidget>
  </customwidgets>
  <resources>

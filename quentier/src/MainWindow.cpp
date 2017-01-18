@@ -40,6 +40,7 @@
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
 #include "views/NotebookItemView.h"
+#include "views/NoteListView.h"
 #include "views/TagItemView.h"
 #include "views/SavedSearchItemView.h"
 #include "views/FavoriteItemView.h"
@@ -2679,7 +2680,7 @@ void MainWindow::setupViews()
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,QNLocalizedString),
                      this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
 
-    QListView * pNoteListView = m_pUI->noteListView;
+    NoteListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
     pNoteListView->setItemDelegate(new NoteItemDelegate(pNoteListView));
     // TODO: install the column change rerouter for preview text column
