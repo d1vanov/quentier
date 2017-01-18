@@ -368,7 +368,21 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
         break;
     }
 
+    QNTRACE(QStringLiteral("Removed item from filter: ") << name);
+    emit itemRemovedFromFilter(name);
+
     persistFilteredItems();
+
+    // Need to update the new item line edit's completer; as a shortcut, replace the whole widget
+    NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
+    if (pNewItemLineEdit) {
+        m_pLayout->removeWidget(pNewItemLineEdit);
+        pNewItemLineEdit->hide();
+        pNewItemLineEdit->deleteLater();
+        pNewItemLineEdit = Q_NULLPTR;
+    }
+
+    addNewItemWidget();
 }
 
 void AbstractFilterByModelItemWidget::onModelReady()

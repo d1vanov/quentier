@@ -436,7 +436,9 @@ void NoteFiltersManager::setFilterByNotebooks()
         notebookLocalUids << localUid;
     }
 
-    QNTRACE(QStringLiteral("Notebook local uids to be used for filtering: ") << notebookLocalUids.join(QStringLiteral(", ")));
+    QNTRACE(QStringLiteral("Notebook local uids to be used for filtering: ")
+            << (notebookLocalUids.isEmpty() ? QStringLiteral("<empty>") : notebookLocalUids.join(QStringLiteral(", "))));
+    m_noteFilterModel.setNotebookLocalUids(notebookLocalUids);
 }
 
 void NoteFiltersManager::setFilterByTags()
