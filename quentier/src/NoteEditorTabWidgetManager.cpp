@@ -175,6 +175,10 @@ void NoteEditorTabWidgetManager::createNewNote(const QString & notebookLocalUid,
     newNote.setDirty(true);
     newNote.setContent(QStringLiteral("<en-note><div></div></en-note>"));
 
+    qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+    newNote.setCreationTimestamp(timestamp);
+    newNote.setModificationTimestamp(timestamp);
+
     if (!notebookGuid.isEmpty()) {
         newNote.setNotebookGuid(notebookGuid);
     }
