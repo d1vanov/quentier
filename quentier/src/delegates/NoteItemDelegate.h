@@ -22,8 +22,6 @@
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
 #include <QStyledItemDelegate>
-#include <QTextDocument>
-#include <QRect>
 
 namespace quentier {
 
@@ -63,13 +61,11 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString error) const;
 
 private:
-    QRect                   m_itemRect;
+    QSize                   m_defaultSize;
     int                     m_leftMargin;
     int                     m_rightMargin;
     int                     m_topMargin;
     int                     m_bottomMargin;
-
-    mutable QTextDocument   m_doc;
 };
 
 } // namespace quentier
