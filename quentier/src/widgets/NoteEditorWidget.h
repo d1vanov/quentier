@@ -315,6 +315,11 @@ private:
     NotebookCache &             m_notebookCache;
     TagCache &                  m_tagCache;
 
+    // This data piece separate from m_pCurrentNote is needed in order to handle
+    // the cases when the note is being loaded from the local storage while
+    // someone asks which note local uid the widget handles
+    QString                     m_noteLocalUid;
+
     QScopedPointer<Note>        m_pCurrentNote;
     QScopedPointer<Notebook>    m_pCurrentNotebook;
 

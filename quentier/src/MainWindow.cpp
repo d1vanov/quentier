@@ -129,6 +129,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
                                                                   NotebookModel::Columns::Name, this)),
     m_pTagModelColumnChangeRerouter(new ColumnChangeRerouter(TagModel::Columns::NumNotesPerTag,
                                                              TagModel::Columns::Name, this)),
+    m_pNoteModelColumnChangeRerouter(new ColumnChangeRerouter(NoteModel::Columns::PreviewText,
+                                                              NoteModel::Columns::Title, this)),
     m_pDeletedNotesModel(Q_NULLPTR),
     m_pFavoritesModel(Q_NULLPTR),
     m_blankModel(),
@@ -1771,6 +1773,12 @@ void MainWindow::onNewNoteButtonPressed()
     m_pNoteEditorTabWidgetManager->createNewNote(pNotebookItem->localUid(), pNotebookItem->guid());
 }
 
+void MainWindow::onCurrentNoteChanged(QString noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteChanged: ") << noteLocalUid);
+    m_pNoteEditorTabWidgetManager->addNote(noteLocalUid);
+}
+
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
@@ -2488,6 +2496,7 @@ void MainWindow::setupModels()
 
     m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
     m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
+    m_pNoteModelColumnChangeRerouter->setModel(m_pNoteFilterModel);
 }
 
 void MainWindow::clearModels()
@@ -2683,7 +2692,15 @@ void MainWindow::setupViews()
     NoteListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
     pNoteListView->setItemDelegate(new NoteItemDelegate(pNoteListView));
-    // TODO: install the column change rerouter for preview text column
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    QObject::connect(m_pNoteModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
+                     pNoteListView, &NoteListView::dataChanged);
+#else
+    QObject::connect(m_pNoteModelColumnChangeRerouter, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+                     pNoteListView, SLOT(dataChanged(QModelIndex,QModelIndex)));
+#endif
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,currentNoteChanged,QString),
+                     this, QNSLOT(MainWindow,onCurrentNoteChanged,QString));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);

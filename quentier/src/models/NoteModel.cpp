@@ -26,6 +26,8 @@
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
 
+#define NOTE_PREVIEW_TEXT_SIZE (500)
+
 #define NUM_NOTE_MODEL_COLUMNS (11)
 
 namespace quentier {
@@ -1748,7 +1750,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 
     if (note.hasContent()) {
         QString previewText = note.plainText();
-        previewText.truncate(140);
+        previewText.truncate(NOTE_PREVIEW_TEXT_SIZE);
         item.setPreviewText(previewText);
     }
 

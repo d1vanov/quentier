@@ -81,10 +81,9 @@ private Q_SLOTS:
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
     void checkAndCloseOlderNoteEditors();
+    void setCurrentNoteEditorWidget(const QString & noteLocalUid);
 
 private:
-    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
-
     void connectToLocalStorage();
     void disconnectFromLocalStorage();
 

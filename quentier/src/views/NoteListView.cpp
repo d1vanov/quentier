@@ -27,6 +27,22 @@ NoteListView::NoteListView(QWidget * parent) :
     QListView(parent)
 {}
 
+void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+                               )
+#else
+                               , const QVector<int> & roles)
+#endif
+{
+    QListView::dataChanged(topLeft, bottomRight
+#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+                               );
+#else
+                               , roles);
+#endif
+}
+
+
 void NoteListView::currentChanged(const QModelIndex & current,
                                   const QModelIndex & previous)
 {

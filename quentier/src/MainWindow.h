@@ -178,6 +178,8 @@ private Q_SLOTS:
     void onNoteSortingModeChanged(int index);
     void onNewNoteButtonPressed();
 
+    void onCurrentNoteChanged(QString noteLocalUid);
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();
@@ -295,7 +297,7 @@ private:
     // This method performs a nasty hack - it searches for some properties within
     // the passed in stylesheet and alters some of these; the whole workflow is based
     // on weak assumptions about the structure of the stylesheet so once it is sufficiently
-    // altered, this method would stop work. Don't program like this, kids.
+    // altered, this method would stop working. Don't program like this, kids.
     QString alterStyleSheet(const QString & originalStyleSheet,
                             const StyleSheetProperties & properties);
 
@@ -342,6 +344,7 @@ private:
 
     ColumnChangeRerouter *  m_pNotebookModelColumnChangeRerouter;
     ColumnChangeRerouter *  m_pTagModelColumnChangeRerouter;
+    ColumnChangeRerouter *  m_pNoteModelColumnChangeRerouter;
 
     NoteModel *             m_pDeletedNotesModel;
     FavoritesModel *        m_pFavoritesModel;

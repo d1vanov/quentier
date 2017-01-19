@@ -219,10 +219,6 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
 
     QRect dateTimeRect(left, titleRect.bottom() + m_bottomMargin + m_topMargin, width, smallerFontMetrics.height());
 
-    QNTRACE(QStringLiteral("date time rect: top = ") << dateTimeRect.top() << QStringLiteral(", bottom = ")
-            << dateTimeRect.bottom() << QStringLiteral(", left = ") << dateTimeRect.left()
-            << QStringLiteral(", right = ") << dateTimeRect.right());
-
     if (targetTimestamp != 0) {
         text = smallerFontMetrics.elidedText(text, Qt::ElideRight, dateTimeRect.width());
     }
@@ -237,13 +233,25 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     painter->setPen(originalPen);
 
     // 3) Painting the preview text
-    QRect previewTextRect(left, dateTimeRect.bottom() + m_bottomMargin + m_topMargin, width, smallerFontMetrics.height());
+    int previewTextTop = dateTimeRect.bottom() + m_bottomMargin + m_topMargin;
+    QRect previewTextRect(left, previewTextTop, width, option.rect.bottom() - previewTextTop);
 
-    text = pItem->previewText();
+    QNTRACE(QStringLiteral("Preview text rect: top = ") << previewTextRect.top() << QStringLiteral(", bottom = ")
+            << previewTextRect.bottom() << QStringLiteral(", left = ") << previewTextRect.left()
+            << QStringLiteral(", right = ") << previewTextRect.right() << QStringLiteral("; height = ")
+            << previewTextRect.height() << QStringLiteral(", width = ") << previewTextRect.width());
+
+    text = pItem->previewText().simplified();
     QFontMetrics originalFontMetrics(originalFont);
 
+    QNTRACE(QStringLiteral("Preview text: ") << text);
+
     int linesForText = static_cast<int>(std::floor(originalFontMetrics.width(text) / previewTextRect.width() + 0.5));
-    int linesAvailable = static_cast<int>(std::floor(previewTextRect.height() / originalFontMetrics.lineSpacing()));
+    int linesAvailable = static_cast<int>(std::floor(previewTextRect.height() / smallerFontMetrics.lineSpacing()));
+
+    QNTRACE(QStringLiteral("Lines for text = ") << linesForText << QStringLiteral(", lines available = ")
+            << linesAvailable << QStringLiteral(", line spacing = ") << smallerFontMetrics.lineSpacing());
+
     if ((linesForText > linesAvailable) && (linesAvailable > 0))
     {
         double multiple = static_cast<double>(linesForText) / linesAvailable;
@@ -256,6 +264,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
                     << QStringLiteral(", lines for text without eliding = ") << linesForText
                     << QStringLiteral(", lines available = ") << linesAvailable);
             text.chop(redundantSize);
+            QNTRACE(QStringLiteral("Text after chopping: ") << text);
         }
     }
 
@@ -273,7 +282,10 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         painter->setPen(pen);
     }
 
-    painter->drawText(QRectF(previewTextRect), text, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+    QTextOption textOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignTop));
+    textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+
+    painter->drawText(QRectF(previewTextRect), text, textOption);
 
     if (textIsEmpty) {
         painter->setPen(originalPen);

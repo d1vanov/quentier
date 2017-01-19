@@ -39,6 +39,19 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
     void currentNoteChanged(QString noteLocalUid);
 
+public Q_SLOTS:
+    /**
+     * @brief The dataChanged method is redefined in NoteListView for the sole reason of being a public slot
+     * instead of protected; it calls the implementation of QListView's dataChanged protected slot
+     */
+    virtual void dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
+#if QT_VERSION < 0x050000
+                            )
+#else
+                            , const QVector<int> & roles = QVector<int>())
+#endif
+                            Q_DECL_OVERRIDE;
+
 protected:
     virtual void currentChanged(const QModelIndex & current,
                                 const QModelIndex & previous) Q_DECL_OVERRIDE;
