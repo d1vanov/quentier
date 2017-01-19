@@ -281,7 +281,6 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
     m_htmlCachedMemory(),
     m_errorCachedMemory(),
     m_skipRulesForHtmlToEnmlConversion(),
-    m_pIOThread(Q_NULLPTR),
     m_pResourceFileStorageManager(Q_NULLPTR),
     m_pFileIOThreadWorker(Q_NULLPTR),
     m_resourceInfo(),
@@ -323,11 +322,7 @@ NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
 }
 
 NoteEditorPrivate::~NoteEditorPrivate()
-{
-    if (m_pIOThread) {
-        m_pIOThread->quit();
-    }
-}
+{}
 
 void NoteEditorPrivate::setBlankPageHtml(const QString & html)
 {
@@ -2083,9 +2078,9 @@ void NoteEditorPrivate::dropEvent(QDropEvent * pEvent)
     onDropEvent(pEvent);
 }
 
-void NoteEditorPrivate::initialize()
+void NoteEditorPrivate::init()
 {
-    QNDEBUG(QStringLiteral("NoteEditorPrivate::initialize"));
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::init"));
 
     if (Q_UNLIKELY(m_pAccount.isNull())) {
         QNLocalizedString error = QT_TR_NOOP("Can't initialize the note editor: account is not set");
@@ -3550,7 +3545,7 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
         m_lastMisSpelledWord = misSpelledWord;
 
         QStringList correctionSuggestions;
-        if (!m_pSpellChecker.isNull()) {
+        if (m_pSpellChecker) {
             correctionSuggestions = m_pSpellChecker->spellCorrectionSuggestions(misSpelledWord);
         }
 
@@ -3756,23 +3751,14 @@ void NoteEditorPrivate::setupFileIO()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setupFileIO"));
 
-    if (!m_pIOThread) {
-        m_pIOThread = new QThread;
-        QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
-        m_pIOThread->start(QThread::LowPriority);
-    }
+    QUENTIER_CHECK_PTR(m_pFileIOThreadWorker, QStringLiteral("no file IO thread worker was passed to note editor"));
 
-    if (!m_pFileIOThreadWorker)
-    {
-        m_pFileIOThreadWorker = new FileIOThreadWorker;
-        m_pFileIOThreadWorker->moveToThread(m_pIOThread);
-        QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid,bool),
-                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-        QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid,bool),
-                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                         this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
-    }
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,writeNoteHtmlToFile,QString,QByteArray,QUuid,bool),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,saveResourceToFile,QString,QByteArray,QUuid,bool),
+                     m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
+                     this, QNSLOT(NoteEditorPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
 
     if (m_pResourceFileStorageManager) {
         m_pResourceFileStorageManager->deleteLater();
@@ -3780,7 +3766,7 @@ void NoteEditorPrivate::setupFileIO()
     }
 
     m_pResourceFileStorageManager = new ResourceFileStorageManager(m_resourceLocalFileStorageFolder, m_noteEditorImageResourcesStoragePath);
-    m_pResourceFileStorageManager->moveToThread(m_pIOThread);
+    m_pResourceFileStorageManager->moveToThread(m_pFileIOThreadWorker->thread());
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onCurrentNoteChanged,Note));
@@ -3804,7 +3790,7 @@ void NoteEditorPrivate::setupFileIO()
 
     m_pGenericResourceImageManager = new GenericResourceImageManager;
     m_pGenericResourceImageManager->setStorageFolderPath(m_genericResourceImageFileStoragePath);
-    m_pGenericResourceImageManager->moveToThread(m_pIOThread);
+    m_pGenericResourceImageManager->moveToThread(m_pFileIOThreadWorker->thread());
 
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
     QObject::connect(this,
@@ -3817,6 +3803,20 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note), m_pGenericResourceImageManager,
                      QNSLOT(GenericResourceImageManager,onCurrentNoteChanged,Note));
 #endif
+}
+
+void NoteEditorPrivate::setupSpellChecker()
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::setupSpellChecker"));
+
+    QUENTIER_CHECK_PTR(m_pSpellChecker, QStringLiteral("np spell checker was passed to note editor"));
+
+    if (!m_pSpellChecker->isReady()) {
+        QObject::connect(m_pSpellChecker, QNSIGNAL(SpellChecker,ready), this, QNSLOT(NoteEditorPrivate,onSpellCheckerReady));
+    }
+    else {
+        onSpellCheckerReady();
+    }
 }
 
 void NoteEditorPrivate::setupScripts()
@@ -4703,6 +4703,14 @@ void NoteEditorPrivate::execJavascriptCommand(const QString & command, const QSt
     page->executeJavaScript(javascript, callback);
 }
 
+void NoteEditorPrivate::initialize(FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker)
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::initialize"));
+
+    m_pFileIOThreadWorker = &fileIOThreadWorker;
+    m_pSpellChecker = &spellChecker;
+}
+
 void NoteEditorPrivate::setAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setAccount: ") << account);
@@ -4725,7 +4733,7 @@ void NoteEditorPrivate::setAccount(const Account & account)
         *m_pAccount = account;
     }
 
-    initialize();
+    init();
 }
 
 void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
@@ -4734,21 +4742,6 @@ void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
 
     QUENTIER_CHECK_PTR(pUndoStack, QStringLiteral("null undo stack passed to note editor"));
     m_pUndoStack = pUndoStack;
-}
-
-void NoteEditorPrivate::setSpellChecker(SpellChecker * pSpellChecker)
-{
-    QNDEBUG(QStringLiteral("NoteEditorPrivate::setSpellChecker"));
-
-    QUENTIER_CHECK_PTR(pSpellChecker, QStringLiteral("null spell checker passed to note editor"));
-    m_pSpellChecker = pSpellChecker;
-
-    if (!m_pSpellChecker->isReady()) {
-        QObject::connect(m_pSpellChecker, QNSIGNAL(SpellChecker,ready), this, QNSLOT(NoteEditorPrivate,onSpellCheckerReady));
-    }
-    else {
-        onSpellCheckerReady();
-    }
 }
 
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
@@ -5432,7 +5425,7 @@ void NoteEditorPrivate::onSpellCheckIgnoreWordAction()
         return;
     }
 
-    if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
+    if (Q_UNLIKELY(!m_pSpellChecker)) {
         QNDEBUG(QStringLiteral("Spell checker is null, won't do anything"));
         return;
     }
@@ -5456,7 +5449,7 @@ void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
         return;
     }
 
-    if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
+    if (Q_UNLIKELY(!m_pSpellChecker)) {
         QNDEBUG(QStringLiteral("Spell checker is null, won't do anything"));
         return;
     }
@@ -5565,7 +5558,7 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
         return;
     }
 
-    if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
+    if (Q_UNLIKELY(!m_pSpellChecker)) {
         QNDEBUG(QStringLiteral("Spell checker is null, won't do anything"));
         return;
     }
@@ -5594,6 +5587,8 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
 void NoteEditorPrivate::onSpellCheckerReady()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onSpellCheckerReady"));
+
+    QObject::disconnect(m_pSpellChecker, QNSIGNAL(SpellChecker,ready), this, QNSLOT(NoteEditorPrivate,onSpellCheckerReady));
 
     if (m_spellCheckerEnabled) {
         enableSpellCheck();

@@ -32,6 +32,7 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(NoteEditor)
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 class QUENTIER_EXPORT INoteEditorBackend
@@ -39,12 +40,13 @@ class QUENTIER_EXPORT INoteEditorBackend
 public:
     virtual ~INoteEditorBackend();
 
+    virtual void initialize(FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker) = 0;
+
     virtual QObject * object() = 0;   // provide QObject interface
     virtual QWidget * widget() = 0;   // provide QWidget interface
 
     virtual void setAccount(const Account & account) = 0;
     virtual void setUndoStack(QUndoStack * pUndoStack) = 0;
-    virtual void setSpellChecker(SpellChecker * pSpellChecker) = 0;
 
     virtual void setBlankPageHtml(const QString & html) = 0;
 

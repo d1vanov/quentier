@@ -184,11 +184,11 @@ public:
     void disableDynamicSpellCheck();
 
 public Q_SLOTS:
+    virtual void initialize(FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker) Q_DECL_OVERRIDE;
     virtual QObject * object() Q_DECL_OVERRIDE { return this; }
     virtual QWidget * widget() Q_DECL_OVERRIDE { return this; }
     virtual void setAccount(const Account & account) Q_DECL_OVERRIDE;
     virtual void setUndoStack(QUndoStack * pUndoStack) Q_DECL_OVERRIDE;
-    virtual void setSpellChecker(SpellChecker * pSpellChecker) Q_DECL_OVERRIDE;
 
     virtual void setBlankPageHtml(const QString & html) Q_DECL_OVERRIDE;
 
@@ -428,7 +428,7 @@ private Q_SLOTS:
     void onUndoCommandError(QNLocalizedString error);
 
 private:
-    void initialize();
+    void init();
 
     bool checkNoteSize(const QString & newNoteContent) const;
 
@@ -486,6 +486,7 @@ private:
     void setupActionShortcut(const int key, const QString & context, QAction & action);
 
     void setupFileIO();
+    void setupSpellChecker();
     void setupScripts();
     void setupGeneralSignalSlotConnections();
     void setupNoteEditorPage();
@@ -795,10 +796,10 @@ private:
     QMenu *                                 m_pNonImageResourceContextMenu;
     QMenu *                                 m_pEncryptedTextContextMenu;
 
-    QPointer<SpellChecker>  m_pSpellChecker;
-    bool                    m_spellCheckerEnabled;
-    QStringList             m_currentNoteMisSpelledWords;
-    StringUtils             m_stringUtils;
+    SpellChecker *      m_pSpellChecker;
+    bool                m_spellCheckerEnabled;
+    QStringList         m_currentNoteMisSpelledWords;
+    StringUtils         m_stringUtils;
 
     const QString       m_pagePrefix;
 
@@ -817,7 +818,6 @@ private:
 
     QVector<ENMLConverter::SkipHtmlElementRule>     m_skipRulesForHtmlToEnmlConversion;
 
-    QThread *                       m_pIOThread;
     ResourceFileStorageManager *    m_pResourceFileStorageManager;
     FileIOThreadWorker *            m_pFileIOThreadWorker;
 

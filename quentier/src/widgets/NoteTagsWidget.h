@@ -80,6 +80,8 @@ private Q_SLOTS:
 private Q_SLOTS:
     void onNewTagNameEntered();
 
+    void onAllTagsListed();
+
     // Slots for response to events from local storage
 
     // Slots for notes events: finding, updating & expunging

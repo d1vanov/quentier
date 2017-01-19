@@ -43,6 +43,11 @@ NoteEditor::NoteEditor(QWidget * parent, Qt::WindowFlags flags) :
 NoteEditor::~NoteEditor()
 {}
 
+void NoteEditor::initialize(FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker)
+{
+    m_backend->initialize(fileIOThreadWorker, spellChecker);
+}
+
 void NoteEditor::setBackend(INoteEditorBackend * backend)
 {
     QLayout * pLayout = layout();
@@ -61,11 +66,6 @@ void NoteEditor::setAccount(const Account & account)
 void NoteEditor::setUndoStack(QUndoStack * pUndoStack)
 {
     m_backend->setUndoStack(pUndoStack);
-}
-
-void NoteEditor::setSpellChecker(SpellChecker * pSpellChecker)
-{
-    m_backend->setSpellChecker(pSpellChecker);
 }
 
 void NoteEditor::setBlankPageHtml(const QString & html)

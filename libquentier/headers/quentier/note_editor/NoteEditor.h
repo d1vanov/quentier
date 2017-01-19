@@ -32,6 +32,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 /**
@@ -45,6 +46,12 @@ public:
     virtual ~NoteEditor();
 
     /**
+     * NoteEditor requires FileIOThreadWorker and SpellChecker for its work but due to the particularities of Qt's .ui
+     * files processing these can't be passed right inside the constructor, hence here's a special initialization method
+     */
+    void initialize(FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker);
+
+    /**
      * This method can be used to set the backend to the note editor; the note editor has the default backend
      * so this method is not obligatory to be called
      */
@@ -54,11 +61,6 @@ public:
      * Set the current account to the note editor
      */
     void setAccount(const Account & account);
-
-    /**
-     * Set the spell checker to the note editor
-     */
-    void setSpellChecker(SpellChecker * pSpellChecker);
 
     /**
      * Get the undo stack serving to the note editor

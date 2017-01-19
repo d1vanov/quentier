@@ -45,6 +45,8 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(TagModel)
 QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 /**
  * @brief The NoteEditorWidget class contains the actual note editor +
@@ -56,6 +58,7 @@ class NoteEditorWidget: public QWidget
     Q_OBJECT
 public:
     explicit NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+                              FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker,
                               NoteCache & noteCache, NotebookCache & notebookCache,
                               TagCache & tagCache, TagModel & tagModel, QUndoStack * pUndoStack,
                               QWidget * parent = Q_NULLPTR);
@@ -314,6 +317,9 @@ private:
     NoteCache &                 m_noteCache;
     NotebookCache &             m_notebookCache;
     TagCache &                  m_tagCache;
+
+    FileIOThreadWorker &        m_fileIOThreadWorker;
+    SpellChecker &              m_spellChecker;
 
     // This data piece separate from m_pCurrentNote is needed in order to handle
     // the cases when the note is being loaded from the local storage while

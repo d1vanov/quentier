@@ -49,6 +49,11 @@ void NoteTagsWidget::setLocalStorageManagerThreadWorker(LocalStorageManagerThrea
 
 void NoteTagsWidget::setTagModel(TagModel * pTagModel)
 {
+    if (!m_pTagModel.isNull()) {
+        QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
+                            this, QNSLOT(NoteTagsWidget,onAllTagsListed));
+    }
+
     m_pTagModel = QPointer<TagModel>(pTagModel);
 }
 
@@ -141,15 +146,15 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         return;
     }
 
-    auto localUidIt = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
-    if (Q_UNLIKELY(localUidIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
+    auto tagNameIt = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
+    if (Q_UNLIKELY(tagNameIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("can't determine the tag which has been removed from the note");
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
     }
 
-    QString tagLocalUid = localUidIt->second;
+    QString tagLocalUid = tagNameIt->second;
 
     const TagModelItem * pItem = m_pTagModel->itemForLocalUid(tagLocalUid);
     if (Q_UNLIKELY(!pItem)) {
@@ -177,20 +182,12 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
         if (m_tagRestrictions.m_canUpdateNote &&
             ((m_lastDisplayedTagLocalUids.size() - 1) < m_pTagModel->account().noteTagCountMax()))
         {
-            NewListItemLineEdit * pNewTagLineEditorWidget = m_pLayout->findChild<NewListItemLineEdit*>();
-            if (pNewTagLineEditorWidget) {
-                m_pLayout->removeWidget(pNewTagLineEditorWidget);
-                pNewTagLineEditorWidget->hide();
-                pNewTagLineEditorWidget->deleteLater();
-                pNewTagLineEditorWidget = Q_NULLPTR;
-            }
-
             addNewTagWidgetToLayout();
         }
     }
 
     m_lastDisplayedTagLocalUids.removeOne(tagLocalUid);
-    Q_UNUSED(m_currentNoteTagLocalUidToNameBimap.right.erase(localUidIt))
+    Q_UNUSED(m_currentNoteTagLocalUidToNameBimap.right.erase(tagNameIt))
 
     QUuid updateNoteRequestId = QUuid::createUuid();
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid[updateNoteRequestId] =
@@ -223,7 +220,6 @@ void NoteTagsWidget::onNewTagNameEntered()
     }
 
     pNewItemLineEdit->clear();
-
     if (!pNewItemLineEdit->hasFocus()) {
         pNewItemLineEdit->setFocus();
     }
@@ -272,6 +268,16 @@ void NoteTagsWidget::onNewTagNameEntered()
         return;
     }
 
+    if (m_currentNote.hasTagLocalUids())
+    {
+        const QStringList & tagLocalUids = m_currentNote.tagLocalUids();
+        if (tagLocalUids.contains(pTagItem->localUid())) {
+            QNDEBUG(QStringLiteral("The current note already contains tag local uid ")
+                    << pTagItem->localUid());
+            return;
+        }
+    }
+
     m_currentNote.addTagLocalUid(pTagItem->localUid());
 
     const QString & tagGuid = pTagItem->guid();
@@ -287,6 +293,19 @@ void NoteTagsWidget::onNewTagNameEntered()
             << updateNoteRequestId << QStringLiteral(", note = ") << m_currentNote);
     emit updateNote(m_currentNote, /* update resources = */ false, /* update tags = */ true,
                     updateNoteRequestId);
+}
+
+void NoteTagsWidget::onAllTagsListed()
+{
+    QNDEBUG(QStringLiteral("NoteTagsWidget::onAllTagsListed"));
+
+    if (m_pTagModel.isNull()) {
+        return;
+    }
+
+    QObject::disconnect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
+                        this, QNSLOT(NoteTagsWidget,onAllTagsListed));
+    addNewTagWidgetToLayout();
 }
 
 void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
@@ -576,8 +595,8 @@ void NoteTagsWidget::clearLayout(const bool skipNewTagWidget)
 {
     while(m_pLayout->count() > 0) {
         QLayoutItem * pItem = m_pLayout->takeAt(0);
-        delete pItem->widget();
-        delete pItem;
+        pItem->widget()->hide();
+        pItem->widget()->deleteLater();
     }
 
     m_lastDisplayedTagLocalUids.clear();
@@ -613,9 +632,9 @@ void NoteTagsWidget::updateLayout()
         }
         else {
             QNTRACE(QStringLiteral("The last tag has been removed from the note"));
-            clearLayout();
         }
 
+        clearLayout();
         return;
     }
 
@@ -633,6 +652,10 @@ void NoteTagsWidget::updateLayout()
                 break;
             }
         }
+    }
+    else
+    {
+        shouldUpdateLayout = true;
     }
 
     if (!shouldUpdateLayout) {
@@ -681,6 +704,9 @@ void NoteTagsWidget::updateLayout()
                          pTagWidget, QNSLOT(ListItemWidget,setItemRemovable,bool));
 
         m_pLayout->addWidget(pTagWidget);
+        QNTRACE(QStringLiteral("Added list item widget for tag name ") << tagName
+                << QStringLiteral(", size: height = ") << pTagWidget->size().height()
+                << QStringLiteral(", width = ") << pTagWidget->size().width());
     }
 
     if (Q_LIKELY((tagNames.size() < m_pTagModel->account().noteTagCountMax()) &&
@@ -694,9 +720,9 @@ void NoteTagsWidget::addTagIconToLayout()
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::addTagIconToLayout"));
 
-    QPixmap tagIconImage(QStringLiteral("/tag/tag.png"));
+    QPixmap tagIconImage(QStringLiteral(":/tag/tag.png"));
     QLabel * pTagIconLabel = new QLabel(this);
-    pTagIconLabel->setPixmap(tagIconImage);
+    pTagIconLabel->setPixmap(tagIconImage.scaled(QSize(20, 20)));
     m_pLayout->addWidget(pTagIconLabel);
 }
 
@@ -704,26 +730,53 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
 {
     QNDEBUG(QStringLiteral("NoteTagsWidget::addNewTagWidgetToLayout"));
 
+    const int numItems = m_pLayout->count();
+    for(int i = 0; i < numItems; ++i)
+    {
+        QLayoutItem * pItem = m_pLayout->itemAt(i);
+        if (Q_UNLIKELY(!pItem)) {
+            continue;
+        }
+
+        NewListItemLineEdit * pNewItemWidget = qobject_cast<NewListItemLineEdit*>(pItem->widget());
+        if (!pNewItemWidget) {
+            continue;
+        }
+
+        pItem = m_pLayout->takeAt(i);
+        pItem->widget()->hide();
+        pItem->widget()->deleteLater();
+        break;
+    }
+
+    if (Q_UNLIKELY(m_pTagModel.isNull())) {
+        QNWARNING(QStringLiteral("No tag model is set, won't add the new tag widget"));
+        return;
+    }
+
+    if (!m_pTagModel->allTagsListed())
+    {
+        QNTRACE(QStringLiteral("Not all tags have been listed within the model yet"));
+        QObject::connect(m_pTagModel.data(), QNSIGNAL(TagModel,notifyAllTagsListed),
+                         this, QNSLOT(NoteTagsWidget,onAllTagsListed));
+        return;
+    }
+
     QStringList existingTagNames;
     existingTagNames.reserve(static_cast<int>(m_currentNoteTagLocalUidToNameBimap.size()));
     for(auto it = m_currentNoteTagLocalUidToNameBimap.right.begin(), end = m_currentNoteTagLocalUidToNameBimap.right.end();
         it != end; ++it)
     {
-        const QString & localUid = it->first;
-
-        const TagModelItem * pItem = m_pTagModel->itemForLocalUid(localUid);
-        if (Q_UNLIKELY(!pItem)) {
-            QNWARNING(QStringLiteral("Couldn't find tag model item for local uid: ") << localUid);
-            continue;
-        }
-
-        existingTagNames << pItem->name();
+        existingTagNames << it->first;
     }
 
     NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(m_pTagModel, existingTagNames, this);
     QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,editingFinished),
                      this, QNSLOT(NoteTagsWidget,onNewTagNameEntered));
     m_pLayout->addWidget(pNewTagLineEdit);
+    QNTRACE(QStringLiteral("Added new tag line edit to the layout: its height = ")
+            << pNewTagLineEdit->size().height() << QStringLiteral(", width = ")
+            << pNewTagLineEdit->size().width());
 }
 
 void NoteTagsWidget::removeNewTagWidgetFromLayout()

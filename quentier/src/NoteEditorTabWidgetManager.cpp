@@ -20,12 +20,15 @@
 #include "models/TagModel.h"
 #include "widgets/NoteEditorWidget.h"
 #include "widgets/TabWidget.h"
-#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
+#include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/note_editor/SpellChecker.h>
 #include <QUndoStack>
 #include <QTabBar>
 #include <QCloseEvent>
+#include <QThread>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES (5)
@@ -49,6 +52,9 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_tagModel(tagModel),
     m_pTabWidget(tabWidget),
     m_pBlankNoteEditor(Q_NULLPTR),
+    m_pIOThread(Q_NULLPTR),
+    m_pFileIOThreadWorker(Q_NULLPTR),
+    m_pSpellChecker(Q_NULLPTR),
     m_maxNumNotes(-1),
     m_shownNoteLocalUids(),
     m_createNoteRequestIds()
@@ -73,8 +79,12 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_shownNoteLocalUids.set_capacity(static_cast<size_t>(std::max(m_maxNumNotes, MIN_NUM_NOTES)));
     QNTRACE(QStringLiteral("Shown note local uids circular buffer capacity: ") << m_shownNoteLocalUids.capacity());
 
+    setupFileIO();
+    setupSpellChecker();
+
     QUndoStack * pUndoStack = new QUndoStack;
     m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
+                                              *m_pFileIOThreadWorker, *m_pSpellChecker,
                                               m_noteCache, m_notebookCache, m_tagCache,
                                               m_tagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(m_pBlankNoteEditor);
@@ -85,6 +95,13 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
 
     QObject::connect(m_pTabWidget, QNSIGNAL(TabWidget,tabCloseRequested,int),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorTabCloseRequested,int));
+}
+
+NoteEditorTabWidgetManager::~NoteEditorTabWidgetManager()
+{
+    if (m_pIOThread) {
+        m_pIOThread->quit();
+    }
 }
 
 void NoteEditorTabWidgetManager::setMaxNumNotes(const int maxNumNotes)
@@ -162,6 +179,7 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
 
     QUndoStack * pUndoStack = new QUndoStack;
     NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
+                                                                *m_pFileIOThreadWorker, *m_pSpellChecker,
                                                                 m_noteCache, m_notebookCache, m_tagCache,
                                                                 m_tagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
@@ -287,6 +305,12 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
     auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), pNoteEditorWidget->noteLocalUid());
     if (it != m_shownNoteLocalUids.end()) {
         Q_UNUSED(m_shownNoteLocalUids.erase(it))
+        QNTRACE(QStringLiteral("Removed note local uid ") << pNoteEditorWidget->noteLocalUid());
+    }
+
+    QStringLiteral("Remaining shown note local uids: ");
+    for(auto sit = m_shownNoteLocalUids.begin(), end = m_shownNoteLocalUids.end(); sit != end; ++sit) {
+        QNTRACE(*sit);
     }
 
     if (m_pTabWidget->count() == 1)
@@ -478,6 +502,31 @@ void NoteEditorTabWidgetManager::disconnectFromLocalStorage()
                         this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteComplete,Note,QUuid));
     QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
                         this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,QNLocalizedString,QUuid));
+}
+
+void NoteEditorTabWidgetManager::setupFileIO()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setupFileIO"));
+
+    if (!m_pIOThread) {
+        m_pIOThread = new QThread;
+        QObject::connect(m_pIOThread, QNSIGNAL(QThread,finished), m_pIOThread, QNSLOT(QThread,deleteLater));
+        m_pIOThread->start(QThread::LowPriority);
+    }
+
+    if (!m_pFileIOThreadWorker) {
+        m_pFileIOThreadWorker = new FileIOThreadWorker;
+        m_pFileIOThreadWorker->moveToThread(m_pIOThread);
+    }
+}
+
+void NoteEditorTabWidgetManager::setupSpellChecker()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setupSpellChecker"));
+
+    if (!m_pSpellChecker) {
+        m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, this);
+    }
 }
 
 QString NoteEditorTabWidgetManager::shortenTabName(const QString & tabName) const

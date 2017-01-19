@@ -38,6 +38,8 @@ using quentier::NoteTagsWidget;
 #include <quentier/types/Resource.h>
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/note_editor/SpellChecker.h>
 #include <QFontDatabase>
 #include <QScopedPointer>
 #include <QColor>
@@ -56,6 +58,7 @@ using quentier::NoteTagsWidget;
 namespace quentier {
 
 NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+                                   FileIOThreadWorker & fileIOThreadWorker, SpellChecker & spellChecker,
                                    NoteCache & noteCache, NotebookCache & notebookCache, TagCache & tagCache,
                                    TagModel & tagModel, QUndoStack * pUndoStack, QWidget * parent) :
     QWidget(parent),
@@ -63,6 +66,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
+    m_fileIOThreadWorker(fileIOThreadWorker),
+    m_spellChecker(spellChecker),
     m_noteLocalUid(),
     m_pCurrentNote(),
     m_pCurrentNotebook(),
@@ -83,6 +88,8 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_noteTitleIsEdited(false)
 {
     m_pUi->setupUi(this);
+
+    m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker);
 
     m_pUi->noteNameLineEdit->installEventFilter(this);
 

@@ -26,6 +26,7 @@ NoteSearchQuery::NoteSearchQuery() :
 {}
 
 NoteSearchQuery::NoteSearchQuery(const NoteSearchQuery & other) :
+    Printable(),
     d(other.d)
 {}
 

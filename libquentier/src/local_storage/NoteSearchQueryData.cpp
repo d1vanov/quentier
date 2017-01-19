@@ -111,6 +111,8 @@ NoteSearchQueryData::NoteSearchQueryData() :
 {}
 
 NoteSearchQueryData::NoteSearchQueryData(const NoteSearchQueryData & other) :
+    QSharedData(),
+    Printable(),
     m_queryString(other.m_queryString),
     m_notebookModifier(other.m_notebookModifier),
     m_hasAnyModifier(other.m_hasAnyModifier),

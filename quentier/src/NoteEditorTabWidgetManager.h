@@ -35,6 +35,7 @@
 #endif
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
+QT_FORWARD_DECLARE_CLASS(QThread)
 
 namespace quentier {
 
@@ -43,6 +44,8 @@ QT_FORWARD_DECLARE_CLASS(LocalStorageManagerThreadWorker)
 QT_FORWARD_DECLARE_CLASS(Note)
 QT_FORWARD_DECLARE_CLASS(NoteEditorWidget)
 QT_FORWARD_DECLARE_CLASS(TabWidget)
+QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
+QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 class NoteEditorTabWidgetManager: public QObject
 {
@@ -52,6 +55,7 @@ public:
                                         NoteCache & noteCache, NotebookCache & notebookCache,
                                         TagCache & tagCache, TagModel & tagModel,
                                         TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
+    ~NoteEditorTabWidgetManager();
 
     int maxNumNotes() const { return m_maxNumNotes; }
     void setMaxNumNotes(const int maxNumNotes);
@@ -87,6 +91,9 @@ private:
     void connectToLocalStorage();
     void disconnectFromLocalStorage();
 
+    void setupFileIO();
+    void setupSpellChecker();
+
     QString shortenTabName(const QString & tabName) const;
 
 private:
@@ -99,6 +106,10 @@ private:
 
     TabWidget *                         m_pTabWidget;
     NoteEditorWidget *                  m_pBlankNoteEditor;
+
+    QThread *                           m_pIOThread;
+    FileIOThreadWorker *                m_pFileIOThreadWorker;
+    SpellChecker *                      m_pSpellChecker;
 
     int                                 m_maxNumNotes;
 
