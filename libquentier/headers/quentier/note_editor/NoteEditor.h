@@ -32,6 +32,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(Account)
 QT_FORWARD_DECLARE_CLASS(Notebook)
 QT_FORWARD_DECLARE_CLASS(INoteEditorBackend)
+QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
 /**
  * @brief The NoteEditor class is a widget encapsulating all the functionality necessary for showing and editing notes
@@ -53,6 +54,11 @@ public:
      * Set the current account to the note editor
      */
     void setAccount(const Account & account);
+
+    /**
+     * Set the spell checker to the note editor
+     */
+    void setSpellChecker(SpellChecker * pSpellChecker);
 
     /**
      * Get the undo stack serving to the note editor

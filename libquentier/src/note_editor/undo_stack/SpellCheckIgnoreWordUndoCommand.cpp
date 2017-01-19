@@ -1,6 +1,6 @@
 #include "SpellCheckIgnoreWordUndoCommand.h"
 #include "../NoteEditor_p.h"
-#include "../SpellChecker.h"
+#include <quentier/note_editor/SpellChecker.h>
 #include <quentier/logging/QuentierLogger.h>
 
 namespace quentier {

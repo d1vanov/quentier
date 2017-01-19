@@ -63,6 +63,11 @@ void NoteEditor::setUndoStack(QUndoStack * pUndoStack)
     m_backend->setUndoStack(pUndoStack);
 }
 
+void NoteEditor::setSpellChecker(SpellChecker * pSpellChecker)
+{
+    m_backend->setSpellChecker(pSpellChecker);
+}
+
 void NoteEditor::setBlankPageHtml(const QString & html)
 {
     m_backend->setBlankPageHtml(html);

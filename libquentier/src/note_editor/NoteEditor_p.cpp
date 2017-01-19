@@ -17,7 +17,6 @@
  */
 
 #include "NoteEditor_p.h"
-#include "SpellChecker.h"
 #include "GenericResourceImageManager.h"
 #include "dialogs/DecryptionDialog.h"
 #include "delegates/AddResourceDelegate.h"
@@ -57,6 +56,7 @@
 #include "undo_stack/SpellCheckAddToUserWordListUndoCommand.h"
 #include "undo_stack/TableActionUndoCommand.h"
 #include <quentier/utility/ApplicationSettings.h>
+#include <quentier/note_editor/SpellChecker.h>
 
 #ifndef QUENTIER_USE_QT_WEB_ENGINE
 #include <QWebFrame>
@@ -2125,7 +2125,6 @@ void NoteEditorPrivate::initialize()
     m_genericResourceImageFileStoragePath = m_noteEditorPageFolderPath + QStringLiteral("/genericResourceImages");
 
     setupFileIO();
-    setupSpellChecker();
     setupNoteEditorPage();
     setAcceptDrops(true);
 
@@ -3550,7 +3549,11 @@ void NoteEditorPrivate::setupGenericTextContextMenu(const QStringList & extraDat
     {
         m_lastMisSpelledWord = misSpelledWord;
 
-        QStringList correctionSuggestions = m_pSpellChecker->spellCorrectionSuggestions(misSpelledWord);
+        QStringList correctionSuggestions;
+        if (!m_pSpellChecker.isNull()) {
+            correctionSuggestions = m_pSpellChecker->spellCorrectionSuggestions(misSpelledWord);
+        }
+
         if (!correctionSuggestions.isEmpty())
         {
             const int numCorrectionSuggestions = correctionSuggestions.size();
@@ -3814,15 +3817,6 @@ void NoteEditorPrivate::setupFileIO()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note), m_pGenericResourceImageManager,
                      QNSLOT(GenericResourceImageManager,onCurrentNoteChanged,Note));
 #endif
-}
-
-void NoteEditorPrivate::setupSpellChecker()
-{
-    QNDEBUG("NoteEditorPrivate::setupSpellChecker");
-
-    m_pSpellChecker = new SpellChecker(m_pFileIOThreadWorker, this);
-
-    QObject::connect(m_pSpellChecker, QNSIGNAL(SpellChecker,ready), this, QNSLOT(NoteEditorPrivate,onSpellCheckerReady));
 }
 
 void NoteEditorPrivate::setupScripts()
@@ -4742,6 +4736,21 @@ void NoteEditorPrivate::setUndoStack(QUndoStack * pUndoStack)
     m_pUndoStack = pUndoStack;
 }
 
+void NoteEditorPrivate::setSpellChecker(SpellChecker * pSpellChecker)
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::setSpellChecker"));
+
+    QUENTIER_CHECK_PTR(pSpellChecker, QStringLiteral("null spell checker passed to note editor"));
+    m_pSpellChecker = pSpellChecker;
+
+    if (!m_pSpellChecker->isReady()) {
+        QObject::connect(m_pSpellChecker, QNSIGNAL(SpellChecker,ready), this, QNSLOT(NoteEditorPrivate,onSpellCheckerReady));
+    }
+    else {
+        onSpellCheckerReady();
+    }
+}
+
 void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & notebook)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setNoteAndNotebook: note: local uid = ") << note.localUid()
@@ -5423,6 +5432,11 @@ void NoteEditorPrivate::onSpellCheckIgnoreWordAction()
         return;
     }
 
+    if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
+        QNDEBUG(QStringLiteral("Spell checker is null, won't do anything"));
+        return;
+    }
+
     m_pSpellChecker->ignoreWord(m_lastMisSpelledWord);
     m_currentNoteMisSpelledWords.removeAll(m_lastMisSpelledWord);
     applySpellCheck();
@@ -5439,6 +5453,11 @@ void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
 
     if (!m_spellCheckerEnabled) {
         QNDEBUG(QStringLiteral("Not enabled, won't do anything"));
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
+        QNDEBUG(QStringLiteral("Spell checker is null, won't do anything"));
         return;
     }
 
@@ -5543,6 +5562,11 @@ void NoteEditorPrivate::onSpellCheckerDynamicHelperUpdate(QStringList words)
 
     if (!m_spellCheckerEnabled) {
         QNTRACE(QStringLiteral("No spell checking is enabled, nothing to do"));
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pSpellChecker.isNull())) {
+        QNDEBUG(QStringLiteral("Spell checker is null, won't do anything"));
         return;
     }
 

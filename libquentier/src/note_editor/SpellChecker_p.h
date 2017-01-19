@@ -16,8 +16,8 @@
  * along with libquentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_H
-#define LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_H
+#ifndef LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_P_H
+#define LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_P_H
 
 #include "SpellCheckerDictionariesFinder.h"
 #include <quentier/utility/Macros.h>
@@ -36,12 +36,12 @@ namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 
-class SpellChecker: public QObject
+class SpellCheckerPrivate: public QObject
 {
     Q_OBJECT
 public:
-    SpellChecker(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent = Q_NULLPTR,
-                 const QString & userDictionaryPath = QString());
+    SpellCheckerPrivate(FileIOThreadWorker * pFileIOThreadWorker, QObject * parent = Q_NULLPTR,
+                        const QString & userDictionaryPath = QString());
 
     // The second bool in the pair indicates whether the dictionary is enabled or disabled
     QVector<QPair<QString,bool> > listAvailableDictionaries() const;
@@ -69,11 +69,13 @@ private Q_SLOTS:
     void onDictionariesFound(SpellCheckerDictionariesFinder::DicAndAffFilesByDictionaryName files);
 
 private:
+    void checkAndScanSystemDictionaries();
     void scanSystemDictionaries();
     void addSystemDictionary(const QString & path, const QString & name);
 
     void initializeUserDictionary(const QString & userDictionaryPath);
     bool checkUserDictionaryPath(const QString & userDictionaryPath) const;
+
 
     void checkUserDictionaryDataPendingWriting();
 
@@ -118,4 +120,4 @@ private:
 
 } // namespace quentier
 
-#endif // LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_H
+#endif // LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_P_H

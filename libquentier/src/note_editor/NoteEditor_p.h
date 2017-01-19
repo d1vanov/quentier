@@ -188,6 +188,7 @@ public Q_SLOTS:
     virtual QWidget * widget() Q_DECL_OVERRIDE { return this; }
     virtual void setAccount(const Account & account) Q_DECL_OVERRIDE;
     virtual void setUndoStack(QUndoStack * pUndoStack) Q_DECL_OVERRIDE;
+    virtual void setSpellChecker(SpellChecker * pSpellChecker) Q_DECL_OVERRIDE;
 
     virtual void setBlankPageHtml(const QString & html) Q_DECL_OVERRIDE;
 
@@ -485,7 +486,6 @@ private:
     void setupActionShortcut(const int key, const QString & context, QAction & action);
 
     void setupFileIO();
-    void setupSpellChecker();
     void setupScripts();
     void setupGeneralSignalSlotConnections();
     void setupNoteEditorPage();
@@ -795,10 +795,10 @@ private:
     QMenu *                                 m_pNonImageResourceContextMenu;
     QMenu *                                 m_pEncryptedTextContextMenu;
 
-    SpellChecker *      m_pSpellChecker;
-    bool                m_spellCheckerEnabled;
-    QStringList         m_currentNoteMisSpelledWords;
-    StringUtils         m_stringUtils;
+    QPointer<SpellChecker>  m_pSpellChecker;
+    bool                    m_spellCheckerEnabled;
+    QStringList             m_currentNoteMisSpelledWords;
+    StringUtils             m_stringUtils;
 
     const QString       m_pagePrefix;
 
