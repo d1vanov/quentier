@@ -332,23 +332,6 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
     return NoteSaveStatus::Ok;
 }
 
-void NoteEditorWidget::setFocusToEditor()
-{
-    QNDEBUG(QStringLiteral("NoteEditorWidget::setFocusToEditor"));
-    m_pUi->noteEditor->setFocus();
-}
-
-void NoteEditorWidget::setFocusToTitle()
-{
-    QNDEBUG(QStringLiteral("NoteEditorWidget::setFocusToTitle"));
-    m_pUi->noteNameLineEdit->setFocus();
-}
-
-bool NoteEditorWidget::isNoteTitleEdited() const
-{
-    return m_noteTitleIsEdited;
-}
-
 void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {
@@ -394,25 +377,21 @@ bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
 void NoteEditorWidget::onEditorTextBoldToggled()
 {
     m_pUi->noteEditor->textBold();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextItalicToggled()
 {
     m_pUi->noteEditor->textItalic();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextUnderlineToggled()
 {
     m_pUi->noteEditor->textUnderline();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextStrikethroughToggled()
 {
     m_pUi->noteEditor->textStrikethrough();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAlignLeftAction()
@@ -423,7 +402,6 @@ void NoteEditorWidget::onEditorTextAlignLeftAction()
     }
 
     m_pUi->noteEditor->alignLeft();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAlignCenterAction()
@@ -434,7 +412,6 @@ void NoteEditorWidget::onEditorTextAlignCenterAction()
     }
 
     m_pUi->noteEditor->alignCenter();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAlignRightAction()
@@ -445,97 +422,81 @@ void NoteEditorWidget::onEditorTextAlignRightAction()
     }
 
     m_pUi->noteEditor->alignRight();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextAddHorizontalLineAction()
 {
     m_pUi->noteEditor->insertHorizontalLine();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextIncreaseFontSizeAction()
 {
     m_pUi->noteEditor->increaseFontSize();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextDecreaseFontSizeAction()
 {
     m_pUi->noteEditor->decreaseFontSize();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextHighlightAction()
 {
     m_pUi->noteEditor->textHighlight();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextIncreaseIndentationAction()
 {
     m_pUi->noteEditor->increaseIndentation();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextDecreaseIndentationAction()
 {
     m_pUi->noteEditor->decreaseIndentation();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextInsertUnorderedListAction()
 {
     m_pUi->noteEditor->insertBulletedList();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextInsertOrderedListAction()
 {
     m_pUi->noteEditor->insertNumberedList();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextEditHyperlinkAction()
 {
     m_pUi->noteEditor->editHyperlinkDialog();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextCopyHyperlinkAction()
 {
     m_pUi->noteEditor->copyHyperlink();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorTextRemoveHyperlinkAction()
 {
     m_pUi->noteEditor->removeHyperlink();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorChooseTextColor(QColor color)
 {
     m_pUi->noteEditor->setFontColor(color);
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorChooseBackgroundColor(QColor color)
 {
     m_pUi->noteEditor->setBackgroundColor(color);
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorSpellCheckStateChanged(int state)
 {
     m_pUi->noteEditor->setSpellcheck(state != Qt::Unchecked);
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorInsertToDoCheckBoxAction()
 {
     m_pUi->noteEditor->insertToDoCheckbox();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onEditorInsertTableDialogAction()
@@ -559,43 +520,36 @@ void NoteEditorWidget::onEditorInsertTable(int rows, int columns, double width, 
     QNTRACE(QStringLiteral("Inserted table: rows = ") << rows << QStringLiteral(", columns = ") << columns
             << QStringLiteral(", width = ") << width << QStringLiteral(", relative width = ")
             << (relativeWidth ? QStringLiteral("true") : QStringLiteral("false")));
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onUndoAction()
 {
     m_pUi->noteEditor->undo();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onRedoAction()
 {
     m_pUi->noteEditor->redo();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onCopyAction()
 {
     m_pUi->noteEditor->copy();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onCutAction()
 {
     m_pUi->noteEditor->cut();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onPasteAction()
 {
     m_pUi->noteEditor->paste();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onSelectAllAction()
 {
     m_pUi->noteEditor->selectAll();
-    m_pUi->noteEditor->setFocus();
 }
 
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)

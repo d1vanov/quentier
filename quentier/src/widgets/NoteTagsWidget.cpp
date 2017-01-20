@@ -340,6 +340,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
     {
         NewListItemLineEdit * pNewItemLineEdit = m_pLayout->findChild<NewListItemLineEdit*>();
         if (pNewItemLineEdit) {
+            QNTRACE(QStringLiteral("Setting focus to new item line edit: ") << pNewItemLineEdit);
             pNewItemLineEdit->setFocus();
         }
 

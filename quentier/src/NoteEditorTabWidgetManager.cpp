@@ -337,19 +337,6 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
 void NoteEditorTabWidgetManager::onNoteLoadedInEditor()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteLoadedInEditor"));
-
-    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
-    if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNWARNING(QStringLiteral("Failed to cast the sender of note loaded signal to NoteEditorWidget"));
-        return;
-    }
-
-    if (pNoteEditorWidget->isNoteTitleEdited()) {
-        pNoteEditorWidget->setFocusToTitle();
-    }
-    else {
-        pNoteEditorWidget->setFocusToEditor();
-    }
 }
 
 void NoteEditorTabWidgetManager::onAddNoteComplete(Note note, QUuid requestId)

@@ -121,11 +121,6 @@ typedef QWebEngineSettings WebSettings;
 #include <QImage>
 #include <QTransform>
 
-// NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
-#ifndef Q_MOC_RUN
-#include <boost/scope_exit.hpp>
-#endif
-
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(this->page()); \
     if (Q_UNLIKELY(!page)) { \
@@ -145,11 +140,6 @@ typedef QWebEngineSettings WebSettings;
         emit notifyError(error); \
         return; \
     }
-
-#define AUTO_SET_FOCUS() \
-    BOOST_SCOPE_EXIT(this_) { \
-        this_->setFocus(); \
-    } BOOST_SCOPE_EXIT_END
 
 namespace quentier {
 
@@ -2216,8 +2206,6 @@ void NoteEditorPrivate::onManagedPageActionFinished(const QVariant & result, con
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onManagedPageActionFinished: ") << result);
     Q_UNUSED(extraData)
 
-    AUTO_SET_FOCUS()
-
     QMap<QString,QVariant> resultMap = result.toMap();
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
@@ -2370,7 +2358,6 @@ void NoteEditorPrivate::changeIndentation(const bool increase)
     QNDEBUG(QStringLiteral("NoteEditorPrivate::changeIndentation: increase = ") << (increase ? QStringLiteral("true") : QStringLiteral("false")));
 
     execJavascriptCommand(increase ? QStringLiteral("indent") : QStringLiteral("outdent"));
-    setFocus();
 }
 
 void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCase, const bool searchBackward,
@@ -5283,7 +5270,6 @@ QString NoteEditorPrivate::composeHtmlTable(const T width, const T singleColumnW
 
 #define HANDLE_ACTION(name, item) \
     QNDEBUG(QStringLiteral("NoteEditorPrivate::" #name)); \
-    AUTO_SET_FOCUS() \
     CHECK_NOTE_EDITABLE(#name) \
     GET_PAGE() \
     page->triggerAction(WebPage::item)
@@ -5313,7 +5299,6 @@ void NoteEditorPrivate::undoPageAction()
     GET_PAGE()
     page->executeJavaScript(QStringLiteral("textEditingUndoRedoManager.undo()"));
     updateJavaScriptBindings();
-    setFocus();
 }
 
 void NoteEditorPrivate::redoPageAction()
@@ -5324,7 +5309,6 @@ void NoteEditorPrivate::redoPageAction()
 
     GET_PAGE()
     page->executeJavaScript(QStringLiteral("textEditingUndoRedoManager.redo()"));
-    setFocus();
 }
 
 void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
@@ -5624,7 +5608,6 @@ void NoteEditorPrivate::paste()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::paste"));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("paste"))
 
     GET_PAGE()
@@ -5704,7 +5687,6 @@ void NoteEditorPrivate::fontMenu()
     bool fontWasChosen = false;
     QFont chosenFont = QFontDialog::getFont(&fontWasChosen, m_font, this);
     if (!fontWasChosen) {
-        setFocus();
         return;
     }
 
@@ -5727,7 +5709,6 @@ void NoteEditorPrivate::fontMenu()
 
 #define HANDLE_ACTION(method, name, command) \
     QNDEBUG(QStringLiteral("NoteEditorPrivate::" #method)); \
-    AUTO_SET_FOCUS() \
     CHECK_NOTE_EDITABLE(name) \
     execJavascriptCommand(#command)
 
@@ -5760,9 +5741,7 @@ void NoteEditorPrivate::textHighlight()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::textHighlight"));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("highlight text"))
-
     setBackgroundColor(QColor(255, 255, 127));
 }
 
@@ -5872,8 +5851,6 @@ void NoteEditorPrivate::insertToDoCheckbox()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::insertToDoCheckbox"));
 
-    AUTO_SET_FOCUS()
-
     GET_PAGE()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("insert checkbox"))
 
@@ -5888,8 +5865,6 @@ void NoteEditorPrivate::setSpellcheck(const bool enabled)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setSpellcheck: enabled = ")
             << (enabled ? QStringLiteral("true") : QStringLiteral("false")));
-
-    AUTO_SET_FOCUS()
 
     if (m_spellCheckerEnabled == enabled) {
         QNTRACE(QStringLiteral("Spell checker enabled flag didn't change"));
@@ -5917,8 +5892,6 @@ void NoteEditorPrivate::setFont(const QFont & font)
             << QStringLiteral(", previous font family = ") << m_font.family()
             << QStringLiteral(", previous font point size = ") << m_font.pointSize());
 
-    AUTO_SET_FOCUS()
-
     if (m_font.family() == font.family()) {
         QNTRACE(QStringLiteral("Font family hasn't changed, nothing to to do"));
         return;
@@ -5935,8 +5908,6 @@ void NoteEditorPrivate::setFont(const QFont & font)
 void NoteEditorPrivate::setFontHeight(const int height)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setFontHeight: ") << height);
-
-    AUTO_SET_FOCUS()
 
     if (height <= 0) {
         QNLocalizedString error = QT_TR_NOOP("detected incorrect font size");
@@ -5960,7 +5931,6 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setFontColor: ") << color.name()
             << QStringLiteral(", rgb: ") << QString::number(color.rgb(), 16));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("set font color"))
 
     if (!color.isValid()) {
@@ -5980,7 +5950,6 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setBackgroundColor: ") << color.name()
             << QStringLiteral(", rgb: ") << QString::number(color.rgb(), 16));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("set background color"))
 
     if (!color.isValid()) {
@@ -5999,7 +5968,6 @@ void NoteEditorPrivate::insertHorizontalLine()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::insertHorizontalLine"));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("insert horizontal line"))
     execJavascriptCommand(QStringLiteral("insertHorizontalRule"));
 }
@@ -6028,7 +5996,6 @@ void NoteEditorPrivate::insertBulletedList()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::insertBulletedList"));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("insert unordered list"))
     execJavascriptCommand(QStringLiteral("insertUnorderedList"));
 }
@@ -6037,7 +6004,6 @@ void NoteEditorPrivate::insertNumberedList()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::insertNumberedList"));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("insert numbered list"))
     execJavascriptCommand(QStringLiteral("insertOrderedList"));
 }
@@ -6046,7 +6012,6 @@ void NoteEditorPrivate::insertTableDialog()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::insertTableDialog"));
 
-    AUTO_SET_FOCUS()
     CHECK_NOTE_EDITABLE(QT_TR_NOOP("insert table"))
     emit insertTableDialogRequested();
 }
@@ -6119,7 +6084,6 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
                                          /* relative = */ false);
     execJavascriptCommand(QStringLiteral("insertHTML"), htmlTable);
     updateColResizableTableBindings();
-    setFocus();
 }
 
 void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int columns, const double relativeWidth)
@@ -6158,7 +6122,6 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
                                          /* relative = */ true);
     execJavascriptCommand(QStringLiteral("insertHTML"), htmlTable);
     updateColResizableTableBindings();
-    setFocus();
 }
 
 void NoteEditorPrivate::insertTableRow()

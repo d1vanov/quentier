@@ -147,22 +147,6 @@ public:
      */
     NoteSaveStatus::type checkAndSaveModifiedNote(QNLocalizedString & errorDescription);
 
-    /**
-     * @brief setFocusToEditor - sets the focus to the note editor widget
-     */
-    void setFocusToEditor();
-
-    /**
-     * @brief setFocusToTitle - sets the focus to the note title editor widget
-     */
-    void setFocusToTitle();
-
-    /**
-     * @brief isNoteTitleEdited
-     * @return true if the note's title is being edited at the moment, false otherwise
-     */
-    bool isNoteTitleEdited() const;
-
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
 
