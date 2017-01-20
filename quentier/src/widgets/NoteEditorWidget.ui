@@ -75,10 +75,10 @@
              <number>5</number>
             </property>
             <property name="topMargin">
-             <number>5</number>
+             <number>2</number>
             </property>
             <property name="bottomMargin">
-             <number>5</number>
+             <number>2</number>
             </property>
             <item>
              <widget class="QPushButton" name="undoPushButton">
@@ -106,8 +106,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -135,8 +135,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -167,8 +167,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -193,8 +193,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -219,8 +219,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -245,8 +245,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -274,8 +274,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -303,8 +303,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -332,8 +332,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -361,8 +361,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -390,8 +390,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -419,8 +419,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -448,8 +448,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -477,8 +477,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
              </widget>
@@ -504,10 +504,10 @@
              <number>5</number>
             </property>
             <property name="topMargin">
-             <number>5</number>
+             <number>2</number>
             </property>
             <property name="bottomMargin">
-             <number>5</number>
+             <number>2</number>
             </property>
             <item>
              <widget class="QFontComboBox" name="fontComboBox">
@@ -585,8 +585,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="popupMode">
@@ -611,8 +611,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="popupMode">
@@ -637,8 +637,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -663,8 +663,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -689,8 +689,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="flat">
@@ -715,8 +715,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -744,8 +744,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="checkable">
@@ -773,8 +773,8 @@
               </property>
               <property name="iconSize">
                <size>
-                <width>22</width>
-                <height>22</height>
+                <width>16</width>
+                <height>16</height>
                </size>
               </property>
               <property name="popupMode">
