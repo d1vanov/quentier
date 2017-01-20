@@ -338,7 +338,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
     auto ait = m_updateNoteRequestIdToAddedTagLocalUidAndGuid.find(requestId);
     if (ait != m_updateNoteRequestIdToAddedTagLocalUidAndGuid.end())
     {
-        NewListItemLineEdit * pNewItemLineEdit = m_pLayout->findChild<NewListItemLineEdit*>();
+        NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
         if (pNewItemLineEdit) {
             QNTRACE(QStringLiteral("Setting focus to new item line edit: ") << pNewItemLineEdit);
             pNewItemLineEdit->setFocus();
