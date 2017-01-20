@@ -53,10 +53,13 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
 #else
     QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged, this, &NewListItemLineEdit::onModelDataChanged);
 #endif
+
+    QNTRACE(QStringLiteral("Creating NewListItemLineEdit::focusOutEvent: ") << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
 {
+    QNTRACE(QStringLiteral("Destroying NewListItemLineEdit::focusOutEvent: ") << this);
     delete m_pUi;
 }
 
@@ -94,6 +97,22 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
     }
 
     QLineEdit::keyPressEvent(pEvent);
+}
+
+void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
+{
+    QNTRACE(QStringLiteral("NewListItemLineEdit::focusInEvent: ") << this
+            << QStringLiteral(", event type = ") << pEvent->type()
+            << QStringLiteral(", reason = ") << pEvent->reason());
+    QLineEdit::focusInEvent(pEvent);
+}
+
+void NewListItemLineEdit::focusOutEvent(QFocusEvent * pEvent)
+{
+    QNTRACE(QStringLiteral("NewListItemLineEdit::focusOutEvent: ") << this
+            << QStringLiteral(", event type = ") << pEvent->type()
+            << QStringLiteral(", reason = ") << pEvent->reason());
+    QLineEdit::focusOutEvent(pEvent);
 }
 
 void NewListItemLineEdit::onModelRowsInserted(const QModelIndex & parent, int start, int end)

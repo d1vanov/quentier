@@ -51,6 +51,8 @@ public:
 
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void focusInEvent(QFocusEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void focusOutEvent(QFocusEvent * pEvent) Q_DECL_OVERRIDE;
 
 private Q_SLOTS:
     void onModelRowsInserted(const QModelIndex & parent, int start, int end);
