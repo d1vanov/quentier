@@ -36,7 +36,7 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid(),
     m_updateNoteRequestIdToAddedTagLocalUidAndGuid(),
     m_tagRestrictions(),
-    m_pLayout(new FlowLayout(this))
+    m_pLayout(new FlowLayout)
 {
     addTagIconToLayout();
     setLayout(m_pLayout);
@@ -698,15 +698,13 @@ void NoteTagsWidget::updateLayout()
         const QString & tagName = tagNames[i];
 
         ListItemWidget * pTagWidget = new ListItemWidget(tagName, this);
+        pTagWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
         QObject::connect(pTagWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                          this, QNSLOT(NoteTagsWidget,onTagRemoved,QString));
         QObject::connect(this, QNSIGNAL(NoteTagsWidget,canUpdateNoteRestrictionChanged,bool),
                          pTagWidget, QNSLOT(ListItemWidget,setItemRemovable,bool));
 
         m_pLayout->addWidget(pTagWidget);
-        QNTRACE(QStringLiteral("Added list item widget for tag name ") << tagName
-                << QStringLiteral(", size: height = ") << pTagWidget->size().height()
-                << QStringLiteral(", width = ") << pTagWidget->size().width());
     }
 
     if (Q_LIKELY((tagNames.size() < m_pTagModel->account().noteTagCountMax()) &&
@@ -723,6 +721,7 @@ void NoteTagsWidget::addTagIconToLayout()
     QPixmap tagIconImage(QStringLiteral(":/tag/tag.png"));
     QLabel * pTagIconLabel = new QLabel(this);
     pTagIconLabel->setPixmap(tagIconImage.scaled(QSize(20, 20)));
+    pTagIconLabel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_pLayout->addWidget(pTagIconLabel);
 }
 
@@ -774,9 +773,6 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
     QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,editingFinished),
                      this, QNSLOT(NoteTagsWidget,onNewTagNameEntered));
     m_pLayout->addWidget(pNewTagLineEdit);
-    QNTRACE(QStringLiteral("Added new tag line edit to the layout: its height = ")
-            << pNewTagLineEdit->size().height() << QStringLiteral(", width = ")
-            << pNewTagLineEdit->size().width());
 }
 
 void NoteTagsWidget::removeNewTagWidgetFromLayout()

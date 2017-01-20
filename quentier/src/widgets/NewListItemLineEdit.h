@@ -46,6 +46,9 @@ public:
 
     void updateReservedItemNames(const QStringList & reservedItemNames);
 
+    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+
 protected:
     virtual void keyPressEvent(QKeyEvent * pEvent) Q_DECL_OVERRIDE;
 

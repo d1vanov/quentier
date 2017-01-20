@@ -50,6 +50,16 @@ void ListItemWidget::setName(const QString & name)
     m_pUi->itemNameLabel->setText(name);
 }
 
+QSize ListItemWidget::sizeHint() const
+{
+    return m_pUi->frame->minimumSizeHint();
+}
+
+QSize ListItemWidget::minimumSizeHint() const
+{
+    return m_pUi->frame->minimumSizeHint();
+}
+
 void ListItemWidget::setItemRemovable(bool removable)
 {
     m_pUi->deleteItemButton->setHidden(!removable);

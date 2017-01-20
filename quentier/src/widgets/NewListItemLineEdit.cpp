@@ -69,6 +69,16 @@ void NewListItemLineEdit::updateReservedItemNames(const QStringList & reservedIt
     setupCompleter();
 }
 
+QSize NewListItemLineEdit::sizeHint() const
+{
+    return QLineEdit::minimumSizeHint();
+}
+
+QSize NewListItemLineEdit::minimumSizeHint() const
+{
+    return QLineEdit::minimumSizeHint();
+}
+
 void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
 {
     if (Q_UNLIKELY(!pEvent)) {

@@ -45,6 +45,9 @@ public:
     QString name() const;
     void setName(const QString & name);
 
+    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize minimumSizeHint() const Q_DECL_OVERRIDE;
+
 Q_SIGNALS:
     void itemRemovedFromList(QString name);
 
