@@ -310,6 +310,10 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
     Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, newItemName)))
 
+    QStringList filteredItemNames = pNewItemLineEdit->reservedItemNames();
+    filteredItemNames << newItemName;
+    pNewItemLineEdit->updateReservedItemNames(filteredItemNames);
+
     m_pLayout->removeWidget(pNewItemLineEdit);
 
     ListItemWidget * pItemWidget = new ListItemWidget(newItemName, this);
@@ -368,16 +372,14 @@ void AbstractFilterByModelItemWidget::onItemRemovedFromList(QString name)
 
     persistFilteredItems();
 
-    // Need to update the new item line edit's completer; as a shortcut, replace the whole widget
     NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
-    if (pNewItemLineEdit) {
-        m_pLayout->removeWidget(pNewItemLineEdit);
-        pNewItemLineEdit->hide();
-        pNewItemLineEdit->deleteLater();
-        pNewItemLineEdit = Q_NULLPTR;
+    if (pNewItemLineEdit)
+    {
+        QStringList filteredItemNames = pNewItemLineEdit->reservedItemNames();
+        if (filteredItemNames.removeOne(name)) {
+            pNewItemLineEdit->updateReservedItemNames(filteredItemNames);
+        }
     }
-
-    addNewItemWidget();
 }
 
 void AbstractFilterByModelItemWidget::onModelReady()
