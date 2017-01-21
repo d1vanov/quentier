@@ -44,6 +44,7 @@ public:
                                  QWidget * parent = Q_NULLPTR);
     virtual ~NewListItemLineEdit();
 
+    QStringList reservedItemNames() const;
     void updateReservedItemNames(const QStringList & reservedItemNames);
 
     virtual QSize sizeHint() const Q_DECL_OVERRIDE;

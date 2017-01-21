@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Dmitry Ivanov
+ * Copyright 2016-2017 Dmitry Ivanov
  *
  * This file is part of Quentier.
  *
@@ -157,6 +157,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
     }
 
     QString tagLocalUid = tagNameIt->second;
+    QNTRACE(QStringLiteral("Local uid of the removed tag: ") << tagLocalUid);
 
     const TagModelItem * pItem = m_pTagModel->itemForLocalUid(tagLocalUid);
     if (Q_UNLIKELY(!pItem)) {
@@ -196,7 +197,7 @@ void NoteTagsWidget::onNewTagNameEntered()
         return;
     }
 
-    QString newTagName = pNewItemLineEdit->text();
+    QString newTagName = pNewItemLineEdit->text().trimmed();
     QNDEBUG(QStringLiteral("New tag name: ") << newTagName);
 
     if (newTagName.isEmpty()) {
@@ -338,7 +339,12 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
         m_currentNoteTagLocalUidToNameBimap.insert(TagLocalUidToNameBimap::value_type(addedTagLocalUid, tagName));
 
         NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
-        if (pNewItemLineEdit) {
+        if (pNewItemLineEdit)
+        {
+            QStringList reservedTagNames = pNewItemLineEdit->reservedItemNames();
+            reservedTagNames << tagName;
+            pNewItemLineEdit->updateReservedItemNames(reservedTagNames);
+
             Q_UNUSED(m_pLayout->removeWidget(pNewItemLineEdit);)
         }
 
@@ -384,6 +390,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
             }
 
             QString tagName = pTagItemWidget->name();
+
             auto lit = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
             if (Q_UNLIKELY(lit == m_currentNoteTagLocalUidToNameBimap.right.end())) {
                 QNWARNING(QStringLiteral("Found tag item widget which name doesn't correspond "
@@ -394,6 +401,18 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
             const QString & tagLocalUid = lit->second;
             if (tagLocalUid != removedTagLocalUid) {
                 continue;
+            }
+
+            NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
+            if (pNewItemLineEdit)
+            {
+                QStringList reservedTagNames = pNewItemLineEdit->reservedItemNames();
+                QNTRACE(QStringLiteral("Reserved tag names before removing the name of the just removed tag from it: ")
+                        << reservedTagNames.join(QStringLiteral(", ")) << QStringLiteral("; the name of the removed tag: ")
+                        << tagName);
+                if (reservedTagNames.removeOne(tagName)) {
+                    pNewItemLineEdit->updateReservedItemNames(reservedTagNames);
+                }
             }
 
             Q_UNUSED(m_pLayout->takeAt(i));
@@ -832,7 +851,7 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
     }
 
     NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(m_pTagModel, existingTagNames, this);
-    QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,editingFinished),
+    QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(NoteTagsWidget,onNewTagNameEntered));
     m_pLayout->addWidget(pNewTagLineEdit);
 }

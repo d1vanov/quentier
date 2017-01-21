@@ -63,6 +63,11 @@ NewListItemLineEdit::~NewListItemLineEdit()
     delete m_pUi;
 }
 
+QStringList NewListItemLineEdit::reservedItemNames() const
+{
+    return m_reservedItemNames;
+}
+
 void NewListItemLineEdit::updateReservedItemNames(const QStringList & reservedItemNames)
 {
     QNDEBUG(QStringLiteral("NewListItemLineEdit::updateReservedItemNames: ")
@@ -169,7 +174,8 @@ void NewListItemLineEdit::onModelDataChanged(const QModelIndex & topLeft, const 
 
 void NewListItemLineEdit::setupCompleter()
 {
-    QNDEBUG(QStringLiteral("NewListItemLineEdit::setupCompleter"));
+    QNDEBUG(QStringLiteral("NewListItemLineEdit::setupCompleter: reserved item names: ")
+            << m_reservedItemNames.join(QStringLiteral(", ")));
 
     m_pCompleter->setCaseSensitivity(Qt::CaseInsensitive);
     m_pCompleter->setModelSorting(QCompleter::CaseInsensitivelySortedModel);
@@ -178,6 +184,8 @@ void NewListItemLineEdit::setupCompleter()
     if (!m_pItemModel.isNull())
     {
         itemNames = m_pItemModel->itemNames();
+        QNTRACE(QStringLiteral("Model item names: ") << itemNames.join(QStringLiteral(", ")));
+
         for(auto it = m_reservedItemNames.constBegin(), end = m_reservedItemNames.constEnd(); it != end; ++it)
         {
             auto nit = std::lower_bound(itemNames.constBegin(), itemNames.constEnd(), *it);
@@ -188,11 +196,11 @@ void NewListItemLineEdit::setupCompleter()
         }
     }
 
-    if (!itemNames.isEmpty()) {
-        m_pItemNamesModel->setStringList(itemNames);
-        m_pCompleter->setModel(m_pItemNamesModel);
-    }
+    m_pItemNamesModel->setStringList(itemNames);
+    QNTRACE(QStringLiteral("The item names to set to the completer: ")
+            << itemNames.join(QStringLiteral(", ")));
 
+    m_pCompleter->setModel(m_pItemNamesModel);
     setCompleter(m_pCompleter);
 }
 
