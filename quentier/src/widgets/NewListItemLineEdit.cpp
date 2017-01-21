@@ -54,12 +54,12 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
     QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged, this, &NewListItemLineEdit::onModelDataChanged);
 #endif
 
-    QNTRACE(QStringLiteral("Creating NewListItemLineEdit::focusOutEvent: ") << this);
+    QNTRACE(QStringLiteral("Creating NewListItemLineEdit: ") << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
 {
-    QNTRACE(QStringLiteral("Destroying NewListItemLineEdit::focusOutEvent: ") << this);
+    QNTRACE(QStringLiteral("Destroying NewListItemLineEdit: ") << this);
     delete m_pUi;
 }
 
@@ -112,7 +112,18 @@ void NewListItemLineEdit::focusOutEvent(QFocusEvent * pEvent)
     QNTRACE(QStringLiteral("NewListItemLineEdit::focusOutEvent: ") << this
             << QStringLiteral(", event type = ") << pEvent->type()
             << QStringLiteral(", reason = ") << pEvent->reason());
+
     QLineEdit::focusOutEvent(pEvent);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    // NOTE: I don't know why but sometimes only in Qt5 version of the app this widget loses focus for "other focus reason"
+    // The attempt to ignore such event is not fruitful as the keyboard focus still ends up lost
+    // so accepting the event and immediately moving the focus back
+    if (pEvent && (pEvent->type() == QEvent::FocusOut) && (pEvent->reason() == Qt::OtherFocusReason)) {
+        setFocus();
+    }
+#endif
+
 }
 
 void NewListItemLineEdit::onModelRowsInserted(const QModelIndex & parent, int start, int end)
