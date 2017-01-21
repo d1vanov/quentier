@@ -564,9 +564,6 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
 
     QNDEBUG(QStringLiteral("NoteTagsWidget::onUpdateTagComplete: tag = ") << tag << QStringLiteral("\nRequest id = ") << requestId);
 
-    QString tagName = (tag.hasName() ? tag.name() : QString());
-    m_lastDisplayedTagLocalUids[tagIndex] = tagName;
-
     auto previousNameIt = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
     if (Q_UNLIKELY(previousNameIt == m_currentNoteTagLocalUidToNameBimap.left.end())) {
         QNLocalizedString errorDescription = QT_TR_NOOP("detected the update of tag, however, its previous name cannot be found");
@@ -575,8 +572,9 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
         return;
     }
 
-    const QString & previousName = previousNameIt->second;
-    if (tag.hasName() && (previousName == tag.name())) {
+    QString tagName = (tag.hasName() ? tag.name() : QString());
+    QString previousName = previousNameIt->second;
+    if (tag.hasName() && (previousName == tagName)) {
         QNDEBUG(QStringLiteral("The tag's name hasn't changed, nothing to do"));
         return;
     }
@@ -604,11 +602,11 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
         if (!tag.hasName()) {
             QNDEBUG(QStringLiteral("Detected the update of tag not having any name... Strange enough, will just remove that tag's widget"));
             pItem = m_pLayout->takeAt(i);
-            delete pItem->widget();
-            delete pItem;
+            pItem->widget()->hide();
+            pItem->widget()->deleteLater();
         }
         else {
-            pNoteTagWidget->setName(tag.name());
+            pNoteTagWidget->setName(tagName);
         }
 
         break;
