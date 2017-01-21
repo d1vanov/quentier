@@ -24,6 +24,7 @@
 #include <QCompleter>
 #include <QModelIndex>
 #include <QStringListModel>
+#include <QAbstractItemView>
 #include <algorithm>
 
 namespace quentier {
@@ -54,7 +55,16 @@ NewListItemLineEdit::NewListItemLineEdit(ItemModel * pItemModel,
     QObject::connect(m_pItemModel.data(), &ItemModel::dataChanged, this, &NewListItemLineEdit::onModelDataChanged);
 #endif
 
-    QNTRACE(QStringLiteral("Creating NewListItemLineEdit: ") << this);
+    // NOTE: working around what seems to be a Qt bug: when one selects some item
+    // from the drop-down menu shown by QCompleter via pressing Return/Enter,
+    // the line edit can't be cleared unless one presses Enter once again;
+    // see this thread for more details:
+    // http://stackoverflow.com/questions/11865129/fail-to-clear-qlineedit-after-selecting-item-from-qcompleter
+
+    QObject::connect(m_pCompleter, SIGNAL(activated(const QString&)),
+                     this, SLOT(clear()), Qt::QueuedConnection);
+
+    QNTRACE(QStringLiteral("Created NewListItemLineEdit: ") << this);
 }
 
 NewListItemLineEdit::~NewListItemLineEdit()
@@ -97,7 +107,8 @@ void NewListItemLineEdit::keyPressEvent(QKeyEvent * pEvent)
     QNTRACE(QStringLiteral("NewListItemLineEdit::keyPressEvent: key = ") << key);
 
     if (key == Qt::Key_Tab) {
-        emit editingFinished();
+        QKeyEvent keyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier);
+        QApplication::sendEvent(this, &keyEvent);
         return;
     }
 

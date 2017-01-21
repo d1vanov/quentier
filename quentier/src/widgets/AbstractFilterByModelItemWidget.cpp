@@ -283,12 +283,6 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         return;
     }
 
-    pNewItemLineEdit->clear();
-
-    if (!pNewItemLineEdit->hasFocus()) {
-        pNewItemLineEdit->setFocus();
-    }
-
     if (Q_UNLIKELY(m_account.isEmpty())) {
         QNDEBUG(QStringLiteral("Current account is empty, won't do anything"));
         return;
@@ -308,22 +302,23 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
         return;
     }
 
+    auto nit = m_filteredItemsLocalUidToNameBimap.right.find(newItemName);
+    if (nit != m_filteredItemsLocalUidToNameBimap.right.end()) {
+        QNDEBUG(QStringLiteral("Such item already exists within the filter, skipping"));
+        return;
+    }
+
     Q_UNUSED(m_filteredItemsLocalUidToNameBimap.insert(ItemLocalUidToNameBimap::value_type(localUid, newItemName)))
 
     m_pLayout->removeWidget(pNewItemLineEdit);
-    pNewItemLineEdit->hide();
-    pNewItemLineEdit->deleteLater();
-    pNewItemLineEdit = Q_NULLPTR;
 
     ListItemWidget * pItemWidget = new ListItemWidget(newItemName, this);
     QObject::connect(pItemWidget, QNSIGNAL(ListItemWidget,itemRemovedFromList,QString),
                      this, QNSLOT(AbstractFilterByModelItemWidget,onItemRemovedFromList,QString));
     m_pLayout->addWidget(pItemWidget);
 
-    addNewItemWidget();
-
-    pNewItemLineEdit = findNewItemWidget();
-    if (pNewItemLineEdit && !pNewItemLineEdit->hasFocus()) {
+    m_pLayout->addWidget(pNewItemLineEdit);
+    if (!pNewItemLineEdit->hasFocus()) {
         pNewItemLineEdit->setFocus();
     }
 
@@ -509,7 +504,7 @@ void AbstractFilterByModelItemWidget::addNewItemWidget()
 
     NewListItemLineEdit * pNewItemLineEdit = new NewListItemLineEdit(m_pItemModel.data(),
                                                                      existingNames, this);
-    QObject::connect(pNewItemLineEdit, QNSIGNAL(NewListItemLineEdit,editingFinished),
+    QObject::connect(pNewItemLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(AbstractFilterByModelItemWidget,onNewItemAdded));
     m_pLayout->addWidget(pNewItemLineEdit);
 }
