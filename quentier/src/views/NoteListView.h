@@ -23,6 +23,8 @@
 #include <quentier/utility/QNLocalizedString.h>
 #include <QListView>
 
+QT_FORWARD_DECLARE_CLASS(QMenu)
+
 namespace quentier {
 
 /**
@@ -52,9 +54,24 @@ public Q_SLOTS:
 #endif
                             Q_DECL_OVERRIDE;
 
+protected Q_SLOTS:
+    void onCreateNewNoteAction();
+    void onDeleteNoteAction();
+    void onEditNoteAction();
+
+    void onUnfavoriteAction();
+    void onFavoriteAction();
+
+    void onShowNoteInfoAction();
+
+    virtual void contextMenuEvent(QContextMenuEvent * pEvent) Q_DECL_OVERRIDE;
+
 protected:
     virtual void currentChanged(const QModelIndex & current,
                                 const QModelIndex & previous) Q_DECL_OVERRIDE;
+
+protected:
+    QMenu *     m_pNoteItemContextMenu;
 };
 
 } // namespace quentier
