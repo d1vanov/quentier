@@ -2692,6 +2692,7 @@ void MainWindow::setupViews()
     NoteListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
     pNoteListView->setItemDelegate(new NoteItemDelegate(pNoteListView));
+    pNoteListView->setNotebookItemView(pNotebooksTreeView);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
     QObject::connect(m_pNoteModelColumnChangeRerouter, &ColumnChangeRerouter::dataChanged,
                      pNoteListView, &NoteListView::dataChanged);

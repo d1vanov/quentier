@@ -17,18 +17,30 @@
  */
 
 #include "NoteListView.h"
+#include "NotebookItemView.h"
 #include "../models/NoteFilterModel.h"
 #include "../models/NoteModel.h"
+#include "../models/NotebookModel.h"
+#include "../models/NotebookItem.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <iterator>
 
 namespace quentier {
 
 NoteListView::NoteListView(QWidget * parent) :
     QListView(parent),
-    m_pNoteItemContextMenu(Q_NULLPTR)
+    m_pNoteItemContextMenu(Q_NULLPTR),
+    m_pNotebookItemView(Q_NULLPTR)
 {}
+
+void NoteListView::setNotebookItemView(NotebookItemView * pNotebookItemView)
+{
+    QNDEBUG(QStringLiteral("NoteListView::setNotebookItemView"));
+
+    m_pNotebookItemView = pNotebookItemView;
+}
 
 void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
@@ -62,6 +74,13 @@ void NoteListView::onDeleteNoteAction()
 void NoteListView::onEditNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onEditNoteAction"));
+
+    // TODO: implement
+}
+
+void NoteListView::onMoveToOtherNotebookAction()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onMoveToOtherNotebookAction"));
 
     // TODO: implement
 }
@@ -132,8 +151,17 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const NoteModelItem * pItem = pNoteModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        QNLocalizedString error = QNLocalizedString("Can't show the context menu for the note model item: "
+        QNLocalizedString error = QNLocalizedString("Can't show the context menu for note model item: "
                                                     "no item corresponding to the clicked item's index", this);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    if (!m_pNotebookItemView) {
+        QNLocalizedString error = QNLocalizedString("Can't show the context menu for note model item: "
+                                                    "no notebook item view is set to the note list view "
+                                                    "for notebooks reference", this);
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -151,10 +179,15 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
         menu->addAction(pAction); \
     }
 
-    // TODO: need to track the current notebook selection and only enable the note creation action
-    // if the notebook allows to create notes in it
+    const NotebookItem * pCurrentNotebookItem = currentNotebookItem();
+
+    // TODO: should improve the API of NotebookItem to make its restrictions available throught its instance
+    bool canCreateNote = (pCurrentNotebookItem
+                          ? true
+                          : false);
+
     ADD_CONTEXT_MENU_ACTION(tr("Create new note"), m_pNoteItemContextMenu,
-                            onCreateNewNoteAction, QString(), true);
+                            onCreateNewNoteAction, QString(), canCreateNote);
 
     m_pNoteItemContextMenu->addSeparator();
 
@@ -169,7 +202,39 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
                             m_pNoteItemContextMenu, onEditNoteAction,
                             pItem->localUid(), canUpdate);
 
-    // TODO: add "move to notebook" sub-menu
+    if (pCurrentNotebookItem)
+    {
+        QStringList otherNotebookNames;
+        const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
+        if (pNotebookModel)
+        {
+            otherNotebookNames = pNotebookModel->itemNames();
+            const QString & currentNotebookName = pCurrentNotebookItem->name();
+            auto it = std::lower_bound(otherNotebookNames.constBegin(), otherNotebookNames.constEnd(),
+                                       currentNotebookName);
+            if ((it != otherNotebookNames.constEnd()) && (*it == currentNotebookName)) {
+                int offset = static_cast<int>(std::distance(otherNotebookNames.constBegin(), it));
+                QStringList::iterator nit = otherNotebookNames.begin() + offset;
+                Q_UNUSED(otherNotebookNames.erase(nit))
+            }
+        }
+
+        // TODO: should exclude those notebooks which don't allow note creation/modification
+
+        if (!otherNotebookNames.isEmpty())
+        {
+            QMenu * pTargetNotebooksSubMenu = m_pNoteItemContextMenu->addMenu(tr("Move to notebook"));
+            for(auto it = otherNotebookNames.constBegin(), end = otherNotebookNames.constEnd(); it != end; ++it)
+            {
+                QStringList dataPair;
+                dataPair.reserve(2);
+                dataPair << pItem->localUid();
+                dataPair << *it;
+                ADD_CONTEXT_MENU_ACTION(*it, pTargetNotebooksSubMenu, onMoveToOtherNotebookAction,
+                                        dataPair, true);
+            }
+        }
+    }
 
     if (pItem->isFavorited()) {
         ADD_CONTEXT_MENU_ACTION(tr("Unfavorite"), m_pNoteItemContextMenu,
@@ -228,6 +293,43 @@ void NoteListView::currentChanged(const QModelIndex & current,
     }
 
     emit currentNoteChanged(pItem->localUid());
+}
+
+const NotebookItem * NoteListView::currentNotebookItem()
+{
+    QNDEBUG(QStringLiteral("NoteListView::currentNotebookItem"));
+
+    QModelIndex currentNotebookItemIndex = m_pNotebookItemView->currentlySelectedItemIndex();
+    if (Q_UNLIKELY(!currentNotebookItemIndex.isValid())) {
+        QNDEBUG(QStringLiteral("No current notebook within the notebook view"));
+        return Q_NULLPTR;
+    }
+
+    const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
+    if (!pNotebookModel) {
+        QNDEBUG(QStringLiteral("No notebook model is set to the notebook view"));
+        return Q_NULLPTR;
+    }
+
+    const NotebookModelItem * pNotebookModelItem = pNotebookModel->itemForIndex(currentNotebookItemIndex);
+    if (Q_UNLIKELY(!pNotebookModelItem)) {
+        QNLocalizedString error = QNLocalizedString("Can't find the notebook model item corresponding "
+                                                    "to the current item selected in the notebooks view", this);
+        QNWARNING(error);
+        emit notifyError(error);
+        return Q_NULLPTR;
+    }
+
+    if (pNotebookModelItem->type() != NotebookModelItem::Type::Notebook) {
+        QNDEBUG(QStringLiteral("Non-notebook item is selected within the notebook item view"));
+        return Q_NULLPTR;
+    }
+
+    const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
+    QNTRACE(QStringLiteral("Selected notebook item: ")
+            << (pNotebookItem ? pNotebookItem->toString() : QStringLiteral("<null>")));
+
+    return pNotebookItem;
 }
 
 } // namespace quentier

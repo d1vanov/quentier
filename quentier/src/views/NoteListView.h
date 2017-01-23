@@ -27,6 +27,9 @@ QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
+QT_FORWARD_DECLARE_CLASS(NotebookItemView)
+QT_FORWARD_DECLARE_CLASS(NotebookItem)
+
 /**
  * @brief The NoteListView is a simple subclass of QListView which adds some bits of functionality specific to note list
  * on top of it
@@ -36,6 +39,8 @@ class NoteListView: public QListView
     Q_OBJECT
 public:
     explicit NoteListView(QWidget * parent = Q_NULLPTR);
+
+    void setNotebookItemView(NotebookItemView * pNotebookItemView);
 
 Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
@@ -58,6 +63,7 @@ protected Q_SLOTS:
     void onCreateNewNoteAction();
     void onDeleteNoteAction();
     void onEditNoteAction();
+    void onMoveToOtherNotebookAction();
 
     void onUnfavoriteAction();
     void onFavoriteAction();
@@ -70,8 +76,11 @@ protected:
     virtual void currentChanged(const QModelIndex & current,
                                 const QModelIndex & previous) Q_DECL_OVERRIDE;
 
+    const NotebookItem * currentNotebookItem();
+
 protected:
-    QMenu *     m_pNoteItemContextMenu;
+    QMenu *             m_pNoteItemContextMenu;
+    NotebookItemView *  m_pNotebookItemView;
 };
 
 } // namespace quentier
