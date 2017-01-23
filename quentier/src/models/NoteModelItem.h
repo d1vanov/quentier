@@ -94,6 +94,9 @@ public:
     bool isDirty() const { return m_isDirty; }
     void setDirty(const bool dirty) { m_isDirty = dirty; }
 
+    bool isFavorited() const { return m_isFavorited; }
+    void setFavorited(const bool favorited) { m_isFavorited = favorited; }
+
     bool canUpdateTitle() const { return m_canUpdateTitle; }
     void setCanUpdateTitle(const bool canUpdateTitle) { m_canUpdateTitle = canUpdateTitle; }
 
@@ -129,6 +132,7 @@ private:
     quint64     m_sizeInBytes;
     bool        m_isSynchronizable;
     bool        m_isDirty;
+    bool        m_isFavorited;
     bool        m_canUpdateTitle;
     bool        m_canUpdateContent;
     bool        m_canEmail;

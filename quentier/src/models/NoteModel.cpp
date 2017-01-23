@@ -1336,6 +1336,7 @@ void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
     note.setTitle(item.title());
     note.setLocal(!item.isSynchronizable());
     note.setDirty(item.isDirty());
+    note.setFavorited(item.isFavorited());
 
     QUuid requestId = QUuid::createUuid();
 
@@ -1780,6 +1781,7 @@ void NoteModel::noteToItem(const Note & note, NoteModelItem & item)
 
     item.setSynchronizable(!note.isLocal());
     item.setDirty(note.isDirty());
+    item.setFavorited(note.isFavorited());
 
     if (note.hasNoteRestrictions()) {
         const qevercloud::NoteRestrictions & restrictions = note.noteRestrictions();

@@ -39,6 +39,7 @@ NoteModelItem::NoteModelItem() :
     m_sizeInBytes(0),
     m_isSynchronizable(false),
     m_isDirty(true),
+    m_isFavorited(false),
     m_canUpdateTitle(true),
     m_canUpdateContent(true),
     m_canEmail(true),
@@ -154,7 +155,8 @@ QTextStream & NoteModelItem::print(QTextStream & strm) const
          << m_deletionTimestamp << QStringLiteral(" (") << printableDateTimeFromTimestamp(m_deletionTimestamp) << QStringLiteral(")")
          << QStringLiteral(", size in bytes = ") << m_sizeInBytes << QStringLiteral(", is synchronizable = ")
          << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", is dirty = ")
-         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can update title = ")
+         << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", is favorited = ")
+         << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can update title = ")
          << (m_canUpdateTitle ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can update content = ")
          << (m_canUpdateContent ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can email = ")
          << (m_canEmail ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", can share = ")
