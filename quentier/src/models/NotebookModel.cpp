@@ -158,6 +158,93 @@ QModelIndex NotebookModel::indexForNotebookStack(const QString & stack) const
     return indexForItem(&modelItem);
 }
 
+QStringList NotebookModel::notebookNames(const NotebookFilters filters) const
+{
+    QNDEBUG(QStringLiteral("NotebookModel::notebookNames: filters = ") << filters);
+
+    if (filters == NotebookFilters(NotebookFilter::NoFilter)) {
+        QNTRACE(QStringLiteral("No filter, returning all notebook names"));
+        return itemNames();
+    }
+
+    QStringList result;
+
+    if ((filters & NotebookFilter::CanCreateNotes) && (filters & NotebookFilter::CannotCreateNotes)) {
+        QNTRACE(QStringLiteral("Both can create notes and cannot create notes filters are included, the result is empty"));
+        return result;
+    }
+
+    if ((filters & NotebookFilter::CanUpdateNotes) && (filters & NotebookFilter::CannotUpdateNotes)) {
+        QNTRACE(QStringLiteral("Both can update notes and cannot update notes filters are included, the result is empty"));
+        return result;
+    }
+
+    if ((filters & NotebookFilter::CanUpdateNotebook) && (filters & NotebookFilter::CannotUpdateNotebook)) {
+        QNTRACE(QStringLiteral("Both can update notebooks and cannot update notebooks filters are included, the result is empty"));
+        return result;
+    }
+
+    if ((filters & NotebookFilter::CanRenameNotebook) && (filters & NotebookFilter::CannotRenameNotebook)) {
+        QNTRACE(QStringLiteral("Both can rename notebook and cannot rename notebook filters are inclided, the result is empty"));
+        return result;
+    }
+
+    const NotebookDataByNameUpper & nameIndex = m_data.get<ByNameUpper>();
+    result.reserve(static_cast<int>(nameIndex.size()));
+    for(auto it = nameIndex.begin(), end = nameIndex.end(); it != end; ++it)
+    {
+        const NotebookItem & item = *it;
+
+        bool canCreateNotes = item.canCreateNotes();
+        if ((filters & NotebookFilter::CanCreateNotes) && !canCreateNotes) {
+            QNTRACE(QStringLiteral("Skipping notebook item for which notes cannot be created: ") << item);
+            continue;
+        }
+
+        if ((filters & NotebookFilter::CannotCreateNotes) && canCreateNotes) {
+            QNTRACE(QStringLiteral("Skipping notebook item for which notes can be created: ") << item);
+            continue;
+        }
+
+        bool canUpdateNotes = item.canUpdateNotes();
+        if ((filters & NotebookFilter::CanUpdateNotes) && !canUpdateNotes) {
+            QNTRACE(QStringLiteral("Skipping notebook item for which notes cannot be updated: ") << item);
+            continue;
+        }
+
+        if ((filters & NotebookFilter::CannotUpdateNotes) && canUpdateNotes) {
+            QNTRACE(QStringLiteral("Skipping notebook item for which notes can be updated: ") << item);
+            continue;
+        }
+
+        bool canUpdateNotebook = item.isUpdatable();
+        if ((filters & NotebookFilter::CanUpdateNotebook) && !canUpdateNotebook) {
+            QNTRACE(QStringLiteral("Skipping notebook item which cannot be updated: ") << item);
+            continue;
+        }
+
+        if ((filters & NotebookFilter::CannotUpdateNotebook) && canUpdateNotebook) {
+            QNTRACE(QStringLiteral("Skipping notebook item which can be updated: ") << item);
+            continue;
+        }
+
+        bool canRenameNotebook = item.nameIsUpdatable();
+        if ((filters & NotebookFilter::CanRenameNotebook) && !canRenameNotebook) {
+            QNTRACE(QStringLiteral("Skipping notebook item which cannot be renamed: ") << item);
+            continue;
+        }
+
+        if ((filters & NotebookFilter::CannotRenameNotebook) && canRenameNotebook) {
+            QNTRACE(QStringLiteral("Skipping notebook item which can be renamed: ") << item);
+            continue;
+        }
+
+        result << it->name();
+    }
+
+    return result;
+}
+
 QModelIndexList NotebookModel::persistentIndexes() const
 {
     return persistentIndexList();
@@ -2483,6 +2570,16 @@ void NotebookModel::updateNotebookInLocalStorage(const NotebookItem & item)
     notebook.setFavorited(item.isFavorited());
     notebook.setStack(item.stack());
 
+    // If all item's properties related to the restrictions are "true", there's no real need for the restrictions;
+    // Otherwise need to set the restrictions
+    if (!item.canCreateNotes() || !item.canUpdateNotes() || !item.isUpdatable() || !item.nameIsUpdatable())
+    {
+        notebook.setCanCreateNotes(item.canCreateNotes());
+        notebook.setCanUpdateNotes(item.canUpdateNotes());
+        notebook.setCanUpdateNotebook(item.isUpdatable());
+        notebook.setCanRenameNotebook(item.nameIsUpdatable());
+    }
+
     m_cache.put(item.localUid(), notebook);
 
     // NOTE: deliberately not setting the updatable property from the item
@@ -2878,10 +2975,14 @@ void NotebookModel::notebookToItem(const Notebook & notebook, NotebookItem & ite
         const qevercloud::NotebookRestrictions & restrictions = notebook.restrictions();
         item.setUpdatable(!restrictions.noUpdateNotebook.isSet() || !restrictions.noUpdateNotebook.ref());
         item.setNameIsUpdatable(!restrictions.noRenameNotebook.isSet() || !restrictions.noRenameNotebook.ref());
+        item.setCanCreateNotes(!restrictions.noCreateNotes.isSet() || !restrictions.noCreateNotes.ref());
+        item.setCanUpdateNotes(!restrictions.noUpdateNotes.isSet() || !restrictions.noUpdateNotes.ref());
     }
     else {
         item.setUpdatable(true);
         item.setNameIsUpdatable(true);
+        item.setCanCreateNotes(true);
+        item.setCanUpdateNotes(true);
     }
 
     if (notebook.hasLinkedNotebookGuid()) {

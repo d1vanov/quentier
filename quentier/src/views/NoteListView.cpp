@@ -27,6 +27,13 @@
 #include <QMenu>
 #include <iterator>
 
+#define REPORT_ERROR(error) \
+    { \
+        QNLocalizedString errorDescription = QNLocalizedString(error, this); \
+        QNWARNING(errorDescription); \
+        emit notifyError(errorDescription); \
+    }
+
 namespace quentier {
 
 NoteListView::NoteListView(QWidget * parent) :
@@ -61,14 +68,37 @@ void NoteListView::onCreateNewNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onCreateNewNoteAction"));
 
-    // TODO: implement
+    emit newNoteCreationRequested();
 }
 
 void NoteListView::onDeleteNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onDeleteNoteAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Internal error: can't rename notebook, "
+                     "can't cast the slot invoker to QAction")
+        return;
+    }
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        REPORT_ERROR("Can't delete note: wrong model connected to the note list view");
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        REPORT_ERROR("Can't delete note: can't get the source model from the note filter model connected to the note list view");
+        return;
+    }
+
+    bool res = pNoteModel->deleteNote(pAction->data().toString());
+    if (!res) {
+        REPORT_ERROR("Can't delete note: can't find the item to be deleted within the model");
+        return;
+    }
 }
 
 void NoteListView::onEditNoteAction()
@@ -119,18 +149,14 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNLocalizedString error = QNLocalizedString("Wrong model connected to the note list view", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Can't show the note item's context menu: wrong model connected to the note list view");
         return;
     }
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNLocalizedString error = QNLocalizedString("Can't get the source model from the note filter model "
-                                                    "connected to the note list view", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Can't show the note item's context menu: can't get the source model from the note filter model "
+                     "connected to the note list view");
         return;
     }
 
@@ -142,28 +168,19 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     QModelIndex clickedItemIndex = pNoteFilterModel->mapToSource(clickedFilterModelItemIndex);
     if (Q_UNLIKELY(!clickedItemIndex.isValid())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: note item index mapped from "
-                                                    "the proxy index of note filter model is invalid", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Internal error: note item index mapped from the proxy index of note filter model is invalid");
         return;
     }
 
     const NoteModelItem * pItem = pNoteModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        QNLocalizedString error = QNLocalizedString("Can't show the context menu for note model item: "
-                                                    "no item corresponding to the clicked item's index", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Can't show the note item's context menu: no item corresponding to the clicked item's index");
         return;
     }
 
     if (!m_pNotebookItemView) {
-        QNLocalizedString error = QNLocalizedString("Can't show the context menu for note model item: "
-                                                    "no notebook item view is set to the note list view "
-                                                    "for notebooks reference", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Can't show the note item's context menu: no notebook item view is set to the note list view "
+                     "for notebooks reference");
         return;
     }
 
@@ -181,9 +198,8 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const NotebookItem * pCurrentNotebookItem = currentNotebookItem();
 
-    // TODO: should improve the API of NotebookItem to make its restrictions available throught its instance
     bool canCreateNote = (pCurrentNotebookItem
-                          ? true
+                          ? pCurrentNotebookItem->canCreateNotes()
                           : false);
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new note"), m_pNoteItemContextMenu,
@@ -195,12 +211,12 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
                             onDeleteNoteAction, pItem->localUid(),
                             !pItem->isSynchronizable());
 
-    // TODO: should only enable this action if the currently selected notebook
-    // allows notes modification
-    bool canUpdate = true;
+    bool canUpdateNote = (pCurrentNotebookItem
+                          ? pCurrentNotebookItem->canUpdateNotes()
+                          : false);
     ADD_CONTEXT_MENU_ACTION(tr("Edit") + QStringLiteral("..."),
                             m_pNoteItemContextMenu, onEditNoteAction,
-                            pItem->localUid(), canUpdate);
+                            pItem->localUid(), canUpdateNote);
 
     if (pCurrentNotebookItem)
     {
@@ -208,7 +224,7 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
         const NotebookModel * pNotebookModel = qobject_cast<const NotebookModel*>(m_pNotebookItemView->model());
         if (pNotebookModel)
         {
-            otherNotebookNames = pNotebookModel->itemNames();
+            otherNotebookNames = pNotebookModel->notebookNames(NotebookModel::NotebookFilters(NotebookModel::NotebookFilter::CanCreateNotes));
             const QString & currentNotebookName = pCurrentNotebookItem->name();
             auto it = std::lower_bound(otherNotebookNames.constBegin(), otherNotebookNames.constEnd(),
                                        currentNotebookName);
@@ -218,8 +234,6 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
                 Q_UNUSED(otherNotebookNames.erase(nit))
             }
         }
-
-        // TODO: should exclude those notebooks which don't allow note creation/modification
 
         if (!otherNotebookNames.isEmpty())
         {
@@ -268,27 +282,21 @@ void NoteListView::currentChanged(const QModelIndex & current,
 
     const NoteFilterModel * pNoteFilterModel = qobject_cast<const NoteFilterModel*>(current.model());
     if (Q_UNLIKELY(!pNoteFilterModel)) {
-        QNLocalizedString error = QNLocalizedString("Wrong model connected to the note list view", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Internal error: wrong model connected to the note list view");
         return;
     }
 
     const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(pNoteFilterModel->sourceModel());
     if (Q_UNLIKELY(!pNoteModel)) {
-        QNLocalizedString error = QNLocalizedString("Can't get the source model from the note filter model "
-                                                    "connected to the note list view", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Internal error: can't get the source model from the note filter model "
+                     "connected to the note list view");
         return;
     }
 
     QModelIndex sourceIndex = pNoteFilterModel->mapToSource(current);
     const NoteModelItem * pItem = pNoteModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pItem)) {
-        QNLocalizedString error = QNLocalizedString("Can't retrieve the new current note item for note model index", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Internal error: can't retrieve the new current note item for note model index");
         return;
     }
 
@@ -313,10 +321,8 @@ const NotebookItem * NoteListView::currentNotebookItem()
 
     const NotebookModelItem * pNotebookModelItem = pNotebookModel->itemForIndex(currentNotebookItemIndex);
     if (Q_UNLIKELY(!pNotebookModelItem)) {
-        QNLocalizedString error = QNLocalizedString("Can't find the notebook model item corresponding "
-                                                    "to the current item selected in the notebooks view", this);
-        QNWARNING(error);
-        emit notifyError(error);
+        REPORT_ERROR("Can't find the notebook model item corresponding "
+                     "to the current item selected in the notebooks view");
         return Q_NULLPTR;
     }
 

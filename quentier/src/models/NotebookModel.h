@@ -28,6 +28,7 @@
 #include <QUuid>
 #include <QSet>
 #include <QMap>
+#include <QFlags>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
@@ -73,6 +74,34 @@ public:
     QModelIndex indexForLocalUid(const QString & localUid) const;
     QModelIndex indexForNotebookName(const QString & notebookName) const;
     QModelIndex indexForNotebookStack(const QString & stack) const;
+
+    /**
+     * C++98-style struct wrapper for the enum defining filter for methods listing stuff
+     * related to multiple notebook items
+     */
+    struct NotebookFilter
+    {
+        enum type {
+            NoFilter = 0x0,
+            CanCreateNotes = 0x1,
+            CannotCreateNotes = 0x2,
+            CanUpdateNotes = 0x3,
+            CannotUpdateNotes = 0x4,
+            CanUpdateNotebook = 0x5,
+            CannotUpdateNotebook = 0x6,
+            CanRenameNotebook = 0x7,
+            CannotRenameNotebook = 0x8
+        };
+    };
+
+    Q_DECLARE_FLAGS(NotebookFilters, NotebookFilter::type)
+
+    /**
+     * @brief notebookNames
+     * @param filter - filter for the listed notebook names
+     * @return the sorted list of notebook names conformant with the filter
+     */
+    QStringList notebookNames(const NotebookFilters filters) const;
 
     /**
      * @return the list of indexes stored as persistent indexes in the model
@@ -454,6 +483,8 @@ private:
 
     bool                    m_allNotebooksListed;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(NotebookModel::NotebookFilters)
 
 } // namespace quentier
 

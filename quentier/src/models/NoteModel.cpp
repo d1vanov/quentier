@@ -22,6 +22,7 @@
 #include <quentier/utility/Utility.h>
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/types/Resource.h>
+#include <QDateTime>
 
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
@@ -182,6 +183,21 @@ QModelIndex NoteModel::createNoteItem(const QString & notebookLocalUid)
     updateNoteInLocalStorage(item);
 
     return createIndex(row, Columns::Title);
+}
+
+bool NoteModel::deleteNote(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteModel::deleteNote: ") << noteLocalUid);
+
+    QModelIndex itemIndex = indexForLocalUid(noteLocalUid);
+    if (!itemIndex.isValid()) {
+        QNDEBUG(QStringLiteral("Index for this local uid is invalid"));
+        return false;
+    }
+
+    itemIndex = index(itemIndex.row(), Columns::DeletionTimestamp, itemIndex.parent());
+    qint64 timestamp = QDateTime::currentMSecsSinceEpoch();
+    return setData(itemIndex, timestamp);
 }
 
 Qt::ItemFlags NoteModel::flags(const QModelIndex & modelIndex) const

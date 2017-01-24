@@ -17,6 +17,7 @@
  */
 
 #include "NotebookItem.h"
+#include <cstddef>
 
 namespace quentier {
 
@@ -33,39 +34,168 @@ NotebookItem::NotebookItem(const QString & localUid,
                            const bool isPublished,
                            const bool isLinkedNotebook,
                            const bool isFavorited,
+                           const bool canCreateNotes,
+                           const bool canUpdateNotes,
                            const int numNotesPerNotebook) :
     m_localUid(localUid),
     m_guid(guid),
     m_name(name),
     m_stack(stack),
-    m_isSynchronizable(isSynchronizable),
-    m_isUpdatable(isUpdatable),
-    m_nameIsUpdatable(nameIsUpdatable),
-    m_isDirty(isDirty),
-    m_isDefault(isDefault),
-    m_isLastUsed(isLastUsed),
-    m_isPublished(isPublished),
-    m_isLinkedNotebook(isLinkedNotebook),
-    m_isFavorited(isFavorited),
+    m_flags(),
     m_numNotesPerNotebook(numNotesPerNotebook)
-{}
+{
+    setSynchronizable(isSynchronizable);
+    setUpdatable(isUpdatable);
+    setNameIsUpdatable(nameIsUpdatable);
+    setDirty(isDirty);
+    setDefault(isDefault);
+    setLastUsed(isLastUsed);
+    setPublished(isPublished);
+    setLinkedNotebook(isLinkedNotebook);
+    setFavorited(isFavorited);
+    setCanCreateNotes(canCreateNotes);
+    setCanUpdateNotes(canUpdateNotes);
+}
 
 NotebookItem::~NotebookItem()
 {}
+
+bool NotebookItem::isSynchronizable() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsSynchronizable));
+}
+
+void NotebookItem::setSynchronizable(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsSynchronizable), flag);
+}
+
+bool NotebookItem::isUpdatable() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsUpdatable));
+}
+
+void NotebookItem::setUpdatable(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsUpdatable), flag);
+}
+
+bool NotebookItem::nameIsUpdatable() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsNameUpdatable));
+}
+
+void NotebookItem::setNameIsUpdatable(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsNameUpdatable), flag);
+}
+
+bool NotebookItem::isDirty() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsDirty));
+}
+
+void NotebookItem::setDirty(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsDirty), flag);
+}
+
+bool NotebookItem::isDefault() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsDefault));
+}
+
+void NotebookItem::setDefault(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsDefault), flag);
+}
+
+bool NotebookItem::isLastUsed() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsLastUsed));
+}
+
+void NotebookItem::setLastUsed(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsLastUsed), flag);
+}
+
+bool NotebookItem::isPublished() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsPublished));
+}
+
+void NotebookItem::setPublished(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsPublished), flag);
+}
+
+bool NotebookItem::isLinkedNotebook() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsLinkedNotebook));
+}
+
+void NotebookItem::setLinkedNotebook(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsLinkedNotebook), flag);
+}
+
+bool NotebookItem::isFavorited() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::IsFavorited));
+}
+
+void NotebookItem::setFavorited(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::IsFavorited), flag);
+}
+
+bool NotebookItem::canCreateNotes() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::CanCreateNotes));
+}
+
+void NotebookItem::setCanCreateNotes(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::CanCreateNotes), flag);
+}
+
+bool NotebookItem::canUpdateNotes() const
+{
+    return m_flags.test(static_cast<std::size_t>(Flags::CanUpdateNotes));
+}
+
+void NotebookItem::setCanUpdateNotes(const bool flag)
+{
+    m_flags.set(static_cast<std::size_t>(Flags::CanUpdateNotes), flag);
+}
 
 QTextStream & NotebookItem::print(QTextStream & strm) const
 {
     strm << QStringLiteral("Notebook item: local uid = ") << m_localUid << QStringLiteral(", guid = ")
          << m_guid << QStringLiteral(", name = ") << m_name << QStringLiteral(", stack = ") << m_stack
-         << QStringLiteral(", is synchronizable = ") << (m_isSynchronizable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is updatable = ") << (m_isUpdatable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", name is updatable = ") << (m_nameIsUpdatable ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is dirty = ") << (m_isDirty ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is default = ") << (m_isDefault ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is last used = ") << (m_isLastUsed ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is published = ") << (m_isPublished ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is linked notebook = ") << (m_isLinkedNotebook ? QStringLiteral("true") : QStringLiteral("false"))
-         << QStringLiteral(", is favorited = ") << (m_isFavorited ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is synchronizable = ")
+         << (isSynchronizable() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is updatable = ")
+         << (isUpdatable() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", name is updatable = ")
+         << (nameIsUpdatable() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is dirty = ")
+         << (isDirty() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is default = ")
+         << (isDefault() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is last used = ")
+         << (isLastUsed() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is published = ")
+         << (isPublished() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is linked notebook = ")
+         << (isLinkedNotebook() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", is favorited = ")
+         << (isFavorited() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", can create notes = ")
+         << (canCreateNotes() ? QStringLiteral("true") : QStringLiteral("false"))
+         << QStringLiteral(", can update notes = ")
+         << (canUpdateNotes() ? QStringLiteral("true") : QStringLiteral("false"))
          << QStringLiteral(", num notes per notebook = ") << m_numNotesPerNotebook;
     return strm;
 }

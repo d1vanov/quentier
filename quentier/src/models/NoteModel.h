@@ -95,6 +95,8 @@ public:
 
     bool allNotesListed() const { return m_allNotesListed; }
 
+    bool deleteNote(const QString & noteLocalUid);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;

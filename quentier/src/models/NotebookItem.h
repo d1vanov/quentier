@@ -20,6 +20,7 @@
 #define QUENTIER_MODELS_NOTEBOOK_ITEM_H
 
 #include <quentier/utility/Printable.h>
+#include <bitset>
 
 namespace quentier {
 
@@ -39,6 +40,8 @@ public:
                           const bool isPublished = false,
                           const bool isLinkedNotebook = false,
                           const bool isFavorited = false,
+                          const bool canCreateNotes = true,
+                          const bool canUpdateNotes = true,
                           const int numNotesPerNotebook = -1);
     ~NotebookItem();
 
@@ -56,32 +59,38 @@ public:
     const QString & name() const { return m_name; }
     void setName(const QString & name) { m_name = name; }
 
-    bool isSynchronizable() const { return m_isSynchronizable; }
-    void setSynchronizable(const bool synchronizable) { m_isSynchronizable = synchronizable; }
+    bool isSynchronizable() const;
+    void setSynchronizable(const bool synchronizable);
 
-    bool isUpdatable() const { return m_isUpdatable; }
-    void setUpdatable(const bool updatable) { m_isUpdatable = updatable; }
+    bool isUpdatable() const;
+    void setUpdatable(const bool updatable);
 
-    bool nameIsUpdatable() const { return m_nameIsUpdatable; }
-    void setNameIsUpdatable(const bool updatable) { m_nameIsUpdatable = updatable; }
+    bool nameIsUpdatable() const;
+    void setNameIsUpdatable(const bool updatable);
 
-    bool isDirty() const { return m_isDirty; }
-    void setDirty(const bool dirty) { m_isDirty = dirty; }
+    bool isDirty() const;
+    void setDirty(const bool dirty);
 
-    bool isDefault() const { return m_isDefault; }
-    void setDefault(const bool flag) { m_isDefault = flag; }
+    bool isDefault() const;
+    void setDefault(const bool flag);
 
-    bool isLastUsed() const { return m_isLastUsed; }
-    void setLastUsed(const bool flag) { m_isLastUsed = flag; }
+    bool isLastUsed() const;
+    void setLastUsed(const bool flag);
 
-    bool isPublished() const { return m_isPublished; }
-    void setPublished(const bool flag) { m_isPublished = flag; }
+    bool isPublished() const;
+    void setPublished(const bool flag);
 
-    bool isLinkedNotebook() const { return m_isLinkedNotebook; }
-    void setLinkedNotebook(const bool flag) { m_isLinkedNotebook = flag; }
+    bool isLinkedNotebook() const;
+    void setLinkedNotebook(const bool flag);
 
-    bool isFavorited() const { return m_isFavorited; }
-    void setFavorited(const bool flag) { m_isFavorited = flag; }
+    bool isFavorited() const;
+    void setFavorited(const bool flag);
+
+    bool canCreateNotes() const;
+    void setCanCreateNotes(const bool flag);
+
+    bool canUpdateNotes() const;
+    void setCanUpdateNotes(const bool flag);
 
     int numNotesPerNotebook() const { return m_numNotesPerNotebook; }
     void setNumNotesPerNotebook(const int numNotesPerNotebook) { m_numNotesPerNotebook = numNotesPerNotebook; }
@@ -93,15 +102,29 @@ private:
     QString     m_guid;
     QString     m_name;
     QString     m_stack;
-    bool        m_isSynchronizable;
-    bool        m_isUpdatable;
-    bool        m_nameIsUpdatable;
-    bool        m_isDirty;
-    bool        m_isDefault;
-    bool        m_isLastUsed;
-    bool        m_isPublished;
-    bool        m_isLinkedNotebook;
-    bool        m_isFavorited;
+
+    // Will use a bitset here to save some space from the more straigforward alternative of using booleans
+    struct Flags
+    {
+        enum type
+        {
+            IsSynchronizable = 0,
+            IsUpdatable,
+            IsNameUpdatable,
+            IsDirty,
+            IsDefault,
+            IsLastUsed,
+            IsPublished,
+            IsLinkedNotebook,
+            IsFavorited,
+            CanCreateNotes,
+            CanUpdateNotes,
+            Size
+        };
+    };
+
+    std::bitset<Flags::Size>    m_flags;
+
     int         m_numNotesPerNotebook;
 };
 

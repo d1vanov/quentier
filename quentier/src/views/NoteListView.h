@@ -46,6 +46,8 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString errorDescription);
     void currentNoteChanged(QString noteLocalUid);
 
+    void newNoteCreationRequested();
+
 public Q_SLOTS:
     /**
      * @brief The dataChanged method is redefined in NoteListView for the sole reason of being a public slot
