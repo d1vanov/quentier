@@ -4,18 +4,18 @@ include(QuentierCMakePolicies)
 SET_POLICIES()
 
 if("${CMAKE_MAJOR_VERSION}" GREATER "2")
-  project(quentier VERSION 0.2.0)
+  project(quentier VERSION 0.3.0)
 else()
   project(quentier)
   set(PROJECT_VERSION_MAJOR "0")
-  set(PROJECT_VERSION_MINOR "2")
+  set(PROJECT_VERSION_MINOR "3")
   set(PROJECT_VERSION_PATCH "0")
   set(PROJECT_VERSION_COUNT 3)
   set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 endif()
 
 set(PROJECT_VENDOR "Dmitry Ivanov")
-set(PROJECT_COPYRIGHT_YEAR "2016")
+set(PROJECT_COPYRIGHT_YEAR "2017")
 set(PROJECT_DOMAIN_FIRST "d1vanov")
 set(PROJECT_DOMAIN_SECOND "com")
 set(PROJECT_DOMAIN "${PROJECT_DOMAIN_FIRST}.${PROJECT_DOMAIN_SECOND}")
@@ -56,6 +56,7 @@ set(${PROJECT_NAME}_HEADERS
     src/dialogs/AddOrEditNotebookDialog.h
     src/dialogs/AddOrEditTagDialog.h
     src/dialogs/AddOrEditSavedSearchDialog.h
+    src/dialogs/EditNoteDialog.h
     src/dialogs/ManageAccountsDialog.h
     src/models/ColumnChangeRerouter.h
     src/models/ItemModel.h
@@ -127,6 +128,7 @@ set(${PROJECT_NAME}_SOURCES
     src/dialogs/AddOrEditNotebookDialog.cpp
     src/dialogs/AddOrEditTagDialog.cpp
     src/dialogs/AddOrEditSavedSearchDialog.cpp
+    src/dialogs/EditNoteDialog.cpp
     src/dialogs/ManageAccountsDialog.cpp
     src/insert-table-tool-button/InsertTableToolButton.cpp
     src/insert-table-tool-button/TableSettingsDialog.cpp
@@ -186,6 +188,7 @@ set(FORMS
     src/dialogs/AddOrEditNotebookDialog.ui
     src/dialogs/AddOrEditTagDialog.ui
     src/dialogs/AddOrEditSavedSearchDialog.ui
+    src/dialogs/EditNoteDialog.ui
     src/dialogs/ManageAccountsDialog.ui
     src/insert-table-tool-button/TableSettingsDialog.ui
     src/widgets/FindAndReplaceWidget.ui
