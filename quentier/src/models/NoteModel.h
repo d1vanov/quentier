@@ -97,6 +97,18 @@ public:
 
     bool deleteNote(const QString & noteLocalUid);
 
+    /**
+     * @brief moveNoteToNotebook - attempts to move the note to a different notebook
+     *
+     * The method doesn't have a return code because it might have to do its job asynchronously;
+     * if the error happens during the process (for example, the target notebook was not found by name),
+     * @link notifyError @endlink signal is emitted
+     *
+     * @param noteLocalUid - the local uid of note to be moved to another notebook
+     * @param notebookName - the name of the notebook into which the note needs to be moved
+     */
+    void moveNoteToNotebook(const QString & noteLocalUid, const QString & notebookName);
+
 public:
     // QAbstractItemModel interface
     virtual Qt::ItemFlags flags(const QModelIndex & index) const Q_DECL_OVERRIDE;
@@ -251,6 +263,8 @@ private:
     void checkAddedNoteItemsPendingNotebookData(const QString & notebookLocalUid, const NotebookData & notebookData);
     void addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & notebookData);
 
+    void moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const Notebook & notebook);
+
 private:
     Account                 m_account;
     IncludedNotes::type     m_includedNotes;
@@ -278,6 +292,8 @@ private:
     QHash<QString, NotebookData>        m_notebookDataByNotebookLocalUid;
     LocalUidToRequestIdBimap            m_findNotebookRequestForNotebookLocalUid;
     QMultiHash<QString, NoteModelItem>  m_noteItemsPendingNotebookDataUpdate;   // The key is notebook local uid
+
+    LocalUidToRequestIdBimap            m_noteLocalUidToFindNotebookRequestIdForMoveNoteToNotebookBimap;
 
     QHash<QString, TagData>             m_tagDataByTagLocalUid;
     LocalUidToRequestIdBimap            m_findTagRequestForTagLocalUid;

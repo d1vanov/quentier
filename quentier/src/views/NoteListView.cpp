@@ -112,7 +112,37 @@ void NoteListView::onMoveToOtherNotebookAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onMoveToOtherNotebookAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Can't move note to another notebook: internal error, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QStringList actionData = pAction->data().toStringList();
+    if (actionData.isEmpty() || (actionData.size() != 2)) {
+        REPORT_ERROR("Can't move note to another notebook: internal error, "
+                     "wrong action data");
+        return;
+    }
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        REPORT_ERROR("Can't move note to another notebook: wrong model connected to the note list view");
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        REPORT_ERROR("Can't move note to another notebook: can't get the source model from the note filter model "
+                     "connected to the note list view");
+        return;
+    }
+
+    QString noteLocalUid = actionData[0];
+    QString notebookName = actionData[1];
+
+    pNoteModel->moveNoteToNotebook(noteLocalUid, notebookName);
 }
 
 void NoteListView::onUnfavoriteAction()
