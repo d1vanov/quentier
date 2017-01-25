@@ -126,7 +126,6 @@ void EditNoteDialog::accept()
 
     QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
 
-    // TODO: investigate whether any or all of these need to be trimmed
     QString author = m_pUi->authorLineEdit->text();
     QString source = m_pUi->sourceLineEdit->text();
     QString sourceURL = m_pUi->sourceURLLineEdit->text();
@@ -161,15 +160,97 @@ void EditNoteDialog::accept()
             noteAttributes.subjectDate.clear();
         }
 
+#define CHECK_ATTRIBUTE(attr) \
+    int attr##Len = attr.size(); \
+    if (attr##Len < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) { \
+        QNLocalizedString error = QNLocalizedString("The lenght of attribute must be at least", this); \
+        error += QStringLiteral(" "); \
+        error += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN); \
+        error += QStringLiteral(" "); \
+        error += QNLocalizedString("characters"); \
+        QNINFO(error); \
+        QToolTip::showText(m_pUi->attr##LineEdit->geometry().bottomLeft(), \
+                           error.localizedString()); \
+        return; \
+    } \
+    else if (attr##Len > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) { \
+        QNLocalizedString error = QNLocalizedString("The length of attribute must be not more than", this); \
+        error += QStringLiteral(" "); \
+        error += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX); \
+        error += QStringLiteral(" "); \
+        error += QNLocalizedString("characters"); \
+        QNINFO(error); \
+        QToolTip::showText(m_pUi->attr##LineEdit->geometry().bottomLeft(), \
+                           error.localizedString()); \
+        return; \
+    }
+
         if (!author.isEmpty()) {
+            CHECK_ATTRIBUTE(author)
             noteAttributes.author = author;
         }
         else {
             noteAttributes.author.clear();
         }
 
-        // TODO: implement further
+        if (!source.isEmpty()) {
+            CHECK_ATTRIBUTE(source)
+            noteAttributes.source = source;
+        }
+        else {
+            noteAttributes.source.clear();
+        }
+
+        if (!sourceURL.isEmpty()) {
+            CHECK_ATTRIBUTE(sourceURL)
+            noteAttributes.sourceURL = sourceURL;
+        }
+        else {
+            noteAttributes.sourceURL.clear();
+        }
+
+        if (!sourceApplication.isEmpty()) {
+            CHECK_ATTRIBUTE(sourceApplication)
+            noteAttributes.sourceApplication = sourceApplication;
+        }
+        else {
+            noteAttributes.sourceApplication.clear();
+        }
+
+        if (!placeName.isEmpty()) {
+            CHECK_ATTRIBUTE(placeName)
+            noteAttributes.placeName = placeName;
+        }
+        else {
+            noteAttributes.placeName.clear();
+        }
+
+#undef CHECK_ATTRIBUTE
+
+        if (!isLatitudeEmpty) {
+            noteAttributes.latitude = latitude;
+        }
+        else {
+            noteAttributes.latitude.clear();
+        }
+
+        if (!isLongitudeEmpty) {
+            noteAttributes.longitude = longitude;
+        }
+        else {
+            noteAttributes.longitude.clear();
+        }
+
+        if (!isAltitudeEmpty) {
+            noteAttributes.altitude = altitude;
+        }
+        else {
+            noteAttributes.altitude.clear();
+        }
     }
+
+    m_note = modifiedNote;
+    QNTRACE(QStringLiteral("Edited note: ") << m_note);
 
     QDialog::accept();
 }
