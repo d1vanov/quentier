@@ -152,6 +152,48 @@ void Note::clear()
     d->clear();
 }
 
+bool Note::validateTitle(const QString & title, QNLocalizedString * pErrorDescription)
+{
+    if (title != title.trimmed())
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("note title cannot start or end with whitespace");
+        }
+
+        return false;
+    }
+
+    int len = title.length();
+    if (len < qevercloud::EDAM_NOTE_TITLE_LEN_MIN)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("note title's length is too small, need at least");
+            *pErrorDescription += QStringLiteral(" ");
+            *pErrorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
+            *pErrorDescription += QStringLiteral(" ");
+            // TRANSLATOR: the previous part of the phrase was "note title's length is too small, need at least N "
+            *pErrorDescription += QT_TR_NOOP("characters");
+        }
+
+        return false;
+    }
+    else if (len > qevercloud::EDAM_NOTE_TITLE_LEN_MAX)
+    {
+        if (pErrorDescription) {
+            *pErrorDescription = QT_TR_NOOP("note title's length is too large, need max");
+            *pErrorDescription += QStringLiteral(" ");
+            *pErrorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MAX);
+            *pErrorDescription += QStringLiteral(" ");
+            // TRANSLATOR: the previous part of the phrase was "note title's length is too large, need max N "
+            *pErrorDescription += QT_TR_NOOP("characters");
+        }
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Note::checkParameters(QNLocalizedString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecNote.guid.isSet()) {
@@ -617,6 +659,11 @@ qevercloud::NoteAttributes & Note::noteAttributes()
     }
 
     return d->m_qecNote.attributes;
+}
+
+void Note::clearNoteAttributes()
+{
+    d->m_qecNote.attributes.clear();
 }
 
 bool Note::hasSharedNotes() const

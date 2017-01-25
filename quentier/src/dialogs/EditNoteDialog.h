@@ -44,6 +44,7 @@ private Q_SLOTS:
 private:
     void createConnections();
     void fillNotebookNames();
+    void fillDialogContent();
 
 private:
     Ui::EditNoteDialog *    m_pUi;

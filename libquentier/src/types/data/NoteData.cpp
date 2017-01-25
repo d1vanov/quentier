@@ -17,6 +17,7 @@
  */
 
 #include "NoteData.h"
+#include <quentier/types/Note.h>
 #include <quentier/utility/Utility.h>
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -152,12 +153,8 @@ bool NoteData::checkParameters(QNLocalizedString & errorDescription) const
 
     if (m_qecNote.title.isSet())
     {
-        int titleSize = m_qecNote.title->size();
-
-        if ( (titleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) ||
-             (titleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) )
-        {
-            errorDescription = QT_TR_NOOP("Note's title length is invalid");
+        bool res = Note::validateTitle(m_qecNote.title.ref(), &errorDescription);
+        if (!res) {
             return false;
         }
     }

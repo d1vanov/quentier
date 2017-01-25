@@ -72,6 +72,8 @@ public:
 
     virtual void clear() Q_DECL_OVERRIDE;
 
+    static bool validateTitle(const QString & title, QNLocalizedString * pErrorDescription = Q_NULLPTR);
+
     virtual bool checkParameters(QNLocalizedString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasTitle() const;
@@ -137,6 +139,7 @@ public:
     bool hasNoteAttributes() const;
     const qevercloud::NoteAttributes & noteAttributes() const;
     qevercloud::NoteAttributes & noteAttributes();
+    void clearNoteAttributes();
 
     bool hasSharedNotes() const;
     QList<SharedNote> sharedNotes() const;

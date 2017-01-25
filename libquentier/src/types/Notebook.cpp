@@ -138,15 +138,24 @@ bool Notebook::validateName(const QString & name, QNLocalizedString * pErrorDesc
     {
         if (pErrorDescription) {
             *pErrorDescription = QT_TR_NOOP("notebook name's length is too small");
+            *pErrorDescription += QStringLiteral(" ");
+            *pErrorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN);
+            *pErrorDescription += QStringLiteral(" ");
+            // TRANSLATOR: the previous part of the phrase was "notebook name's length is too small, need at least N "
+            *pErrorDescription += QT_TR_NOOP("characters");
         }
 
         return false;
     }
-
-    if (len > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX)
+    else if (len > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX)
     {
         if (pErrorDescription) {
             *pErrorDescription = QT_TR_NOOP("notebook name's length is too large");
+            *pErrorDescription += QStringLiteral(" ");
+            *pErrorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX);
+            *pErrorDescription += QStringLiteral(" ");
+            // TRANSLATOR: the previous part of the phrase was "notebook name's length is too large, need max N "
+            *pErrorDescription += QT_TR_NOOP("characters");
         }
 
         return false;

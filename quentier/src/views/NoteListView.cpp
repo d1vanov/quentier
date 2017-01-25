@@ -22,6 +22,7 @@
 #include "../models/NoteModel.h"
 #include "../models/NotebookModel.h"
 #include "../models/NotebookItem.h"
+#include "../dialogs/EditNoteDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QContextMenuEvent>
 #include <QMenu>

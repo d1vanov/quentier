@@ -4,6 +4,8 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
 #include <QModelIndex>
+#include <QToolTip>
+#include <QDateTime>
 #include <algorithm>
 #include <iterator>
 
@@ -23,6 +25,7 @@ EditNoteDialog::EditNoteDialog(const Note & note,
     fillNotebookNames();
     m_pUi->notebookComboBox->setModel(m_pNotebookNamesModel);
 
+    fillDialogContent();
     createConnections();
 }
 
@@ -35,7 +38,139 @@ void EditNoteDialog::accept()
 {
     QNDEBUG(QStringLiteral("EditNoteDialog::accept"));
 
-    // TODO: implement
+    if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
+        QNLocalizedString error = QNLocalizedString("Can't edit note: no notebook model is set", this);
+        QNINFO(error);
+        QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
+                           error.localizedString());
+        return;
+    }
+
+    Note modifiedNote = m_note;
+
+    QString title = m_pUi->titleLineEdit->text().simplified();
+
+    QNLocalizedString error;
+    if (!Note::validateTitle(title, &error)) {
+        QNINFO(error);
+        QToolTip::showText(m_pUi->titleLineEdit->geometry().bottomLeft(), error.localizedString());
+        return;
+    }
+
+    QString notebookName = m_pUi->notebookComboBox->currentText();
+    QString notebookLocalUid = m_pNotebookModel->localUidForItemName(notebookName);
+    if (notebookLocalUid.isEmpty()) {
+        QNLocalizedString error = QNLocalizedString("Can't edit note: can't find notebook local uid for current notebook name", this);
+        QNINFO(error);
+        QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
+                           error.localizedString());
+        return;
+    }
+
+    if (!modifiedNote.hasNotebookLocalUid() || (modifiedNote.notebookLocalUid() != notebookLocalUid))
+    {
+        QNTRACE(QStringLiteral("Notebook local uid ") << notebookLocalUid << QStringLiteral(" is different from that within the note: ")
+                << (modifiedNote.hasNotebookLocalUid() ? modifiedNote.notebookLocalUid() : QStringLiteral("<empty>")));
+
+        QModelIndex notebookIndex = m_pNotebookModel->indexForLocalUid(notebookLocalUid);
+        const NotebookModelItem * pNotebookModelItem = m_pNotebookModel->itemForIndex(notebookIndex);
+        if (Q_UNLIKELY(!pNotebookModelItem)) {
+            QNLocalizedString error = QNLocalizedString("Can't edit note: can't find the notebook model item for notebook local uid", this);
+            QNINFO(error);
+            QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
+                               error.localizedString());
+            return;
+        }
+
+        if (Q_UNLIKELY(pNotebookModelItem->type() != NotebookModelItem::Type::Notebook)) {
+            QNLocalizedString error = QNLocalizedString("Can't edit note: internal error, the notebook model item corresponding "
+                                                        "to the chosen notebook has wrong type", this);
+            QNINFO(error);
+            QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
+                               error.localizedString());
+            return;
+        }
+
+        const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
+        if (Q_UNLIKELY(!pNotebookItem)) {
+            QNLocalizedString error = QNLocalizedString("Can't edit note: internal error, the notebook model item corresponding "
+                                                        "to the chosen notebook has null pointer to the notebook item", this);
+            QNINFO(error);
+            QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
+                               error.localizedString());
+            return;
+        }
+
+        if (Q_UNLIKELY(!pNotebookItem->canCreateNotes())) {
+            QNLocalizedString error = QNLocalizedString("Can't edit note: the target notebook doesn't allow the note creation in it", this);
+            QNINFO(error);
+            QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
+                               error.localizedString());
+            return;
+        }
+
+        modifiedNote.setNotebookLocalUid(notebookLocalUid);
+        modifiedNote.setNotebookGuid(pNotebookItem->guid());
+        QNTRACE(QStringLiteral("Successfully set the note's notebook to ") << notebookName
+                << QStringLiteral(" (") << notebookLocalUid << QStringLiteral(")"));
+    }
+
+    QDateTime creationDateTime = m_pUi->creationDateTimeEdit->dateTime();
+    modifiedNote.setCreationTimestamp(creationDateTime.toMSecsSinceEpoch());
+
+    QDateTime modificationDateTime = m_pUi->modificationDateTimeEdit->dateTime();
+    modifiedNote.setModificationTimestamp(modificationDateTime.toMSecsSinceEpoch());
+
+    QDateTime deletionDateTime = m_pUi->deletionDateTimeEdit->dateTime();
+    modifiedNote.setDeletionTimestamp(deletionDateTime.toMSecsSinceEpoch());
+
+    QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
+
+    // TODO: investigate whether any or all of these need to be trimmed
+    QString author = m_pUi->authorLineEdit->text();
+    QString source = m_pUi->sourceLineEdit->text();
+    QString sourceURL = m_pUi->sourceURLLineEdit->text();
+    QString sourceApplication = m_pUi->sourceApplicationLineEdit->text();
+    QString placeName = m_pUi->placeNameLineEdit->text();
+
+    double latitude = m_pUi->latitudeSpinBox->value();
+    bool isLatitudeEmpty = m_pUi->latitudeSpinBox->text().isEmpty();
+
+    double longitude = m_pUi->longitudeSpinBox->value();
+    bool isLongitudeEmpty = m_pUi->longitudeSpinBox->text().isEmpty();
+
+    double altitude = m_pUi->altitudeSpinBox->value();
+    bool isAltitudeEmpty = m_pUi->altitudeSpinBox->text().isEmpty();
+
+    if (!subjectDateTime.isValid() && author.isEmpty() && source.isEmpty() && sourceURL.isEmpty() &&
+        sourceApplication.isEmpty() && placeName.isEmpty() && isLatitudeEmpty && isLongitudeEmpty && isAltitudeEmpty)
+    {
+        QNTRACE(QStringLiteral("All note attributes parameters editable via EditNoteDialog are empty"));
+        if (modifiedNote.hasNoteAttributes()) {
+            modifiedNote.clearNoteAttributes();
+        }
+    }
+    else
+    {
+        qevercloud::NoteAttributes & noteAttributes = modifiedNote.noteAttributes();
+
+        if (subjectDateTime.isValid()) {
+            noteAttributes.subjectDate = subjectDateTime.toMSecsSinceEpoch();
+        }
+        else {
+            noteAttributes.subjectDate.clear();
+        }
+
+        if (!author.isEmpty()) {
+            noteAttributes.author = author;
+        }
+        else {
+            noteAttributes.author.clear();
+        }
+
+        // TODO: implement further
+    }
+
     QDialog::accept();
 }
 
@@ -43,7 +178,7 @@ void EditNoteDialog::dataChanged(const QModelIndex & topLeft, const QModelIndex 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                                  )
 #else
-                                 , const QVector<int> & roles)
+                                , const QVector<int> & roles)
 #endif
 {
     QNDEBUG(QStringLiteral("EditNoteDialog::dataChanged"));
@@ -141,6 +276,114 @@ void EditNoteDialog::fillNotebookNames()
     }
 
     m_pNotebookNamesModel->setStringList(notebookNames);
+}
+
+void EditNoteDialog::fillDialogContent()
+{
+    QNDEBUG(QStringLiteral("EditNoteDialog::fillDialogContent"));
+
+    m_pUi->titleLineEdit->setText(m_note.hasTitle() ? m_note.title() : QString());
+
+    QStringList notebookNames = m_pNotebookNamesModel->stringList();
+
+    bool setNotebookName = false;
+    QString notebookName;
+    if (m_note.hasNotebookLocalUid() && !m_pNotebookModel.isNull()) {
+        notebookName = m_pNotebookModel->itemNameForLocalUid(m_note.notebookLocalUid());
+        QNTRACE(QStringLiteral("Current note's notebook name: ") << notebookName
+                << QStringLiteral(", notebook local uid = ") << m_note.notebookLocalUid());
+    }
+
+    if (!notebookName.isEmpty())
+    {
+        auto it = std::lower_bound(notebookNames.constBegin(), notebookNames.constEnd(), notebookName);
+        if ((it != notebookNames.constEnd()) && (*it == notebookName))
+        {
+            int index = static_cast<int>(std::distance(notebookNames.constBegin(), it));
+            m_pUi->notebookComboBox->setCurrentIndex(index);
+            QNTRACE(QStringLiteral("Set the current notebook name index: ") << index << QStringLiteral(", notebook name: ")
+                    << notebookName);
+            setNotebookName = true;
+        }
+    }
+
+    if (!setNotebookName) {
+        QNTRACE(QStringLiteral("Wasn't able to find & set the notebook name, setting the empty name as a fallback..."));
+        notebookNames.prepend(QString());
+        m_pNotebookNamesModel->setStringList(notebookNames);
+        m_pUi->notebookComboBox->setCurrentIndex(0);
+    }
+
+    if (m_note.hasCreationTimestamp()) {
+        m_pUi->creationDateTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(m_note.creationTimestamp()));
+    }
+    else {
+        m_pUi->creationDateTimeEdit->setDateTime(QDateTime());
+    }
+
+    if (m_note.hasModificationTimestamp()) {
+        m_pUi->modificationDateTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(m_note.modificationTimestamp()));
+    }
+    else {
+        m_pUi->modificationDateTimeEdit->setDateTime(QDateTime());
+    }
+
+    if (m_note.hasDeletionTimestamp()) {
+
+    }
+
+    if (!m_note.hasNoteAttributes())
+    {
+        QNTRACE(QStringLiteral("The note has no attributes"));
+
+        m_pUi->subjectDateTimeEdit->setDateTime(QDateTime());
+        m_pUi->authorLineEdit->setText(QString());
+        m_pUi->sourceLineEdit->setText(QString());
+        m_pUi->sourceURLLineEdit->setText(QString());
+        m_pUi->sourceApplicationLineEdit->setText(QString());
+        m_pUi->placeNameLineEdit->setText(QString());
+        m_pUi->latitudeSpinBox->clear();
+        m_pUi->longitudeSpinBox->clear();
+        m_pUi->altitudeSpinBox->clear();
+
+        return;
+    }
+
+    const qevercloud::NoteAttributes & attributes = m_note.noteAttributes();
+
+    if (attributes.subjectDate.isSet()) {
+        m_pUi->subjectDateTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(attributes.subjectDate.ref()));
+    }
+    else {
+        m_pUi->subjectDateTimeEdit->setDateTime(QDateTime());
+    }
+
+    m_pUi->authorLineEdit->setText(attributes.author.isSet() ? attributes.author.ref() : QString());
+    m_pUi->sourceLineEdit->setText(attributes.source.isSet() ? attributes.source.ref() : QString());
+    m_pUi->sourceURLLineEdit->setText(attributes.sourceURL.isSet() ? attributes.sourceURL.ref() : QString());
+    m_pUi->sourceApplicationLineEdit->setText(attributes.sourceApplication.isSet() ? attributes.sourceApplication.ref() : QString());
+    m_pUi->placeNameLineEdit->setText(attributes.placeName.isSet() ? attributes.placeName.ref() : QString());
+
+    if (attributes.latitude.isSet()) {
+        m_pUi->latitudeSpinBox->setValue(attributes.latitude.ref());
+    }
+    else {
+        m_pUi->latitudeSpinBox->clear();
+    }
+
+    if (attributes.longitude.isSet()) {
+        m_pUi->longitudeSpinBox->setValue(attributes.longitude.ref());
+    }
+    else {
+        m_pUi->longitudeSpinBox->clear();
+    }
+
+    if (attributes.altitude.isSet()) {
+        m_pUi->altitudeSpinBox->setValue(attributes.altitude.ref());
+    }
+    else {
+        m_pUi->altitudeSpinBox->clear();
+    }
 }
 
 } // namespace quentier
