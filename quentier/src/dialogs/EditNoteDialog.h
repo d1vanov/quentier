@@ -59,6 +59,18 @@ private Q_SLOTS:
     void rowsInserted(const QModelIndex & parent, int start, int end);
     void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end);
 
+    // Slots for QDateTimeEdit and QDoubleSpinBox edits capturing. Unfortunately, Qt doesn't offer a simple way
+    // to have null/empty values in these editor, instead they have some default value on creation; workaround:
+    // capture editing events from these editors, treat each editing event as setting the value to some 'non-empty' one;
+    // otherwise treat the value from the editor as an empty one
+    void onCreationDateTimeEdited(const QDateTime & dateTime);
+    void onModificationDateTimeEdited(const QDateTime & dateTime);
+    void onDeletionDateTimeEdited(const QDateTime & dateTime);
+    void onSubjectDateTimeEdited(const QDateTime & dateTime);
+    void onLatitudeValueChanged(double value);
+    void onLongitudeValueChanged(double value);
+    void onAltitudeValueChanged(double value);
+
 private:
     void createConnections();
     void fillNotebookNames();
@@ -69,6 +81,14 @@ private:
     Note                    m_note;
     QPointer<NotebookModel> m_pNotebookModel;
     QStringListModel *      m_pNotebookNamesModel;
+
+    bool                    m_creationDateTimeEdited;
+    bool                    m_modificationDateTimeEdited;
+    bool                    m_deletionDateTimeEdited;
+    bool                    m_subjectDateTimeEdited;
+    bool                    m_latitudeEdited;
+    bool                    m_longitudeEdited;
+    bool                    m_altitudeEdited;
 };
 
 } // namespace quentier

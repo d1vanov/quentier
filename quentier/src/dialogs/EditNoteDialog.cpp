@@ -36,7 +36,14 @@ EditNoteDialog::EditNoteDialog(const Note & note,
     m_pUi(new Ui::EditNoteDialog),
     m_note(note),
     m_pNotebookModel(pNotebookModel),
-    m_pNotebookNamesModel(new QStringListModel(this))
+    m_pNotebookNamesModel(new QStringListModel(this)),
+    m_creationDateTimeEdited(false),
+    m_modificationDateTimeEdited(false),
+    m_deletionDateTimeEdited(false),
+    m_subjectDateTimeEdited(false),
+    m_latitudeEdited(false),
+    m_longitudeEdited(false),
+    m_altitudeEdited(false)
 {
     m_pUi->setupUi(this);
 
@@ -133,14 +140,20 @@ void EditNoteDialog::accept()
                 << QStringLiteral(" (") << notebookLocalUid << QStringLiteral(")"));
     }
 
-    QDateTime creationDateTime = m_pUi->creationDateTimeEdit->dateTime();
-    modifiedNote.setCreationTimestamp(creationDateTime.toMSecsSinceEpoch());
+    if (m_creationDateTimeEdited) {
+        QDateTime creationDateTime = m_pUi->creationDateTimeEdit->dateTime();
+        modifiedNote.setCreationTimestamp(creationDateTime.toMSecsSinceEpoch());
+    }
 
-    QDateTime modificationDateTime = m_pUi->modificationDateTimeEdit->dateTime();
-    modifiedNote.setModificationTimestamp(modificationDateTime.toMSecsSinceEpoch());
+    if (m_modificationDateTimeEdited) {
+        QDateTime modificationDateTime = m_pUi->modificationDateTimeEdit->dateTime();
+        modifiedNote.setModificationTimestamp(modificationDateTime.toMSecsSinceEpoch());
+    }
 
-    QDateTime deletionDateTime = m_pUi->deletionDateTimeEdit->dateTime();
-    modifiedNote.setDeletionTimestamp(deletionDateTime.toMSecsSinceEpoch());
+    if (m_deletionDateTimeEdited) {
+        QDateTime deletionDateTime = m_pUi->deletionDateTimeEdit->dateTime();
+        modifiedNote.setDeletionTimestamp(deletionDateTime.toMSecsSinceEpoch());
+    }
 
     QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
 
@@ -151,16 +164,11 @@ void EditNoteDialog::accept()
     QString placeName = m_pUi->placeNameLineEdit->text();
 
     double latitude = m_pUi->latitudeSpinBox->value();
-    bool isLatitudeEmpty = m_pUi->latitudeSpinBox->text().isEmpty();
-
     double longitude = m_pUi->longitudeSpinBox->value();
-    bool isLongitudeEmpty = m_pUi->longitudeSpinBox->text().isEmpty();
-
     double altitude = m_pUi->altitudeSpinBox->value();
-    bool isAltitudeEmpty = m_pUi->altitudeSpinBox->text().isEmpty();
 
-    if (!subjectDateTime.isValid() && author.isEmpty() && source.isEmpty() && sourceURL.isEmpty() &&
-        sourceApplication.isEmpty() && placeName.isEmpty() && isLatitudeEmpty && isLongitudeEmpty && isAltitudeEmpty)
+    if ((!m_subjectDateTimeEdited || !subjectDateTime.isValid()) && author.isEmpty() && source.isEmpty() && sourceURL.isEmpty() &&
+        sourceApplication.isEmpty() && placeName.isEmpty() && !m_latitudeEdited && !m_longitudeEdited && !m_altitudeEdited)
     {
         QNTRACE(QStringLiteral("All note attributes parameters editable via EditNoteDialog are empty"));
         if (modifiedNote.hasNoteAttributes()) {
@@ -171,7 +179,7 @@ void EditNoteDialog::accept()
     {
         qevercloud::NoteAttributes & noteAttributes = modifiedNote.noteAttributes();
 
-        if (subjectDateTime.isValid()) {
+        if (m_subjectDateTimeEdited && subjectDateTime.isValid()) {
             noteAttributes.subjectDate = subjectDateTime.toMSecsSinceEpoch();
         }
         else {
@@ -245,21 +253,21 @@ void EditNoteDialog::accept()
 
 #undef CHECK_ATTRIBUTE
 
-        if (!isLatitudeEmpty) {
+        if (m_latitudeEdited) {
             noteAttributes.latitude = latitude;
         }
         else {
             noteAttributes.latitude.clear();
         }
 
-        if (!isLongitudeEmpty) {
+        if (m_longitudeEdited) {
             noteAttributes.longitude = longitude;
         }
         else {
             noteAttributes.longitude.clear();
         }
 
-        if (!isAltitudeEmpty) {
+        if (m_altitudeEdited) {
             noteAttributes.altitude = altitude;
         }
         else {
@@ -345,6 +353,48 @@ void EditNoteDialog::rowsAboutToBeRemoved(const QModelIndex & parent, int start,
     m_pNotebookNamesModel->setStringList(currentNotebookNames);
 }
 
+void EditNoteDialog::onCreationDateTimeEdited(const QDateTime & dateTime)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onCreationDateTimeEdited: ") << dateTime);
+    m_creationDateTimeEdited = true;
+}
+
+void EditNoteDialog::onModificationDateTimeEdited(const QDateTime & dateTime)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onModificationDateTimeEdited: ") << dateTime);
+    m_modificationDateTimeEdited = true;
+}
+
+void EditNoteDialog::onDeletionDateTimeEdited(const QDateTime & dateTime)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onDeletionDateTimeEdited: ") << dateTime);
+    m_deletionDateTimeEdited = true;
+}
+
+void EditNoteDialog::onSubjectDateTimeEdited(const QDateTime & dateTime)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onSubjectDateTimeEdited: ") << dateTime);
+    m_subjectDateTimeEdited = true;
+}
+
+void EditNoteDialog::onLatitudeValueChanged(double value)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onLatitudeValueChanged: ") << value);
+    m_latitudeEdited = true;
+}
+
+void EditNoteDialog::onLongitudeValueChanged(double value)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onLongitudeValueChanged: ") << value);
+    m_longitudeEdited = true;
+}
+
+void EditNoteDialog::onAltitudeValueChanged(double value)
+{
+    QNTRACE(QStringLiteral("EditNoteDialog::onAltitudeValueChanged: ") << value);
+    m_altitudeEdited = true;
+}
+
 void EditNoteDialog::createConnections()
 {
     QNDEBUG(QStringLiteral("EditNoteDialog::createConnections"));
@@ -362,6 +412,21 @@ void EditNoteDialog::createConnections()
         QObject::connect(m_pNotebookModel.data(), QNSIGNAL(NotebookModel,rowsAboutToBeRemoved,QModelIndex,int,int),
                          this, QNSLOT(EditNoteDialog,rowsAboutToBeRemoved,QModelIndex,int,int));
     }
+
+    QObject::connect(m_pUi->creationDateTimeEdit, QNSIGNAL(QDateTimeEdit,dateTimeChanged,QDateTime),
+                     this, QNSLOT(EditNoteDialog,onCreationDateTimeEdited,QDateTime));
+    QObject::connect(m_pUi->modificationDateTimeEdit, QNSIGNAL(QDateTimeEdit,dateTimeChanged,QDateTime),
+                     this, QNSLOT(EditNoteDialog,onModificationDateTimeEdited,QDateTime));
+    QObject::connect(m_pUi->deletionDateTimeEdit, QNSIGNAL(QDateTimeEdit,dateTimeChanged,QDateTime),
+                     this, QNSLOT(EditNoteDialog,onDeletionDateTimeEdited,QDateTime));
+    QObject::connect(m_pUi->subjectDateTimeEdit, QNSIGNAL(QDateTimeEdit,dateTimeChanged,QDateTime),
+                     this, QNSLOT(EditNoteDialog,onSubjectDateTimeEdited,QDateTime));
+    QObject::connect(m_pUi->latitudeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(onLatitudeValueChanged(double)));
+    QObject::connect(m_pUi->longitudeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(onLongitudeValueChanged(double)));
+    QObject::connect(m_pUi->altitudeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(onAltitudeValueChanged(double)));
 }
 
 void EditNoteDialog::fillNotebookNames()
