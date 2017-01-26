@@ -4797,6 +4797,7 @@ void NoteEditorPrivate::setNoteAndNotebook(const Note & note, const Notebook & n
                 QNDEBUG(QStringLiteral("Haven't found the updates within the note which would be sufficient enough "
                                        "to reload the note editor"));
                 *m_pNote = note;
+                // FIXME: the following line shouldn't really be here by the comparison logics, need to test if things work ok without it
                 noteToEditorContent();
                 return;
             }
