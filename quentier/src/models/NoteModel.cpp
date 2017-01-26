@@ -486,7 +486,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
         }
     case Columns::DeletionTimestamp:
         {
-            qint64 timestamp = 0;
+            qint64 timestamp = -1;
 
             if (!value.isNull())
             {
@@ -508,7 +508,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
         }
     case Columns::CreationTimestamp:
         {
-            qint64 timestamp = 0;
+            qint64 timestamp = -1;
 
             if (!value.isNull())
             {
@@ -530,7 +530,7 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
         }
     case Columns::ModificationTimestamp:
         {
-            qint64 timestamp = 0;
+            qint64 timestamp = -1;
 
             if (!value.isNull())
             {
@@ -1276,7 +1276,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
     {
     case Columns::CreationTimestamp:
         {
-            if (item.creationTimestamp() == 0) {
+            if (item.creationTimestamp() < 0) {
                 accessibleText += tr("creation time is not set");
             }
             else {
@@ -1287,7 +1287,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         }
     case Columns::ModificationTimestamp:
         {
-            if (item.modificationTimestamp() == 0) {
+            if (item.modificationTimestamp() < 0) {
                 accessibleText += tr("last modification timestamp is not set");
             }
             else {
@@ -1298,7 +1298,7 @@ QVariant NoteModel::dataAccessibleText(const int row, const Columns::type column
         }
     case Columns::DeletionTimestamp:
         {
-            if (item.deletionTimestamp() == 0) {
+            if (item.deletionTimestamp() < 0) {
                 accessibleText += tr("deletion timestamp is not set");
             }
             else {
@@ -1788,7 +1788,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             break;
         case IncludedNotes::Deleted:
             {
-                if (item.deletionTimestamp() == 0) {
+                if (item.deletionTimestamp() < 0) {
                     QNDEBUG(QStringLiteral("Won't add note as it's not deleted and the model instance only considers the deleted notes"));
                     return;
                 }
@@ -1796,14 +1796,13 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             }
         case IncludedNotes::NonDeleted:
             {
-                if (item.deletionTimestamp() != 0) {
+                if (item.deletionTimestamp() >= 0) {
                     QNDEBUG(QStringLiteral("Won't add note as it's deleted and the model instance only considers the non-deleted notes"));
                     return;
                 }
                 break;
             }
         }
-
 
         int row = static_cast<int>(localUidIndex.size());
         beginInsertRows(QModelIndex(), row, row);
@@ -1824,7 +1823,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             break;
         case IncludedNotes::Deleted:
             {
-                if (item.deletionTimestamp() == 0)
+                if (item.deletionTimestamp() < 0)
                 {
                     QNDEBUG(QStringLiteral("Removing the updated note item from the model as the item is not deleted "
                                            "and the model instance only considers the deleted notes"));
@@ -1834,7 +1833,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
             }
         case IncludedNotes::NonDeleted:
             {
-                if (item.deletionTimestamp() != 0)
+                if (item.deletionTimestamp() >= 0)
                 {
                     QNDEBUG("Removing the updated note item from the model as the item is deleted "
                             "and the model instance only considers the non-deleted notes");

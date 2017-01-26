@@ -158,7 +158,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     bool deleted = false;
 
     qint64 deletionTimestamp = pItem->deletionTimestamp();
-    if (deletionTimestamp != 0) {
+    if (deletionTimestamp >= 0) {
         targetTimestamp = deletionTimestamp;
         deleted = true;
     }
