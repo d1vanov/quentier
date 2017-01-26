@@ -22,7 +22,6 @@
 #include "../models/NoteModel.h"
 #include "../models/NotebookModel.h"
 #include "../models/NotebookItem.h"
-#include "../dialogs/EditNoteDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -106,7 +105,21 @@ void NoteListView::onEditNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onEditNoteAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Can't edit note: internal error, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QString noteLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        REPORT_ERROR("Can't edit note: internal error, the local uid "
+                     "of the note to be edited is empty");
+        return;
+    }
+
+    emit editNoteDialogRequested(noteLocalUid);
 }
 
 void NoteListView::onMoveToOtherNotebookAction()

@@ -17,6 +17,7 @@
  */
 
 #include "MainWindow.h"
+#include "EditNoteDialogsManager.h"
 #include "NoteEditorTabWidgetManager.h"
 #include "AccountToKey.h"
 #include "NoteFiltersManager.h"
@@ -137,6 +138,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pNoteFilterModel(Q_NULLPTR),
     m_pNoteFiltersManager(Q_NULLPTR),
     m_pNoteEditorTabWidgetManager(Q_NULLPTR),
+    m_pEditNoteDialogsManager(Q_NULLPTR),
     m_testNotebook(),
     m_testNote(),
     m_pUndoStack(new QUndoStack(this)),
@@ -2497,6 +2499,10 @@ void MainWindow::setupModels()
     m_pNotebookModelColumnChangeRerouter->setModel(m_pNotebookModel);
     m_pTagModelColumnChangeRerouter->setModel(m_pTagModel);
     m_pNoteModelColumnChangeRerouter->setModel(m_pNoteFilterModel);
+
+    if (m_pEditNoteDialogsManager) {
+        m_pEditNoteDialogsManager->setNotebookModel(m_pNotebookModel);
+    }
 }
 
 void MainWindow::clearModels()
@@ -2702,6 +2708,10 @@ void MainWindow::setupViews()
 #endif
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,currentNoteChanged,QString),
                      this, QNSLOT(MainWindow,onCurrentNoteChanged,QString));
+
+    m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
+                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);

@@ -47,40 +47,75 @@ void EditNoteDialogsManager::onEditNoteDialogRequested(QString noteLocalUid)
 
 void EditNoteDialogsManager::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(requestId)
+    auto it = m_findNoteRequestIds.find(requestId);
+    if (it == m_findNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onFindNoteComplete: request id = ") << requestId
+            << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", note: ") << note);
+
+    Q_UNUSED(m_findNoteRequestIds.erase(it))
+
+    m_noteCache.put(note.localUid(), note);
+    raiseEditNoteDialog(note);
 }
 
 void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
                                               QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(withResourceBinaryData)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_findNoteRequestIds.find(requestId);
+    if (it == m_findNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onFindNoteFailed: request id = ") << requestId
+            << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", error description = ") << errorDescription
+            << QStringLiteral("; note: ") << note);
+
+    Q_UNUSED(m_findNoteRequestIds.erase(it))
+
+    QNLocalizedString error = QNLocalizedString("Can't edit note: note to edit was no found", this);
+    error += QStringLiteral(": ");
+    error += errorDescription;
+    QNWARNING(error);
+    emit notifyError(error);
 }
 
 void EditNoteDialogsManager::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
-    Q_UNUSED(requestId)
+    auto it = m_updateNoteRequestIds.find(requestId);
+    if (it == m_updateNoteRequestIds.end()) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onUpdateNoteComplete: request id = ") << requestId
+            << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", note: ") << note);
+
+    m_noteCache.put(note.localUid(), note);
 }
 
 void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
                                                 QNLocalizedString errorDescription, QUuid requestId)
 {
-    // TODO: implement
-    Q_UNUSED(note)
-    Q_UNUSED(updateResources)
-    Q_UNUSED(updateTags)
-    Q_UNUSED(errorDescription)
-    Q_UNUSED(requestId)
+    auto it = m_updateNoteRequestIds.find(requestId);
+    if (it == m_updateNoteRequestIds.end()) {
+        return;
+    }
+
+    QNWARNING(QStringLiteral("EditNoteDialogsManager::onUpdateNoteFailed: request id = ") << requestId
+              << QStringLiteral(", update resources = ") << (updateResources ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
+              << QStringLiteral(", error: ") << errorDescription << QStringLiteral("; note: ") << note);
+
+    QNLocalizedString error = QNLocalizedString("Note edit failed");
+    error += QStringLiteral(": ");
+    error += errorDescription;
+    emit notifyError(error);
 }
 
 void EditNoteDialogsManager::createConnections()

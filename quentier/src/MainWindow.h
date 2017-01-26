@@ -61,6 +61,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditor)
 QT_FORWARD_DECLARE_CLASS(NoteEditorTabWidgetManager)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
+QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
 }
 
 using namespace quentier;
@@ -371,6 +372,8 @@ private:
     };
 
     NoteEditorTabWidgetManager *    m_pNoteEditorTabWidgetManager;
+
+    EditNoteDialogsManager *        m_pEditNoteDialogsManager;
 
     Notebook                m_testNotebook;
     Note                    m_testNote;
