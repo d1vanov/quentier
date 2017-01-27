@@ -91,10 +91,26 @@ public:
     const NoteModelItem * itemAtRow(const int row) const;
     const NoteModelItem * itemForIndex(const QModelIndex & index) const;
 
+    /**
+     * @brief createNoteItem - attempts to create a new note within the notebook specified by local uid
+     * @param notebookLocalUid - the local uid of notebook in which the new note is to be created
+     * @return the model index of the newly created note item or invalid modex index if the new note could not be
+     * created
+     */
     QModelIndex createNoteItem(const QString & notebookLocalUid);
 
     bool allNotesListed() const { return m_allNotesListed; }
 
+    /**
+     * @brief deleteNote - attempts to mark the note with the specified local uid as deleted.
+     *
+     * The model only looks at the notes contained in it, so if the model was set up to include only
+     * already deleted notes or only non-deleted ones, there's a chance the model wan't contain the note
+     * pointed to by the local uid. In that case the deletion won't be successful.
+     *
+     * @param noteLocalUid - the local uid of note to be marked as deleted
+     * @return true if the note was deleted successfully, false otherwise
+     */
     bool deleteNote(const QString & noteLocalUid);
 
     /**
@@ -108,6 +124,28 @@ public:
      * @param notebookName - the name of the notebook into which the note needs to be moved
      */
     void moveNoteToNotebook(const QString & noteLocalUid, const QString & notebookName);
+
+    /**
+     * @brief favoriteNote - attempts to mark the note with the specified local uid as favorited
+     *
+     * Favorited property of @link Note @endlink class is not represented as a column within
+     * the @link NoteModel @endlink so this method doesn't change anything in the model but only
+     * the underlying note object persisted in the local storage
+     *
+     * @param noteLocalUid - the local uid of the note to be favorited
+     */
+    void favoriteNote(const QString & noteLocalUid);
+
+    /**
+     * @brief unfavoriteNote - attempts to remove the favorited mark from the note with the specified local uid
+     *
+     * Favorited property of @link Note @endlink class is not represented as a column within
+     * the @link NoteModel @endlink so this method doesn't change anything in the model but only
+     * the underlying note object persisted in the local storage
+     *
+     * @param noteLocalUid - the local uid of the note to be unfavorited
+     */
+    void unfavoriteNote(const QString & noteLocalUid);
 
 public:
     // QAbstractItemModel interface
@@ -197,6 +235,8 @@ private:
     void updateNotebookData(const Notebook & notebook);
 
     void updateTagData(const Tag & tag);
+
+    void setNoteFavorited(const QString & noteLocalUid, const bool favorited);
 
 private:
     struct ByLocalUid{};

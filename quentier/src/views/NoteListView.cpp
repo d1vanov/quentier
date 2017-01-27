@@ -163,14 +163,54 @@ void NoteListView::onUnfavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onUnfavoriteAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Can't unfavorite note: internal error, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        REPORT_ERROR("Can't unfavorite note: wrong model connected to the note list view");
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        REPORT_ERROR("Can't unfavorite note: can't get the source model from the note filter model "
+                     "connected to the note list view");
+        return;
+    }
+
+    pNoteModel->unfavoriteNote(pAction->data().toString());
 }
 
 void NoteListView::onFavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onFavoriteAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Can't favorite note: internal error, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        REPORT_ERROR("Can't favorite note: wrong model connected to the note list view");
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        REPORT_ERROR("Can't favorite note: can't get the source model from the note filter model "
+                     "connected to the note list view");
+        return;
+    }
+
+    pNoteModel->favoriteNote(pAction->data().toString());
 }
 
 void NoteListView::onShowNoteInfoAction()
