@@ -35,7 +35,7 @@ NotebookItemDelegate::NotebookItemDelegate(QObject * parent) :
 
 QString NotebookItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
 {
-    return QStyledItemDelegate::displayText(value, locale);
+    return AbstractStyledItemDelegate::displayText(value, locale);
 }
 
 QWidget * NotebookItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
@@ -43,7 +43,7 @@ QWidget * NotebookItemDelegate::createEditor(QWidget * parent, const QStyleOptio
 {
     // Only allow to edit the notebook name but no other notebook model columns
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
-        return QStyledItemDelegate::createEditor(parent, option, index);
+        return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
     else {
         return Q_NULLPTR;
@@ -91,7 +91,7 @@ void NotebookItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem 
 void NotebookItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
-        QStyledItemDelegate::setEditorData(editor, index);
+        AbstractStyledItemDelegate::setEditorData(editor, index);
     }
 }
 
@@ -99,7 +99,7 @@ void NotebookItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * m
                                         const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
-        QStyledItemDelegate::setModelData(editor, model, index);
+        AbstractStyledItemDelegate::setModelData(editor, model, index);
     }
 }
 
@@ -126,14 +126,14 @@ QSize NotebookItemDelegate::sizeHint(const QStyleOptionViewItem & option, const 
         return notebookNameSizeHint(option, index, colNameWidth);
     }
 
-    return QStyledItemDelegate::sizeHint(option, index);
+    return AbstractStyledItemDelegate::sizeHint(option, index);
 }
 
 void NotebookItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
                                                 const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == NotebookModel::Columns::Name)) {
-        QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+        AbstractStyledItemDelegate::updateEditorGeometry(editor, option, index);
     }
 }
 
@@ -165,30 +165,31 @@ void NotebookItemDelegate::drawNotebookName(QPainter * painter, const QModelInde
         return;
     }
 
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.highlightedText().color()
-                    : option.palette.windowText().color());
-    painter->drawText(QRectF(option.rect), name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
-
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name);
+    QString nameSuffix;
 
     QModelIndex numNotesPerNotebookIndex = model->index(index.row(), NotebookModel::Columns::NumNotesPerNotebook, index.parent());
     QVariant numNotesPerNotebook = model->data(numNotesPerNotebookIndex);
     bool conversionResult = false;
     int numNotesPerNotebookInt = numNotesPerNotebook.toInt(&conversionResult);
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the number of notes per notebook to int: ") << numNotesPerNotebook);
+    if (conversionResult && (numNotesPerNotebookInt > 0)) {
+        nameSuffix = QStringLiteral(" (");
+        nameSuffix += QString::number(numNotesPerNotebookInt);
+        nameSuffix += QStringLiteral(")");
+    }
+
+    adjustDisplayedText(name, option, nameSuffix);
+
+    painter->setPen(option.state & QStyle::State_Selected
+                    ? option.palette.highlightedText().color()
+                    : option.palette.windowText().color());
+    painter->drawText(QRectF(option.rect), name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+
+    if (nameSuffix.isEmpty()) {
         return;
     }
 
-    if (numNotesPerNotebookInt <= 0) {
-        return;
-    }
-
-    QString nameSuffix = QStringLiteral(" (");
-    nameSuffix += QString::number(numNotesPerNotebookInt);
-    nameSuffix += QStringLiteral(")");
+    QFontMetrics fontMetrics(option.font);
+    int nameWidth = fontMetrics.width(name);
 
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.color(QPalette::Active, QPalette::WindowText)
@@ -207,13 +208,13 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
         QNDEBUG(QStringLiteral("No model, fallback to the default size hint"));
-        return QStyledItemDelegate::sizeHint(option, index);
+        return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = model->data(index).toString();
+    QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         QNDEBUG(QStringLiteral("Notebook name is empty, fallback to the default size hint"));
-        return QStyledItemDelegate::sizeHint(option, index);
+        return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
     QModelIndex numNotesPerNotebookIndex =
@@ -222,6 +223,7 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
     bool conversionResult = false;
     int numNotesPerNotebookInt = numNotesPerNotebook.toInt(&conversionResult);
 
+    QString nameSuffix;
     if (!conversionResult) {
         QNDEBUG(QStringLiteral("Failed to convert the number of notes per notebook to int: ")
                 << numNotesPerNotebook);
@@ -229,13 +231,13 @@ QSize NotebookItemDelegate::notebookNameSizeHint(const QStyleOptionViewItem & op
     else if (numNotesPerNotebookInt > 0) {
         QNTRACE(QStringLiteral("Appending num notes per notebook to the notebook name: ")
                 << numNotesPerNotebookInt);
-        name += QStringLiteral(" (");
-        name += QString::number(numNotesPerNotebookInt);
-        name += QStringLiteral(")");
+        nameSuffix = QStringLiteral(" (");
+        nameSuffix += QString::number(numNotesPerNotebookInt);
+        nameSuffix += QStringLiteral(")");
     }
 
     QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name);
+    int nameWidth = fontMetrics.width(name + nameSuffix);
     int fontHeight = fontMetrics.height();
 
     double margin = 0.1;

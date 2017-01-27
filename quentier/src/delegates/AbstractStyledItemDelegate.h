@@ -31,6 +31,18 @@ protected:
      */
     int columnNameWidth(const QStyleOptionViewItem & option, const QModelIndex & index,
                         const Qt::Orientation orientation = Qt::Horizontal) const;
+
+    /**
+     * @brief adjusts (shortens, elides) the text to be displayed by the item according to the option's rect width;
+     * if no adjustment is required, the displayed text is left untouched
+     *
+     * @param displayedText - the text to be displayed which might need to be shortened
+     * @param option - the used style option
+     * @param textSuffix - the text suffix that needs to be displayed nevertheless, even if the primary part of the text
+     * exceeds the width of the option's rect
+     */
+    void adjustDisplayedText(QString & displayedText, const QStyleOptionViewItem & option,
+                             const QString & nameSuffix = QString()) const;
 };
 
 } // namespace quentier

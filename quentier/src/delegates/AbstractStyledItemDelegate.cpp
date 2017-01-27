@@ -46,4 +46,21 @@ int AbstractStyledItemDelegate::columnNameWidth(const QStyleOptionViewItem & opt
     return columnNameWidth;
 }
 
+void AbstractStyledItemDelegate::adjustDisplayedText(QString & displayedText, const QStyleOptionViewItem & option,
+                                                     const QString & nameSuffix) const
+{
+    QFontMetrics fontMetrics(option.font);
+
+    int displayedTextWidth = fontMetrics.width(displayedText);
+    int nameSuffixWidth = (nameSuffix.isEmpty() ? 0 : fontMetrics.width(nameSuffix));
+    int optionRectWidth = option.rect.width();
+
+    if ((displayedTextWidth + nameSuffixWidth) <= optionRectWidth) {
+        return;
+    }
+
+    int idealDisplayedTextWidth = optionRectWidth - nameSuffixWidth;
+    displayedText = fontMetrics.elidedText(displayedText, Qt::ElideRight, idealDisplayedTextWidth);
+}
+
 } // namespace quentier

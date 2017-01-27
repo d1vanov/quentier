@@ -1,10 +1,11 @@
 #ifndef QUENTIER_DELEGATES_TAG_ITEM_DELEGATE_H
 #define QUENTIER_DELEGATES_TAG_ITEM_DELEGATE_H
 
-#include <quentier/utility/Macros.h>
-#include <QStyledItemDelegate>
+#include "AbstractStyledItemDelegate.h"
 
-class TagItemDelegate: public QStyledItemDelegate
+namespace quentier {
+
+class TagItemDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -28,5 +29,7 @@ private:
     void drawTagName(QPainter * painter, const QModelIndex & index, const QStyleOptionViewItem & option) const;
     QSize tagNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_DELEGATES_TAG_ITEM_DELEGATE_H

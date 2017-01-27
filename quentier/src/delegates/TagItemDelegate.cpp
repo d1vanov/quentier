@@ -6,15 +6,15 @@
 #include <algorithm>
 #include <cmath>
 
-using namespace quentier;
+namespace quentier {
 
 TagItemDelegate::TagItemDelegate(QObject * parent) :
-    QStyledItemDelegate(parent)
+    AbstractStyledItemDelegate(parent)
 {}
 
 QString TagItemDelegate::displayText(const QVariant & value, const QLocale & locale) const
 {
-    return QStyledItemDelegate::displayText(value, locale);
+    return AbstractStyledItemDelegate::displayText(value, locale);
 }
 
 QWidget * TagItemDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem & option,
@@ -22,7 +22,7 @@ QWidget * TagItemDelegate::createEditor(QWidget * parent, const QStyleOptionView
 {
     // Only allow to edit the tag name but no other tag model columns
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
-        return QStyledItemDelegate::createEditor(parent, option, index);
+        return AbstractStyledItemDelegate::createEditor(parent, option, index);
     }
     else {
         return Q_NULLPTR;
@@ -45,7 +45,7 @@ void TagItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & opt
 void TagItemDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
-        QStyledItemDelegate::setEditorData(editor, index);
+        AbstractStyledItemDelegate::setEditorData(editor, index);
     }
 }
 
@@ -53,7 +53,7 @@ void TagItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model,
                                    const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
-        QStyledItemDelegate::setModelData(editor, model, index);
+        AbstractStyledItemDelegate::setModelData(editor, model, index);
     }
 }
 
@@ -67,14 +67,14 @@ QSize TagItemDelegate::sizeHint(const QStyleOptionViewItem & option, const QMode
         return tagNameSizeHint(option, index);
     }
 
-    return QStyledItemDelegate::sizeHint(option, index);
+    return AbstractStyledItemDelegate::sizeHint(option, index);
 }
 
 void TagItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option,
                                            const QModelIndex & index) const
 {
     if (index.isValid() && (index.column() == TagModel::Columns::Name)) {
-        QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+        AbstractStyledItemDelegate::updateEditorGeometry(editor, option, index);
     }
 }
 
@@ -91,74 +91,75 @@ void TagItemDelegate::drawTagName(QPainter * painter, const QModelIndex & index,
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    QString name = model->data(index).toString();
+    QString name = model->data(index).toString().simplified();
     if (name.isEmpty()) {
         QNDEBUG(QStringLiteral("TagItemDelegate::drawTagName: tag name is empty"));
         return;
     }
 
-    painter->setPen(option.state & QStyle::State_Selected
-                    ? option.palette.highlightedText().color()
-                    : option.palette.windowText().color());
-    painter->drawText(option.rect, name, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
-
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name);
+    QString nameSuffix;
 
     QModelIndex numNotesPerTagIndex = model->index(index.row(), TagModel::Columns::NumNotesPerTag, index.parent());
     QVariant numNotesPerTag = model->data(numNotesPerTagIndex);
     bool conversionResult = false;
     int numNotesPerTagInt = numNotesPerTag.toInt(&conversionResult);
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the number of notes per tag to int: ") << numNotesPerTag);
+    if (conversionResult && (numNotesPerTagInt > 0)) {
+        nameSuffix = QStringLiteral(" (");
+        nameSuffix += QString::number(numNotesPerTagInt);
+        nameSuffix += QStringLiteral(")");
+    }
+
+    adjustDisplayedText(name, option, nameSuffix);
+
+    painter->setPen(option.state & QStyle::State_Selected
+                    ? option.palette.highlightedText().color()
+                    : option.palette.windowText().color());
+    painter->drawText(option.rect, name, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
+
+    if (nameSuffix.isEmpty()) {
         return;
     }
 
-    if (numNotesPerTagInt <= 0) {
-        return;
-    }
-
-    QString nameSuffix = QStringLiteral(" (");
-    nameSuffix += QString::number(numNotesPerTagInt);
-    nameSuffix += QStringLiteral(")");
+    QFontMetrics fontMetrics(option.font);
+    int nameWidth = fontMetrics.width(name);
 
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.color(QPalette::Active, QPalette::WindowText)
                     : option.palette.color(QPalette::Active, QPalette::Highlight));
-    painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
+    painter->drawText(option.rect.translated(nameWidth, 0), nameSuffix, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
 QSize TagItemDelegate::tagNameSizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
     const QAbstractItemModel * model = index.model();
     if (Q_UNLIKELY(!model)) {
-        return QStyledItemDelegate::sizeHint(option, index);
+        return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = model->data(index).toString();
+    QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
-        return QStyledItemDelegate::sizeHint(option, index);
+        return AbstractStyledItemDelegate::sizeHint(option, index);
     }
 
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name);
-    int fontHeight = fontMetrics.height();
+    QString nameSuffix;
 
     QModelIndex numNotesPerTagIndex = model->index(index.row(), TagModel::Columns::NumNotesPerTag, index.parent());
     QVariant numNotesPerTag = model->data(numNotesPerTagIndex);
     bool conversionResult = false;
     int numNotesPerTagInt = numNotesPerTag.toInt(&conversionResult);
-
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the number of notes per tag to int: ") << numNotesPerTag);
-        return QStyledItemDelegate::sizeHint(option, index);
+    if (conversionResult && (numNotesPerTagInt > 0)) {
+        nameSuffix = QStringLiteral(" (");
+        nameSuffix += QString::number(numNotesPerTagInt);
+        nameSuffix += QStringLiteral(")");
     }
 
-    if (numNotesPerTagInt <= 0) {
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
+    QFontMetrics fontMetrics(option.font);
+    int nameWidth = fontMetrics.width(name + nameSuffix);
+    int fontHeight = fontMetrics.height();
 
     double margin = 1.1;
     return QSize(std::max(static_cast<int>(std::floor(nameWidth * margin + 0.5)), option.rect.width()),
                  std::max(static_cast<int>(std::floor(fontHeight * margin + 0.5)), option.rect.height()));
 }
+
+} // namespace quentier

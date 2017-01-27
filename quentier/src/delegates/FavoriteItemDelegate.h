@@ -1,11 +1,12 @@
 #ifndef QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
 #define QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
 
-#include <quentier/utility/Macros.h>
-#include <QStyledItemDelegate>
+#include "AbstractStyledItemDelegate.h"
 #include <QIcon>
 
-class FavoriteItemDelegate: public QStyledItemDelegate
+namespace quentier {
+
+class FavoriteItemDelegate: public AbstractStyledItemDelegate
 {
     Q_OBJECT
 public:
@@ -39,5 +40,7 @@ private:
     QIcon   m_unknownTypeIcon;
     QSize   m_iconSize;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_DELEGATES_FAVORITE_ITEM_DELEGATE_H
