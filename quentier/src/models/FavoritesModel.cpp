@@ -2355,7 +2355,7 @@ void FavoritesModel::onNoteAddedOrUpdated(const Note & note, const bool tagsUpda
     else if (note.hasContent())
     {
         QString plainText = note.plainText();
-        plainText.chop(160);
+        plainText.truncate(160);
         item.setDisplayName(plainText);
         // NOTE: using the text preview in this way means updating the favorites item's display name would actually create the title for the note
     }
