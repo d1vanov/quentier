@@ -5,6 +5,7 @@
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <QPainter>
+#include <algorithm>
 
 #define ICON_SIDE_SIZE (16)
 
@@ -139,43 +140,38 @@ QSize FavoriteItemDelegate::favoriteItemNameSizeHint(const QStyleOptionViewItem 
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    QString name = model->data(index).toString();
+    QString name = model->data(index).toString().simplified();
     if (Q_UNLIKELY(name.isEmpty())) {
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
     QFontMetrics fontMetrics(option.font);
     int nameWidth = fontMetrics.width(name);
-    int fontHeight = fontMetrics.height();
+    if (nameWidth >= (option.rect.width() - 3)) {
+        name = fontMetrics.elidedText(name, Qt::ElideRight, std::max(option.rect.width() - 3, 1));
+    }
 
     QModelIndex itemTypeIndex = model->index(index.row(), FavoritesModel::Columns::Type, index.parent());
     QVariant itemType = model->data(itemTypeIndex);
     bool conversionResult = false;
     FavoritesModelItem::Type::type itemTypeInt = static_cast<FavoritesModelItem::Type::type>(itemType.toInt(&conversionResult));
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the favorite item's type to int: ") << itemType);
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
-
-    if ((itemTypeInt != FavoritesModelItem::Type::Notebook) &&
-        (itemTypeInt != FavoritesModelItem::Type::Tag))
+    if (conversionResult &&
+        ((itemTypeInt == FavoritesModelItem::Type::Notebook) ||
+         (itemTypeInt == FavoritesModelItem::Type::Tag)))
     {
-        return QStyledItemDelegate::sizeHint(option, index);
+        QModelIndex numNotesIndex = model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted, index.parent());
+        QVariant numNotes = model->data(numNotesIndex);
+        conversionResult = false;
+        int numNotesInt = numNotes.toInt(&conversionResult);
+        if (conversionResult && (numNotesInt > 0)) {
+            name += QStringLiteral(" (");
+            name += QString::number(numNotesInt);
+            name += QStringLiteral(")");
+        }
     }
 
-    QModelIndex numNotesIndex = model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted, index.parent());
-    QVariant numNotes = model->data(numNotesIndex);
-    conversionResult = false;
-    int numNotesInt = numNotes.toInt(&conversionResult);
-
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Failed to convert the number of notes to int: ") << numNotes);
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
-
-    if (numNotesInt <= 0) {
-        return QStyledItemDelegate::sizeHint(option, index);
-    }
+    nameWidth = fontMetrics.width(name);
+    int fontHeight = fontMetrics.height();
 
     double margin = 1.1;
     return QSize(std::max(static_cast<int>(std::floor(nameWidth * margin + 0.5)), option.rect.width()),
@@ -194,19 +190,23 @@ void FavoriteItemDelegate::drawFavoriteItemName(QPainter * painter, const QModel
         painter->fillRect(option.rect, option.palette.highlight());
     }
 
-    QString name = model->data(index).toString();
+    QString name = model->data(index).toString().simplified();
     if (name.isEmpty()) {
         QNDEBUG(QStringLiteral("FavoriteItemDelegate::drawFavoriteItemName: item name is empty"));
         return;
+    }
+
+    QFontMetrics fontMetrics(option.font);
+    int nameWidth = fontMetrics.width(name);
+    if (nameWidth >= (option.rect.width() - 3)) {
+        name = fontMetrics.elidedText(name, Qt::ElideRight, std::max(option.rect.width() - 3, 1));
+        nameWidth = fontMetrics.width(name);
     }
 
     painter->setPen(option.state & QStyle::State_Selected
                     ? option.palette.highlightedText().color()
                     : option.palette.windowText().color());
     painter->drawText(option.rect, name, QTextOption(Qt::AlignLeft | Qt::AlignVCenter));
-
-    QFontMetrics fontMetrics(option.font);
-    int nameWidth = fontMetrics.width(name);
 
     QModelIndex numNotesPerItemIndex = model->index(index.row(), FavoritesModel::Columns::NumNotesTargeted, index.parent());
     QVariant numNotesPerItem = model->data(numNotesPerItemIndex);
