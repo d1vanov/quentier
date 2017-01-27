@@ -20,6 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_SPELL_CHECKER_H
 
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/Linkage.h>
 #include <QObject>
 #include <QVector>
 #include <QPair>
@@ -29,7 +30,7 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SpellCheckerPrivate)
 
-class SpellChecker: public QObject
+class QUENTIER_EXPORT SpellChecker : public QObject
 {
     Q_OBJECT
 public:

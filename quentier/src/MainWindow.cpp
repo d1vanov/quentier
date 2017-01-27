@@ -2896,7 +2896,7 @@ void MainWindow::setupDefaultShortcuts()
             QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
         else { \
-            m_shortcutManager.setDefaultShortcut(key, shortcut, QStringLiteral(#__VA_ARGS__)); \
+            m_shortcutManager.setDefaultShortcut(key, shortcut, QStringLiteral("" #__VA_ARGS__)); \
         } \
     }
 
@@ -2907,7 +2907,7 @@ void MainWindow::setupDefaultShortcuts()
             QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
         else { \
-            m_shortcutManager.setNonStandardDefaultShortcut(#action, shortcut, QStringLiteral(#__VA_ARGS__)); \
+            m_shortcutManager.setNonStandardDefaultShortcut(#action, shortcut, QStringLiteral("" #__VA_ARGS__)); \
         } \
     }
 
@@ -2923,7 +2923,7 @@ void MainWindow::setupUserShortcuts()
 
 #define PROCESS_ACTION_SHORTCUT(action, key, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(key, QStringLiteral(#__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(key, QStringLiteral("" #__VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
             QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
@@ -2935,7 +2935,7 @@ void MainWindow::setupUserShortcuts()
 
 #define PROCESS_NON_STANDARD_ACTION_SHORTCUT(action, ...) \
     { \
-        QKeySequence shortcut = m_shortcutManager.shortcut(#action, QStringLiteral(#__VA_ARGS__)); \
+        QKeySequence shortcut = m_shortcutManager.shortcut(#action, QStringLiteral("" #__VA_ARGS__)); \
         if (shortcut.isEmpty()) { \
             QNTRACE(QStringLiteral("No shortcut was found for action " #action)); \
         } \
