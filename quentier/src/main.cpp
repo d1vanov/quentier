@@ -20,9 +20,49 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/types/RegisterMetatypes.h>
+#include <QStringList>
+#include <QDirIterator>
+#include <QSqlDatabase>
 
 int main(int argc, char *argv[])
 {
+    if (Q_UNLIKELY(argc < 1)) {
+        QNWARNING(QStringLiteral("Wrong argc"));
+        return 1;
+    }
+
+    QStringList paths = QCoreApplication::libraryPaths();
+    paths.append(QStringLiteral("."));
+    paths.append(QStringLiteral("imageformats"));
+    paths.append(QStringLiteral("platforms"));
+    paths.append(QStringLiteral("sqldrivers"));
+    QCoreApplication::setLibraryPaths(paths);
+
+    // Need to load the SQL drivers manually, for some reason Qt doesn't wish to load them on its own
+    QDirIterator sqlDriversIter(QStringLiteral("sqldrivers"));
+    while(sqlDriversIter.hasNext())
+    {
+        QString fileName = sqlDriversIter.next();
+        if ( (fileName == QStringLiteral("sqldrivers/.")) ||
+             (fileName == QStringLiteral("sqldrivers/..")) )
+        {
+            continue;
+        }
+
+        QPluginLoader pluginLoader(fileName);
+        if (!pluginLoader.load()) {
+            QNDEBUG(QStringLiteral("Failed to load plugin ") << fileName);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Loaded plugin ") << fileName);
+        }
+    }
+
+    QStringList drivers = QSqlDatabase::drivers();
+    for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
+        QNDEBUG(QStringLiteral("Available SQL driver: ") << *it);
+    }
+
     quentier::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("org.quentier.qnt"));
     app.setApplicationName(QStringLiteral("Quentier"));

@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 
 project(quentier)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libquentier/cmake/modules)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libquentier/cmake/modules ${CMAKE_MODULE_PATH})
+
+if(WIN32 AND (${CMAKE_VERSION} VERSION_LESS "3.8.0"))
+  # The deployment-related module GetPrerequisites.cmake has a bug fixed in CMake only in 3.8.0
+  set(QUENTIER_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/quentier/cmake/modules)
+  message(STATUS "Using backported fix for GetPrerequisites.cmake: module path = ${QUENTIER_CMAKE_MODULE_PATH}")
+endif()
 
 include(QuentierCMakePolicies)
 SET_POLICIES()

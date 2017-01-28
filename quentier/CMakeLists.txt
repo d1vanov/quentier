@@ -311,19 +311,19 @@ if(WIN32)
   if(CREATE_BUNDLE)
     set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.exe)
     set(DIRS ${THIRDPARTY_LIB_DIRS})
+    install(CODE "
+       message(STATUS \"QUENTIER_CMAKE_MODULE_PATH = ${QUENTIER_CMAKE_MODULE_PATH}\")
+       include(${QUENTIER_CMAKE_MODULE_PATH}/BundleUtilities.cmake)
+       include(InstallRequiredSystemLibraries)
+       fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
+       " COMPONENT Runtime)
     if(USE_QT5)
       install(CODE "
-              execute_process(COMMAND ${WINDEPLOYQT_APP} ${APPS})
+              execute_process(COMMAND \"${WINDEPLOYQT_APP} --plugindir ${CMAKE_INSTALL_PREFIX}/bin/plugins\" ${APPS})
               " COMPONENT Runtime)
     else()
       # TODO: figure out something...
     endif()
-    # NOTE: ugly workaround for a CMake bug, see https://gitlab.kitware.com/cmake/cmake/issues/16241
-    install(CODE "
-       execute_process(COMMAND type NUL > \"${CMAKE_INSTALL_PREFIX}\"/bin/BluetoothApis.dll)
-       include(BundleUtilities)
-       fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
-       " COMPONENT Runtime)
   endif()
 
   install(TARGETS ${PROJECT_NAME}

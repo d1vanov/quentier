@@ -543,16 +543,6 @@ prepend_path(TEST_SOURCES "${TEST_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 set(${PROJECT_NAME}_CHECKABLE_SOURCES ${${PROJECT_NAME}_SOURCES})
 list(APPEND ${PROJECT_NAME}_CHECKABLE_SOURCES ${TEST_SOURCES})
 
-# deploy Qt dependencies
-if(WIN32 AND CREATE_BUNDLE)
-  set(LIBS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.dll)
-  if(USE_QT5)
-    install(CODE "
-            execute_process(COMMAND ${WINDEPLOYQT_APP} ${LIBS})
-            " COMPONENT Runtime)
-  endif()
-endif()
-
 # install shared library
 install(TARGETS ${PROJECT_NAME}
         ARCHIVE DESTINATION lib
