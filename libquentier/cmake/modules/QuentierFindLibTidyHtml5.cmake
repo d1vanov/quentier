@@ -34,3 +34,5 @@ endif()
 
 message(STATUS "Found tidy-html5 library: ${LIB_TIDY_LIBRARIES}")
 include_directories(${LIB_TIDY_INCLUDE_DIRS})
+
+get_filename_component(TIDY_LIB_DIR "${LIB_TIDY_LIBRARIES}" PATH)

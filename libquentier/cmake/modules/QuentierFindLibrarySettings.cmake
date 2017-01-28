@@ -1,0 +1,3 @@
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".dll")
+endif()

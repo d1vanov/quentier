@@ -1,2 +1,11 @@
 find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
+
+set(OPENSSL_LIB_DIRS "")
+foreach(OPENSSL_LIB ${OPENSSL_LIBRARIES})
+  get_filename_component(_CURRENT_OPENSSL_LIB_DIR "${OPENSSL_LIB}" PATH)
+  if(${_CURRENT_OPENSSL_LIB_DIR} MATCHES "[/]")
+    list(APPEND OPENSSL_LIB_DIRS ${_CURRENT_OPENSSL_LIB_DIR})
+  endif()
+endforeach()
+list(REMOVE_DUPLICATES OPENSSL_LIB_DIRS)
