@@ -516,6 +516,12 @@ void LocalStorageManagerPrivate::switchUser(const Account & account,
         clearDatabaseFile();
     }
 
+    // NOTE: it appears boost::interprocess::file_lock applied to the database file on Windows
+    // causes the inability to properly open the database. The reason for this is not clear
+    // so for now just disable the use of boost::interprocess::file_lock on Windows.
+    // It's not a major problem because Windows won't let another process to open the file
+    // being worked with by another process
+#ifndef Q_OS_WIN
     // WARNING: something strange is going on here: if no call is made to the below method,
     // boost::interprocess::file_lock occasionally and sporadically thinks "there is no such file
     // or directory"; that's what its exception message says
@@ -555,6 +561,7 @@ void LocalStorageManagerPrivate::switchUser(const Account & account,
                    << QStringLiteral(" is locked but nobody cares"));
         }
     }
+#endif
 
     if (startFromScratch) {
         QNDEBUG(QStringLiteral("Cleaning up the whole database for account: ") << m_currentAccount);
