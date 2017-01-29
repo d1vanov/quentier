@@ -247,7 +247,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     QNTRACE(QStringLiteral("Preview text: ") << text);
 
     int linesForText = static_cast<int>(std::floor(originalFontMetrics.width(text) / previewTextRect.width() + 0.5));
-    int linesAvailable = static_cast<int>(std::floor(previewTextRect.height() / smallerFontMetrics.lineSpacing()));
+    int linesAvailable = static_cast<int>(std::floor(static_cast<double>(previewTextRect.height()) / smallerFontMetrics.lineSpacing()));
 
     QNTRACE(QStringLiteral("Lines for text = ") << linesForText << QStringLiteral(", lines available = ")
             << linesAvailable << QStringLiteral(", line spacing = ") << smallerFontMetrics.lineSpacing());

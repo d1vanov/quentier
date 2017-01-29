@@ -1508,7 +1508,7 @@ void TagModel::requestTagsPerNote(const Note & note)
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_listTagsPerNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to list tags per note: request id = ") << requestId);
-    emit listAllTagsPerNote(note, LocalStorageManager::ListObjectsOption::ListAll,
+    emit listAllTagsPerNote(note, LocalStorageManager::ListAll,
                             /* limit = */ 0, /* offset = */ 0, LocalStorageManager::ListTagsOrder::NoOrder,
                             LocalStorageManager::OrderDirection::Ascending, requestId);
 }
