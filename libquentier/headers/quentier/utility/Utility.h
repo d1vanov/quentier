@@ -56,6 +56,8 @@ bool QUENTIER_EXPORT checkUpdateSequenceNumber(const int32_t updateSequenceNumbe
 
 const QString QUENTIER_EXPORT printableDateTimeFromTimestamp(const qint64 timestamp);
 
+void QUENTIER_EXPORT initializeLibquentier();
+
 } // namespace quentier
 
 #endif // LIB_QUENTIER_UTILITY_UTILITY_H

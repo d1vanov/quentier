@@ -17,6 +17,7 @@
  */
 
 #include <quentier/utility/Utility.h>
+#include <quentier/types/RegisterMetatypes.h>
 #include <limits>
 #include <QDateTime>
 
@@ -37,6 +38,11 @@ const QString printableDateTimeFromTimestamp(const qint64 timestamp)
     result += QStringLiteral(")");
 
     return result;
+}
+
+void initializeLibquentier()
+{
+    registerMetatypes();
 }
 
 } // namespace quentier
