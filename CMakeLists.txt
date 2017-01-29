@@ -31,9 +31,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 enable_testing()
 
 set(CREATE_BUNDLE ON CACHE BOOL "Create application bundle")
-if(WIN32 AND USE_QT5)
-  set (WINDEPLOYQT_APP ${Qt5Core_DIR}/../../../bin/windeployqt)
-  message(STATUS "Windeployqt path: ${WINDEPLOYQT_APP}")
+
+if(USE_QT5)
+  if(WIN32)
+    set (DEPLOYQT_TOOL ${Qt5Core_DIR}/../../../bin/windeployqt)
+    message(STATUS "Windeployqt path: ${DEPLOYQT_TOOL}")
+  elseif(APPLE)
+    set(DEPLOYQT_TOOL ${Qt5Core_DIR}/../../../bin/macdeployqt)
+    message(STATUS "Macdeployqt path: ${DEPLOYQT_TOOL}")
+  endif()
 endif()
 
 add_subdirectory(libquentier)

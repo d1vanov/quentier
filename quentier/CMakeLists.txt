@@ -306,54 +306,66 @@ list(APPEND ${PROJECT_NAME}_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/src/insert
 # modify the sources list for cppcheck
 prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURRENT_SOURCE_DIR})
 
-# install executable
-if(WIN32)
-  if(CREATE_BUNDLE)
-    if(USE_QT5)
-      install(CODE "
-              execute_process(COMMAND \"${WINDEPLOYQT_APP} --plugindir ${CMAKE_INSTALL_PREFIX}/bin/plugins\" ${APPS})
-              " COMPONENT Runtime)
-      if(QUENTIER_USE_QT_WEB_ENGINE)
-        if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-          set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcessd.exe)
-        else()
-          set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcess.exe)
-        endif()
-        install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-        install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-        install(DIRECTORY ${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/translations)
-      endif()
+install(TARGETS ${PROJECT_NAME}
+        RUNTIME DESTINATION ${BINDIR}
+        LIBRARY DESTINATION ${LIBDIR}
+        ARCHIVE DESTINATION ${LIBDIR}
+        BUNDLE DESTINATION .)
 
-      # deploying the SQLite driver which windeployqt misses for some reason
-      if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-        install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlited.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
-      else()
-        install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
-      endif()
+# install application bundle
+if((WIN32 OR APPLE) AND CREATE_BUNDLE)
+  if(WIN32)
+    set(EXECFILE_SUFFIX ".exe")
+    set(DYNAMICLIB_SUFFIX ".dll")
+    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+      set(DEBUG_SUFFIX "d")
     else()
-      # TODO: figure out something...
+      set(DEBUG_SUFFIX "")
     endif()
-
-    # fixup other dependencies not taken care of by windeployqt (or all dependencies if using Qt4)
-    set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.exe)
-    set(DIRS ${THIRDPARTY_LIB_DIRS})
-    install(CODE "
-       if(${CMAKE_VERSION} VERSION_LESS \"3.8.0\")
-         include(${QUENTIER_CMAKE_MODULE_PATH}/BundleUtilities.cmake)
-       else()
-         include(BundleUtilities)
-       endif()
-       include(InstallRequiredSystemLibraries)
-       fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
-       " COMPONENT Runtime)
-
+  else()
+    set(EXECFILE_SUFFIX "")
+    if(APPLE)
+      set(DYNAMICLIB_SUFFIX ".dylib")
+    endif()
+    set(DEBUG_SUFFIX "")
   endif()
 
-  install(TARGETS ${PROJECT_NAME}
-          RUNTIME DESTINATION ${BINDIR}
-          LIBRARY DESTINATION ${LIBDIR}
-          ARCHIVE DESTINATION ${LIBDIR}
-          BUNDLE DESTINATION .)
-else()
-  install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+  set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}${EXECFILE_SUFFIX})
+
+  set(DIRS ${THIRDPARTY_LIB_DIRS})
+  foreach(THIRDPARTY_LIB_DIR ${THIRDPARTY_LIB_DIRS})
+    list(APPEND DIRS ${THIRDPARTY_LIB_DIR}/../bin)
+  endforeach()
+
+  if(USE_QT5)
+    install(CODE "
+            execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${APPS})
+            " COMPONENT Runtime)
+    if(QUENTIER_USE_QT_WEB_ENGINE)
+      set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}${EXECFILE_SUFFIX})
+      install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+      install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+      install(DIRECTORY ${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/translations)
+    endif()
+
+    # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
+    install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite{DEBUG_SUFFIX}${DYNAMICLIB_SUFFIX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
+
+    # fixup other dependencies not taken care of by windeployqt/macdeployqt
+    install(CODE "
+            if(${CMAKE_VERSION} VERSION_LESS \"3.8.0\")
+              include(${QUENTIER_CMAKE_MODULE_PATH}/BundleUtilities.cmake)
+            else()
+              include(BundleUtilities)
+            endif()
+            include(InstallRequiredSystemLibraries)
+            fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
+            " COMPONENT Runtime)
+  else()
+    install(CODE "
+            include(DeployQt4)
+            include(InstallRequiredSystemLibraries)
+            fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\")
+            " COMPONENT Runtime)
+  endif()
 endif()
