@@ -841,7 +841,7 @@ function(fixup_bundle app libs dirs)
   message(STATUS "  ignoreItems='${CFG_IGNORE_ITEM}'")
 
   get_bundle_and_executable("${app}" bundle executable valid)
-  if(valid)
+  # if(valid)
     get_filename_component(exepath "${executable}" PATH)
 
     message(STATUS "fixup_bundle: preparing...")
@@ -900,9 +900,9 @@ function(fixup_bundle app libs dirs)
 
     message(STATUS "fixup_bundle: verifying...")
     verify_app("${app}" IGNORE_ITEM "${CFG_IGNORE_ITEM}")
-  else()
-    message(SEND_ERROR "error: fixup_bundle: not a valid bundle")
-  endif()
+  #else()
+  #  message(SEND_ERROR "error: fixup_bundle: not a valid bundle")
+  #endif()
 
   message(STATUS "fixup_bundle: done")
 endfunction()
