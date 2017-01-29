@@ -26,11 +26,7 @@
 
 int main(int argc, char *argv[])
 {
-    if (Q_UNLIKELY(argc < 1)) {
-        QNWARNING(QStringLiteral("Wrong argc"));
-        return 1;
-    }
-
+#ifdef Q_OS_WIN
     QStringList paths = QCoreApplication::libraryPaths();
     paths.append(QStringLiteral("."));
     paths.append(QStringLiteral("imageformats"));
@@ -62,6 +58,19 @@ int main(int argc, char *argv[])
     for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
         QNDEBUG(QStringLiteral("Available SQL driver: ") << *it);
     }
+
+#ifdef QUENTIER_USE_QT_WEB_ENGINE
+    QString qWebEngineProcessPath = QDir::currentPath() +
+#ifdef QT_DEBUG
+                                    QStringLiteral("/QtWebEngineProcessd.exe");
+#else
+                                    QStringLiteral("/QtWebEngineProcess.exe");
+#endif
+    qputenv("QTWEBENGINEPROCESS_PATH", QByteArray(qWebEngineProcessPath.toLocal8Bit()));
+    QNDEBUG(QStringLiteral("Set QTWEBENGINEPROCESS_PATH to ") << qWebEngineProcessPath);
+#endif
+
+#endif // Q_OS_WIN
 
     quentier::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("org.quentier.qnt"));

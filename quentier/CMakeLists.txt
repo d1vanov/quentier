@@ -309,21 +309,44 @@ prepend_path(${PROJECT_NAME}_SOURCES "${${PROJECT_NAME}_SOURCES}" ${CMAKE_CURREN
 # install executable
 if(WIN32)
   if(CREATE_BUNDLE)
-    set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.exe)
-    set(DIRS ${THIRDPARTY_LIB_DIRS})
-    install(CODE "
-       message(STATUS \"QUENTIER_CMAKE_MODULE_PATH = ${QUENTIER_CMAKE_MODULE_PATH}\")
-       include(${QUENTIER_CMAKE_MODULE_PATH}/BundleUtilities.cmake)
-       include(InstallRequiredSystemLibraries)
-       fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
-       " COMPONENT Runtime)
     if(USE_QT5)
       install(CODE "
               execute_process(COMMAND \"${WINDEPLOYQT_APP} --plugindir ${CMAKE_INSTALL_PREFIX}/bin/plugins\" ${APPS})
               " COMPONENT Runtime)
+      if(QUENTIER_USE_QT_WEB_ENGINE)
+        if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+          set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcessd.exe)
+        else()
+          set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcess.exe)
+        endif()
+        install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+        install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+        install(DIRECTORY ${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/translations)
+      endif()
+
+      # deploying the SQLite driver which windeployqt misses for some reason
+      if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+        install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlited.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
+      else()
+        install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
+      endif()
     else()
       # TODO: figure out something...
     endif()
+
+    # fixup other dependencies not taken care of by windeployqt (or all dependencies if using Qt4)
+    set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.exe)
+    set(DIRS ${THIRDPARTY_LIB_DIRS})
+    install(CODE "
+       if(${CMAKE_VERSION} VERSION_LESS \"3.8.0\")
+         include(${QUENTIER_CMAKE_MODULE_PATH}/BundleUtilities.cmake)
+       else()
+         include(BundleUtilities)
+       endif()
+       include(InstallRequiredSystemLibraries)
+       fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
+       " COMPONENT Runtime)
+
   endif()
 
   install(TARGETS ${PROJECT_NAME}
