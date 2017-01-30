@@ -469,7 +469,12 @@ add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_SOURCES}
             ${${PROJECT_NAME}_RESOURCES_RCC}
             ${${PROJECT_NAME}_FORMS_HEADERS})
-set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")
+set_target_properties(${PROJECT_NAME} PROPERTIES
+                      PREFIX ""
+                      VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
+                      SOVERSION "${PROJECT_VERSION_MAJOR}"
+                      MACOSX_RPATH 1
+                      INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
 
 set(TEST_HEADERS

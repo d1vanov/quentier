@@ -4,7 +4,7 @@ project(quentier)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/libquentier/cmake/modules ${CMAKE_MODULE_PATH})
 
-if(WIN32 AND (${CMAKE_VERSION} VERSION_LESS "3.8.0"))
+if((WIN32 OR APPLE) AND (${CMAKE_VERSION} VERSION_LESS "3.8.0"))
   # The deployment-related module GetPrerequisites.cmake has a bug fixed in CMake only in 3.8.0
   set(QUENTIER_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/quentier/cmake/modules)
   message(STATUS "Using backported fix for GetPrerequisites.cmake: module path = ${QUENTIER_CMAKE_MODULE_PATH}")
@@ -32,14 +32,17 @@ enable_testing()
 
 set(CREATE_BUNDLE ON CACHE BOOL "Create application bundle")
 
-if(USE_QT5)
-  if(WIN32)
-    set (DEPLOYQT_TOOL ${Qt5Core_DIR}/../../../bin/windeployqt)
-    message(STATUS "Windeployqt path: ${DEPLOYQT_TOOL}")
-  elseif(APPLE)
+if(WIN32 AND USE_QT5)
+  set (DEPLOYQT_TOOL ${Qt5Core_DIR}/../../../bin/windeployqt)
+  message(STATUS "Windeployqt path: ${DEPLOYQT_TOOL}")
+elseif(APPLE)
+  if(USE_QT5)
     set(DEPLOYQT_TOOL ${Qt5Core_DIR}/../../../bin/macdeployqt)
-    message(STATUS "Macdeployqt path: ${DEPLOYQT_TOOL}")
+  else()
+    get_filename_component(QT_BIN_DIR ${QT_QMAKE_EXECUTABLE} PATH)
+    set(DEPLOYQT_TOOL ${QT_BIN_DIR}/macdeployqt)
   endif()
+  message(STATUS "Macdeployqt path: ${DEPLOYQT_TOOL}")
 endif()
 
 add_subdirectory(libquentier)
