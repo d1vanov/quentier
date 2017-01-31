@@ -202,6 +202,15 @@ void NoteEditorTabWidgetManager::createNewNote(const QString & notebookLocalUid,
     newNote.setCreationTimestamp(timestamp);
     newNote.setModificationTimestamp(timestamp);
 
+    QString sourceApplicationName = QApplication::applicationName();
+    int sourceApplicationNameSize = sourceApplicationName.size();
+    if ((sourceApplicationNameSize >= qevercloud::EDAM_ATTRIBUTE_LEN_MIN) &&
+        (sourceApplicationNameSize <= qevercloud::EDAM_ATTRIBUTE_LEN_MAX))
+    {
+        qevercloud::NoteAttributes & noteAttributes = newNote.noteAttributes();
+        noteAttributes.sourceApplication = sourceApplicationName;
+    }
+
     if (!notebookGuid.isEmpty()) {
         newNote.setNotebookGuid(notebookGuid);
     }
