@@ -52,8 +52,11 @@ void AbstractStyledItemDelegate::adjustDisplayedText(QString & displayedText, co
     QFontMetrics fontMetrics(option.font);
 
     int displayedTextWidth = fontMetrics.width(displayedText);
+
     int nameSuffixWidth = (nameSuffix.isEmpty() ? 0 : fontMetrics.width(nameSuffix));
     int optionRectWidth = option.rect.width();
+    optionRectWidth -= 2;   // Shorten the available width a tiny bit to ensure there's some margin and there're no weird rendering glitches
+    optionRectWidth = std::max(optionRectWidth, 0);
 
     if ((displayedTextWidth + nameSuffixWidth) <= optionRectWidth) {
         return;

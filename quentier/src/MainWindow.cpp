@@ -34,7 +34,7 @@
 #include "delegates/FromLinkedNotebookColumnDelegate.h"
 #include "delegates/NoteItemDelegate.h"
 #include "delegates/TagItemDelegate.h"
-#include "delegates/DeletedNoteTitleColumnDelegate.h"
+#include "delegates/DeletedNoteItemDelegate.h"
 #include "dialogs/AddOrEditNotebookDialog.h"
 #include "dialogs/AddOrEditTagDialog.h"
 #include "dialogs/AddOrEditSavedSearchDialog.h"
@@ -2748,16 +2748,13 @@ void MainWindow::setupViews()
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Size, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Synchronizable, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::NotebookName, true);
-    DirtyColumnDelegate * deletedNotesTableViewDirtyColumnDelegate =
-            new DirtyColumnDelegate(pDeletedNotesTableView);
-    pDeletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Dirty,
-                                                     deletedNotesTableViewDirtyColumnDelegate);
-    pDeletedNotesTableView->setColumnWidth(NoteModel::Columns::Dirty,
-                                           deletedNotesTableViewDirtyColumnDelegate->sideSize());
-    DeletedNoteTitleColumnDelegate * deletedNoteTitleColumnDelegate =
-            new DeletedNoteTitleColumnDelegate(pDeletedNotesTableView);
-    pDeletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Title, deletedNoteTitleColumnDelegate);
-    // pDeletedNotesTableView->header()->hide();
+    DeletedNoteItemDelegate * pDeletedNoteItemDelegate = new DeletedNoteItemDelegate(pDeletedNotesTableView);
+    pDeletedNotesTableView->setItemDelegate(pDeletedNoteItemDelegate);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+    pDeletedNotesTableView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+#else
+    pDeletedNotesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
+#endif
 
     Account::Type::type currentAccountType = Account::Type::Local;
     if (m_pAccount) {

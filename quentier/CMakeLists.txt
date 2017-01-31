@@ -96,7 +96,7 @@ set(${PROJECT_NAME}_HEADERS
     src/delegates/AbstractStyledItemDelegate.h
     src/delegates/NoteItemDelegate.h
     src/delegates/NotebookItemDelegate.h
-    src/delegates/DeletedNoteTitleColumnDelegate.h
+    src/delegates/DeletedNoteItemDelegate.h
     src/delegates/DirtyColumnDelegate.h
     src/delegates/FavoriteItemDelegate.h
     src/delegates/FromLinkedNotebookColumnDelegate.h
@@ -169,7 +169,7 @@ set(${PROJECT_NAME}_SOURCES
     src/delegates/AbstractStyledItemDelegate.cpp
     src/delegates/NoteItemDelegate.cpp
     src/delegates/NotebookItemDelegate.cpp
-    src/delegates/DeletedNoteTitleColumnDelegate.cpp
+    src/delegates/DeletedNoteItemDelegate.cpp
     src/delegates/DirtyColumnDelegate.cpp
     src/delegates/FavoriteItemDelegate.cpp
     src/delegates/FromLinkedNotebookColumnDelegate.cpp
