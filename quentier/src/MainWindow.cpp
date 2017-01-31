@@ -2712,6 +2712,8 @@ void MainWindow::setupViews()
     m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
                      m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
+                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);
@@ -2738,12 +2740,14 @@ void MainWindow::setupViews()
     }
 
     ItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
+    pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::CreationTimestamp, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::PreviewText, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ThumbnailImageFilePath, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::TagNameList, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Size, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::Synchronizable, true);
+    pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::NotebookName, true);
     DirtyColumnDelegate * deletedNotesTableViewDirtyColumnDelegate =
             new DirtyColumnDelegate(pDeletedNotesTableView);
     pDeletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Dirty,
@@ -2753,7 +2757,7 @@ void MainWindow::setupViews()
     DeletedNoteTitleColumnDelegate * deletedNoteTitleColumnDelegate =
             new DeletedNoteTitleColumnDelegate(pDeletedNotesTableView);
     pDeletedNotesTableView->setItemDelegateForColumn(NoteModel::Columns::Title, deletedNoteTitleColumnDelegate);
-    pDeletedNotesTableView->header()->hide();
+    // pDeletedNotesTableView->header()->hide();
 
     Account::Type::type currentAccountType = Account::Type::Local;
     if (m_pAccount) {

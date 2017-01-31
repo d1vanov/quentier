@@ -68,6 +68,8 @@ EditNoteDialog::EditNoteDialog(const Note & note,
         m_pUi->latitudeSpinBox->setReadOnly(true);
         m_pUi->longitudeSpinBox->setReadOnly(true);
         m_pUi->altitudeSpinBox->setReadOnly(true);
+
+        m_pUi->buttonBox->setStandardButtons(QDialogButtonBox::StandardButtons(QDialogButtonBox::Ok));
     }
 
     createConnections();
@@ -462,11 +464,41 @@ void EditNoteDialog::fillNotebookNames()
     QNDEBUG(QStringLiteral("EditNoteDialog::fillNotebookNames"));
 
     QStringList notebookNames;
-    if (!m_pNotebookModel.isNull()) {
-        NotebookModel::NotebookFilters filter(NotebookModel::NotebookFilter::CanCreateNotes);
-        notebookNames = m_pNotebookModel->notebookNames(filter);
+
+    if (!m_readOnlyMode)
+    {
+        if (!m_pNotebookModel.isNull()) {
+            NotebookModel::NotebookFilters filter(NotebookModel::NotebookFilter::CanCreateNotes);
+            notebookNames = m_pNotebookModel->notebookNames(filter);
+        }
+
+        m_pNotebookNamesModel->setStringList(notebookNames);
+
+        return;
     }
 
+    QNTRACE(QStringLiteral("In read-only mode, will insert only the current note's notebook"));
+
+    if (!m_note.hasNotebookLocalUid()) {
+        QNTRACE(QStringLiteral("The note has no notebook local uid"));
+        m_pNotebookNamesModel->setStringList(notebookNames);
+        return;
+    }
+
+    if (m_pNotebookModel.isNull()) {
+        QNTRACE(QStringLiteral("The notebook model is null"));
+        m_pNotebookNamesModel->setStringList(notebookNames);
+        return;
+    }
+
+    QString notebookName = m_pNotebookModel->itemNameForLocalUid(m_note.notebookLocalUid());
+    if (notebookName.isEmpty()) {
+        QNTRACE(QStringLiteral("Found no notebook name for local uid ") << m_note.notebookLocalUid());
+        m_pNotebookNamesModel->setStringList(notebookNames);
+        return;
+    }
+
+    notebookNames << notebookName;
     m_pNotebookNamesModel->setStringList(notebookNames);
 }
 

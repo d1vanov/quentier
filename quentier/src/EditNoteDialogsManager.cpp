@@ -28,21 +28,13 @@ void EditNoteDialogsManager::setNotebookModel(NotebookModel * pNotebookModel)
 void EditNoteDialogsManager::onEditNoteDialogRequested(QString noteLocalUid)
 {
     QNDEBUG(QStringLiteral("EditNoteDialogsManager::onEditNoteDialogRequested: note local uid = ") << noteLocalUid);
+    findNoteAndRaiseEditNoteDialog(noteLocalUid, /* read only mode = */ false);
+}
 
-    const Note * pCachedNote = m_noteCache.get(noteLocalUid);
-    if (pCachedNote) {
-        raiseEditNoteDialog(*pCachedNote);
-        return;
-    }
-
-    // Otherwise need to find the note in the local storage
-    QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_findNoteRequestIds.insert(requestId))
-    Note note;
-    note.setLocalUid(noteLocalUid);
-    QNTRACE(QStringLiteral("Emitting the request to find note: requets id = ") << requestId
-            << QStringLiteral(", note local uid = ") << noteLocalUid);
-    emit findNote(note, /* with resource binary data = */ false, requestId);
+void EditNoteDialogsManager::onNoteInfoDialogRequested(QString noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::onNoteInfoDialogRequested: note local uid = ") << noteLocalUid);
+    findNoteAndRaiseEditNoteDialog(noteLocalUid, /* read only ode = */ true);
 }
 
 void EditNoteDialogsManager::onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId)
@@ -56,10 +48,12 @@ void EditNoteDialogsManager::onFindNoteComplete(Note note, bool withResourceBina
             << QStringLiteral(", with resource binary data = ") << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", note: ") << note);
 
+    bool readOnlyFlag = it.value();
+
     Q_UNUSED(m_findNoteRequestIds.erase(it))
 
     m_noteCache.put(note.localUid(), note);
-    raiseEditNoteDialog(note);
+    raiseEditNoteDialog(note, readOnlyFlag);
 }
 
 void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
@@ -75,10 +69,20 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinary
             << QStringLiteral(", error description = ") << errorDescription
             << QStringLiteral("; note: ") << note);
 
+    bool readOnlyFlag = it.value();
+
     Q_UNUSED(m_findNoteRequestIds.erase(it))
 
-    QNLocalizedString error = QNLocalizedString("Can't edit note: note to edit was no found", this);
+    QNLocalizedString error;
+    if (readOnlyFlag) {
+        error = QNLocalizedString("Can't edit note: note to edit was no found", this);
+    }
+    else {
+        error = QNLocalizedString("Can't show note info", this);
+    }
     error += QStringLiteral(": ");
+    error += QNLocalizedString("note was no found", this);
+    error += QStringLiteral(", ");
     error += errorDescription;
     QNWARNING(error);
     emit notifyError(error);
@@ -133,9 +137,29 @@ void EditNoteDialogsManager::createConnections()
                      this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,bool,QNLocalizedString,QUuid));
 }
 
-void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note)
+void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid, const bool readOnlyFlag)
 {
-    QNDEBUG(QStringLiteral("EditNoteDialogsManager::raiseEditNoteDialog: note local uid = ") << note.localUid());
+    const Note * pCachedNote = m_noteCache.get(noteLocalUid);
+    if (pCachedNote) {
+        raiseEditNoteDialog(*pCachedNote, readOnlyFlag);
+        return;
+    }
+
+    // Otherwise need to find the note in the local storage
+    QUuid requestId = QUuid::createUuid();
+    m_findNoteRequestIds[requestId] = readOnlyFlag;
+
+    Note note;
+    note.setLocalUid(noteLocalUid);
+    QNTRACE(QStringLiteral("Emitting the request to find note: requets id = ") << requestId
+            << QStringLiteral(", note local uid = ") << noteLocalUid);
+    emit findNote(note, /* with resource binary data = */ false, requestId);
+}
+
+void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool readOnlyFlag)
+{
+    QNDEBUG(QStringLiteral("EditNoteDialogsManager::raiseEditNoteDialog: note local uid = ") << note.localUid()
+            << QStringLiteral(", read only flag = ") << (readOnlyFlag ? QStringLiteral("true") : QStringLiteral("false")));
 
     QWidget * pWidget = qobject_cast<QWidget*>(parent());
     if (Q_UNLIKELY(!pWidget)) {
@@ -147,9 +171,15 @@ void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note)
 
     QNTRACE(QStringLiteral("Note before raising the edit dialog: ") << note);
 
-    QScopedPointer<EditNoteDialog> pEditNoteDialog(new EditNoteDialog(note, m_pNotebookModel.data(), pWidget));
+    QScopedPointer<EditNoteDialog> pEditNoteDialog(new EditNoteDialog(note, m_pNotebookModel.data(), pWidget, readOnlyFlag));
     pEditNoteDialog->setWindowModality(Qt::WindowModal);
     int res = pEditNoteDialog->exec();
+
+    if (readOnlyFlag) {
+        QNTRACE(QStringLiteral("Don't care about the result, the dialog was read-only anyway"));
+        return;
+    }
+
     if (res == QDialog::Rejected) {
         QNTRACE(QStringLiteral("Note editing rejected"));
         return;

@@ -26,6 +26,7 @@
 #include <QObject>
 #include <QUuid>
 #include <QSet>
+#include <QHash>
 #include <QPointer>
 
 namespace quentier {
@@ -53,6 +54,7 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     void onEditNoteDialogRequested(QString noteLocalUid);
+    void onNoteInfoDialogRequested(QString noteLocalUid);
 
 private Q_SLOTS:
     void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
@@ -63,7 +65,8 @@ private Q_SLOTS:
 
 private:
     void createConnections();
-    void raiseEditNoteDialog(const Note & note);
+    void findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid, const bool readOnlyFlag);
+    void raiseEditNoteDialog(const Note & note, const bool readOnlyFlag);
 
 private:
     Q_DISABLE_COPY(EditNoteDialogsManager)
@@ -72,7 +75,11 @@ private:
     LocalStorageManagerThreadWorker &   m_localStorageWorker;
     NoteCache &                         m_noteCache;
 
-    QSet<QUuid>                         m_findNoteRequestIds;
+    // NOTE: the bool value in this hash is a "read only" flag for the dialog
+    // which should be raised on the found note
+    typedef QHash<QUuid, bool> FindNoteRequestIdToReadOnlyFlagHash;
+    FindNoteRequestIdToReadOnlyFlagHash m_findNoteRequestIds;
+
     QSet<QUuid>                         m_updateNoteRequestIds;
 
     QPointer<NotebookModel>             m_pNotebookModel;
