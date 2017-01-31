@@ -285,6 +285,9 @@ private Q_SLOTS:
     void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
     void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
+    // Fake slot called from QTimer::singleShot
+    void updateNoteInLocalStorage();
+
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);
     void clear();
@@ -295,6 +298,8 @@ private:
 
     QString blankPageHtml() const;
     void setupBlankEditor();
+
+    bool checkNoteTitle(const QString & title, QNLocalizedString & errorDescription);
 
 private:
     Ui::NoteEditorWidget *      m_pUi;

@@ -273,60 +273,99 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
         return NoteSaveStatus::Ok;
     }
 
-    if (!m_pUi->noteEditor->isModified()) {
+    bool noteContentModified = m_pUi->noteEditor->isModified();
+
+    if (!m_noteTitleIsEdited && !noteContentModified) {
         QNDEBUG(QStringLiteral("Note is not modified, nothing to save"));
         return NoteSaveStatus::Ok;
     }
 
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(QStringLiteral("NoteEditor"));
-    QVariant editorConvertToNoteTimeoutData = appSettings.value(QStringLiteral("ConvertToNoteTimeout"));
-    appSettings.endGroup();
+    bool noteTitleUpdated = false;
 
-    bool conversionResult = false;
-    int editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toInt(&conversionResult);
-    if (!conversionResult) {
-        QNDEBUG(QStringLiteral("Can't read the timeout for note editor to note conversion from the application settings, "
-                               "fallback to the default value of ") << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
-                << QStringLiteral(" seconds"));
-        editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
+    if (m_noteTitleIsEdited)
+    {
+        QString noteTitle = m_pUi->noteNameLineEdit->text().trimmed();
+        if (noteTitle.isEmpty() && m_pCurrentNote->hasTitle())
+        {
+            m_pCurrentNote->setTitle(QString());  // That should erase the title from the note
+            noteTitleUpdated = true;
+        }
+        else if (!noteTitle.isEmpty() && (!m_pCurrentNote->hasTitle() || (m_pCurrentNote->title() != noteTitle)))
+        {
+            QNLocalizedString error;
+            if (checkNoteTitle(noteTitle, error)) {
+                m_pCurrentNote->setTitle(noteTitle);
+                noteTitleUpdated = true;
+            }
+            else {
+                QNDEBUG(QStringLiteral("Couldn't save the note title: ") << error);
+            }
+        }
     }
-    else {
-        editorConvertToNoteTimeout = std::max(editorConvertToNoteTimeout, 1);
+
+    if (noteTitleUpdated) {
+        qevercloud::NoteAttributes & attributes = m_pCurrentNote->noteAttributes();
+        attributes.noteTitleQuality.clear();    // indicate learly that the note's title has been changed manually and not generated automatically
     }
 
-    if (m_pConvertToNoteDeadlineTimer) {
-        m_pConvertToNoteDeadlineTimer->deleteLater();
-    }
+    if (noteContentModified || noteTitleUpdated)
+    {
+        ApplicationSettings appSettings;
+        appSettings.beginGroup(QStringLiteral("NoteEditor"));
+        QVariant editorConvertToNoteTimeoutData = appSettings.value(QStringLiteral("ConvertToNoteTimeout"));
+        appSettings.endGroup();
 
-    m_pConvertToNoteDeadlineTimer = new QTimer(this);
-    m_pConvertToNoteDeadlineTimer->setSingleShot(true);
+        bool conversionResult = false;
+        int editorConvertToNoteTimeout = editorConvertToNoteTimeoutData.toInt(&conversionResult);
+        if (!conversionResult) {
+            QNDEBUG(QStringLiteral("Can't read the timeout for note editor to note conversion from the application settings, "
+                                   "fallback to the default value of ") << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
+                    << QStringLiteral(" seconds"));
+            editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
+        }
+        else {
+            editorConvertToNoteTimeout = std::max(editorConvertToNoteTimeout, 1);
+        }
 
-    EventLoopWithExitStatus eventLoop;
-    QObject::connect(m_pConvertToNoteDeadlineTimer, QNSIGNAL(QTimer,timeout),
-                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,noteSavedInLocalStorage),
-                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,noteSaveInLocalStorageFailed),
-                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
-    QObject::connect(this, QNSIGNAL(NoteEditorWidget,conversionToNoteFailed),
-                     &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+        if (m_pConvertToNoteDeadlineTimer) {
+            m_pConvertToNoteDeadlineTimer->deleteLater();
+        }
 
-    m_pConvertToNoteDeadlineTimer->start(editorConvertToNoteTimeout);
+        m_pConvertToNoteDeadlineTimer = new QTimer(this);
+        m_pConvertToNoteDeadlineTimer->setSingleShot(true);
 
-    QTimer::singleShot(0, m_pUi->noteEditor, SLOT(convertToNote()));
-    int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
+        EventLoopWithExitStatus eventLoop;
+        QObject::connect(m_pConvertToNoteDeadlineTimer, QNSIGNAL(QTimer,timeout),
+                         &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsTimeout));
+        QObject::connect(this, QNSIGNAL(NoteEditorWidget,noteSavedInLocalStorage),
+                         &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsSuccess));
+        QObject::connect(this, QNSIGNAL(NoteEditorWidget,noteSaveInLocalStorageFailed),
+                         &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
+        QObject::connect(this, QNSIGNAL(NoteEditorWidget,conversionToNoteFailed),
+                         &eventLoop, QNSLOT(EventLoopWithExitStatus,exitAsFailure));
 
-    if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
-        errorDescription = QT_TR_NOOP("Failed to convert the editor contents to note");
-        QNWARNING(errorDescription);
-        return NoteSaveStatus::Failed;
-    }
-    else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
-        errorDescription = QT_TR_NOOP("The conversion of note editor contents "
-                                      "to note failed to finish in time");
-        QNWARNING(errorDescription);
-        return NoteSaveStatus::Timeout;
+        m_pConvertToNoteDeadlineTimer->start(editorConvertToNoteTimeout);
+
+        if (noteContentModified) {
+            QTimer::singleShot(0, m_pUi->noteEditor, SLOT(convertToNote()));
+        }
+        else {
+            QTimer::singleShot(0, this, SLOT(updateNoteInLocalStorage));
+        }
+
+        int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
+
+        if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
+            errorDescription = QT_TR_NOOP("Failed to convert the editor contents to note");
+            QNWARNING(errorDescription);
+            return NoteSaveStatus::Failed;
+        }
+        else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
+            errorDescription = QT_TR_NOOP("The conversion of note editor contents "
+                                          "to note failed to finish in time");
+            QNWARNING(errorDescription);
+            return NoteSaveStatus::Timeout;
+        }
     }
 
     return NoteSaveStatus::Ok;
@@ -860,23 +899,11 @@ void NoteEditorWidget::onNoteTitleUpdated()
         return;
     }
 
-    if (!noteTitle.isEmpty())
-    {
-        int noteTitleSize = noteTitle.size();
-
-        if (noteTitleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN) {
-            QNDEBUG(QStringLiteral("Too short title, should be at least ") << qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
-            QToolTip::showText(m_pUi->noteNameLineEdit->mapToGlobal(QPoint(0, m_pUi->noteNameLineEdit->height())),
-                               tr("Too short title, should be at least") + QStringLiteral(" ") + QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN));
-            return;
-        }
-
-        if (noteTitleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX) {
-            QNDEBUG(QStringLiteral("Too long title, should be no longer than ") << qevercloud::EDAM_NOTE_TITLE_LEN_MAX);
-            QToolTip::showText(m_pUi->noteNameLineEdit->mapToGlobal(QPoint(0, m_pUi->noteNameLineEdit->height())),
-                               tr("Too long title, max allowed length is") + QStringLiteral(" ") + QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MAX));
-            return;
-        }
+    QNLocalizedString error;
+    if (!checkNoteTitle(noteTitle, error)) {
+        QToolTip::showText(m_pUi->noteNameLineEdit->mapToGlobal(QPoint(0, m_pUi->noteNameLineEdit->height())),
+                           error.localizedString());
+        return;
     }
 
     m_pCurrentNote->setTitle(noteTitle);
@@ -905,7 +932,9 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
         return;
     }
 
+    QString noteTitle = (m_pCurrentNote->hasTitle() ? m_pCurrentNote->title() : QString());
     *m_pCurrentNote = note;
+    m_pCurrentNote->setTitle(noteTitle);
 
     if (Q_LIKELY(m_pCurrentNotebook)) {
         // Update the note within the tag names container just to avoid any potential race with updates from it
@@ -913,11 +942,7 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
         m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(*m_pCurrentNote, *m_pCurrentNotebook);
     }
 
-    QUuid requestId = QUuid::createUuid();
-    Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
-    QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId
-            << QStringLiteral(", note = ") << *m_pCurrentNote);
-    emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+    updateNoteInLocalStorage();
 }
 
 void NoteEditorWidget::onEditorNoteUpdateFailed(QNLocalizedString error)
@@ -1357,6 +1382,22 @@ void NoteEditorWidget::onReplaceAllInsideNote(const QString & textToReplace,
 
 #undef CHECK_FIND_AND_REPLACE_WIDGET_STATE
 
+void NoteEditorWidget::updateNoteInLocalStorage()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::updateNoteInLocalStorage"));
+
+    if (m_pCurrentNote.isNull()) {
+        QNDEBUG(QStringLiteral("No note is set to the editor"));
+        return;
+    }
+
+    QUuid requestId = QUuid::createUuid();
+    Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
+    QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId
+            << QStringLiteral(", note = ") << *m_pCurrentNote);
+    emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
+}
+
 void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
@@ -1624,6 +1665,39 @@ void NoteEditorWidget::setupBlankEditor()
 
     m_pUi->findAndReplaceWidget->setHidden(true);
     m_pUi->noteSourceView->setHidden(true);
+}
+
+bool NoteEditorWidget::checkNoteTitle(const QString & title, QNLocalizedString & errorDescription)
+{
+    if (title.isEmpty()) {
+        return true;
+    }
+
+    int noteTitleSize = title.size();
+
+    if (noteTitleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN)
+    {
+        errorDescription = QNLocalizedString("Too short title, should be at least", this);
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QNLocalizedString("characters", this);
+        QNDEBUG(errorDescription);
+        return false;
+    }
+
+    if (noteTitleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX)
+    {
+        errorDescription = QNLocalizedString("Too long title, should be no longer than", this);
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
+        errorDescription += QStringLiteral(" ");
+        errorDescription += QNLocalizedString("characters", this);
+        QNDEBUG(errorDescription);
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace quentier
