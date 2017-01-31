@@ -31,7 +31,7 @@ namespace quentier {
 
 EditNoteDialog::EditNoteDialog(const Note & note,
                                NotebookModel * pNotebookModel,
-                               QWidget * parent) :
+                               QWidget * parent, const bool readOnlyMode) :
     QDialog(parent),
     m_pUi(new Ui::EditNoteDialog),
     m_note(note),
@@ -43,7 +43,8 @@ EditNoteDialog::EditNoteDialog(const Note & note,
     m_subjectDateTimeEdited(false),
     m_latitudeEdited(false),
     m_longitudeEdited(false),
-    m_altitudeEdited(false)
+    m_altitudeEdited(false),
+    m_readOnlyMode(readOnlyMode)
 {
     m_pUi->setupUi(this);
 
@@ -51,6 +52,24 @@ EditNoteDialog::EditNoteDialog(const Note & note,
     m_pUi->notebookComboBox->setModel(m_pNotebookNamesModel);
 
     fillDialogContent();
+
+    if (m_readOnlyMode)
+    {
+        m_pUi->titleLineEdit->setReadOnly(true);
+        m_pUi->notebookComboBox->setEditable(false);
+        m_pUi->creationDateTimeEdit->setReadOnly(true);
+        m_pUi->modificationDateTimeEdit->setReadOnly(true);
+        m_pUi->deletionDateTimeEdit->setReadOnly(true);
+        m_pUi->subjectDateTimeEdit->setReadOnly(true);
+        m_pUi->authorLineEdit->setReadOnly(true);
+        m_pUi->sourceLineEdit->setReadOnly(true);
+        m_pUi->sourceURLLineEdit->setReadOnly(true);
+        m_pUi->sourceApplicationLineEdit->setReadOnly(true);
+        m_pUi->latitudeSpinBox->setReadOnly(true);
+        m_pUi->longitudeSpinBox->setReadOnly(true);
+        m_pUi->altitudeSpinBox->setReadOnly(true);
+    }
+
     createConnections();
 }
 
@@ -62,6 +81,11 @@ EditNoteDialog::~EditNoteDialog()
 void EditNoteDialog::accept()
 {
     QNDEBUG(QStringLiteral("EditNoteDialog::accept"));
+
+    if (m_readOnlyMode) {
+        QDialog::accept();
+        return;
+    }
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
         QNLocalizedString error = QNLocalizedString("Can't edit note: no notebook model is set", this);
@@ -413,6 +437,10 @@ void EditNoteDialog::createConnections()
                          this, QNSLOT(EditNoteDialog,rowsAboutToBeRemoved,QModelIndex,int,int));
     }
 
+    if (m_readOnlyMode) {
+        return;
+    }
+
     QObject::connect(m_pUi->creationDateTimeEdit, QNSIGNAL(QDateTimeEdit,dateTimeChanged,QDateTime),
                      this, QNSLOT(EditNoteDialog,onCreationDateTimeEdited,QDateTime));
     QObject::connect(m_pUi->modificationDateTimeEdit, QNSIGNAL(QDateTimeEdit,dateTimeChanged,QDateTime),
@@ -493,7 +521,10 @@ void EditNoteDialog::fillDialogContent()
     }
 
     if (m_note.hasDeletionTimestamp()) {
-
+        m_pUi->deletionDateTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(m_note.deletionTimestamp()));
+    }
+    else {
+        m_pUi->deletionDateTimeEdit->setDateTime(QDateTime());
     }
 
     if (!m_note.hasNoteAttributes())

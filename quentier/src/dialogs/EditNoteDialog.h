@@ -40,7 +40,7 @@ class EditNoteDialog: public QDialog
     Q_OBJECT
 public:
     explicit EditNoteDialog(const Note & note, NotebookModel * pNotebookModel,
-                            QWidget * parent = Q_NULLPTR);
+                            QWidget * parent = Q_NULLPTR, const bool readOnlyMode = false);
     virtual ~EditNoteDialog();
 
     const Note & note() const { return m_note; }
@@ -89,6 +89,8 @@ private:
     bool                    m_latitudeEdited;
     bool                    m_longitudeEdited;
     bool                    m_altitudeEdited;
+
+    bool                    m_readOnlyMode;
 };
 
 } // namespace quentier

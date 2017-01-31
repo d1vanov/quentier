@@ -217,7 +217,21 @@ void NoteListView::onShowNoteInfoAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onShowNoteInfoAction"));
 
-    // TODO: implement
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR("Can't show note info: internal error, "
+                     "can't cast the slot invoker to QAction");
+        return;
+    }
+
+    QString noteLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        REPORT_ERROR("Can't show note info: internal error, the local uid "
+                     "of the note to be edited is empty");
+        return;
+    }
+
+    emit noteInfoDialogRequested(noteLocalUid);
 }
 
 void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)

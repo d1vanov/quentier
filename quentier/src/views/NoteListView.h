@@ -48,6 +48,7 @@ Q_SIGNALS:
 
     void newNoteCreationRequested();
     void editNoteDialogRequested(QString noteLocalUid);
+    void noteInfoDialogRequested(QString noteLocalUid);
 
 public Q_SLOTS:
     /**
