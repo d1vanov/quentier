@@ -17,7 +17,8 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(NotebookModel * pNotebookModel,
     m_pUi(new Ui::AddOrEditNotebookDialog),
     m_pNotebookModel(pNotebookModel),
     m_pNotebookStacksModel(Q_NULLPTR),
-    m_editedNotebookLocalUid(editedNotebookLocalUid)
+    m_editedNotebookLocalUid(editedNotebookLocalUid),
+    m_stringUtils()
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
@@ -96,8 +97,11 @@ AddOrEditNotebookDialog::~AddOrEditNotebookDialog()
 
 void AddOrEditNotebookDialog::accept()
 {
-    QString notebookName = m_pUi->notebookNameLineEdit->text();
-    QString stack = m_pUi->notebookStackComboBox->currentText();
+    QString notebookName = m_pUi->notebookNameLineEdit->text().trimmed();
+    m_stringUtils.removeNewlines(notebookName);
+
+    QString stack = m_pUi->notebookStackComboBox->currentText().trimmed();
+    m_stringUtils.removeNewlines(stack);
 
     QNDEBUG(QStringLiteral("AddOrEditNotebookDialog::accept: notebook name = ")
             << notebookName << QStringLiteral(", stack: ") << stack);

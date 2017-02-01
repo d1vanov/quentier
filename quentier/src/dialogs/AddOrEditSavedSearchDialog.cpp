@@ -31,7 +31,8 @@ AddOrEditSavedSearchDialog::AddOrEditSavedSearchDialog(SavedSearchModel * pSaved
     m_pUi(new Ui::AddOrEditSavedSearchDialog),
     m_pSavedSearchModel(pSavedSearchModel),
     m_pSearchQuery(new NoteSearchQuery),
-    m_editedSavedSearchLocalUid(editedSavedSearchLocalUid)
+    m_editedSavedSearchLocalUid(editedSavedSearchLocalUid),
+    m_stringUtils()
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
@@ -62,7 +63,9 @@ void AddOrEditSavedSearchDialog::setQuery(const QString & query)
 
 void AddOrEditSavedSearchDialog::accept()
 {
-    QString savedSearchName = m_pUi->savedSearchNameLineEdit->text();
+    QString savedSearchName = m_pUi->savedSearchNameLineEdit->text().trimmed();
+    m_stringUtils.removeNewlines(savedSearchName);
+
     QString savedSearchQuery = m_pSearchQuery->queryString();
     bool queryIsEmpty = m_pSearchQuery->isEmpty();
 

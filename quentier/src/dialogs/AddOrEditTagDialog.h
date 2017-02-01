@@ -3,6 +3,7 @@
 
 #include "../models/TagModel.h"
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/StringUtils.h>
 #include <QDialog>
 #include <QPointer>
 
@@ -39,6 +40,8 @@ private:
 
     // The name specified at any given moment in the line editor
     QString                     m_currentTagName;
+
+    StringUtils                 m_stringUtils;
 };
 
 } // namespace quentier

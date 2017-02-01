@@ -21,6 +21,7 @@
 
 #include "../models/SavedSearchModel.h"
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/StringUtils.h>
 #include <QDialog>
 #include <QPointer>
 #include <QScopedPointer>
@@ -58,6 +59,7 @@ private:
     QPointer<SavedSearchModel>          m_pSavedSearchModel;
     QScopedPointer<NoteSearchQuery>     m_pSearchQuery;
     QString                             m_editedSavedSearchLocalUid;
+    StringUtils                         m_stringUtils;
 };
 
 } // namespace quentier

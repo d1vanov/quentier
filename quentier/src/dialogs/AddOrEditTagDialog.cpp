@@ -19,7 +19,8 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
     m_pTagModel(pTagModel),
     m_pTagNamesModel(Q_NULLPTR),
     m_editedTagLocalUid(editedTagLocalUid),
-    m_currentTagName()
+    m_currentTagName(),
+    m_stringUtils()
 {
     m_pUi->setupUi(this);
     m_pUi->statusBar->setHidden(true);
@@ -71,7 +72,9 @@ AddOrEditTagDialog::~AddOrEditTagDialog()
 
 void AddOrEditTagDialog::accept()
 {
-    QString tagName = m_pUi->tagNameLineEdit->text();
+    QString tagName = m_pUi->tagNameLineEdit->text().trimmed();
+    m_stringUtils.removeNewlines(tagName);
+
     QString parentTagName = m_pUi->parentTagNameComboBox->currentText();
 
     QNDEBUG(QStringLiteral("AddOrEditTagDialog::accept: tag name = ") << tagName

@@ -3,6 +3,7 @@
 
 #include "../models/NotebookModel.h"
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/StringUtils.h>
 #include <QDialog>
 #include <QPointer>
 
@@ -36,6 +37,7 @@ private:
     QPointer<NotebookModel>         m_pNotebookModel;
     QStringListModel *              m_pNotebookStacksModel;
     QString                         m_editedNotebookLocalUid;
+    StringUtils                     m_stringUtils;
 };
 
 } // namespace quentier
