@@ -38,6 +38,7 @@ NoteTagsWidget::NoteTagsWidget(QWidget * parent) :
     m_updateNoteRequestIdToRemovedTagLocalUidAndGuid(),
     m_updateNoteRequestIdToAddedTagLocalUidAndGuid(),
     m_tagRestrictions(),
+    m_stringUtils(),
     m_pLayout(new FlowLayout)
 {
     addTagIconToLayout();
@@ -198,6 +199,8 @@ void NoteTagsWidget::onNewTagNameEntered()
     }
 
     QString newTagName = pNewItemLineEdit->text().trimmed();
+    m_stringUtils.removeNewlines(newTagName);
+
     QNDEBUG(QStringLiteral("New tag name: ") << newTagName);
 
     if (newTagName.isEmpty()) {

@@ -75,6 +75,11 @@ void StringUtilsPrivate::removeDiacritics(QString & str) const
     QNTRACE(QStringLiteral("str after removing diacritics: ") << str);
 }
 
+void StringUtilsPrivate::removeNewlines(QString & str) const
+{
+    str.replace(QRegExp(QStringLiteral("[\n\r\v\f]")), QStringLiteral(" "));
+}
+
 void StringUtilsPrivate::initialize()
 {
     m_diacriticLetters = QString::fromUtf8("ŠŒŽšœžŸ¥µÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýÿ");

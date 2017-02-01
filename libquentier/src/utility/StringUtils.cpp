@@ -42,4 +42,10 @@ void StringUtils::removeDiacritics(QString & str) const
     d->removeDiacritics(str);
 }
 
+void StringUtils::removeNewlines(QString & str) const
+{
+    Q_D(const StringUtils);
+    d->removeNewlines(str);
+}
+
 } // namespace quentier

@@ -24,6 +24,7 @@
 #include "../models/TagCache.h"
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/QNLocalizedString.h>
+#include <quentier/utility/StringUtils.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Tag.h>
@@ -334,6 +335,8 @@ private:
     QString                     m_lastFontComboBoxFontFamily;
 
     QString                     m_lastNoteEditorHtml;
+
+    StringUtils                 m_stringUtils;
 
     int                         m_lastSuggestedFontSize;
     int                         m_lastActualFontSize;

@@ -21,6 +21,7 @@
 
 #include <quentier/types/Note.h>
 #include <quentier/utility/Macros.h>
+#include <quentier/utility/StringUtils.h>
 #include <QDialog>
 #include <QPointer>
 
@@ -81,6 +82,8 @@ private:
     Note                    m_note;
     QPointer<NotebookModel> m_pNotebookModel;
     QStringListModel *      m_pNotebookNamesModel;
+
+    StringUtils             m_stringUtils;
 
     bool                    m_creationDateTimeEdited;
     bool                    m_modificationDateTimeEdited;

@@ -37,6 +37,7 @@ EditNoteDialog::EditNoteDialog(const Note & note,
     m_note(note),
     m_pNotebookModel(pNotebookModel),
     m_pNotebookNamesModel(new QStringListModel(this)),
+    m_stringUtils(),
     m_creationDateTimeEdited(false),
     m_modificationDateTimeEdited(false),
     m_deletionDateTimeEdited(false),
@@ -99,7 +100,8 @@ void EditNoteDialog::accept()
 
     Note modifiedNote = m_note;
 
-    QString title = m_pUi->titleLineEdit->text().simplified();
+    QString title = m_pUi->titleLineEdit->text().trimmed();
+    m_stringUtils.removeNewlines(title);
 
     QNLocalizedString error;
     if (!Note::validateTitle(title, &error)) {
@@ -184,10 +186,19 @@ void EditNoteDialog::accept()
     QDateTime subjectDateTime = m_pUi->subjectDateTimeEdit->dateTime();
 
     QString author = m_pUi->authorLineEdit->text();
+    m_stringUtils.removeNewlines(author);
+
     QString source = m_pUi->sourceLineEdit->text();
+    m_stringUtils.removeNewlines(source);
+
     QString sourceURL = m_pUi->sourceURLLineEdit->text();
+    m_stringUtils.removeNewlines(sourceURL);
+
     QString sourceApplication = m_pUi->sourceApplicationLineEdit->text();
+    m_stringUtils.removeNewlines(sourceApplication);
+
     QString placeName = m_pUi->placeNameLineEdit->text();
+    m_stringUtils.removeNewlines(placeName);
 
     double latitude = m_pUi->latitudeSpinBox->value();
     double longitude = m_pUi->longitudeSpinBox->value();

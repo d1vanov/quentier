@@ -32,6 +32,7 @@ public:
 
     void removePunctuation(QString & str, const QVector<QChar> & charactersToPreserve) const;
     void removeDiacritics(QString & str) const;
+    void removeNewlines(QString & str) const;
 
 private:
     void initialize();

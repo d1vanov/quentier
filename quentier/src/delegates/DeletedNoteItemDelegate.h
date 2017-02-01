@@ -27,6 +27,7 @@ QT_FORWARD_DECLARE_CLASS(NoteModelItem)
 
 class DeletedNoteItemDelegate: public AbstractStyledItemDelegate
 {
+    Q_OBJECT
 public:
     explicit DeletedNoteItemDelegate(QObject * parent = Q_NULLPTR);
 

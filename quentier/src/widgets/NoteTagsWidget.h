@@ -20,6 +20,7 @@
 #define QUENTIER_WIDGETS_NOTE_TAGS_WIDGET_H
 
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
+#include <quentier/utility/StringUtils.h>
 #include <QWidget>
 #include <QPointer>
 #include <QHash>
@@ -138,6 +139,8 @@ private:
     };
 
     Restrictions            m_tagRestrictions;
+
+    StringUtils             m_stringUtils;
 
     FlowLayout *            m_pLayout;
 };

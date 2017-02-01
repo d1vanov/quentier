@@ -81,6 +81,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_lastFontSizeComboBoxIndex(-1),
     m_lastFontComboBoxFontFamily(),
     m_lastNoteEditorHtml(),
+    m_stringUtils(),
     m_lastSuggestedFontSize(-1),
     m_lastActualFontSize(-1),
     m_pendingEditorSpellChecker(false),
@@ -285,6 +286,8 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
     if (m_noteTitleIsEdited)
     {
         QString noteTitle = m_pUi->noteNameLineEdit->text().trimmed();
+        m_stringUtils.removeNewlines(noteTitle);
+
         if (noteTitle.isEmpty() && m_pCurrentNote->hasTitle())
         {
             m_pCurrentNote->setTitle(QString());  // That should erase the title from the note
@@ -883,6 +886,8 @@ void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
 void NoteEditorWidget::onNoteTitleUpdated()
 {
     QString noteTitle = m_pUi->noteNameLineEdit->text().trimmed();
+    m_stringUtils.removeNewlines(noteTitle);
+
     QNDEBUG(QStringLiteral("NoteEditorWidget::onNoteTitleUpdated: ") << noteTitle);
 
     m_noteTitleIsEdited = false;
@@ -1673,31 +1678,7 @@ bool NoteEditorWidget::checkNoteTitle(const QString & title, QNLocalizedString &
         return true;
     }
 
-    int noteTitleSize = title.size();
-
-    if (noteTitleSize < qevercloud::EDAM_NOTE_TITLE_LEN_MIN)
-    {
-        errorDescription = QNLocalizedString("Too short title, should be at least", this);
-        errorDescription += QStringLiteral(" ");
-        errorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
-        errorDescription += QStringLiteral(" ");
-        errorDescription += QNLocalizedString("characters", this);
-        QNDEBUG(errorDescription);
-        return false;
-    }
-
-    if (noteTitleSize > qevercloud::EDAM_NOTE_TITLE_LEN_MAX)
-    {
-        errorDescription = QNLocalizedString("Too long title, should be no longer than", this);
-        errorDescription += QStringLiteral(" ");
-        errorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
-        errorDescription += QStringLiteral(" ");
-        errorDescription += QNLocalizedString("characters", this);
-        QNDEBUG(errorDescription);
-        return false;
-    }
-
-    return true;
+    return Note::validateTitle(title, &errorDescription);
 }
 
 } // namespace quentier
