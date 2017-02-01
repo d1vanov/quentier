@@ -93,6 +93,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QCheckBox>
 #include <QPalette>
 #include <QToolTip>
+#include <QResizeEvent>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -776,6 +777,13 @@ void MainWindow::foldFiltersView()
     m_pUI->filtersViewTogglePushButton->setIcon(QIcon::fromTheme(QStringLiteral("go-next")));
     m_pUI->filterBodyFrame->hide();
     m_pUI->filterFrameBottomBoundary->show();
+
+    adjustNoteListAndFiltersSplitterSizes();
+}
+
+void MainWindow::adjustNoteListAndFiltersSplitterSizes()
+{
+    QNDEBUG(QStringLiteral("MainWindow::adjustNoteListAndFiltersSplitterSizes"));
 
     QList<int> splitterSizes = m_pUI->noteListAndFiltersSplitter->sizes();
     int count = splitterSizes.count();
@@ -2396,6 +2404,17 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocali
 
     // If we got here, it means we haven't found the proper previous account
     QNDEBUG(QStringLiteral("Couldn't find the action corresponding to the previous available account: ") << *m_pAccount);
+}
+
+void MainWindow::resizeEvent(QResizeEvent * pEvent)
+{
+    QMainWindow::resizeEvent(pEvent);
+
+    if (m_pUI->filterBodyFrame->isHidden()) {
+        // NOTE: without this the splitter seems to take a wrong guess
+        // about the size of note filters header panel and that doesn't look good
+        adjustNoteListAndFiltersSplitterSizes();
+    }
 }
 
 void MainWindow::setupThemeIcons()

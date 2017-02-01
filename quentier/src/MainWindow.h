@@ -206,6 +206,9 @@ private Q_SLOTS:
     void onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId);
 
 private:
+    virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
+
+private:
     void setupThemeIcons();
 
     void setupAccountManager();
@@ -262,6 +265,8 @@ private:
 
     void expandFiltersView();
     void foldFiltersView();
+
+    void adjustNoteListAndFiltersSplitterSizes();
 
     class StyleSheetProperty
     {
