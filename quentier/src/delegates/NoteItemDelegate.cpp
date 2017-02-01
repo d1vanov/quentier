@@ -32,7 +32,8 @@ namespace quentier {
 
 NoteItemDelegate::NoteItemDelegate(QObject * parent) :
     QStyledItemDelegate(parent),
-    m_defaultSize(350, 120),
+    m_minWidth(220),
+    m_height(120),
     m_leftMargin(2),
     m_rightMargin(2),
     m_topMargin(2),
@@ -322,9 +323,9 @@ void NoteItemDelegate::setModelData(QWidget * editor, QAbstractItemModel * model
 
 QSize NoteItemDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
 {
-    Q_UNUSED(option)
     Q_UNUSED(index)
-    return m_defaultSize;
+    int width = std::max(m_minWidth, option.rect.width());
+    return QSize(width, m_height);
 }
 
 void NoteItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const

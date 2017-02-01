@@ -61,7 +61,8 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString error) const;
 
 private:
-    QSize                   m_defaultSize;
+    int                     m_minWidth;
+    int                     m_height;
     int                     m_leftMargin;
     int                     m_rightMargin;
     int                     m_topMargin;

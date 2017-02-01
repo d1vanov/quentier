@@ -2005,6 +2005,7 @@ border: none;
             <string notr="true">#deletedNotesTableView {
 border: none;
 border-top: 1px solid black;
+border-bottom: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
@@ -2689,6 +2690,12 @@ padding-left: 2px;
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>140</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                  </widget>
                 </widget>
                </item>
@@ -2715,6 +2722,9 @@ border-right: none;
               </property>
               <property name="lineWidth">
                <number>0</number>
+              </property>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
               </property>
              </widget>
             </item>
