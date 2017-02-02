@@ -74,6 +74,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onNoteEditorWidgetResolved();
+    void onNoteEditorWidgetInvalidated();
     void onNoteTitleOrPreviewTextChanged(QString titleOrPreview);
     void onNoteEditorTabCloseRequested(int tabIndex);
 

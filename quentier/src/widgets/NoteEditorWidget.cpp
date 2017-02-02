@@ -119,6 +119,15 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
 
 NoteEditorWidget::~NoteEditorWidget()
 {
+    // The note editor from the UI needs special treatment: it may have queued callbacks which need that object to
+    // continue existing; therefore, letting Qt to delete it when it thinks that should be done
+    NoteEditor * pNoteEditor = m_pUi->noteEditor;
+    m_pUi->noteEditor = Q_NULLPTR;
+
+    pNoteEditor->disconnect(this);
+    pNoteEditor->hide();
+    pNoteEditor->deleteLater();
+
     delete m_pUi;
 }
 
@@ -642,6 +651,12 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         m_pCurrentNote->setTagGuids(backupTagGuids);
     }
 
+    if (note.hasDeletionTimestamp()) {
+        QNINFO(QStringLiteral("The note loaded into the editor was deleted: ") << *m_pCurrentNote);
+        emit invalidated();
+        return;
+    }
+
     if (Q_UNLIKELY(m_pCurrentNotebook.isNull()))
     {
         QNDEBUG(QStringLiteral("Current notebook is null - a bit unexpected at this point"));
@@ -809,9 +824,8 @@ void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
 
     // TODO: ideally should allow the choice to either re-save the note or to drop it
 
-    QNLocalizedString message = QT_TR_NOOP("The note loaded into the editor was expunged from the local storage");
-    QNINFO(message << QStringLiteral(", note: ") << *m_pCurrentNote);
-    emit notifyError(message);
+    QNINFO(QStringLiteral("The note loaded into the editor was expunged from the local storage: ") << *m_pCurrentNote);
+    emit invalidated();
 }
 
 void NoteEditorWidget::onUpdateNotebookComplete(Notebook notebook, QUuid requestId)

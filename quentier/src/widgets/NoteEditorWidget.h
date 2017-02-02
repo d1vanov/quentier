@@ -170,6 +170,11 @@ Q_SIGNALS:
      */
     void noteLoaded();
 
+    /**
+     * The note within the editor got either deleted or expunged so this editor needs to be closed
+     */
+    void invalidated();
+
 // private signals
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);

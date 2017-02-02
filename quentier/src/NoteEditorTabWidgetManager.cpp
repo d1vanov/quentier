@@ -263,6 +263,29 @@ void NoteEditorTabWidgetManager::onNoteEditorWidgetResolved()
     m_pTabWidget->setTabText(tabIndex, tabName);
 }
 
+void NoteEditorTabWidgetManager::onNoteEditorWidgetInvalidated()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteEditorWidgetInvalidated"));
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        QNLocalizedString error = QT_TR_NOOP("Internal error: can't invalidate the note editor, cast failed");
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    for(int i = 0, numTabs = m_pTabWidget->count(); i < numTabs; ++i)
+    {
+        if (pNoteEditorWidget != m_pTabWidget->widget(i)) {
+            continue;
+        }
+
+        onNoteEditorTabCloseRequested(i);
+        break;
+    }
+}
+
 void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOrPreview)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged: ") << titleOrPreview);
@@ -392,6 +415,8 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteTitleOrPreviewTextChanged,QString));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,resolved),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetResolved));
+    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,invalidated),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetInvalidated));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,noteLoaded),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteLoadedInEditor));
 
