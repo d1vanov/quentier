@@ -23,6 +23,7 @@
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/types/Resource.h>
 #include <QDateTime>
+#include <iterator>
 
 // Limit for the queries to the local storage
 #define NOTE_LIST_LIMIT (100)
@@ -557,16 +558,34 @@ bool NoteModel::setData(const QModelIndex & modelIndex, const QVariant & value, 
         return false;
     }
 
+    bool dirtyFlagChanged = (item.isDirty() != dirty);
     item.setDirty(dirty);
+
     item.setModificationTimestamp(QDateTime::currentMSecsSinceEpoch());
 
     index.replace(index.begin() + row, item);
-    emit dataChanged(modelIndex, modelIndex);
 
-    emit layoutAboutToBeChanged();
+    int firstColumn = column;
+    if (firstColumn > Columns::ModificationTimestamp) {
+        firstColumn = Columns::ModificationTimestamp;
+    }
+    if (dirtyFlagChanged && (firstColumn > Columns::Dirty)) {
+        firstColumn = Columns::Dirty;
+    }
+
+    int lastColumn = column;
+    if (lastColumn < Columns::ModificationTimestamp) {
+        lastColumn = Columns::ModificationTimestamp;
+    }
+    if (dirtyFlagChanged && (lastColumn < Columns::Dirty)) {
+        lastColumn = Columns::Dirty;
+    }
+
+    QModelIndex topLeftChangedIndex = createIndex(modelIndex.row(), firstColumn);
+    QModelIndex bottomRightChangedIndex = createIndex(modelIndex.row(), lastColumn);
+    emit dataChanged(topLeftChangedIndex, bottomRightChangedIndex);
+
     updateItemRowWithRespectToSorting(item);
-    emit layoutChanged();
-
     updateNoteInLocalStorage(item);
     return true;
 }
@@ -772,13 +791,22 @@ void NoteModel::onUpdateNoteComplete(Note note, bool updateResources, bool updat
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
 
+    bool shouldRemoveNoteFromModel = (note.hasDeletionTimestamp() && (m_includedNotes == IncludedNotes::NonDeleted));
+    shouldRemoveNoteFromModel |= (!note.hasDeletionTimestamp() && (m_includedNotes == IncludedNotes::Deleted));
+
+    if (shouldRemoveNoteFromModel) {
+        removeItemByLocalUid(note.localUid());
+    }
+
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it != m_updateNoteRequestIds.end()) {
         Q_UNUSED(m_updateNoteRequestIds.erase(it))
         return;
     }
 
-    onNoteAddedOrUpdated(note);
+    if (!shouldRemoveNoteFromModel) {
+        onNoteAddedOrUpdated(note);
+    }
 }
 
 void NoteModel::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
@@ -1426,16 +1454,27 @@ void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
     }
 
     NoteModelItem itemCopy(item);
+
+    beginRemoveRows(QModelIndex(), originalRow, originalRow);
     Q_UNUSED(index.erase(it))
+    endRemoveRows();
 
     auto positionIter = std::lower_bound(index.begin(), index.end(), itemCopy,
                                          NoteComparator(m_sortedColumn, m_sortOrder));
-    if (positionIter == index.end()) {
+    if (positionIter == index.end())
+    {
+        int newRow = static_cast<int>(index.size());
+        beginInsertRows(QModelIndex(), newRow, newRow);
         index.push_back(itemCopy);
+        endInsertRows();
+
         return;
     }
 
+    int newRow = static_cast<int>(std::distance(positionIter, index.begin()));
+    beginInsertRows(QModelIndex(), newRow, newRow);
     Q_UNUSED(index.insert(positionIter, itemCopy))
+    endInsertRows();
 }
 
 void NoteModel::updateNoteInLocalStorage(const NoteModelItem & item)
@@ -1833,9 +1872,7 @@ void NoteModel::addOrUpdateNoteItem(NoteModelItem & item, const NotebookData & n
         Q_UNUSED(localUidIndex.insert(item))
         endInsertRows();
 
-        emit layoutAboutToBeChanged();
         updateItemRowWithRespectToSorting(item);
-        emit layoutChanged();
     }
     else
     {
@@ -1925,10 +1962,7 @@ void NoteModel::moveNoteToNotebookImpl(NoteDataByLocalUid::iterator it, const No
     localUidIndex.replace(it, item);
     emit dataChanged(itemIndex, itemIndex);
 
-    emit layoutAboutToBeChanged();
     updateItemRowWithRespectToSorting(*it);
-    emit layoutChanged();
-
     updateNoteInLocalStorage(item);
 }
 

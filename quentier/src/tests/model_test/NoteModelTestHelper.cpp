@@ -203,7 +203,8 @@ void NoteModelTestHelper::launchTest()
         NotebookCache notebookCache(3);
         Account account(QStringLiteral("Default name"), Account::Type::Local);
 
-        NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerThreadWorker, noteCache, notebookCache, this);
+        NoteModel * model = new NoteModel(account, *m_pLocalStorageManagerThreadWorker,
+                                          noteCache, notebookCache, this, NoteModel::IncludedNotes::All);
         ModelTest t1(model);
         Q_UNUSED(t1)
 
