@@ -63,6 +63,8 @@ public Q_SLOTS:
 #endif
                             Q_DECL_OVERRIDE;
 
+    virtual void rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end) Q_DECL_OVERRIDE;
+
 protected Q_SLOTS:
     void onCreateNewNoteAction();
     void onDeleteNoteAction();

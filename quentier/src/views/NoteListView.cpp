@@ -64,6 +64,22 @@ void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & 
 #endif
 }
 
+void NoteListView::rowsAboutToBeRemoved(const QModelIndex & parent, int start, int end)
+{
+    QModelIndex current = currentIndex();
+    if (current.isValid())
+    {
+        int row = current.row();
+        if ((row >= start) && (row <= end)) {
+            // The default implementation moves current to the next remaining item
+            // but for this view it makes more sense to just get rid of the item altogether
+            setCurrentIndex(QModelIndex());
+        }
+    }
+
+    QListView::rowsAboutToBeRemoved(parent, start, end);
+}
+
 void NoteListView::onCreateNewNoteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onCreateNewNoteAction"));
