@@ -606,7 +606,7 @@ bool NoteModel::removeRows(int row, int count, const QModelIndex & parent)
         return false;
     }
 
-    if (Q_UNLIKELY((row + count) >= static_cast<int>(m_data.size())))
+    if (Q_UNLIKELY((row + count) > static_cast<int>(m_data.size())))
     {
         REPORT_ERROR("Detected attempt to remove more rows than the note model contains",
                      QStringLiteral(", row = ") << row << QStringLiteral(", count = ") << count

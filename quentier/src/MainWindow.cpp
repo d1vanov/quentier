@@ -40,6 +40,7 @@
 #include "dialogs/AddOrEditSavedSearchDialog.h"
 #include "models/ColumnChangeRerouter.h"
 #include "views/ItemView.h"
+#include "views/DeletedNoteItemView.h"
 #include "views/NotebookItemView.h"
 #include "views/NoteListView.h"
 #include "views/TagItemView.h"
@@ -756,7 +757,7 @@ void MainWindow::showHideViewColumnsForAccountType(const Account::Type::type acc
     SavedSearchItemView * savedSearchesTableView = m_pUI->savedSearchesTableView;
     savedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Dirty, isLocal);
 
-    ItemView * deletedNotesTableView = m_pUI->deletedNotesTableView;
+    DeletedNoteItemView * deletedNotesTableView = m_pUI->deletedNotesTableView;
     deletedNotesTableView->setColumnHidden(NoteModel::Columns::Dirty, isLocal);
 }
 
@@ -2728,12 +2729,6 @@ void MainWindow::setupViews()
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,currentNoteChanged,QString),
                      this, QNSLOT(MainWindow,onCurrentNoteChanged,QString));
 
-    m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
-    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
-                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
-    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
-                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
-
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);
     noteSortingModes << tr("Created (ascending)");
@@ -2758,7 +2753,7 @@ void MainWindow::setupViews()
         m_pUI->noteSortingModeComboBox->setCurrentIndex(0);
     }
 
-    ItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
+    DeletedNoteItemView * pDeletedNotesTableView = m_pUI->deletedNotesTableView;
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::CreationTimestamp, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::ModificationTimestamp, true);
     pDeletedNotesTableView->setColumnHidden(NoteModel::Columns::PreviewText, true);
@@ -2774,6 +2769,14 @@ void MainWindow::setupViews()
 #else
     pDeletedNotesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
+
+    m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
+                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
+                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+    QObject::connect(pDeletedNotesTableView, QNSIGNAL(DeletedNoteItemView,deletedNoteInfoRequested,QString),
+                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
 
     Account::Type::type currentAccountType = Account::Type::Local;
     if (m_pAccount) {
