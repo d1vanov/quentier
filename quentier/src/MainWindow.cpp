@@ -366,6 +366,13 @@ void MainWindow::connectViewButtonsToSlots()
     QObject::connect(m_pUI->favoriteInfoButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
 
+    QObject::connect(m_pUI->restoreDeletedNoteButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onRestoreDeletedNoteButtonPressed));
+    QObject::connect(m_pUI->eraseDeletedNoteButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onDeleteNotePermanentlyButtonPressed));
+    QObject::connect(m_pUI->deletedNoteInfoButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onDeletedNoteInfoButtonPressed));
+
     QObject::connect(m_pUI->filtersViewTogglePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onFiltersViewTogglePushButtonPressed));
 }
@@ -1633,6 +1640,24 @@ void MainWindow::onFavoritedItemInfoButtonPressed()
                                          QStringLiteral(": ") + QString::number(pItem->type())))
         break;
     }
+}
+
+void MainWindow::onRestoreDeletedNoteButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onRestoreDeletedNoteButtonPressed"));
+    m_pUI->deletedNotesTableView->restoreCurrentlySelectedNote();
+}
+
+void MainWindow::onDeleteNotePermanentlyButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onDeleteNotePermanentlyButtonPressed"));
+    m_pUI->deletedNotesTableView->deleteCurrentlySelectedNotePermanently();
+}
+
+void MainWindow::onDeletedNoteInfoButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onDeletedNoteInfoButtonPressed"));
+    m_pUI->deletedNotesTableView->showCurrentlySelectedNoteInfo();
 }
 
 void MainWindow::showInfoWidget(QWidget * pWidget)

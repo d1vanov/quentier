@@ -19,6 +19,83 @@ DeletedNoteItemView::DeletedNoteItemView(QWidget * parent) :
     m_pDeletedNoteItemContextMenu(Q_NULLPTR)
 {}
 
+QModelIndex DeletedNoteItemView::currentlySelectedItemIndex() const
+{
+    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(model());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Non-note model is used"));
+        return QModelIndex();
+    }
+
+    QItemSelectionModel * pSelectionModel = selectionModel();
+    if (Q_UNLIKELY(!pSelectionModel)) {
+        QNDEBUG(QStringLiteral("No selection model in the view"));
+        return QModelIndex();
+    }
+
+    QModelIndexList indexes = selectedIndexes();
+    if (indexes.isEmpty()) {
+        QNDEBUG(QStringLiteral("The selection contains no model indexes"));
+        return QModelIndex();
+    }
+
+    return singleRow(indexes, *pNoteModel, NoteModel::Columns::Title);
+}
+
+void DeletedNoteItemView::restoreCurrentlySelectedNote()
+{
+    QNDEBUG(QStringLiteral("DeletedNoteItemView::restoreCurrentlySelectedNote"));
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(model());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Non-note model is used"));
+        return;
+    }
+
+    QModelIndex currentItemIndex = currentlySelectedItemIndex();
+    restoreNote(currentItemIndex, *pNoteModel);
+}
+
+void DeletedNoteItemView::deleteCurrentlySelectedNotePermanently()
+{
+    QNDEBUG(QStringLiteral("DeletedNoteItemView::deleteCurrentlySelectedNotePermanently"));
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(model());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Non-note model is used"));
+        return;
+    }
+
+    QModelIndex currentItemIndex = currentlySelectedItemIndex();
+    deleteNotePermanently(currentItemIndex, *pNoteModel);
+}
+
+void DeletedNoteItemView::showCurrentlySelectedNoteInfo()
+{
+    QNDEBUG(QStringLiteral("DeletedNoteItemView::showCurrentlySelectedNoteInfo"));
+
+    const NoteModel * pNoteModel = qobject_cast<const NoteModel*>(model());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Non-note model is used"));
+        return;
+    }
+
+    QModelIndex currentItemIndex = currentlySelectedItemIndex();
+    if (!currentItemIndex.isValid()) {
+        QNDEBUG(QStringLiteral("No item is selected"));
+        return;
+    }
+
+    const NoteModelItem * pItem = pNoteModel->itemForIndex(currentItemIndex);
+    if (Q_UNLIKELY(!pItem)) {
+        REPORT_ERROR("Can't show the deleted note info: no note model item corresponding "
+                     "to the currently selected index")
+        return;
+    }
+
+    emit deletedNoteInfoRequested(pItem->localUid());
+}
+
 void DeletedNoteItemView::onRestoreNoteAction()
 {
     QNDEBUG(QStringLiteral("DeletedNoteItemView::onRestoreNoteAction"));
@@ -44,24 +121,7 @@ void DeletedNoteItemView::onRestoreNoteAction()
     }
 
     QModelIndex index = pNoteModel->indexForLocalUid(itemLocalUid);
-    if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR("Internal error: can't restore note, "
-                     "the note model returned invalid index for the local uid "
-                     "of note to be restored")
-        return;
-    }
-
-    QModelIndex deletionTimestampIndex = pNoteModel->index(index.row(), NoteModel::Columns::DeletionTimestamp,
-                                                           index.parent());
-    bool res = pNoteModel->setData(deletionTimestampIndex, QVariant(qint64(-1)), Qt::EditRole);
-    if (res) {
-        QNDEBUG(QStringLiteral("Successfully restored the note"));
-        return;
-    }
-
-    Q_UNUSED(internalErrorMessageBox(this, tr("The note model refused to restore the deleted note; "
-                                              "Check the status bar for message from the note model "
-                                              "explaining why the action was not successful")));
+    restoreNote(index, *pNoteModel);
 }
 
 void DeletedNoteItemView::onDeleteNotePermanentlyAction()
@@ -89,31 +149,7 @@ void DeletedNoteItemView::onDeleteNotePermanentlyAction()
     }
 
     QModelIndex index = pNoteModel->indexForLocalUid(itemLocalUid);
-    if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR("Internal error: can't delete the note permanently, "
-                     "the note model returned invalid index for the local uid "
-                     "of note to be restored")
-        return;
-    }
-
-    int confirm = warningMessageBox(this, tr("Confirm the permanent deletion of note"),
-                                    tr("Are you sure you want to delete the note permanently?"),
-                                    tr("Note that this action is not reversible, you won't be able to restore "
-                                       "the permanently deleted note"), QMessageBox::Ok | QMessageBox::No);
-    if (confirm != QMessageBox::Ok) {
-        QNDEBUG(QStringLiteral("The permanent deletion of note was not confirmed"));
-        return;
-    }
-
-    bool res = pNoteModel->removeRow(index.row(), index.parent());
-    if (res) {
-        QNDEBUG(QStringLiteral("Successfully removed the note completely from the model"));
-        return;
-    }
-
-    Q_UNUSED(internalErrorMessageBox(this, tr("The note model refused to delete the note permanently; "
-                                              "Check the status bar for message from the note model "
-                                              "explaining why the action was not successful")));
+    deleteNotePermanently(index, *pNoteModel);
 }
 
 void DeletedNoteItemView::onShowDeletedNoteInfoAction()
@@ -141,6 +177,55 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
     }
 
     emit deletedNoteInfoRequested(itemLocalUid);
+}
+
+void DeletedNoteItemView::restoreNote(const QModelIndex & index, NoteModel & model)
+{
+    if (Q_UNLIKELY(!index.isValid())) {
+        REPORT_ERROR("Internal error: can't restore note, "
+                     "the index of the note to be restored is invalid ")
+        return;
+    }
+
+    QModelIndex deletionTimestampIndex = model.index(index.row(), NoteModel::Columns::DeletionTimestamp,
+                                                     index.parent());
+    bool res = model.setData(deletionTimestampIndex, QVariant(qint64(-1)), Qt::EditRole);
+    if (res) {
+        QNDEBUG(QStringLiteral("Successfully restored the note"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The note model refused to restore the deleted note; "
+                                              "Check the status bar for message from the note model "
+                                              "explaining why the action was not successful")));
+}
+
+void DeletedNoteItemView::deleteNotePermanently(const QModelIndex & index, NoteModel & model)
+{
+    if (Q_UNLIKELY(!index.isValid())) {
+        REPORT_ERROR("Internal error: can't delete the note permanently, "
+                     "the index of the note to be deleted permanently is invalid ")
+        return;
+    }
+
+    int confirm = warningMessageBox(this, tr("Confirm the permanent deletion of note"),
+                                    tr("Are you sure you want to delete the note permanently?"),
+                                    tr("Note that this action is not reversible, you won't be able to restore "
+                                       "the permanently deleted note"), QMessageBox::Ok | QMessageBox::No);
+    if (confirm != QMessageBox::Ok) {
+        QNDEBUG(QStringLiteral("The permanent deletion of note was not confirmed"));
+        return;
+    }
+
+    bool res = model.removeRow(index.row(), index.parent());
+    if (res) {
+        QNDEBUG(QStringLiteral("Successfully removed the note completely from the model"));
+        return;
+    }
+
+    Q_UNUSED(internalErrorMessageBox(this, tr("The note model refused to delete the note permanently; "
+                                              "Check the status bar for message from the note model "
+                                              "explaining why the action was not successful")));
 }
 
 void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)

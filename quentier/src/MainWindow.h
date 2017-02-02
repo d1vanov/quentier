@@ -171,6 +171,10 @@ private Q_SLOTS:
     void onUnfavoriteItemButtonPressed();
     void onFavoritedItemInfoButtonPressed();
 
+    void onRestoreDeletedNoteButtonPressed();
+    void onDeleteNotePermanentlyButtonPressed();
+    void onDeletedNoteInfoButtonPressed();
+
     void showInfoWidget(QWidget * pWidget);
 
     void onFiltersViewTogglePushButtonPressed();
