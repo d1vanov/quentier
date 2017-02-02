@@ -128,9 +128,9 @@ void DeletedNoteItemDelegate::drawDeletedNoteTitleOrPreviewText(QPainter * paint
         painter->setPen(option.state & QStyle::State_Selected
                         ? option.palette.highlightedText().color()
                         : option.palette.windowText().color());
-        adjustDisplayedText(text, option);
     }
 
+    adjustDisplayedText(text, option);
     painter->drawText(option.rect, text, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 }
 
