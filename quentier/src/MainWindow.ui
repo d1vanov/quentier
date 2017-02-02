@@ -802,6 +802,9 @@ border-bottom: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
           </widget>
          </item>
         </layout>
@@ -1105,6 +1108,9 @@ border-top: 1px solid black;
 border-bottom: 1px solid black;
 background-color: transparent;
 }</string>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
            </property>
            <property name="showDropIndicator" stdset="0">
             <bool>true</bool>
@@ -1412,6 +1418,9 @@ border-bottom: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
            <property name="showDropIndicator" stdset="0">
             <bool>true</bool>
            </property>
@@ -1718,6 +1727,9 @@ border-bottom: 1px solid black;
 background-color: transparent;
 }</string>
            </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
+           </property>
           </widget>
          </item>
         </layout>
@@ -2008,6 +2020,9 @@ border-top: 1px solid black;
 border-bottom: 1px solid black;
 background-color: transparent;
 }</string>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarAlwaysOff</enum>
            </property>
           </widget>
          </item>
@@ -2799,7 +2814,7 @@ margin: 0px;
      <x>0</x>
      <y>0</y>
      <width>1530</width>
-     <height>20</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
