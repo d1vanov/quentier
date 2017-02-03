@@ -61,6 +61,9 @@ Q_SIGNALS:
     void notifyError(QNLocalizedString error) const;
 
 private:
+    QString timestampToString(const qint64 timestamp, const qint64 timePassed) const;
+
+private:
     int                     m_minWidth;
     int                     m_height;
     int                     m_leftMargin;

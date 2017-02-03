@@ -102,6 +102,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         painter->setPen(originalPen);
     }
 
+    // Draw the bottom border line for all notes but the last (lowest) one
     if (!isLast)
     {
         QPen originalPen = painter->pen();
@@ -146,92 +147,68 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     title = title.simplified();
 
     if (title.isEmpty()) {
-        title = tr("No title");
+        painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
+        title = tr("Empty note");
     }
     else {
-        title = boldFontMetrics.elidedText(title, Qt::ElideRight, titleRect.width());
+        painter->setPen(option.palette.windowText().color());
     }
 
+    title = boldFontMetrics.elidedText(title, Qt::ElideRight, titleRect.width());
     painter->drawText(QRectF(titleRect), title, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
-    // 2) Painting the created/modified/deleted datetime
-    qint64 targetTimestamp = 0;
-    bool deleted = false;
-
-    qint64 deletionTimestamp = pItem->deletionTimestamp();
-    if (deletionTimestamp >= 0) {
-        targetTimestamp = deletionTimestamp;
-        deleted = true;
-    }
-    else {
-        qint64 modificationTimestamp = pItem->modificationTimestamp();
-        qint64 creationTimestamp = pItem->creationTimestamp();
-        targetTimestamp = std::max(creationTimestamp, modificationTimestamp);
-    }
+    // 2) Painting the created/modified datetime
+    qint64 creationTimestamp = pItem->creationTimestamp();
+    qint64 modificationTimestamp = pItem->modificationTimestamp();
 
     qint64 currentTimestamp = QDateTime::currentMSecsSinceEpoch();
-    qint64 timeSpan = currentTimestamp - targetTimestamp;
 
-#define CHECK_AND_SET_DELETED_PREFIX(text) \
-    if (deleted) { \
-        text.prepend(tr(QT_TR_NOOP("Deleted")) + QStringLiteral(" ")); \
+    QString createdDisplayText, modifiedDisplayText;
+    if (creationTimestamp >= 0) {
+        qint64 msecsSinceCreation = currentTimestamp - creationTimestamp;
+        createdDisplayText = timestampToString(creationTimestamp, msecsSinceCreation);
     }
 
-    QString text;
-    if (timeSpan > MSEC_PER_WEEK)
-    {
-        int pastWeeks = static_cast<int>(std::floor(timeSpan / MSEC_PER_WEEK + 0.5));
-
-        if (pastWeeks == 1) {
-            text = (deleted ? tr("Deleted last week") : tr("Last week"));
-        }
-        else if (pastWeeks < 5) {
-            text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
-            CHECK_AND_SET_DELETED_PREFIX(text)
-        }
+    if (modificationTimestamp >= 0) {
+        qint64 msecsSinceModification = currentTimestamp - modificationTimestamp;
+        modifiedDisplayText = timestampToString(modificationTimestamp, msecsSinceModification);
     }
-    else if (timeSpan > MSEC_PER_DAY)
-    {
-        int pastDays = static_cast<int>(std::floor(timeSpan / MSEC_PER_DAY + 0.5));
 
-        if (pastDays == 1) {
-            text = (deleted ? tr("Deleted yesterday") : tr("Yesterday"));
+    QString displayText;
+    if (createdDisplayText.isEmpty() && modifiedDisplayText.isEmpty())
+    {
+        displayText = QStringLiteral("(") + tr("No creation or modification datetime") + QStringLiteral(")");
+    }
+    else
+    {
+        if (!createdDisplayText.isEmpty()) {
+            createdDisplayText.prepend(tr("Created") + QStringLiteral(": "));
         }
-        else if (pastDays < 6) {
-            text = tr("%n days ago", Q_NULLPTR, pastDays);
-            if (deleted) {
-                CHECK_AND_SET_DELETED_PREFIX(text)
+
+        if (!modifiedDisplayText.isEmpty())
+        {
+            QString modificationTextPrefix = tr("modified") + QStringLiteral(": ");
+            if (createdDisplayText.isEmpty()) {
+                modificationTextPrefix = modificationTextPrefix.at(0).toUpper() + modificationTextPrefix.mid(1);
             }
-        }
-    }
 
-    if (text.isEmpty())
-    {
-        if (targetTimestamp == 0) {
-            text = tr("No created/modified datetime");
+            modifiedDisplayText.prepend(modificationTextPrefix);
         }
-        else {
-            text = QDateTime::fromMSecsSinceEpoch(targetTimestamp).toString(Qt::DefaultLocaleShortDate);
-            CHECK_AND_SET_DELETED_PREFIX(text)
-        }
-    }
 
-#undef CHECK_AND_SET_DELETED_PREFIX
+        displayText = createdDisplayText;
+        if (!displayText.isEmpty()) {
+            displayText += QStringLiteral(", ");
+        }
+
+        displayText += modifiedDisplayText;
+    }
 
     QRect dateTimeRect(left, titleRect.bottom() + m_bottomMargin + m_topMargin, width, smallerFontMetrics.height());
-
-    if (targetTimestamp != 0) {
-        text = smallerFontMetrics.elidedText(text, Qt::ElideRight, dateTimeRect.width());
-    }
+    displayText = smallerFontMetrics.elidedText(displayText, Qt::ElideRight, dateTimeRect.width());
 
     painter->setFont(smallerFont);
-
-    QPen originalPen = painter->pen();
-    QPen pen = originalPen;
-    pen.setColor(option.palette.highlight().color());
-    painter->setPen(pen);
-    painter->drawText(QRectF(dateTimeRect), text, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
-    painter->setPen(originalPen);
+    painter->setPen(option.palette.color(QPalette::Active, QPalette::Highlight));
+    painter->drawText(QRectF(dateTimeRect), displayText, QTextOption(Qt::Alignment(Qt::AlignLeft | Qt::AlignVCenter)));
 
     // 3) Painting the preview text
     int previewTextTop = dateTimeRect.bottom() + m_bottomMargin + m_topMargin;
@@ -242,7 +219,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
             << QStringLiteral(", right = ") << previewTextRect.right() << QStringLiteral("; height = ")
             << previewTextRect.height() << QStringLiteral(", width = ") << previewTextRect.width());
 
-    text = pItem->previewText().simplified();
+    QString text = pItem->previewText().simplified();
     QFontMetrics originalFontMetrics(originalFont);
 
     QNTRACE(QStringLiteral("Preview text: ") << text);
@@ -270,15 +247,14 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     }
 
     painter->setFont(originalFont);
-
-    originalPen = painter->pen();
+    painter->setPen(option.palette.windowText().color());
 
     bool textIsEmpty = text.isEmpty();
     if (textIsEmpty)
     {
-        text = tr("Empty note");
+        text = QStringLiteral("(") + tr("Note without content") + QStringLiteral(")");
 
-        QPen pen = originalPen;
+        QPen pen = painter->pen();
         pen.setColor(option.palette.highlight().color());
         painter->setPen(pen);
     }
@@ -287,10 +263,6 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
     textOption.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
 
     painter->drawText(QRectF(previewTextRect), text, textOption);
-
-    if (textIsEmpty) {
-        painter->setPen(originalPen);
-    }
 
     // 4) Painting the thumbnail (if any)
     if (!thumbnail.isNull())
@@ -302,6 +274,7 @@ void NoteItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & op
         QNTRACE(QStringLiteral("Thumbnail rect: top = ") << thumbnailRect.top() << QStringLiteral(", bottom = ")
                 << thumbnailRect.bottom() << QStringLiteral(", left = ") << thumbnailRect.left()
                 << QStringLiteral(", right = ") << thumbnailRect.right());
+        painter->setPen(option.palette.windowText().color());
         painter->drawImage(thumbnailRect, thumbnail, thumbnail.rect());
     }
 
@@ -333,6 +306,54 @@ void NoteItemDelegate::updateEditorGeometry(QWidget * editor, const QStyleOption
     Q_UNUSED(editor)
     Q_UNUSED(option)
     Q_UNUSED(index)
+}
+
+QString NoteItemDelegate::timestampToString(const qint64 timestamp, const qint64 timePassed) const
+{
+    QDateTime dateTime = QDateTime::fromMSecsSinceEpoch(timestamp);
+    QDateTime today = QDateTime::currentDateTime();
+
+    QDate targetDate = dateTime.date();
+    QDate todayDate = today.date();
+    QDate yesterdayDate = todayDate.addDays(-1);
+
+    QString text;
+    if (timePassed > MSEC_PER_WEEK)
+    {
+        int pastWeeks = static_cast<int>(std::floor(timePassed / MSEC_PER_WEEK + 0.5));
+
+        if (pastWeeks == 1) {
+            text = tr("last week");
+        }
+        else if (pastWeeks < 5) {
+            text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
+        }
+    }
+    else if (timePassed > MSEC_PER_DAY)
+    {
+        if (targetDate == yesterdayDate)
+        {
+            text = tr("yesterday");
+        }
+        else
+        {
+            int pastDays = static_cast<int>(std::floor(timePassed / MSEC_PER_DAY + 0.5));
+            if (pastDays < 6) {
+                text = tr("%n days ago", Q_NULLPTR, pastDays);
+            }
+        }
+    }
+    else if (targetDate == todayDate)
+    {
+        QTime time = dateTime.time();
+        text = tr("today at") + QStringLiteral(" ") + time.toString(Qt::DefaultLocaleShortDate);
+    }
+
+    if (text.isEmpty()) {
+        text = QDateTime::fromMSecsSinceEpoch(timestamp).toString(Qt::DefaultLocaleShortDate);
+    }
+
+    return text;
 }
 
 } // namespace quentier
