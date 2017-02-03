@@ -914,6 +914,11 @@ void NoteEditorWidget::onNoteTitleUpdated()
         return;
     }
 
+    if (!m_pCurrentNote->hasTitle() && noteTitle.isEmpty()) {
+        QNDEBUG(QStringLiteral("Note's title is still empty, nothing to do"));
+        return;
+    }
+
     if (m_pCurrentNote->hasTitle() && (m_pCurrentNote->title() == noteTitle)) {
         QNDEBUG(QStringLiteral("Note's title hasn't changed, nothing to do"));
         return;
@@ -937,7 +942,7 @@ void NoteEditorWidget::onNoteTitleUpdated()
             << QStringLiteral(", note = ") << *m_pCurrentNote);
     emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
 
-    emit titleOrPreviewChanged(noteTitle);
+    emit titleOrPreviewChanged(titleOrPreview());
 }
 
 void NoteEditorWidget::onEditorNoteUpdate(Note note)

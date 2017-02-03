@@ -309,7 +309,8 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
         return;
     }
 
-    QNLocalizedString error = QT_TR_NOOP("Internal error: can't find the note editor which has sent the title or preview text update");
+    QNLocalizedString error = QNLocalizedString("Internal error: can't find the note editor which has sent "
+                                                "the title or preview text update", this);
     QNWARNING(error);
     emit notifyError(error);
 }
