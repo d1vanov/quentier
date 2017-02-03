@@ -1942,9 +1942,15 @@ void FavoritesModel::updateItemRowWithRespectToSorting(const FavoritesModelItem 
         return;
     }
 
-    FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
+    FavoritesDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto localUidIt = localUidIndex.find(item.localUid());
+    if (Q_UNLIKELY(localUidIt == localUidIndex.end())) {
+        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find the item within the model: ") << item);
+        return;
+    }
 
-    auto it = rowIndex.iterator_to(item);
+    FavoritesDataByIndex & rowIndex = m_data.get<ByIndex>();
+    auto it = m_data.project<ByIndex>(localUidIt);
     if (Q_UNLIKELY(it == rowIndex.end())) {
         QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find item's original row; item: ") << item);
         return;

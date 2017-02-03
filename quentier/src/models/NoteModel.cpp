@@ -1437,12 +1437,18 @@ void NoteModel::removeItemByLocalUid(const QString & localUid)
 
 void NoteModel::updateItemRowWithRespectToSorting(const NoteModelItem & item)
 {
+    NoteDataByLocalUid & localUidIndex = m_data.get<ByLocalUid>();
+    auto localUidIt = localUidIndex.find(item.localUid());
+    if (Q_UNLIKELY(localUidIt == localUidIndex.end())) {
+        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find the within the model: ") << item);
+        return;
+    }
+
     NoteDataByIndex & index = m_data.get<ByIndex>();
 
-    auto it = index.iterator_to(item);
+    auto it = m_data.project<ByIndex>(localUidIt);
     if (Q_UNLIKELY(it == index.end())) {
-        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find item's original row; item: ")
-                  << item);
+        QNWARNING(QStringLiteral("Can't update item row with respect to sorting: can't find item's original row; item: ") << item);
         return;
     }
 
