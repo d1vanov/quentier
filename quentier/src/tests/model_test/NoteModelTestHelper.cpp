@@ -254,6 +254,14 @@ void NoteModelTestHelper::launchTest()
         }
 
         // Verify the dirty flag has changed as a result of making the item synchronizable
+
+        // Get the item's index for local uid again as its row might have changed
+        // due to the automatic update of modification time
+        firstIndex = model->indexForLocalUid(firstNote.localUid());
+        if (!firstIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid note model item index for local uid after making the note synchronizable"));
+        }
+
         firstIndex = model->index(firstIndex.row(), NoteModel::Columns::Dirty, QModelIndex());
         if (!firstIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid note model item index for dirty column"));
@@ -311,6 +319,14 @@ void NoteModelTestHelper::launchTest()
         }
 
         // Should be able to mark the note as deleted
+
+        // Get the item's index for local uid again as its row might have changed
+        // due to the automatic update of modification time
+        firstIndex = model->indexForLocalUid(firstNote.localUid());
+        if (!firstIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid note model item index for local uid after changing the note's title"));
+        }
+
         firstIndex = model->index(firstIndex.row(), NoteModel::Columns::DeletionTimestamp, QModelIndex());
         if (!firstIndex.isValid()) {
             FAIL(QStringLiteral("Can't get the valid note model item index for deletion timestamp column"));
@@ -338,6 +354,14 @@ void NoteModelTestHelper::launchTest()
         }
 
         // Should be able to remove the deletion timestamp from the note
+
+        // Get the item's index for local uid again as its row might have changed
+        // due to the automatic update of modification time
+        firstIndex = model->indexForLocalUid(firstNote.localUid());
+        if (!firstIndex.isValid()) {
+            FAIL(QStringLiteral("Can't get the valid note model item index for local uid after marking the note as deleted one"));
+        }
+
         deletionTimestamp = 0;
         res = model->setData(firstIndex, deletionTimestamp, Qt::EditRole);
         if (!res) {
