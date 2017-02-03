@@ -2558,7 +2558,7 @@ void NoteEditorPrivate::noteToEditorContent()
     m_lastFreeEnCryptIdNumber = extraData.m_numEnCryptNodes + 1;
     m_lastFreeEnDecryptedIdNumber = extraData.m_numEnDecryptedNodes + 1;
 
-    int bodyTagIndex = m_htmlCachedMemory.indexOf(QStringLiteral("<body>"));
+    int bodyTagIndex = m_htmlCachedMemory.indexOf(QStringLiteral("<body"));
     if (bodyTagIndex < 0) {
         QNLocalizedString error = QT_TR_NOOP("can't find <body> tag in the result of note to HTML conversion");
         QNWARNING(error << QStringLiteral(", note content: ") << m_pNote->content()
