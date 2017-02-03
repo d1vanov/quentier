@@ -378,7 +378,7 @@ if((WIN32 OR APPLE) AND CREATE_BUNDLE)
   elseif(APPLE)
     install(CODE "
             message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-            execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${APPS} ERROR_QUIET)
+            execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${APPS} -no-strip ERROR_QUIET)
             execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/MacOS/${PROJECT_NAME})
             " COMPONENT Runtime)
   endif()
