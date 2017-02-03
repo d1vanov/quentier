@@ -79,6 +79,7 @@ private Q_SLOTS:
     void onNoteEditorTabCloseRequested(int tabIndex);
 
     void onNoteLoadedInEditor();
+    void onNoteEditorError(QNLocalizedString errorDescription);
 
     void onAddNoteComplete(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);

@@ -372,6 +372,38 @@ void NoteEditorTabWidgetManager::onNoteLoadedInEditor()
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteLoadedInEditor"));
 }
 
+void NoteEditorTabWidgetManager::onNoteEditorError(QNLocalizedString errorDescription)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteEditorError: ") << errorDescription);
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        QNWARNING(QStringLiteral("Received error from note editor but can't cast the sender to NoteEditorWidget; error: ")
+                  << errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QNLocalizedString error;
+
+    QString titleOrPreview = pNoteEditorWidget->titleOrPreview();
+    if (Q_UNLIKELY(titleOrPreview.isEmpty())) {
+        error = QNLocalizedString("Note editor error for note with local uid ");
+        error += QStringLiteral(" ");
+        error += pNoteEditorWidget->noteLocalUid();
+    }
+    else {
+        error = QNLocalizedString("Note editor error for note");
+        error += QStringLiteral(" \"");
+        error += titleOrPreview;
+        error += QStringLiteral("\": ");
+    }
+
+    error += QStringLiteral(": ");
+    error += errorDescription;
+    emit notifyError(error);
+}
+
 void NoteEditorTabWidgetManager::onAddNoteComplete(Note note, QUuid requestId)
 {
     auto it = m_createNoteRequestIds.find(requestId);
@@ -420,6 +452,8 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetInvalidated));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,noteLoaded),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteLoadedInEditor));
+    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,notifyError,QNLocalizedString),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorError,QNLocalizedString));
 
     QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
     int tabIndex = m_pTabWidget->addTab(pNoteEditorWidget, tabName);
