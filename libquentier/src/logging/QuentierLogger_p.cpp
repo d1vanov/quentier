@@ -82,7 +82,13 @@ QuentierFileLogWriter::~QuentierFileLogWriter()
 
 void QuentierFileLogWriter::write(QString message)
 {
-    message.prepend(QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")) + QStringLiteral(" "));
+    message.prepend(QDateTime::currentDateTime().toString(
+#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+                                                          QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz t")) +
+#else
+                                                          QStringLiteral("yyyy-MM-dd hh:mm:ss.zzz t")) +
+#endif
+                    QStringLiteral(" "));
 
     qint64 messageSize = message.toUtf8().size();
     m_currentLogFileSize += messageSize;
