@@ -1672,7 +1672,7 @@ QString NoteEditorWidget::blankPageHtml() const
                            "</style><title></title></head>"
                            "<body><div class=\"outer\"><div class=\"middle\"><div class=\"inner\">\n\n\n");
 
-    html += tr("Please create a new note to start editing");
+    html += tr("Please select some existing note or create a new one");
 
     html += QStringLiteral("</div></div></div></body></html>");
 
