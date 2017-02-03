@@ -23,7 +23,7 @@
 // is deeply disappointing
 #include "NoteTagsWidget.h"
 #include "FindAndReplaceWidget.h"
-#include "BasicXMLSyntaxHighlighter.h"
+#include "../BasicXMLSyntaxHighlighter.h"
 #include "../insert-table-tool-button/InsertTableToolButton.h"
 #include "../insert-table-tool-button/TableSettingsDialog.h"
 #include "../color-picker-tool-button/ColorPickerToolButton.h"
@@ -40,6 +40,7 @@ using quentier::NoteTagsWidget;
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/FileIOThreadWorker.h>
 #include <quentier/note_editor/SpellChecker.h>
+#include <QDateTime>
 #include <QFontDatabase>
 #include <QScopedPointer>
 #include <QColor>
@@ -1410,6 +1411,9 @@ void NoteEditorWidget::updateNoteInLocalStorage()
         return;
     }
 
+    qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
+    m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
+
     QUuid requestId = QUuid::createUuid();
     Q_UNUSED(m_updateNoteRequestIds.insert(requestId))
     QNTRACE(QStringLiteral("Emitting the request to update note: request id = ") << requestId
@@ -1460,8 +1464,6 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,cantConvertToNote,QNLocalizedString),
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdateFailed,QNLocalizedString));
-    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,currentNoteChanged,Note),
-                     this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
                      this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteLoaded),
