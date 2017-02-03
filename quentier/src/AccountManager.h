@@ -27,14 +27,16 @@
 #include <QVector>
 #include <QDir>
 
+namespace quentier {
+
 class AccountManager: public QObject
 {
     Q_OBJECT
 public:
-    class AccountInitializationException: public quentier::IQuentierException
+    class AccountInitializationException: public IQuentierException
     {
     public:
-        explicit AccountInitializationException(const quentier::QNLocalizedString & message);
+        explicit AccountInitializationException(const QNLocalizedString & message);
 
     protected:
         virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
@@ -43,25 +45,25 @@ public:
 public:
     AccountManager(QObject * parent = Q_NULLPTR);
 
-    const QVector<quentier::Account> & availableAccounts() const
+    const QVector<Account> & availableAccounts() const
     { return m_availableAccounts; }
 
     /**
      * Attempts to retrieve the last used account from the app settings, in case of failure creates and returns
      * the default local account
      */
-    quentier::Account currentAccount();
+    Account currentAccount();
 
     void raiseAddAccountDialog();
     void raiseManageAccountsDialog();
 
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host);
-    void switchedAccount(quentier::Account account);
-    void notifyError(quentier::QNLocalizedString error);
+    void switchedAccount(Account account);
+    void notifyError(QNLocalizedString error);
 
 public Q_SLOTS:
-    void switchAccount(const quentier::Account & account);
+    void switchAccount(const Account & account);
 
 private Q_SLOTS:
     void onLocalAccountAdditionRequested(QString name);
@@ -69,27 +71,29 @@ private Q_SLOTS:
 private:
     void detectAvailableAccounts();
 
-    QSharedPointer<quentier::Account> createDefaultAccount(quentier::QNLocalizedString & errorDescription);
-    QSharedPointer<quentier::Account> createLocalAccount(const QString & name,
-                                                         quentier::QNLocalizedString & errorDescription);
-    bool createAccountInfo(const quentier::Account & account);
+    QSharedPointer<Account> createDefaultAccount(QNLocalizedString & errorDescription);
+    QSharedPointer<Account> createLocalAccount(const QString & name,
+                                                         QNLocalizedString & errorDescription);
+    bool createAccountInfo(const Account & account);
 
     bool writeAccountInfo(const QString & name, const bool isLocal,
                           const qevercloud::UserID id, const QString & evernoteAccountType,
-                          const QString & evernoteHost, quentier::QNLocalizedString & errorDescription);
+                          const QString & evernoteHost, QNLocalizedString & errorDescription);
 
-    void readComplementaryAccountInfo(quentier::Account & account);
+    void readComplementaryAccountInfo(Account & account);
 
     QDir accountStorageDir(const QString & name, const bool isLocal, const qevercloud::UserID id, const QString & evernoteHost) const;
 
     // Tries to restore the last used account from the app settings;
     // in case of success returns non-null pointer to account, null otherwise
-    QSharedPointer<quentier::Account> lastUsedAccount() const;
+    QSharedPointer<Account> lastUsedAccount() const;
 
-    void updateLastUsedAccount(const quentier::Account & account);
+    void updateLastUsedAccount(const Account & account);
 
 private:
-    QVector<quentier::Account>   m_availableAccounts;
+    QVector<Account>   m_availableAccounts;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_ACCOUNT_MANAGER_H

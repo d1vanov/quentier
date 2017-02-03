@@ -17,7 +17,7 @@
  */
 
 #include "AccountManager.h"
-#include <dialogs/AddAccountDialog.h>
+#include "dialogs/AddAccountDialog.h"
 #include "dialogs/ManageAccountsDialog.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/DesktopServices.h>
@@ -36,7 +36,7 @@
 #define LAST_USED_ACCOUNT_EVERNOTE_ACCOUNT_TYPE QStringLiteral("LastUsedAccountEvernoteAccountType")
 #define LAST_USED_ACCOUNT_EVERNOTE_HOST QStringLiteral("LastUsedAccountEvernoteHost")
 
-using namespace quentier;
+namespace quentier {
 
 AccountManager::AccountManager(QObject * parent) :
     QObject(parent),
@@ -648,3 +648,5 @@ const QString AccountManager::AccountInitializationException::exceptionDisplayNa
 {
     return QStringLiteral("AccountInitializationException");
 }
+
+} // namespace quentier
