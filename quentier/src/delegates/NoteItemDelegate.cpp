@@ -329,24 +329,21 @@ QString NoteItemDelegate::timestampToString(const qint64 timestamp, const qint64
             text = tr("%n weeks ago", Q_NULLPTR, pastWeeks);
         }
     }
-    else if (timePassed > MSEC_PER_DAY)
+    else if (targetDate == yesterdayDate)
     {
-        if (targetDate == yesterdayDate)
-        {
-            text = tr("yesterday");
-        }
-        else
-        {
-            int pastDays = static_cast<int>(std::floor(timePassed / MSEC_PER_DAY + 0.5));
-            if (pastDays < 6) {
-                text = tr("%n days ago", Q_NULLPTR, pastDays);
-            }
-        }
+        text = tr("yesterday");
     }
     else if (targetDate == todayDate)
     {
         QTime time = dateTime.time();
         text = tr("today at") + QStringLiteral(" ") + time.toString(Qt::DefaultLocaleShortDate);
+    }
+    else if (timePassed > MSEC_PER_DAY)
+    {
+        int pastDays = static_cast<int>(std::floor(timePassed / MSEC_PER_DAY + 0.5));
+        if (pastDays < 6) {
+            text = tr("%n days ago", Q_NULLPTR, pastDays);
+        }
     }
 
     if (text.isEmpty()) {
