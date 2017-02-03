@@ -110,6 +110,8 @@ void EditNoteDialog::accept()
         return;
     }
 
+    modifiedNote.setTitle(title);
+
     QString notebookName = m_pUi->notebookComboBox->currentText();
     QString notebookLocalUid = m_pNotebookModel->localUidForItemName(notebookName);
     if (notebookLocalUid.isEmpty()) {
