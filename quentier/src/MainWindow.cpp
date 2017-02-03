@@ -1905,19 +1905,6 @@ void MainWindow::onSetInkNote()
 void MainWindow::onNoteEditorError(QNLocalizedString error)
 {
     QNINFO(QStringLiteral("MainWindow::onNoteEditorError: ") << error);
-
-    NoteEditorWidget * noteEditor = qobject_cast<NoteEditorWidget*>(sender());
-    if (!noteEditor) {
-        QNTRACE(QStringLiteral("Can't cast caller to note editor widget, skipping"));
-        return;
-    }
-
-    NoteEditorWidget * currentEditor = currentNoteEditor();
-    if (!currentEditor || (currentEditor != noteEditor)) {
-        QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
-        return;
-    }
-
     onSetStatusBarText(error.localizedString(), 20000);
 }
 
@@ -2874,8 +2861,10 @@ void MainWindow::setupNoteEditorTabWidgetManager()
                                                                    m_noteCache, m_notebookCache,
                                                                    m_tagCache, *m_pTagModel,
                                                                    m_pUI->noteEditorsTabWidget);
+    QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,notifyError,QNLocalizedString),
+                     this, QNSLOT(MainWindow,onNoteEditorError,QNLocalizedString));
 
-    // TODO: connect relevant signals-slots
+    // TODO: connect other relevant signals-slots
 }
 
 void MainWindow::setupSynchronizationManager()
