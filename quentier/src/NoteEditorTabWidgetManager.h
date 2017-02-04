@@ -36,6 +36,7 @@
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
 QT_FORWARD_DECLARE_CLASS(QThread)
+QT_FORWARD_DECLARE_CLASS(QMenu)
 
 namespace quentier {
 
@@ -88,6 +89,9 @@ private Q_SLOTS:
 
     void onCurrentTabChanged(int currentIndex);
 
+    void onTabContextMenuRequested(const QPoint & pos);
+    void onTabContextMenuCloseEditorAction();
+
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
     void checkAndCloseOlderNoteEditorTabs();
@@ -123,6 +127,8 @@ private:
     QString                             m_lastCurrentNoteLocalUid;
 
     QSet<QUuid>                         m_createNoteRequestIds;
+
+    QMenu *                             m_pTabBarContextMenu;
 };
 
 } // namespace quentier

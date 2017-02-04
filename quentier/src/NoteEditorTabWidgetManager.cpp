@@ -29,6 +29,8 @@
 #include <QTabBar>
 #include <QCloseEvent>
 #include <QThread>
+#include <QMenu>
+#include <QContextMenuEvent>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES_IN_TABS (5)
@@ -58,7 +60,8 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_maxNumNotesInTabs(-1),
     m_localUidsOfNotesInTabbedEditors(),
     m_lastCurrentNoteLocalUid(),
-    m_createNoteRequestIds()
+    m_createNoteRequestIds(),
+    m_pTabBarContextMenu(Q_NULLPTR)
 {
     ApplicationSettings appSettings;
     appSettings.beginGroup(QStringLiteral("NoteEditor"));
@@ -92,7 +95,11 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
 
     Q_UNUSED(m_pTabWidget->addTab(m_pBlankNoteEditor, BLANK_NOTE_KEY))
 
-    m_pTabWidget->tabBar()->hide();
+    QTabBar * pTabBar = m_pTabWidget->tabBar();
+    pTabBar->hide();
+    pTabBar->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(pTabBar, QNSIGNAL(QTabBar,customContextMenuRequested,QPoint),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onTabContextMenuRequested,QPoint));
 
     QObject::connect(m_pTabWidget, QNSIGNAL(TabWidget,tabCloseRequested,int),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorTabCloseRequested,int));
@@ -510,6 +517,91 @@ void NoteEditorTabWidgetManager::onCurrentTabChanged(int currentIndex)
         QNTRACE(QStringLiteral("Emitting last current note local uid update to ") << m_lastCurrentNoteLocalUid);
         emit currentNoteChanged(currentNoteLocalUid);
     }
+}
+
+void NoteEditorTabWidgetManager::onTabContextMenuRequested(const QPoint & pos)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onTabContextMenuRequested, pos: x = ")
+            << pos.x() << QStringLiteral(", y = ") << pos.y());
+
+    int tabIndex = m_pTabWidget->tabBar()->tabAt(pos);
+    if (Q_UNLIKELY(tabIndex < 0)) {
+        QNLocalizedString error = QNLocalizedString("Can't show the tab context menu: can't find the tab index "
+                                                    "of the target note editor", this);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        QNLocalizedString error = QNLocalizedString("Can't show the tab context menu: can't cast the widget "
+                                                    "at the clicked tab to note editor", this);
+        QNWARNING(error << QStringLiteral(", tab index = ") << tabIndex);
+        emit notifyError(error);
+        return;
+    }
+
+    delete m_pTabBarContextMenu;
+    m_pTabBarContextMenu = new QMenu(m_pTabWidget);
+
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, data, enabled) \
+    { \
+        QAction * pAction = new QAction(name, menu); \
+        pAction->setData(data); \
+        pAction->setEnabled(enabled); \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(NoteEditorTabWidgetManager,slot)); \
+        menu->addAction(pAction); \
+    }
+
+    ADD_CONTEXT_MENU_ACTION(tr("Close"), m_pTabBarContextMenu, onTabContextMenuCloseEditorAction,
+                            pNoteEditorWidget->noteLocalUid(), true);
+
+    m_pTabBarContextMenu->show();
+    m_pTabBarContextMenu->exec(m_pTabWidget->tabBar()->mapToGlobal(pos));
+}
+
+void NoteEditorTabWidgetManager::onTabContextMenuCloseEditorAction()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onTabContextMenuCloseEditorAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't close the chosen note editor, "
+                                                    "can't cast the slot invoker to QAction", this);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString noteLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        QNLocalizedString error = QNLocalizedString("Internal error: can't close the chosen note editor, "
+                                                    "can't get the note local uid corresponding to the editor", this);
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    for(int i = 0; i < m_pTabWidget->count(); ++i)
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
+        if (Q_UNLIKELY(!pNoteEditorWidget)) {
+            continue;
+        }
+
+        if (pNoteEditorWidget->noteLocalUid() == noteLocalUid) {
+            onNoteEditorTabCloseRequested(i);
+            return;
+        }
+    }
+
+    // If we got here, no target note editor widget was found
+    QNLocalizedString error = QNLocalizedString("Internal error: can't close the chosen note editor, "
+                                                "can't find the editor to be closed by note local uid", this);
+    QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
+    emit notifyError(error);
+    return;
 }
 
 void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget)
