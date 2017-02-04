@@ -381,6 +381,11 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
 
     m_pTabWidget->removeTab(tabIndex);
     Q_UNUSED(pNoteEditorWidget->close());
+
+    if (m_pTabWidget->count() == 1) {
+        m_pTabWidget->tabBar()->hide();
+        m_pTabWidget->setTabsClosable(false);
+    }
 }
 
 void NoteEditorTabWidgetManager::onNoteLoadedInEditor()
@@ -540,7 +545,7 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
 
     int currentNumNotes = numNotes();
 
-    if (currentNumNotes >= 1) {
+    if (currentNumNotes > 1) {
         m_pTabWidget->tabBar()->show();
         m_pTabWidget->setTabsClosable(true);
     }
