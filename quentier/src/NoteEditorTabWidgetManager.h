@@ -57,10 +57,10 @@ public:
                                         TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
     ~NoteEditorTabWidgetManager();
 
-    int maxNumNotes() const { return m_maxNumNotes; }
-    void setMaxNumNotes(const int maxNumNotes);
+    int maxNumNotesInTabs() const { return m_maxNumNotesInTabs; }
+    void setMaxNumNotesInTabs(const int maxNumNotesInTabs);
 
-    int numNotes() const;
+    int numNotesInTabs() const;
 
     void addNote(const QString & noteLocalUid);
 
@@ -90,7 +90,7 @@ private Q_SLOTS:
 
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
-    void checkAndCloseOlderNoteEditors();
+    void checkAndCloseOlderNoteEditorTabs();
     void setCurrentNoteEditorWidget(const QString & noteLocalUid);
 
 private:
@@ -117,9 +117,9 @@ private:
     FileIOThreadWorker *                m_pFileIOThreadWorker;
     SpellChecker *                      m_pSpellChecker;
 
-    int                                 m_maxNumNotes;
+    int                                 m_maxNumNotesInTabs;
 
-    boost::circular_buffer<QString>     m_shownNoteLocalUids;
+    boost::circular_buffer<QString>     m_localUidsOfNotesInTabbedEditors;
     QString                             m_lastCurrentNoteLocalUid;
 
     QSet<QUuid>                         m_createNoteRequestIds;

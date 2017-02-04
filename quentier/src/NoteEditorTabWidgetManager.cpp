@@ -31,8 +31,8 @@
 #include <QThread>
 #include <algorithm>
 
-#define DEFAULT_MAX_NUM_NOTES (5)
-#define MIN_NUM_NOTES (1)
+#define DEFAULT_MAX_NUM_NOTES_IN_TABS (5)
+#define MIN_NUM_NOTES_IN_TABS (1)
 
 #define BLANK_NOTE_KEY QStringLiteral("BlankNoteId")
 #define MAX_TAB_NAME_SIZE (10)
@@ -55,8 +55,8 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_pIOThread(Q_NULLPTR),
     m_pFileIOThreadWorker(Q_NULLPTR),
     m_pSpellChecker(Q_NULLPTR),
-    m_maxNumNotes(-1),
-    m_shownNoteLocalUids(),
+    m_maxNumNotesInTabs(-1),
+    m_localUidsOfNotesInTabbedEditors(),
     m_lastCurrentNoteLocalUid(),
     m_createNoteRequestIds()
 {
@@ -69,16 +69,16 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     int maxNumNoteTabs = maxNumNoteTabsData.toInt(&conversionResult);
     if (!conversionResult) {
         QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager: no persisted max num note tabs setting, "
-                               "fallback to the default value of ") << DEFAULT_MAX_NUM_NOTES);
-        m_maxNumNotes = DEFAULT_MAX_NUM_NOTES;
+                               "fallback to the default value of ") << DEFAULT_MAX_NUM_NOTES_IN_TABS);
+        m_maxNumNotesInTabs = DEFAULT_MAX_NUM_NOTES_IN_TABS;
     }
     else {
         QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager: max num note tabs: ") << maxNumNoteTabs);
-        m_maxNumNotes = maxNumNoteTabs;
+        m_maxNumNotesInTabs = maxNumNoteTabs;
     }
 
-    m_shownNoteLocalUids.set_capacity(static_cast<size_t>(std::max(m_maxNumNotes, MIN_NUM_NOTES)));
-    QNTRACE(QStringLiteral("Shown note local uids circular buffer capacity: ") << m_shownNoteLocalUids.capacity());
+    m_localUidsOfNotesInTabbedEditors.set_capacity(static_cast<size_t>(std::max(m_maxNumNotesInTabs, MIN_NUM_NOTES_IN_TABS)));
+    QNTRACE(QStringLiteral("Tabbed note local uids circular buffer capacity: ") << m_localUidsOfNotesInTabbedEditors.capacity());
 
     setupFileIO();
     setupSpellChecker();
@@ -107,36 +107,36 @@ NoteEditorTabWidgetManager::~NoteEditorTabWidgetManager()
     }
 }
 
-void NoteEditorTabWidgetManager::setMaxNumNotes(const int maxNumNotes)
+void NoteEditorTabWidgetManager::setMaxNumNotesInTabs(const int maxNumNotesInTabs)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setMaxNumNotes: ") << maxNumNotes);
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setMaxNumNotesInTabs: ") << maxNumNotesInTabs);
 
-    if (m_maxNumNotes == maxNumNotes) {
-        QNDEBUG(QStringLiteral("Max number of notes hasn't changed"));
+    if (m_maxNumNotesInTabs == maxNumNotesInTabs) {
+        QNDEBUG(QStringLiteral("Max number of notes in tabs hasn't changed"));
         return;
     }
 
-    if (m_maxNumNotes < maxNumNotes) {
-        m_maxNumNotes = maxNumNotes;
-        QNDEBUG(QStringLiteral("Max number of notes has been increased to ") << maxNumNotes);
+    if (m_maxNumNotesInTabs < maxNumNotesInTabs) {
+        m_maxNumNotesInTabs = maxNumNotesInTabs;
+        QNDEBUG(QStringLiteral("Max number of notes in tabs has been increased to ") << maxNumNotesInTabs);
         return;
     }
 
-    int currentNumNotes = numNotes();
+    int currentNumNotesInTabs = numNotesInTabs();
 
-    m_maxNumNotes = maxNumNotes;
-    QNDEBUG(QStringLiteral("Max number of notes has been decreased to ") << maxNumNotes);
+    m_maxNumNotesInTabs = maxNumNotesInTabs;
+    QNDEBUG(QStringLiteral("Max number of notes in tabs has been decreased to ") << maxNumNotesInTabs);
 
-    if (currentNumNotes <= maxNumNotes) {
+    if (currentNumNotesInTabs <= maxNumNotesInTabs) {
         return;
     }
 
-    m_shownNoteLocalUids.set_capacity(static_cast<size_t>(std::max(maxNumNotes, MIN_NUM_NOTES)));
-    QNTRACE(QStringLiteral("Shown note local uids circular buffer capacity: ") << m_shownNoteLocalUids.capacity());
-    checkAndCloseOlderNoteEditors();
+    m_localUidsOfNotesInTabbedEditors.set_capacity(static_cast<size_t>(std::max(maxNumNotesInTabs, MIN_NUM_NOTES_IN_TABS)));
+    QNTRACE(QStringLiteral("Tabbed note local uids circular buffer capacity: ") << m_localUidsOfNotesInTabbedEditors.capacity());
+    checkAndCloseOlderNoteEditorTabs();
 }
 
-int NoteEditorTabWidgetManager::numNotes() const
+int NoteEditorTabWidgetManager::numNotesInTabs() const
 {
     if (Q_UNLIKELY(!m_pTabWidget)) {
         return 0;
@@ -155,9 +155,9 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::addNote: ") << noteLocalUid);
 
     // First, check if this note is already open in some existing tab
-    for(auto it = m_shownNoteLocalUids.begin(), end = m_shownNoteLocalUids.end(); it != end; ++it)
+    for(auto it = m_localUidsOfNotesInTabbedEditors.begin(), end = m_localUidsOfNotesInTabbedEditors.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining shown note local uid = ") << *it);
+        QNTRACE(QStringLiteral("Examining tabbed note local uid = ") << *it);
 
         const QString & existingNoteLocalUid = *it;
         if (Q_UNLIKELY(existingNoteLocalUid == noteLocalUid)) {
@@ -168,7 +168,7 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
         }
     }
 
-    if (m_shownNoteLocalUids.empty() && m_pBlankNoteEditor)
+    if (m_localUidsOfNotesInTabbedEditors.empty() && m_pBlankNoteEditor)
     {
         QNDEBUG(QStringLiteral("Currently only the blank note tab is displayed, inserting the new note into its editor"));
         // There's only the blank note's note editor displayed, just set the note into it
@@ -345,14 +345,14 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
 
     QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
 
-    auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), noteLocalUid);
-    if (it != m_shownNoteLocalUids.end()) {
-        Q_UNUSED(m_shownNoteLocalUids.erase(it))
+    auto it = std::find(m_localUidsOfNotesInTabbedEditors.begin(), m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
+    if (it != m_localUidsOfNotesInTabbedEditors.end()) {
+        Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
         QNTRACE(QStringLiteral("Removed note local uid ") << pNoteEditorWidget->noteLocalUid());
     }
 
-    QStringLiteral("Remaining shown note local uids: ");
-    for(auto sit = m_shownNoteLocalUids.begin(), end = m_shownNoteLocalUids.end(); sit != end; ++sit) {
+    QStringLiteral("Remaining tabbed note local uids: ");
+    for(auto sit = m_localUidsOfNotesInTabbedEditors.begin(), end = m_localUidsOfNotesInTabbedEditors.end(); sit != end; ++sit) {
         QNTRACE(*sit);
     }
 
@@ -539,13 +539,13 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
 
     m_pTabWidget->setCurrentIndex(tabIndex);
 
-    m_shownNoteLocalUids.push_back(pNoteEditorWidget->noteLocalUid());
-    QNTRACE(QStringLiteral("Added shown note local uid: ") << pNoteEditorWidget->noteLocalUid()
-            << QStringLiteral(", the number of shown note local uids = ") << m_shownNoteLocalUids.size());
+    m_localUidsOfNotesInTabbedEditors.push_back(pNoteEditorWidget->noteLocalUid());
+    QNTRACE(QStringLiteral("Added tabbed note local uid: ") << pNoteEditorWidget->noteLocalUid()
+            << QStringLiteral(", the number of tabbed note local uids = ") << m_localUidsOfNotesInTabbedEditors.size());
 
-    int currentNumNotes = numNotes();
+    int currentNumNotesInTabs = numNotesInTabs();
 
-    if (currentNumNotes > 1) {
+    if (currentNumNotesInTabs > 1) {
         m_pTabWidget->tabBar()->show();
         m_pTabWidget->setTabsClosable(true);
     }
@@ -554,16 +554,16 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
         m_pTabWidget->setTabsClosable(false);
     }
 
-    if (currentNumNotes <= m_maxNumNotes) {
+    if (currentNumNotesInTabs <= m_maxNumNotesInTabs) {
         QNDEBUG(QStringLiteral("The addition of note ") << pNoteEditorWidget->noteLocalUid()
                 << QStringLiteral(" doesn't cause the overflow of max allowed number of note editor tabs"));
         return;
     }
 
-    checkAndCloseOlderNoteEditors();
+    checkAndCloseOlderNoteEditorTabs();
 }
 
-void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditors()
+void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditorTabs()
 {
     for(int i = 0; i < m_pTabWidget->count(); ++i)
     {
@@ -577,8 +577,8 @@ void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditors()
         }
 
         const QString & noteLocalUid = pNoteEditorWidget->noteLocalUid();
-        auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), noteLocalUid);
-        if (it == m_shownNoteLocalUids.end()) {
+        auto it = std::find(m_localUidsOfNotesInTabbedEditors.begin(), m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
+        if (it == m_localUidsOfNotesInTabbedEditors.end()) {
             m_pTabWidget->removeTab(i);
             Q_UNUSED(pNoteEditorWidget->close())
         }
