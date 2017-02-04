@@ -1150,6 +1150,9 @@ void MainWindow::fixupQt4StyleSheets()
                 "}"
                 "QSplitter::handle:vertical {"
                 "   height: 1px;"
+                "}"
+                "#noteEditorVerticalSplitter::handle {"
+                "   background: none;"
                 "}");
     m_pUI->centralWidget->setStyleSheet(alternateCentralWidgetStylesheet);
 
