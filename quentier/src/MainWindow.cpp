@@ -1174,7 +1174,7 @@ void MainWindow::fixupQt4StyleSheets()
     QString alternateViewStylesheetBase(
                 "{"
                 "   border: none;"
-                "   border-top: 1px solid black;"
+                "   margin-top: 1px;"
                 "   background-color: transparent;"
                 "}");
 
@@ -1234,6 +1234,67 @@ void MainWindow::fixupQt4StyleSheets()
     QNDEBUG(QStringLiteral("alternateNoteListWidgetHeaderPanelStylesheet: ")
             << alternateNoteListWidgetHeaderPanelStylesheet);
     m_pUI->noteListWidgetHeaderPanel->setStyleSheet(alternateNoteListWidgetHeaderPanelStylesheet);
+
+    // Add bottom border to the header panel widgets
+    QString alternativeFavoritesHeaderPanelStylesheet = m_pUI->favoritesHeaderPanel->styleSheet();
+    index = alternativeFavoritesHeaderPanelStylesheet.indexOf("}");
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of favorites header panel: no first closing curly brace "
+                               "found within the stylesheet"));
+        return;
+    }
+    alternativeFavoritesHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    m_pUI->favoritesHeaderPanel->setStyleSheet(alternativeFavoritesHeaderPanelStylesheet);
+    m_pUI->favoritesHeaderPanel->setMinimumHeight(23);
+    m_pUI->favoritesHeaderPanel->setMaximumHeight(23);
+
+    QString alternativeNotebooksHeaderPanelStylesheet = m_pUI->notebooksHeaderPanel->styleSheet();
+    index = alternativeNotebooksHeaderPanelStylesheet.indexOf("}");
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of notebooks header panel: no first closing curly brace "
+                               "found within the stylesheet"));
+        return;
+    }
+    alternativeNotebooksHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    m_pUI->notebooksHeaderPanel->setStyleSheet(alternativeNotebooksHeaderPanelStylesheet);
+    m_pUI->notebooksHeaderPanel->setMinimumHeight(23);
+    m_pUI->notebooksHeaderPanel->setMaximumHeight(23);
+
+    QString alternativeTagsHeaderPanelStylesheet = m_pUI->tagsHeaderPanel->styleSheet();
+    index = alternativeTagsHeaderPanelStylesheet.indexOf("}");
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of tags header panel: no first closing curly brace "
+                               "found within the stylesheet"));
+        return;
+    }
+    alternativeTagsHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    m_pUI->tagsHeaderPanel->setStyleSheet(alternativeTagsHeaderPanelStylesheet);
+    m_pUI->tagsHeaderPanel->setMinimumHeight(23);
+    m_pUI->tagsHeaderPanel->setMaximumHeight(23);
+
+    QString alternativeSavedSearchesHeaderPanelStylesheet = m_pUI->savedSearchesHeaderPanel->styleSheet();
+    index = alternativeSavedSearchesHeaderPanelStylesheet.indexOf("}");
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of saved searches header panel: no first closing curly brace "
+                               "found within the stylesheet"));
+        return;
+    }
+    alternativeSavedSearchesHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    m_pUI->savedSearchesHeaderPanel->setStyleSheet(alternativeSavedSearchesHeaderPanelStylesheet);
+    m_pUI->savedSearchesHeaderPanel->setMinimumHeight(23);
+    m_pUI->savedSearchesHeaderPanel->setMaximumHeight(23);
+
+    QString alternativeDeletedNotesHeaderPanelStylesheet = m_pUI->deletedNotesHeaderPanel->styleSheet();
+    index = alternativeDeletedNotesHeaderPanelStylesheet.indexOf("}");
+    if (Q_UNLIKELY(index < 0)) {
+        QNDEBUG(QStringLiteral("Can't fixup the stylesheet of deleted notes header panel: no first closing curly brace "
+                               "found within the stylesheet"));
+        return;
+    }
+    alternativeDeletedNotesHeaderPanelStylesheet.insert(index, "border-bottom: 1px solid black;");
+    m_pUI->deletedNotesHeaderPanel->setStyleSheet(alternativeDeletedNotesHeaderPanelStylesheet);
+    m_pUI->deletedNotesHeaderPanel->setMinimumHeight(23);
+    m_pUI->deletedNotesHeaderPanel->setMaximumHeight(23);
 }
 #endif
 
