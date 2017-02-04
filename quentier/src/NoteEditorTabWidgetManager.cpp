@@ -57,6 +57,7 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_pSpellChecker(Q_NULLPTR),
     m_maxNumNotes(-1),
     m_shownNoteLocalUids(),
+    m_lastCurrentNoteLocalUid(),
     m_createNoteRequestIds()
 {
     ApplicationSettings appSettings;
@@ -95,6 +96,8 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
 
     QObject::connect(m_pTabWidget, QNSIGNAL(TabWidget,tabCloseRequested,int),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorTabCloseRequested,int));
+    QObject::connect(m_pTabWidget, QNSIGNAL(TabWidget,currentChanged,int),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onCurrentTabChanged,int));
 }
 
 NoteEditorTabWidgetManager::~NoteEditorTabWidgetManager()
@@ -174,6 +177,11 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
 
         pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
         insertNoteEditorWidget(pNoteEditorWidget);
+
+        m_lastCurrentNoteLocalUid = noteLocalUid;
+        QNTRACE(QStringLiteral("Emitting the update of last current note local uid to ")
+                << m_lastCurrentNoteLocalUid);
+        emit currentNoteChanged(m_lastCurrentNoteLocalUid);
         return;
     }
 
@@ -335,7 +343,9 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
     QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
             << QStringLiteral(", error description: ") << errorDescription);
 
-    auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), pNoteEditorWidget->noteLocalUid());
+    QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+
+    auto it = std::find(m_shownNoteLocalUids.begin(), m_shownNoteLocalUids.end(), noteLocalUid);
     if (it != m_shownNoteLocalUids.end()) {
         Q_UNUSED(m_shownNoteLocalUids.erase(it))
         QNTRACE(QStringLiteral("Removed note local uid ") << pNoteEditorWidget->noteLocalUid());
@@ -344,6 +354,12 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
     QStringLiteral("Remaining shown note local uids: ");
     for(auto sit = m_shownNoteLocalUids.begin(), end = m_shownNoteLocalUids.end(); sit != end; ++sit) {
         QNTRACE(*sit);
+    }
+
+    if (m_lastCurrentNoteLocalUid == noteLocalUid) {
+        m_lastCurrentNoteLocalUid.clear();
+        QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+        emit currentNoteChanged(QString());
     }
 
     if (m_pTabWidget->count() == 1)
@@ -440,6 +456,57 @@ void NoteEditorTabWidgetManager::onAddNoteFailed(Note note, QNLocalizedString er
                                      QStringLiteral(": ") + errorDescription.localizedString()))
 }
 
+void NoteEditorTabWidgetManager::onCurrentTabChanged(int currentIndex)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onCurrentTabChanged: ") << currentIndex);
+
+    if (currentIndex < 0)
+    {
+        if (!m_lastCurrentNoteLocalUid.isEmpty()) {
+            m_lastCurrentNoteLocalUid.clear();
+            QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+            emit currentNoteChanged(QString());
+        }
+
+        return;
+    }
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(currentIndex));
+    if (Q_UNLIKELY(!pNoteEditorWidget))
+    {
+        QNWARNING(QStringLiteral("Detected current tab change in the note editor tab widget "
+                                 "but can't cast the tab widget's tab to note editor"));
+
+        if (!m_lastCurrentNoteLocalUid.isEmpty()) {
+            m_lastCurrentNoteLocalUid.clear();
+            QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+            emit currentNoteChanged(QString());
+        }
+
+        return;
+    }
+
+    if (pNoteEditorWidget == m_pBlankNoteEditor)
+    {
+        QNTRACE(QStringLiteral("Switched to blank note editor"));
+
+        if (!m_lastCurrentNoteLocalUid.isEmpty()) {
+            m_lastCurrentNoteLocalUid.clear();
+            QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+            emit currentNoteChanged(QString());
+        }
+
+        return;
+    }
+
+    QString currentNoteLocalUid = pNoteEditorWidget->noteLocalUid();
+    if (m_lastCurrentNoteLocalUid != currentNoteLocalUid) {
+        m_lastCurrentNoteLocalUid = currentNoteLocalUid;
+        QNTRACE(QStringLiteral("Emitting last current note local uid update to ") << m_lastCurrentNoteLocalUid);
+        emit currentNoteChanged(currentNoteLocalUid);
+    }
+}
+
 void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::insertNoteEditorWidget: ") << pNoteEditorWidget->noteLocalUid());
@@ -456,7 +523,15 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorError,QNLocalizedString));
 
     QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
-    int tabIndex = m_pTabWidget->addTab(pNoteEditorWidget, tabName);
+
+    int tabIndex = m_pTabWidget->indexOf(pNoteEditorWidget);
+    if (tabIndex < 0) {
+        tabIndex = m_pTabWidget->addTab(pNoteEditorWidget, tabName);
+    }
+    else {
+        m_pTabWidget->setTabText(tabIndex, tabName);
+    }
+
     m_pTabWidget->setCurrentIndex(tabIndex);
 
     m_shownNoteLocalUids.push_back(pNoteEditorWidget->noteLocalUid());

@@ -52,6 +52,12 @@ Q_SIGNALS:
 
 public Q_SLOTS:
     /**
+     * The slot to watch for external changes of current note
+     * and reflect the change of the current item in the view
+     */
+    void onCurrentNoteChanged(QString noteLocalUid);
+
+    /**
      * @brief The dataChanged method is redefined in NoteListView for the sole reason of being a public slot
      * instead of protected; it calls the implementation of QListView's dataChanged protected slot
      */

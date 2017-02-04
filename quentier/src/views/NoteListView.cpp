@@ -49,6 +49,31 @@ void NoteListView::setNotebookItemView(NotebookItemView * pNotebookItemView)
     m_pNotebookItemView = pNotebookItemView;
 }
 
+void NoteListView::onCurrentNoteChanged(QString noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteListView::onCurrentNoteChanged: ") << noteLocalUid);
+
+    NoteFilterModel * pNoteFilterModel = qobject_cast<NoteFilterModel*>(model());
+    if (Q_UNLIKELY(!pNoteFilterModel)) {
+        QNDEBUG(QStringLiteral("Can't react on the change of current note: wrong model connected to the note list view"));
+        return;
+    }
+
+    NoteModel * pNoteModel = qobject_cast<NoteModel*>(pNoteFilterModel->sourceModel());
+    if (Q_UNLIKELY(!pNoteModel)) {
+        QNDEBUG(QStringLiteral("Can't react on the change: can't get the source model from the note filter model "
+                               "connected to the note list view"));
+        return;
+    }
+
+    QModelIndex index = pNoteModel->indexForLocalUid(noteLocalUid);
+    if (index.isValid()) {
+        index = pNoteFilterModel->mapFromSource(index);
+    }
+
+    setCurrentIndex(index);
+}
+
 void NoteListView::dataChanged(const QModelIndex & topLeft, const QModelIndex & bottomRight
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
                                )
@@ -386,7 +411,6 @@ void NoteListView::currentChanged(const QModelIndex & current,
                                   const QModelIndex & previous)
 {
     QNTRACE(QStringLiteral("NoteListView::currentChanged"));
-
     Q_UNUSED(previous)
 
     if (!current.isValid()) {

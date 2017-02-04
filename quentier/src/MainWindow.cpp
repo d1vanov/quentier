@@ -1873,9 +1873,9 @@ void MainWindow::onNewNoteButtonPressed()
     m_pNoteEditorTabWidgetManager->createNewNote(pNotebookItem->localUid(), pNotebookItem->guid());
 }
 
-void MainWindow::onCurrentNoteChanged(QString noteLocalUid)
+void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteChanged: ") << noteLocalUid);
+    QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInListChanged: ") << noteLocalUid);
     m_pNoteEditorTabWidgetManager->addNote(noteLocalUid);
 }
 
@@ -2803,7 +2803,7 @@ void MainWindow::setupViews()
                      pNoteListView, SLOT(dataChanged(QModelIndex,QModelIndex)));
 #endif
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,currentNoteChanged,QString),
-                     this, QNSLOT(MainWindow,onCurrentNoteChanged,QString));
+                     this, QNSLOT(MainWindow,onCurrentNoteInListChanged,QString));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);
@@ -2927,6 +2927,8 @@ void MainWindow::setupNoteEditorTabWidgetManager()
                                                                    m_pUI->noteEditorsTabWidget);
     QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,notifyError,QNLocalizedString),
                      this, QNSLOT(MainWindow,onNoteEditorError,QNLocalizedString));
+    QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,currentNoteChanged,QString),
+                     m_pUI->noteListView, QNSLOT(NoteListView,onCurrentNoteChanged,QString));
 
     // TODO: connect other relevant signals-slots
 }

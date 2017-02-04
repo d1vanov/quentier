@@ -69,6 +69,8 @@ public:
 Q_SIGNALS:
     void notifyError(QNLocalizedString error);
 
+    void currentNoteChanged(QString noteLocalUid);
+
     // private signals
     void requestAddNote(Note note, QUuid requestId);
 
@@ -83,6 +85,8 @@ private Q_SLOTS:
 
     void onAddNoteComplete(Note note, QUuid requestId);
     void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+
+    void onCurrentTabChanged(int currentIndex);
 
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
@@ -116,6 +120,7 @@ private:
     int                                 m_maxNumNotes;
 
     boost::circular_buffer<QString>     m_shownNoteLocalUids;
+    QString                             m_lastCurrentNoteLocalUid;
 
     QSet<QUuid>                         m_createNoteRequestIds;
 };
