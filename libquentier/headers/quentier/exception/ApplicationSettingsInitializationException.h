@@ -26,7 +26,7 @@ namespace quentier {
 class QUENTIER_EXPORT ApplicationSettingsInitializationException: public IQuentierException
 {
 public:
-    explicit ApplicationSettingsInitializationException(const QNLocalizedString & message);
+    explicit ApplicationSettingsInitializationException(const ErrorString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

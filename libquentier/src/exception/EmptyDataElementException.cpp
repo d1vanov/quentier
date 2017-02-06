@@ -20,7 +20,7 @@
 
 namespace quentier {
 
-EmptyDataElementException::EmptyDataElementException(const QNLocalizedString & message) :
+EmptyDataElementException::EmptyDataElementException(const ErrorString & message) :
     IQuentierException(message)
 {}
 

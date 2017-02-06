@@ -20,7 +20,7 @@
 
 namespace quentier {
 
-LocalStorageCacheManagerException::LocalStorageCacheManagerException(const QNLocalizedString & message) :
+LocalStorageCacheManagerException::LocalStorageCacheManagerException(const ErrorString & message) :
     IQuentierException(message)
 {}
 

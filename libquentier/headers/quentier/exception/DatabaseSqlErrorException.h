@@ -26,7 +26,7 @@ namespace quentier {
 class QUENTIER_EXPORT DatabaseSqlErrorException: public IQuentierException
 {
 public:
-    explicit DatabaseSqlErrorException(const QNLocalizedString & message);
+    explicit DatabaseSqlErrorException(const ErrorString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

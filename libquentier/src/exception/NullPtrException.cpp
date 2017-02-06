@@ -20,7 +20,7 @@
 
 namespace quentier {
 
-NullPtrException::NullPtrException(const QNLocalizedString & message) :
+NullPtrException::NullPtrException(const ErrorString & message) :
     IQuentierException(message)
 {}
 

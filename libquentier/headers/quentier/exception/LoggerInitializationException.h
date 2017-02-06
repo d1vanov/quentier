@@ -26,7 +26,7 @@ namespace quentier {
 class QUENTIER_EXPORT LoggerInitializationException: public IQuentierException
 {
 public:
-    explicit LoggerInitializationException(const QNLocalizedString & message);
+    explicit LoggerInitializationException(const ErrorString & message);
 
 protected:
     const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

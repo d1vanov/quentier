@@ -21,7 +21,7 @@
 
 namespace quentier {
 
-IQuentierException::IQuentierException(const QNLocalizedString & message) :
+IQuentierException::IQuentierException(const ErrorString & message) :
     Printable(),
     m_message(message)
 {}

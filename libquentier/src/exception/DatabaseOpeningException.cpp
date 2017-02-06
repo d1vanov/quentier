@@ -20,7 +20,7 @@
 
 namespace quentier {
 
-DatabaseOpeningException::DatabaseOpeningException(const QNLocalizedString & message) :
+DatabaseOpeningException::DatabaseOpeningException(const ErrorString & message) :
     IQuentierException(message)
 {}
 

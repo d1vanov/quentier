@@ -26,7 +26,7 @@ namespace quentier {
 class QUENTIER_EXPORT LocalStorageCacheManagerException: public IQuentierException
 {
 public:
-    explicit LocalStorageCacheManagerException(const QNLocalizedString & message);
+    explicit LocalStorageCacheManagerException(const ErrorString & message);
 
 protected:
     virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;

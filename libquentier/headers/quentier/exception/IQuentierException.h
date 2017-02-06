@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_EXCEPTION_I_QUENTIER_EXCEPTION_H
 
 #include <quentier/utility/Printable.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <exception>
 
 namespace quentier {
@@ -29,7 +29,7 @@ class QUENTIER_EXPORT IQuentierException: public Printable,
                                           public std::exception
 {
 public:
-    explicit IQuentierException(const QNLocalizedString & message);
+    explicit IQuentierException(const ErrorString & message);
 
 #ifdef _MSC_VER
     virtual ~IQuentierException();
@@ -61,7 +61,7 @@ protected:
 private:
     IQuentierException() Q_DECL_EQ_DELETE;
 
-    QNLocalizedString   m_message;
+    ErrorString   m_message;
 };
 
 } // namespace quentier
