@@ -64,6 +64,7 @@ set(NOTE_EDITOR_HEADERS
 
 set(TYPES_HEADERS
     headers/quentier/types/Account.h
+    headers/quentier/types/ErrorString.h
     headers/quentier/types/IFavoritableDataElement.h
     headers/quentier/types/LinkedNotebook.h
     headers/quentier/types/ILocalStorageDataElement.h
@@ -201,6 +202,7 @@ set(PRIVATE_HEADERS
     src/note_editor/undo_stack/TableActionUndoCommand.h
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.h
     src/types/data/AccountData.h
+    src/types/data/ErrorStringData.h
     src/types/data/FavoritableDataElementData.h
     src/types/data/LocalStorageDataElementData.h
     src/types/data/LinkedNotebookData.h
@@ -317,6 +319,7 @@ set(${PROJECT_NAME}_SOURCES
     src/note_editor/undo_stack/TableActionUndoCommand.cpp
     src/note_editor/undo_stack/HideDecryptedTextUndoCommand.cpp
     src/types/Account.cpp
+    src/types/ErrorString.cpp
     src/types/LinkedNotebook.cpp
     src/types/Note.cpp
     src/types/Notebook.cpp
