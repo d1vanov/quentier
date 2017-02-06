@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TYPES_USER_H
 
 #include <quentier/utility/Printable.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
@@ -64,7 +64,7 @@ public:
     bool isLocal() const;
     void setLocal(const bool local);
 
-    bool checkParameters(QNLocalizedString & errorDescription) const;
+    bool checkParameters(ErrorString & errorDescription) const;
 
     bool hasId() const;
     qint32 id() const;

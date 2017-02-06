@@ -61,7 +61,7 @@ public:
 
     virtual void clear() Q_DECL_OVERRIDE;
 
-    static bool validateName(const QString & name, QNLocalizedString * pErrorDescription = Q_NULLPTR);
+    static bool validateName(const QString & name, ErrorString * pErrorDescription = Q_NULLPTR);
 
     virtual bool hasGuid() const Q_DECL_OVERRIDE;
     virtual const QString & guid() const Q_DECL_OVERRIDE;
@@ -71,7 +71,7 @@ public:
     virtual qint32 updateSequenceNumber() const Q_DECL_OVERRIDE;
     virtual void setUpdateSequenceNumber(const qint32 usn) Q_DECL_OVERRIDE;
 
-    virtual bool checkParameters(QNLocalizedString & errorDescription) const Q_DECL_OVERRIDE;
+    virtual bool checkParameters(ErrorString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasName() const;
     const QString & name() const;

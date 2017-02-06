@@ -152,12 +152,13 @@ void Note::clear()
     d->clear();
 }
 
-bool Note::validateTitle(const QString & title, QNLocalizedString * pErrorDescription)
+bool Note::validateTitle(const QString & title, ErrorString * pErrorDescription)
 {
     if (title != title.trimmed())
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("note title cannot start or end with whitespace");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Note title cannot start or end with whitespace");
+            pErrorDescription->details() = title;
         }
 
         return false;
@@ -167,12 +168,8 @@ bool Note::validateTitle(const QString & title, QNLocalizedString * pErrorDescri
     if (len < qevercloud::EDAM_NOTE_TITLE_LEN_MIN)
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("note title's length is too small, need at least");
-            *pErrorDescription += QStringLiteral(" ");
-            *pErrorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MIN);
-            *pErrorDescription += QStringLiteral(" ");
-            // TRANSLATOR: the previous part of the phrase was "note title's length is too small, need at least N "
-            *pErrorDescription += QT_TR_NOOP("characters");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Note title's length is too small");
+            pErrorDescription->details() = title;
         }
 
         return false;
@@ -180,12 +177,8 @@ bool Note::validateTitle(const QString & title, QNLocalizedString * pErrorDescri
     else if (len > qevercloud::EDAM_NOTE_TITLE_LEN_MAX)
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("note title's length is too large, need max");
-            *pErrorDescription += QStringLiteral(" ");
-            *pErrorDescription += QString::number(qevercloud::EDAM_NOTE_TITLE_LEN_MAX);
-            *pErrorDescription += QStringLiteral(" ");
-            // TRANSLATOR: the previous part of the phrase was "note title's length is too large, need max N "
-            *pErrorDescription += QT_TR_NOOP("characters");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Note title's length is too large");
+            pErrorDescription->details() = title;
         }
 
         return false;
@@ -194,10 +187,10 @@ bool Note::validateTitle(const QString & title, QNLocalizedString * pErrorDescri
     return true;
 }
 
-bool Note::checkParameters(QNLocalizedString & errorDescription) const
+bool Note::checkParameters(ErrorString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecNote.guid.isSet()) {
-        errorDescription = QT_TR_NOOP("both Note's local and remote guids are empty");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Both Note's local and remote guids are empty");
         return false;
     }
 
@@ -837,17 +830,17 @@ bool Note::isInkNote() const
     return true;
 }
 
-QString Note::plainText(QNLocalizedString * pErrorMessage) const
+QString Note::plainText(ErrorString * pErrorMessage) const
 {
     return d->plainText(pErrorMessage);
 }
 
-QStringList Note::listOfWords(QNLocalizedString * pErrorMessage) const
+QStringList Note::listOfWords(ErrorString * pErrorMessage) const
 {
     return d->listOfWords(pErrorMessage);
 }
 
-std::pair<QString, QStringList> Note::plainTextAndListOfWords(QNLocalizedString * pErrorMessage) const
+std::pair<QString, QStringList> Note::plainTextAndListOfWords(ErrorString * pErrorMessage) const
 {
     return d->plainTextAndListOfWords(pErrorMessage);
 }

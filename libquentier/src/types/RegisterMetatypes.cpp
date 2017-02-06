@@ -17,6 +17,7 @@
  */
 
 #include <quentier/types/RegisterMetatypes.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Tag.h>
@@ -27,7 +28,6 @@
 #include <quentier/types/SharedNotebook.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
-#include <quentier/utility/QNLocalizedString.h>
 #include <QMetaType>
 
 namespace quentier {
@@ -70,7 +70,7 @@ void registerMetatypes()
 
     qRegisterMetaType<NoteSearchQuery>("NoteSearchQuery");
 
-    qRegisterMetaType<QNLocalizedString>("QNLocalizedString");
+    qRegisterMetaType<ErrorString>("ErrorString");
 }
 
 } // namespace quentier

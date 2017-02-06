@@ -72,9 +72,9 @@ public:
 
     virtual void clear() Q_DECL_OVERRIDE;
 
-    static bool validateTitle(const QString & title, QNLocalizedString * pErrorDescription = Q_NULLPTR);
+    static bool validateTitle(const QString & title, ErrorString * pErrorDescription = Q_NULLPTR);
 
-    virtual bool checkParameters(QNLocalizedString & errorDescription) const Q_DECL_OVERRIDE;
+    virtual bool checkParameters(ErrorString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasTitle() const;
     const QString & title() const;
@@ -165,9 +165,9 @@ public:
 
     bool isInkNote() const;
 
-    QString plainText(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
-    QStringList listOfWords(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
-    std::pair<QString, QStringList> plainTextAndListOfWords(QNLocalizedString * pErrorMessage = Q_NULLPTR) const;
+    QString plainText(ErrorString * pErrorMessage = Q_NULLPTR) const;
+    QStringList listOfWords(ErrorString * pErrorMessage = Q_NULLPTR) const;
+    std::pair<QString, QStringList> plainTextAndListOfWords(ErrorString * pErrorMessage = Q_NULLPTR) const;
 
     bool containsCheckedTodo() const;
     bool containsUncheckedTodo() const;

@@ -122,12 +122,12 @@ void Notebook::clear()
     d->m_qecNotebook = qevercloud::Notebook();
 }
 
-bool Notebook::validateName(const QString & name, QNLocalizedString * pErrorDescription)
+bool Notebook::validateName(const QString & name, ErrorString * pErrorDescription)
 {
     if (name != name.trimmed())
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("notebook name cannot start or end with whitespace");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Notebook name cannot start or end with whitespace");
         }
 
         return false;
@@ -137,12 +137,8 @@ bool Notebook::validateName(const QString & name, QNLocalizedString * pErrorDesc
     if (len < qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN)
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("notebook name's length is too small");
-            *pErrorDescription += QStringLiteral(" ");
-            *pErrorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MIN);
-            *pErrorDescription += QStringLiteral(" ");
-            // TRANSLATOR: the previous part of the phrase was "notebook name's length is too small, need at least N "
-            *pErrorDescription += QT_TR_NOOP("characters");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Notebook name's length is too small");
+            pErrorDescription->details() = name;
         }
 
         return false;
@@ -150,12 +146,8 @@ bool Notebook::validateName(const QString & name, QNLocalizedString * pErrorDesc
     else if (len > qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX)
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("notebook name's length is too large");
-            *pErrorDescription += QStringLiteral(" ");
-            *pErrorDescription += QString::number(qevercloud::EDAM_NOTEBOOK_NAME_LEN_MAX);
-            *pErrorDescription += QStringLiteral(" ");
-            // TRANSLATOR: the previous part of the phrase was "notebook name's length is too large, need max N "
-            *pErrorDescription += QT_TR_NOOP("characters");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Notebook name's length is too large");
+            pErrorDescription->details() = name;
         }
 
         return false;
@@ -199,10 +191,10 @@ void Notebook::setUpdateSequenceNumber(const qint32 usn)
     d->m_qecNotebook.updateSequenceNum = usn;
 }
 
-bool Notebook::checkParameters(QNLocalizedString & errorDescription) const
+bool Notebook::checkParameters(ErrorString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecNotebook.guid.isSet()) {
-        errorDescription = QT_TR_NOOP("both notebook's local and remote guids are not set");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Both notebook's local and remote guids are not set");
         return false;
     }
 

@@ -59,14 +59,15 @@ void LinkedNotebookData::clear()
     m_qecLinkedNotebook = qevercloud::LinkedNotebook();
 }
 
-bool LinkedNotebookData::checkParameters(QNLocalizedString & errorDescription) const
+bool LinkedNotebookData::checkParameters(ErrorString & errorDescription) const
 {
     if (!m_qecLinkedNotebook.guid.isSet()) {
-        errorDescription = QT_TR_NOOP("linked notebook's guid is not set");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Linked notebook's guid is not set");
         return false;
     }
     else if (!checkGuid(m_qecLinkedNotebook.guid.ref())) {
-        errorDescription = QT_TR_NOOP("linked notebook's guid is invalid");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Linked notebook's guid is invalid");
+        errorDescription.details() = m_qecLinkedNotebook.guid.ref();
         return false;
     }
 
@@ -74,7 +75,7 @@ bool LinkedNotebookData::checkParameters(QNLocalizedString & errorDescription) c
     {
         if (m_qecLinkedNotebook.shareName->isEmpty())
         {
-            errorDescription = QT_TR_NOOP("linked notebook's custom name is empty");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Linked notebook's custom name is empty");
             return false;
         }
         else
@@ -93,7 +94,7 @@ bool LinkedNotebookData::checkParameters(QNLocalizedString & errorDescription) c
             }
 
             if (!nonSpaceCharFound) {
-                errorDescription = QT_TR_NOOP("linked notebook's custom name must contain non-space characters");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Linked notebook's custom name must contain non-whitespace characters");
                 return false;
             }
         }

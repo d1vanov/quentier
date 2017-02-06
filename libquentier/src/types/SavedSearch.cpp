@@ -107,12 +107,13 @@ void SavedSearch::clear()
     d->clear();
 }
 
-bool SavedSearch::validateName(const QString & name, QNLocalizedString * pErrorDescription)
+bool SavedSearch::validateName(const QString & name, ErrorString * pErrorDescription)
 {
     if (name != name.trimmed())
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("saved search name cannot start or end with whitespace");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Saved search name cannot start or end with whitespace");
+            pErrorDescription->details() = name;
         }
 
         return false;
@@ -122,7 +123,8 @@ bool SavedSearch::validateName(const QString & name, QNLocalizedString * pErrorD
     if (len < qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MIN)
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("saved search name's length is too small");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Saved search name's length is too small");
+            pErrorDescription->details() = name;
         }
 
         return false;
@@ -131,7 +133,8 @@ bool SavedSearch::validateName(const QString & name, QNLocalizedString * pErrorD
     if (len > qevercloud::EDAM_SAVED_SEARCH_NAME_LEN_MAX)
     {
         if (pErrorDescription) {
-            *pErrorDescription = QT_TR_NOOP("saved search's name length is too large");
+            pErrorDescription->base() = QT_TRANSLATE_NOOP("", "Saved search's name length is too large");
+            pErrorDescription->details() = name;
         }
 
         return false;
@@ -175,10 +178,10 @@ void SavedSearch::setUpdateSequenceNumber(const qint32 usn)
     d->m_qecSearch.updateSequenceNum = usn;
 }
 
-bool SavedSearch::checkParameters(QNLocalizedString & errorDescription) const
+bool SavedSearch::checkParameters(ErrorString & errorDescription) const
 {
     if (localUid().isEmpty() && !d->m_qecSearch.guid.isSet()) {
-        errorDescription = QT_TR_NOOP("both saved search's local and remote guids are empty");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Both saved search's local and remote guids are empty");
         return false;
     }
 

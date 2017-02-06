@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TYPES_DATA_NOTE_DATA_H
 
 #include "FavoritableDataElementData.h"
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
@@ -42,11 +42,11 @@ public:
     virtual ~NoteData();
 
     void clear();
-    bool checkParameters(QNLocalizedString & errorDescription) const;
+    bool checkParameters(ErrorString & errorDescription) const;
 
-    QString plainText(QNLocalizedString * pErrorMessage) const;
-    QStringList listOfWords(QNLocalizedString * pErrorMessage) const;
-    std::pair<QString, QStringList> plainTextAndListOfWords(QNLocalizedString * pErrorMessage) const;
+    QString plainText(ErrorString * pErrorMessage) const;
+    QStringList listOfWords(ErrorString * pErrorMessage) const;
+    std::pair<QString, QStringList> plainTextAndListOfWords(ErrorString * pErrorMessage) const;
 
     bool containsToDoImpl(const bool checked) const;
     bool containsEncryption() const;

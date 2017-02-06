@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TYPES_DATA_NOTEBOOK_DATA_H
 
 #include "FavoritableDataElementData.h"
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
@@ -41,7 +41,7 @@ public:
 
     virtual ~NotebookData();
 
-    bool checkParameters(QNLocalizedString & errorDescription) const;
+    bool checkParameters(ErrorString & errorDescription) const;
 
     bool operator==(const NotebookData & other) const;
     bool operator!=(const NotebookData & other) const;

@@ -66,7 +66,7 @@ public:
     virtual qint32 updateSequenceNumber() const Q_DECL_OVERRIDE;
     virtual void setUpdateSequenceNumber(const qint32 usn) Q_DECL_OVERRIDE;
 
-    virtual bool checkParameters(QNLocalizedString & errorDescription) const Q_DECL_OVERRIDE;
+    virtual bool checkParameters(ErrorString & errorDescription) const Q_DECL_OVERRIDE;
 
     bool hasShareName() const;
     const QString & shareName() const;
