@@ -126,7 +126,6 @@ set(UTILITY_HEADERS
     headers/quentier/utility/StringUtils.h
     headers/quentier/utility/SysInfo.h
     headers/quentier/utility/Printable.h
-    headers/quentier/utility/QNLocalizedString.h
     headers/quentier/utility/QuentierApplication.h
     headers/quentier/utility/QuentierCheckPtr.h
     headers/quentier/utility/QuentierUndoCommand.h
@@ -390,7 +389,6 @@ set(${PROJECT_NAME}_SOURCES
     src/utility/FileSystemWatcher.cpp
     src/utility/FileSystemWatcher_p.cpp
     src/utility/Printable.cpp
-    src/utility/QNLocalizedString.cpp
     src/utility/QuentierApplication.cpp
     src/utility/QuentierUndoCommand.cpp
     src/utility/ShortcutManager.cpp

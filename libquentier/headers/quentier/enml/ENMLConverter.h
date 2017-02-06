@@ -22,7 +22,7 @@
 #include <quentier/utility/Printable.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QSet>
 #include <QString>
 
@@ -94,7 +94,7 @@ public:
 
     bool htmlToNoteContent(const QString & html, QString & noteContent,
                            DecryptedTextManager & decryptedTextManager,
-                           QNLocalizedString & errorDescription,
+                           ErrorString & errorDescription,
                            const QVector<SkipHtmlElementRule> & skipRules = QVector<SkipHtmlElementRule>()) const;
 
     struct NoteContentToHtmlExtraData
@@ -105,16 +105,16 @@ public:
         quint64     m_numEnDecryptedNodes;
     };
 
-    bool noteContentToHtml(const QString & noteContent, QString & html, QNLocalizedString & errorDescription,
+    bool noteContentToHtml(const QString & noteContent, QString & html, ErrorString & errorDescription,
                            DecryptedTextManager & decryptedTextManager, NoteContentToHtmlExtraData & extraData) const;
 
-    bool validateEnml(const QString & enml, QNLocalizedString & errorDescription) const;
+    bool validateEnml(const QString & enml, ErrorString & errorDescription) const;
 
     static bool noteContentToPlainText(const QString & noteContent, QString & plainText,
-                                       QNLocalizedString & errorMessage);
+                                       ErrorString & errorMessage);
 
     static bool noteContentToListOfWords(const QString & noteContent, QStringList & listOfWords,
-                                         QNLocalizedString & errorMessage, QString * plainText = Q_NULLPTR);
+                                         ErrorString & errorMessage, QString * plainText = Q_NULLPTR);
 
     static QStringList plainTextToListOfWords(const QString & plainText);
 
@@ -128,7 +128,7 @@ public:
                                      const QString & hint, const QString & cipher,
                                      const size_t keyLength, const quint64 enDecryptedIndex);
 
-    static QString resourceHtml(const Resource & resource, QNLocalizedString & errorDescription);
+    static QString resourceHtml(const Resource & resource, ErrorString & errorDescription);
 
     static void escapeString(QString & string, const bool simplify = true);
 
