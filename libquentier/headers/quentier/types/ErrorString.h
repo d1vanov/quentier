@@ -27,8 +27,13 @@ namespace quentier {
 QT_FORWARD_DECLARE_CLASS(ErrorStringData)
 
 /**
- * @brief The ErrorString class encapsulates two strings which are meant to contain
+ * @brief The ErrorString class encapsulates two (or more) strings which are meant to contain
  * translatable (base) and non-translatable (details) parts of the error description
+ *
+ * 1. base() methods return const and non-const links to the primary translatable string
+ * 2. details() methods ruturn const and non-const links to non-translatable string (coming from some third party library etc)
+ * 3. additionalBases() methods return const and non-const links to additional translatable strings; one translatable string
+ *    is not always enough because the error message might be composed from different parts
  */
 class QUENTIER_EXPORT ErrorString: public Printable
 {
@@ -40,6 +45,9 @@ public:
 
     const QString & base() const;
     QString & base();
+
+    const QStringList & additionalBases() const;
+    QStringList & additionalBases();
 
     const QString & details() const;
     QString & details();

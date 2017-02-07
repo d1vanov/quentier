@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_H
 #define LIB_QUENTIER_LOCAL_STORAGE_NOTE_SEARCH_QUERY_H
 
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QSharedDataPointer>
 
 namespace quentier {
@@ -45,7 +45,7 @@ public:
      */
     const QString queryString() const;
 
-    bool setQueryString(const QString & queryString, QNLocalizedString & error);
+    bool setQueryString(const QString & queryString, ErrorString & error);
 
     /**
      * If query string has "notebook:<notebook name>" scope modifier,

@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_LOCAL_STORAGE_LOCAL_STORAGE_MANAGER_THREAD_WORKER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/local_storage/LocalStorageCacheManager.h>
 #include <quentier/types/User.h>
@@ -50,48 +50,48 @@ public:
 
 Q_SIGNALS:
     // Generic failure signal
-    void failure(QNLocalizedString errorDescription);
+    void failure(ErrorString errorDescription);
 
     // Sent when the initialization is complete
     void initialized();
 
     // User-related signals:
     void getUserCountComplete(int userCount, QUuid requestId = QUuid());
-    void getUserCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void getUserCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void switchUserComplete(Account account, QUuid requestId = QUuid());
-    void switchUserFailed(Account account, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void switchUserFailed(Account account, ErrorString errorDescription, QUuid requestId = QUuid());
     void addUserComplete(User user, QUuid requestId = QUuid());
-    void addUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addUserFailed(User user, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateUserComplete(User user, QUuid requestId = QUuid());
-    void updateUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateUserFailed(User user, ErrorString errorDescription, QUuid requestId = QUuid());
     void findUserComplete(User foundUser, QUuid requestId = QUuid());
-    void findUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findUserFailed(User user, ErrorString errorDescription, QUuid requestId = QUuid());
     void deleteUserComplete(User user, QUuid requestId = QUuid());
-    void deleteUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void deleteUserFailed(User user, ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeUserComplete(User user, QUuid requestId = QUuid());
-    void expungeUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeUserFailed(User user, ErrorString errorDescription, QUuid requestId = QUuid());
 
     // Notebook-related signals:
     void getNotebookCountComplete(int notebookCount, QUuid requestId = QUuid());
-    void getNotebookCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void getNotebookCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void addNotebookComplete(Notebook notebook, QUuid requestId = QUuid());
-    void addNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateNotebookComplete(Notebook notebook, QUuid requestId = QUuid());
-    void updateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void findNotebookComplete(Notebook foundNotebook, QUuid requestId = QUuid());
-    void findNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void findDefaultNotebookComplete(Notebook foundNotebook, QUuid requestId = QUuid());
-    void findDefaultNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findDefaultNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void findLastUsedNotebookComplete(Notebook foundNotebook, QUuid requestId = QUuid());
-    void findLastUsedNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findLastUsedNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void findDefaultOrLastUsedNotebookComplete(Notebook foundNotebook, QUuid requestId = QUuid());
-    void findDefaultOrLastUsedNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findDefaultOrLastUsedNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void listAllNotebooksComplete(size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
                                   LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                                   QList<Notebook> foundNotebooks, QUuid requestId = QUuid());
     void listAllNotebooksFailed(size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
                                 LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
-                                QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                ErrorString errorDescription, QUuid requestId = QUuid());
     void listNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
                                size_t limit, size_t offset, LocalStorageManager::ListNotebooksOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
@@ -99,24 +99,24 @@ Q_SIGNALS:
     void listNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
                              LocalStorageManager::ListNotebooksOrder::type order,
                              LocalStorageManager::OrderDirection::type orderDirection,
-                             QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                             QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId = QUuid());
     void listAllSharedNotebooksComplete(QList<SharedNotebook> foundSharedNotebooks, QUuid requestId = QUuid());
-    void listAllSharedNotebooksFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void listAllSharedNotebooksFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void listSharedNotebooksPerNotebookGuidComplete(QString notebookGuid, QList<SharedNotebook> foundSharedNotebooks,
                                                     QUuid requestId = QUuid());
-    void listSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void listSharedNotebooksPerNotebookGuidFailed(QString notebookGuid, ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeNotebookComplete(Notebook notebook, QUuid requestId = QUuid());
-    void expungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId = QUuid());
 
     // Linked notebook-related signals:
     void getLinkedNotebookCountComplete(int linkedNotebookCount, QUuid requestId = QUuid());
-    void getLinkedNotebookCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void getLinkedNotebookCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void addLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
-    void addLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
-    void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void findLinkedNotebookComplete(LinkedNotebook foundLinkedNotebook, QUuid requestId = QUuid());
-    void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId = QUuid());
     void listAllLinkedNotebooksComplete(size_t limit, size_t offset,
                                         LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                         LocalStorageManager::OrderDirection::type orderDirection,
@@ -125,7 +125,7 @@ Q_SIGNALS:
     void listAllLinkedNotebooksFailed(size_t limit, size_t offset,
                                       LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                       LocalStorageManager::OrderDirection::type orderDirection,
-                                      QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                      ErrorString errorDescription, QUuid requestId = QUuid());
     void listLinkedNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
                                      size_t limit, size_t offset,
                                      LocalStorageManager::ListLinkedNotebooksOrder::type order,
@@ -136,24 +136,24 @@ Q_SIGNALS:
                                    size_t limit, size_t offset,
                                    LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                   QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                   ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeLinkedNotebookComplete(LinkedNotebook linkedNotebook, QUuid requestId = QUuid());
-    void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId = QUuid());
 
     // Note-related signals:
     void noteCountComplete(int noteCount, QUuid requestId = QUuid());
-    void noteCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void noteCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void noteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId = QUuid());
-    void noteCountPerNotebookFailed(QNLocalizedString errorDescription, Notebook notebook, QUuid requestId = QUuid());
+    void noteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId = QUuid());
     void noteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId = QUuid());
-    void noteCountPerTagFailed(QNLocalizedString errorDescription, Tag tag, QUuid requestId = QUuid());
+    void noteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId = QUuid());
     void addNoteComplete(Note note, QUuid requestId = QUuid());
-    void addNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addNoteFailed(Note note, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId = QUuid());
     void updateNoteFailed(Note note, bool updateResources, bool updateTags,
-                          QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                          ErrorString errorDescription, QUuid requestId = QUuid());
     void findNoteComplete(Note foundNote, bool withResourceBinaryData, QUuid requestId = QUuid());
-    void findNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId = QUuid());
     void listNotesPerNotebookComplete(Notebook notebook, bool withResourceBinaryData,
                                       LocalStorageManager::ListObjectsOptions flag,
                                       size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
@@ -163,7 +163,7 @@ Q_SIGNALS:
                                     LocalStorageManager::ListObjectsOptions flag,
                                     size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                    QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                    ErrorString errorDescription, QUuid requestId = QUuid());
     void listNotesPerTagComplete(Tag tag, bool withResourceBinaryData,
                                  LocalStorageManager::ListObjectsOptions flag,
                                  size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
@@ -173,7 +173,7 @@ Q_SIGNALS:
                                LocalStorageManager::ListObjectsOptions flag,
                                size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
-                               QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                               ErrorString errorDescription, QUuid requestId = QUuid());
     void listNotesComplete(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
@@ -181,27 +181,27 @@ Q_SIGNALS:
     void listNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                          size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                          LocalStorageManager::OrderDirection::type orderDirection,
-                         QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                         ErrorString errorDescription, QUuid requestId = QUuid());
     void findNoteLocalUidsWithSearchQueryComplete(QStringList noteLocalUids,
                                                   NoteSearchQuery noteSearchQuery,
                                                   QUuid requestId = QUuid());
     void findNoteLocalUidsWithSearchQueryFailed(NoteSearchQuery noteSearchQuery,
-                                                QNLocalizedString errorDescription,
+                                                ErrorString errorDescription,
                                                 QUuid requestId = QUuid());
     void expungeNoteComplete(Note note, QUuid requestId = QUuid());
-    void expungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId = QUuid());
 
     // Tag-related signals:
     void getTagCountComplete(int tagCount, QUuid requestId = QUuid());
-    void getTagCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void getTagCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void addTagComplete(Tag tag, QUuid requestId = QUuid());
-    void addTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateTagComplete(Tag tag, QUuid requestId = QUuid());
-    void updateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId = QUuid());
     void linkTagWithNoteComplete(Tag tag, Note note, QUuid requestId = QUuid());
-    void linkTagWithNoteFailed(Tag tag, Note note, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void linkTagWithNoteFailed(Tag tag, Note note, ErrorString errorDescription, QUuid requestId = QUuid());
     void findTagComplete(Tag tag, QUuid requestId = QUuid());
-    void findTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId = QUuid());
     void listAllTagsPerNoteComplete(QList<Tag> foundTags, Note note,
                                     LocalStorageManager::ListObjectsOptions flag,
                                     size_t limit, size_t offset,
@@ -212,13 +212,13 @@ Q_SIGNALS:
                                   size_t limit, size_t offset,
                                   LocalStorageManager::ListTagsOrder::type order,
                                   LocalStorageManager::OrderDirection::type orderDirection,
-                                  QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                  ErrorString errorDescription, QUuid requestId = QUuid());
     void listAllTagsComplete(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
                              LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                              QList<Tag> foundTags, QUuid requestId = QUuid());
     void listAllTagsFailed(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
-                           QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                           ErrorString errorDescription, QUuid requestId = QUuid());
     void listTagsComplete(LocalStorageManager::ListObjectsOptions flag,
                           size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
@@ -226,33 +226,33 @@ Q_SIGNALS:
     void listTagsFailed(LocalStorageManager::ListObjectsOptions flag,
                         size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
                         LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
-                        QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                        ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeTagComplete(Tag tag, QUuid requestId = QUuid());
-    void expungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId = QUuid());
-    void expungeNotelessTagsFromLinkedNotebooksFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeNotelessTagsFromLinkedNotebooksFailed(ErrorString errorDescription, QUuid requestId = QUuid());
 
     // Resource-related signals:
     void getResourceCountComplete(int resourceCount, QUuid requestId = QUuid());
-    void getResourceCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void getResourceCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void addResourceComplete(Resource resource, QUuid requestId = QUuid());
-    void addResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateResourceComplete(Resource resource, QUuid requestId = QUuid());
-    void updateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId = QUuid());
     void findResourceComplete(Resource resource, bool withBinaryData, QUuid requestId = QUuid());
-    void findResourceFailed(Resource resource, bool withBinaryData, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findResourceFailed(Resource resource, bool withBinaryData, ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeResourceComplete(Resource resource, QUuid requestId = QUuid());
-    void expungeResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId = QUuid());
 
     // Saved search-related signals:
     void getSavedSearchCountComplete(int savedSearchCount, QUuid requestId = QUuid());
-    void getSavedSearchCountFailed(QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void getSavedSearchCountFailed(ErrorString errorDescription, QUuid requestId = QUuid());
     void addSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
-    void addSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void addSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId = QUuid());
     void updateSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
-    void updateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void updateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId = QUuid());
     void findSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
-    void findSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void findSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId = QUuid());
     void listAllSavedSearchesComplete(size_t limit, size_t offset,
                                       LocalStorageManager::ListSavedSearchesOrder::type order,
                                       LocalStorageManager::OrderDirection::type orderDirection,
@@ -260,7 +260,7 @@ Q_SIGNALS:
     void listAllSavedSearchesFailed(size_t limit, size_t offset,
                                     LocalStorageManager::ListSavedSearchesOrder::type order,
                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                    QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                    ErrorString errorDescription, QUuid requestId = QUuid());
     void listSavedSearchesComplete(LocalStorageManager::ListObjectsOptions flag,
                                    size_t limit, size_t offset,
                                    LocalStorageManager::ListSavedSearchesOrder::type order,
@@ -270,9 +270,9 @@ Q_SIGNALS:
                                  size_t limit, size_t offset,
                                  LocalStorageManager::ListSavedSearchesOrder::type order,
                                  LocalStorageManager::OrderDirection::type orderDirection,
-                                 QNLocalizedString errorDescription, QUuid requestId = QUuid());
+                                 ErrorString errorDescription, QUuid requestId = QUuid());
     void expungeSavedSearchComplete(SavedSearch search, QUuid requestId = QUuid());
-    void expungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId = QUuid());
+    void expungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId = QUuid());
 
 public Q_SLOTS:
     void init();

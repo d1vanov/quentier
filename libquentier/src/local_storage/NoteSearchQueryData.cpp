@@ -285,7 +285,7 @@ void NoteSearchQueryData::clear()
     m_negatedContentSearchTerms.clear();
 }
 
-bool NoteSearchQueryData::parseQueryString(const QString & queryString, QNLocalizedString & error)
+bool NoteSearchQueryData::parseQueryString(const QString & queryString, ErrorString & error)
 {
     m_queryString = queryString;
 
@@ -296,8 +296,8 @@ bool NoteSearchQueryData::parseQueryString(const QString & queryString, QNLocali
 
     int notebookScopeModifierPosition = words.indexOf(notebookModifierRegex);
     if (notebookScopeModifierPosition > 0) {
-        error = QT_TR_NOOP("Incorrect position of \"notebook:\" scope modifier in the search query: "
-                           "when present in the query, it should be the first term in the search");
+        error.base() = QT_TRANSLATE_NOOP("", "Incorrect position of \"notebook:\" scope modifier in the search query: "
+                                         "when present in the query, it should be the first term in the search");
         return false;
     }
     else if (notebookScopeModifierPosition == 0)
@@ -406,7 +406,7 @@ bool NoteSearchQueryData::parseQueryString(const QString & queryString, QNLocali
         if (searchTerm == negatedFinishedToDo)
         {
             if (m_hasFinishedToDo) {
-                error = QT_TR_NOOP("Incorrect search query: both finished todo and negated finished todo tags were found");
+                error.base() = QT_TRANSLATE_NOOP("", "Incorrect search query: both finished todo and negated finished todo tags were found");
                 return false;
             }
             m_hasNegatedFinishedToDo = true;
@@ -414,21 +414,21 @@ bool NoteSearchQueryData::parseQueryString(const QString & queryString, QNLocali
         else if (searchTerm == finishedToDo)
         {
             if (m_hasNegatedFinishedToDo) {
-                error = QT_TR_NOOP("Incorrect search query: both negated finished todo and finished todo tags were found");
+                error.base() = QT_TRANSLATE_NOOP("", "Incorrect search query: both negated finished todo and finished todo tags were found");
                 return false;
             }
             m_hasFinishedToDo = true;
         }
         else if (searchTerm == negatedUnfinishedToDo) {
             if (m_hasUnfinishedToDo) {
-                error = QT_TR_NOOP("Incorrect search query: both unfinished todo and negated unfinished todo tags were found");
+                error.base() = QT_TRANSLATE_NOOP("", "Incorrect search query: both unfinished todo and negated unfinished todo tags were found");
                 return false;
             }
             m_hasNegatedUnfinishedToDo = true;
         }
         else if (searchTerm == unfinishedToDo) {
             if (m_hasNegatedUnfinishedToDo) {
-                error = QT_TR_NOOP("Incorrect search query: both negated unfinished todo and unfinished todo tags were found");
+                error.base() = QT_TRANSLATE_NOOP("", "Incorrect search query: both negated unfinished todo and unfinished todo tags were found");
                 return false;
             }
             m_hasUnfinishedToDo = true;
@@ -909,7 +909,7 @@ void NoteSearchQueryData::parseStringValue(const QString & key, QStringList & wo
 
 bool NoteSearchQueryData::parseIntValue(const QString & key, QStringList & words,
                                            QVector<qint64> & container, QVector<qint64> & negatedContainer,
-                                           bool & hasAnyValue, bool & hasNegatedAnyValue, QNLocalizedString & error) const
+                                           bool & hasAnyValue, bool & hasNegatedAnyValue, ErrorString & error) const
 {
     int keyIndex = 0;
     QChar negation('-');
@@ -969,11 +969,10 @@ bool NoteSearchQueryData::parseIntValue(const QString & key, QStringList & words
             bool conversionResult = false;
             qint64 value = static_cast<qint64>(word.toLongLong(&conversionResult));
             if (!conversionResult) {
-                error = QT_TR_NOOP("Invalid search query: cannot parse integer value \"");
-                error += word;
-                error += QT_TR_NOOP("\", search term of parsed value is \"");
-                error += key;
-                error += QStringLiteral("\"");
+                error.base() = QT_TRANSLATE_NOOP("", "Invalid search query: cannot parse integer value for key");
+                error.details() = key;
+                error.details() += QStringLiteral(": ");
+                error.details() += word;
                 return false;
             }
 
@@ -995,7 +994,7 @@ bool NoteSearchQueryData::parseIntValue(const QString & key, QStringList & words
 
 bool NoteSearchQueryData::parseDoubleValue(const QString & key, QStringList & words,
                                               QVector<double> & container, QVector<double> & negatedContainer,
-                                              bool & hasAnyValue, bool & hasNegatedAnyValue, QNLocalizedString & error) const
+                                              bool & hasAnyValue, bool & hasNegatedAnyValue, ErrorString & error) const
 {
     int keyIndex = 0;
     QChar negation('-');
@@ -1055,11 +1054,10 @@ bool NoteSearchQueryData::parseDoubleValue(const QString & key, QStringList & wo
             bool conversionResult = false;
             double value = static_cast<double>(word.toDouble(&conversionResult));
             if (!conversionResult) {
-                error = QT_TR_NOOP("Invalid search query: cannot parse double value \"");
-                error += word;
-                error += QT_TR_NOOP("\", search term of parsed value is \"");
-                error += key;
-                error += QStringLiteral("\"");
+                error.base() = QT_TRANSLATE_NOOP("", "Invalid search query: cannot parse double value for key");
+                error.details() = key;
+                error.details() += QStringLiteral(": ");
+                error.details() += word;
                 return false;
             }
 
@@ -1079,8 +1077,7 @@ bool NoteSearchQueryData::parseDoubleValue(const QString & key, QStringList & wo
     return true;
 }
 
-bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString,
-                                                       qint64 & timestamp, QNLocalizedString & error) const
+bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString, qint64 & timestamp, ErrorString & error) const
 {
     QDateTime todayMidnight = QDateTime::currentDateTime();
     todayMidnight.setTime(QTime(0, 0, 0, 0));
@@ -1172,9 +1169,8 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString,
     if (relativeDateArgumentFound)
     {
         if (!dateTime.isValid()) {
-            error = QT_TR_NOOP("Datetime processed from query string is invalid: ");
-            error += QT_TR_NOOP("Datetime in ISO 861 format: ") + dateTime.toString(Qt::ISODate);
-            error += QT_TR_NOOP(", datetime in simple text format: ") + dateTime.toString(Qt::TextDate);
+            error.base() = QT_TRANSLATE_NOOP("", "Datetime processed from query string is invalid");
+            error.details() = dateTimeString;
             QNWARNING(error);
             return false;
         }
@@ -1186,9 +1182,8 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString,
     // Getting here means the datetime in the string is actually a datetime in ISO 8601 compact profile
     dateTime = QDateTime::fromString(dateTimeString, Qt::ISODate);
     if (!dateTime.isValid()) {
-        error = QT_TR_NOOP("Invalid query string: cannot parse datetime from \"");
-        error += dateTimeString;
-        error += QStringLiteral("\"");
+        error.base() = QT_TRANSLATE_NOOP("", "Invalid query string: cannot parse datetime value");
+        error.details() = dateTimeString;
         QNDEBUG(error);
         return false;
     }
@@ -1197,7 +1192,7 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString,
     return true;
 }
 
-bool NoteSearchQueryData::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, QNLocalizedString & error) const
+bool NoteSearchQueryData::convertAbsoluteAndRelativeDateTimesToTimestamps(QStringList & words, ErrorString & error) const
 {
     QStringList dateTimePrefixes;
     dateTimePrefixes << QStringLiteral("created:") << QStringLiteral("-created:") << QStringLiteral("updated:") << QStringLiteral("-updated:")

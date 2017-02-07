@@ -48,20 +48,48 @@ QString & ErrorString::details()
     return d->m_details;
 }
 
+const QStringList & ErrorString::additionalBases() const
+{
+    return d->m_additionalBases;
+}
+
+QStringList & ErrorString::additionalBases()
+{
+    return d->m_additionalBases;
+}
+
 bool ErrorString::isEmpty() const
 {
-    return d->m_base.isEmpty() && d->m_details.isEmpty();
+    return d->m_base.isEmpty() && d->m_details.isEmpty() && d->m_additionalBases.isEmpty();
 }
 
 void ErrorString::clear()
 {
     d->m_base.clear();
     d->m_details.clear();
+    d->m_additionalBases.clear();
 }
 
 QTextStream & ErrorString::print(QTextStream & strm) const
 {
     strm << d->m_base;
+
+    for(auto it = d->m_additionalBases.constBegin(), end = d->m_additionalBases.constEnd(); it != end; ++it)
+    {
+        QString previousStr = d->m_base;
+        if (Q_LIKELY(it != d->m_additionalBases.constBegin())) {
+            auto prevIt = it;
+            --prevIt;
+            previousStr = *prevIt;
+        }
+
+        if (Q_UNLIKELY(previousStr.isEmpty())) {
+            strm << *it;
+        }
+        else {
+            strm << QStringLiteral(", ") << *it;
+        }
+    }
 
     if (!d->m_details.isEmpty()) {
         strm << QStringLiteral(": ") << d->m_details;

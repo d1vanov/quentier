@@ -24,7 +24,7 @@
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QString>
 #include <QScopedPointer>
 #include <QSharedPointer>
@@ -121,7 +121,7 @@ public:
      * @param errorDescription - error description if the number of users could not be returned
      * @return either non-negative value with the number of users or -1 which means some error has occurred
      */
-    int userCount(QNLocalizedString & errorDescription) const;
+    int userCount(ErrorString & errorDescription) const;
 
     /**
      * @brief addUser - adds the passed in User object to the local storage database
@@ -133,7 +133,7 @@ public:
      * @param errorDescription - error description if the user could not be added
      * @return true if the user was added successfully, false otherwise
      */
-    bool addUser(const User & user, QNLocalizedString & errorDescription);
+    bool addUser(const User & user, ErrorString & errorDescription);
 
     /**
      * @brief updateUser - updates the passed in User object in the local storage database
@@ -145,7 +145,7 @@ public:
      * @param errorDescription - error description if the user could not be updated
      * @return true if the user was updated successfully, false otherwise
      */
-    bool updateUser(const User & user, QNLocalizedString & errorDescription);
+    bool updateUser(const User & user, ErrorString & errorDescription);
 
     /**
      * @brief findUser - attempts to find and fill the fields of the passed in User object which must have
@@ -155,7 +155,7 @@ public:
      * @param errorDescription - error description if the user could not be found
      * @return true if the user was found successfully, false otherwise
      */
-    bool findUser(User & user, QNLocalizedString & errorDescription) const;
+    bool findUser(User & user, ErrorString & errorDescription) const;
 
     /**
      * @brief deleteUser - marks the user as deleted in local storage
@@ -163,7 +163,7 @@ public:
      * @param errorDescription - error description if the user could not be marked as deleted
      * @return true if the user was marked as deleted successfully, false otherwise
      */
-    bool deleteUser(const User & user, QNLocalizedString & errorDescription);
+    bool deleteUser(const User & user, ErrorString & errorDescription);
 
     /**
      * @brief expungeUser - permanently deletes the user from the local storage database
@@ -171,14 +171,14 @@ public:
      * @param errorDescription - error description if the user could not be expunged
      * @return true if the user was expunged successfully, false otherwise
      */
-    bool expungeUser(const User & user, QNLocalizedString & errorDescription);
+    bool expungeUser(const User & user, ErrorString & errorDescription);
 
     /**
      * @brief notebookCount returns the number of notebooks currently stored in the local storage database
      * @param errorDescription - error description if the number of notebooks could not be returned
      * @return either non-negative value with the number of notebooks or -1 which means some error has occurred
      */
-    int notebookCount(QNLocalizedString & errorDescription) const;
+    int notebookCount(ErrorString & errorDescription) const;
 
     /**
      * @brief addNotebook - adds the passed in Notebook to the local storage database
@@ -192,7 +192,7 @@ public:
      * @param errorDescription - error description if the notebook could not be added
      * @return true if the notebook was added successfully, false otherwise
      */
-    bool addNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
+    bool addNotebook(Notebook & notebook, ErrorString & errorDescription);
 
     /**
      * @brief updateNotebook - updates the passed in Notebook in the local storage database
@@ -206,7 +206,7 @@ public:
      * @param errorDescription - error description if the notebook could not be updated
      * @return true if the notebook was updated successfully, false otherwise
      */
-    bool updateNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
+    bool updateNotebook(Notebook & notebook, ErrorString & errorDescription);
 
     /**
      * @brief findNotebook - attempts to find and set all found fields of the passed in
@@ -225,7 +225,7 @@ public:
      * @param errorDescription - error description if the notebook could not be found
      * @return true if the notebook was found, false otherwise
      */
-    bool findNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findNotebook(Notebook & notebook, ErrorString & errorDescription) const;
 
     /**
      * @brief findDefaultNotebook - attempts to find the default notebook in the local storage database.
@@ -233,7 +233,7 @@ public:
      * @param errorDescription - error description if the default notebook could not be found
      * @return true if the default notebook was found, false otherwise
      */
-    bool findDefaultNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findDefaultNotebook(Notebook & notebook, ErrorString & errorDescription) const;
 
     /**
      * @brief findLastUsedNotebook - attempts to find the last used notebook in the local storage database.
@@ -241,7 +241,7 @@ public:
      * @param errorDescription - error description if the last used notebook could not be found
      * @return true if the last used notebook was found, false otherwise
      */
-    bool findLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findLastUsedNotebook(Notebook & notebook, ErrorString & errorDescription) const;
 
     /**
      * @brief findDefaultOrLastUsedNotebook - attempts to find either the default or the last used notebook
@@ -250,7 +250,7 @@ public:
      * @param errorDescription - error description if the default or the last used notebook could not be found
      * @return true if the default or the last used notebook were found, false otherwise
      */
-    bool findDefaultOrLastUsedNotebook(Notebook & notebook, QNLocalizedString & errorDescription) const;
+    bool findDefaultOrLastUsedNotebook(Notebook & notebook, ErrorString & errorDescription) const;
 
     /**
      * @brief The OrderDirection struct is a C++98 style scoped enum which specifies the direction of ordering
@@ -297,7 +297,7 @@ public:
      * @return either the list of all notebooks within the account or empty list in cases of
      * error or no notebooks presence within the account
      */
-    QList<Notebook> listAllNotebooks(QNLocalizedString & errorDescription, const size_t limit = 0,
+    QList<Notebook> listAllNotebooks(ErrorString & errorDescription, const size_t limit = 0,
                                      const size_t offset = 0, const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
                                      const OrderDirection::type orderDirection = OrderDirection::Ascending,
                                      const QString & linkedNotebookGuid = QString()) const;
@@ -319,7 +319,7 @@ public:
      * @return either the list of notebooks within the account conforming to the filter or empty list
      * in cases of error or no notebooks conforming to the filter exist within the account
      */
-    QList<Notebook> listNotebooks(const ListObjectsOptions flag, QNLocalizedString & errorDescription,
+    QList<Notebook> listNotebooks(const ListObjectsOptions flag, ErrorString & errorDescription,
                                   const size_t limit = 0, const size_t offset = 0,
                                   const ListNotebooksOrder::type order = ListNotebooksOrder::NoOrder,
                                   const OrderDirection::type orderDirection = OrderDirection::Ascending,
@@ -332,7 +332,7 @@ public:
      * @return either the list of all shared notebooks within the account or empty list in cases of
      * error or no shared notebooks presence within the account
      */
-    QList<SharedNotebook> listAllSharedNotebooks(QNLocalizedString & errorDescription) const;
+    QList<SharedNotebook> listAllSharedNotebooks(ErrorString & errorDescription) const;
 
     /**
      * @brief listSharedNotebooksPerNotebookGuid - attempts to list all shared notebooks
@@ -345,7 +345,7 @@ public:
      * in case of error or no shared notebooks presence per given notebook guid
      */
     QList<SharedNotebook> listSharedNotebooksPerNotebookGuid(const QString & notebookGuid,
-                                                             QNLocalizedString & errorDescription) const;
+                                                             ErrorString & errorDescription) const;
 
     /**
      * @brief expungeNotebook - permanently deletes the specified notebook from the local storage database
@@ -361,14 +361,14 @@ public:
      * @param errorDescription - error description if the notebook could not be expunged
      * @return true if the notebook was expunged successfully, false otherwise
      */
-    bool expungeNotebook(Notebook & notebook, QNLocalizedString & errorDescription);
+    bool expungeNotebook(Notebook & notebook, ErrorString & errorDescription);
 
     /**
      * @brief linkedNotebookCount - returns the number of linked notebooks stored in the local storage database
      * @param errorDescription - error description if the number of linked notebooks count not be returned
      * @return either non-negative number of linked notebooks or -1 if some error has occured
      */
-    int linkedNotebookCount(QNLocalizedString & errorDescription) const;
+    int linkedNotebookCount(ErrorString & errorDescription) const;
 
     /**
      * @brief addLinkedNotebook - adds passed in LinkedNotebook to the local storage database;
@@ -379,7 +379,7 @@ public:
      * @param errorDescription - error description if linked notebook could not be added
      * @return true if linked notebook was added successfully, false otherwise
      */
-    bool addLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
+    bool addLinkedNotebook(const LinkedNotebook & linkedNotebook, ErrorString & errorDescription);
 
     /**
      * @brief updateLinkedNotebook - updates passd in LinkedNotebook in the local storage database;
@@ -388,7 +388,7 @@ public:
      * @param errorDescription - error description if linked notebook could not be updated
      * @return true if linked notebook was updated successfully, false otherwise
      */
-    bool updateLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
+    bool updateLinkedNotebook(const LinkedNotebook & linkedNotebook, ErrorString & errorDescription);
 
     /**
      * @brief findLinkedNotebook - attempts to find and set all found fields for passed in
@@ -400,7 +400,7 @@ public:
      * @param errorDescription - error description if linked notebook could not be found
      * @return true if linked notebook was found, false otherwise
      */
-    bool findLinkedNotebook(LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription) const;
+    bool findLinkedNotebook(LinkedNotebook & linkedNotebook, ErrorString & errorDescription) const;
 
     /**
      * @brief The ListLinkedNotebooksOrder struct is a C++98-style scoped enum which allows to specify ordering
@@ -429,7 +429,7 @@ public:
      * @return either list of all linked notebooks or empty list in case of error or
      * no linked notebooks presence within the account
      */
-    QList<LinkedNotebook> listAllLinkedNotebooks(QNLocalizedString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+    QList<LinkedNotebook> listAllLinkedNotebooks(ErrorString & errorDescription, const size_t limit = 0, const size_t offset = 0,
                                                  const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder,
                                                  const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
@@ -447,7 +447,7 @@ public:
      * @return either list of linked notebooks within the account conforming to the filter or empty list
      * in cases of error or no linked notebooks conforming to the filter exist within the account
      */
-    QList<LinkedNotebook> listLinkedNotebooks(const ListObjectsOptions flag, QNLocalizedString & errorDescription,
+    QList<LinkedNotebook> listLinkedNotebooks(const ListObjectsOptions flag, ErrorString & errorDescription,
                                               const size_t limit = 0, const size_t offset = 0,
                                               const ListLinkedNotebooksOrder::type order = ListLinkedNotebooksOrder::NoOrder,
                                               const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
@@ -462,14 +462,14 @@ public:
      * @param errorDescription - error description if linked notebook could not be expunged
      * @return true if linked notebook was expunged successfully, false otherwise
      */
-    bool expungeLinkedNotebook(const LinkedNotebook & linkedNotebook, QNLocalizedString & errorDescription);
+    bool expungeLinkedNotebook(const LinkedNotebook & linkedNotebook, ErrorString & errorDescription);
 
     /**
      * @brief noteCount returns the number of non-deleted notes currently stored in local storage database
      * @param errorDescription - error description if the number of notes could not be returned
      * @return either non-negative value with the number of notes or -1 which means some error occured
      */
-    int noteCount(QNLocalizedString & errorDescription) const;
+    int noteCount(ErrorString & errorDescription) const;
 
     /**
      * @brief noteCountPerNotebook returns the number of non-deleted notes currently stored in local storage database per given notebook
@@ -478,7 +478,7 @@ public:
      * @param errorDescription - error description if the number of notes per given notebook could not be returned
      * @return either non-negative value with the number of notes per given notebook or -1 which means some error occured
      */
-    int noteCountPerNotebook(const Notebook & notebook, QNLocalizedString & errorDescription) const;
+    int noteCountPerNotebook(const Notebook & notebook, ErrorString & errorDescription) const;
 
     /**
      * @brief noteCountPerTag returns the number of non-deleted notes currently stored in local storage database labeled with given tag
@@ -487,7 +487,7 @@ public:
      * @param errorDescription - error description if the number of notes per given tag could not be returned
      * @return either non-negative value with the number of notes per given tag or -1 which means some error occured
      */
-    int noteCountPerTag(const Tag & tag, QNLocalizedString & errorDescription) const;
+    int noteCountPerTag(const Tag & tag, ErrorString & errorDescription) const;
 
     /**
      * @brief addNote - adds passed in Note to the local storage database.
@@ -497,7 +497,7 @@ public:
      * @param errorDescription - error description if note could not be added
      * @return true if note was added successfully, false otherwise
      */
-    bool addNote(Note & note, QNLocalizedString & errorDescription);
+    bool addNote(Note & note, ErrorString & errorDescription);
 
     /**
      * @brief updateNote - updates passed in Note in the local storage database
@@ -513,7 +513,7 @@ public:
      * @return true if note was updated successfully, false otherwise
      */
     bool updateNote(Note & note, const bool updateResources,
-                    const bool updateTags, QNLocalizedString & errorDescription);
+                    const bool updateTags, ErrorString & errorDescription);
 
     /**
      * @brief findNote - attempts to find note in the local storage database
@@ -527,7 +527,7 @@ public:
      * resources
      * @return true if note was found, false otherwise
      */
-    bool findNote(Note & note, QNLocalizedString & errorDescription,
+    bool findNote(Note & note, ErrorString & errorDescription,
                   const bool withResourceBinaryData = true) const;
 
     /**
@@ -571,7 +571,7 @@ public:
      * @return either list of notes per notebook or empty list in case of error or
      * no notes presence in the given notebook
      */
-    QList<Note> listNotesPerNotebook(const Notebook & notebook, QNLocalizedString & errorDescription,
+    QList<Note> listNotesPerNotebook(const Notebook & notebook, ErrorString & errorDescription,
                                      const bool withResourceBinaryData = true,
                                      const ListObjectsOptions & flag = ListAll,
                                      const size_t limit = 0, const size_t offset = 0,
@@ -596,7 +596,7 @@ public:
      * @param orderDirection - specifies the direction of ordering, by default ascending direction is used;
      * @return either list of notes per tag or empty list in case of error or no notes labeled with the given tag presence
      */
-    QList<Note> listNotesPerTag(const Tag & tag, QNLocalizedString & errorDescription,
+    QList<Note> listNotesPerTag(const Tag & tag, ErrorString & errorDescription,
                                 const bool withResourceBinaryData,
                                 const LocalStorageManager::ListObjectsOptions & flag,
                                 const size_t limit, const size_t offset,
@@ -621,7 +621,7 @@ public:
      * @return either list of notes within the account conforming to the filter or empty list
      * in cases of error or no notes conforming to the filter exist within the account
      */
-    QList<Note> listNotes(const ListObjectsOptions flag, QNLocalizedString & errorDescription,
+    QList<Note> listNotes(const ListObjectsOptions flag, ErrorString & errorDescription,
                           const bool withResourceBinaryData = true, const size_t limit = 0,
                           const size_t offset = 0, const ListNotesOrder::type order = ListNotesOrder::NoOrder,
                           const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
@@ -633,7 +633,7 @@ public:
      * @param errorDescription - error description in case note local uids could not be listed
      */
     QStringList findNoteLocalUidsWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
-                                                 QNLocalizedString & errorDescription) const;
+                                                 ErrorString & errorDescription) const;
 
     /**
      * @brief findNotesWithSearchQuery - attempt to find notes corresponding to the passed in
@@ -649,7 +649,7 @@ public:
      * no notes presence for the given NoteSearchQuery
      */
     NoteList findNotesWithSearchQuery(const NoteSearchQuery & noteSearchQuery,
-                                      QNLocalizedString & errorDescription,
+                                      ErrorString & errorDescription,
                                       const bool withResourceBinaryData = true) const;
 
     /**
@@ -663,14 +663,14 @@ public:
      * @param errorDescription - error description if note could not be expunged
      * @return true if note was expunged successfully, false otherwise
      */
-    bool expungeNote(Note & note, QNLocalizedString & errorDescription);
+    bool expungeNote(Note & note, ErrorString & errorDescription);
 
     /**
      * @brief tagCount returns the number of non-deleted tags currently stored in local storage database
      * @param errorDescription - error description if the number of tags could not be returned
      * @return either non-negative value with the number of tags or -1 which means some error occured
      */
-    int tagCount(QNLocalizedString & errorDescription) const;
+    int tagCount(ErrorString & errorDescription) const;
 
     /**
      * @brief addTag - adds passed in Tag to the local storage database. If tag has
@@ -681,7 +681,7 @@ public:
      * @param errorDescription - error description if Tag could not be added
      * @return true if Tag was added successfully, false otherwise
      */
-    bool addTag(Tag & tag, QNLocalizedString & errorDescription);
+    bool addTag(Tag & tag, ErrorString & errorDescription);
 
     /**
      * @brief updateTag - updates passed in Tag in the local storage database. If tag has
@@ -692,7 +692,7 @@ public:
      * @param errorDescription - error description if Tag could not be updated
      * @return true if Tag was updated successfully, false otherwise
      */
-    bool updateTag(Tag & tag, QNLocalizedString & errorDescription);
+    bool updateTag(Tag & tag, ErrorString & errorDescription);
 
     /**
      * @brief findTag - attempts to find and fill the fields of passed in tag object.
@@ -706,7 +706,7 @@ public:
      * @param errorDescription - error description in case tag could not be found
      * @return true if tag was found, false otherwise
      */
-    bool findTag(Tag & tag, QNLocalizedString & errorDescription) const;
+    bool findTag(Tag & tag, ErrorString & errorDescription) const;
 
     struct ListTagsOrder
     {
@@ -734,7 +734,7 @@ public:
      * @param orderDirection - specifies the direction of ordering, by default ascending direction is used;
      * @return the list of found tags per note
      */
-    QList<Tag> listAllTagsPerNote(const Note & note, QNLocalizedString & errorDescription,
+    QList<Tag> listAllTagsPerNote(const Note & note, ErrorString & errorDescription,
                                   const ListObjectsOptions & flag = ListAll,
                                   const size_t limit = 0, const size_t offset = 0,
                                   const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
@@ -756,7 +756,7 @@ public:
      * otherwise, only the tags corresponding to the certain linked notebook would be listed
      * @return the list of found tags within the account
      */
-    QList<Tag> listAllTags(QNLocalizedString & errorDescription, const size_t limit = 0,
+    QList<Tag> listAllTags(ErrorString & errorDescription, const size_t limit = 0,
                            const size_t offset = 0, const ListTagsOrder::type order = ListTagsOrder::NoOrder,
                            const OrderDirection::type orderDirection = OrderDirection::Ascending,
                            const QString & linkedNotebookGuid = QString()) const;
@@ -777,7 +777,7 @@ public:
      * @return either list of tags within the account conforming to the filter or empty list
      * in cases of error or no tags conforming to the filter exist within the account
      */
-    QList<Tag> listTags(const ListObjectsOptions flag, QNLocalizedString & errorDescription,
+    QList<Tag> listTags(const ListObjectsOptions flag, ErrorString & errorDescription,
                         const size_t limit = 0, const size_t offset = 0,
                         const ListTagsOrder::type & order = ListTagsOrder::NoOrder,
                         const OrderDirection::type orderDirection = OrderDirection::Ascending,
@@ -794,7 +794,7 @@ public:
      * @param errorDescription - error description if tag could not be expunged
      * @return true if tag was expunged successfully, false otherwise
      */
-    bool expungeTag(Tag & tag, QNLocalizedString & errorDescription);
+    bool expungeTag(Tag & tag, ErrorString & errorDescription);
 
     /**
      * @brief expungeNotelessTagsFromLinkedNotebooks - permanently deletes from local storage those tags
@@ -802,7 +802,7 @@ public:
      * @param errorDescription - error description if tag could not be expunged
      * @return true if relevant tags were expunged successfully, false otherwise
      */
-    bool expungeNotelessTagsFromLinkedNotebooks(QNLocalizedString & errorDescription);
+    bool expungeNotelessTagsFromLinkedNotebooks(ErrorString & errorDescription);
 
     /**
      * @brief enResourceCount (the name is not Resource to prevent problems with Resource macro defined
@@ -810,7 +810,7 @@ public:
      * @param errorDescription - error description if the number of resources could not be returned
      * @return either non-negative value with the number of resources or -1 which means some error occured
      */
-    int enResourceCount(QNLocalizedString & errorDescription) const;
+    int enResourceCount(ErrorString & errorDescription) const;
 
     /**
      * @brief addEnResource - adds passed in resource to the local storage database
@@ -820,7 +820,7 @@ public:
      * @param errorDescription - error description if resource could not be added
      * @return true if resource was added successfully, false otherwise
      */
-    bool addEnResource(Resource & resource, QNLocalizedString & errorDescription);
+    bool addEnResource(Resource & resource, ErrorString & errorDescription);
 
     /**
      * @brief updateEnResource - updates passed in resource in the local storage database
@@ -829,7 +829,7 @@ public:
      * @param errorDescription - error description if resource could not be updated
      * @return true if resource was updated successfully, false otherwise
      */
-    bool updateEnResource(Resource & resource, QNLocalizedString & errorDescription);
+    bool updateEnResource(Resource & resource, ErrorString & errorDescription);
 
     /**
      * @brief findEnResource - attempts to find resource in the local storage database
@@ -842,7 +842,7 @@ public:
      * By default this parameter is true.
      * @return true if resource was found successfully, false otherwise
      */
-    bool findEnResource(Resource & resource, QNLocalizedString & errorDescription, const bool withBinaryData = true) const;
+    bool findEnResource(Resource & resource, ErrorString & errorDescription, const bool withBinaryData = true) const;
 
     // NOTE: there is no 'deleteEnResource' method for a reason: resources are deleted automatically
     // in remote storage so there's no need to mark some resource as deleted for the synchronization procedure.
@@ -855,14 +855,14 @@ public:
      * @param errorDescription - error description if resource could not be expunged
      * @return true if resource was expunged successfully, false otherwise
      */
-    bool expungeEnResource(Resource & resource, QNLocalizedString & errorDescription);
+    bool expungeEnResource(Resource & resource, ErrorString & errorDescription);
 
     /**
      * @brief savedSearchCount returns the number of saved seacrhes currently stored in local storage database
      * @param errorDescription - error description if the number of saved seacrhes could not be returned
      * @return either non-negative value with the number of saved seacrhes or -1 which means some error occured
      */
-    int savedSearchCount(QNLocalizedString & errorDescription) const;
+    int savedSearchCount(ErrorString & errorDescription) const;
 
     /**
      * @brief addSavedSearch - adds passed in SavedSearch to the local storage database;
@@ -873,7 +873,7 @@ public:
      * @param errorDescription - error description if SavedSearch could not be added
      * @return true if SavedSearch was added successfully, false otherwise
      */
-    bool addSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
+    bool addSavedSearch(SavedSearch & search, ErrorString & errorDescription);
 
     /**
      * @brief updateSavedSearch - updates passed in SavedSearch in th local storage database.
@@ -884,7 +884,7 @@ public:
      * @param errorDescription - error description if SavedSearch could not be updated
      * @return true if SavedSearch was updated successfully, false otherwise
      */
-    bool updateSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
+    bool updateSavedSearch(SavedSearch & search, ErrorString & errorDescription);
 
     /**
      * @brief findSavedSearch - attempts to find SavedSearch in the local storage database
@@ -894,7 +894,7 @@ public:
      * @param errorDescription - error description if SavedSearch could not be found
      * @return true if SavedSearch was found, false otherwise
      */
-    bool findSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription) const;
+    bool findSavedSearch(SavedSearch & search, ErrorString & errorDescription) const;
 
     /**
      * @brief The ListSavedSearchesOrder struct is a C++98-style scoped enum which allows to specify the ordering
@@ -923,7 +923,7 @@ public:
      * @return either the list of all saved searches within the account or empty list
      * in case of error or if there are no saved searches within the account
      */
-    QList<SavedSearch> listAllSavedSearches(QNLocalizedString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+    QList<SavedSearch> listAllSavedSearches(ErrorString & errorDescription, const size_t limit = 0, const size_t offset = 0,
                                             const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder,
                                             const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
@@ -941,7 +941,7 @@ public:
      * @return either list of saved searches within the account conforming to the filter or empty list
      * in cases of error or no saved searches conforming to the filter exist within the account
      */
-    QList<SavedSearch> listSavedSearches(const ListObjectsOptions flag, QNLocalizedString & errorDescription, const size_t limit = 0, const size_t offset = 0,
+    QList<SavedSearch> listSavedSearches(const ListObjectsOptions flag, ErrorString & errorDescription, const size_t limit = 0, const size_t offset = 0,
                                          const ListSavedSearchesOrder::type order = ListSavedSearchesOrder::NoOrder,
                                          const OrderDirection::type orderDirection = OrderDirection::Ascending) const;
 
@@ -956,7 +956,7 @@ public:
      * @param errorDescription - error description if saved search could not be expunged
      * @return true if saved search was expunged succesfully, false otherwise
      */
-    bool expungeSavedSearch(SavedSearch & search, QNLocalizedString & errorDescription);
+    bool expungeSavedSearch(SavedSearch & search, ErrorString & errorDescription);
 
 private:
     LocalStorageManager() Q_DECL_EQ_DELETE;

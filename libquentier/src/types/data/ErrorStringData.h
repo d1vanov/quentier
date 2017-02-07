@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_TYPES_DATA_ERROR_STRING_DATA_H
 #define LIB_QUENTIER_TYPES_DATA_ERROR_STRING_DATA_H
 
-#include <QString>
+#include <QStringList>
 #include <QSharedData>
 
 namespace quentier {
@@ -29,6 +29,7 @@ class ErrorStringData: public QSharedData
 public:
     QString     m_base;
     QString     m_details;
+    QStringList m_additionalBases;
 };
 
 } // namespace quentier

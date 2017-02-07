@@ -70,7 +70,7 @@ const QString NoteSearchQuery::queryString() const
     return d->m_queryString;
 }
 
-bool NoteSearchQuery::setQueryString(const QString & queryString, QNLocalizedString & error)
+bool NoteSearchQuery::setQueryString(const QString & queryString, ErrorString & error)
 {
     d->clear();
     return d->parseQueryString(queryString, error);
