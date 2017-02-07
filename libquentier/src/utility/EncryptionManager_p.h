@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_UTILITY_ENCRYPTION_MANAGER_P_H
 #define LIB_QUENTIER_UTILITY_ENCRYPTION_MANAGER_P_H
 
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QVector>
 
 // Evernote service defined constants
@@ -41,11 +41,11 @@ public:
 
     bool decrypt(const QString & encryptedText, const QString & passphrase,
                  const QString & cipher, const size_t keyLength,
-                 QString & decryptedText, QNLocalizedString & errorDescription);
+                 QString & decryptedText, ErrorString & errorDescription);
 
     bool encrypt(const QString & textToEncrypt, const QString & passphrase,
                  QString & cipher, size_t & keyLength,
-                 QString & encryptedText, QNLocalizedString & errorDescription);
+                 QString & encryptedText, ErrorString & errorDescription);
 
 private:
     // AES encryption/decryption routines
@@ -58,29 +58,29 @@ private:
         };
     };
 
-    bool generateSalt(const SaltKind::type saltKind, const size_t saltSize, QNLocalizedString & errorDescription);
+    bool generateSalt(const SaltKind::type saltKind, const size_t saltSize, ErrorString & errorDescription);
 
     bool generateKey(const QByteArray & passphraseData, const unsigned char * salt,
-                     const size_t keySize, QNLocalizedString & errorDescription);
+                     const size_t keySize, ErrorString & errorDescription);
 
     bool calculateHmac(const QByteArray & passphraseData, const unsigned char * salt,
                        const QByteArray & encryptedTextData, const size_t keySize,
-                       QNLocalizedString & errorDescription);
+                       ErrorString & errorDescription);
 
     bool encyptWithAes(const QByteArray & textToEncrypt, QByteArray & encryptedText,
-                       QNLocalizedString & errorDescription);
+                       ErrorString & errorDescription);
 
     bool decryptAes(const QString & encryptedText, const QString & passphrase,
-                    QByteArray & decryptedText, QNLocalizedString & errorDescription);
+                    QByteArray & decryptedText, ErrorString & errorDescription);
 
     bool splitEncryptedData(const QString & encryptedData, const size_t saltSize,
                             const size_t hmacSize, QByteArray & encryptedText,
-                            QNLocalizedString & errorDescription);
+                            ErrorString & errorDescription);
 
 private:
     // RC2 decryption routines
     bool decryptRc2(const QString & encryptedText, const QString & passphrase,
-                    QString & decryptedText, QNLocalizedString & errorDescription);
+                    QString & decryptedText, ErrorString & errorDescription);
 
     void rc2KeyCodesFromPassphrase(const QString & passphrase) const;
     QString decryptRc2Chunk(const QByteArray & inputCharCodes, const QVector<int> & key) const;

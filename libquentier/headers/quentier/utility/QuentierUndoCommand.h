@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_UTILITY_QUENTIER_UNDO_COMMAND_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QUndoCommand>
 
@@ -63,7 +63,7 @@ public:
     bool onceUndoExecuted() const { return m_onceUndoExecuted; }
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
 protected:
     virtual void undoImpl() = 0;

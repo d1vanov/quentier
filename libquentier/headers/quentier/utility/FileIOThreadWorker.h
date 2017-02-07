@@ -21,7 +21,7 @@
 
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -66,7 +66,7 @@ Q_SIGNALS:
      * @param errorDescription - textual description of the error
      * @param requestId - unique identifier of the file write request
      */
-    void writeFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
+    void writeFileRequestProcessed(bool success, ErrorString errorDescription, QUuid requestId);
 
     /**
      * @brief readFileRequestProcessed - signal send when the file read request with given id is finished
@@ -75,7 +75,7 @@ Q_SIGNALS:
      * @param data - data read from file
      * @param requestId - unique identifier of the file read request
      */
-    void readFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data,
+    void readFileRequestProcessed(bool success, ErrorString errorDescription, QByteArray data,
                                   QUuid requestId);
 
 public Q_SLOTS:

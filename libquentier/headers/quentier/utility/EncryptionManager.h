@@ -21,7 +21,7 @@
 
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QString>
 #include <QUuid>
@@ -44,15 +44,15 @@ public:
 
     bool decrypt(const QString & encryptedText, const QString & passphrase,
                  const QString & cipher, const size_t keyLength,
-                 QString & decryptedText, QNLocalizedString & errorDescription);
+                 QString & decryptedText, ErrorString & errorDescription);
 
     bool encrypt(const QString & textToEncrypt, const QString & passphrase,
                  QString & cipher, size_t & keyLength,
-                 QString & encryptedText, QNLocalizedString & errorDescription);
+                 QString & encryptedText, ErrorString & errorDescription);
 
 Q_SIGNALS:
-    void decryptedText(QString text, bool success, QNLocalizedString errorDescription, QUuid requestId);
-    void encryptedText(QString encryptedText, bool success, QNLocalizedString errorDescription, QUuid requestId);
+    void decryptedText(QString text, bool success, ErrorString errorDescription, QUuid requestId);
+    void encryptedText(QString encryptedText, bool success, ErrorString errorDescription, QUuid requestId);
 
 public Q_SLOTS:
     void onDecryptTextRequest(QString encryptedText, QString passphrase,

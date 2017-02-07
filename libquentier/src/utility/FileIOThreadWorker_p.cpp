@@ -58,9 +58,8 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
     {
         bool madeFolder = folder.mkpath(folder.absolutePath());
         if (!madeFolder) {
-            QNLocalizedString error  = QT_TR_NOOP("can't create folder to write file into");
-            error += QStringLiteral(": ");
-            error += absoluteFilePath;
+            ErrorString error(QT_TRANSLATE_NOOP("", "can't create folder to write file into"));
+            error.details() = absoluteFilePath;
             QNWARNING(error);
             emit writeFileRequestProcessed(false, error, requestId);
             RESTART_TIMER();
@@ -80,9 +79,8 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
 
     bool open = file.open(mode);
     if (Q_UNLIKELY(!open)) {
-        QNLocalizedString error = QT_TR_NOOP("can't open file for writing/appending");
-        error += QStringLiteral(": ");
-        error += absoluteFilePath;
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't open file for writing/appending"));
+        error.details() = absoluteFilePath;
         QNWARNING(error);
         emit writeFileRequestProcessed(false, error, requestId);
         RESTART_TIMER();
@@ -91,9 +89,8 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
 
     qint64 writtenBytes = file.write(data);
     if (Q_UNLIKELY(writtenBytes < data.size())) {
-        QNLocalizedString error = QT_TR_NOOP("can't write the whole data to file");
-        error += QStringLiteral(": ");
-        error += absoluteFilePath;
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't write the whole data to file"));
+        error.details() = absoluteFilePath;
         QNWARNING(error);
         emit writeFileRequestProcessed(false, error, requestId);
         RESTART_TIMER();
@@ -102,7 +99,7 @@ void FileIOThreadWorkerPrivate::onWriteFileRequest(QString absoluteFilePath, QBy
 
     file.close();
     QNDEBUG(QStringLiteral("Successfully wrote the file ") + absoluteFilePath);
-    emit writeFileRequestProcessed(true, QNLocalizedString(), requestId);
+    emit writeFileRequestProcessed(true, ErrorString(), requestId);
     RESTART_TIMER();
 }
 
@@ -114,16 +111,15 @@ void FileIOThreadWorkerPrivate::onReadFileRequest(QString absoluteFilePath, QUui
     QFile file(absoluteFilePath);
     if (!file.exists()) {
         QNTRACE(QStringLiteral("The file to read does not exist, sending empty data in return"));
-        emit readFileRequestProcessed(true, QNLocalizedString(), QByteArray(), requestId);
+        emit readFileRequestProcessed(true, ErrorString(), QByteArray(), requestId);
         RESTART_TIMER();
         return;
     }
 
     bool open = file.open(QIODevice::ReadOnly);
     if (!open) {
-        QNLocalizedString error = QT_TR_NOOP("can't open file for reading");
-        error += QStringLiteral(": ");
-        error += absoluteFilePath;
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't open file for reading"));
+        error.details() = absoluteFilePath;
         QNDEBUG(error);
         emit readFileRequestProcessed(false, error, QByteArray(), requestId);
         RESTART_TIMER();
@@ -131,7 +127,7 @@ void FileIOThreadWorkerPrivate::onReadFileRequest(QString absoluteFilePath, QUui
     }
 
     QByteArray data = file.readAll();
-    emit readFileRequestProcessed(true, QNLocalizedString(), data, requestId);
+    emit readFileRequestProcessed(true, ErrorString(), data, requestId);
     RESTART_TIMER();
 }
 

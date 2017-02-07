@@ -28,10 +28,10 @@ FileIOThreadWorker::FileIOThreadWorker(QObject * parent) :
 {
     QObject::connect(d_ptr, QNSIGNAL(FileIOThreadWorkerPrivate,readyForIO),
                      this, QNSIGNAL(FileIOThreadWorker,readyForIO));
-    QObject::connect(d_ptr, QNSIGNAL(FileIOThreadWorkerPrivate,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                     this, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid));
-    QObject::connect(d_ptr, QNSIGNAL(FileIOThreadWorkerPrivate,readFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid),
-                     this, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid));
+    QObject::connect(d_ptr, QNSIGNAL(FileIOThreadWorkerPrivate,writeFileRequestProcessed,bool,ErrorString,QUuid),
+                     this, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,ErrorString,QUuid));
+    QObject::connect(d_ptr, QNSIGNAL(FileIOThreadWorkerPrivate,readFileRequestProcessed,bool,ErrorString,QByteArray,QUuid),
+                     this, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,ErrorString,QByteArray,QUuid));
 }
 
 void FileIOThreadWorker::setIdleTimePeriod(qint32 seconds)

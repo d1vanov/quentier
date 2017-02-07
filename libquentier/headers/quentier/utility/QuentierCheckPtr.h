@@ -27,14 +27,12 @@
     if (Q_UNLIKELY(!pointer)) \
     { \
         using quentier::NullPtrException; \
-        QNLocalizedString quentier_null_ptr_error = QT_TR_NOOP("Detected the unintended null pointer at"); \
-        quentier_null_ptr_error += QStringLiteral(" "); \
-        quentier_null_ptr_error += QStringLiteral(__FILE__); \
-        quentier_null_ptr_error += QStringLiteral(" ("); \
-        quentier_null_ptr_error += QString::number(__LINE__); \
-        quentier_null_ptr_error += QStringLiteral(") "); \
-        QNLocalizedString message = "" #__VA_ARGS__ ""; \
-        quentier_null_ptr_error += message; \
+        ErrorString quentier_null_ptr_error(QT_TRANSLATE_NOOP("Detected the unintended null pointer")); \
+        quentier_null_ptr_error.details() = QStringLiteral(__FILE__); \
+        quentier_null_ptr_error.details() += QStringLiteral(" ("); \
+        quentier_null_ptr_error.details() += QString::number(__LINE__); \
+        quentier_null_ptr_error.details() += QStringLiteral(") "); \
+        quentier_null_ptr_error.details() += QStringLiteral("" #__VA_ARGS__ ""); \
         throw NullPtrException(quentier_null_ptr_error); \
     } \
 }
