@@ -21,7 +21,7 @@
 
 #include "JsResultCallbackFunctor.hpp"
 #include <quentier/types/Note.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 namespace quentier {
 
@@ -42,7 +42,7 @@ public:
 
 Q_SIGNALS:
     void finished();
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);

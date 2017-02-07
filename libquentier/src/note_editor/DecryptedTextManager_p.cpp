@@ -128,7 +128,7 @@ bool DecryptedTextManagerPrivate::modifyDecryptedText(const QString & originalEn
 
     Data & entry = it.value();
     const QString & passphrase = entry.m_passphrase;
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     bool res = m_encryptionManager.encrypt(newDecryptedText, passphrase, entry.m_cipher,
                                            entry.m_keyLength, newEncryptedText, errorDescription);
     if (!res) {

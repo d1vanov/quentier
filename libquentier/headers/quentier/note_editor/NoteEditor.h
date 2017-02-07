@@ -22,7 +22,7 @@
 #include <quentier/types/Note.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QWidget>
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
@@ -104,10 +104,10 @@ public:
 
 Q_SIGNALS:
     void contentChanged();
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
     void convertedToNote(Note note);
-    void cantConvertToNote(QNLocalizedString error);
+    void cantConvertToNote(ErrorString error);
 
     void noteEditorHtmlUpdated(QString html);
 

@@ -21,7 +21,7 @@
 
 #include "JsResultCallbackFunctor.hpp"
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>
 #include <QObject>
@@ -52,7 +52,7 @@ public:
 
 Q_SIGNALS:
     void finished(Resource addedResource, QString resourceFileStoragePath);
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
 // private signals
     void readFileData(QString filePath, QUuid requestId);
@@ -66,14 +66,14 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
 
-    void onResourceFileRead(bool success, QNLocalizedString errorDescription,
+    void onResourceFileRead(bool success, ErrorString errorDescription,
                             QByteArray data, QUuid requestId);
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash,
                                   QString fileStoragePath, int errorCode,
-                                  QNLocalizedString errorDescription);
+                                  ErrorString errorDescription);
 
     void onGenericResourceImageSaved(bool success, QByteArray resourceImageDataHash,
-                                     QString filePath, QNLocalizedString errorDescription,
+                                     QString filePath, ErrorString errorDescription,
                                      QUuid requestId);
 
     void onNewResourceHtmlInserted(const QVariant & data);

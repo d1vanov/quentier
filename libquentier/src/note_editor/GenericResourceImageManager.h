@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_GENERIC_RESOURCE_IMAGE_MANAGER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
 #include <QObject>
 #include <QUuid>
@@ -44,7 +44,7 @@ public:
 
 Q_SIGNALS:
     void genericResourceImageWriteReply(bool success, QByteArray resourceHash, QString filePath,
-                                        QNLocalizedString errorDescription, QUuid requestId);
+                                        ErrorString errorDescription, QUuid requestId);
 
 public Q_SLOTS:
     void onGenericResourceImageWriteRequest(QString noteLocalUid, QString resourceLocalUid, QByteArray resourceImageData,

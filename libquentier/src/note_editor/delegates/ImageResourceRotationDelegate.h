@@ -39,7 +39,7 @@ Q_SIGNALS:
     void finished(QByteArray resourceDataBefore, QByteArray resourceHashBefore,
                   QByteArray resourceRecognitionDataBefore, QByteArray resourceRecognitionDataHashBefore,
                   Resource resourceAfter, INoteEditorBackend::Rotation::type rotationDirection);
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
 // private signals
     void saveResourceToStorage(QString noteLocalUid, QString resourceLocalUid, QByteArray data, QByteArray dataHash,
@@ -48,7 +48,7 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onOriginalPageConvertedToNote(Note note);
     void onResourceSavedToStorage(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
-                                  int errorCode, QNLocalizedString errorDescription);
+                                  int errorCode, ErrorString errorDescription);
     void onResourceTagHashUpdated(const QVariant & data);
     void onResourceTagSrcUpdated(const QVariant & data);
 

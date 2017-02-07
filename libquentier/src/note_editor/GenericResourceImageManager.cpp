@@ -49,30 +49,30 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
             << resourceActualHash.toHex() << QStringLiteral(", request id = ") << requestId);
 
 #define RETURN_WITH_ERROR(message) \
-    QNLocalizedString errorDescription = message; \
+    ErrorString errorDescription(message); \
     QNWARNING(errorDescription); \
     emit genericResourceImageWriteReply(/* success = */ false, QByteArray(), QString(), \
                                         errorDescription, requestId); \
     return
 
     if (Q_UNLIKELY(m_storageFolderPath.isEmpty())) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("storage folder path is empty"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "storage folder path is empty"));
     }
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("note local uid is empty"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "note local uid is empty"));
     }
 
     if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("resource local uid is empty"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "resource local uid is empty"));
     }
 
     if (Q_UNLIKELY(resourceActualHash.isEmpty())) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("resource hash is empty"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "resource hash is empty"));
     }
 
     if (Q_UNLIKELY(resourceFileSuffix.isEmpty())) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("resource image file suffix is empty"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "resource image file suffix is empty"));
     }
 
     QString resourceFileNameMask = resourceLocalUid + QStringLiteral("*.") + resourceFileSuffix;
@@ -81,7 +81,7 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
     {
         bool res = storageDir.mkpath(storageDir.absolutePath());
         if (!res) {
-            RETURN_WITH_ERROR(QT_TR_NOOP("can't create the folder to store the resource image in"));
+            RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "can't create the folder to store the resource image in"));
         }
     }
 
@@ -94,7 +94,7 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
     if (resourceHashFileExists)
     {
         if (Q_UNLIKELY(!resourceHashFileInfo.isWritable())) {
-            RETURN_WITH_ERROR(QT_TR_NOOP("resource hash file is not writable"));
+            RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "resource hash file is not writable"));
         }
 
         if (resourceHashFileInfo.isReadable())
@@ -118,7 +118,7 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
         if (resourceNameFileExists)
         {
             if (Q_UNLIKELY(!resourceNameFileInfo.isWritable())) {
-                RETURN_WITH_ERROR(QT_TR_NOOP("resource name file is not writable"));
+                RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "resource name file is not writable"));
             }
 
             if (Q_UNLIKELY(!resourceNameFileInfo.isReadable()))
@@ -147,7 +147,7 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
         QNDEBUG(QStringLiteral("resource hash and display name haven't changed, won't rewrite the resource's image"));
         emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
                                             existingResourceImageFileInfos.front().absoluteFilePath(),
-                                            QNLocalizedString(), requestId);
+                                            ErrorString(), requestId);
         return;
     }
 
@@ -158,21 +158,21 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
 
     QFile resourceImageFile(resourceImageFilePath);
     if (Q_UNLIKELY(!resourceImageFile.open(QIODevice::ReadWrite))) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("can't open resource image file for writing"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "can't open resource image file for writing"));
     }
     resourceImageFile.write(resourceImageData);
     resourceImageFile.close();
 
     QFile resourceHashFile(resourceHashFileInfo.absoluteFilePath());
     if (Q_UNLIKELY(!resourceHashFile.open(QIODevice::ReadWrite))) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("can't open resource hash file for writing"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "can't open resource hash file for writing"));
     }
     resourceHashFile.write(resourceActualHash);
     resourceHashFile.close();
 
     QFile resourceNameFile(resourceNameFileInfo.absoluteFilePath());
     if (Q_UNLIKELY(!resourceNameFile.open(QIODevice::ReadWrite))) {
-        RETURN_WITH_ERROR(QT_TR_NOOP("can't open resource name file for writing"));
+        RETURN_WITH_ERROR(QT_TRANSLATE_NOOP("", "can't open resource name file for writing"));
     }
     resourceNameFile.write(resourceDisplayName.toLocal8Bit());
     resourceNameFile.close();
@@ -180,7 +180,7 @@ void GenericResourceImageManager::onGenericResourceImageWriteRequest(QString not
     QNTRACE(QStringLiteral("Successfully wrote resource image file and helper files with hash and display name for request ") << requestId
             << QStringLiteral(", resource image file path = ") << resourceImageFilePath);
     emit genericResourceImageWriteReply(/* success = */ true, resourceActualHash,
-                                        resourceImageFilePath, QNLocalizedString(), requestId);
+                                        resourceImageFilePath, ErrorString(), requestId);
 
     if (!existingResourceImageFileInfos.isEmpty())
     {

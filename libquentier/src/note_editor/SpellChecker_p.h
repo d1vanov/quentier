@@ -21,7 +21,7 @@
 
 #include "SpellCheckerDictionariesFinder.h"
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QStringList>
 #include <QVector>
@@ -79,12 +79,12 @@ private:
 
     void checkUserDictionaryDataPendingWriting();
 
-    void onAppendUserDictionaryPartDone(bool success, QNLocalizedString errorDescription);
-    void onUpdateUserDictionaryDone(bool success, QNLocalizedString errorDescription);
+    void onAppendUserDictionaryPartDone(bool success, ErrorString errorDescription);
+    void onUpdateUserDictionaryDone(bool success, ErrorString errorDescription);
 
 private Q_SLOTS:
-    void onReadFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data, QUuid requestId);
-    void onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId);
+    void onReadFileRequestProcessed(bool success, ErrorString errorDescription, QByteArray data, QUuid requestId);
+    void onWriteFileRequestProcessed(bool success, ErrorString errorDescription, QUuid requestId);
 
 private:
     class Dictionary

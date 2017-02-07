@@ -82,7 +82,7 @@ public:
      * when the plugin is uninstalled.
      * @return non-zero plugin identifier if the plugin was successfully installed, zero otherwise
      */
-    ResourcePluginIdentifier addResourcePlugin(INoteEditorResourcePlugin * plugin, QNLocalizedString & errorDescription,
+    ResourcePluginIdentifier addResourcePlugin(INoteEditorResourcePlugin * plugin, ErrorString & errorDescription,
                                                const bool forceOverrideTypeKeys = false);
 
     /**
@@ -91,7 +91,7 @@ public:
      * @param errorDescription - error description if the plugin couldn't be uninstalled
      * @return true if the plugin was successfully uninstalled, false otherwise
      */
-    bool removeResourcePlugin(const ResourcePluginIdentifier id, QNLocalizedString & errorDescription);
+    bool removeResourcePlugin(const ResourcePluginIdentifier id, ErrorString & errorDescription);
 
     /**
      * @brief hasResourcePlugin - the method allowing one to find out whether the plugin with certain identifier

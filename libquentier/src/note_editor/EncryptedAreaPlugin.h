@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_ENCRYPTED_AREA_PLUGIN_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QWidget>
 
 namespace Ui {
@@ -40,7 +40,7 @@ public:
     virtual ~EncryptedAreaPlugin();
 
     bool initialize(const QStringList & parameterNames, const QStringList & parameterValues,
-                    const NoteEditorPluginFactory & pluginFactory, QNLocalizedString & errorDescription);
+                    const NoteEditorPluginFactory & pluginFactory, ErrorString & errorDescription);
     QString name() const;
     QString description() const;
 

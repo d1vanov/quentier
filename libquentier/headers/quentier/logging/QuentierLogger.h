@@ -23,7 +23,6 @@
 #include <quentier/utility/Macros.h>
 #include <QDebug>
 #include <QString>
-#include <QLatin1String>
 #include <QApplication>
 
 namespace quentier {

@@ -84,14 +84,14 @@ const NoteEditorPrivate & NoteEditorPluginFactory::noteEditor() const
 }
 
 NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addResourcePlugin(INoteEditorResourcePlugin * plugin,
-                                                                                             QNLocalizedString & errorDescription,
+                                                                                             ErrorString & errorDescription,
                                                                                              const bool forceOverrideTypeKeys)
 {
     QNDEBUG(QStringLiteral("NoteEditorPluginFactory::addResourcePlugin: ") << (plugin ? plugin->name() : QStringLiteral("<null>"))
             << QStringLiteral(", force override type keys = ") << (forceOverrideTypeKeys ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (!plugin) {
-        errorDescription = QT_TR_NOOP("detected attempt to install null note editor plugin");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "detected attempt to install null note editor plugin");
         QNWARNING(errorDescription);
         return 0;
     }
@@ -101,7 +101,7 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
     {
         const INoteEditorResourcePlugin * currentPlugin = it.value();
         if (plugin == currentPlugin) {
-            errorDescription = QT_TR_NOOP("detected attempt to install the same resource plugin instance more than once");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "detected attempt to install the same resource plugin instance more than once");
             QNWARNING(errorDescription);
             return 0;
         }
@@ -109,7 +109,7 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
 
     const QStringList mimeTypes = plugin->mimeTypes();
     if (mimeTypes.isEmpty()) {
-        errorDescription = QT_TR_NOOP("can't install note editor resource plugin without supported mime types");
+        errorDescription.base() = QT_TRANSLATE_NOOP("can't install note editor resource plugin without supported mime types");
         QNWARNING(errorDescription);
         return 0;
     }
@@ -127,14 +127,11 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
             {
                 const QString & mimeType = mimeTypes[i];
                 if (currentPluginMimeTypes.contains(mimeType)) {
-                    errorDescription = QT_TR_NOOP("can't install note editor resource plugin: found "
-                                                  "conflicting mime type from another plugin");
-                    errorDescription += QStringLiteral(": ");
-                    errorDescription += mimeType;
-                    errorDescription += QStringLiteral(" ");
-                    errorDescription += QT_TR_NOOP("from plugin");
-                    errorDescription += QStringLiteral(" ");
-                    errorDescription += currentPlugin->name();
+                    errorDescription.base() = QT_TRANSLATE_NOOP("can't install note editor resource plugin: found "
+                                                                "conflicting mime type from another plugin");
+                    errorDescription.details() = mimeType;
+                    errorDescription.details() += QStringLiteral(", ");
+                    errorDescription.details() += currentPlugin->name();
                     QNINFO(errorDescription);
                     return 0;
                 }
@@ -154,17 +151,14 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
 }
 
 bool NoteEditorPluginFactory::removeResourcePlugin(const NoteEditorPluginFactory::ResourcePluginIdentifier id,
-                                                   QNLocalizedString & errorDescription)
+                                                   ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("NoteEditorPluginFactory::removeResourcePlugin: ") << id);
 
     auto it = m_resourcePlugins.find(id);
     if (it == m_resourcePlugins.end()) {
-        errorDescription = QT_TR_NOOP("can't uninstall note editor plugin: plugin with id");
-        errorDescription += QStringLiteral(" ");
-        errorDescription += QString::number(id);
-        errorDescription += QStringLiteral(" ");
-        errorDescription += QT_TR_NOOP("was not found");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "can't uninstall note editor plugin: plugin not found");
+        errorDescription.details() += QString::number(id);
         QNDEBUG(errorDescription);
         return false;
     }
@@ -398,7 +392,7 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
             {
                 QNTRACE(QStringLiteral("Will use plugin ") << plugin->name());
                 INoteEditorResourcePlugin * newPlugin = plugin->clone();
-                QNLocalizedString errorDescription;
+                ErrorString errorDescription;
                 bool res = newPlugin->initialize(resourceMimeType, argumentNames, argumentValues, *this,
                                                  *pCurrentResource, errorDescription);
                 if (!res) {
@@ -483,7 +477,7 @@ QObject * NoteEditorPluginFactory::createEncryptedAreaPlugin(const QStringList &
     QWidget * pParentWidget = qobject_cast<QWidget*>(parent());
     EncryptedAreaPlugin * pEncryptedAreaPlugin = new EncryptedAreaPlugin(m_noteEditor, pParentWidget);
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     bool res = pEncryptedAreaPlugin->initialize(argumentNames, argumentValues, *this, errorDescription);
     if (!res) {
         QNINFO(QStringLiteral("Can't initialize note editor encrypted area plugin ") << pEncryptedAreaPlugin->name()

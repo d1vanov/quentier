@@ -55,7 +55,7 @@ EncryptedAreaPlugin::~EncryptedAreaPlugin()
 }
 
 bool EncryptedAreaPlugin::initialize(const QStringList & parameterNames, const QStringList & parameterValues,
-                                     const NoteEditorPluginFactory & pluginFactory, QNLocalizedString & errorDescription)
+                                     const NoteEditorPluginFactory & pluginFactory, ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("EncryptedAreaPlugin::initialize: parameter names = ") << parameterNames.join(QStringLiteral(", "))
             << QStringLiteral(", parameter values = ") << parameterValues.join(QStringLiteral(", ")));

@@ -21,7 +21,7 @@
 
 #include "JsResultCallbackFunctor.hpp"
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>
 #include <QObject>
@@ -52,7 +52,7 @@ public:
 Q_SIGNALS:
     void finished(QString oldResourceName, QString newResourceName, Resource resource, bool performingUndo);
     void cancelled();
-    void notifyError(QNLocalizedString);
+    void notifyError(ErrorString);
 
 // private signals
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
@@ -67,7 +67,7 @@ private Q_SLOTS:
 
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
     void onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
-                                              QNLocalizedString errorDescription, QUuid requestId);
+                                              ErrorString errorDescription, QUuid requestId);
     void onGenericResourceImageUpdated(const QVariant & data);
 #endif
 

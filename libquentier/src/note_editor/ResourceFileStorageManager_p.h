@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_NOTE_EDITOR_RESOURCE_FILES_STORAGE_MANAGER_P_H
 
 #include <quentier/utility/FileSystemWatcher.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QUuid>
 #include <QStringList>
@@ -44,9 +44,9 @@ public:
 
 Q_SIGNALS:
     void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash, QString fileStoragePath,
-                                      int errorCode, QNLocalizedString errorDescription);
+                                      int errorCode, ErrorString errorDescription);
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
-                                       int errorCode, QNLocalizedString errorDescription);
+                                       int errorCode, ErrorString errorDescription);
 
     void resourceFileChanged(QString localUid, QString fileStoragePath);
 
@@ -74,7 +74,7 @@ private:
                                               const QString & fileStoragePath, const QByteArray & dataHash) const;
 
     bool updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash,
-                            const QString & storageFolderPath, int & errorCode, QNLocalizedString & errorDescription);
+                            const QString & storageFolderPath, int & errorCode, ErrorString & errorDescription);
     void watchResourceFileForChanges(const QString & resourceLocalUid, const QString & fileStoragePath);
     void stopWatchingResourceFile(const QString & filePath);
 

@@ -21,7 +21,7 @@
 
 #include <quentier/utility/Macros.h>
 #include <quentier/utility/Linkage.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QUuid>
 
@@ -59,9 +59,9 @@ public:
 
 Q_SIGNALS:
     void writeResourceToFileCompleted(QUuid requestId, QByteArray dataHash,
-                                      QString fileStoragePath, int errorCode, QNLocalizedString errorDescription);
+                                      QString fileStoragePath, int errorCode, ErrorString errorDescription);
     void readResourceFromFileCompleted(QUuid requestId, QByteArray data, QByteArray dataHash,
-                                       int errorCode, QNLocalizedString errorDescription);
+                                       int errorCode, ErrorString errorDescription);
 
     void resourceFileChanged(QString localUid, QString fileStoragePath);
 

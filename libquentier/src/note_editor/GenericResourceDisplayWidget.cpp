@@ -96,13 +96,13 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     QObject::connect(m_pUI->saveResourceButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(GenericResourceDisplayWidget,onSaveAsButtonPressed));
 
-    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString),
-                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,QNLocalizedString));
+    QObject::connect(m_pResourceFileStorageManager, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,ErrorString),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToStorageRequestProcessed,QUuid,QByteArray,QString,int,ErrorString));
     QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToStorage,QString,QString,QByteArray,QByteArray,QString,QUuid,bool),
                      m_pResourceFileStorageManager, QNSLOT(ResourceFileStorageManager,onWriteResourceToFileRequest,QString,QString,QByteArray,QByteArray,QString,QUuid,bool));
 
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,QNLocalizedString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,ErrorString,QUuid),
+                     this, QNSLOT(GenericResourceDisplayWidget,onSaveResourceToFileRequestProcessed,bool,ErrorString,QUuid));
     QObject::connect(this, QNSIGNAL(GenericResourceDisplayWidget,saveResourceToFile,QString,QByteArray,QUuid,bool),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
 
@@ -266,7 +266,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 
 void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid requestId, QByteArray dataHash,
                                                                            QString fileStoragePath, int errorCode,
-                                                                           QNLocalizedString errorDescription)
+                                                                           ErrorString errorDescription)
 {
     if (requestId == m_saveResourceToStorageRequestId)
     {
@@ -287,7 +287,8 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
             warningMessageBox(this, tr("Error saving the resource to hidden file"),
                               tr("Could not save the resource to hidden file "
                                  "(in order to make it possible to open it with some application)"),
-                              tr("Error code") + QStringLiteral(" = ") + QString::number(errorCode) + QStringLiteral(": ") + errorDescription.localizedString());
+                              tr("Error code") + QStringLiteral(" = ") + QString::number(errorCode) + QStringLiteral(": ") +
+                              qApp->translate("", errorDescription.toLocal8Bit().constData());
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
             }
@@ -297,7 +298,7 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
 }
 
 void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool success,
-                                                                        QNLocalizedString errorDescription,
+                                                                        ErrorString errorDescription,
                                                                         QUuid requestId)
 {
     QNTRACE(QStringLiteral("GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed: success = ")
@@ -313,7 +314,7 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
             QNWARNING(QStringLiteral("Could not save resource to file: ") << errorDescription << QStringLiteral("; request id = ") << requestId);
             warningMessageBox(this, tr("Error saving the resource to file"),
                               tr("Could not save the resource to file"),
-                              errorDescription.localizedString());
+                              qApp->translate("", errorDescription.toLocal8Bit().constData());
         }
     }
 }

@@ -21,7 +21,7 @@
 
 #include <quentier/utility/EncryptionManager.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QDialog>
 #include <QSharedPointer>
 
@@ -65,7 +65,7 @@ private Q_SLOTS:
     virtual void accept() Q_DECL_OVERRIDE;
 
 private:
-    void setError(const QNLocalizedString & error);
+    void setError(const ErrorString & error);
 
 private:
     Ui::DecryptionDialog *                  m_pUI;
