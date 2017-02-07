@@ -5674,9 +5674,8 @@ bool LocalStorageManagerPrivate::getNotebookLocalUidFromNote(const Note & note, 
     }
 
     if (notebookLocalUid.isEmpty()) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QT_TR_NOOP("found notebook local uid is empty");
+        errorDescription.base() = errorPrefix.base();
+        errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "found notebook local uid is empty"));
         QNDEBUG(errorDescription << QStringLiteral(", note: ") << note);
         return false;
     }
@@ -5743,10 +5742,10 @@ bool LocalStorageManagerPrivate::getNotebookLocalUidForGuid(const QString & note
     }
 
     if (notebookLocalUid.isEmpty()) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QT_TR_NOOP("no existing local uid corresponding to notebook's guid was found");
-        QNDEBUG(errorDescription << QStringLiteral(", guid: ") << notebookGuid);
+        errorDescription.base() = errorPrefix.base();
+        errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "no existing local uid corresponding to notebook's guid was found"));
+        errorDescription.details() = notebookGuid;
+        QNDEBUG(errorDescription);
         return false;
     }
 
@@ -5770,10 +5769,10 @@ bool LocalStorageManagerPrivate::getNoteLocalUidForGuid(const QString & noteGuid
     }
 
     if (noteLocalUid.isEmpty()) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QT_TR_NOOP("no existing local uid corresponding to Note's guid was found in local storage");
-        QNDEBUG(errorDescription << QStringLiteral(", guid: ") << noteGuid);
+        errorDescription.base() = errorPrefix.base();
+        errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "no existing local uid corresponding to note's guid was found in local storage"));
+        errorDescription.details() = noteGuid;
+        QNDEBUG(errorDescription);
         return false;
     }
 
@@ -5797,10 +5796,10 @@ bool LocalStorageManagerPrivate::getTagLocalUidForGuid(const QString & tagGuid, 
     }
 
     if (tagLocalUid.isEmpty()) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QT_TR_NOOP("no existing local uid corresponding to tag's guid was found");
-        QNDEBUG(errorDescription << QStringLiteral(", guid: ") << tagGuid);
+        errorDescription.base() = errorPrefix.base();
+        errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "no existing local uid corresponding to tag's guid was found"));
+        errorDescription.details() = tagGuid;
+        QNDEBUG(errorDescription);
         return false;
     }
 
@@ -6410,9 +6409,8 @@ bool LocalStorageManagerPrivate::canAddNoteToNotebook(const QString & notebookLo
 
     res = !(query.value(0).toBool());
     if (!res) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QT_TR_NOOP("notebook restrictions forbid adding the note to it");
+        errorDescription.base() = errorPrefix.base();
+        errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "notebook restrictions forbid adding the note to it"));
     }
 
     query.finish();
@@ -9424,13 +9422,14 @@ bool LocalStorageManagerPrivate::noteSearchQueryToSQL(const NoteSearchQuery & no
 }
 
 bool LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL(const NoteSearchQuery & noteSearchQuery,
-                                                                        QString & sql, QNLocalizedString & errorDescription) const
+                                                                        QString & sql, ErrorString & errorDescription) const
 {
     QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::noteSearchQueryContentSearchTermsToSQL"));
 
     if (!noteSearchQuery.hasAnyContentSearchTerms()) {
-        errorDescription += QT_TR_NOOP("note search query has no advanced search modifiers and no content search terms");
-        QNWARNING(errorDescription << QStringLiteral(", query string: ") << noteSearchQuery.queryString());
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "note search query has no advanced search modifiers and no content search terms");
+        errorDescription.details() = noteSearchQuery.queryString();
+        QNWARNING(errorDescription);
         return false;
     }
 
@@ -9581,9 +9580,9 @@ void LocalStorageManagerPrivate::contentSearchTermToSQLQueryPart(QString & front
 
 bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagNames,
                                                         QStringList & tagLocalUids,
-                                                        QNLocalizedString & errorDescription) const
+                                                        ErrorString & errorDescription) const
 {
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't get tag local uids for tag names");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "can't get tag local uids for tag names"));
 
     tagLocalUids.clear();
 
@@ -9657,9 +9656,8 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
         QSqlRecord rec = query.record();
         int index = rec.indexOf(QStringLiteral("localUid"));
         if (Q_UNLIKELY(index < 0)) {
-            errorDescription = errorPrefix;
-            errorDescription += QStringLiteral(": ");
-            errorDescription += QT_TR_NOOP("tag's local uid is not present in the result of SQL query");
+            errorDescription.base() = errorPrefix.base();
+            errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "tag's local uid is not present in the result of SQL query"));
             QNWARNING(errorDescription);
             return false;
         }
@@ -9673,9 +9671,9 @@ bool LocalStorageManagerPrivate::tagNamesToTagLocalUids(const QStringList & tagN
 
 bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStringList & resourceMimeTypes,
                                                                       QStringList & resourceLocalUids,
-                                                                      QNLocalizedString & errorDescription) const
+                                                                      ErrorString & errorDescription) const
 {
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't get resource mime types for resource local uids");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "can't get resource mime types for resource local uids"));
 
     resourceLocalUids.clear();
 
@@ -9750,9 +9748,8 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
         QSqlRecord rec = query.record();
         int index = rec.indexOf(QStringLiteral("resourceLocalUid"));
         if (Q_UNLIKELY(index < 0)) {
-            errorDescription = errorPrefix;
-            errorDescription += QStringLiteral(": ");
-            errorDescription += QT_TR_NOOP("resource's local uid is not present in the result of SQL query");
+            errorDescription.base() = errorPrefix.base();
+            errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "resource's local uid is not present in the result of SQL query"));
             return false;
         }
 
@@ -9763,9 +9760,9 @@ bool LocalStorageManagerPrivate::resourceMimeTypesToResourceLocalUids(const QStr
     return true;
 }
 
-bool LocalStorageManagerPrivate::complementResourceNoteIds(Resource & resource, QNLocalizedString & errorDescription) const
+bool LocalStorageManagerPrivate::complementResourceNoteIds(Resource & resource, ErrorString & errorDescription) const
 {
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't complement resource note ids");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "can't complement resource note ids"));
 
     if (!resource.hasNoteGuid())
     {
@@ -9797,11 +9794,11 @@ bool LocalStorageManagerPrivate::complementResourceNoteIds(Resource & resource, 
 
 bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & noteLocalUid,
                                                             const QList<Resource> & updatedNoteResources,
-                                                            QNLocalizedString & errorDescription)
+                                                            ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("LocalStorageManagerPrivate::partialUpdateNoteResources: note local uid = ") << noteLocalUid);
 
-    QNLocalizedString errorPrefix = QT_TR_NOOP("Can't do the partial update of note's resources");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "can't do the partial update of note's resources"));
 
     QString listNoteResourcesQueryString = QString("SELECT Resources.resourceLocalUid, resourceGuid, noteLocalUid, noteGuid, "
                                                    "resourceUpdateSequenceNumber, resourceIsDirty, dataSize, dataHash, "
@@ -9830,9 +9827,8 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
 
         int resourceLocalUidIndex = record.indexOf(resourceLocalUidProperty);
         if (resourceLocalUidIndex < 0) {
-            errorDescription = errorPrefix;
-            errorDescription += QStringLiteral(": ");
-            errorDescription += QT_TR_NOOP("can't retrieve the resource local uid from the query result");
+            errorDescription.base() = errorPrefix.base();
+            errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "can't retrieve the resource local uid from the query result"));
             QNWARNING(errorDescription);
             return false;
         }
@@ -9938,14 +9934,14 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
     {
         const Resource & resource = addedOrUpdatedResources[i];
 
-        QNLocalizedString error;
+        ErrorString error;
         bool res = resource.checkParameters(error);
         if (!res) {
-            errorDescription = errorPrefix;
-            errorDescription += QStringLiteral(": ");
-            errorDescription += QT_TR_NOOP("found invalid resource linked with note");
-            errorDescription += QStringLiteral(": ");
-            errorDescription += error;
+            errorDescription.base() = errorPrefix.base();
+            errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "found invalid resource linked with note"));
+            errorDescription.additionalBases().append(error.base());
+            errorDescription.additionalBases().append(error.additionalBases());
+            errorDescription.details() = error.details();
             QNWARNING(errorDescription);
             return false;
         }
@@ -9953,11 +9949,11 @@ bool LocalStorageManagerPrivate::partialUpdateNoteResources(const QString & note
         error.clear();
         res = insertOrReplaceResource(resource, error, /* useSeparateTransaction = */ false);
         if (!res) {
-            errorDescription = errorPrefix;
-            errorDescription += QStringLiteral(": ");
-            errorDescription += QT_TR_NOOP("can't add or update one of note's resources");
-            errorDescription += QStringLiteral(": ");
-            errorDescription += error;
+            errorDescription.base() = errorPrefix.base();
+            errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "can't add or update one of note's resources"));
+            errorDescription.additionalBases().append(error.base());
+            errorDescription.additionalBases().append(error.additionalBases());
+            errorDescription.details() = error.details();
             return false;
         }
     }
@@ -9969,9 +9965,8 @@ void LocalStorageManagerPrivate::clearDatabaseFile()
 {
     QFile databaseFile(m_databaseFilePath);
     if (!databaseFile.open(QIODevice::ReadWrite)) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't open local storage database for both reading and writing");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += databaseFile.errorString();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't open the local storage database file for both reading and writing"));
+        errorDescription.details() = databaseFile.errorString();
         throw DatabaseOpeningException(errorDescription);
     }
 
@@ -9982,7 +9977,7 @@ void LocalStorageManagerPrivate::clearDatabaseFile()
 
 template <class T>
 QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const LocalStorageManager::ListObjectsOptions & options,
-                                                                           QNLocalizedString & errorDescription) const
+                                                                           ErrorString & errorDescription) const
 {
     QString result;
     errorDescription.clear();
@@ -10004,9 +9999,8 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
     if (!listAll && !listDirty && !listNonDirty && !listElementsWithoutGuid && !listElementsWithGuid &&
         !listLocal && !listNonLocal && !listFavoritedElements && !listNonFavoritedElements)
     {
-        errorDescription = QT_TR_NOOP("can't list objects by filter: detected incorrect filter flag");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QString::number(static_cast<int>(options));
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't list objects by filter: detected incorrect filter flag");
+        errorDescription.details() = QString::number(static_cast<int>(options));
         return result;
     }
 
@@ -10059,7 +10053,7 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions(const
 
 template<>
 QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<LinkedNotebook>(const LocalStorageManager::ListObjectsOptions & flag,
-                                                                                           QNLocalizedString & errorDescription) const
+                                                                                           ErrorString & errorDescription) const
 {
     QString result;
     errorDescription.clear();
@@ -10069,9 +10063,8 @@ QString LocalStorageManagerPrivate::listObjectsOptionsToSqlQueryConditions<Linke
     bool listNonDirty = flag.testFlag(LocalStorageManager::ListNonDirty);
 
     if (!listAll && !listDirty && !listNonDirty) {
-        errorDescription = QT_TR_NOOP("can't list linked notebooks by filter: detected incorrect filter flag");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QString::number(static_cast<int>(flag));
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't list linked notebooks by filter: detected incorrect filter flag");
+        errorDescription.details() = QString::number(static_cast<int>(flag));
         return result;
     }
 
@@ -10273,7 +10266,7 @@ QString LocalStorageManagerPrivate::orderByToSqlTableColumn<LocalStorageManager:
 }
 
 template <class T>
-bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, QNLocalizedString & errorDescription) const
+bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<T> & objects, ErrorString & errorDescription) const
 {
     objects.reserve(std::max(query.size(), 0));
 
@@ -10295,7 +10288,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
 
 template <>
 bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<Note> & notes,
-                                                         QNLocalizedString & errorDescription) const
+                                                         ErrorString & errorDescription) const
 {
     QMap<QString, int> indexForLocalUid;
 
@@ -10305,7 +10298,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
 
         int localUidIndex = rec.indexOf(QStringLiteral("localUid"));
         if (localUidIndex < 0) {
-            errorDescription += QT_TR_NOOP("no localUid field in SQL record");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "no localUid field in SQL record for note");
             QNWARNING(errorDescription);
             return false;
         }
@@ -10313,7 +10306,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
         QVariant localUidValue = rec.value(localUidIndex);
         QString localUid = localUidValue.toString();
         if (localUid.isEmpty()) {
-            errorDescription += QT_TR_NOOP("found empty localUid field for Note");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "found empty localUid field in SQL record for note");
             QNWARNING(errorDescription);
             return false;
         }
@@ -10340,7 +10333,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery(QSqlQuery query, QList<
 
 template <>
 bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery query, QList<Notebook> & notebooks,
-                                                                   QNLocalizedString & errorDescription) const
+                                                                   ErrorString & errorDescription) const
 {
     QMap<QString, int> indexForLocalUid;
 
@@ -10350,7 +10343,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery que
 
         int localUidIndex = rec.indexOf(QStringLiteral("localUid"));
         if (localUidIndex < 0) {
-            errorDescription += QT_TR_NOOP("no localUid field in SQL record");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "no localUid field in SQL record for notebook");
             QNWARNING(errorDescription);
             return false;
         }
@@ -10358,7 +10351,7 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery que
         QVariant localUidValue = rec.value(localUidIndex);
         QString localUid = localUidValue.toString();
         if (localUid.isEmpty()) {
-            errorDescription += QT_TR_NOOP("found empty localUid field for Notebook");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "found empty localUid field in SQL record for Notebook");
             QNWARNING(errorDescription);
             return false;
         }
@@ -10385,28 +10378,28 @@ bool LocalStorageManagerPrivate::fillObjectsFromSqlQuery<Notebook>(QSqlQuery que
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<SavedSearch>(const QSqlRecord & rec, SavedSearch & search,
-                                                                      QNLocalizedString & errorDescription) const
+                                                                      ErrorString & errorDescription) const
 {
     return fillSavedSearchFromSqlRecord(rec, search, errorDescription);
 }
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Tag>(const QSqlRecord & rec, Tag & tag,
-                                                              QNLocalizedString & errorDescription) const
+                                                              ErrorString & errorDescription) const
 {
     return fillTagFromSqlRecord(rec, tag, errorDescription);
 }
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<LinkedNotebook>(const QSqlRecord & rec, LinkedNotebook & linkedNotebook,
-                                                                         QNLocalizedString & errorDescription) const
+                                                                         ErrorString & errorDescription) const
 {
     return fillLinkedNotebookFromSqlRecord(rec, linkedNotebook, errorDescription);
 }
 
 template <>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Notebook>(const QSqlRecord & rec, Notebook & notebook,
-                                                                   QNLocalizedString & errorDescription) const
+                                                                   ErrorString & errorDescription) const
 {
     bool res = fillNotebookFromSqlRecord(rec, notebook, errorDescription);
     if (!res) {
@@ -10419,7 +10412,7 @@ bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Notebook>(const QSqlRec
 
 template<>
 bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Note>(const QSqlRecord & rec, Note & note,
-                                                               QNLocalizedString & errorDescription) const
+                                                               ErrorString & errorDescription) const
 {
     bool res = fillNoteFromSqlRecord(rec, note, errorDescription);
     if (!res) {
@@ -10432,12 +10425,12 @@ bool LocalStorageManagerPrivate::fillObjectFromSqlRecord<Note>(const QSqlRecord 
 
 template <class T, class TOrderBy>
 QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::ListObjectsOptions & flag,
-                                                 QNLocalizedString & errorDescription, const size_t limit,
+                                                 ErrorString & errorDescription, const size_t limit,
                                                  const size_t offset, const TOrderBy & orderBy,
                                                  const LocalStorageManager::OrderDirection::type & orderDirection,
                                                  const QString & additionalSqlQueryCondition) const
 {
-    QNLocalizedString flagError;
+    ErrorString flagError;
     QString sqlQueryConditions = listObjectsOptionsToSqlQueryConditions<T>(flag, flagError);
     if (sqlQueryConditions.isEmpty() && !flagError.isEmpty()) {
         errorDescription = flagError;
@@ -10500,26 +10493,24 @@ QList<T> LocalStorageManagerPrivate::listObjects(const LocalStorageManager::List
 
     QList<T> objects;
 
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't list objects in local storage by filter");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "can't list objects from the local storage database by filter"));
     QSqlQuery query(m_sqlDatabase);
     bool res = query.exec(queryString);
     if (!res) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QT_TR_NOOP("can't list objects by filter from SQL database");
-        errorDescription += QStringLiteral(": ");
+        errorDescription.base() = errorPrefix.base();
         QNCRITICAL(errorDescription << QStringLiteral(", last query = ") << query.lastQuery()
                    << QStringLiteral(", last error = ") << query.lastError());
-        errorDescription += query.lastError().text();
+        errorDescription.details() = query.lastError().text();
         return objects;
     }
 
-    QNLocalizedString error;
+    ErrorString error;
     res = fillObjectsFromSqlQuery(query, objects, error);
     if (!res) {
-        errorDescription = errorPrefix;
-        errorDescription += QStringLiteral(": ");
-        errorDescription += error;
+        errorDescription.base() = errorPrefix.base();
+        errorDescription.additionalBases().append(error.base());
+        errorDescription.additionalBases().append(error.additionalBases());
+        errorDescription.details() = error.details();
         QNWARNING(errorDescription);
         objects.clear();
         return objects;

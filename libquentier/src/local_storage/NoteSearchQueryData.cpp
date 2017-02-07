@@ -1095,7 +1095,7 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString, qint
             bool conversionResult = false;
             int daysOffset = offsetSubstr.toInt(&conversionResult);
             if (!conversionResult) {
-                error = QT_TR_NOOP("Invalid query string: unable to convert days offset to integer");
+                error.base() = QT_TRANSLATE_NOOP("", "Invalid query string: unable to convert days offset to integer");
                 return false;
             }
 
@@ -1115,7 +1115,7 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString, qint
             bool conversionResult = false;
             int weekOffset = offsetSubstr.toInt(&conversionResult);
             if (!conversionResult) {
-                error = QT_TR_NOOP("Invalid query string: unable to convert weeks offset to integer");
+                error.base() = QT_TRANSLATE_NOOP("", "Invalid query string: unable to convert weeks offset to integer");
                 return false;
             }
 
@@ -1135,7 +1135,7 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString, qint
             bool conversionResult = false;
             int monthOffset = offsetSubstr.toInt(&conversionResult);
             if (!conversionResult) {
-                error = QT_TR_NOOP("Invalid query string: unable to convert months offset to integer");
+                error.base() = QT_TRANSLATE_NOOP("", "Invalid query string: unable to convert months offset to integer");
                 return false;
             }
 
@@ -1158,7 +1158,7 @@ bool NoteSearchQueryData::dateTimeStringToTimestamp(QString dateTimeString, qint
             bool conversionResult = false;
             int yearsOffset = offsetSubstr.toInt(&conversionResult);
             if (!conversionResult) {
-                error = QT_TR_NOOP("Invalid query string: unable to convert years offset to integer");
+                error.base() = QT_TRANSLATE_NOOP("", "Invalid query string: unable to convert years offset to integer");
                 return false;
             }
 
