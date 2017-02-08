@@ -21,7 +21,7 @@
 
 #include <QObject>
 #include <QRunnable>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/utility/Macros.h>
 
 namespace quentier {
@@ -40,7 +40,7 @@ public:
     virtual void run() Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void finished(bool status, QString inkNoteImageFilePath, QNLocalizedString errorDescription);
+    void finished(bool status, QString inkNoteImageFilePath, ErrorString errorDescription);
 
 private:
     QString     m_host;

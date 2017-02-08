@@ -56,30 +56,30 @@ void InkNoteImageDownloader::run()
     QNDEBUG(QStringLiteral("InkNoteImageDownloader::run: host = ") << m_host << QStringLiteral(", resource guid = ") << m_resourceGuid);
 
 #define SET_ERROR(error) \
-    QNLocalizedString errorDescription = QT_TR_NOOP(error); \
+    ErrorString errorDescription(error); \
     emit finished(false, QString(), errorDescription); \
     return
 
     if (Q_UNLIKELY(m_host.isEmpty())) {
-        SET_ERROR("host is empty");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "host is empty"));
     }
 
     if (Q_UNLIKELY(m_resourceGuid.isEmpty())) {
-        SET_ERROR("resource guid is empty");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "resource guid is empty"));
     }
 
     if (Q_UNLIKELY(m_shardId.isEmpty())) {
-        SET_ERROR("shard id is empty");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "shard id is empty"));
     }
 
     if (Q_UNLIKELY(!m_noteFromPublicLinkedNotebook && m_authToken.isEmpty())) {
-        SET_ERROR("authentication data is incomplete");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "the authentication data is incomplete"));
     }
 
     qevercloud::InkNoteImageDownloader downloader(m_host, m_authToken, m_shardId, m_height, m_width);
     QByteArray inkNoteImageData = downloader.download(m_resourceGuid, m_noteFromPublicLinkedNotebook);
     if (Q_UNLIKELY(inkNoteImageData.isEmpty())) {
-        SET_ERROR("received empty note thumbnail data");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "received empty note thumbnail data"));
     }
 
     QString folderPath = applicationPersistentStoragePath() + QStringLiteral("/NoteEditorPage/inkNoteImages");
@@ -89,27 +89,27 @@ void InkNoteImageDownloader::run()
         QDir dir(folderPath);
         bool res = dir.mkpath(folderPath);
         if (Q_UNLIKELY(!res)) {
-            SET_ERROR("can't create folder to store ink note images in");
+            SET_ERROR(QT_TRANSLATE_NOOP("", "can't create a folder to store the ink note images in"));
         }
     }
     else if (Q_UNLIKELY(!folderPathInfo.isDir())) {
-        SET_ERROR("can't create folder to store ink note images in: "
-                  "a file with similar name and path exists");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "can't create a folder to store the ink note images in: "
+                                    "a file with similar name and path already exists"));
     }
     else if (Q_UNLIKELY(!folderPathInfo.isWritable())) {
-        SET_ERROR("folder to store ink note images in is not writable");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "the folder for ink note images storage is not writable"));
     }
 
     QString filePath = folderPath + QStringLiteral("/") + m_resourceGuid;
     QFile file(filePath);
     if (Q_UNLIKELY(!file.open(QIODevice::WriteOnly))) {
-        SET_ERROR("can't open file to write the ink note images into");
+        SET_ERROR(QT_TRANSLATE_NOOP("", "can't open the ink note image file for writing"));
     }
 
     file.write(inkNoteImageData);
     file.close();
 
-    emit finished(true, filePath, QNLocalizedString());
+    emit finished(true, filePath, ErrorString());
 }
 
 } // namespace quentier

@@ -22,7 +22,7 @@
 #include <quentier/types/Account.h>
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 
 namespace quentier {
@@ -117,7 +117,7 @@ Q_SIGNALS:
      * This signal is emitted when the synchronization fails; at this moment there is no error code explaining the reason
      * of the failure programmatically so the only explanation available is the textual one for the end user
      */
-    void failed(QNLocalizedString errorDescription);
+    void failed(ErrorString errorDescription);
 
     /**
      * This signal is emitted when the synchronization is finished
@@ -131,7 +131,7 @@ Q_SIGNALS:
      * @param errorDescription - the textual explanation of the failure to revoke the authentication
      * @param userId - the ID of the user for which the revoke of the authentication was requested
      */
-    void authenticationRevoked(bool success, QNLocalizedString errorDescription,
+    void authenticationRevoked(bool success, ErrorString errorDescription,
                                qevercloud::UserID userId);
 
     /**
@@ -141,7 +141,7 @@ Q_SIGNALS:
      * @param errorDescription - the textual explanation of the failure to authenticate the new user
      * @param account - the account of the authenticated user
      */
-    void authenticationFinished(bool success, QNLocalizedString errorDescription,
+    void authenticationFinished(bool success, ErrorString errorDescription,
                                 Account account);
 
     /**
@@ -207,7 +207,7 @@ Q_SIGNALS:
      * @param message - textual description of what is currently being done during the synchronization
      * @param workDonePercentage - the approximate percentage of finished synchronization work
      */
-    void progress(QNLocalizedString message, double workDonePercentage);
+    void progress(ErrorString message, double workDonePercentage);
 
 private:
     SynchronizationManager() Q_DECL_EQ_DELETE;

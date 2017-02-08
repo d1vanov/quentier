@@ -19,7 +19,7 @@
 #ifndef LIB_QUENTIER_SYNCHRONIZATION_NOTE_STORE_H
 #define LIB_QUENTIER_SYNCHRONIZATION_NOTE_STORE_H
 
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QSharedPointer>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -59,41 +59,41 @@ public:
     QString authenticationToken() const;
     void setAuthenticationToken(const QString & authToken);
 
-    qint32 createNotebook(Notebook & notebook, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
-    qint32 updateNotebook(Notebook & notebook, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 createNotebook(Notebook & notebook, ErrorString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 updateNotebook(Notebook & notebook, ErrorString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
 
-    qint32 createNote(Note & note, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
-    qint32 updateNote(Note & note, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 createNote(Note & note, ErrorString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 updateNote(Note & note, ErrorString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
 
-    qint32 createTag(Tag & tag, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
-    qint32 updateTag(Tag & tag, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 createTag(Tag & tag, ErrorString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
+    qint32 updateTag(Tag & tag, ErrorString & errorDescription, qint32 & rateLimitSeconds, const QString & linkedNotebookAuthToken = QString());
 
-    qint32 createSavedSearch(SavedSearch & savedSearch, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
-    qint32 updateSavedSearch(SavedSearch & savedSearch, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 createSavedSearch(SavedSearch & savedSearch, ErrorString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 updateSavedSearch(SavedSearch & savedSearch, ErrorString & errorDescription, qint32 & rateLimitSeconds);
 
-    qint32 getSyncState(qevercloud::SyncState & syncState, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 getSyncState(qevercloud::SyncState & syncState, ErrorString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 getSyncChunk(const qint32 afterUSN, const qint32 maxEntries,
                         const qevercloud::SyncChunkFilter & filter,
-                        qevercloud::SyncChunk & syncChunk, QNLocalizedString & errorDescription,
+                        qevercloud::SyncChunk & syncChunk, ErrorString & errorDescription,
                         qint32 & rateLimitSeconds);
 
     qint32 getLinkedNotebookSyncState(const qevercloud::LinkedNotebook & linkedNotebook,
                                       const QString & authToken, qevercloud::SyncState & syncState,
-                                      QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+                                      ErrorString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 getLinkedNotebookSyncChunk(const qevercloud::LinkedNotebook & linkedNotebook,
                                       const qint32 afterUSN, const qint32 maxEntries,
                                       const QString & linkedNotebookAuthToken, const bool fullSyncOnly,
-                                      qevercloud::SyncChunk & syncChunk, QNLocalizedString & errorDescription,
+                                      qevercloud::SyncChunk & syncChunk, ErrorString & errorDescription,
                                       qint32 & rateLimitSeconds);
 
     qint32 getNote(const bool withContent, const bool withResourcesData,
                    const bool withResourcesRecognition, const bool withResourceAlternateData,
-                   Note & note, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+                   Note & note, ErrorString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 authenticateToSharedNotebook(const QString & shareKey, qevercloud::AuthenticationResult & authResult,
-                                        QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+                                        ErrorString & errorDescription, qint32 & rateLimitSeconds);
 private:
 
     struct UserExceptionSource
@@ -105,32 +105,32 @@ private:
     };
 
     qint32 processEdamUserExceptionForNotebook(const Notebook & notebook, const qevercloud::EDAMUserException & userException,
-                                               const UserExceptionSource::type & source, QNLocalizedString & errorDescription) const;
+                                               const UserExceptionSource::type & source, ErrorString & errorDescription) const;
 
     qint32 processEdamUserExceptionForNote(const Note & note, const qevercloud::EDAMUserException & userException,
-                                           const UserExceptionSource::type & source, QNLocalizedString & errorDescription) const;
+                                           const UserExceptionSource::type & source, ErrorString & errorDescription) const;
 
     qint32 processEdamUserExceptionForTag(const Tag & tag, const qevercloud::EDAMUserException & userException,
-                                          const UserExceptionSource::type & source, QNLocalizedString & errorDescription) const;
+                                          const UserExceptionSource::type & source, ErrorString & errorDescription) const;
 
     qint32 processEdamUserExceptionForSavedSearch(const SavedSearch & search, const qevercloud::EDAMUserException & userException,
-                                                  const UserExceptionSource::type & source, QNLocalizedString & errorDescription) const;
+                                                  const UserExceptionSource::type & source, ErrorString & errorDescription) const;
 
     qint32 processEdamUserExceptionForGetSyncChunk(const qevercloud::EDAMUserException & userException,
                                                    const qint32 afterUSN, const qint32 maxEntries,
-                                                   QNLocalizedString & errorDescription) const;
+                                                   ErrorString & errorDescription) const;
 
     qint32 processEdamUserExceptionForGetNote(const Note & note, const qevercloud::EDAMUserException & userException,
-                                              QNLocalizedString & errorDescription) const;
+                                              ErrorString & errorDescription) const;
 
     qint32 processUnexpectedEdamUserException(const QString & typeName, const qevercloud::EDAMUserException & userException,
-                                              const UserExceptionSource::type & source, QNLocalizedString & errorDescription) const;
+                                              const UserExceptionSource::type & source, ErrorString & errorDescription) const;
 
     qint32 processEdamSystemException(const qevercloud::EDAMSystemException & systemException,
-                                      QNLocalizedString & errorDescription, qint32 & rateLimitSeconds) const;
+                                      ErrorString & errorDescription, qint32 & rateLimitSeconds) const;
 
     void processEdamNotFoundException(const qevercloud::EDAMNotFoundException & notFoundException,
-                                      QNLocalizedString & errorDescription) const;
+                                      ErrorString & errorDescription) const;
 
 private:
     NoteStore() Q_DECL_EQ_DELETE;
