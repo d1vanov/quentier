@@ -194,8 +194,8 @@ void SpellCheckerPrivate::removeFromUserWordList(const QString & word)
 
     QObject::connect(this, QNSIGNAL(SpellCheckerPrivate,writeFile,QString,QByteArray,QUuid,bool),
                      m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(SpellCheckerPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
+    QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,ErrorString,QUuid),
+                     this, QNSLOT(SpellCheckerPrivate,onWriteFileRequestProcessed,bool,ErrorString,QUuid));
 
     m_updateUserDictionaryFileRequestId = QUuid::createUuid();
     emit writeFile(m_userDictionaryPath, dataToWrite, m_updateUserDictionaryFileRequestId, /* append = */ false);
@@ -651,8 +651,8 @@ void SpellCheckerPrivate::initializeUserDictionary(const QString & userDictionar
 
         QObject::connect(this, QNSIGNAL(SpellCheckerPrivate,readFile,QString,QUuid),
                          m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid),
-                         this, QNSLOT(SpellCheckerPrivate,onReadFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid));
+        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,ErrorString,QByteArray,QUuid),
+                         this, QNSLOT(SpellCheckerPrivate,onReadFileRequestProcessed,bool,ErrorString,QByteArray,QUuid));
 
         m_readUserDictionaryRequestId = QUuid::createUuid();
         emit readFile(m_userDictionaryPath, m_readUserDictionaryRequestId);
@@ -722,8 +722,8 @@ void SpellCheckerPrivate::checkUserDictionaryDataPendingWriting()
     {
         QObject::connect(this, QNSIGNAL(SpellCheckerPrivate,writeFile,QString,QByteArray,QUuid,bool),
                          m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                         this, QNSLOT(SpellCheckerPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
+        QObject::connect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,ErrorString,QUuid),
+                         this, QNSLOT(SpellCheckerPrivate,onWriteFileRequestProcessed,bool,ErrorString,QUuid));
 
         m_appendUserDictionaryPartToFileRequestId = QUuid::createUuid();
         emit writeFile(m_userDictionaryPath, dataToWrite, m_appendUserDictionaryPartToFileRequestId, /* append = */ true);
@@ -734,7 +734,7 @@ void SpellCheckerPrivate::checkUserDictionaryDataPendingWriting()
     m_userDictionaryPartPendingWriting.clear();
 }
 
-void SpellCheckerPrivate::onReadFileRequestProcessed(bool success, QNLocalizedString errorDescription, QByteArray data, QUuid requestId)
+void SpellCheckerPrivate::onReadFileRequestProcessed(bool success, ErrorString errorDescription, QByteArray data, QUuid requestId)
 {
     Q_UNUSED(errorDescription)
 
@@ -749,8 +749,8 @@ void SpellCheckerPrivate::onReadFileRequestProcessed(bool success, QNLocalizedSt
 
     QObject::disconnect(this, QNSIGNAL(SpellCheckerPrivate,readFile,QString,QUuid),
                         m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onReadFileRequest,QString,QUuid));
-    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid),
-                        this, QNSLOT(SpellCheckerPrivate,onReadFileRequestProcessed,bool,QNLocalizedString,QByteArray,QUuid));
+    QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,readFileRequestProcessed,bool,ErrorString,QByteArray,QUuid),
+                        this, QNSLOT(SpellCheckerPrivate,onReadFileRequestProcessed,bool,ErrorString,QByteArray,QUuid));
 
     if (Q_LIKELY(success))
     {
@@ -788,7 +788,7 @@ void SpellCheckerPrivate::onReadFileRequestProcessed(bool success, QNLocalizedSt
     }
 }
 
-void SpellCheckerPrivate::onWriteFileRequestProcessed(bool success, QNLocalizedString errorDescription, QUuid requestId)
+void SpellCheckerPrivate::onWriteFileRequestProcessed(bool success, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId == m_appendUserDictionaryPartToFileRequestId) {
         onAppendUserDictionaryPartDone(success, errorDescription);
@@ -805,12 +805,12 @@ void SpellCheckerPrivate::onWriteFileRequestProcessed(bool success, QNLocalizedS
     {
         QObject::disconnect(this, QNSIGNAL(SpellCheckerPrivate,writeFile,QString,QByteArray,QUuid,bool),
                             m_pFileIOThreadWorker, QNSLOT(FileIOThreadWorker,onWriteFileRequest,QString,QByteArray,QUuid,bool));
-        QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,QNLocalizedString,QUuid),
-                            this, QNSLOT(SpellCheckerPrivate,onWriteFileRequestProcessed,bool,QNLocalizedString,QUuid));
+        QObject::disconnect(m_pFileIOThreadWorker, QNSIGNAL(FileIOThreadWorker,writeFileRequestProcessed,bool,ErrorString,QUuid),
+                            this, QNSLOT(SpellCheckerPrivate,onWriteFileRequestProcessed,bool,ErrorString,QUuid));
     }
 }
 
-void SpellCheckerPrivate::onAppendUserDictionaryPartDone(bool success, QNLocalizedString errorDescription)
+void SpellCheckerPrivate::onAppendUserDictionaryPartDone(bool success, ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("SpellCheckerPrivate::onAppendUserDictionaryPartDone: success = ") << (success ? QStringLiteral("true") : QStringLiteral("false")));
 
@@ -825,7 +825,7 @@ void SpellCheckerPrivate::onAppendUserDictionaryPartDone(bool success, QNLocaliz
     checkUserDictionaryDataPendingWriting();
 }
 
-void SpellCheckerPrivate::onUpdateUserDictionaryDone(bool success, QNLocalizedString errorDescription)
+void SpellCheckerPrivate::onUpdateUserDictionaryDone(bool success, ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("SpellCheckerPrivate::onUpdateUserDictionaryDone: success = ") << (success ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", error description = ") << errorDescription);

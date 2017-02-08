@@ -55,6 +55,8 @@ public:
     bool isEmpty() const;
     void clear();
 
+    QString localizedString() const;
+
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 private:

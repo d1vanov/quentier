@@ -1,5 +1,6 @@
 #include <quentier/types/ErrorString.h>
 #include "data/ErrorStringData.h"
+#include <QApplication>
 
 namespace quentier {
 
@@ -68,6 +69,78 @@ void ErrorString::clear()
     d->m_base.clear();
     d->m_details.clear();
     d->m_additionalBases.clear();
+}
+
+QString ErrorString::localizedString() const
+{
+    if (isEmpty()) {
+        return QString();
+    }
+
+    QString baseStr;
+    if (!d->m_base.isEmpty()) {
+        baseStr = qApp->translate("", d->m_base.toLocal8Bit().constData());
+    }
+
+    QString additionalBasesStr;
+    for(auto it = d->m_additionalBases.constBegin(), end = d->m_additionalBases.constEnd(); it != end; ++it)
+    {
+        const QString & additionalBase = *it;
+        if (additionalBase.isEmpty()) {
+            continue;
+        }
+
+        QString translatedStr = qApp->translate("", additionalBase.toLocal8Bit().constData());
+        if (additionalBasesStr.isEmpty()) {
+            additionalBasesStr = translatedStr;
+        }
+        else {
+            additionalBasesStr += QStringLiteral(", ");
+            additionalBasesStr += translatedStr;
+        }
+    }
+
+    QString result = baseStr;
+    if (!result.isEmpty()) {
+        // Capitalize the first letter
+        result = result.left(1).toUpper() + result.mid(1);
+    }
+
+    if (!result.isEmpty() && !additionalBasesStr.isEmpty()) {
+        result += QStringLiteral(", ");
+    }
+
+    if (result.isEmpty())
+    {
+        result += additionalBasesStr;
+
+        if (!result.isEmpty()) {
+            // Capitalize the first letter
+            result = result.left(1).toUpper() + result.mid(1);
+        }
+    }
+    else
+    {
+        result += additionalBasesStr.toLower();
+    }
+
+    if (d->m_details.isEmpty()) {
+        return result;
+    }
+
+    if (!result.isEmpty()) {
+        result += QStringLiteral(": ");
+        result += d->m_details.toLower();
+        return result;
+    }
+
+    result += d->m_details;
+    if (!result.isEmpty()) {
+        // Capitalize the first letter
+        result = result.left(1).toUpper() + result.mid(1);
+    }
+
+    return result;
 }
 
 QTextStream & ErrorString::print(QTextStream & strm) const

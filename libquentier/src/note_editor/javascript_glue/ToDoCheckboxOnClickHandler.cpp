@@ -32,7 +32,7 @@ void ToDoCheckboxOnClickHandler::onToDoCheckboxClicked(QString enToDoCheckboxId)
     bool conversionResult = false;
     quint64 id = enToDoCheckboxId.toULongLong(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        QNLocalizedString error = QT_TR_NOOP("error handling todo checkbox click event: can't convert id from string to number");
+        ErrorString error(QT_TRANSLATE_NOOP("", "error handling todo checkbox click event: can't convert id from string to number"));
         QNWARNING(error);
         emit notifyError(error);
         return;

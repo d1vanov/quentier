@@ -288,7 +288,7 @@ void GenericResourceDisplayWidget::onSaveResourceToStorageRequestProcessed(QUuid
                               tr("Could not save the resource to hidden file "
                                  "(in order to make it possible to open it with some application)"),
                               tr("Error code") + QStringLiteral(" = ") + QString::number(errorCode) + QStringLiteral(": ") +
-                              qApp->translate("", errorDescription.toLocal8Bit().constData());
+                              errorDescription.localizedString());
             if (m_pendingSaveResourceToStorage) {
                 setPendingMode(false);
             }
@@ -314,7 +314,7 @@ void GenericResourceDisplayWidget::onSaveResourceToFileRequestProcessed(bool suc
             QNWARNING(QStringLiteral("Could not save resource to file: ") << errorDescription << QStringLiteral("; request id = ") << requestId);
             warningMessageBox(this, tr("Error saving the resource to file"),
                               tr("Could not save the resource to file"),
-                              qApp->translate("", errorDescription.toLocal8Bit().constData());
+                              errorDescription.localizedString());
         }
     }
 }

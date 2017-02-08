@@ -33,7 +33,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QNLocalizedString error = QT_TR_NOOP("can't add hyperlink to the selected text: no note editor page"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't add hyperlink to the selected text: no note editor page")); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -165,7 +165,7 @@ void AddHyperlinkToSelectedTextDelegate::onHyperlinkSetToSelection(const QVarian
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the result of the attempt to set the hyperlink to selection from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the result of the attempt to set the hyperlink to selection from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -174,16 +174,15 @@ void AddHyperlinkToSelectedTextDelegate::onHyperlinkSetToSelection(const QVarian
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QNLocalizedString error;
+        ErrorString error;
 
         auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("can't parse the error of the attempt to set the hyperlink to selection from JavaScript");
+            error.base() = QT_TRANSLATE_NOOP("", "can't parse the error of the attempt to set the hyperlink to selection from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("Can't set the hyperlink to selection");
-            error += QStringLiteral(": ");
-            error += errorIt.value().toString();
+            error.base() = QT_TRANSLATE_NOOP("", "can't set the hyperlink to selection");
+            error.details() = errorIt.value().toString();
         }
 
         QNWARNING(error);

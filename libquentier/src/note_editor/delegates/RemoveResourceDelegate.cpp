@@ -25,7 +25,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QNLocalizedString error = QT_TR_NOOP("can't remove the attachment: no note editor page"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't remove the attachment: no note editor page")); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -67,7 +67,7 @@ void RemoveResourceDelegate::doStart()
     QNDEBUG(QStringLiteral("RemoveResourceDelegate::doStart"));
 
     if (Q_UNLIKELY(!m_resource.hasDataHash())) {
-        QNLocalizedString error = QT_TR_NOOP("can't remove the attachment: the data hash is missing");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't remove the attachment: the data hash is missing"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -87,7 +87,7 @@ void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVa
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the result of attachment reference removal from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the result of attachment reference removal from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -96,16 +96,15 @@ void RemoveResourceDelegate::onResourceReferenceRemovedFromNoteContent(const QVa
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QNLocalizedString error;
+        ErrorString error;
 
         auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("can't parse the error of attachment reference removal from JavaScript");
+            error.base() = QT_TRANSLATE_NOOP("", "can't parse the error of attachment reference removal from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("can't remove the attachment reference from the note editor");
-            error += QStringLiteral(": ");
-            error += errorIt.value().toString();
+            error.base() = QT_TRANSLATE_NOOP("", "can't remove the attachment reference from the note editor");
+            error.details() = errorIt.value().toString();
         }
 
         QNWARNING(error);

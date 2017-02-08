@@ -30,7 +30,7 @@ namespace quentier {
 #define GET_PAGE() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_noteEditor.page()); \
     if (Q_UNLIKELY(!page)) { \
-        QNLocalizedString error = QT_TR_NOOP("can't rename the attachment: no note editor page"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't rename the attachment: no note editor page")); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -95,8 +95,7 @@ void RenameResourceDelegate::onOriginalPageConvertedToNote(Note note)
 
 #define CHECK_NOTE_ACTUALITY() \
     if (m_noteEditor.notePtr() != m_pNote) { \
-        QNLocalizedString error = QT_TR_NOOP("the note set to the note editor was changed during the attachment renaming, " \
-                                             "the action was not completed"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "the note set to the note editor was changed during the attachment renaming, the action was not completed")); \
         QNDEBUG(error); \
         emit notifyError(error); \
         return; \
@@ -109,7 +108,7 @@ void RenameResourceDelegate::doStart()
     CHECK_NOTE_ACTUALITY()
 
     if (Q_UNLIKELY(!m_resource.hasDataHash())) {
-        QNLocalizedString error = QT_TR_NOOP("can't rename the attachment: the data hash is missing");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't rename the attachment: the data hash is missing"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -196,15 +195,15 @@ void RenameResourceDelegate::buildAndSaveGenericResourceImage()
 
     QObject::connect(this, QNSIGNAL(RenameResourceDelegate,saveGenericResourceImageToFile,QString,QString,QByteArray,QString,QByteArray,QString,QUuid),
                      m_pGenericResourceImageManager, QNSLOT(GenericResourceImageManager,onGenericResourceImageWriteRequest,QString,QString,QByteArray,QString,QByteArray,QString,QUuid));
-    QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,QNLocalizedString,QUuid),
-                     this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QNLocalizedString,QUuid));
+    QObject::connect(m_pGenericResourceImageManager, QNSIGNAL(GenericResourceImageManager,genericResourceImageWriteReply,bool,QByteArray,QString,ErrorString,QUuid),
+                     this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,ErrorString,QUuid));
 
     emit saveGenericResourceImageToFile(m_pNote->localUid(), m_resource.localUid(), imageData, QStringLiteral("png"),
                                         m_resource.dataHash(), m_resource.displayName(), m_genericResourceImageWriterRequestId);
 }
 
 void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, QByteArray resourceHash, QString filePath,
-                                                                  QNLocalizedString errorDescription, QUuid requestId)
+                                                                  ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_genericResourceImageWriterRequestId) {
         return;
@@ -221,11 +220,12 @@ void RenameResourceDelegate::onGenericResourceImageWriterFinished(bool success, 
                         this, QNSLOT(RenameResourceDelegate,onGenericResourceImageWriterFinished,bool,QByteArray,QString,QString,QUuid));
 
     if (Q_UNLIKELY(!success)) {
-        QNLocalizedString error = QT_TR_NOOP("can't rename generic resource: can't write generic resource image to file");
-        error += QStringLiteral(": ");
-        error += errorDescription;
-        QNWARNING(errorDescription);
-        emit notifyError(errorDescription);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't rename generic resource: can't write generic resource image to file"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
+        QNWARNING(error);
+        emit notifyError(error);
         return;
     }
 

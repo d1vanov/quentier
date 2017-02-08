@@ -55,35 +55,35 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
             << QStringLiteral(", is image = ") << (isImage ? QStringLiteral("true") : QStringLiteral("false")));
 
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write resource data for empty note local uid to local file");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "detected attempt to write resource data for empty note local uid to local file"));
         QNWARNING(errorDescription << QStringLiteral(", request id = ") << requestId);
         emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyLocalUid, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(resourceLocalUid.isEmpty())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write data for empty resource local uid to local file");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "detected attempt to write data for empty resource local uid to local file"));
         QNWARNING(errorDescription << QStringLiteral(", request id = ") << requestId);
         emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyLocalUid, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(requestId.isNull())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write data for resource to local file with empty request id");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "detected attempt to write data for resource to local file with empty request id"));
         QNWARNING(errorDescription << QStringLiteral(", note local uid = ") << noteLocalUid << QStringLiteral(", resource local uid = ") << resourceLocalUid);
         emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyRequestId, errorDescription);
         return;
     }
 
     if (Q_UNLIKELY(data.isEmpty())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("detected attempt to write empty resource data to local file");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "detected attempt to write empty resource data to local file"));
         QNWARNING(errorDescription << QStringLiteral(", note local uid = ") << noteLocalUid << QStringLiteral(", resource local uid = ") << resourceLocalUid);
         emit writeResourceToFileCompleted(requestId, dataHash, QString(), ResourceFileStorageManager::Errors::EmptyData, errorDescription);
         return;
     }
 
     if (!isImage && Q_UNLIKELY(m_nonImageResourceFileStorageLocation.isEmpty())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't automatically choose resource file storage location");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "can't automatically choose resource file storage location"));
         QNWARNING(errorDescription);
         emit writeResourceToFileCompleted(requestId, dataHash, QString(),
                                           ResourceFileStorageManager::Errors::NoResourceFileStorageLocation,
@@ -108,7 +108,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
         if (!createDir)
         {
             int errorCode = -1;
-            QNLocalizedString errorDescription = QT_TR_NOOP("can't create folder to write the resource into");
+            ErrorString errorDescription(QT_TRANSLATE_NOOP("", "can't create folder to write the resource into"));
             QNWARNING(errorDescription << QStringLiteral(", note local uid = ") << noteLocalUid << QStringLiteral(", resource local uid = ")
                       << resourceLocalUid << QStringLiteral(", request id = ") << requestId);
             emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, errorCode, errorDescription);
@@ -124,7 +124,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
     bool actual = checkIfResourceFileExistsAndIsActual(noteLocalUid, resourceLocalUid, fileStoragePath, dataHash);
     if (actual) {
         QNTRACE(QStringLiteral("Skipping writing the resource to file as it is not necessary"));
-        emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, QNLocalizedString());
+        emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, ErrorString());
         return;
     }
 
@@ -132,9 +132,8 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
     bool open = file.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't open resource file for writing");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += file.errorString();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "can't open resource file for writing"));
+        errorDescription.details() = file.errorString();
         int errorCode = file.error();
         QNWARNING(errorDescription << QStringLiteral(", error code = ") << errorCode << QStringLiteral(", note local uid = ")
                   << noteLocalUid << QStringLiteral(", resource local uid = ") << resourceLocalUid << QStringLiteral(", request id = ")
@@ -146,9 +145,8 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
     qint64 writeRes = file.write(data);
     if (Q_UNLIKELY(writeRes < 0))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't write data to resource file");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += file.errorString();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "can't write data to resource file"));
+        errorDescription.details() = file.errorString();
         int errorCode = file.error();
         QNWARNING(errorDescription << QStringLiteral(", error code = ") << errorCode << QStringLiteral(", note local uid = ")
                   << noteLocalUid << QStringLiteral(", resource local uid = ") << resourceLocalUid << QStringLiteral(", request id = ")
@@ -162,7 +160,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
     m_resourceLocalUidByFilePath[fileStoragePath] = resourceLocalUid;
 
     int errorCode = 0;
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     bool res = updateResourceHash(resourceLocalUid, dataHash, fileStoragePathInfo.absolutePath(),
                                   errorCode, errorDescription);
     if (Q_UNLIKELY(!res)) {
@@ -174,7 +172,7 @@ void ResourceFileStorageManagerPrivate::onWriteResourceToFileRequest(QString not
 
     QNDEBUG(QStringLiteral("Successfully wrote resource data to file: resource local uid = ") << resourceLocalUid
             << QStringLiteral(", file path = ") << fileStoragePath);
-    emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, QNLocalizedString());
+    emit writeResourceToFileCompleted(requestId, dataHash, fileStoragePath, 0, ErrorString());
 }
 
 void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fileStoragePath, QString resourceLocalUid, QUuid requestId)
@@ -184,7 +182,7 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fi
 
     if (Q_UNLIKELY(m_nonImageResourceFileStorageLocation.isEmpty()))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("resource file storage location is empty");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "resource file storage location is empty"));
         QNWARNING(errorDescription << QStringLiteral(", resource local uid = ") << resourceLocalUid
                   << QStringLiteral(", request id = ") << requestId);
         emit readResourceFromFileCompleted(requestId, QByteArray(), QByteArray(),
@@ -197,9 +195,8 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fi
     bool open = resourceFile.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!open))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't open resource file for reading");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += resourceFile.errorString();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "can't open resource file for reading"));
+        errorDescription.details() = resourceFile.errorString();
         int errorCode = resourceFile.error();
         QNWARNING(errorDescription << QStringLiteral(", error code = ") << errorCode << QStringLiteral(", resource local uid = ")
                   << resourceLocalUid << QStringLiteral(", request id = ") << requestId);
@@ -213,9 +210,8 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fi
     open = resourceHashFile.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!open))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't open resource hash file for reading");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += resourceHashFile.errorString();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "can't open resource hash file for reading"));
+        errorDescription.details() = resourceHashFile.errorString();
         int errorCode = resourceHashFile.error();
         QNWARNING(errorDescription << QStringLiteral(", error code = ") << errorCode << QStringLiteral(", resource local uid = ")
                   << resourceLocalUid << QStringLiteral(", request id = ") << requestId);
@@ -228,7 +224,7 @@ void ResourceFileStorageManagerPrivate::onReadResourceFromFileRequest(QString fi
     QByteArray dataHash = resourceHashFile.readAll();
 
     QNDEBUG(QStringLiteral("Successfully read resource data and hash from files"));
-    emit readResourceFromFileCompleted(requestId, data, dataHash, 0, QNLocalizedString());
+    emit readResourceFromFileCompleted(requestId, data, dataHash, 0, ErrorString());
 }
 
 void ResourceFileStorageManagerPrivate::onOpenResourceRequest(QString fileStoragePath)
@@ -337,7 +333,7 @@ void ResourceFileStorageManagerPrivate::onFileChanged(const QString & path)
     QByteArray dataHash = calculateHash(data);
 
     int errorCode = 0;
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     bool res = updateResourceHash(it.value(), dataHash, resourceFileInfo.absolutePath(), errorCode, errorDescription);
     if (Q_UNLIKELY(!res)) {
         QNWARNING(QStringLiteral("Can't process resource local file change properly: can't update the hash for resource file: error code = ")
@@ -368,10 +364,10 @@ void ResourceFileStorageManagerPrivate::createConnections()
 
     QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,resourceFileChanged,QString,QString),
                      q, QNSIGNAL(ResourceFileStorageManager,resourceFileChanged,QString,QString));
-    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QNLocalizedString),
-                     q, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,QNLocalizedString));
-    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString),
-                     q, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,QNLocalizedString));
+    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,ErrorString),
+                     q, QNSIGNAL(ResourceFileStorageManager,readResourceFromFileCompleted,QUuid,QByteArray,QByteArray,int,ErrorString));
+    QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,ErrorString),
+                     q, QNSIGNAL(ResourceFileStorageManager,writeResourceToFileCompleted,QUuid,QByteArray,QString,int,ErrorString));
     QObject::connect(this, QNSIGNAL(ResourceFileStorageManagerPrivate,diagnosticsCollected,QUuid,QString),
                      q, QNSIGNAL(ResourceFileStorageManager,diagnosticsCollected,QUuid,QString));
 }
@@ -427,7 +423,7 @@ bool ResourceFileStorageManagerPrivate::checkIfResourceFileExistsAndIsActual(con
 
 bool ResourceFileStorageManagerPrivate::updateResourceHash(const QString & resourceLocalUid, const QByteArray & dataHash,
                                                            const QString & storageFolderPath, int & errorCode,
-                                                           QNLocalizedString & errorDescription)
+                                                           ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("ResourceFileStorageManagerPrivate::updateResourceHash: resource local uid = ") << resourceLocalUid
             << QStringLiteral(", data hash = ") << dataHash.toHex() << QStringLiteral(", storage folder path = ") << storageFolderPath);
@@ -436,18 +432,16 @@ bool ResourceFileStorageManagerPrivate::updateResourceHash(const QString & resou
 
     bool open = file.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open)) {
-        errorDescription = QT_TR_NOOP("can't open the file with resource's hash for writing");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += file.errorString();
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "can't open the file with resource's hash for writing");
+        errorDescription.details() = file.errorString();
         errorCode = file.error();
         return false;
     }
 
     qint64 writeRes = file.write(dataHash);
     if (Q_UNLIKELY(writeRes < 0)) {
-        errorDescription = QT_TR_NOOP("can't write resource data hash to the separate file");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += file.errorString();
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "can't write resource data hash to the separate file");
+        errorDescription.details() = file.errorString();
         errorCode = file.error();
         return false;
     }

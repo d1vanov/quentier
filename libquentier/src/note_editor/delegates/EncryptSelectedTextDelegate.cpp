@@ -33,7 +33,7 @@ namespace quentier {
     CHECK_NOTE_EDITOR() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_pNoteEditor->page()); \
     if (Q_UNLIKELY(!page)) { \
-        QNLocalizedString error = QT_TR_NOOP("can't encrypt the selected text: no note editor page"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't encrypt the selected text: no note editor page")); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -178,7 +178,7 @@ void EncryptSelectedTextDelegate::onEncryptionScriptDone(const QVariant & data)
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the result of text encryption script from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the result of text encryption script from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -187,16 +187,15 @@ void EncryptSelectedTextDelegate::onEncryptionScriptDone(const QVariant & data)
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QNLocalizedString error;
+        ErrorString error;
 
         auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("can't parse the error of text encryption from JavaScript");
+            error.base() = QT_TRANSLATE_NOOP("", "can't parse the error of text encryption from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("can't encrypt the selected text");
-            error += QStringLiteral(": ");
-            error += errorIt.value().toString();
+            error.base() = QT_TRANSLATE_NOOP("", "can't encrypt the selected text");
+            error.details() = errorIt.value().toString();
         }
 
         QNWARNING(error);
