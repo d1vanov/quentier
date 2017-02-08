@@ -125,8 +125,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
     }
 
     if (Q_UNLIKELY(targetResourceIndex < 0)) {
-        error += QStringLiteral(": ");
-        error += QT_TR_NOOP("can't find the attachment within the note");
+        error.additionalBases().append(QT_TRANSLATE_NOOP("can't find the attachment within the note"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -134,8 +133,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
 
     m_rotatedResource = resources[targetResourceIndex];
     if (Q_UNLIKELY(!m_rotatedResource.hasDataBody())) {
-        error += QStringLiteral(": ");
-        error += QT_TR_NOOP("the data body is missing");
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "the data body is missing"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -154,8 +152,7 @@ void ImageResourceRotationDelegate::rotateImageResource()
     QImage resourceImage;
     bool loaded = resourceImage.loadFromData(m_rotatedResource.dataBody());
     if (Q_UNLIKELY(!loaded)) {
-        error += QStringLiteral(": ");
-        error += QT_TR_NOOP("can't load image from resource data");
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "can't load image from resource data"));
         QNWARNING(error);
         emit notifyError(error);
         return;

@@ -2580,7 +2580,7 @@ void NoteEditorPrivate::noteToEditorContent()
 
     int bodyClosingTagIndex = m_htmlCachedMemory.indexOf(QStringLiteral("</body>"));
     if (bodyClosingTagIndex < 0) {
-        error = QT_TR_NOOP("can't find </body> tag in the result of note to HTML conversion");
+        error.base() = QT_TRANSLATE_NOOP("", "can't find </body> tag in the result of note to HTML conversion");
         QNWARNING(error << QStringLiteral(", note content: ") << m_pNote->content()
                   << QStringLiteral(", html: ") << m_htmlCachedMemory);
         emit notifyError(error);
@@ -5386,7 +5386,7 @@ void NoteEditorPrivate::onSpellCheckCorrectionAction()
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        QNLocalizedString error = QT_TR_NOOP("can't get the action which has toggled the spelling correction");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't get the action which has toggled the spelling correction"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -5422,8 +5422,8 @@ void NoteEditorPrivate::onSpellCheckIgnoreWordAction()
     applySpellCheck();
 
     SpellCheckIgnoreWordUndoCommand * pCommand = new SpellCheckIgnoreWordUndoCommand(*this, m_lastMisSpelledWord, m_pSpellChecker);
-    QObject::connect(pCommand, QNSIGNAL(SpellCheckIgnoreWordUndoCommand,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,QNLocalizedString));
+    QObject::connect(pCommand, QNSIGNAL(SpellCheckIgnoreWordUndoCommand,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,ErrorString));
     m_pUndoStack->push(pCommand);
 }
 
@@ -5446,8 +5446,8 @@ void NoteEditorPrivate::onSpellCheckAddWordToUserDictionaryAction()
     applySpellCheck();
 
     SpellCheckAddToUserWordListUndoCommand * pCommand = new SpellCheckAddToUserWordListUndoCommand(*this, m_lastMisSpelledWord, m_pSpellChecker);
-    QObject::connect(pCommand, QNSIGNAL(SpellCheckAddToUserWordListUndoCommand,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,QNLocalizedString));
+    QObject::connect(pCommand, QNSIGNAL(SpellCheckAddToUserWordListUndoCommand,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,ErrorString));
     m_pUndoStack->push(pCommand);
 }
 
@@ -5461,7 +5461,7 @@ void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, 
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the result of spelling correction from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the result of spelling correction from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -5470,16 +5470,15 @@ void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, 
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QNLocalizedString error;
+        ErrorString error;
 
         auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("can't parse the error of spelling correction from JavaScript");
+            error.base() = QT_TRANSLATE_NOOP("", "can't parse the error of spelling correction from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("can't correct spelling");
-            error += QStringLiteral(": ");
-            error += errorIt.value().toString();
+            error.base() = QT_TRANSLATE_NOOP("", "can't correct spelling");
+            error.details() = errorIt.value().toString();
         }
 
         QNWARNING(error);
@@ -5487,9 +5486,12 @@ void NoteEditorPrivate::onSpellCheckCorrectionActionDone(const QVariant & data, 
         return;
     }
 
-    SpellCorrectionUndoCommand * pCommand = new SpellCorrectionUndoCommand(*this, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished));
-    QObject::connect(pCommand, QNSIGNAL(SpellCorrectionUndoCommand,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,QNLocalizedString));
+    SpellCorrectionUndoCommand * pCommand =
+        new SpellCorrectionUndoCommand(*this,
+                                       NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished));
+
+    QObject::connect(pCommand, QNSIGNAL(SpellCorrectionUndoCommand,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,ErrorString));
     m_pUndoStack->push(pCommand);
 
     applySpellCheck();
@@ -5507,7 +5509,7 @@ void NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished(const QVariant & 
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the result of spelling correction undo/redo from JavaScript");
+        ErrorString error = QT_TRANSLATE_NOOP("", "can't parse the result of spelling correction undo/redo from JavaScript");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -5516,16 +5518,15 @@ void NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished(const QVariant & 
     bool res = statusIt.value().toBool();
     if (!res)
     {
-        QNLocalizedString error;
+        ErrorString error;
 
         auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error = QT_TR_NOOP("can't parse the error of spelling correction undo/redo from JavaScript");
+            error.base() = QT_TRANSLATE_NOOP("", "can't parse the error of spelling correction undo/redo from JavaScript");
         }
         else {
-            error = QT_TR_NOOP("can't undo/redo spelling correction");
-            error += QStringLiteral(": ");
-            error += errorIt.value().toString();
+            error.base() = QT_TRANSLATE_NOOP("", "can't undo/redo spelling correction");
+            error.details() = errorIt.value().toString();
         }
 
         QNWARNING(error);
@@ -5594,8 +5595,8 @@ void NoteEditorPrivate::onImageResourceResized(bool pushUndoCommand)
 
     if (pushUndoCommand) {
         ImageResizeUndoCommand * pCommand = new ImageResizeUndoCommand(*this);
-        QObject::connect(pCommand, QNSIGNAL(ImageResizeUndoCommand,notifyError,QNLocalizedString),
-                         this, QNSLOT(NoteEditorPrivate,onUndoCommandError,QNLocalizedString));
+        QObject::connect(pCommand, QNSIGNAL(ImageResizeUndoCommand,notifyError,ErrorString),
+                         this, QNSLOT(NoteEditorPrivate,onUndoCommandError,ErrorString));
         m_pUndoStack->push(pCommand);
     }
 
@@ -5824,8 +5825,8 @@ void NoteEditorPrivate::replace(const QString & textToReplace, const QString & r
     page->executeJavaScript(javascript, ReplaceCallback(this));
 
     ReplaceUndoCommand * pCommand = new ReplaceUndoCommand(textToReplace, matchCase, *this, ReplaceCallback(this));
-    QObject::connect(pCommand, QNSIGNAL(ReplaceUndoCommand,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,QNLocalizedString));
+    QObject::connect(pCommand, QNSIGNAL(ReplaceUndoCommand,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,ErrorString));
     m_pUndoStack->push(pCommand);
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
@@ -5850,7 +5851,8 @@ void NoteEditorPrivate::replaceAll(const QString & textToReplace, const QString 
     page->executeJavaScript(javascript, ReplaceCallback(this));
 
     ReplaceAllUndoCommand * pCommand = new ReplaceAllUndoCommand(textToReplace, matchCase, *this, ReplaceCallback(this));
-    QObject::connect(pCommand, QNSIGNAL(ReplaceAllUndoCommand,notifyError,QNLocalizedString), this, QNSLOT(NoteEditorPrivate,onUndoCommandError,QNLocalizedString));
+    QObject::connect(pCommand, QNSIGNAL(ReplaceAllUndoCommand,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onUndoCommandError,ErrorString));
     m_pUndoStack->push(pCommand);
 
     setSearchHighlight(textToReplace, matchCase, /* force = */ true);
@@ -5927,9 +5929,8 @@ void NoteEditorPrivate::setFontHeight(const int height)
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setFontHeight: ") << height);
 
     if (height <= 0) {
-        QNLocalizedString error = QT_TR_NOOP("detected incorrect font size");
-        error += QStringLiteral(": ");
-        error += QString::number(height);
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected incorrect font size"));
+        error.details() = QString::number(height);
         QNINFO(error);
         emit notifyError(error);
         return;
@@ -5951,9 +5952,8 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't set the font color"))
 
     if (!color.isValid()) {
-        QNLocalizedString error = QT_TR_NOOP("detected invalid font color");
-        error += QStringLiteral(": ");
-        error += color.name();
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected invalid font color"));
+        error.details() = color.name();
         QNINFO(error);
         emit notifyError(error);
         return;
@@ -5970,9 +5970,8 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't set the background color"))
 
     if (!color.isValid()) {
-        QNLocalizedString error = QT_TR_NOOP("detected invalid background color");
-        error += QStringLiteral(": ");
-        error += color.name();
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected invalid background color"));
+        error.details() = color.name();
         QNINFO(error);
         emit notifyError(error);
         return;
@@ -6035,9 +6034,8 @@ void NoteEditorPrivate::insertTableDialog()
 
 #define CHECK_NUM_COLUMNS() \
     if (columns <= 0) { \
-        QNLocalizedString error = QT_TR_NOOP("detected attempt to insert table with bad number of columns"); \
-        error += QStringLiteral(": "); \
-        error += QString::number(columns); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected attempt to insert table with bad number of columns")); \
+        error.details() = QString::number(columns); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -6045,9 +6043,8 @@ void NoteEditorPrivate::insertTableDialog()
 
 #define CHECK_NUM_ROWS() \
     if (rows <= 0) { \
-        QNLocalizedString error = QT_TR_NOOP("detected attempt to insert table with bad number of rows"); \
-        error += QStringLiteral(": "); \
-        error += QString::number(rows); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected attempt to insert table with bad number of rows")); \
+        error.details() = QString::number(rows); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -6066,17 +6063,15 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
 
     int pageWidth = geometry().width();
     if (widthInPixels > 2 * pageWidth) {
-        QNLocalizedString error = QT_TR_NOOP("can't insert table, width is too large (more than twice the page width)");
-        error += QStringLiteral(": ");
-        error += QString::number(widthInPixels);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't insert table, width is too large (more than twice the page width)"));
+        error.details() = QString::number(widthInPixels);
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
     else if (widthInPixels <= 0) {
-        QNLocalizedString error = QT_TR_NOOP("can't insert table, bad width");
-        error += QStringLiteral(": ");
-        error += QString::number(widthInPixels);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't insert table, bad width"));
+        error.details() = QString::number(widthInPixels);
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6084,14 +6079,12 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
 
     int singleColumnWidth = widthInPixels / columns;
     if (singleColumnWidth == 0) {
-        QNLocalizedString error = QT_TR_NOOP("can't insert table, bad width for specified number of columns "
-                                             "(single column width is zero): width");
-        error += QStringLiteral(" = ");
-        error += QString::number(widthInPixels);
-        error += QStringLiteral(", ");
-        error += QT_TR_NOOP("number of columns");
-        error += QStringLiteral(" = ");
-        error += QString::number(columns);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't insert table, bad width for specified number of columns "
+                                            "(single column width is zero)"));
+        error.details() = QString::number(widthInPixels);
+        error.details() += QStringLiteral(", ");
+        error.details() += QString::number(columns);
+        error.details() += QStringLiteral("columns");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6115,20 +6108,18 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
 
     if (relativeWidth <= 0.01)
     {
-        QNLocalizedString error = QT_TR_NOOP("can't insert table, relative width is too small");
-        error += QStringLiteral(": ");
-        error += QString::number(relativeWidth);
-        error += "%";
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't insert table, relative width is too small"));
+        error.details() = QString::number(relativeWidth);
+        error.details() += QStringLiteral("%");
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
     else if (relativeWidth > 100.0 + 1.0e-9)
     {
-        QNLocalizedString error = QT_TR_NOOP("can't insert table, relative width is too large");
-        error += QStringLiteral(": ");
-        error += QString::number(relativeWidth);
-        error += QStringLiteral("%");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't insert table, relative width is too large"));
+        error.details() = QString::number(relativeWidth);
+        error.details() += QStringLiteral("%");
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6257,7 +6248,7 @@ void NoteEditorPrivate::saveAttachmentUnderCursor()
     if ((m_currentContextMenuExtraData.m_contentType != QStringLiteral("ImageResource")) &&
         (m_currentContextMenuExtraData.m_contentType != QStringLiteral("NonImageResource")))
     {
-        QNLocalizedString error = QT_TR_NOOP("can't save attachment under cursor: wrong current context menu extra data's content type");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't save attachment under cursor: wrong current context menu extra data's content type"));
         QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
         emit notifyError(error);
         return;
@@ -6283,7 +6274,8 @@ void NoteEditorPrivate::openAttachmentUnderCursor()
     if ((m_currentContextMenuExtraData.m_contentType != QStringLiteral("ImageResource")) &&
         (m_currentContextMenuExtraData.m_contentType != QStringLiteral("NonImageResource")))
     {
-        QNLocalizedString error = QT_TR_NOOP("can't open attachment under cursor: wrong current context menu extra data's' content type");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't open attachment under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
         QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
         emit notifyError(error);
         return;
@@ -6297,7 +6289,7 @@ void NoteEditorPrivate::openAttachmentUnderCursor()
 void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
 {
     if (Q_UNLIKELY(m_pNote.isNull())) {
-        QNLocalizedString error = QT_TR_NOOP("can't copy attachment: no note is set to the editor");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't copy the attachment: no note is set to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6306,7 +6298,7 @@ void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
     QList<Resource> resources = m_pNote->resources();
     int resourceIndex = resourceIndexByHash(resources, resourceHash);
     if (Q_UNLIKELY(resourceIndex < 0)) {
-        QNLocalizedString error = QT_TR_NOOP("attachment to be copied was not found in the note");
+        ErrorString error(QT_TRANSLATE_NOOP("", "the attachment to be copied was not found within the note"));
         QNWARNING(error << QStringLiteral(", resource hash = ") << resourceHash.toHex());
         emit notifyError(error);
         return;
@@ -6315,14 +6307,14 @@ void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
     const Resource & resource = resources[resourceIndex];
 
     if (Q_UNLIKELY(!resource.hasDataBody() && !resource.hasAlternateDataBody())) {
-        QNLocalizedString error = QT_TR_NOOP("can't copy attachment as it has neither data body nor alternate data body");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't copy the attachment as it has neither data body nor alternate data body"));
         QNWARNING(error << QStringLiteral(", resource hash = ") << resourceHash.toHex());
         emit notifyError(error);
         return;
     }
 
     if (Q_UNLIKELY(!resource.hasMime())) {
-        QNLocalizedString error = QT_TR_NOOP("can't copy attachment as it has no mime type");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't copy the attachment as it has no mime type"));
         QNWARNING(error << QStringLiteral(", resource hash = ") << resourceHash.toHex());
         emit notifyError(error);
         return;
@@ -6333,7 +6325,7 @@ void NoteEditorPrivate::copyAttachment(const QByteArray & resourceHash)
 
     QClipboard * pClipboard = QApplication::clipboard();
     if (Q_UNLIKELY(!pClipboard)) {
-        QNLocalizedString error = QT_TR_NOOP("can't copy attachment: can't get access to clipboard");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't copy the attachment: can't get access to clipboard"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6351,8 +6343,9 @@ void NoteEditorPrivate::copyAttachmentUnderCursor()
     if ((m_currentContextMenuExtraData.m_contentType != QStringLiteral("ImageResource")) &&
         (m_currentContextMenuExtraData.m_contentType != QStringLiteral("NonImageResource")))
     {
-        QNLocalizedString error = QT_TR_NOOP("can't copy attachment under cursor: wrong current context menu extra data's content type");
-        QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't copy the attachment under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6367,7 +6360,7 @@ void NoteEditorPrivate::removeAttachment(const QByteArray & resourceHash)
     QNDEBUG(QStringLiteral("NoteEditorPrivate::removeAttachment: hash = ") << resourceHash.toHex());
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
-        QNLocalizedString error = QT_TR_NOOP("can't remove resource by hash: no note is set to the editor");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't remove the attachment by hash: no note is set to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6388,8 +6381,8 @@ void NoteEditorPrivate::removeAttachment(const QByteArray & resourceHash)
             RemoveResourceDelegate * delegate = new RemoveResourceDelegate(resource, *this);
             QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,finished,Resource),
                              this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateFinished,Resource));
-            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,QNLocalizedString),
-                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,QNLocalizedString));
+            QObject::connect(delegate, QNSIGNAL(RemoveResourceDelegate,notifyError,ErrorString),
+                             this, QNSLOT(NoteEditorPrivate,onRemoveResourceDelegateError,ErrorString));
             delegate->start();
 
             foundResourceToRemove = true;
@@ -6398,7 +6391,8 @@ void NoteEditorPrivate::removeAttachment(const QByteArray & resourceHash)
     }
 
     if (Q_UNLIKELY(!foundResourceToRemove)) {
-        QNLocalizedString error = QT_TR_NOOP("can't remove resource by hash: no resource with such hash was found within the note");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't remove the attachment by hash: no resource with such hash was found within the note"));
+        error.details() = resourceHash.toHex();
         QNWARNING(error);
         emit notifyError(error);
     }
@@ -6411,8 +6405,9 @@ void NoteEditorPrivate::removeAttachmentUnderCursor()
     if ((m_currentContextMenuExtraData.m_contentType != QStringLiteral("ImageResource")) &&
         (m_currentContextMenuExtraData.m_contentType != QStringLiteral("NonImageResource")))
     {
-        QNLocalizedString error = QT_TR_NOOP("can't remove attachment under cursor: wrong current context menu extra data's content type");
-        QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't remove the attachment under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6427,8 +6422,9 @@ void NoteEditorPrivate::renameAttachmentUnderCursor()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::renameAttachmentUnderCursor"));
 
     if (m_currentContextMenuExtraData.m_contentType != QStringLiteral("NonImageResource")) {
-        QNLocalizedString error = QT_TR_NOOP("can't rename attachment under cursor: wrong current context menu extra data's content type");
-        QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't rename the attachment under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6442,14 +6438,12 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::renameAttachment: resource hash = ") << resourceHash.toHex());
 
-    CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't rename the attachment"))
-
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't rename attachment");
-    errorPrefix += QStringLiteral(": ");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "Can't rename the attachment");
+    CHECK_NOTE_EDITABLE(errorPrefix)
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("no note is set to the editor");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "no note is set to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6470,8 +6464,8 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
     }
 
     if (Q_UNLIKELY(targetResourceIndex < 0)) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("can't find the corresponding resource in the note");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "can't find the corresponding resource in the note"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6479,16 +6473,16 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
 
     Resource & resource = resources[targetResourceIndex];
     if (Q_UNLIKELY(!resource.hasDataBody())) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("the resource doesn't have the data body set");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "the resource doesn't have the data body set"));
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
 
     if (Q_UNLIKELY(!resource.hasDataHash())) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("the resource doesn't have the data hash set");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "the resource doesn't have the data hash set"));
         QNWARNING(error << QStringLiteral(", resource: ") << resource);
         emit notifyError(error);
         return;
@@ -6504,14 +6498,12 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
     QNDEBUG(QStringLiteral("NoteEditorPrivate::rotateImageAttachment: resource hash = ") << resourceHash.toHex()
             << QStringLiteral(", rotation: ") << rotationDirection);
 
-    CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't rotate the image attachment"))
-
-    QNLocalizedString errorPrefix = QT_TR_NOOP("can't rotate image attachment");
-    errorPrefix += QStringLiteral(": ");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "can't rotate the image attachment"));
+    CHECK_NOTE_EDITABLE(errorPrefix)
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("no note is set to the editor");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "no note is set to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6528,16 +6520,17 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
         }
 
         if (Q_UNLIKELY(!resource.hasMime())) {
-            QNLocalizedString error = errorPrefix;
-            error += QT_TR_NOOP("corresponding resource's mime type is not set");
+            ErrorString error = errorPrefix;
+            error.additionalBases().append(QT_TRANSLATE_NOOP("", "the corresponding attachment's mime type is not set"));
             QNWARNING(error << QStringLiteral(", resource: ") << resource);
             emit notifyError(error);
             return;
         }
 
         if (Q_UNLIKELY(!resource.mime().startsWith(QStringLiteral("image/")))) {
-            QNLocalizedString error = errorPrefix;
-            error += QT_TR_NOOP("corresponding resource's mime type indicates it is not an image");
+            ErrorString error = errorPrefix;
+            error.additionalBases().append(QT_TRANSLATE_NOOP("", "the corresponding attachment's mime type indicates it is not an image"));
+            error.details() = resource.mime();
             QNWARNING(error << QStringLiteral(", resource: ") << resource);
             emit notifyError(error);
             return;
@@ -6548,8 +6541,8 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
     }
 
     if (Q_UNLIKELY(targetResourceIndex < 0)) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("can't find the corresponding resource in the note");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "can't find the corresponding attachment within the note"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6557,16 +6550,16 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
 
     Resource & resource = resources[targetResourceIndex];
     if (Q_UNLIKELY(!resource.hasDataBody())) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("the resource doesn't have the data body set");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "the attachment doesn't have the data body set"));
         QNWARNING(error);
         emit notifyError(error);
         return;
     }
 
     if (Q_UNLIKELY(!resource.hasDataHash())) {
-        QNLocalizedString error = errorPrefix;
-        error += QT_TR_NOOP("the resource doesn't have the data hash set");
+        ErrorString error = errorPrefix;
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "the attachment doesn't have the data hash set"));
         QNWARNING(error << QStringLiteral(", resource: ") << resource);
         emit notifyError(error);
         return;
@@ -6578,8 +6571,8 @@ void NoteEditorPrivate::rotateImageAttachment(const QByteArray & resourceHash, c
 
     QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,finished,QByteArray,QByteArray,QByteArray,QByteArray,Resource,INoteEditorBackend::Rotation::type),
                      this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateFinished,QByteArray,QByteArray,QByteArray,QByteArray,Resource,INoteEditorBackend::Rotation::type));
-    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,QNLocalizedString));
+    QObject::connect(delegate, QNSIGNAL(ImageResourceRotationDelegate,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onImageResourceRotationDelegateError,ErrorString));
 
     delegate->start();
 }
@@ -6589,8 +6582,9 @@ void NoteEditorPrivate::rotateImageAttachmentUnderCursor(const Rotation::type ro
     QNDEBUG(QStringLiteral("INoteEditorBackend::rotateImageAttachmentUnderCursor: rotation: ") << rotationDirection);
 
     if (m_currentContextMenuExtraData.m_contentType != QStringLiteral("ImageResource")) {
-        QNLocalizedString error = QT_TR_NOOP("can't rotate image attachment under cursor: wrong current context menu extra data's content type");
-        QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't rotate the image attachment under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6621,8 +6615,8 @@ void NoteEditorPrivate::encryptSelectedText()
     EncryptSelectedTextDelegate * delegate = new EncryptSelectedTextDelegate(this, m_encryptionManager, m_decryptedTextManager);
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateFinished));
-    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,QNLocalizedString));
+    QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateError,ErrorString));
     QObject::connect(delegate, QNSIGNAL(EncryptSelectedTextDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onEncryptSelectedTextDelegateCancelled));
     delegate->start(m_lastSelectedHtml);
@@ -6633,8 +6627,9 @@ void NoteEditorPrivate::decryptEncryptedTextUnderCursor()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::decryptEncryptedTextUnderCursor"));
 
     if (Q_UNLIKELY(m_currentContextMenuExtraData.m_contentType != QStringLiteral("EncryptedText"))) {
-        QNLocalizedString error = QT_TR_NOOP("can't decrypt the encrypted text under cursor: wrong current context menu extra data's content type");
-        QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't decrypt the encrypted text under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6660,8 +6655,8 @@ void NoteEditorPrivate::decryptEncryptedText(QString encryptedText, QString ciph
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateFinished,QString,QString,size_t,QString,QString,QString,bool,bool));
     QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,cancelled),
                      this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateCancelled));
-    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,QNLocalizedString));
+    QObject::connect(delegate, QNSIGNAL(DecryptEncryptedTextDelegate,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onDecryptEncryptedTextDelegateError,ErrorString));
 
     delegate->start();
 }
@@ -6671,14 +6666,15 @@ void NoteEditorPrivate::hideDecryptedTextUnderCursor()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::hideDecryptedTextUnderCursor"));
 
     if (Q_UNLIKELY(m_currentContextMenuExtraData.m_contentType != QStringLiteral("GenericText"))) {
-        QNLocalizedString error = QT_TR_NOOP("can't hide the decrypted text under cursor: wrong current context menu extra data's content type");
-        QNWARNING(error << QStringLiteral(": content type = ") << m_currentContextMenuExtraData.m_contentType);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't hide the decrypted text under cursor: wrong current context menu extra data's content type"));
+        error.details() = m_currentContextMenuExtraData.m_contentType;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
 
     if (Q_UNLIKELY(!m_currentContextMenuExtraData.m_insideDecryptedText)) {
-        QNLocalizedString error = QT_TR_NOOP("can't hide the decrypted text under cursor: the cursor doesn't appear to be inside the decrypted text area");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't hide the decrypted text under cursor: the cursor doesn't appear to be inside the decrypted text area"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6699,8 +6695,9 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString decrypt
     bool conversionResult = false;
     size_t keyLengthInt = static_cast<size_t>(keyLength.toInt(&conversionResult));
     if (Q_UNLIKELY(!conversionResult)) {
-        QNLocalizedString error = QT_TR_NOOP("can't hide the decrypted text: can't convert the key length attribute to integer number");
-        QNWARNING(error << QStringLiteral(", key length = ") << keyLength);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't hide the decrypted text: can't convert the key length attribute to an integer"));
+        error.details() = keyLength;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6715,8 +6712,9 @@ void NoteEditorPrivate::hideDecryptedText(QString encryptedText, QString decrypt
         QString newEncryptedText;
         bool reEncryptedText = m_decryptedTextManager->modifyDecryptedText(encryptedText, decryptedText, newEncryptedText);
         if (Q_UNLIKELY(!reEncryptedText)) {
-            QNLocalizedString error = QT_TR_NOOP("can't hide the decrypted text: the decrypted text was modified but it failed to get return-encrypted");
-            QNWARNING(error << QStringLiteral(", key length = ") << keyLength);
+            ErrorString error(QT_TRANSLATE_NOOP("", "can't hide the decrypted text: the decrypted text was modified but it failed to get return-encrypted"));
+            error.details() = keyLength;
+            QNWARNING(error);
             emit notifyError(error);
             return;
         }
@@ -6767,8 +6765,8 @@ void NoteEditorPrivate::removeHyperlink()
     RemoveHyperlinkDelegate * delegate = new RemoveHyperlinkDelegate(*this);
     QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateFinished));
-    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,QNLocalizedString));
+    QObject::connect(delegate, QNSIGNAL(RemoveHyperlinkDelegate,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onRemoveHyperlinkDelegateError,ErrorString));
     delegate->start();
 }
 
@@ -6795,7 +6793,7 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the result of the attempt to find the hyperlink data by id from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the result of the attempt to find the hyperlink data by id from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6815,8 +6813,8 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
 
     auto dataIt = resultMap.find(QStringLiteral("data"));
     if (Q_UNLIKELY(dataIt == resultMap.end())) {
-        QNLocalizedString error = QT_TR_NOOP("can't parse the seemingly positive result of the attempt "
-                                             "to find the hyperlink data by id from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the seemingly positive result of the attempt "
+                                            "to find the hyperlink data by id from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -6827,8 +6825,9 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
     bool conversionResult = false;
     quint64 hyperlinkId = hyperlinkDataStr.toULongLong(&conversionResult);
     if (!conversionResult) {
-        QNLocalizedString error = QT_TR_NOOP("can't add or edit hyperlink under cursor: can't convert hyperlink id number to unsigned int");
-        QNWARNING(error << QStringLiteral("; hyperlink data: ") << hyperlinkDataStr);
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't add or edit hyperlink under cursor: can't convert hyperlink id number to unsigned int"));
+        error.details() = hyperlinkDataStr;
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6838,8 +6837,8 @@ void NoteEditorPrivate::onFoundSelectedHyperlinkId(const QVariant & hyperlinkDat
     QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,finished),
                      this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateFinished));
     QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,cancelled), this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateCancelled));
-    QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateError,QNLocalizedString));
+    QObject::connect(delegate, QNSIGNAL(EditHyperlinkDelegate,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onEditHyperlinkDelegateError,ErrorString));
     delegate->start();
 }
 
@@ -6856,8 +6855,9 @@ void NoteEditorPrivate::onFoundHyperlinkToCopy(const QVariant & hyperlinkData,
     }
 
     if (hyperlinkDataList.size() != 3) {
-        QNLocalizedString error = QT_TR_NOOP("can't copy hyperlink: can't get text and hyperlink from JavaScript");
-        QNWARNING(error << QStringLiteral("; hyperlink data: ") << hyperlinkDataList.join(QStringLiteral(",")));
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't copy the hyperlink: can't get text and hyperlink from JavaScript"));
+        error.details() = hyperlinkDataList.join(QStringLiteral(","));
+        QNWARNING(error);
         emit notifyError(error);
         return;
     }
@@ -6883,8 +6883,8 @@ void NoteEditorPrivate::dropFile(const QString & filePath)
 
     QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,finished,Resource,QString),
                      this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateFinished,Resource,QString));
-    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,QNLocalizedString));
+    QObject::connect(delegate, QNSIGNAL(AddResourceDelegate,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorPrivate,onAddResourceDelegateError,ErrorString));
 
     delegate->start();
 }
