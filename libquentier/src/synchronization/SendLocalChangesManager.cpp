@@ -23,6 +23,20 @@
 #include <quentier/logging/QuentierLogger.h>
 #include <QTimerEvent>
 
+#define APPEND_NOTE_DETAILS(errorDescription, note) \
+   if (note.hasTitle()) \
+   { \
+       errorDescription.details() = note.title(); \
+   } \
+   else if (note.hasContent()) \
+   { \
+       QString previewText = note.plainText(); \
+       if (!previewText.isEmpty()) { \
+           previewText.truncate(30); \
+           errorDescription.details() = previewText; \
+       } \
+   }
+
 namespace quentier {
 
 SendLocalChangesManager::SendLocalChangesManager(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker,
@@ -206,7 +220,7 @@ void SendLocalChangesManager::onListDirtyTagsFailed(LocalStorageManager::ListObj
                                                     size_t limit, size_t offset,
                                                     LocalStorageManager::ListTagsOrder::type order,
                                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                                    QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
+                                                    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -233,9 +247,10 @@ void SendLocalChangesManager::onListDirtyTagsFailed(LocalStorageManager::ListObj
 
         CHECK_STOPPED();
 
-        QNLocalizedString error = QT_TR_NOOP("error listing dirty tags from local storage");
-        error += QStringLiteral(": ");
-        error += errorDescription;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Error listing dirty tags from the local storage"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         emit failure(error);
     }
 }
@@ -268,7 +283,7 @@ void SendLocalChangesManager::onListDirtySavedSearchesFailed(LocalStorageManager
                                                              size_t limit, size_t offset,
                                                              LocalStorageManager::ListSavedSearchesOrder::type order,
                                                              LocalStorageManager::OrderDirection::type orderDirection,
-                                                             QNLocalizedString errorDescription, QUuid requestId)
+                                                             ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -285,9 +300,10 @@ void SendLocalChangesManager::onListDirtySavedSearchesFailed(LocalStorageManager
 
     CHECK_STOPPED();
 
-    QNLocalizedString error = QT_TR_NOOP("error listing dirty saved searches from local storage");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Error listing dirty saved searches from the local storage"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     emit failure(error);
 }
 
@@ -331,7 +347,7 @@ void SendLocalChangesManager::onListDirtyNotebooksFailed(LocalStorageManager::Li
                                                          size_t limit, size_t offset,
                                                          LocalStorageManager::ListNotebooksOrder::type order,
                                                          LocalStorageManager::OrderDirection::type orderDirection,
-                                                         QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
+                                                         QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -358,9 +374,10 @@ void SendLocalChangesManager::onListDirtyNotebooksFailed(LocalStorageManager::Li
 
         CHECK_STOPPED();
 
-        QNLocalizedString error = QT_TR_NOOP("error listing dirty notebooks from local storage");
-        error += QStringLiteral(": ");
-        error += errorDescription;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Error listing dirty notebooks from the local storage"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         emit failure(error);
     }
 }
@@ -406,7 +423,7 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
                                                      bool withResourceBinaryData, size_t limit, size_t offset,
                                                      LocalStorageManager::ListNotesOrder::type order,
                                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                                     QNLocalizedString errorDescription, QUuid requestId)
+                                                     ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -433,9 +450,10 @@ void SendLocalChangesManager::onListDirtyNotesFailed(LocalStorageManager::ListOb
 
         CHECK_STOPPED();
 
-        QNLocalizedString error = QT_TR_NOOP("Error listing dirty notes from local storage");
-        error += QStringLiteral(": ");
-        error += errorDescription;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Error listing dirty notes from the local storage"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         emit failure(error);
     }
 }
@@ -464,8 +482,13 @@ void SendLocalChangesManager::onListLinkedNotebooksCompleted(LocalStorageManager
     for(int i = 0; i < numLinkedNotebooks; ++i)
     {
         const LinkedNotebook & linkedNotebook = linkedNotebooks[i];
-        if (!linkedNotebook.hasGuid()) {
-            QNLocalizedString error = QT_TR_NOOP("found linked notebook without guid set in local storage");
+        if (!linkedNotebook.hasGuid())
+        {
+            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: found a linked notebook without guid"));
+            if (linkedNotebook.hasUsername()) {
+                error.details() = linkedNotebook.username();
+            }
+
             emit failure(error);
             QNWARNING(error << QStringLiteral(", linked notebook: ") << linkedNotebook);
             return;
@@ -488,7 +511,7 @@ void SendLocalChangesManager::onListLinkedNotebooksFailed(LocalStorageManager::L
                                                           size_t limit, size_t offset,
                                                           LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                                           LocalStorageManager::OrderDirection::type orderDirection,
-                                                          QNLocalizedString errorDescription, QUuid requestId)
+                                                          ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -504,9 +527,10 @@ void SendLocalChangesManager::onListLinkedNotebooksFailed(LocalStorageManager::L
     m_listLinkedNotebooksRequestId = QUuid();
     CHECK_STOPPED();
 
-    QNLocalizedString error = QT_TR_NOOP("error listing linked notebooks from local storage");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Error listing linked notebooks from the local storage"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     emit failure(error);
 }
 
@@ -525,7 +549,7 @@ void SendLocalChangesManager::onUpdateTagCompleted(Tag tag, QUuid requestId)
     CHECK_STOPPED();
 }
 
-void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
+void SendLocalChangesManager::onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -537,9 +561,10 @@ void SendLocalChangesManager::onUpdateTagFailed(Tag tag, QNLocalizedString error
     Q_UNUSED(m_updateTagRequestIds.erase(it));
     CHECK_STOPPED();
 
-    QNLocalizedString error = QT_TR_NOOP("Couldn't update tag in local storage");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Failed to update a tag in the local storage"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     QNWARNING(error << QStringLiteral("; tag: ") << tag);
     emit failure(error);
 }
@@ -560,7 +585,7 @@ void SendLocalChangesManager::onUpdateSavedSearchCompleted(SavedSearch savedSear
     CHECK_STOPPED();
 }
 
-void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch, QNLocalizedString errorDescription, QUuid requestId)
+void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch, ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -572,9 +597,10 @@ void SendLocalChangesManager::onUpdateSavedSearchFailed(SavedSearch savedSearch,
     Q_UNUSED(m_updateSavedSearchRequestIds.erase(it));
     CHECK_STOPPED();
 
-    QNLocalizedString error = QT_TR_NOOP("Couldn't update saved search in local storage");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Failed to update a saved search in the local storage"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     QNWARNING(error << QStringLiteral("; saved search: ") << savedSearch);
     emit failure(error);
 }
@@ -595,7 +621,7 @@ void SendLocalChangesManager::onUpdateNotebookCompleted(Notebook notebook, QUuid
     CHECK_STOPPED();
 }
 
-void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -607,9 +633,10 @@ void SendLocalChangesManager::onUpdateNotebookFailed(Notebook notebook, QNLocali
     Q_UNUSED(m_updateNotebookRequestIds.erase(it));
     CHECK_STOPPED();
 
-    QNLocalizedString error = QT_TR_NOOP("Couldn't update notebook in local storage");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Failed to update a notebook in the local storage"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     QNWARNING(error << QStringLiteral("; notebook: ") << notebook);
     emit failure(error);
 }
@@ -633,7 +660,7 @@ void SendLocalChangesManager::onUpdateNoteCompleted(Note note, bool updateResour
 }
 
 void SendLocalChangesManager::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                                 QNLocalizedString errorDescription, QUuid requestId)
+                                                 ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -648,9 +675,10 @@ void SendLocalChangesManager::onUpdateNoteFailed(Note note, bool updateResources
     Q_UNUSED(m_updateNoteRequestIds.erase(it));
     CHECK_STOPPED();
 
-    QNLocalizedString error = QT_TR_NOOP("Couldn't update note in local storage");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Failed to update a note in the local storage"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     QNWARNING(error << QStringLiteral("; note: ") << note);
     emit failure(error);
 }
@@ -667,9 +695,14 @@ void SendLocalChangesManager::onFindNotebookCompleted(Notebook notebook, QUuid r
     QNDEBUG(QStringLiteral("SendLocalChangesManager::onFindNotebookCompleted: notebook = ") << notebook
             << QStringLiteral("\nRequest id = ") << requestId);
 
-    if (!notebook.hasGuid()) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("found notebook without guid within notebooks requested "
-                                                        "from local storage by guid");
+    if (!notebook.hasGuid())
+    {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Found a notebook without guid within the notebooks requested "
+                                                       "from local storage by guid"));
+        if (notebook.hasName()) {
+            errorDescription.details() = notebook.name();
+        }
+
         QNWARNING(errorDescription << QStringLiteral(", notebook: ") << notebook);
         emit failure(errorDescription);
         return;
@@ -685,7 +718,7 @@ void SendLocalChangesManager::onFindNotebookCompleted(Notebook notebook, QUuid r
     }
 }
 
-void SendLocalChangesManager::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void SendLocalChangesManager::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     CHECK_PAUSED();
 
@@ -706,7 +739,7 @@ void SendLocalChangesManager::timerEvent(QTimerEvent * pEvent)
     QNDEBUG(QStringLiteral("SendLocalChangesManager::timerEvent"));
 
     if (Q_UNLIKELY(!pEvent)) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("Qt error: detected null pointer to QTimerEvent");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Qt error: detected null pointer to QTimerEvent"));
         QNWARNING(errorDescription);
         emit failure(errorDescription);
         return;
@@ -806,10 +839,10 @@ void SendLocalChangesManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid),
+                              LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                      this,
                      QNSLOT(SendLocalChangesManager,onListDirtyTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
+                            LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -820,10 +853,10 @@ void SendLocalChangesManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                              LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this,
                      QNSLOT(SendLocalChangesManager,onListDirtySavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
+                            LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -834,10 +867,10 @@ void SendLocalChangesManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid),
+                              LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                      this,
                      QNSLOT(SendLocalChangesManager,onListDirtyNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
+                            LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
@@ -848,10 +881,10 @@ void SendLocalChangesManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                              LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                              LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this,
                      QNSLOT(SendLocalChangesManager,onListDirtyNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                            LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
+                            LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -862,27 +895,27 @@ void SendLocalChangesManager::createConnections()
 
     QObject::connect(&m_localStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                              LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                              LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this,
                      QNSLOT(SendLocalChangesManager,onListLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                            LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
+                            LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onUpdateTagCompleted,Tag,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(SendLocalChangesManager,onUpdateTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,ErrorString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateTagFailed,Tag,ErrorString,QUuid));
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchCompleted,SavedSearch,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
-                     this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onUpdateNotebookCompleted,Notebook,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,bool,bool,QUuid));
-    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
 
     QObject::connect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(SendLocalChangesManager,onFindNotebookCompleted,Notebook,QUuid));
@@ -952,10 +985,10 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                 LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid),
+                                 LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                         this,
                         QNSLOT(SendLocalChangesManager,onListDirtyTagsFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                               LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
+                               LocalStorageManager::ListTagsOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -966,10 +999,10 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                 LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                                 LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                         this,
                         QNSLOT(SendLocalChangesManager,onListDirtySavedSearchesFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                               LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
+                               LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -980,10 +1013,10 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                 LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid),
+                                 LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                         this,
                         QNSLOT(SendLocalChangesManager,onListDirtyNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                               LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
+                               LocalStorageManager::ListNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listNotesComplete,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
@@ -994,10 +1027,10 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                                 LocalStorageManager::ListNotesOrder::type, LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                                 LocalStorageManager::ListNotesOrder::type, LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                         this,
                         QNSLOT(SendLocalChangesManager,onListDirtyNotesFailed,LocalStorageManager::ListObjectsOptions,bool,size_t,size_t,
-                               LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
+                               LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksComplete,LocalStorageManager::ListObjectsOptions,size_t,size_t,
@@ -1008,32 +1041,32 @@ void SendLocalChangesManager::disconnectFromLocalStorage()
 
     QObject::disconnect(&m_localStorageManagerThreadWorker,
                         QNSIGNAL(LocalStorageManagerThreadWorker,listLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                                 LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                                 LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                         this,
                         QNSLOT(SendLocalChangesManager,onListLinkedNotebooksFailed,LocalStorageManager::ListObjectsOptions,size_t,size_t,
-                               LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid));
+                               LocalStorageManager::ListLinkedNotebooksOrder::type,LocalStorageManager::OrderDirection::type,ErrorString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onUpdateTagCompleted,Tag,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QNLocalizedString,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onUpdateTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,ErrorString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateTagFailed,Tag,ErrorString,QUuid));
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchComplete,SavedSearch,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchCompleted,SavedSearch,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onUpdateNotebookCompleted,Notebook,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onUpdateNoteCompleted,Note,bool,bool,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
 
     QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                         this, QNSLOT(SendLocalChangesManager,onFindNotebookCompleted,Notebook,QUuid));
-    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                        this, QNSLOT(SendLocalChangesManager,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+                        this, QNSLOT(SendLocalChangesManager,onFindNotebookFailed,Notebook,ErrorString,QUuid));
 
     m_connectedToLocalStorage = false;
 }
@@ -1218,7 +1251,7 @@ void SendLocalChangesManager::sendTags()
 {
     QNDEBUG(QStringLiteral("SendLocalChangesManager::sendTags"));
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     typedef QList<Tag>::iterator Iter;
     for(Iter it = m_tags.begin(); it != m_tags.end(); )
@@ -1239,8 +1272,12 @@ void SendLocalChangesManager::sendTags()
             }
             else
             {
-                errorDescription = QT_TR_NOOP("couldn't find authentication token for linked notebook when attempting "
-                                              "to create or update a tag from it");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Couldn't find the authentication token for a linked notebook when attempting "
+                                                            "to create or update a tag from it");
+                if (tag.hasName()) {
+                    errorDescription.details() = tag.name();
+                }
+
                 QNWARNING(errorDescription << QStringLiteral(", tag: ") << tag);
 
                 auto sit = std::find_if(m_linkedNotebookGuidsAndSharedNotebookGlobalIds.begin(),
@@ -1269,18 +1306,16 @@ void SendLocalChangesManager::sendTags()
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds <= 0) {
-                errorDescription += QStringLiteral("\n");
-                errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
-                errorDescription += QStringLiteral(": ");
-                errorDescription += QString::number(rateLimitSeconds);
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Rate limit reached but the number of seconds to wait is incorrect");
+                errorDescription.details() = QString::number(rateLimitSeconds);
                 emit failure(errorDescription);
                 return;
             }
 
             int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
             if (Q_UNLIKELY(timerId == 0)) {
-                errorDescription = QT_TR_NOOP("can't start timer to postpone the Evernote API call "
-                                              "due to rate limit exceeding");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Failed to start a timer to postpone the Evernote API call "
+                                                            "due to rate limit exceeding");
                 emit failure(errorDescription);
                 return;
             }
@@ -1300,13 +1335,13 @@ void SendLocalChangesManager::sendTags()
                 auto cit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
                 if (cit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end())
                 {
-                    errorDescription = QT_TR_NOOP("couldn't find the expiration time of linked notebook auth token");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Couldn't find the expiration time of a linked notebook's authentication token");
                     QNWARNING(errorDescription << QStringLiteral(", linked notebook guid = ") << tag.linkedNotebookGuid());
                     emit failure(errorDescription);
                 }
                 else if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
-                    errorDescription = QT_TR_NOOP("unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
-                                                  "are still valid");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
+                                                                "are still valid");
                     QNWARNING(errorDescription << QStringLiteral(", linked notebook guid = ") << tag.linkedNotebookGuid());
                     emit failure(errorDescription);
                 }
@@ -1323,9 +1358,10 @@ void SendLocalChangesManager::sendTags()
             return;
         }
         else if (errorCode != 0) {
-            QNLocalizedString error = QT_TR_NOOP("can't send new and/or modified tags to the service");
-            error += QStringLiteral(": ");
-            error += errorDescription;
+            ErrorString error(QT_TRANSLATE_NOOP("", "Failed to send new and/or modified tags to Evernote service"));
+            error.additionalBases().append(errorDescription.base());
+            error.additionalBases().append(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
             emit failure(error);
             return;
         }
@@ -1335,7 +1371,7 @@ void SendLocalChangesManager::sendTags()
             QNTRACE(QStringLiteral("Checking if we are still in sync with the remote service"));
 
             if (!tag.hasUpdateSequenceNumber()) {
-                errorDescription = QT_TR_NOOP("tag's update sequence number is not set after it being sent to the service");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Tag's update sequence number is not set after it being sent to the service");
                 emit failure(errorDescription);
                 return;
             }
@@ -1352,8 +1388,8 @@ void SendLocalChangesManager::sendTags()
 
                 auto lit = m_lastUpdateCountByLinkedNotebookGuid.find(tag.linkedNotebookGuid());
                 if (lit == m_lastUpdateCountByLinkedNotebookGuid.end()) {
-                    errorDescription = QT_TR_NOOP("can't find update count per linked notebook guid on attempt to check "
-                                                  "the update count of tag sent to the service");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't find the update count per linked notebook guid on attempt to check "
+                                                                "the update count of tag sent to Evernote service");
                     emit failure(errorDescription);
                     return;
                 }
@@ -1380,7 +1416,7 @@ void SendLocalChangesManager::sendSavedSearches()
 {
     QNDEBUG(QStringLiteral("SendLocalChangesManager::sendSavedSearches"));
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     typedef QList<SavedSearch>::iterator Iter;
     for(Iter it = m_savedSearches.begin(); it != m_savedSearches.end(); )
@@ -1404,18 +1440,16 @@ void SendLocalChangesManager::sendSavedSearches()
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds <= 0) {
-                errorDescription += QStringLiteral("\n");
-                errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
-                errorDescription += QStringLiteral(": ");
-                errorDescription += QString::number(rateLimitSeconds);
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Rate limit reached but the number of seconds to wait is incorrect");
+                errorDescription.details() = QString::number(rateLimitSeconds);
                 emit failure(errorDescription);
                 return;
             }
 
             int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
             if (Q_UNLIKELY(timerId == 0)) {
-                errorDescription = QT_TR_NOOP("can't start timer to postpone the Evernote API call "
-                                              "due to trta limit exceeding");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Failed to start a timer to postpone the Evernote API call "
+                                                            "due to trta limit exceeding");
                 emit failure(errorDescription);
                 return;
             }
@@ -1439,9 +1473,10 @@ void SendLocalChangesManager::sendSavedSearches()
         }
         else if (errorCode != 0)
         {
-            QNLocalizedString error = QT_TR_NOOP("can't send new and/or modified tags to the service");
-            error += QStringLiteral(": ");
-            error += errorDescription;
+            ErrorString error(QT_TRANSLATE_NOOP("", "Failed to send new and/or modified tags to Evernote service"));
+            error.additionalBases().append(errorDescription.base());
+            error.additionalBases().append(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
             emit failure(error);
             return;
         }
@@ -1451,8 +1486,8 @@ void SendLocalChangesManager::sendSavedSearches()
             QNTRACE(QStringLiteral("Checking if we are still in sync with the remote service"));
 
             if (!search.hasUpdateSequenceNumber()) {
-                errorDescription = QT_TR_NOOP("Internal error: saved search's update sequence number is not set "
-                                              "after being send to the service");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Internal error: saved search's update sequence number is not set "
+                                                            "after sending it to Evernote service");
                 emit failure(errorDescription);
                 return;
             }
@@ -1476,7 +1511,7 @@ void SendLocalChangesManager::sendNotebooks()
 {
     QNDEBUG(QStringLiteral("SendLocalChangesManager::sendNotebooks"));
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     typedef QList<Notebook>::iterator Iter;
     for(Iter it = m_notebooks.begin(); it != m_notebooks.end(); )
@@ -1497,8 +1532,12 @@ void SendLocalChangesManager::sendNotebooks()
             }
             else
             {
-                errorDescription = QT_TR_NOOP("couldn't find authenticaton token for linked notebook when attempting "
-                                              "to create or update a notebook");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Couldn't find the authentication token for a linked notebook when attempting "
+                                                            "to create or update a notebook");
+                if (notebook.hasName()) {
+                    errorDescription.details() = notebook.name();
+                }
+
                 QNWARNING(errorDescription << QStringLiteral(", notebook: ") << notebook);
 
                 auto sit = std::find_if(m_linkedNotebookGuidsAndSharedNotebookGlobalIds.begin(),
@@ -1527,18 +1566,16 @@ void SendLocalChangesManager::sendNotebooks()
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds <= 0) {
-                errorDescription += QStringLiteral("\n");
-                errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
-                errorDescription += QStringLiteral(": ");
-                errorDescription += QString::number(rateLimitSeconds);
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Rate limit reached but the number of seconds to wait is incorrect");
+                errorDescription.details() = QString::number(rateLimitSeconds);
                 emit failure(errorDescription);
                 return;
             }
 
             int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
             if (Q_UNLIKELY(timerId == 0)) {
-                errorDescription = QT_TR_NOOP("can't start timer to postpone the Evernote API call "
-                                              "due to rate limit exceeding");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Failed to start a timer to postpone the Evernote API call "
+                                                            "due to rate limit exceeding");
                 emit failure(errorDescription);
                 return;
             }
@@ -1557,13 +1594,13 @@ void SendLocalChangesManager::sendNotebooks()
                 auto cit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
                 if (cit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end())
                 {
-                    errorDescription = QT_TR_NOOP("couldn't find the expiration time of linked notebook auth token");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Couldn't find the linked notebook auth token's expiration time");
                     QNWARNING(errorDescription << QStringLiteral(", linked notebook guid = ") << notebook.linkedNotebookGuid());
                     emit failure(errorDescription);
                 }
                 else if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
-                    errorDescription = QT_TR_NOOP("unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
-                                                  "are still valid");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
+                                                                "are still valid");
                     QNWARNING(errorDescription << QStringLiteral(", linked notebook guid = ") << notebook.linkedNotebookGuid());
                     emit failure(errorDescription);
                 }
@@ -1581,9 +1618,10 @@ void SendLocalChangesManager::sendNotebooks()
         }
         else if (errorCode != 0)
         {
-            QNLocalizedString error = QT_TR_NOOP("can't send new and/or mofidied notebooks to the service");
-            error += QStringLiteral(": ");
-            error += errorDescription;
+            ErrorString error(QT_TRANSLATE_NOOP("", "Failed to send new and/or mofidied notebooks to Evernote service"));
+            error.additionalBases().append(errorDescription.base());
+            error.additionalBases().append(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
             emit failure(error);
             return;
         }
@@ -1592,8 +1630,13 @@ void SendLocalChangesManager::sendNotebooks()
         {
             QNTRACE(QStringLiteral("Checking if we are still in sync with the remote service"));
 
-            if (!notebook.hasUpdateSequenceNumber()) {
-                errorDescription = QT_TR_NOOP("notebook's update sequence number is not set after it being sent to the service");
+            if (!notebook.hasUpdateSequenceNumber())
+            {
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Notebook's update sequence number is not set after it was sent to Evernote service");
+                if (notebook.hasName()) {
+                    errorDescription.details() = notebook.name();
+                }
+
                 emit failure(errorDescription);
                 return;
             }
@@ -1610,8 +1653,8 @@ void SendLocalChangesManager::sendNotebooks()
 
                 auto lit = m_lastUpdateCountByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
                 if (lit == m_lastUpdateCountByLinkedNotebookGuid.end()) {
-                    errorDescription = QT_TR_NOOP("can't find update count per linked notebook guid on attempt to check "
-                                                  "the update count of tag sent to the service");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't find the update count per linked notebook guid on attempt to check "
+                                                                "the update count of a notebook sent to Evernote service");
                     emit failure(errorDescription);
                     return;
                 }
@@ -1647,7 +1690,7 @@ void SendLocalChangesManager::sendNotes()
 {
     QNDEBUG(QStringLiteral("SendLocalChangesManager::sendNotes"));
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     typedef QList<Note>::iterator Iter;
     for(Iter it = m_notes.begin(); it != m_notes.end(); )
@@ -1658,16 +1701,22 @@ void SendLocalChangesManager::sendNotes()
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = qevercloud::EDAMErrorCode::UNKNOWN;
 
-        if (!note.hasNotebookGuid()) {
-            errorDescription = QT_TR_NOOP("found note without notebook guid set");
+        if (!note.hasNotebookGuid())
+        {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Found a note without notebook guid");
+            APPEND_NOTE_DETAILS(errorDescription, note)
+
             QNWARNING(errorDescription << QStringLiteral(", note: ") << note);
             emit failure(errorDescription);
             return;
         }
 
         auto nit = m_notebooksByGuidsCache.find(note.notebookGuid());
-        if (nit == m_notebooksByGuidsCache.end()) {
-            errorDescription = QT_TR_NOOP("can't find notebook for one of notes to be sent to the remote service");
+        if (nit == m_notebooksByGuidsCache.end())
+        {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't find the notebook for one of notes about to be sent to Evernote service");
+            APPEND_NOTE_DETAILS(errorDescription, note)
+
             QNWARNING(errorDescription << QStringLiteral(", note: ") << note);
             emit failure(errorDescription);
             return;
@@ -1685,8 +1734,8 @@ void SendLocalChangesManager::sendNotes()
             }
             else
             {
-                errorDescription = QT_TR_NOOP("couldn't find authenticaton token for linked notebook when attempting "
-                                              "to create or update a notebook");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Couldn't find the authenticaton token for a linked notebook when attempting "
+                                                            "to create or update a notebook");
                 QNWARNING(errorDescription << QStringLiteral(", notebook: ") << notebook);
 
                 auto sit = std::find_if(m_linkedNotebookGuidsAndSharedNotebookGlobalIds.begin(),
@@ -1715,18 +1764,16 @@ void SendLocalChangesManager::sendNotes()
         if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds <= 0) {
-                errorDescription += QStringLiteral("\n");
-                errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
-                errorDescription += QStringLiteral(": ");
-                errorDescription += QString::number(rateLimitSeconds);
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Rate limit reached but the number of seconds to wait is incorrect");
+                errorDescription.details() = QString::number(rateLimitSeconds);
                 emit failure(errorDescription);
                 return;
             }
 
             int timerId = startTimer(SEC_TO_MSEC(rateLimitSeconds));
             if (timerId == 0) {
-                errorDescription = QT_TR_NOOP("can't start timer to postpone the Evernote API call "
-                                              "due to rate limit exceeding");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Failed to start a timer to postpone the Evernote API call "
+                                                            "due to rate limit exceeding");
                 emit failure(errorDescription);
                 return;
             }
@@ -1745,13 +1792,13 @@ void SendLocalChangesManager::sendNotes()
                 auto cit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
                 if (cit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end())
                 {
-                    errorDescription = QT_TR_NOOP("couldn't find the expiration time of linked notebook auth token");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Couldn't find the linked notebook auth token's expiration time");
                     QNWARNING(errorDescription << QStringLiteral(", linked notebook guid = ") << notebook.linkedNotebookGuid());
                     emit failure(errorDescription);
                 }
                 else if (checkAndRequestAuthenticationTokensForLinkedNotebooks()) {
-                    errorDescription = QT_TR_NOOP("unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
-                                                  "are still valid");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Unexpected AUTH_EXPIRED error: authentication tokens for all linked notebooks "
+                                                                "are still valid");
                     QNWARNING(errorDescription << QStringLiteral(", linked notebook guid = ") << notebook.linkedNotebookGuid());
                     emit failure(errorDescription);
                 }
@@ -1769,19 +1816,20 @@ void SendLocalChangesManager::sendNotes()
         }
         else if (errorCode != 0)
         {
-            QNLocalizedString error = QT_TR_NOOP("can't send new and/or mofidied notes to the service");
-            error += QStringLiteral(": ");
-            error += errorDescription;
+            ErrorString error(QT_TRANSLATE_NOOP("", "Failed to send new and/or mofidied notes to Evernote service"));
+            error.additionalBases().append(errorDescription.base());
+            error.additionalBases().append(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
             emit failure(error);
             return;
         }
 
         if (!m_shouldRepeatIncrementalSync)
         {
-            QNTRACE(QStringLiteral("Checking if we are still in sync with the remote service"));
+            QNTRACE(QStringLiteral("Checking if we are still in sync with Evernote service"));
 
             if (!note.hasUpdateSequenceNumber()) {
-                errorDescription = QT_TR_NOOP("note's update sequence number is not set after it being sent to the service");
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Note's update sequence number is not set after it was sent to Evernote service");
                 emit failure(errorDescription);
                 return;
             }
@@ -1798,8 +1846,8 @@ void SendLocalChangesManager::sendNotes()
 
                 auto lit = m_lastUpdateCountByLinkedNotebookGuid.find(notebook.linkedNotebookGuid());
                 if (lit == m_lastUpdateCountByLinkedNotebookGuid.end()) {
-                    errorDescription = QT_TR_NOOP("can't find update count per linked notebook guid on attempt to check "
-                                                  "the update count of tag sent to the service");
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Failed to find the update count per linked notebook guid on attempt to check "
+                                                                "the update count of a notebook sent to Evernote service");
                     emit failure(errorDescription);
                     return;
                 }
@@ -2000,7 +2048,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
         const QPair<QString, QString> & guidAndShareKey = m_linkedNotebookGuidsAndSharedNotebookGlobalIds[i];
         const QString & guid = guidAndShareKey.first;
         if (guid.isEmpty()) {
-            QNLocalizedString error = QT_TR_NOOP("found empty linked notebook guid within the list of linked notebook guids and share keys");
+            ErrorString error(QT_TRANSLATE_NOOP("", "Found empty linked notebook guid within the list of linked notebook guids and shared notebook global ids"));
             QNWARNING(error);
             emit failure(error);
             return false;
@@ -2017,7 +2065,7 @@ bool SendLocalChangesManager::checkAndRequestAuthenticationTokensForLinkedNotebo
 
         auto eit = m_authenticationTokenExpirationTimesByLinkedNotebookGuid.find(guid);
         if (eit == m_authenticationTokenExpirationTimesByLinkedNotebookGuid.end()) {
-            QNLocalizedString error = QT_TR_NOOP("can't find cached expiration time of linked notebook's authentication token");
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't find the cached expiration time of a linked notebook's authentication token"));
             QNWARNING(error << QStringLiteral(", linked notebook guid = ") << guid);
             emit failure(error);
             return false;

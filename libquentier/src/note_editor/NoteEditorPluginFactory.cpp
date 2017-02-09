@@ -101,7 +101,7 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
     {
         const INoteEditorResourcePlugin * currentPlugin = it.value();
         if (plugin == currentPlugin) {
-            errorDescription.base() = QT_TRANSLATE_NOOP("", "detected attempt to install the same resource plugin instance more than once");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Detected attempt to install the same resource plugin instance more than once");
             QNWARNING(errorDescription);
             return 0;
         }
@@ -109,7 +109,7 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
 
     const QStringList mimeTypes = plugin->mimeTypes();
     if (mimeTypes.isEmpty()) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("can't install note editor resource plugin without supported mime types");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't install a note editor resource plugin without supported mime types");
         QNWARNING(errorDescription);
         return 0;
     }
@@ -127,7 +127,7 @@ NoteEditorPluginFactory::ResourcePluginIdentifier NoteEditorPluginFactory::addRe
             {
                 const QString & mimeType = mimeTypes[i];
                 if (currentPluginMimeTypes.contains(mimeType)) {
-                    errorDescription.base() = QT_TRANSLATE_NOOP("can't install note editor resource plugin: found "
+                    errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't install a note editor resource plugin: found "
                                                                 "conflicting mime type from another plugin");
                     errorDescription.details() = mimeType;
                     errorDescription.details() += QStringLiteral(", ");

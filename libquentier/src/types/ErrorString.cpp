@@ -103,7 +103,7 @@ QString ErrorString::localizedString() const
     QString result = baseStr;
     if (!result.isEmpty()) {
         // Capitalize the first letter
-        result = result.left(1).toUpper() + result.mid(1);
+        result = result.at(0).toUpper() + result.mid(1);
     }
 
     if (!result.isEmpty() && !additionalBasesStr.isEmpty()) {
@@ -116,7 +116,7 @@ QString ErrorString::localizedString() const
 
         if (!result.isEmpty()) {
             // Capitalize the first letter
-            result = result.left(1).toUpper() + result.mid(1);
+            result = result.at(0).toUpper() + result.mid(1);
         }
     }
     else
@@ -137,9 +137,39 @@ QString ErrorString::localizedString() const
     result += d->m_details;
     if (!result.isEmpty()) {
         // Capitalize the first letter
-        result = result.left(1).toUpper() + result.mid(1);
+        result = result.at(0).toUpper() + result.mid(1);
     }
 
+    return result;
+}
+
+QString ErrorString::nonLocalizedString() const
+{
+    QString result = d->m_base;
+
+    for(auto it = d->m_additionalBases.constBegin(), end = d->m_additionalBases.constEnd(); it != end; ++it)
+    {
+        const QString & additionalBase = *it;
+        if (additionalBase.isEmpty()) {
+            continue;
+        }
+
+        if (Q_LIKELY(it != d->m_additionalBases.constBegin()) && !result.isEmpty()) {
+            result += QStringLiteral(", ");
+        }
+
+        result += additionalBase;
+    }
+
+    if (d->m_details.isEmpty()) {
+        return result;
+    }
+
+    if (!result.isEmpty()) {
+        result += QStringLiteral(": ");
+    }
+
+    result += d->m_details;
     return result;
 }
 

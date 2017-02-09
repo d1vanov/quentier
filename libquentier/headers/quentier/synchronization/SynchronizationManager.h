@@ -207,7 +207,7 @@ Q_SIGNALS:
      * @param message - textual description of what is currently being done during the synchronization
      * @param workDonePercentage - the approximate percentage of finished synchronization work
      */
-    void progress(ErrorString message, double workDonePercentage);
+    void progress(QString message, double workDonePercentage);
 
 private:
     SynchronizationManager() Q_DECL_EQ_DELETE;

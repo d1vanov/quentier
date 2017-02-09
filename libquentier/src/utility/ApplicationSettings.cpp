@@ -27,16 +27,16 @@ ApplicationSettings::ApplicationSettings() :
     QSettings(QApplication::organizationName(), QApplication::applicationName())
 {
     if (Q_UNLIKELY(QApplication::organizationName().isEmpty())) {
-        throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: organization name is empty");
+        throw ApplicationSettingsInitializationException(ErrorString(QT_TRANSLATE_NOOP("", "Can't create ApplicationSettings instance: organization name is empty")));
     }
 
     if (Q_UNLIKELY(QApplication::applicationName().isEmpty())) {
-        throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: application name is empty");
+        throw ApplicationSettingsInitializationException(ErrorString(QT_TRANSLATE_NOOP("", "Can't create ApplicationSettings instance: application name is empty")));
     }
 
     QString storagePath = applicationPersistentStoragePath();
     if (Q_UNLIKELY(storagePath.isEmpty())) {
-        throw ApplicationSettingsInitializationException("can't create ApplicationSettings instance: no persistent storage path");
+        throw ApplicationSettingsInitializationException(ErrorString(QT_TRANSLATE_NOOP("", "Can't create ApplicationSettings instance: no persistent storage path")));
     }
 
     storagePath += QStringLiteral("/settings");

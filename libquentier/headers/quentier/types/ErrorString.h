@@ -56,6 +56,7 @@ public:
     void clear();
 
     QString localizedString() const;
+    QString nonLocalizedString() const;
 
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 

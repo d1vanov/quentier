@@ -1652,7 +1652,7 @@ void NoteEditorPrivate::onEncryptSelectedTextUndoRedoFinished(const QVariant & d
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        ErrorString error = QT_TRANSLATE_NOOP("", "can't parse the result of encryption undo/redo from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "can't parse the result of encryption undo/redo from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -4991,14 +4991,14 @@ void NoteEditorPrivate::replaceResourceInNote(const Resource & resource)
     QNTRACE(resource);
 
     if (Q_UNLIKELY(m_pNote.isNull())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "can't replace the resource within note: no note is set to the editor"));
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't replace the resource within note: no note is set to the editor"));
         QNWARNING(error << QStringLiteral(", replacement resource: ") << resource);
         emit notifyError(error);
         return;
     }
 
     if (Q_UNLIKELY(!m_pNote->hasResources())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "can't replace the resource within note: note has no resources"));
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't replace the resource within note: note has no resources"));
         QNWARNING(error << QStringLiteral(", replacement resource: ") << resource);
         emit notifyError(error);
         return;
@@ -5017,7 +5017,7 @@ void NoteEditorPrivate::replaceResourceInNote(const Resource & resource)
     }
 
     if (Q_UNLIKELY(resourceIndex < 0)) {
-        ErrorString error(QT_TRANSLATE_NOOP("can't replace the resource within note: can't find the resource to be replaced"));
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't replace the resource within note: can't find the resource to be replaced"));
         QNWARNING(error << QStringLiteral(", replacement resource: ") << resource);
         emit notifyError(error);
         return;
@@ -5509,7 +5509,7 @@ void NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished(const QVariant & 
 
     auto statusIt = resultMap.find(QStringLiteral("status"));
     if (Q_UNLIKELY(statusIt == resultMap.end())) {
-        ErrorString error = QT_TRANSLATE_NOOP("", "can't parse the result of spelling correction undo/redo from JavaScript");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't parse the result of spelling correction undo/redo from JavaScript"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -5522,10 +5522,10 @@ void NoteEditorPrivate::onSpellCheckCorrectionUndoRedoFinished(const QVariant & 
 
         auto errorIt = resultMap.find(QStringLiteral("error"));
         if (Q_UNLIKELY(errorIt == resultMap.end())) {
-            error.base() = QT_TRANSLATE_NOOP("", "can't parse the error of spelling correction undo/redo from JavaScript");
+            error.base() = QT_TRANSLATE_NOOP("", "Can't parse the error of spelling correction undo/redo from JavaScript");
         }
         else {
-            error.base() = QT_TRANSLATE_NOOP("", "can't undo/redo spelling correction");
+            error.base() = QT_TRANSLATE_NOOP("", "Can't undo/redo the spelling correction");
             error.details() = errorIt.value().toString();
         }
 
@@ -5607,7 +5607,7 @@ void NoteEditorPrivate::copy()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::copy"));
     GET_PAGE()
-    page->triggerAction(WebPage::Copy)
+    page->triggerAction(WebPage::Copy);
 }
 
 void NoteEditorPrivate::paste()
@@ -6438,7 +6438,7 @@ void NoteEditorPrivate::renameAttachment(const QByteArray & resourceHash)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::renameAttachment: resource hash = ") << resourceHash.toHex());
 
-    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "Can't rename the attachment");
+    ErrorString errorPrefix(QT_TRANSLATE_NOOP("", "Can't rename the attachment"));
     CHECK_NOTE_EDITABLE(errorPrefix)
 
     if (Q_UNLIKELY(m_pNote.isNull())) {

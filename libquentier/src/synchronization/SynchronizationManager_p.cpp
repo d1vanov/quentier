@@ -144,7 +144,7 @@ void SynchronizationManagerPrivate::synchronize()
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::synchronize"));
 
     if (m_authenticationInProgress || m_writingAuthToken || m_writingShardId) {
-        QNLocalizedString error = QT_TR_NOOP("Authentication is not finished yet, please wait");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Authentication is not finished yet, please wait"));
         QNDEBUG(error << QStringLiteral(", authentication in progress = ")
                 << (m_authenticationInProgress ? QStringLiteral("true") : QStringLiteral("false"))
                 << QStringLiteral(", writing OAuth token = ") << (m_writingAuthToken ? QStringLiteral("true") : QStringLiteral("false"))
@@ -162,7 +162,7 @@ void SynchronizationManagerPrivate::authenticate()
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticate"));
 
     if (m_authenticationInProgress || m_writingAuthToken || m_writingShardId) {
-        QNLocalizedString error = QT_TR_NOOP("Previous authentication is not finished yet, please wait");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Previous authentication is not finished yet, please wait"));
         QNDEBUG(error << QStringLiteral(", authentication in progress = ")
                 << (m_authenticationInProgress ? QStringLiteral("true") : QStringLiteral("false"))
                 << QStringLiteral(", writing OAuth token = ") << (m_writingAuthToken ? QStringLiteral("true") : QStringLiteral("false"))
@@ -263,11 +263,10 @@ void SynchronizationManagerPrivate::onOAuthFailure()
 {
     m_authenticationInProgress = false;
 
-    QNLocalizedString error = QT_TR_NOOP("OAuth failed");
+    ErrorString error(QT_TRANSLATE_NOOP("", "OAuth failed"));
     QString oauthError = m_OAuthWebView.oauthError();
     if (!oauthError.isEmpty()) {
-        error += QStringLiteral(": ");
-        error += oauthError;
+        error.details() = oauthError;
     }
 
     if (m_authContext == AuthContext::Request) {
@@ -281,7 +280,7 @@ void SynchronizationManagerPrivate::onOAuthFailure()
 void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
 {
     if (!job) {
-        QNLocalizedString error = QT_TR_NOOP("qtkeychain error: null pointer to keychain job on finish");
+        ErrorString error(QT_TRANSLATE_NOOP("", "qtkeychain error: null pointer to keychain job on finish"));
         emit notifyError(error);
         return;
     }
@@ -319,11 +318,11 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
             if (cachedJob.data() == job)
             {
                 if (job->error() != QKeychain::NoError) {
-                    QNLocalizedString error = QT_TR_NOOP("error saving linked notebook's shard id to the keychain");
-                    error += QStringLiteral(": ");
-                    error += ToString(job->error());
-                    error += QStringLiteral(": ");
-                    error += job->errorString();
+                    ErrorString error(QT_TRANSLATE_NOOP("", "Error saving linked notebook's shard id to the keychain"));
+                    error.details() = QStringLiteral("error = ");
+                    error.details() += ToString(job->error());
+                    error.details() += QStringLiteral(": ");
+                    error.details() += job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
                 }
@@ -340,11 +339,11 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
             if (cachedJob.data() == job)
             {
                 if (job->error() != QKeychain::NoError) {
-                    QNLocalizedString error = QT_TR_NOOP("error saving linked notebook's authentication token to the keychain");
-                    error += QStringLiteral(": ");
-                    error += ToString(job->error());
-                    error += QStringLiteral(": ");
-                    error += job->errorString();
+                    ErrorString error(QT_TRANSLATE_NOOP("", "Error saving linked notebook's authentication token to the keychain"));
+                    error.details() = QStringLiteral("error = ");
+                    error.details() += ToString(job->error());
+                    error.details() += QStringLiteral(": ");
+                    error.details() += job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
                 }
@@ -374,11 +373,11 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                 }
                 else
                 {
-                    QNLocalizedString error = QT_TR_NOOP("error reading linked notebook's authentication token from the keychain");
-                    error += QStringLiteral(": ");
-                    error += ToString(job->error());
-                    error += QStringLiteral(": ");
-                    error += job->errorString();
+                    ErrorString error(QT_TRANSLATE_NOOP("", "Error reading linked notebook's authentication token from the keychain"));
+                    error.details() = QStringLiteral("error = ");
+                    error.details() += ToString(job->error());
+                    error.details() += QStringLiteral(": ");
+                    error.details() += job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
 
@@ -413,11 +412,11 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
                 }
                 else
                 {
-                    QNLocalizedString error = QT_TR_NOOP("error reading linked notebook's shard id from the keychain");
-                    error += QStringLiteral(": ");
-                    error += ToString(job->error());
-                    error += QStringLiteral(": ");
-                    error += job->errorString();
+                    ErrorString error(QT_TRANSLATE_NOOP("", "Error reading linked notebook's shard id from the keychain"));
+                    error.details() = QStringLiteral("error = ");
+                    error.details() += ToString(job->error());
+                    error.details() += QStringLiteral(": ");
+                    error.details() += job->errorString();
                     QNWARNING(error);
                     emit notifyError(error);
 
@@ -432,7 +431,7 @@ void SynchronizationManagerPrivate::onKeychainJobFinished(QKeychain::Job * job)
             }
         }
 
-        QNLocalizedString error = QT_TR_NOOP("unknown keychain job finished event");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Unknown keychain job finished event"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -512,31 +511,31 @@ void SynchronizationManagerPrivate::onRemoteToLocalSyncStopped()
 void SynchronizationManagerPrivate::onRemoteToLocalSyncChunksDownloaded()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onRemoteToLocalSyncChunksDownloaded"));
-    emit progress(QT_TR_NOOP("Downloaded user account's sync chunks"), 0.125);
+    emit progress(QT_TRANSLATE_NOOP("", "Downloaded user account's sync chunks"), 0.125);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncFullNotesContentDownloaded()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onRemoteToLocalSyncFullNotesContentDownloaded"));
-    emit progress(QT_TR_NOOP("Downloaded full content of notes from user's account"), 0.25);
+    emit progress(QT_TRANSLATE_NOOP("", "Downloaded full content of notes from user's account"), 0.25);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncExpungedFromServerToClient()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onRemoteToLocalSyncExpungedFromServerToClient"));
-    emit progress(QT_TR_NOOP("Expunged local items which were also expunged in the remote service"), 0.375);
+    emit progress(QT_TRANSLATE_NOOP("", "Expunged local items which were also expunged in the remote service"), 0.375);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksSyncChunksDownloaded"));
-    emit progress(QT_TR_NOOP("Downloaded sync chunks from linked notebooks"), 0.5);
+    emit progress(QT_TRANSLATE_NOOP("", "Downloaded sync chunks from linked notebooks"), 0.5);
 }
 
 void SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onRemoteToLocalSyncLinkedNotebooksFullNotesContentDownloaded"));
-    emit progress(QT_TR_NOOP("Downloaded the full content of notes from linked notebooks"), 0.625);
+    emit progress(QT_TRANSLATE_NOOP("", "Downloaded the full content of notes from linked notebooks"), 0.625);
 }
 
 void SynchronizationManagerPrivate::onShouldRepeatIncrementalSync()
@@ -600,13 +599,13 @@ void SynchronizationManagerPrivate::onSendLocalChangesStopped()
 void SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onSendingLocalChangesReceivedUsersDirtyObjects"));
-    emit progress(QT_TR_NOOP("Prepared new and modified data from user's account for sending back to the remote service"), 0.75);
+    emit progress(QT_TRANSLATE_NOOP("", "Prepared new and modified data from user's account for sending back to the remote service"), 0.75);
 }
 
 void SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::onSendingLocalChangesReceivedAllDirtyObjects"));
-    emit progress(QT_TR_NOOP("Prepared new and modified data from linked notebooks for sending back to the remote service"), 0.875);
+    emit progress(QT_TRANSLATE_NOOP("", "Prepared new and modified data from linked notebooks for sending back to the remote service"), 0.875);
 }
 
 void SynchronizationManagerPrivate::onRateLimitExceeded(qint32 secondsToWait)
@@ -626,8 +625,8 @@ void SynchronizationManagerPrivate::createConnections()
                      this, QNSLOT(SynchronizationManagerPrivate,onOAuthFailure));
 
     // Connections with remote to local synchronization manager
-    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,failure,QNLocalizedString),
-                     this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString));
+    QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,failure,ErrorString),
+                     this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,ErrorString));
     QObject::connect(&m_remoteToLocalSyncManager, QNSIGNAL(RemoteToLocalSynchronizationManager,finished,qint32,qevercloud::Timestamp,QHash<QString,qint32>,
                                                            QHash<QString,qevercloud::Timestamp>),
                      this, QNSLOT(SynchronizationManagerPrivate,onRemoteToLocalSyncFinished,qint32,qevercloud::Timestamp,QHash<QString,qint32>,
@@ -668,8 +667,8 @@ void SynchronizationManagerPrivate::createConnections()
                      &m_remoteToLocalSyncManager, QNSLOT(RemoteToLocalSynchronizationManager,onLastSyncParametersReceived,qint32,qevercloud::Timestamp,QHash<QString,qint32>,QHash<QString,qevercloud::Timestamp>));
 
     // Connections with send local changes manager
-    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,failure,QNLocalizedString),
-                     this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,QNLocalizedString));
+    QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,failure,ErrorString),
+                     this, QNSIGNAL(SynchronizationManagerPrivate,notifyError,ErrorString));
     QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,finished,qint32,QHash<QString,qint32>),
                      this, QNSLOT(SynchronizationManagerPrivate,onLocalChangesSent,qint32,QHash<QString,qint32>));
     QObject::connect(&m_sendLocalChangesManager, QNSIGNAL(SendLocalChangesManager,rateLimitExceeded,qint32),
@@ -826,8 +825,8 @@ void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type aut
     bool conversionResult = false;
     qevercloud::Timestamp tokenExpirationTimestamp = tokenExpirationValue.toLongLong(&conversionResult);
     if (!conversionResult) {
-        QNLocalizedString error = QT_TR_NOOP("failed to convert QVariant with authentication token expiration timestamp "
-                                             "to actual timestamp");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: failed to convert QVariant with authentication token "
+                                            "expiration timestamp to the actual timestamp"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -846,7 +845,7 @@ void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type aut
 
     QVariant noteStoreUrlValue = appSettings.value(keyGroup + NOTE_STORE_URL_KEY);
     if (noteStoreUrlValue.isNull()) {
-        QNLocalizedString error = QT_TR_NOOP("can't find note store url within persistent application settings");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to find the note store url within persistent application settings"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -854,7 +853,7 @@ void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type aut
 
     QString noteStoreUrl = noteStoreUrlValue.toString();
     if (noteStoreUrl.isEmpty()) {
-        QNLocalizedString error = QT_TR_NOOP("can't convert note store url from QVariant to QString");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: failed to convert the note store url from QVariant to QString"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -866,7 +865,7 @@ void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type aut
 
     QVariant webApiUrlPrefixValue = appSettings.value(keyGroup + WEB_API_URL_PREFIX_KEY);
     if (webApiUrlPrefixValue.isNull()) {
-        QNLocalizedString error = QT_TR_NOOP("can't find web API url prefix within persistent application settings");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to find the web API url prefix within persistent application settings"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -874,7 +873,7 @@ void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type aut
 
     QString webApiUrlPrefix = webApiUrlPrefixValue.toString();
     if (webApiUrlPrefix.isEmpty()) {
-        QNLocalizedString error = QT_TR_NOOP("can't convert web api url prefix from QVariant to QString");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to convert the web api url prefix from QVariant to QString"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -984,9 +983,8 @@ void SynchronizationManagerPrivate::finalizeRevokeAuthentication()
     if ((errorCode != QKeychain::NoError) && (errorCode != QKeychain::EntryNotFound)) {
         QNWARNING(QStringLiteral("Attempt to delete the auth token returned with error: error code ")
                   << errorCode << QStringLiteral(", ") << m_deleteAuthTokenJob.errorString());
-        QNLocalizedString error = QT_TR_NOOP("Can't delete auth token from the keychain");
-        error += QStringLiteral(": ");
-        error += m_deleteAuthTokenJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to delete authentication token from the keychain"));
+        error.details() = m_deleteAuthTokenJob.errorString();
         emit authenticationRevoked(/* success = */ false, error, m_lastRevokedAuthenticationUserId);
         return;
     }
@@ -995,9 +993,8 @@ void SynchronizationManagerPrivate::finalizeRevokeAuthentication()
     if ((errorCode != QKeychain::NoError) && (errorCode != QKeychain::EntryNotFound)) {
         QNWARNING(QStringLiteral("Attempt to delete the shard id returned with error: error code ")
                   << errorCode << QStringLiteral(", ") << m_deleteShardIdJob.errorString());
-        QNLocalizedString error = QT_TR_NOOP("Can't delete shard id from the keychain");
-        error += QStringLiteral(": ");
-        error += m_deleteShardIdJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to delete shard id from the keychain"));
+        error.details() = m_deleteShardIdJob.errorString();
         emit authenticationRevoked(/* success = */ false, error, m_lastRevokedAuthenticationUserId);
         return;
     }
@@ -1005,7 +1002,7 @@ void SynchronizationManagerPrivate::finalizeRevokeAuthentication()
     QNDEBUG(QStringLiteral("Successfully revoked the authentication for user id ")
             << m_lastRevokedAuthenticationUserId
             << QStringLiteral(": both auth token and shard id either deleted or didn't exist"));
-    emit authenticationRevoked(/* success = */ true, QNLocalizedString(),
+    emit authenticationRevoked(/* success = */ true, ErrorString(),
                                m_lastRevokedAuthenticationUserId);
 }
 
@@ -1017,7 +1014,7 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
     {
     case AuthContext::Blank:
     {
-        QNLocalizedString error = QT_TR_NOOP("incorrect authentication context: blank");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: incorrect authentication context: blank"));
         emit notifyError(error);
         break;
     }
@@ -1026,7 +1023,7 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
         break;
     case AuthContext::Request:
     {
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         bool res = m_remoteToLocalSyncManager.syncUser(m_writtenOAuthResult.userId, errorDescription);
         if (!res) {
             QNDEBUG(QStringLiteral("Can't sync user: ") << errorDescription);
@@ -1035,7 +1032,7 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
         else {
             Account account = m_remoteToLocalSyncManager.account();
             QNDEBUG(QStringLiteral("Emitting the authenticationFinished signal: ") << account);
-            emit authenticationFinished(/* success = */ true, QNLocalizedString(), account);
+            emit authenticationFinished(/* success = */ true, ErrorString(), account);
         }
 
         m_writtenOAuthResult = qevercloud::EvernoteOAuthWebView::OAuthResult();
@@ -1046,9 +1043,8 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
         break;
     default:
     {
-        QNLocalizedString error = QT_TR_NOOP("unknown authentication context");
-        error += ": ";
-        error += ToString(m_authContext);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: unknown authentication context"));
+        error.details() = ToString(m_authContext);
         emit notifyError(error);
         break;
     }
@@ -1060,7 +1056,7 @@ void SynchronizationManagerPrivate::finalizeAuthentication()
 void SynchronizationManagerPrivate::timerEvent(QTimerEvent * pTimerEvent)
 {
     if (Q_UNLIKELY(!pTimerEvent)) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("Qt error: detected null pointer to QTimerEvent");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Qt error: detected null pointer to QTimerEvent"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -1149,7 +1145,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::authenticateToLinkedNotebooks"));
 
     if (Q_UNLIKELY(m_OAuthResult.userId < 0)) {
-        QNLocalizedString error = QT_TR_NOOP("Detected attempt to authenticate to linked notebooks while there is no user id set to the synchronization manager");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Detected attempt to authenticate to linked notebooks while there is no user id set to the synchronization manager"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1284,16 +1280,17 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         }
 
         qevercloud::AuthenticationResult authResult;
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         qint32 rateLimitSeconds = 0;
         qint32 errorCode = m_noteStore.authenticateToSharedNotebook(sharedNotebookGlobalId, authResult,
                                                                     errorDescription, rateLimitSeconds);
         if (errorCode == qevercloud::EDAMErrorCode::AUTH_EXPIRED)
         {
             if (validAuthentication()) {
-                QNLocalizedString error = QT_TR_NOOP("unexpected AUTH_EXPIRED error");
-                error += QStringLiteral(": ");
-                error += errorDescription;
+                ErrorString error(QT_TRANSLATE_NOOP("", "Unexpected AUTH_EXPIRED error"));
+                error.additionalBases().append(errorDescription.base());
+                error.additionalBases().append(errorDescription.additionalBases());
+                error.details() = errorDescription.details();
                 emit notifyError(error);
             }
             else {
@@ -1306,10 +1303,8 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         else if (errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
         {
             if (rateLimitSeconds <= 0) {
-                errorDescription += QStringLiteral("\n");
-                errorDescription += QT_TR_NOOP("rate limit reached but the number of seconds to wait is incorrect");
-                errorDescription += QStringLiteral(": ");
-                errorDescription += QString::number(rateLimitSeconds);
+                errorDescription.base() = QT_TRANSLATE_NOOP("", "Rate limit reached but the number of seconds to wait is incorrect");
+                errorDescription.details() = QString::number(rateLimitSeconds);
                 emit notifyError(errorDescription);
                 return;
             }
@@ -1398,9 +1393,8 @@ void SynchronizationManagerPrivate::onReadAuthTokenFinished()
     QKeychain::Error errorCode = m_readAuthTokenJob.error();
     if (errorCode == QKeychain::EntryNotFound)
     {
-        QNLocalizedString error = QT_TR_NOOP("unexpectedly missing OAuth token in the keychain");
-        error += QStringLiteral(": ");
-        error += m_readAuthTokenJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Unexpectedly missing OAuth token in the keychain"));
+        error.details() = m_readAuthTokenJob.errorString();
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1408,9 +1402,8 @@ void SynchronizationManagerPrivate::onReadAuthTokenFinished()
     else if (errorCode != QKeychain::NoError) {
         QNWARNING(QStringLiteral("Attempt to read the authentication token returned with error: error code ")
                   << errorCode << QStringLiteral(", ") << m_readAuthTokenJob.errorString());
-        QNLocalizedString error = QT_TR_NOOP("can't read stored auth token from the keychain");
-        error += QStringLiteral(": ");
-        error += m_readAuthTokenJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to read the stored authentication token from the keychain"));
+        error.details() = m_readAuthTokenJob.errorString();
         emit notifyError(error);
         return;
     }
@@ -1432,9 +1425,8 @@ void SynchronizationManagerPrivate::onReadShardIdFinished()
     QKeychain::Error errorCode = m_readShardIdJob.error();
     if (errorCode == QKeychain::EntryNotFound)
     {
-        QNLocalizedString error = QT_TR_NOOP("unexpectedly missing OAuth shard id in the keychain");
-        error += QStringLiteral(": ");
-        error += m_readShardIdJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Unexpectedly missing OAuth shard id in the keychain"));
+        error.details() = m_readShardIdJob.errorString();
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -1442,9 +1434,8 @@ void SynchronizationManagerPrivate::onReadShardIdFinished()
     else if (errorCode != QKeychain::NoError) {
         QNWARNING(QStringLiteral("Attempt to read the shard id returned with error: error code ")
                   << errorCode << QStringLiteral(", ") << m_readShardIdJob.errorString());
-        QNLocalizedString error = QT_TR_NOOP("can't read stored shard id from the keychain");
-        error += QStringLiteral(": ");
-        error += m_readShardIdJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to read the stored shard id from the keychain"));
+        error.details() = m_readShardIdJob.errorString();
         emit notifyError(error);
         return;
     }
@@ -1467,9 +1458,8 @@ void SynchronizationManagerPrivate::onWriteAuthTokenFinished()
     if (errorCode != QKeychain::NoError) {
         QNWARNING(QStringLiteral("Attempt to write the authentication token returned with error: error code ")
                   << errorCode << QStringLiteral(", ") << m_writeAuthTokenJob.errorString());
-        QNLocalizedString error = QT_TR_NOOP("Can't write oauth token to the keychain");
-        error += QStringLiteral(": ");
-        error += m_writeAuthTokenJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to write the oauth token to the keychain"));
+        error.details() = m_writeAuthTokenJob.errorString();
         emit notifyError(error);
         return;
     }
@@ -1491,9 +1481,8 @@ void SynchronizationManagerPrivate::onWriteShardIdFinished()
     if (errorCode != QKeychain::NoError) {
         QNWARNING(QStringLiteral("Attempt to write the shard id returned with error: error code ")
                   << errorCode << QStringLiteral(", ") << m_writeShardIdJob.errorString());
-        QNLocalizedString error = QT_TR_NOOP("Can't write oauth shard id to the keychain");
-        error += QStringLiteral(": ");
-        error += m_writeShardIdJob.errorString();
+        ErrorString error(QT_TRANSLATE_NOOP("", "Failed to write the oauth shard id to the keychain"));
+        error.details() = m_writeShardIdJob.errorString();
         emit notifyError(error);
         return;
     }

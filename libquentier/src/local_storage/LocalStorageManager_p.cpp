@@ -166,7 +166,7 @@ bool LocalStorageManagerPrivate::addUser(const User & user, ErrorString & errorD
     QString userId = QString::number(user.id());
     bool exists = rowExists(QStringLiteral("Users"), QStringLiteral("id"), userId);
     if (exists) {
-        errorDescription.base() = errorPrefix.base()
+        errorDescription.base() = errorPrefix.base();
         errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "user with the same id already exists"));
         errorDescription.details() = userId;
         QNWARNING(errorDescription << QStringLiteral(", id: ") << userId);
@@ -419,7 +419,8 @@ void LocalStorageManagerPrivate::switchUser(const Account & account,
     {
         ErrorString error(QT_TRANSLATE_NOOP("", "SQLite driver is not available"));
         error.details() = QStringLiteral("Available SQL drivers: ");
-        for(auto it = drivers.begin(), end = drivers.end(); it != end; ++it) {
+        QStringList drivers = QSqlDatabase::drivers();
+        for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
             const QString & driver = *it;
             error.details() += QString(QStringLiteral("{") + driver + QStringLiteral("} "));
         }
@@ -3200,7 +3201,7 @@ bool LocalStorageManagerPrivate::expungeEnResource(Resource & resource, ErrorStr
     uid = sqlEscapeString(uid);
 
     if (shouldCheckResourceExistence && !rowExists(QStringLiteral("Resources"), column, uid)) {
-        errorDescription.base() = errorPrefix.base()
+        errorDescription.base() = errorPrefix.base();
         errorDescription.additionalBases().append(QT_TRANSLATE_NOOP("", "resource to be expunged was not found in the local storage database"));
         errorDescription.details() = column;
         errorDescription.details() += QStringLiteral(" = ");

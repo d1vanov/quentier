@@ -51,8 +51,8 @@ SynchronizationManager::SynchronizationManager(const QString & consumerKey, cons
                      this, QNSIGNAL(SynchronizationManager,rateLimitExceeded,qint32));
     QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,notifyRemoteToLocalSyncDone),
                      this, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone));
-    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,progress,ErrorString,double),
-                     this, QNSIGNAL(SynchronizationManager,progress,ErrorString,double));
+    QObject::connect(d_ptr, QNSIGNAL(SynchronizationManagerPrivate,progress,QString,double),
+                     this, QNSIGNAL(SynchronizationManager,progress,QString,double));
 }
 
 SynchronizationManager::~SynchronizationManager()

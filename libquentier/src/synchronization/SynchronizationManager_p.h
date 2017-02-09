@@ -75,7 +75,7 @@ Q_SIGNALS:
     void detectedConflictDuringLocalChangesSending();
     void rateLimitExceeded(qint32 secondsToWait);
 
-    void progress(ErrorString message, double workDonePercentage);
+    void progress(QString message, double workDonePercentage);
 
 public Q_SLOTS:
     void setAccount(const Account & account);
