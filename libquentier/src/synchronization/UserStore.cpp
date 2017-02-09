@@ -26,11 +26,11 @@ namespace quentier {
 #define CATCH_THRIFT_EXCEPTION() \
     catch(const qevercloud::ThriftException & thriftException) \
     { \
-        errorDescription = QT_TR_NOOP("Thrift exception, type"); \
-        errorDescription += QStringLiteral(" = "); \
-        errorDescription += QString::number(thriftException.type()); \
-        errorDescription += QStringLiteral(": "); \
-        errorDescription += QString::fromUtf8(thriftException.what()); \
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Thrift exception"); \
+        errorDescription.details() = QStringLiteral("type = "); \
+        errorDescription.details() += QString::number(thriftException.type()); \
+        errorDescription.details() += QStringLiteral(": "); \
+        errorDescription.details() += QString::fromUtf8(thriftException.what()); \
         QNWARNING(errorDescription); \
         return false; \
     }
@@ -38,9 +38,8 @@ namespace quentier {
 #define CATCH_EVER_CLOUD_EXCEPTION() \
     catch(const qevercloud::EverCloudException & everCloudException) \
     { \
-        errorDescription = QT_TR_NOOP("QEverCloud exception"); \
-        errorDescription += QStringLiteral(": "); \
-        errorDescription += QString::fromUtf8(everCloudException.what()); \
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "QEverCloud exception"); \
+        errorDescription.details() = QString::fromUtf8(everCloudException.what()); \
         QNWARNING(errorDescription); \
         return false; \
     }
@@ -48,9 +47,8 @@ namespace quentier {
 #define CATCH_STD_EXCEPTION() \
     catch(const std::exception & e) \
     { \
-        errorDescription = QT_TR_NOOP("std::exception"); \
-        errorDescription += QStringLiteral(": "); \
-        errorDescription += QString::fromUtf8(e.what()); \
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "std::exception"); \
+        errorDescription.details() = QString::fromUtf8(e.what()); \
         QNWARNING(errorDescription); \
         return false; \
     }
@@ -77,7 +75,7 @@ void UserStore::setAuthenticationToken(const QString & authToken)
 }
 
 bool UserStore::checkVersion(const QString & clientName, qint16 edamVersionMajor, qint16 edamVersionMinor,
-                             QNLocalizedString & errorDescription)
+                             ErrorString & errorDescription)
 {
     try
     {
@@ -90,7 +88,7 @@ bool UserStore::checkVersion(const QString & clientName, qint16 edamVersionMajor
     return false;
 }
 
-qint32 UserStore::getUser(User & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds)
+qint32 UserStore::getUser(User & user, ErrorString & errorDescription, qint32 & rateLimitSeconds)
 {
     try
     {
@@ -114,7 +112,7 @@ qint32 UserStore::getUser(User & user, QNLocalizedString & errorDescription, qin
 }
 
 qint32 UserStore::getAccountLimits(const qevercloud::ServiceLevel::type serviceLevel, qevercloud::AccountLimits & limits,
-                                   QNLocalizedString & errorDescription, qint32 & rateLimitSeconds)
+                                   ErrorString & errorDescription, qint32 & rateLimitSeconds)
 {
     try
     {
@@ -137,82 +135,76 @@ qint32 UserStore::getAccountLimits(const qevercloud::ServiceLevel::type serviceL
     return qevercloud::EDAMErrorCode::UNKNOWN;
 }
 
-qint32 UserStore::processEdamUserException(const qevercloud::EDAMUserException & userException, QNLocalizedString & errorDescription) const
+qint32 UserStore::processEdamUserException(const qevercloud::EDAMUserException & userException, ErrorString & errorDescription) const
 {
     switch(userException.errorCode)
     {
     case qevercloud::EDAMErrorCode::BAD_DATA_FORMAT:
-        errorDescription = QT_TR_NOOP("BAD_DATA_FORMAT");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "BAD_DATA_FORMAT exception");
         break;
     case qevercloud::EDAMErrorCode::INTERNAL_ERROR:
-        errorDescription = QT_TR_NOOP("INTERNAL_ERROR");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "INTERNAL_ERROR exception");
         break;
     case qevercloud::EDAMErrorCode::TAKEN_DOWN:
-        errorDescription = QT_TR_NOOP("TAKEN_DOWN");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "TAKEN_DOWN exception");
         break;
     case qevercloud::EDAMErrorCode::INVALID_AUTH:
-        errorDescription = QT_TR_NOOP("INVALID_AUTH");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "INVALID_AUTH exception");
         break;
     case qevercloud::EDAMErrorCode::AUTH_EXPIRED:
-        errorDescription = QT_TR_NOOP("AUTH_EXPIRED");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "AUTH_EXPIRED exception");
         break;
     case qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED:
-        errorDescription = QT_TR_NOOP("RATE_LIMIT_REACHED");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "RATE_LIMIT_REACHED exception");
         break;
     default:
-        errorDescription = QT_TR_NOOP("Error code");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += QString::number(userException.errorCode);
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Error");
+        errorDescription.details() = QStringLiteral("error code = ");
+        errorDescription.details() += QString::number(userException.errorCode);
         break;
     }
 
     const auto exceptionData = userException.exceptionData();
 
     if (userException.parameter.isSet()) {
-        errorDescription += QStringLiteral(", ");
-        errorDescription += QT_TR_NOOP("parameter");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += userException.parameter.ref();
+        errorDescription.details() += QStringLiteral(", parameter: ");
+        errorDescription.details() += userException.parameter.ref();
     }
 
     if (!exceptionData.isNull() && !exceptionData->errorMessage.isEmpty()) {
-        errorDescription += QStringLiteral(", ");
-        errorDescription += QT_TR_NOOP("error description");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += exceptionData->errorMessage;
+        errorDescription.details() += QStringLiteral(", message: ");
+        errorDescription.details() += exceptionData->errorMessage;
     }
 
     return userException.errorCode;
 }
 
 qint32 UserStore::processEdamSystemException(const qevercloud::EDAMSystemException & systemException,
-                                             QNLocalizedString & errorDescription, qint32 & rateLimitSeconds) const
+                                             ErrorString & errorDescription, qint32 & rateLimitSeconds) const
 {
     rateLimitSeconds = -1;
 
     if (systemException.errorCode == qevercloud::EDAMErrorCode::RATE_LIMIT_REACHED)
     {
         if (!systemException.rateLimitDuration.isSet()) {
-            errorDescription = QT_TR_NOOP("Evernote API rate limit exceeded but no rate limit duration is available");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Evernote API rate limit exceeded but no rate limit duration is available");
         }
         else {
-            errorDescription = QT_TR_NOOP("Evernote API rate limit exceeded, retry in");
-            errorDescription += QStringLiteral(" ");
-            errorDescription += QString::number(systemException.rateLimitDuration.ref());
-            errorDescription += QStringLiteral(" ");
-            errorDescription += QT_TR_NOOP("seconds");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Evernote API rate limit exceeded, retry in");
+            errorDescription.details() = QString::number(systemException.rateLimitDuration.ref());
+            errorDescription.details() += QStringLiteral(" sec");
             rateLimitSeconds = systemException.rateLimitDuration.ref();
         }
     }
     else
     {
-        errorDescription = QT_TR_NOOP("Caught EDAM system exception, error code ");
-        errorDescription += ToString(systemException.errorCode);
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Caught EDAM system exception, error code ");
+        errorDescription.details() += QStringLiteral("error code = ");
+        errorDescription.details() += ToString(systemException.errorCode);
+
         if (systemException.message.isSet() && !systemException.message->isEmpty()) {
-            errorDescription += QStringLiteral(", ");
-            errorDescription += QT_TR_NOOP("message");
-            errorDescription += QStringLiteral(": ");
-            errorDescription += systemException.message.ref();
+            errorDescription.details() += QStringLiteral(", message: ");
+            errorDescription.details() += systemException.message.ref();
         }
     }
 

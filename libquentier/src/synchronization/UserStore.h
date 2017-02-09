@@ -18,7 +18,7 @@
 #ifndef LIB_QUENTIER_SYNCHRONIZATION_USER_STORE_H
 #define LIB_QUENTIER_SYNCHRONIZATION_USER_STORE_H
 
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QSharedPointer>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
@@ -53,17 +53,17 @@ public:
     void setAuthenticationToken(const QString & authToken);
 
     bool checkVersion(const QString & clientName, qint16 edamVersionMajor, qint16 edamVersionMinor,
-                      QNLocalizedString & errorDescription);
+                      ErrorString & errorDescription);
 
-    qint32 getUser(User & user, QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+    qint32 getUser(User & user, ErrorString & errorDescription, qint32 & rateLimitSeconds);
 
     qint32 getAccountLimits(const qevercloud::ServiceLevel::type serviceLevel, qevercloud::AccountLimits & limits,
-                            QNLocalizedString & errorDescription, qint32 & rateLimitSeconds);
+                            ErrorString & errorDescription, qint32 & rateLimitSeconds);
 
 private:
-    qint32 processEdamUserException(const qevercloud::EDAMUserException & userException, QNLocalizedString & errorDescription) const;
+    qint32 processEdamUserException(const qevercloud::EDAMUserException & userException, ErrorString & errorDescription) const;
     qint32 processEdamSystemException(const qevercloud::EDAMSystemException & systemException,
-                                      QNLocalizedString & errorDescription, qint32 & rateLimitSeconds) const;
+                                      ErrorString & errorDescription, qint32 & rateLimitSeconds) const;
 
 private:
     UserStore() Q_DECL_EQ_DELETE;

@@ -22,7 +22,7 @@
 #include "RemoteToLocalSynchronizationManager.h"
 #include "SendLocalChangesManager.h"
 #include <quentier/types/Account.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 #if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 #include <qt5qevercloud/QEverCloud.h>
@@ -54,7 +54,7 @@ public:
     bool paused() const;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
     void notifyRemoteToLocalSyncDone();
     void notifyFinish(Account account);
 
@@ -65,9 +65,9 @@ Q_SIGNALS:
     void sendLocalChangesPaused(bool pendingAuthenticaton);
     void sendLocalChangesStopped();
 
-    void authenticationFinished(bool success, QNLocalizedString errorDescription,
+    void authenticationFinished(bool success, ErrorString errorDescription,
                                 Account account);
-    void authenticationRevoked(bool success, QNLocalizedString errorDescription,
+    void authenticationRevoked(bool success, ErrorString errorDescription,
                                qevercloud::UserID userId);
 
 // other informative signals
@@ -75,7 +75,7 @@ Q_SIGNALS:
     void detectedConflictDuringLocalChangesSending();
     void rateLimitExceeded(qint32 secondsToWait);
 
-    void progress(QNLocalizedString message, double workDonePercentage);
+    void progress(ErrorString message, double workDonePercentage);
 
 public Q_SLOTS:
     void setAccount(const Account & account);

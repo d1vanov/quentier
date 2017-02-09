@@ -21,7 +21,7 @@
 
 #include "NoteStore.h"
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Tag.h>
 #include <quentier/types/SavedSearch.h>
@@ -44,7 +44,7 @@ public:
     bool active() const;
 
 Q_SIGNALS:
-    void failure(QNLocalizedString errorDescription);
+    void failure(ErrorString errorDescription);
 
     void finished(qint32 lastUpdateCount, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid);
 
@@ -120,7 +120,7 @@ private Q_SLOTS:
                                size_t limit, size_t offset,
                                LocalStorageManager::ListTagsOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
+                               QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
 
     void onListDirtySavedSearchesCompleted(LocalStorageManager::ListObjectsOptions flag,
                                            size_t limit, size_t offset,
@@ -131,7 +131,7 @@ private Q_SLOTS:
                                         size_t limit, size_t offset,
                                         LocalStorageManager::ListSavedSearchesOrder::type order,
                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                        QNLocalizedString errorDescription, QUuid requestId);
+                                        ErrorString errorDescription, QUuid requestId);
 
     void onListDirtyNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
                                        size_t limit, size_t offset,
@@ -143,7 +143,7 @@ private Q_SLOTS:
                                     size_t limit, size_t offset,
                                     LocalStorageManager::ListNotebooksOrder::type order,
                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                    QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
+                                    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
 
     void onListDirtyNotesCompleted(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                    size_t limit, size_t offset,
@@ -154,7 +154,7 @@ private Q_SLOTS:
                                 size_t limit, size_t offset,
                                 LocalStorageManager::ListNotesOrder::type order,
                                 LocalStorageManager::OrderDirection::type orderDirection,
-                                QNLocalizedString errorDescription, QUuid requestId);
+                                ErrorString errorDescription, QUuid requestId);
 
     void onListLinkedNotebooksCompleted(LocalStorageManager::ListObjectsOptions flag,
                                         size_t limit, size_t offset,
@@ -165,23 +165,23 @@ private Q_SLOTS:
                                      size_t limit, size_t offset,
                                      LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                      LocalStorageManager::OrderDirection::type orderDirection,
-                                     QNLocalizedString errorDescription, QUuid requestId);
+                                     ErrorString errorDescription, QUuid requestId);
 
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onUpdateSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch savedSearch, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch savedSearch, ErrorString errorDescription, QUuid requestId);
 
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onUpdateNoteCompleted(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
 
     void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
 private:
     virtual void timerEvent(QTimerEvent * pEvent);

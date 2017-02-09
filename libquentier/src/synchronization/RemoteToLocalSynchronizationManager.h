@@ -22,8 +22,8 @@
 #include "NoteStore.h"
 #include "UserStore.h"
 #include <quentier/types/Account.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/User.h>
 #include <quentier/types/Notebook.h>
@@ -57,10 +57,10 @@ public:
     void setAccount(const Account & account);
     Account account() const;
 
-    bool syncUser(const qevercloud::UserID userId, QNLocalizedString & errorDescription);
+    bool syncUser(const qevercloud::UserID userId, ErrorString & errorDescription);
 
 Q_SIGNALS:
-    void failure(QNLocalizedString errorDescription);
+    void failure(ErrorString errorDescription);
     void finished(qint32 lastUpdateCount, qevercloud::Timestamp lastSyncTime, QHash<QString,qint32> lastUpdateCountByLinkedNotebookGuid,
                   QHash<QString,qevercloud::Timestamp> lastSyncTimeByLinkedNotebookGuid);
 
@@ -137,77 +137,77 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void onFindUserCompleted(User user, QUuid requestId);
-    void onFindUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onFindNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onFindResourceCompleted(Resource resource, bool withResourceBinaryData, QUuid requestId);
     void onFindResourceFailed(Resource resource, bool withResourceBinaryData,
-                              QNLocalizedString errorDescription, QUuid requestId);
+                              ErrorString errorDescription, QUuid requestId);
     void onFindLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
-    void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId);
     void onFindSavedSearchCompleted(SavedSearch savedSearch, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch savedSearch, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch savedSearch, ErrorString errorDescription, QUuid requestId);
 
     void onAddUserCompleted(User user, QUuid requestId);
-    void onAddUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onAddTagCompleted(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onUpdateUserCompleted(User user, QUuid requestId);
-    void onUpdateUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onExpungeTagCompleted(Tag tag, QUuid requestId);
-    void onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksCompleted(QUuid requestId);
-    void onExpungeNotelessTagsFromLinkedNotebooksFailed(QNLocalizedString errorDescription, QUuid);
+    void onExpungeNotelessTagsFromLinkedNotebooksFailed(ErrorString errorDescription, QUuid);
 
     void onAddSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onExpungeSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
     void onAddLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
-    void onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId);
     void onUpdateLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
-    void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId);
     void onExpungeLinkedNotebookCompleted(LinkedNotebook linkedNotebook, QUuid requestId);
-    void onExpungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeLinkedNotebookFailed(LinkedNotebook linkedNotebook, ErrorString errorDescription, QUuid requestId);
 
     void onListAllLinkedNotebooksCompleted(size_t limit, size_t offset, LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                            LocalStorageManager::OrderDirection::type orderDirection,
                                            QList<LinkedNotebook> linkedNotebooks, QUuid requestId);
     void onListAllLinkedNotebooksFailed(size_t limit, size_t offset, LocalStorageManager::ListLinkedNotebooksOrder::type order,
-                                        LocalStorageManager::OrderDirection::type orderDirection, QNLocalizedString errorDescription, QUuid requestId);
+                                        LocalStorageManager::OrderDirection::type orderDirection, ErrorString errorDescription, QUuid requestId);
 
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onUpdateNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onExpungeNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onAddNoteCompleted(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
     void onUpdateNoteCompleted(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteCompleted(Note note, QUuid requestId);
-    void onExpungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
     void onAddResourceCompleted(Resource resource, QUuid requestId);
-    void onAddResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId);
     void onUpdateResourceCompleted(Resource resource, QUuid requestId);
-    void onUpdateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId);
 
-    void onInkNoteImageDownloadFinished(bool status, QString inkNoteImageFilePath, QNLocalizedString errorDescription);
-    void onNoteThumbnailDownloadingFinished(bool status, QString noteGuid, QString downloadedThumbnailImageFilePath, QNLocalizedString errorDescription);
+    void onInkNoteImageDownloadFinished(bool status, QString inkNoteImageFilePath, ErrorString errorDescription);
+    void onNoteThumbnailDownloadingFinished(bool status, QString noteGuid, QString downloadedThumbnailImageFilePath, ErrorString errorDescription);
 
 private:
     void createConnections();
@@ -216,11 +216,11 @@ private:
     void launchSync();
 
     // If any of these returns false, it is either due to error or due to API rate limit exceeding
-    bool checkProtocolVersion(QNLocalizedString & errorDescription);
-    bool syncUserImpl(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription);
+    bool checkProtocolVersion(ErrorString & errorDescription);
+    bool syncUserImpl(const bool waitIfRateLimitReached, ErrorString & errorDescription);
 
-    bool checkAndSyncAccountLimits(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription);
-    bool syncAccountLimits(const bool waitIfRateLimitReached, QNLocalizedString & errorDescription);
+    bool checkAndSyncAccountLimits(const bool waitIfRateLimitReached, ErrorString & errorDescription);
+    bool syncAccountLimits(const bool waitIfRateLimitReached, ErrorString & errorDescription);
     void readSavedAccountLimits();
     void writeAccountLimitsToAppSettings();
 
@@ -289,7 +289,7 @@ private:
 
     template <class ContainerType, class ElementType>
     bool onNoDuplicateByGuid(ElementType element, const QUuid & requestId,
-                             const QNLocalizedString & errorDescription,
+                             const ErrorString & errorDescription,
                              const QString & typeName, ContainerType & container,
                              QSet<QUuid> & findElementRequestIds);
 
@@ -305,7 +305,7 @@ private:
 
     template <class ContainerType, class ElementType>
     bool onNoDuplicateByName(ElementType element, const QUuid & requestId,
-                             const QNLocalizedString & errorDescription,
+                             const ErrorString & errorDescription,
                              const QString & typeName, ContainerType & container,
                              QSet<QUuid> & findElementRequestIds);
 
@@ -320,7 +320,7 @@ private:
 
     template <class ElementType>
     void onAddDataElementFailed(const ElementType & element, const QUuid & requestId,
-                                const QNLocalizedString & errorDescription, const QString & typeName,
+                                const ErrorString & errorDescription, const QString & typeName,
                                 QSet<QUuid> & addElementRequestIds);
 
     // ========== Update helpers ===========
@@ -336,7 +336,7 @@ private:
 
     template <class ElementType, class ElementsToAddByUuid>
     void onUpdateDataElementFailed(const ElementType & element, const QUuid & requestId,
-                                   const QNLocalizedString & errorDescription, const QString & typeName,
+                                   const ErrorString & errorDescription, const QString & typeName,
                                    QSet<QUuid> & updateElementRequestIds,
                                    ElementsToAddByUuid & elementsToAddByRenameRequestId);
 
@@ -354,7 +354,7 @@ private:
 
     template <class ElementType>
     void onExpungeDataElementFailed(const ElementType & element, const QUuid & requestId,
-                                    const QNLocalizedString & errorDescription, const QString & typeName,
+                                    const ErrorString & errorDescription, const QString & typeName,
                                     QSet<QUuid> & expungeElementRequestIds);
 
     void expungeTags();
@@ -420,7 +420,7 @@ private:
 
     virtual void timerEvent(QTimerEvent * pEvent);
 
-    qint32 tryToGetFullNoteData(Note & note, QNLocalizedString & errorDescription);
+    qint32 tryToGetFullNoteData(Note & note, ErrorString & errorDescription);
 
     void downloadSyncChunksAndLaunchSync(qint32 afterUsn);
 
