@@ -43,39 +43,39 @@ public Q_SLOTS:
 private Q_SLOTS:
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
-                           QNLocalizedString errorDescription, QUuid requestId);
+                           ErrorString errorDescription, QUuid requestId);
 
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
                                LocalStorageManager::ListNotebooksOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
+                               QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
 
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
+    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onListTagsFailed(LocalStorageManager::ListObjectsOptions flag,
                           size_t limit, size_t offset,
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
                           QString linkedNotebookGuid,
-                          QNLocalizedString errorDescription, QUuid requestId);
+                          ErrorString errorDescription, QUuid requestId);
 
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onListSavedSearchesFailed(LocalStorageManager::ListObjectsOptions flag,
                                    size_t limit, size_t offset,
                                    LocalStorageManager::ListSavedSearchesOrder::type order,
                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                   QNLocalizedString errorDescription, QUuid requestId);
+                                   ErrorString errorDescription, QUuid requestId);
 
 private:
     void checkSorting(const FavoritesModel & model);

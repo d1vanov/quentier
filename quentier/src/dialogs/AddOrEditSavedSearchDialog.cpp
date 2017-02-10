@@ -87,7 +87,7 @@ void AddOrEditSavedSearchDialog::accept()
     {
         QNDEBUG(QStringLiteral("Edited saved search local uid is empty, adding new saved search to the model"));
 
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         QModelIndex index = m_pSavedSearchModel->createSavedSearch(savedSearchName, savedSearchQuery, errorDescription);
         if (!index.isValid()) {
             m_pUi->statusBar->setText(errorDescription.localizedString());
@@ -177,13 +177,14 @@ void AddOrEditSavedSearchDialog::onSearchQueryEdited()
 
     QNDEBUG(QStringLiteral("AddOrEditSavedSearchDialog::onSearchQueryEdited: ") << searchQuery);
 
-    QNLocalizedString parseError;
+    ErrorString parseError;
     bool res = m_pSearchQuery->setQueryString(searchQuery, parseError);
     if (!res)
     {
-        QNLocalizedString error = QNLocalizedString("Can't parse search query string", this);
-        error += QStringLiteral(": ");
-        error += parseError;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't parse search query string"));
+        error.additionalBases().append(parseError.base());
+        error.additionalBases().append(parseError.additionalBases());
+        error.details() = parseError.details();
         QNDEBUG(error);
 
         // NOTE: only show the parsing error to user if the query was good before the last edit

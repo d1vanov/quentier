@@ -20,7 +20,7 @@
 #define QUENTIER_WIDGETS_ABSTRACT_FILTER_BY_MODEL_ITEM_WIDGET_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QWidget>
 #include <QPointer>
 
@@ -56,7 +56,7 @@ public:
     QStringList itemsInFilter() const;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
     /**
      * @brief addedItemToFilter signal is emitted when the item is added to the filter

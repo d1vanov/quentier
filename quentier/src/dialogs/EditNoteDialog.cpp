@@ -91,7 +91,7 @@ void EditNoteDialog::accept()
     }
 
     if (Q_UNLIKELY(m_pNotebookModel.isNull())) {
-        QNLocalizedString error = QNLocalizedString("Can't edit note: no notebook model is set", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: no notebook model is set"));
         QNINFO(error);
         QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
                            error.localizedString());
@@ -103,7 +103,7 @@ void EditNoteDialog::accept()
     QString title = m_pUi->titleLineEdit->text().trimmed();
     m_stringUtils.removeNewlines(title);
 
-    QNLocalizedString error;
+    ErrorString error;
     if (!Note::validateTitle(title, &error)) {
         QNINFO(error);
         QToolTip::showText(m_pUi->titleLineEdit->geometry().bottomLeft(), error.localizedString());
@@ -115,7 +115,7 @@ void EditNoteDialog::accept()
     QString notebookName = m_pUi->notebookComboBox->currentText();
     QString notebookLocalUid = m_pNotebookModel->localUidForItemName(notebookName);
     if (notebookLocalUid.isEmpty()) {
-        QNLocalizedString error = QNLocalizedString("Can't edit note: can't find notebook local uid for current notebook name", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: can't find notebook local uid for current notebook name"));
         QNINFO(error);
         QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
                            error.localizedString());
@@ -130,7 +130,7 @@ void EditNoteDialog::accept()
         QModelIndex notebookIndex = m_pNotebookModel->indexForLocalUid(notebookLocalUid);
         const NotebookModelItem * pNotebookModelItem = m_pNotebookModel->itemForIndex(notebookIndex);
         if (Q_UNLIKELY(!pNotebookModelItem)) {
-            QNLocalizedString error = QNLocalizedString("Can't edit note: can't find the notebook model item for notebook local uid", this);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: can't find the notebook model item for notebook local uid"));
             QNINFO(error);
             QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
                                error.localizedString());
@@ -138,8 +138,8 @@ void EditNoteDialog::accept()
         }
 
         if (Q_UNLIKELY(pNotebookModelItem->type() != NotebookModelItem::Type::Notebook)) {
-            QNLocalizedString error = QNLocalizedString("Can't edit note: internal error, the notebook model item corresponding "
-                                                        "to the chosen notebook has wrong type", this);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: internal error, the notebook model item corresponding "
+                                                "to the chosen notebook has wrong type"));
             QNINFO(error);
             QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
                                error.localizedString());
@@ -148,8 +148,8 @@ void EditNoteDialog::accept()
 
         const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
         if (Q_UNLIKELY(!pNotebookItem)) {
-            QNLocalizedString error = QNLocalizedString("Can't edit note: internal error, the notebook model item corresponding "
-                                                        "to the chosen notebook has null pointer to the notebook item", this);
+            ErrorString error(QT_TRANSLATE_NOOP("Can't edit note: internal error, the notebook model item corresponding "
+                                                "to the chosen notebook has null pointer to the notebook item"));
             QNINFO(error);
             QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
                                error.localizedString());
@@ -157,7 +157,7 @@ void EditNoteDialog::accept()
         }
 
         if (Q_UNLIKELY(!pNotebookItem->canCreateNotes())) {
-            QNLocalizedString error = QNLocalizedString("Can't edit note: the target notebook doesn't allow the note creation in it", this);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: the target notebook doesn't allow the note creation in it"));
             QNINFO(error);
             QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),
                                error.localizedString());
@@ -228,22 +228,18 @@ void EditNoteDialog::accept()
 #define CHECK_ATTRIBUTE(attr) \
     int attr##Len = attr.size(); \
     if (attr##Len < qevercloud::EDAM_ATTRIBUTE_LEN_MIN) { \
-        QNLocalizedString error = QNLocalizedString("The lenght of attribute must be at least", this); \
-        error += QStringLiteral(" "); \
-        error += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN); \
-        error += QStringLiteral(" "); \
-        error += QNLocalizedString("characters"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "Attribute length too small")); \
+        error.details() = QStringLiteral("min "); \
+        error.details() += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MIN); \
         QNINFO(error); \
         QToolTip::showText(m_pUi->attr##LineEdit->geometry().bottomLeft(), \
                            error.localizedString()); \
         return; \
     } \
     else if (attr##Len > qevercloud::EDAM_ATTRIBUTE_LEN_MAX) { \
-        QNLocalizedString error = QNLocalizedString("The length of attribute must be not more than", this); \
-        error += QStringLiteral(" "); \
-        error += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX); \
-        error += QStringLiteral(" "); \
-        error += QNLocalizedString("characters"); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "Attribute length too large")); \
+        error.details() = QStringLiteral("max "); \
+        error.details() += QString::number(qevercloud::EDAM_ATTRIBUTE_LEN_MAX); \
         QNINFO(error); \
         QToolTip::showText(m_pUi->attr##LineEdit->geometry().bottomLeft(), \
                            error.localizedString()); \

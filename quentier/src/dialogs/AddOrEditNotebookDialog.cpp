@@ -121,7 +121,7 @@ void AddOrEditNotebookDialog::accept()
     {
         QNDEBUG(QStringLiteral("Edited notebook local uid is empty, adding new notebook to the model"));
 
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         QModelIndex index = m_pNotebookModel->createNotebook(notebookName, stack, errorDescription);
         if (!index.isValid()) {
             m_pUi->statusBar->setText(errorDescription.localizedString());

@@ -2,7 +2,7 @@
 #define QUENTIER_VIEWS_DELETED_NOTE_ITEM_VIEW_H
 
 #include "ItemView.h"
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
 QT_FORWARD_DECLARE_CLASS(QModelIndex)
@@ -25,7 +25,7 @@ public:
 
 Q_SIGNALS:
     void deletedNoteInfoRequested(QString deletedNoteLocalUid);
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
 private Q_SLOTS:
     void onRestoreNoteAction();

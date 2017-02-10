@@ -151,7 +151,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
     auto tagNameIt = m_currentNoteTagLocalUidToNameBimap.right.find(tagName);
     if (Q_UNLIKELY(tagNameIt == m_currentNoteTagLocalUidToNameBimap.right.end())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't determine the tag which has been removed from the note");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't determine the tag which has been removed from the note"));
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
         return;
@@ -162,7 +162,7 @@ void NoteTagsWidget::onTagRemoved(QString tagName)
 
     const TagModelItem * pItem = m_pTagModel->itemForLocalUid(tagLocalUid);
     if (Q_UNLIKELY(!pItem)) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("can't find the tag item attempted to be removed from the note");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't find the tag item attempted to be removed from the note"));
         QNWARNING(errorDescription << QStringLiteral(", tag local uid = ") << tagLocalUid);
         emit notifyError(errorDescription);
         return;
@@ -191,8 +191,8 @@ void NoteTagsWidget::onNewTagNameEntered()
 
     NewListItemLineEdit * pNewItemLineEdit = qobject_cast<NewListItemLineEdit*>(sender());
     if (Q_UNLIKELY(!pNewItemLineEdit)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't process the addition of a new tag: "
-                                                    "can't cast the signal sender to NewListLineEdit", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't process the addition of a new tag: "
+                                            "can't cast the signal sender to NewListLineEdit"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -218,8 +218,8 @@ void NoteTagsWidget::onNewTagNameEntered()
     }
 
     if (Q_UNLIKELY(m_pTagModel.isNull())) {
-        QNLocalizedString error = QNLocalizedString("Can't process the addition of a new tag: "
-                                                    "the tag model is null", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the addition of a new tag: "
+                                            "the tag model is null"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -235,22 +235,23 @@ void NoteTagsWidget::onNewTagNameEntered()
     {
         QNDEBUG(QStringLiteral("The tag with such name doesn't exist, adding it"));
 
-        QNLocalizedString error;
-        tagIndex = m_pTagModel->createTag(newTagName, QString(), error);
+        ErrorString errorDescription;
+        tagIndex = m_pTagModel->createTag(newTagName, QString(), errorDescription);
         if (Q_UNLIKELY(!tagIndex.isValid())) {
-            QNLocalizedString errorDescription = QNLocalizedString("Can't process the addition of a new tag", this);
-            errorDescription += QStringLiteral(": ");
-            errorDescription += error;
-            QNWARNING(errorDescription);
-            emit notifyError(errorDescription);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the addition of a new tag"));
+            error.additionalBases().append(errorDescription.base());
+            error.additionalBases().append(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
+            QNWARNING(error);
+            emit notifyError(error);
             return;
         }
     }
 
     const TagModelItem * pTagItem = m_pTagModel->itemForIndex(tagIndex);
     if (Q_UNLIKELY(!pTagItem)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't process the addition of a new tag: "
-                                                    "can't find the tag item for index within the tag model", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't process the addition of a new tag: "
+                                            "can't find the tag item for index within the tag model"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -328,8 +329,8 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
 
         const TagModelItem * pTagItem = m_pTagModel->itemForLocalUid(addedTagLocalUid);
         if (Q_UNLIKELY(!pTagItem)) {
-            QNLocalizedString error = QNLocalizedString("Can't process the tag addition to note: "
-                                                        "the tag item was not found within the model", this);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the tag addition to note: "
+                                                "the tag item was not found within the model"));
             QNWARNING(error << QStringLiteral(", request id = ") << requestId
                       << QStringLiteral(", tag local uid = ") << addedTagLocalUid);
             emit notifyError(error);
@@ -439,7 +440,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
 }
 
 void NoteTagsWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                        QNLocalizedString errorDescription, QUuid requestId)
+                                        ErrorString errorDescription, QUuid requestId)
 {
     Q_UNUSED(updateResources)
     Q_UNUSED(updateTags)
@@ -569,7 +570,7 @@ void NoteTagsWidget::onUpdateTagComplete(Tag tag, QUuid requestId)
 
     auto previousNameIt = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
     if (Q_UNLIKELY(previousNameIt == m_currentNoteTagLocalUidToNameBimap.left.end())) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("detected the update of tag, however, its previous name cannot be found");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Detected the update of a tag, however, its previous name cannot be found"));
         QNWARNING(errorDescription << QStringLiteral(", tag = ") << tag);
         emit notifyError(errorDescription);
         return;
@@ -634,7 +635,7 @@ void NoteTagsWidget::onExpungeTagComplete(Tag tag, QUuid requestId)
     auto it = m_currentNoteTagLocalUidToNameBimap.left.find(tag.localUid());
     if (Q_UNLIKELY(it == m_currentNoteTagLocalUidToNameBimap.left.end()))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("detected the expunge of tag, however, its name cannot be found");
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Detected the expunge of a tag, however, its name cannot be found"));
         QNWARNING(errorDescription << QStringLiteral(", tag = ") << tag);
 
         if (!tag.hasName()) {
@@ -888,8 +889,8 @@ void NoteTagsWidget::createConnections(LocalStorageManagerThreadWorker & localSt
     // Connect local storage signals to local slots
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteTagsWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteTagsWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteTagsWidget,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),

@@ -123,7 +123,7 @@ public:
      * @return either valid model index if tag was created successfully or invalid model index otherwise
      */
     QModelIndex createTag(const QString & tagName, const QString & parentTagName,
-                          QNLocalizedString & errorDescription);
+                          ErrorString & errorDescription);
 
     /**
      * @brief columnName
@@ -205,7 +205,7 @@ public:
 
 Q_SIGNALS:
     void sortingChanged();
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
     void notifyAllTagsListed();
 
     void notifyTagParentChanged(const QModelIndex & tagIndex);
@@ -242,11 +242,11 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddTagComplete(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onUpdateTagComplete(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onFindTagComplete(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onListTagsComplete(LocalStorageManager::ListObjectsOptions flag,
                             size_t limit, size_t offset,
                             LocalStorageManager::ListTagsOrder::type order,
@@ -256,16 +256,16 @@ private Q_SLOTS:
                           size_t limit, size_t offset,
                           LocalStorageManager::ListTagsOrder::type order,
                           LocalStorageManager::OrderDirection::type orderDirection,
-                          QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
+                          QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeTagComplete(Tag tag, QUuid requestId);
-    void onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onNoteCountPerTagComplete(int noteCount, Tag tag, QUuid requestId);
-    void onNoteCountPerTagFailed(QNLocalizedString errorDescription, Tag tag, QUuid requestId);
+    void onNoteCountPerTagFailed(ErrorString errorDescription, Tag tag, QUuid requestId);
 
     void onExpungeNotelessTagsFromLinkedNotebooksComplete(QUuid requestId);
 
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
@@ -283,7 +283,7 @@ private Q_SLOTS:
                                     size_t limit, size_t offset,
                                     LocalStorageManager::ListTagsOrder::type order,
                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                    QNLocalizedString errorDescription, QUuid requestId);
+                                    ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);

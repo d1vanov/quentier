@@ -20,7 +20,7 @@
 #define QUENTIER_DELEGATES_NOTE_ITEM_DELEGATE_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QStyledItemDelegate>
 
 namespace quentier {
@@ -58,7 +58,7 @@ public:
     virtual void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error) const;
+    void notifyError(ErrorString error) const;
 
 private:
     QString timestampToString(const qint64 timestamp, const qint64 timePassed) const;

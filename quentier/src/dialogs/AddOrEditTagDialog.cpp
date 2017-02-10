@@ -94,7 +94,7 @@ void AddOrEditTagDialog::accept()
     {
         QNDEBUG(QStringLiteral("Edited tag local uid is empty, adding new tag to the model"));
 
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         QModelIndex index = m_pTagModel->createTag(tagName, parentTagName, errorDescription);
         if (!index.isValid()) {
             m_pUi->statusBar->setText(errorDescription.localizedString());

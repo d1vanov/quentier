@@ -20,7 +20,7 @@
 #define QUENTIER_VIEWS_NOTEBOOK_ITEM_VIEW_H
 
 #include "ItemView.h"
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 namespace quentier {
 
@@ -42,7 +42,7 @@ public:
     QModelIndex currentlySelectedItemIndex() const;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
     void newNotebookCreationRequested();
     void notebookInfoRequested();
 

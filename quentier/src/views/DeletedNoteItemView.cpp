@@ -7,7 +7,7 @@
 
 #define REPORT_ERROR(error) \
     { \
-        QNLocalizedString errorDescription = QNLocalizedString(error, this); \
+        ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
         emit notifyError(errorDescription); \
     }
@@ -88,8 +88,8 @@ void DeletedNoteItemView::showCurrentlySelectedNoteInfo()
 
     const NoteModelItem * pItem = pNoteModel->itemForIndex(currentItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR("Can't show the deleted note info: no note model item corresponding "
-                     "to the currently selected index")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the deleted note info: no note model item corresponding "
+                                       "to the currently selected index"))
         return;
     }
 
@@ -102,8 +102,8 @@ void DeletedNoteItemView::onRestoreNoteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't restore note, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't restore note, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -115,8 +115,8 @@ void DeletedNoteItemView::onRestoreNoteAction()
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't restore note, "
-                     "can't get note's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't restore note, "
+                                       "can't get note's local uid from QAction"))
         return;
     }
 
@@ -130,8 +130,8 @@ void DeletedNoteItemView::onDeleteNotePermanentlyAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't delete the note permanently, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete the note permanently, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -143,8 +143,8 @@ void DeletedNoteItemView::onDeleteNotePermanentlyAction()
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't delete the note permanently, "
-                     "can't get note's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete the note permanently, "
+                                       "can't get note's local uid from QAction"))
         return;
     }
 
@@ -158,8 +158,8 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't show the deleted note info, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't show the deleted note info, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -171,8 +171,8 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't show the deleted note info, "
-                     "can't get note's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't show the deleted note info, "
+                                       "can't get note's local uid from QAction"))
         return;
     }
 
@@ -182,8 +182,8 @@ void DeletedNoteItemView::onShowDeletedNoteInfoAction()
 void DeletedNoteItemView::restoreNote(const QModelIndex & index, NoteModel & model)
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR("Internal error: can't restore note, "
-                     "the index of the note to be restored is invalid ")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't restore note, "
+                                       "the index of the note to be restored is invalid "))
         return;
     }
 
@@ -203,8 +203,8 @@ void DeletedNoteItemView::restoreNote(const QModelIndex & index, NoteModel & mod
 void DeletedNoteItemView::deleteNotePermanently(const QModelIndex & index, NoteModel & model)
 {
     if (Q_UNLIKELY(!index.isValid())) {
-        REPORT_ERROR("Internal error: can't delete the note permanently, "
-                     "the index of the note to be deleted permanently is invalid ")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete the note permanently, "
+                                       "the index of the note to be deleted permanently is invalid"))
         return;
     }
 
@@ -253,9 +253,9 @@ void DeletedNoteItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const NoteModelItem * pItem = pNoteModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR("Can't show the context menu for deleted note: "
-                     "internal error, can't find the corresponding item "
-                     "within the note model");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for deleted note: "
+                                       "internal error, can't find the corresponding item "
+                                       "within the note model"))
         return;
     }
 

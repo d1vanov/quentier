@@ -268,9 +268,9 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
     NewListItemLineEdit * pNewItemLineEdit = qobject_cast<NewListItemLineEdit*>(sender());
     if (Q_UNLIKELY(!pNewItemLineEdit)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't process the addition "
-                                                    "of a new item to the filter: can't cast "
-                                                    "the signal sender to NewListLineEdit", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't process the addition "
+                                            "of a new item to the filter: can't cast "
+                                            "the signal sender to NewListLineEdit"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -295,8 +295,8 @@ void AbstractFilterByModelItemWidget::onNewItemAdded()
 
     QString localUid = m_pItemModel->localUidForItemName(newItemName);
     if (localUid.isEmpty()) {
-        QNLocalizedString error = QNLocalizedString("Can't process the addition of a new item "
-                                                    "to the filter: can't find the item's local uid", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't process the addition of a new item "
+                                            "to the filter: can't find the item's local uid"));
         QNWARNING(error);
         emit notifyError(error);
         return;

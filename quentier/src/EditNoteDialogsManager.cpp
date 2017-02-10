@@ -56,7 +56,7 @@ void EditNoteDialogsManager::onFindNoteComplete(Note note, bool withResourceBina
     raiseEditNoteDialog(note, readOnlyFlag);
 }
 
-void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
+void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription,
                                               QUuid requestId)
 {
     auto it = m_findNoteRequestIds.find(requestId);
@@ -73,17 +73,17 @@ void EditNoteDialogsManager::onFindNoteFailed(Note note, bool withResourceBinary
 
     Q_UNUSED(m_findNoteRequestIds.erase(it))
 
-    QNLocalizedString error;
+    ErrorString error;
     if (readOnlyFlag) {
-        error = QNLocalizedString("Can't edit note: note to edit was no found", this);
+        error.base() = QT_TRANSLATE_NOOP("", "Can't edit note: the note to be edited was not found");
     }
     else {
-        error = QNLocalizedString("Can't show note info", this);
+        error.base() = QT_TRANSLATE_NOOP("", "Can't show the note info: the note to be edited was not found");
     }
-    error += QStringLiteral(": ");
-    error += QNLocalizedString("note was no found", this);
-    error += QStringLiteral(", ");
-    error += errorDescription;
+
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     QNWARNING(error);
     emit notifyError(error);
 }
@@ -104,7 +104,7 @@ void EditNoteDialogsManager::onUpdateNoteComplete(Note note, bool updateResource
 }
 
 void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                                QNLocalizedString errorDescription, QUuid requestId)
+                                                ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -116,9 +116,10 @@ void EditNoteDialogsManager::onUpdateNoteFailed(Note note, bool updateResources,
               << QStringLiteral(", update tags = ") << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error: ") << errorDescription << QStringLiteral("; note: ") << note);
 
-    QNLocalizedString error = QNLocalizedString("Note edit failed");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Note update has failed"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     emit notifyError(error);
 }
 
@@ -133,8 +134,8 @@ void EditNoteDialogsManager::createConnections()
 
     QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(EditNoteDialogsManager,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,bool,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+                     this, QNSLOT(EditNoteDialogsManager,onFindNoteFailed,Note,bool,ErrorString,QUuid));
 }
 
 void EditNoteDialogsManager::findNoteAndRaiseEditNoteDialog(const QString & noteLocalUid, const bool readOnlyFlag)
@@ -163,7 +164,7 @@ void EditNoteDialogsManager::raiseEditNoteDialog(const Note & note, const bool r
 
     QWidget * pWidget = qobject_cast<QWidget*>(parent());
     if (Q_UNLIKELY(!pWidget)) {
-        QNLocalizedString error = QNLocalizedString("Can't raise edit note dialog: no parent widget", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't raise the note editing dialog: no parent widget"));
         QNWARNING(error << QStringLiteral(", parent = ") << parent());
         emit notifyError(error);
         return;

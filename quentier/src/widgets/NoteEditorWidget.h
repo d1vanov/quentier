@@ -23,8 +23,8 @@
 #include "../models/NotebookCache.h"
 #include "../models/TagCache.h"
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
 #include <quentier/utility/StringUtils.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Tag.h>
@@ -146,10 +146,10 @@ public:
      * if the method wasn't able to save the note
      * @return the result of the attempt to save the note synchronously
      */
-    NoteSaveStatus::type checkAndSaveModifiedNote(QNLocalizedString & errorDescription);
+    NoteSaveStatus::type checkAndSaveModifiedNote(ErrorString & errorDescription);
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
     /**
      * This signal is emitted when note's title or, if note's title has changed
@@ -237,14 +237,14 @@ private Q_SLOTS:
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
     void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
     // Slot for note's title updates handling
@@ -262,7 +262,7 @@ private Q_SLOTS:
 
     // Slots for updates from the actual note editor
     void onEditorNoteUpdate(Note note);
-    void onEditorNoteUpdateFailed(QNLocalizedString error);
+    void onEditorNoteUpdateFailed(ErrorString error);
 
     void onEditorTextBoldStateChanged(bool state);
     void onEditorTextItalicStateChanged(bool state);
@@ -305,7 +305,7 @@ private:
     QString blankPageHtml() const;
     void setupBlankEditor();
 
-    bool checkNoteTitle(const QString & title, QNLocalizedString & errorDescription);
+    bool checkNoteTitle(const QString & title, ErrorString & errorDescription);
 
 private:
     Ui::NoteEditorWidget *      m_pUi;

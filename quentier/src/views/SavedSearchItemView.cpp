@@ -31,7 +31,7 @@
 
 #define REPORT_ERROR(error) \
     { \
-        QNLocalizedString errorDescription = QNLocalizedString(error, this); \
+        ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
         emit notifyError(errorDescription); \
     }
@@ -52,8 +52,8 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
     SavedSearchModel * pPreviousModel = qobject_cast<SavedSearchModel*>(model());
     if (pPreviousModel)
     {
-        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,notifyError,QNLocalizedString),
-                            this, QNSIGNAL(SavedSearchItemView,notifyError,QNLocalizedString));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,notifyError,ErrorString),
+                            this, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString));
         QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,notifyAllSavedSearchesListed),
                             this, QNSLOT(SavedSearchItemView,onAllSavedSearchesListed));
         QObject::disconnect(pPreviousModel, QNSIGNAL(SavedSearchModel,aboutToAddSavedSearch),
@@ -80,8 +80,8 @@ void SavedSearchItemView::setModel(QAbstractItemModel * pModel)
         return;
     }
 
-    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,notifyError,QNLocalizedString),
-                     this, QNSIGNAL(SavedSearchItemView,notifyError,QNLocalizedString));
+    QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,notifyError,ErrorString),
+                     this, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString));
     QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,aboutToAddSavedSearch),
                      this, QNSLOT(SavedSearchItemView,onAboutToAddSavedSearch));
     QObject::connect(pSavedSearchModel, QNSIGNAL(SavedSearchModel,addedSavedSearch,const QModelIndex&),
@@ -171,8 +171,8 @@ void SavedSearchItemView::onAllSavedSearchesListed()
 
     SavedSearchModel * pSavedSearchModel = qobject_cast<SavedSearchModel*>(model());
     if (Q_UNLIKELY(!pSavedSearchModel)) {
-        REPORT_ERROR("Can't cast the model set to the saved search item view "
-                     "to the saved search model");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't cast the model set to the saved search item view "
+                                       "to the saved search model"))
         return;
     }
 
@@ -244,22 +244,22 @@ void SavedSearchItemView::onRenameSavedSearchAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't rename saved search, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename saved search, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't rename saved search, "
-                     "can't get saved search's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename saved search, "
+                                       "can't get saved search's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't rename saved search: the model returned invalid "
-                     "index for the saved search's local uid");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename saved search: the model returned invalid "
+                                       "index for the saved search's local uid"))
         return;
     }
 
@@ -278,22 +278,22 @@ void SavedSearchItemView::onDeleteSavedSearchAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't delete saved search, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete saved search, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't delete saved search, "
-                     "can't get saved search's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete saved search, "
+                                       "can't get saved search's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't delete saved search: the model returned invalid "
-                     "index for the saved search's local uid");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete saved search: the model returned invalid "
+                                       "index for the saved search's local uid"))
         return;
     }
 
@@ -312,15 +312,15 @@ void SavedSearchItemView::onEditSavedSearchAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't edit saved search, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't edit saved search, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't edit saved search, "
-                     "can't get saved search's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't edit saved search, "
+                                       "can't get saved search's local uid from QAction"))
         return;
     }
 
@@ -341,7 +341,7 @@ void SavedSearchItemView::onDeselectAction()
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR("Can't clear the saved search selection: no selection model in the view");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't clear the saved search selection: no selection model in the view"))
         return;
     }
 
@@ -354,8 +354,8 @@ void SavedSearchItemView::onFavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't favorite saved search, "
-                     "can't cast the slot invoker to QAction");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't favorite saved search, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -368,8 +368,8 @@ void SavedSearchItemView::onUnfavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't unfavorite saved search, "
-                     "can't cast the slot invoker to QAction");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't unfavorite saved search, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -410,8 +410,8 @@ void SavedSearchItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const SavedSearchModelItem * pItem = pSavedSearchModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR("Can't show the context menu for the saved search model item: "
-                     "no item corresponding to the clicked item's index");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the saved search model item: "
+                                       "no item corresponding to the clicked item's index"))
         return;
     }
 
@@ -472,7 +472,7 @@ void SavedSearchItemView::deleteItem(const QModelIndex & itemIndex, SavedSearchM
 
     const SavedSearchModelItem * pItem = model.itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        REPORT_ERROR("Internal error: can't find the saved search model item meant to be deleted");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the saved search model item meant to be deleted"))
         return;
     }
 
@@ -502,13 +502,13 @@ void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & mod
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR("Can't restore the last selected saved search: no selection model in the view");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't restore the last selected saved search: no selection model in the view"))
         return;
     }
 
     QString accountKey = accountToKey(model.account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(model.account());
         return;
     }
@@ -571,8 +571,8 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
 
     const SavedSearchModelItem * pSavedSearchItem = pSavedSearchModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pSavedSearchItem)) {
-        REPORT_ERROR("Internal error: can't find the saved search model item corresponding "
-                     "to the selected index");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the saved search model item corresponding "
+                                       "to the selected index"))
         return;
     }
 
@@ -580,7 +580,7 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
 
     QString accountKey = accountToKey(pSavedSearchModel->account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(pSavedSearchModel->account());
         return;
     }
@@ -604,15 +604,15 @@ void SavedSearchItemView::setFavoritedFlag(const QAction & action, const bool fa
 
     QString itemLocalUid = action.data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't set the favorited flag for the saved search, "
-                     "can't get saved search's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set the favorited flag for the saved search, "
+                                       "can't get saved search's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pSavedSearchModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't set the favorited flag for the saved search, the model "
-                     "returned invalid index for the saved search's local uid")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set the favorited flag for the saved search, the model "
+                                       "returned invalid index for the saved search's local uid"))
         return;
     }
 

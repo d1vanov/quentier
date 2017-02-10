@@ -21,7 +21,7 @@
 
 #include "AbstractFilterByModelItemWidget.h"
 #include <quentier/types/Notebook.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QUuid>
 #include <QPointer>
 

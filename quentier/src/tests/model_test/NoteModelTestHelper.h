@@ -42,22 +42,22 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                            size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                            LocalStorageManager::OrderDirection::type orderDirection,
-                           QNLocalizedString errorDescription, QUuid requestId);
+                           ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
-    void onExpungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
-    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
-    void onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 
 private:
     void checkSorting(const NoteModel & model);

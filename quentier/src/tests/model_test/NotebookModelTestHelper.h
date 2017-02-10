@@ -41,14 +41,14 @@ public Q_SLOTS:
     void test();
 
 private Q_SLOTS:
-    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
                                LocalStorageManager::ListNotebooksOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+                               QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
 private:
     bool checkSorting(const NotebookModel & model, const NotebookModelItem * item) const;

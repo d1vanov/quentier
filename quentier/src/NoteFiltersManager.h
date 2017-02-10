@@ -20,7 +20,7 @@
 #define QUENTIER_NOTE_FILTERS_MANAGER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/NoteSearchQuery.h>
 #include <QObject>
 #include <QUuid>
@@ -48,7 +48,7 @@ public:
                                 QObject * parent = Q_NULLPTR);
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
 
     // private signals
     void findNoteLocalUidsForNoteSearchQuery(NoteSearchQuery noteSearchQuery, QUuid requestId);
@@ -77,7 +77,7 @@ private Q_SLOTS:
                                                      NoteSearchQuery noteSearchQuery,
                                                      QUuid requestId);
     void onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuery noteSearchQuery,
-                                                  QNLocalizedString errorDescription,
+                                                  ErrorString errorDescription,
                                                   QUuid requestId);
 
 private:

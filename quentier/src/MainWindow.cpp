@@ -508,14 +508,14 @@ void MainWindow::connectSynchronizationManager()
                      m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
 
     // Connect SynchronizationManager signals to local slots
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onSynchronizationManagerFailure,QNLocalizedString));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
+                     this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
                      this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,QNLocalizedString,Account),
-                     this, QNSLOT(MainWindow,onAuthenticationFinished,bool,QNLocalizedString,Account));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
-                     this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,ErrorString,Account),
+                     this, QNSLOT(MainWindow,onAuthenticationFinished,bool,ErrorString,Account));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,ErrorString,qevercloud::UserID),
+                     this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,ErrorString,qevercloud::UserID));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
@@ -524,8 +524,8 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QNLocalizedString,double),
-                     this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QNLocalizedString,double));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,ErrorString,double),
+                     this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,ErrorString,double));
 }
 
 void MainWindow::disconnectSynchronizationManager()
@@ -542,14 +542,14 @@ void MainWindow::disconnectSynchronizationManager()
                         m_pSynchronizationManager, QNSLOT(SynchronizationManager,authenticate));
 
     // Disonnect SynchronizationManager signals from local slots
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,QNLocalizedString),
-                        this, QNSLOT(MainWindow,onSynchronizationManagerFailure,QNLocalizedString));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,failed,ErrorString),
+                        this, QNSLOT(MainWindow,onSynchronizationManagerFailure,ErrorString));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,finished,Account),
                         this, QNSLOT(MainWindow,onSynchronizationFinished,Account));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,QNLocalizedString,Account),
-                        this, QNSLOT(MainWindow,onAuthenticationFinished,bool,QNLocalizedString,Account));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,QNLocalizedString,qevercloud::UserID),
-                        this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,QNLocalizedString,qevercloud::UserID));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationFinished,bool,ErrorString,Account),
+                        this, QNSLOT(MainWindow,onAuthenticationFinished,bool,ErrorString,Account));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,authenticationRevoked,bool,ErrorString,qevercloud::UserID),
+                        this, QNSLOT(MainWindow,onAuthenticationRevoked,bool,ErrorString,qevercloud::UserID));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncStopped),
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncStopped));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,sendLocalChangesStopped),
@@ -558,8 +558,8 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QNLocalizedString,double),
-                        this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QNLocalizedString,double));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,ErrorString,double),
+                        this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,ErrorString,double));
 }
 
 void MainWindow::onSyncStopped()
@@ -577,7 +577,7 @@ bool MainWindow::checkNoteSearchQuery(const QString & noteSearchQuery)
     }
 
     NoteSearchQuery query;
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     bool res = query.setQueryString(noteSearchQuery, errorDescription);
     if (!res) {
         QToolTip::showText(m_pUI->searchQueryLineEdit->mapToGlobal(QPoint(0, m_pUI->searchQueryLineEdit->height())),
@@ -796,9 +796,9 @@ void MainWindow::adjustNoteListAndFiltersSplitterSizes()
     QList<int> splitterSizes = m_pUI->noteListAndFiltersSplitter->sizes();
     int count = splitterSizes.count();
     if (Q_UNLIKELY(count != 2)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't properly resize "
-                                                    "the splitter after folding the filter view: "
-                                                    "wrong number of sizes within the splitter");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't properly resize "
+                                            "the splitter after folding the filter view: "
+                                            "wrong number of sizes within the splitter"));
         QNWARNING(error << QStringLiteral("Sizes count: ") << count);
         onSetStatusBarText(error.localizedString());
         return;
@@ -972,7 +972,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
     QString result = originalStyleSheet;
 
 #define REPORT_ERROR() \
-    QNLocalizedString errorDescription = QT_TR_NOOP("Can't alter the stylesheet: stylesheet parsing failed"); \
+    ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't alter the stylesheet: stylesheet parsing failed")); \
     QNINFO(errorDescription << QStringLiteral(", original stylesheet: ") \
            << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ") \
            << result << QStringLiteral(", property index = ") \
@@ -1039,7 +1039,7 @@ QString MainWindow::alterStyleSheet(const QString & originalStyleSheet,
 
             int propertyEndIndex = result.indexOf(QStringLiteral(";"), propertyIndex + 1);
             if (Q_UNLIKELY(propertyEndIndex < 0)) {
-                QNLocalizedString error = QT_TR_NOOP("Can't alter the stylesheet: stylesheet parsing failed");
+                ErrorString error(QT_TRANSLATE_NOOP("", "Can't alter the stylesheet: stylesheet parsing failed"));
                 QNINFO(error << QStringLiteral(", original stylesheet: ")
                        << originalStyleSheet << QStringLiteral(", stylesheet modified so far: ")
                        << result << QStringLiteral(", property index = ")
@@ -1360,7 +1360,7 @@ DISPATCH_TO_NOTE_EDITOR(onReplaceInsideNoteAction, onReplaceInsideNoteAction)
 
 #undef DISPATCH_TO_NOTE_EDITOR
 
-void MainWindow::onSynchronizationManagerFailure(QNLocalizedString errorDescription)
+void MainWindow::onSynchronizationManagerFailure(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationManagerFailure: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString());
@@ -1378,7 +1378,7 @@ void MainWindow::onSynchronizationFinished(Account account)
     // TODO: figure out what to do with the account object now: should anything be done with it?
 }
 
-void MainWindow::onAuthenticationFinished(bool success, QNLocalizedString errorDescription,
+void MainWindow::onAuthenticationFinished(bool success, ErrorString errorDescription,
                                           Account account)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAuthenticationFinished: success = ")
@@ -1395,7 +1395,7 @@ void MainWindow::onAuthenticationFinished(bool success, QNLocalizedString errorD
     m_pAccountManager->switchAccount(account);
 }
 
-void MainWindow::onAuthenticationRevoked(bool success, QNLocalizedString errorDescription,
+void MainWindow::onAuthenticationRevoked(bool success, ErrorString errorDescription,
                                          qevercloud::UserID userId)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAuthenticationRevoked: success = ")
@@ -1446,7 +1446,7 @@ void MainWindow::onRemoteToLocalSyncDone()
     QNINFO(QStringLiteral("Remote to local sync done"));
 }
 
-void MainWindow::onSynchronizationProgressUpdate(QNLocalizedString message, double workDonePercentage)
+void MainWindow::onSynchronizationProgressUpdate(ErrorString message, double workDonePercentage)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationProgressUpdate: message = ")
             << message << QStringLiteral(", work done percentage = ") << workDonePercentage);
@@ -1539,7 +1539,7 @@ void MainWindow::onCreateNotebookButtonPressed()
     QNDEBUG(QStringLiteral("MainWindow::onCreateNotebookButtonPressed"));
 
     if (Q_UNLIKELY(!m_pNotebookModel)) {
-        QNLocalizedString error = QNLocalizedString("Can't create notebook: no notebook model is set up", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new notebook: no notebook model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -1570,7 +1570,7 @@ void MainWindow::onCreateTagButtonPressed()
     QNDEBUG(QStringLiteral("MainWindow::onCreateTagButtonPressed"));
 
     if (Q_UNLIKELY(!m_pTagModel)) {
-        QNLocalizedString error = QNLocalizedString("Can't create tag: no tag model is set up", this);
+        ErrorString error(QT_TRANSLATE_NOOP("" "Can't create a new tag: no tag model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -1601,7 +1601,7 @@ void MainWindow::onCreateSavedSearchButtonPressed()
     QNDEBUG(QStringLiteral("MainWindow::onCreateSavedSearchButtonPressed"));
 
     if (Q_UNLIKELY(!m_pSavedSearchModel)) {
-        QNLocalizedString error = QNLocalizedString("Can't create saved search: no saved search model is set up", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new saved search: no saved search model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -1758,10 +1758,10 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
 
     QString accountKey = accountToKey(*m_pAccount);
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't save "
-                                                    "the filters view expanded state, "
-                                                    "can't convert the last used account "
-                                                    "to the string key", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't save "
+                                            "the filters view expanded state, "
+                                            "can't convert the last used account "
+                                            "to the string key"));
         QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
         onSetStatusBarText(error.localizedString());
         return;
@@ -1812,7 +1812,7 @@ void MainWindow::onNoteSortingModeChanged(int index)
         break;
     default:
         {
-            QNLocalizedString error = QNLocalizedString("Internal error: got unknown note sorting order, fallback to the default", this);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: got unknown note sorting order, fallback to the default"));
             QNWARNING(error << QStringLiteral(", sorting mode index = ") << index);
             onSetStatusBarText(error.localizedString());
 
@@ -1966,13 +1966,13 @@ void MainWindow::onSetInkNote()
     // TODO: set this note to editor, in new tab or replace existing tab (if any)
 }
 
-void MainWindow::onNoteEditorError(QNLocalizedString error)
+void MainWindow::onNoteEditorError(ErrorString error)
 {
     QNINFO(QStringLiteral("MainWindow::onNoteEditorError: ") << error);
     onSetStatusBarText(error.localizedString(), 20000);
 }
 
-void MainWindow::onModelViewError(QNLocalizedString error)
+void MainWindow::onModelViewError(ErrorString error)
 {
     QNINFO(QStringLiteral("MainWindow::onModelViewError: ") << error);
     onSetStatusBarText(error.localizedString(), 20000);
@@ -2083,7 +2083,7 @@ void MainWindow::onAccountSwitched(Account account)
                                        m_lastLocalStorageSwitchUserRequest);
 }
 
-void MainWindow::onAccountManagerError(QNLocalizedString errorDescription)
+void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ") << errorDescription);
     onSetStatusBarText(errorDescription.localizedString());
@@ -2256,14 +2256,14 @@ void MainWindow::onSwitchIconsToNativeAction()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchIconsToNativeAction"));
 
     if (m_nativeIconThemeName.isEmpty()) {
-        QNLocalizedString error = QNLocalizedString("No native icon theme is available", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "No native icon theme is available"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
     }
 
     if (QIcon::themeName() == m_nativeIconThemeName) {
-        QNLocalizedString error = QNLocalizedString("Already using native icon theme", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the native icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2281,7 +2281,7 @@ void MainWindow::onSwitchIconsToTangoAction()
     QString tango = QStringLiteral("tango");
 
     if (QIcon::themeName() == tango) {
-        QNLocalizedString error = QNLocalizedString("Already using tango icon theme", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using tango icon theme", this);
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2299,7 +2299,7 @@ void MainWindow::onSwitchIconsToOxygenAction()
     QString oxygen = QStringLiteral("oxygen");
 
     if (QIcon::themeName() == oxygen) {
-        QNLocalizedString error = QNLocalizedString("Already using oxygen icon theme", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using oxygen icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2315,7 +2315,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToBuiltIn"));
 
     if (m_currentPanelStyle.isEmpty()) {
-        QNLocalizedString error = QNLocalizedString("Already using the built-in panel style", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the built-in panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2336,7 +2336,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToLighter"));
 
     if (m_currentPanelStyle == QStringLiteral("Lighter")) {
-        QNLocalizedString error = QNLocalizedString("Already using the lighter panel style", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the lighter panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2359,7 +2359,7 @@ void MainWindow::onSwitchPanelStyleToDarker()
     QNDEBUG(QStringLiteral("MainWindow::onSwitchPanelStyleToDarker"));
 
     if (m_currentPanelStyle == QStringLiteral("Darker")) {
-        QNLocalizedString error = QNLocalizedString("Already using the darker panel style", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using the darker panel style"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2424,7 +2424,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     showHideViewColumnsForAccountType(m_pAccount->type());
 }
 
-void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId)
+void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId)
 {
     bool expected = (m_lastLocalStorageSwitchUserRequest == requestId);
     if (!expected) {
@@ -2531,8 +2531,8 @@ void MainWindow::setupAccountManager()
                      this, QNSLOT(MainWindow,onEvernoteAccountAuthenticationRequested,QString));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,switchedAccount,Account),
                      this, QNSLOT(MainWindow,onAccountSwitched,Account));
-    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,notifyError,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onAccountManagerError,QNLocalizedString));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onAccountManagerError,ErrorString));
 }
 
 void MainWindow::setupLocalStorageManager()
@@ -2553,8 +2553,8 @@ void MainWindow::setupLocalStorageManager()
                      m_pLocalStorageManager, QNSLOT(LocalStorageManagerThreadWorker,onSwitchUserRequest,Account,bool,QUuid));
     QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserComplete,Account,QUuid),
                      this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestComplete,Account,QUuid));
-    QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserFailed,Account,QNLocalizedString,QUuid),
-                     this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,Account,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManager, QNSIGNAL(LocalStorageManagerThreadWorker,switchUserFailed,Account,ErrorString,QUuid),
+                     this, QNSLOT(MainWindow,onLocalStorageSwitchUserRequestFailed,Account,ErrorString,QUuid));
 }
 
 void MainWindow::setupModels()
@@ -2694,8 +2694,8 @@ void MainWindow::setupViews()
     pFavoritesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
 
-    QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,notifyError,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
+    QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
     QObject::connect(pFavoritesTableView, QNSIGNAL(FavoriteItemView,favoritedItemInfoRequested),
                      this, QNSLOT(MainWindow,onFavoritedItemInfoButtonPressed));
 
@@ -2731,8 +2731,8 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onCreateNotebookButtonPressed));
     QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notebookInfoRequested),
                      this, QNSLOT(MainWindow,onNotebookInfoButtonPressed));
-    QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
+    QObject::connect(pNotebooksTreeView, QNSIGNAL(NotebookItemView,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
 
     TagItemView * pTagsTreeView = m_pUI->tagsTreeView;
     pTagsTreeView->setColumnHidden(TagModel::Columns::NumNotesPerTag, true); // This column's values would be displayed along with the notebook's name
@@ -2766,8 +2766,8 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onCreateTagButtonPressed));
     QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,tagInfoRequested),
                      this, QNSLOT(MainWindow,onTagInfoButtonPressed));
-    QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,notifyError,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
+    QObject::connect(pTagsTreeView, QNSIGNAL(TagItemView,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
 
     SavedSearchItemView * pSavedSearchesTableView = m_pUI->savedSearchesTableView;
     pSavedSearchesTableView->setColumnHidden(SavedSearchModel::Columns::Query, true);
@@ -2788,8 +2788,8 @@ void MainWindow::setupViews()
                      this, QNSLOT(MainWindow,onSavedSearchInfoButtonPressed));
     QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,newSavedSearchCreationRequested),
                      this, QNSLOT(MainWindow,onCreateSavedSearchButtonPressed));
-    QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onModelViewError,QNLocalizedString));
+    QObject::connect(pSavedSearchesTableView, QNSIGNAL(SavedSearchItemView,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onModelViewError,ErrorString));
 
     NoteListView * pNoteListView = m_pUI->noteListView;
     pNoteListView->setModelColumn(NoteModel::Columns::Title);
@@ -2895,10 +2895,10 @@ void MainWindow::setupNoteFilters()
 
     QString accountKey = accountToKey(*m_pAccount);
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't restore "
-                                                    "the filters view expanded state, "
-                                                    "can't convert the last used account "
-                                                    "to the string key", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
+                                            "the filters view expanded state, "
+                                            "can't convert the last used account "
+                                            "to the string key"));
         QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2925,8 +2925,8 @@ void MainWindow::setupNoteEditorTabWidgetManager()
                                                                    m_noteCache, m_notebookCache,
                                                                    m_tagCache, *m_pTagModel,
                                                                    m_pUI->noteEditorsTabWidget);
-    QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,notifyError,QNLocalizedString),
-                     this, QNSLOT(MainWindow,onNoteEditorError,QNLocalizedString));
+    QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onNoteEditorError,ErrorString));
     QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,currentNoteChanged,QString),
                      m_pUI->noteListView, QNSLOT(NoteListView,onCurrentNoteChanged,QString));
 
@@ -3089,10 +3089,10 @@ void MainWindow::persistChosenNoteSortingMode(int index)
 
     QString accountKey = accountToKey(*m_pAccount);
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't persist "
-                                                    "the selected note sorting mode, "
-                                                    "can't convert the current account "
-                                                    "to the string key", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
+                                            "the selected note sorting mode, "
+                                            "can't convert the current account "
+                                            "to the string key", this));
         QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
         onSetStatusBarText(error.localizedString());
         return;
@@ -3110,10 +3110,10 @@ void MainWindow::restoreNoteSortingMode()
 
     QString accountKey = accountToKey(*m_pAccount);
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't restore "
-                                                    "the last used note sorting mode, "
-                                                    "can't convert the current account "
-                                                    "to the string key", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
+                                            "the last used note sorting mode, "
+                                            "can't convert the current account "
+                                            "to the string key"));
         QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
         onSetStatusBarText(error.localizedString());
         return;
@@ -3132,10 +3132,10 @@ void MainWindow::restoreNoteSortingMode()
     bool conversionResult = false;
     int index = data.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't restore "
-                                                    "the last used note sorting mode, "
-                                                    "can't convert the persisted setting "
-                                                    "to the integer index", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
+                                            "the last used note sorting mode, "
+                                            "can't convert the persisted setting "
+                                            "to the integer index"));
         QNWARNING(error << QStringLiteral(", persisted data: ") << data);
         onSetStatusBarText(error.localizedString());
         return;

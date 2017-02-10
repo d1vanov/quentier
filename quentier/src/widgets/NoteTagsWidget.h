@@ -69,7 +69,7 @@ public:
     bool isActive() const;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
     void canUpdateNoteRestrictionChanged(bool canUpdateNote);
 
 // private signals
@@ -88,7 +88,7 @@ private Q_SLOTS:
     // Slots for notes events: finding, updating & expunging
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteComplete(Note note, QUuid requestId);
 
     // Slots for notebook events: updating and expunging

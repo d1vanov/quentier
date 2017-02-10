@@ -174,7 +174,7 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryCompleted(QStringList
 }
 
 void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuery noteSearchQuery,
-                                                                  QNLocalizedString errorDescription,
+                                                                  ErrorString errorDescription,
                                                                   QUuid requestId)
 {
     bool isRequestForSearchString = (requestId == m_findNoteLocalUidsForSearchStringRequestId);
@@ -190,9 +190,10 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
 
     if (isRequestForSearchString)
     {
-        QNLocalizedString error = QNLocalizedString("Can't set the search string to note filter", this);
-        error += QStringLiteral(": ");
-        error += errorDescription;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the search string to note filter"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         QNDEBUG(error);
         emit notifyError(error);
 
@@ -205,9 +206,10 @@ void NoteFiltersManager::onFindNoteLocalUidsWithSearchQueryFailed(NoteSearchQuer
     }
     else // isRequestForSavedSearch
     {
-        QNLocalizedString error = QNLocalizedString("Can't set the saved search to note filter", this);
-        error += QStringLiteral(": ");
-        error += errorDescription;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the saved search to note filter"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         QNDEBUG(error);
         emit notifyError(error);
     }
@@ -255,8 +257,8 @@ void NoteFiltersManager::createConnections()
                      QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryComplete,QStringList,NoteSearchQuery,QUuid),
                      this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryCompleted,QStringList,NoteSearchQuery,QUuid));
     QObject::connect(&m_localStorageManager,
-                     QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryFailed,NoteSearhQuery,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearhQuery,QNLocalizedString,QUuid));
+                     QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryFailed,NoteSearhQuery,ErrorString,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearhQuery,ErrorString,QUuid));
 }
 
 void NoteFiltersManager::evaluate()
@@ -303,7 +305,7 @@ bool NoteFiltersManager::setFilterBySearchString()
     }
 
     NoteSearchQuery query;
-    QNLocalizedString error;
+    ErrorString error;
     bool res = query.setQueryString(searchString, error);
     if (!res) {
         QNDEBUG(QStringLiteral("The search string is invalid: error: ") << error
@@ -349,8 +351,8 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     QModelIndex itemIndex = pSavedSearchModel->indexForSavedSearchName(currentSavedSearchName);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't set the filter by saved search, the saved search model "
-                                                    "returned invalid model index for the given saved search name", this);
+        ErrorString error(QT_TRANSLATE_NOOP("" "Internal error: can't set the filter by saved search, the saved search model "
+                                            "returned invalid model index for the given saved search name"));
         QNWARNING(error);
         emit notifyError(error);
         return false;
@@ -358,28 +360,29 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     const SavedSearchModelItem * pItem = pSavedSearchModel->itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't set the filter by saved search, the saved search model "
-                                                    "returned null item for the given valid model index", this);
+        ErrorString error(QT_TRANSLATE_NOOP("Internal error: can't set the filter by saved search, the saved search model "
+                                            "returned null item for the given valid model index"));
         QNWARNING(error);
         emit notifyError(error);
         return false;
     }
 
     if (Q_UNLIKELY(pItem->m_query.isEmpty())) {
-        QNLocalizedString error = QNLocalizedString("Can't set the filter by saved search: saved search's query is empty", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the filter by saved search: saved search's query is empty"));
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         emit notifyError(error);
         return false;
     }
 
     NoteSearchQuery query;
-    QNLocalizedString error;
-    bool res = query.setQueryString(pItem->m_query, error);
+    ErrorString errorDescription;
+    bool res = query.setQueryString(pItem->m_query, errorDescription);
     if (Q_UNLIKELY(!res)) {
-        QNLocalizedString errorDescription = QNLocalizedString("Internal error: can't set the filter by saved search: failed to parse "
-                                                               "the saved search query", this);
-        errorDescription += QStringLiteral(": ");
-        errorDescription += error;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't set the filter by saved search: failed to parse "
+                                            "the saved search query"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         QNWARNING(error << QStringLiteral(", saved search item: ") << *pItem);
         emit notifyError(error);
         return false;
@@ -425,8 +428,8 @@ void NoteFiltersManager::setFilterByNotebooks()
     {
         QString localUid = pNotebookModel->localUidForItemName(*it);
         if (Q_UNLIKELY(localUid.isEmpty())) {
-            QNLocalizedString error = QNLocalizedString("Internal error: can't set the filter by notebooks: the notebook model "
-                                                        "returned empty local uid for the notebook name in the filter", this);
+            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't set the filter by notebooks: the notebook model "
+                                                "returned empty local uid for the notebook name in the filter"));
             QNWARNING(error << QStringLiteral(", notebook name: ") << *it);
             emit notifyError(error);
             m_noteFilterModel.setNotebookLocalUids(QStringList());

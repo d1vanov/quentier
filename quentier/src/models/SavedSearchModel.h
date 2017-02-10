@@ -82,7 +82,7 @@ public:
      * @return either valid model index if saved search was created successfully or invalid model index otherwise
      */
     QModelIndex createSavedSearch(const QString & savedSearchName, const QString & searchQuery,
-                                  QNLocalizedString & errorDescription);
+                                  ErrorString & errorDescription);
 
     /**
      * @brief allSavedSearchesListed
@@ -143,7 +143,7 @@ public:
     virtual void sort(int column, Qt::SortOrder order) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
     void notifyAllSavedSearchesListed();
 
     // Informative signals for views, so that they can prepare to the changes in the table of saved searches
@@ -171,11 +171,11 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onUpdateSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onFindSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onListSavedSearchesComplete(LocalStorageManager::ListObjectsOptions flag,
                                      size_t limit, size_t offset,
                                      LocalStorageManager::ListSavedSearchesOrder::type order,
@@ -185,9 +185,9 @@ private Q_SLOTS:
                                    size_t limit, size_t offset,
                                    LocalStorageManager::ListSavedSearchesOrder::type order,
                                    LocalStorageManager::OrderDirection::type orderDirection,
-                                   QNLocalizedString errorDescription, QUuid requestId);
+                                   ErrorString errorDescription, QUuid requestId);
     void onExpungeSavedSearchComplete(SavedSearch search, QUuid requestId);
-    void onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageManagerThreadWorker);

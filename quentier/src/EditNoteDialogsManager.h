@@ -22,7 +22,7 @@
 #include "models/NoteCache.h"
 #include <quentier/types/Note.h>
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QObject>
 #include <QUuid>
 #include <QSet>
@@ -46,7 +46,7 @@ public:
     void setNotebookModel(NotebookModel * pNotebookModel);
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
 
     // private signals:
     void findNote(Note note, bool withResourceBinaryData, QUuid requestId);
@@ -58,10 +58,10 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onFindNoteComplete(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
 
 private:
     void createConnections();

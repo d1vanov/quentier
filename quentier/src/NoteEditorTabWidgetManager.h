@@ -68,7 +68,7 @@ public:
     void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid);
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
     void currentNoteChanged(QString noteLocalUid);
 
@@ -82,10 +82,10 @@ private Q_SLOTS:
     void onNoteEditorTabCloseRequested(int tabIndex);
 
     void onNoteLoadedInEditor();
-    void onNoteEditorError(QNLocalizedString errorDescription);
+    void onNoteEditorError(ErrorString errorDescription);
 
     void onAddNoteComplete(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
     void onCurrentTabChanged(int currentIndex);
 

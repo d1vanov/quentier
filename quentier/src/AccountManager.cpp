@@ -52,12 +52,13 @@ Account AccountManager::currentAccount()
     QSharedPointer<Account> pLastUsedAccount = lastUsedAccount();
     if (pLastUsedAccount.isNull())
     {
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         pLastUsedAccount = createDefaultAccount(errorDescription);
         if (Q_UNLIKELY(pLastUsedAccount.isNull())) {
-            QNLocalizedString error = QT_TR_NOOP("Can't initialize the default account");
-            error += QStringLiteral(": ");
-            error += errorDescription;
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't initialize the default account"));
+            error.additionalBases().append(errorDescription.base());
+            error.additionalBases().append(errorDescription.additionalBases());
+            error.details() = errorDescription.details();
             throw AccountInitializationException(error);
         }
 
@@ -154,19 +155,20 @@ void AccountManager::onLocalAccountAdditionRequested(QString name)
         }
 
         if (Q_UNLIKELY(availableAccount.name() == name)) {
-            QNLocalizedString error = QT_TR_NOOP("Can't add local account: account with chosen name already exists");
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't add a local account: another account with the same name already exists"));
             QNWARNING(error);
             emit notifyError(error);
             return;
         }
     }
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     QSharedPointer<Account> pNewAccount = createLocalAccount(name, errorDescription);
     if (Q_UNLIKELY(pNewAccount.isNull())) {
-        QNLocalizedString error = QT_TR_NOOP("Can't create new local account");
-        error += QStringLiteral(": ");
-        error += errorDescription;
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new local account"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -268,7 +270,7 @@ void AccountManager::detectAvailableAccounts()
     }
 }
 
-QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString & errorDescription)
+QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::createDefaultAccount"));
 
@@ -282,7 +284,7 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(QNLocalizedString &
 }
 
 QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
-                                                           QNLocalizedString & errorDescription)
+                                                           ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: ") << name);
 
@@ -321,7 +323,7 @@ bool AccountManager::createAccountInfo(const Account & account)
         break;
     }
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     bool res = writeAccountInfo(account.name(), isLocal, account.id(), evernoteAccountType,
                                 account.evernoteHost(), errorDescription);
     if (Q_UNLIKELY(!res)) {
@@ -336,7 +338,7 @@ bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal,
                                       const qevercloud::UserID id,
                                       const QString & evernoteAccountType,
                                       const QString & evernoteHost,
-                                      QNLocalizedString & errorDescription)
+                                      ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::writeAccountInfo: name = ") << name
             << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
@@ -348,7 +350,8 @@ bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal,
     {
         bool res = accountPersistentStorageDir.mkpath(accountPersistentStorageDir.absolutePath());
         if (Q_UNLIKELY(!res)) {
-            errorDescription = QT_TR_NOOP("can't create directory for the account storage");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't create a directory for the account storage");
+            errorDescription.details() = accountPersistentStorageDir.absolutePath();
             QNWARNING(errorDescription);
             return false;
         }
@@ -359,16 +362,13 @@ bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal,
     bool open = accountInfo.open(QIODevice::WriteOnly);
     if (Q_UNLIKELY(!open))
     {
-        errorDescription = QT_TR_NOOP("can't open the new account info file for writing");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += accountInfo.fileName();
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't open the new account info file for writing");
+        errorDescription.details() = accountInfo.fileName();
 
         QString errorString = accountInfo.errorString();
         if (!errorString.isEmpty()) {
-            errorDescription += QStringLiteral(", ");
-            errorDescription += QT_TR_NOOP("error");
-            errorDescription += QStringLiteral(": ");
-            errorDescription += errorString;
+            errorDescription.details() += QStringLiteral(": ");
+            errorDescription.details() += errorString;
         }
 
         QNWARNING(errorDescription);
@@ -423,17 +423,14 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
     bool open = accountInfo.open(QIODevice::ReadOnly);
     if (Q_UNLIKELY(!open))
     {
-        QNLocalizedString errorDescription = QT_TR_NOOP("Can't read complementary account info: "
-                                                        "can't open file for reading");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += accountInfo.fileName();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't read the complementary account info: "
+                                                       "can't open file for reading"));
+        errorDescription.details() = accountInfo.fileName();
 
         QString errorString = accountInfo.errorString();
         if (!errorString.isEmpty()) {
-            errorDescription += QStringLiteral(", ");
-            errorDescription += QT_TR_NOOP("error");
-            errorDescription += QStringLiteral(": ");
-            errorDescription += errorString;
+            errorDescription.details() += QStringLiteral(": ");
+            errorDescription.details() += errorString;
         }
 
         QNWARNING(errorDescription);
@@ -495,9 +492,8 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
     }
 
     if (reader.hasError()) {
-        QNLocalizedString errorDescription = QT_TR_NOOP("Can't read the entire complementary account info, error reading XML");
-        errorDescription += QStringLiteral(": ");
-        errorDescription += reader.errorString();
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't read the entire complementary account info, error reading XML"));
+        errorDescription.details() = reader.errorString();
         QNWARNING(errorDescription);
         emit notifyError(errorDescription);
     }
@@ -640,7 +636,7 @@ void AccountManager::updateLastUsedAccount(const Account & account)
     appSettings.endGroup();
 }
 
-AccountManager::AccountInitializationException::AccountInitializationException(const QNLocalizedString & message) :
+AccountManager::AccountInitializationException::AccountInitializationException(const ErrorString & message) :
     IQuentierException(message)
 {}
 

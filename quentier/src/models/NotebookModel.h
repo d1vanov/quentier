@@ -156,7 +156,7 @@ public:
      * invalid model index otherwise
      */
     QModelIndex createNotebook(const QString & notebookName, const QString & notebookStack,
-                               QNLocalizedString & errorDescription);
+                               ErrorString & errorDescription);
 
     /**
      * @brief columnName
@@ -237,7 +237,7 @@ public:
                               int row, int column, const QModelIndex & parent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
 
     /**
      * @brief notifyAllNotebooksListed - the signal emitted when the notebook model
@@ -286,11 +286,11 @@ Q_SIGNALS:
 private Q_SLOTS:
     // Slots for response to events from local storage
     void onAddNotebookComplete(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onUpdateNotebookComplete(Notebook notebook, QUuid requestId);
-    void onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onFindNotebookComplete(Notebook notebook, QUuid requestId);
-    void onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onListNotebooksComplete(LocalStorageManager::ListObjectsOptions flag,
                                  size_t limit, size_t offset,
                                  LocalStorageManager::ListNotebooksOrder::type order,
@@ -301,12 +301,12 @@ private Q_SLOTS:
                                size_t limit, size_t offset,
                                LocalStorageManager::ListNotebooksOrder::type order,
                                LocalStorageManager::OrderDirection::type orderDirection,
-                               QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId);
+                               QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
-    void onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
 
     void onNoteCountPerNotebookComplete(int noteCount, Notebook notebook, QUuid requestId);
-    void onNoteCountPerNotebookFailed(QNLocalizedString errorDescription, Notebook notebook, QUuid requestId);
+    void onNoteCountPerNotebookFailed(ErrorString errorDescription, Notebook notebook, QUuid requestId);
 
     void onAddNoteComplete(Note note, QUuid requestId);
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);

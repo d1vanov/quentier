@@ -245,7 +245,7 @@ void NoteEditorTabWidgetManager::onNoteEditorWidgetResolved()
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNLocalizedString error = QT_TR_NOOP("Internal error: can't resolve the added note editor, cast failed");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't resolve the added note editor, cast failed"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -284,7 +284,7 @@ void NoteEditorTabWidgetManager::onNoteEditorWidgetInvalidated()
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNLocalizedString error = QT_TR_NOOP("Internal error: can't invalidate the note editor, cast failed");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't invalidate the note editor, cast failed"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -307,7 +307,7 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(sender());
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNLocalizedString error = QT_TR_NOOP("Internal error: can't update the note editor's tab name, cast failed");
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't update the note editor's tab name, cast failed"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -324,8 +324,8 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
         return;
     }
 
-    QNLocalizedString error = QNLocalizedString("Internal error: can't find the note editor which has sent "
-                                                "the title or preview text update", this);
+    ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't find the note editor which has sent "
+                                        "the title or preview text update"));
     QNWARNING(error);
     emit notifyError(error);
 }
@@ -345,7 +345,7 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
         return;
     }
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
     QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
             << QStringLiteral(", error description: ") << errorDescription);
@@ -400,7 +400,7 @@ void NoteEditorTabWidgetManager::onNoteLoadedInEditor()
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteLoadedInEditor"));
 }
 
-void NoteEditorTabWidgetManager::onNoteEditorError(QNLocalizedString errorDescription)
+void NoteEditorTabWidgetManager::onNoteEditorError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteEditorError: ") << errorDescription);
 
@@ -412,23 +412,22 @@ void NoteEditorTabWidgetManager::onNoteEditorError(QNLocalizedString errorDescri
         return;
     }
 
-    QNLocalizedString error;
+    ErrorString error(QT_TRANSLATE_NOOP("", "Note editor error"));
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
 
     QString titleOrPreview = pNoteEditorWidget->titleOrPreview();
     if (Q_UNLIKELY(titleOrPreview.isEmpty())) {
-        error = QNLocalizedString("Note editor error for note with local uid ");
-        error += QStringLiteral(" ");
-        error += pNoteEditorWidget->noteLocalUid();
+        error.details() += QStringLiteral(", note local uid ");
+        error.details() += pNoteEditorWidget->noteLocalUid();
     }
     else {
-        error = QNLocalizedString("Note editor error for note");
-        error += QStringLiteral(" \"");
-        error += titleOrPreview;
-        error += QStringLiteral("\": ");
+        error.details() = QStringLiteral("note \"");
+        error.details() += titleOrPreview;
+        error.details() += QStringLiteral("\"");
     }
 
-    error += QStringLiteral(": ");
-    error += errorDescription;
     emit notifyError(error);
 }
 
@@ -449,7 +448,7 @@ void NoteEditorTabWidgetManager::onAddNoteComplete(Note note, QUuid requestId)
     addNote(note.localUid());
 }
 
-void NoteEditorTabWidgetManager::onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
+void NoteEditorTabWidgetManager::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_createNoteRequestIds.find(requestId);
     if (it == m_createNoteRequestIds.end()) {
@@ -526,8 +525,8 @@ void NoteEditorTabWidgetManager::onTabContextMenuRequested(const QPoint & pos)
 
     int tabIndex = m_pTabWidget->tabBar()->tabAt(pos);
     if (Q_UNLIKELY(tabIndex < 0)) {
-        QNLocalizedString error = QNLocalizedString("Can't show the tab context menu: can't find the tab index "
-                                                    "of the target note editor", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't show the tab context menu: can't find the tab index "
+                                            "of the target note editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -535,8 +534,8 @@ void NoteEditorTabWidgetManager::onTabContextMenuRequested(const QPoint & pos)
 
     NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
     if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNLocalizedString error = QNLocalizedString("Can't show the tab context menu: can't cast the widget "
-                                                    "at the clicked tab to note editor", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't show the tab context menu: can't cast the widget "
+                                            "at the clicked tab to note editor"));
         QNWARNING(error << QStringLiteral(", tab index = ") << tabIndex);
         emit notifyError(error);
         return;
@@ -567,8 +566,8 @@ void NoteEditorTabWidgetManager::onTabContextMenuCloseEditorAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't close the chosen note editor, "
-                                                    "can't cast the slot invoker to QAction", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't close the chosen note editor, "
+                                            "can't cast the slot invoker to QAction"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -576,8 +575,8 @@ void NoteEditorTabWidgetManager::onTabContextMenuCloseEditorAction()
 
     QString noteLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
-        QNLocalizedString error = QNLocalizedString("Internal error: can't close the chosen note editor, "
-                                                    "can't get the note local uid corresponding to the editor", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't close the chosen note editor, "
+                                            "can't get the note local uid corresponding to the editor"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -597,8 +596,8 @@ void NoteEditorTabWidgetManager::onTabContextMenuCloseEditorAction()
     }
 
     // If we got here, no target note editor widget was found
-    QNLocalizedString error = QNLocalizedString("Internal error: can't close the chosen note editor, "
-                                                "can't find the editor to be closed by note local uid", this);
+    ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't close the chosen note editor, "
+                                        "can't find the editor to be closed by note local uid"));
     QNWARNING(error << QStringLiteral(", note local uid = ") << noteLocalUid);
     emit notifyError(error);
     return;
@@ -616,8 +615,8 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetInvalidated));
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,noteLoaded),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteLoadedInEditor));
-    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,notifyError,QNLocalizedString),
-                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorError,QNLocalizedString));
+    QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,notifyError,ErrorString),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorError,ErrorString));
 
     QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
 
@@ -716,8 +715,8 @@ void NoteEditorTabWidgetManager::connectToLocalStorage()
                      &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
     QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteComplete,Note,QUuid));
-    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,QNLocalizedString,QUuid));
+    QObject::connect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,ErrorString,QUuid));
 }
 
 void NoteEditorTabWidgetManager::disconnectFromLocalStorage()
@@ -728,8 +727,8 @@ void NoteEditorTabWidgetManager::disconnectFromLocalStorage()
                         &m_localStorageWorker, QNSLOT(LocalStorageManagerThreadWorker,onAddNoteRequest,Note,QUuid));
     QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                         this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteComplete,Note,QUuid));
-    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
-                        this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,QNLocalizedString,QUuid));
+    QObject::disconnect(&m_localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+                        this, QNSLOT(NoteEditorTabWidgetManager,onAddNoteFailed,Note,ErrorString,QUuid));
 }
 
 void NoteEditorTabWidgetManager::setupFileIO()

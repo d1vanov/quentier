@@ -20,7 +20,7 @@
 #define QUENTIER_ACCOUNT_MANAGER_H
 
 #include <quentier/types/Account.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/exception/IQuentierException.h>
 #include <QObject>
 #include <QSharedPointer>
@@ -36,7 +36,7 @@ public:
     class AccountInitializationException: public IQuentierException
     {
     public:
-        explicit AccountInitializationException(const QNLocalizedString & message);
+        explicit AccountInitializationException(const ErrorString & message);
 
     protected:
         virtual const QString exceptionDisplayName() const Q_DECL_OVERRIDE;
@@ -60,7 +60,7 @@ public:
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host);
     void switchedAccount(Account account);
-    void notifyError(QNLocalizedString error);
+    void notifyError(ErrorString error);
 
 public Q_SLOTS:
     void switchAccount(const Account & account);
@@ -71,14 +71,13 @@ private Q_SLOTS:
 private:
     void detectAvailableAccounts();
 
-    QSharedPointer<Account> createDefaultAccount(QNLocalizedString & errorDescription);
-    QSharedPointer<Account> createLocalAccount(const QString & name,
-                                                         QNLocalizedString & errorDescription);
+    QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription);
+    QSharedPointer<Account> createLocalAccount(const QString & name, ErrorString & errorDescription);
     bool createAccountInfo(const Account & account);
 
     bool writeAccountInfo(const QString & name, const bool isLocal,
                           const qevercloud::UserID id, const QString & evernoteAccountType,
-                          const QString & evernoteHost, QNLocalizedString & errorDescription);
+                          const QString & evernoteHost, ErrorString & errorDescription);
 
     void readComplementaryAccountInfo(Account & account);
 

@@ -20,7 +20,7 @@
 #define QUENTIER_MODELS_NOTE_FILTER_NODEL_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/utility/Printable.h>
 #include <QSortFilterProxyModel>
 
@@ -48,7 +48,7 @@ public:
     virtual QTextStream & print(QTextStream & strm) const Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString error) const;
+    void notifyError(ErrorString error) const;
 
 protected:
     virtual bool filterAcceptsRow(int sourceRow, const QModelIndex & sourceParent) const Q_DECL_OVERRIDE;

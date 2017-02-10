@@ -20,7 +20,7 @@
 #define QUENTIER_VIEWS_NOTE_LIST_VIEW_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QListView>
 
 QT_FORWARD_DECLARE_CLASS(QMenu)
@@ -43,7 +43,7 @@ public:
     void setNotebookItemView(NotebookItemView * pNotebookItemView);
 
 Q_SIGNALS:
-    void notifyError(QNLocalizedString errorDescription);
+    void notifyError(ErrorString errorDescription);
     void currentNoteChanged(QString noteLocalUid);
 
     void newNoteCreationRequested();

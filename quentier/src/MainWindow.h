@@ -118,22 +118,22 @@ private Q_SLOTS:
     void onReplaceInsideNoteAction();
 
     // Synchronization manager slots
-    void onSynchronizationManagerFailure(QNLocalizedString errorDescription);
+    void onSynchronizationManagerFailure(ErrorString errorDescription);
     void onSynchronizationFinished(Account account);
-    void onAuthenticationFinished(bool success, QNLocalizedString errorDescription,
+    void onAuthenticationFinished(bool success, ErrorString errorDescription,
                                   Account account);
-    void onAuthenticationRevoked(bool success, QNLocalizedString errorDescription,
+    void onAuthenticationRevoked(bool success, ErrorString errorDescription,
                                  qevercloud::UserID userId);
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone();
-    void onSynchronizationProgressUpdate(QNLocalizedString message, double workDonePercentage);
+    void onSynchronizationProgressUpdate(ErrorString message, double workDonePercentage);
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
 
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(QString host);
     void onAccountSwitched(Account account);
-    void onAccountManagerError(QNLocalizedString errorDescription);
+    void onAccountManagerError(ErrorString errorDescription);
 
     // Toggle view slots
     void onShowSidePanelActionToggled(bool checked);
@@ -196,8 +196,8 @@ private Q_SLOTS:
     void onSetTestReadOnlyNote();
     void onSetInkNote();
 
-    void onNoteEditorError(QNLocalizedString error);
-    void onModelViewError(QNLocalizedString error);
+    void onNoteEditorError(ErrorString error);
+    void onModelViewError(ErrorString error);
 
     void onNoteEditorSpellCheckerNotReady();
     void onNoteEditorSpellCheckerReady();
@@ -207,7 +207,7 @@ private Q_SLOTS:
     void onSwitchAccountActionToggled(bool checked);
 
     void onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId);
-    void onLocalStorageSwitchUserRequestFailed(Account account, QNLocalizedString errorDescription, QUuid requestId);
+    void onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId);
 
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;

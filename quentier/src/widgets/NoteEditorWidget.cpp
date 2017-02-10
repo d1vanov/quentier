@@ -189,7 +189,7 @@ void NoteEditorWidget::setNoteLocalUid(const QString & noteLocalUid)
     QNTRACE(QStringLiteral("Found the cached note"));
 
     if (Q_UNLIKELY(!pCachedNote->hasNotebookLocalUid() && !pCachedNote->hasNotebookGuid())) {
-        QNLocalizedString error = QNLocalizedString("Can't set the note to the editor: the note has no linkage to any notebook", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't set the note to the editor: the note has no linkage to any notebook"));
         QNWARNING(error);
         emit notifyError(error);
         return;
@@ -275,7 +275,7 @@ bool NoteEditorWidget::isSpellCheckEnabled() const
     return m_pUi->noteEditor->spellCheckEnabled();
 }
 
-NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNote(QNLocalizedString & errorDescription)
+NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNote(ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::checkAndSaveModifiedNote"));
 
@@ -305,7 +305,7 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
         }
         else if (!noteTitle.isEmpty() && (!m_pCurrentNote->hasTitle() || (m_pCurrentNote->title() != noteTitle)))
         {
-            QNLocalizedString error;
+            ErrorString error;
             if (checkNoteTitle(noteTitle, error)) {
                 m_pCurrentNote->setTitle(noteTitle);
                 noteTitleUpdated = true;
@@ -391,7 +391,7 @@ void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
         return;
     }
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     NoteSaveStatus::type status = checkAndSaveModifiedNote(errorDescription);
     QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
             << QStringLiteral(", error description: ") << errorDescription);
@@ -680,21 +680,14 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         else
         {
             if (Q_UNLIKELY(!m_pCurrentNote->hasNotebookLocalUid() && !m_pCurrentNote->hasNotebookGuid())) {
-                QNLocalizedString error = QT_TR_NOOP("Note");
-                error += QStringLiteral(" ");
+                ErrorString error(QT_TRANSLATE_NOOP("", "Note has neither notebook local uid nor notebook guid");
                 if (note.hasTitle()) {
-                    error += QStringLiteral("\"");
-                    error += note.title();
-                    error += QStringLiteral("\"");
+                    error.details() = note.title();
                 }
                 else {
-                    error += QT_TR_NOOP("with local uid");
-                    error += QStringLiteral(" ");
-                    error += m_pCurrentNote->localUid();
+                    error.details() = m_pCurrentNote->localUid();
                 }
 
-                error += QStringLiteral(" ");
-                error += QT_TR_NOOP("has neither notebook local uid nor notebook guid");
                 QNWARNING(error << QStringLiteral(", note: ") << *m_pCurrentNote);
                 emit notifyError(error);
                 clear();
@@ -722,7 +715,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
 }
 
 void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                          QNLocalizedString errorDescription, QUuid requestId)
+                                          ErrorString errorDescription, QUuid requestId)
 {
     auto it = m_updateNoteRequestIds.find(requestId);
     if (it == m_updateNoteRequestIds.end()) {
@@ -734,9 +727,10 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
               << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error description: ") << errorDescription << QStringLiteral("\nRequest id = ") << requestId);
 
-    QNLocalizedString error = QT_TR_NOOP("Failed to save the updated note");
-    error += QStringLiteral(": ");
-    error += errorDescription;
+    ErrorString error = QT_TR_NOOP("Failed to save the updated note");
+    error.additionalBases().append(errorDescription.base());
+    error.additionalBases().append(errorDescription.additionalBases());
+    error.details() = errorDescription.details();
     emit notifyError(error);
     // NOTE: not clearing out the unsaved stuff because it may be of value to the user
 
@@ -793,7 +787,7 @@ void NoteEditorWidget::onFindNoteComplete(Note note, bool withResourceBinaryData
     emit resolved();
 }
 
-void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription,
+void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription,
                                         QUuid requestId)
 {
     if (requestId != m_findCurrentNoteRequestId) {
@@ -878,7 +872,7 @@ void NoteEditorWidget::onFindNotebookComplete(Notebook notebook, QUuid requestId
     emit resolved();
 }
 
-void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     if (requestId != m_findCurrentNotebookRequestId) {
         return;
@@ -924,7 +918,7 @@ void NoteEditorWidget::onNoteTitleUpdated()
         return;
     }
 
-    QNLocalizedString error;
+    ErrorString error;
     if (!checkNoteTitle(noteTitle, error)) {
         QToolTip::showText(m_pUi->noteNameLineEdit->mapToGlobal(QPoint(0, m_pUi->noteNameLineEdit->height())),
                            error.localizedString());
@@ -970,7 +964,7 @@ void NoteEditorWidget::onEditorNoteUpdate(Note note)
     updateNoteInLocalStorage();
 }
 
-void NoteEditorWidget::onEditorNoteUpdateFailed(QNLocalizedString error)
+void NoteEditorWidget::onEditorNoteUpdateFailed(ErrorString error)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorNoteUpdateFailed: ") << error);
     emit notifyError(error);
@@ -1227,7 +1221,7 @@ void NoteEditorWidget::onEditorSpellCheckerNotReady()
     QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorSpellCheckerNotReady"));
 
     m_pendingEditorSpellChecker = true;
-    emit notifyError(QNLocalizedString("Spell checker is loading dictionaries, please wait", this));
+    emit notifyError(ErrorString(QT_TRANSLATE_NOOP("", "Spell checker is loading dictionaries, please wait")));
 }
 
 void NoteEditorWidget::onEditorSpellCheckerReady()
@@ -1239,7 +1233,7 @@ void NoteEditorWidget::onEditorSpellCheckerReady()
     }
 
     m_pendingEditorSpellChecker = false;
-    emit notifyError(QNLocalizedString());     // Send the empty message to remove the previous one about the non-ready spell checker
+    emit notifyError(ErrorString());     // Send the empty message to remove the previous one about the non-ready spell checker
 }
 
 void NoteEditorWidget::onEditorHtmlUpdate(QString html)
@@ -1441,20 +1435,20 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
     // localStorageWorker's signals to local slots
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteComplete,Note,bool,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNoteComplete,Note,bool,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onFindNoteFailed,Note,bool,QNLocalizedString,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onFindNoteFailed,Note,bool,ErrorString,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNoteComplete,Note,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onUpdateNotebookComplete,Notebook,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onFindNotebookComplete,Notebook,QUuid));
-    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteEditorWidget,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
+    QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NoteEditorWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNotebookComplete,Notebook,QUuid));
 
@@ -1467,8 +1461,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
     // Connect note editor's signals to local slots
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,convertedToNote,Note),
                      this, QNSLOT(NoteEditorWidget,onEditorNoteUpdate,Note));
-    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,cantConvertToNote,QNLocalizedString),
-                     this, QNSLOT(NoteEditorWidget,onEditorNoteUpdateFailed,QNLocalizedString));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,cantConvertToNote,ErrorString),
+                     this, QNSLOT(NoteEditorWidget,onEditorNoteUpdateFailed,ErrorString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString),
                      this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteLoaded),
@@ -1506,8 +1500,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorSpellCheckerNotReady));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,spellCheckerReady),
                      this, QNSLOT(NoteEditorWidget,onEditorSpellCheckerReady));
-    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,notifyError,QNLocalizedString),
-                     this, QNSIGNAL(NoteEditorWidget,notifyError,QNLocalizedString));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,notifyError,ErrorString),
+                     this, QNSIGNAL(NoteEditorWidget,notifyError,ErrorString));
 
     // Connect find and replace widget actions to local slots
     QObject::connect(m_pUi->findAndReplaceWidget, QNSIGNAL(FindAndReplaceWidget,closed),
@@ -1693,7 +1687,7 @@ void NoteEditorWidget::setupBlankEditor()
     m_pUi->noteSourceView->setHidden(true);
 }
 
-bool NoteEditorWidget::checkNoteTitle(const QString & title, QNLocalizedString & errorDescription)
+bool NoteEditorWidget::checkNoteTitle(const QString & title, ErrorString & errorDescription)
 {
     if (title.isEmpty()) {
         return true;

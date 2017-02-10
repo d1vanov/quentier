@@ -32,7 +32,7 @@
 
 #define REPORT_ERROR(error) \
     { \
-        QNLocalizedString errorDescription = QNLocalizedString(error, this); \
+        ErrorString errorDescription(error); \
         QNWARNING(errorDescription); \
         emit notifyError(errorDescription); \
     }
@@ -59,8 +59,8 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
 
     NotebookModel * pPreviousModel = qobject_cast<NotebookModel*>(model());
     if (pPreviousModel) {
-        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyError,QNLocalizedString),
-                            this, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString));
+        QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyError,ErrorString),
+                            this, QNSIGNAL(NotebookItemView,notifyError,ErrorString));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyAllNotebooksListed),
                             this, QNSLOT(NotebookItemView,onAllNotebooksListed));
         QObject::disconnect(pPreviousModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,const QString&,const QString&),
@@ -92,8 +92,8 @@ void NotebookItemView::setModel(QAbstractItemModel * pModel)
         return;
     }
 
-    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyError,QNLocalizedString),
-                     this, QNSIGNAL(NotebookItemView,notifyError,QNLocalizedString));
+    QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyError,ErrorString),
+                     this, QNSIGNAL(NotebookItemView,notifyError,ErrorString));
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackRenamed,const QString&,const QString&),
                      this, QNSLOT(NotebookItemView,onNotebookStackRenamed,const QString&,const QString&));
     QObject::connect(pNotebookModel, QNSIGNAL(NotebookModel,notifyNotebookStackChanged,const QModelIndex&),
@@ -190,8 +190,8 @@ void NotebookItemView::onAllNotebooksListed()
 
     NotebookModel * pNotebookModel = qobject_cast<NotebookModel*>(model());
     if (Q_UNLIKELY(!pNotebookModel)) {
-        REPORT_ERROR("Can't cast the model set to the notebook item view "
-                     "to the notebook model")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't cast the model set to the notebook item view "
+                                       "to the notebook model"))
         return;
     }
 
@@ -260,8 +260,8 @@ void NotebookItemView::onRenameNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't rename notebook, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename notebook, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -273,15 +273,15 @@ void NotebookItemView::onRenameNotebookAction()
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't rename notebook, "
-                     "can't get notebook's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename notebook, "
+                                       "can't get notebook's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't rename notebook: the model returned invalid "
-                     "index for the notebook's local uid");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename notebook: the model returned invalid "
+                                       "index for the notebook's local uid"))
         return;
     }
 
@@ -300,22 +300,22 @@ void NotebookItemView::onDeleteNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't delete notebook, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't delete notebook, "
-                     "can't get notebook's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook, "
+                                       "can't get notebook's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't delete notebook: the model "
-                     "returned invalid index for the notebook's local uid")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook: the model "
+                                       "returned invalid index for the notebook's local uid"))
         return;
     }
 
@@ -334,22 +334,22 @@ void NotebookItemView::onSetNotebookDefaultAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't set notebook as default, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set notebook as default, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't delete notebook, "
-                     "can't get notebook's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook, "
+                                       "can't get notebook's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't delete notebook, the model "
-                     "returned invalid index for the notebook's local uid")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook, the model "
+                                       "returned invalid index for the notebook's local uid"))
         return;
     }
 
@@ -384,15 +384,15 @@ void NotebookItemView::onEditNotebookAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't edit notebook, "
-                     "can't cast the slot invoker to QAction");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't edit notebook, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't edit notebook, "
-                     "can't get notebook's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't edit notebook, "
+                                       "can't get notebook's local uid from QAction"))
         return;
     }
 
@@ -413,16 +413,16 @@ void NotebookItemView::onMoveNotebookToStackAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't move notebook to stack, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't move notebook to stack, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QStringList itemLocalUidAndStack = pAction->data().toStringList();
     if (itemLocalUidAndStack.size() != 2) {
-        REPORT_ERROR("Internal error: can't move notebook to stack, "
-                     "can't retrieve the notebook local uid and target stack "
-                     "from QAction data")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't move notebook to stack, "
+                                       "can't retrieve the notebook local uid and target stack "
+                                       "from QAction data"))
         return;
     }
 
@@ -430,8 +430,8 @@ void NotebookItemView::onMoveNotebookToStackAction()
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(localUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't move notebook to stack, "
-                     "can't get valid model index for notebook's local uid")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't move notebook to stack, "
+                                       "can't get valid model index for notebook's local uid"))
         return;
     }
 
@@ -443,7 +443,7 @@ void NotebookItemView::onMoveNotebookToStackAction()
     m_trackingSelection = wasTrackingSelection;
 
     if (!index.isValid()) {
-        REPORT_ERROR("Can't move notebook to stack")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't move notebook to stack"))
         return;
     }
 
@@ -462,22 +462,22 @@ void NotebookItemView::onRemoveNotebookFromStackAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't remove the notebook from stack, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove the notebook from stack, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString itemLocalUid = pAction->data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't remove the notebook from stack, "
-                     "can't get notebook's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove the notebook from stack, "
+                                       "can't get notebook's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't remove the notebook from stack, the model "
-                     "returned invalid index for the notebook's local uid")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove the notebook from stack, the model "
+                                       "returned invalid index for the notebook's local uid"))
         return;
     }
 
@@ -487,7 +487,7 @@ void NotebookItemView::onRemoveNotebookFromStackAction()
     m_trackingSelection = wasTrackingSelection;
 
     if (!index.isValid()) {
-        REPORT_ERROR("Can't remove the notebook from stack")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't remove the notebook from stack"))
         return;
     }
 
@@ -506,22 +506,22 @@ void NotebookItemView::onRenameNotebookStackAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't rename the notebook stack, "
-                     "can't cast the slot invoker to QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename the notebook stack, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString notebookStack = pAction->data().toString();
     if (Q_UNLIKELY(notebookStack.isEmpty())) {
-        REPORT_ERROR("Internal error: can't rename the notebook stack, "
-                     "can't get notebook stack from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename the notebook stack, "
+                                       "can't get notebook stack from QAction"))
         return;
     }
 
     QModelIndex notebookStackItemIndex = pNotebookModel->indexForNotebookStack(notebookStack);
     if (!notebookStackItemIndex.isValid()) {
-        REPORT_ERROR("Internal error: can't rename the notebook stack, "
-                     "the model returned invalid index for the notebook stack")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't rename the notebook stack, "
+                                       "the model returned invalid index for the notebook stack"))
         return;
     }
 
@@ -542,15 +542,15 @@ void NotebookItemView::onRemoveNotebooksFromStackAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't remove all notebooks from stack, "
-                     "can't cast the slot invoker to QAction");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove all notebooks from stack, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
     QString notebookStack = pAction->data().toString();
     if (Q_UNLIKELY(notebookStack.isEmpty())) {
-        REPORT_ERROR("Internal error: can't remove all notebooks from stack, "
-                     "can't get notebook stack from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't remove all notebooks from stack, "
+                                       "can't get notebook stack from QAction"))
         return;
     }
 
@@ -583,8 +583,8 @@ void NotebookItemView::onFavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't favorite notebook, "
-                     "can't cast the slot invoker to QAction");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't favorite notebook, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -597,8 +597,8 @@ void NotebookItemView::onUnfavoriteAction()
 
     QAction * pAction = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!pAction)) {
-        REPORT_ERROR("Internal error: can't unfavorite notebook, "
-                     "can't cast the slot invoker to QAction");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't unfavorite notebook, "
+                                       "can't cast the slot invoker to QAction"))
         return;
     }
 
@@ -635,7 +635,7 @@ void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
 
     QString accountKey = accountToKey(pNotebookModel->account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(pNotebookModel->account());
         return;
     }
@@ -724,8 +724,8 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(clickedItemIndex);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR("Can't show the context menu for the notebook model item: "
-                     "no item corresponding to the clicked item's index")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the notebook model item: "
+                                       "no item corresponding to the clicked item's index"))
         return;
     }
 
@@ -733,9 +733,9 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     {
         const NotebookItem * pNotebookItem = pModelItem->notebookItem();
         if (Q_UNLIKELY(!pNotebookItem)) {
-            REPORT_ERROR("Can't show the context menu for the notebook item: "
-                         "the model item reported that it points to the notebook item "
-                         "but the pointer to the notebook item is null")
+            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the notebook item: "
+                                           "the model item reported that it points to the notebook item "
+                                           "but the pointer to the notebook item is null"))
             return;
         }
 
@@ -745,9 +745,9 @@ void NotebookItemView::contextMenuEvent(QContextMenuEvent * pEvent)
     {
         const NotebookStackItem * pNotebookStackItem = pModelItem->notebookStackItem();
         if (Q_UNLIKELY(!pNotebookStackItem)) {
-            REPORT_ERROR("Can't show the context menu for the notebook stack item: "
-                         "the model item reported that it points to the notebook stack item "
-                         "but the pointer to the notebook stack item is null")
+            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't show the context menu for the notebook stack item: "
+                                           "the model item reported that it points to the notebook stack item "
+                                           "but the pointer to the notebook stack item is null"))
             return;
         }
 
@@ -762,7 +762,7 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
 
     const NotebookModelItem * pModelItem = model.itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR("Internal error: can't find the notebook model item meant to be deleted");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the notebook model item meant to be deleted"))
         return;
     }
 
@@ -770,9 +770,9 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
     {
         const NotebookItem * pNotebookItem = pModelItem->notebookItem();
         if (Q_UNLIKELY(!pNotebookItem)) {
-            REPORT_ERROR("Internal error: can't delete notebook: "
-                         "the model item reported that it points to the notebook item "
-                         "but the pointer to the notebook item is null")
+            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook: "
+                                           "the model item reported that it points to the notebook item "
+                                           "but the pointer to the notebook item is null"))
             return;
         }
 
@@ -801,9 +801,9 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
     {
         const NotebookStackItem * pNotebookStackItem = pModelItem->notebookStackItem();
         if (Q_UNLIKELY(!pNotebookStackItem)) {
-            REPORT_ERROR("Internal error: can't delete notebook stack: "
-                         "the model item reported that it points to the notebook stack "
-                         "but the pointer to the notebook stack item is null")
+            REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook stack: "
+                                           "the model item reported that it points to the notebook stack "
+                                           "but the pointer to the notebook stack item is null"))
             return;
         }
 
@@ -831,8 +831,8 @@ void NotebookItemView::deleteItem(const QModelIndex & itemIndex,
     }
     else
     {
-        REPORT_ERROR("Internal error: can't delete notebook(s): found notebook model item "
-                     "of unknown type");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't delete notebook(s): found notebook model item "
+                                       "of unknown type"))
         QNWARNING(*pModelItem);
     }
 }
@@ -1013,7 +1013,7 @@ void NotebookItemView::saveNotebookStackItemsState()
 
     QString accountKey = accountToKey(pNotebookModel->account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(pNotebookModel->account());
         return;
     }
@@ -1049,7 +1049,7 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
 
     QString accountKey = accountToKey(model.account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(model.account());
         return;
     }
@@ -1087,14 +1087,14 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(const Noteb
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR("Can't restore the last selected notebook or auto-select one: "
-                     "no selection model in the view");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't restore the last selected notebook or auto-select one: "
+                                       "no selection model in the view"))
         return;
     }
 
     QString accountKey = accountToKey(model.account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(model.account());
         return;
     }
@@ -1134,7 +1134,7 @@ void NotebookItemView::autoSelectNotebook(const NotebookModel & model)
 
     QItemSelectionModel * pSelectionModel = selectionModel();
     if (Q_UNLIKELY(!pSelectionModel)) {
-        REPORT_ERROR("Can't auto-select notebook: no selection model in the view");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't auto-select notebook: no selection model in the view"))
         return;
     }
 
@@ -1204,8 +1204,8 @@ void NotebookItemView::selectionChangedImpl(const QItemSelection & selected,
 
     const NotebookModelItem * pModelItem = pNotebookModel->itemForIndex(sourceIndex);
     if (Q_UNLIKELY(!pModelItem)) {
-        REPORT_ERROR("Internal error: can't find the notebook model item corresponging "
-                     "to the selected index");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't find the notebook model item corresponging "
+                                       "to the selected index"))
         return;
     }
 
@@ -1218,15 +1218,14 @@ void NotebookItemView::selectionChangedImpl(const QItemSelection & selected,
 
     const NotebookItem * pNotebookItem = pModelItem->notebookItem();
     if (Q_UNLIKELY(!pNotebookItem)) {
-        REPORT_ERROR("Internal error: selected notebook model item seems to point "
-                     "to notebook (not to stack) but returns null pointer to "
-                     "the notebook item");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: selected notebook model item seems to point "
+                                       "to notebook (not to stack) but returns null pointer to the notebook item"))
         return;
     }
 
     QString accountKey = accountToKey(pNotebookModel->account());
     if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR("Internal error: can't create application settings key from account");
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
         QNWARNING(pNotebookModel->account());
         return;
     }
@@ -1250,15 +1249,15 @@ void NotebookItemView::setFavoritedFlag(const QAction & action, const bool favor
 
     QString itemLocalUid = action.data().toString();
     if (Q_UNLIKELY(itemLocalUid.isEmpty())) {
-        REPORT_ERROR("Internal error: can't set the favorited flag for the notebook, "
-                     "can't get notebook's local uid from QAction")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set the favorited flag for the notebook, "
+                                       "can't get notebook's local uid from QAction"))
         return;
     }
 
     QModelIndex itemIndex = pNotebookModel->indexForLocalUid(itemLocalUid);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        REPORT_ERROR("Internal error: can't set the favorited flag for the notebook, the model "
-                     "returned invalid index for the notebook's local uid")
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't set the favorited flag for the notebook, the model "
+                                       "returned invalid index for the notebook's local uid"))
         return;
     }
 
