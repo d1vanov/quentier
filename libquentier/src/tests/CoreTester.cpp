@@ -445,7 +445,7 @@ void CoreTester::localStorageManagerIndividualTagTest()
         tag.setUpdateSequenceNumber(1);
         tag.setName(QStringLiteral("Fake tag name"));
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addLinkedNotebook(linkedNotebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -472,7 +472,7 @@ void CoreTester::localStorageManagerIndividualResourceTest()
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addNotebook(notebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -565,7 +565,7 @@ void CoreTester::localStorageManagedIndividualNoteTest()
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addNotebook(notebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -749,7 +749,7 @@ void CoreTester::localStorageManagerIndividualNotebookTest()
 
         notebook.addSharedNotebook(sharedNotebook);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addLinkedNotebook(linkedNotebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -926,7 +926,7 @@ void CoreTester::localStorageManagerListSavedSearchesTest()
         Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
         LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
 
         int nSearches = 5;
         QList<SavedSearch> searches;
@@ -1078,7 +1078,7 @@ void CoreTester::localStorageManagerListLinkedNotebooksTest()
         Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
         LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
 
         int nLinkedNotebooks = 5;
         QList<LinkedNotebook> linkedNotebooks;
@@ -1164,7 +1164,7 @@ void CoreTester::localStorageManagerListTagsTest()
         Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
         LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
 
         int nTags = 5;
         QVector<Tag> tags;
@@ -1317,7 +1317,7 @@ void CoreTester::localStorageManagerListAllSharedNotebooksTest()
             notebook.addSharedNotebook(sharedNotebook);
         }
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addNotebook(notebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -1359,7 +1359,7 @@ void CoreTester::localStorageManagerListAllTagsPerNoteTest()
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addNotebook(notebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -1491,7 +1491,7 @@ void CoreTester::localStorageManagerListNotesTest()
         notebook.setCreationTimestamp(1);
         notebook.setModificationTimestamp(1);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addNotebook(notebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -1732,7 +1732,7 @@ void CoreTester::localStorageManagerListNotebooksTest()
         Account account(QStringLiteral("CoreTesterFakeUser"), Account::Type::Local);
         LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
 
         int numNotebooks = 5;
         QList<Notebook> notebooks;
@@ -1931,7 +1931,7 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
         note.setNotebookGuid(notebook.guid());
         note.setNotebookLocalUid(notebook.localUid());
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = localStorageManager.addLinkedNotebook(linkedNotebook, errorMessage);
         QVERIFY2(res == true, qPrintable(errorMessage.nonLocalizedString()));
 
@@ -1993,12 +1993,12 @@ void CoreTester::localStorageManagerExpungeNotelessTagsFromLinkedNotebooksTest()
             const Tag & tag = tags[i];
 
             if ((i > 2) && foundTags.contains(tag)) {
-                errorMessage = "Found tag from linked notebook which should have been expunged";
+                errorMessage.base() = QStringLiteral("Found tag from linked notebook which should have been expunged");
                 QNWARNING(errorMessage);
                 QFAIL(qPrintable(errorMessage.nonLocalizedString()));
             }
             else if ((i <= 2) && !foundTags.contains(tag)) {
-                errorMessage = "Could not find tag which should have remained in the local storage";
+                errorMessage.base() = QStringLiteral("Could not find tag which should have remained in the local storage");
                 QNWARNING(errorMessage);
                 QFAIL(qPrintable(errorMessage.nonLocalizedString()));
             }

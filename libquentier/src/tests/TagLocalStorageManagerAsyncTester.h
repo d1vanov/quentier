@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TESTS_TAG_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/Tag.h>
 
@@ -57,23 +57,23 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetTagCountCompleted(int count, QUuid requestId);
-    void onGetTagCountFailed(QNLocalizedString errorDescription, QUuid requestId);
+    void onGetTagCountFailed(ErrorString errorDescription, QUuid requestId);
     void onAddTagCompleted(Tag tag, QUuid requestId);
-    void onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onUpdateTagCompleted(Tag tag, QUuid requestId);
-    void onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onFindTagCompleted(Tag tag, QUuid requestId);
-    void onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
     void onListAllTagsCompleted(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
                                 LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
                                 QList<Tag> tags, QUuid requestId);
     void onListAllTagsFailed(size_t limit, size_t offset, LocalStorageManager::ListTagsOrder::type order,
                              LocalStorageManager::OrderDirection::type orderDirection, QString linkedNotebookGuid,
-                             QNLocalizedString errorDescription, QUuid requestId);
+                             ErrorString errorDescription, QUuid requestId);
     void onExpungeTagCompleted(Tag tag, QUuid requestId);
-    void onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId);
 
-    void onFailure(QNLocalizedString errorDescription);
+    void onFailure(ErrorString errorDescription);
 
 private:
     void createConnections();

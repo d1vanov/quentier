@@ -486,7 +486,7 @@ bool NoteSearchQueryTest(QString & error)
             }
         }
 
-        QNLocalizedString errorMessage;
+        ErrorString errorMessage;
         bool res = noteSearchQuery.setQueryString(queryString, errorMessage);
         if (!res) {
             error = errorMessage.nonLocalizedString();
@@ -885,7 +885,7 @@ bool NoteSearchQueryTest(QString & error)
         negatedContentSearchTermsStr += QStringLiteral("-") + negatedContentSearchTerms[i] + QStringLiteral(" ");
     }
 
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     bool res = noteSearchQuery.setQueryString(contentSearchTermsStr + QStringLiteral(" ") + negatedContentSearchTermsStr, errorMessage);
     if (!res) {
         error = QStringLiteral("Internal error: can't set simple search query string without any search modifiers: ") + errorMessage.nonLocalizedString();

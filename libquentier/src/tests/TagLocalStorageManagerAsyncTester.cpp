@@ -80,7 +80,7 @@ void TagLocalStorageManagerAsyncTester::onWorkerInitialized()
     m_initialTag.setUpdateSequenceNumber(3);
     m_initialTag.setName(QStringLiteral("Fake tag name"));
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
     if (!m_initialTag.checkParameters(errorDescription)) {
         QNWARNING(QStringLiteral("Found invalid Tag: ") << m_initialTag << QStringLiteral(", error: ") << errorDescription);
         emit failure(errorDescription.nonLocalizedString());
@@ -95,12 +95,11 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count, QUuid 
 {
     Q_UNUSED(requestId)
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
 #define HANDLE_WRONG_STATE() \
     else { \
-        errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: " \
-                           "found wrong state"; \
+        errorDescription.base() = QStringLiteral("Internal error in TagLocalStorageManagerAsyncTester: found wrong state"); \
         emit failure(errorDescription.nonLocalizedString()); \
         return; \
     }
@@ -108,8 +107,8 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count, QUuid 
     if (m_state == STATE_SENT_GET_COUNT_AFTER_UPDATE_REQUEST)
     {
         if (count != 1) {
-            errorDescription = "GetTagCount returned result different from the expected one (1): ";
-            errorDescription += QString::number(count);
+            errorDescription.base() = QStringLiteral("GetTagCount returned result different from the expected one (1): ");
+            errorDescription.details() = QString::number(count);
             QNWARNING(errorDescription);
             emit failure(errorDescription.nonLocalizedString());
             return;
@@ -122,8 +121,8 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count, QUuid 
     else if (m_state == STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST)
     {
         if (count != 0) {
-            errorDescription = "GetTagCount returned result different from the expected one (0): ";
-            errorDescription += QString::number(count);
+            errorDescription.base() = QStringLiteral("GetTagCount returned result different from the expected one (0): ");
+            errorDescription.details() = QString::number(count);
             QNWARNING(errorDescription);
             emit failure(errorDescription.nonLocalizedString());
             return;
@@ -140,7 +139,7 @@ void TagLocalStorageManagerAsyncTester::onGetTagCountCompleted(int count, QUuid 
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onGetTagCountFailed(QNLocalizedString errorDescription, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onGetTagCountFailed(ErrorString errorDescription, QUuid requestId)
 {
     QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId);
     emit failure(errorDescription.nonLocalizedString());
@@ -150,13 +149,13 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(Tag tag, QUuid request
 {
     Q_UNUSED(requestId)
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     if (m_state == STATE_SENT_ADD_REQUEST)
     {
         if (m_initialTag != tag) {
-            errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                               "tag in onAddTagCompleted slot doesn't match the original Tag";
+            errorDescription.base() = QStringLiteral("Internal error in TagLocalStorageManagerAsyncTester: "
+                                                     "tag in onAddTagCompleted slot doesn't match the original Tag");
             QNWARNING(errorDescription);
             emit failure(errorDescription.nonLocalizedString());
             return;
@@ -195,7 +194,7 @@ void TagLocalStorageManagerAsyncTester::onAddTagCompleted(Tag tag, QUuid request
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNWARNING(errorDescription << QStringLiteral(", request id = ") << requestId << QStringLiteral(", tag: ") << tag);
     emit failure(errorDescription.nonLocalizedString());
@@ -205,14 +204,14 @@ void TagLocalStorageManagerAsyncTester::onUpdateTagCompleted(Tag tag, QUuid requ
 {
     Q_UNUSED(requestId)
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     if (m_state == STATE_SENT_UPDATE_REQUEST)
     {
         if (m_modifiedTag != tag) {
-            errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                               "tag in onUpdateTagCompleted slot doesn't match "
-                               "the original modified Tag";
+            errorDescription.base() = QStringLiteral("Internal error in TagLocalStorageManagerAsyncTester: "
+                                                     "tag in onUpdateTagCompleted slot doesn't match "
+                                                     "the original modified Tag");
             QNWARNING(errorDescription);
             emit failure(errorDescription.nonLocalizedString());
             return;
@@ -224,7 +223,7 @@ void TagLocalStorageManagerAsyncTester::onUpdateTagCompleted(Tag tag, QUuid requ
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onUpdateTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onUpdateTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", tag: ") << tag);
     emit failure(errorDescription.nonLocalizedString());
@@ -234,12 +233,12 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid reques
 {
     Q_UNUSED(requestId)
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     if (m_state == STATE_SENT_FIND_AFTER_ADD_REQUEST)
     {
         if (tag != m_initialTag) {
-            errorDescription = "Added and found tags in local storage don't match";
+            errorDescription.base() = QStringLiteral("Added and found tags in local storage don't match");
             QNWARNING(errorDescription << QStringLiteral(": Tag added to LocalStorageManager: ") << m_initialTag
                       << QStringLiteral("\nTag found in LocalStorageManager: ") << m_foundTag);
             emit failure(errorDescription.nonLocalizedString());
@@ -257,7 +256,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid reques
     else if (m_state == STATE_SENT_FIND_BY_NAME_AFTER_ADD_REQUEST)
     {
         if (tag != m_initialTag) {
-            errorDescription = "Added and found by name tags in local storage don't match";
+            errorDescription.base() = QStringLiteral("Added and found by name tags in local storage don't match");
             QNWARNING(errorDescription << QStringLiteral(": Tag added to LocalStorageManager: ") << m_initialTag
                       << QStringLiteral("\nTag found in LocalStorageManager: ") << m_foundTag);
             emit failure(errorDescription.nonLocalizedString());
@@ -275,7 +274,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid reques
     else if (m_state == STATE_SENT_FIND_AFTER_UPDATE_REQUEST)
     {
         if (tag != m_modifiedTag) {
-            errorDescription = "Updated and found tags in local storage don't match";
+            errorDescription.base() = QStringLiteral("Updated and found tags in local storage don't match");
             QNWARNING(errorDescription << QStringLiteral(": Tag updated in LocalStorageManager: ") << m_modifiedTag
                       << QStringLiteral("\nTag found in LocalStorageManager: ") << m_foundTag);
             emit failure(errorDescription.nonLocalizedString());
@@ -287,7 +286,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid reques
     }
     else if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST)
     {
-        errorDescription = "Found tag which should have been expunged from local storage";
+        errorDescription.base() = QStringLiteral("Found tag which should have been expunged from local storage");
         QNWARNING(errorDescription << QStringLiteral(": Tag expunged from LocalStorageManager: ") << m_modifiedTag
                   << QStringLiteral("\nTag found in LocalStorageManager: ") << m_foundTag);
         emit failure(errorDescription.nonLocalizedString());
@@ -296,7 +295,7 @@ void TagLocalStorageManagerAsyncTester::onFindTagCompleted(Tag tag, QUuid reques
     HANDLE_WRONG_STATE();
 }
 
-void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onFindTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     if (m_state == STATE_SENT_FIND_AFTER_EXPUNGE_REQUEST) {
         m_state = STATE_SENT_GET_COUNT_AFTER_EXPUNGE_REQUEST;
@@ -323,11 +322,11 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(size_t limit, siz
     int numInitialTags = m_initialTags.size();
     int numFoundTags = tags.size();
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     if (numInitialTags != numFoundTags) {
-        errorDescription = "Error: number of found tags does not correspond "
-                           "to the number of original added tags";
+        errorDescription.base() = QStringLiteral("Error: number of found tags does not correspond "
+                                                 "to the number of original added tags");
         QNWARNING(errorDescription);
         emit failure(errorDescription.nonLocalizedString());
         return;
@@ -336,7 +335,7 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(size_t limit, siz
     foreach(const Tag & tag, m_initialTags)
     {
         if (!tags.contains(tag)) {
-            errorDescription = "One of initial tags was not found within found tags";
+            errorDescription.base() = QStringLiteral("One of initial tags was not found within found tags");
             QNWARNING(errorDescription);
             emit failure(errorDescription.nonLocalizedString());
             return;
@@ -349,7 +348,7 @@ void TagLocalStorageManagerAsyncTester::onListAllTagsCompleted(size_t limit, siz
 void TagLocalStorageManagerAsyncTester::onListAllTagsFailed(size_t limit, size_t offset,
                                                             LocalStorageManager::ListTagsOrder::type order,
                                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                                            QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
+                                                            QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     Q_UNUSED(limit)
     Q_UNUSED(offset)
@@ -365,12 +364,12 @@ void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(Tag tag, QUuid req
 {
     Q_UNUSED(requestId)
 
-    QNLocalizedString errorDescription;
+    ErrorString errorDescription;
 
     if (m_modifiedTag != tag) {
-        errorDescription = "Internal error in TagLocalStorageManagerAsyncTester: "
-                           "tag in onExpungeTagCompleted slot doesn't match "
-                           "the original expunged Tag";
+        errorDescription.base() = QStringLiteral("Internal error in TagLocalStorageManagerAsyncTester: "
+                                                 "tag in onExpungeTagCompleted slot doesn't match "
+                                                 "the original expunged Tag");
         QNWARNING(errorDescription);
         emit failure(errorDescription.nonLocalizedString());
         return;
@@ -380,13 +379,13 @@ void TagLocalStorageManagerAsyncTester::onExpungeTagCompleted(Tag tag, QUuid req
     emit findTagRequest(m_foundTag);
 }
 
-void TagLocalStorageManagerAsyncTester::onExpungeTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
+void TagLocalStorageManagerAsyncTester::onExpungeTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNWARNING(errorDescription << QStringLiteral(", requestId = ") << requestId << QStringLiteral(", tag: ") << tag);
     emit failure(errorDescription.nonLocalizedString());
 }
 
-void TagLocalStorageManagerAsyncTester::onFailure(QNLocalizedString errorDescription)
+void TagLocalStorageManagerAsyncTester::onFailure(ErrorString errorDescription)
 {
     QNWARNING(QStringLiteral("TagLocalStorageManagerAsyncTester::onFailure: ") << errorDescription);
     emit failure(errorDescription.nonLocalizedString());
@@ -394,8 +393,8 @@ void TagLocalStorageManagerAsyncTester::onFailure(QNLocalizedString errorDescrip
 
 void TagLocalStorageManagerAsyncTester::createConnections()
 {
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,failure,QNLocalizedString),
-                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onFailure,QNLocalizedString));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,failure,ErrorString),
+                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onFailure,ErrorString));
 
     QObject::connect(m_pLocalStorageManagerThread, QNSIGNAL(QThread,started),
                      m_pLocalStorageManagerThreadWorker, QNSLOT(LocalStorageManagerThreadWorker,init));
@@ -426,20 +425,20 @@ void TagLocalStorageManagerAsyncTester::createConnections()
     // Slot <-- result connections
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,getTagCountComplete,int,QUuid),
                      this, QNSLOT(TagLocalStorageManagerAsyncTester,onGetTagCountCompleted,int,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,getTagCountFailed,QNLocalizedString,QUuid),
-                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onGetTagCountFailed,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,getTagCountFailed,ErrorString,QUuid),
+                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onGetTagCountFailed,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagComplete,Tag,QUuid),
                      this, QNSLOT(TagLocalStorageManagerAsyncTester,onAddTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onAddTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,ErrorString,QUuid),
+                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onAddTagFailed,Tag,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagComplete,Tag,QUuid),
                      this, QNSLOT(TagLocalStorageManagerAsyncTester,onUpdateTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onUpdateTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateTagFailed,Tag,ErrorString,QUuid),
+                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onUpdateTagFailed,Tag,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagComplete,Tag,QUuid),
                      this, QNSLOT(TagLocalStorageManagerAsyncTester,onFindTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onFindTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findTagFailed,Tag,ErrorString,QUuid),
+                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onFindTagFailed,Tag,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listAllTagsComplete,size_t,size_t,LocalStorageManager::ListTagsOrder::type,
                               LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QUuid),
@@ -448,14 +447,14 @@ void TagLocalStorageManagerAsyncTester::createConnections()
                             LocalStorageManager::OrderDirection::type,QString,QList<Tag>,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker,
                      QNSIGNAL(LocalStorageManagerThreadWorker,listAllTagsFailed,size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                              LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid),
+                              LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid),
                      this,
                      QNSLOT(TagLocalStorageManagerAsyncTester,onListAllTagsFailed,size_t,size_t,LocalStorageManager::ListTagsOrder::type,
-                            LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
+                            LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
     QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagComplete,Tag,QUuid),
                      this, QNSLOT(TagLocalStorageManagerAsyncTester,onExpungeTagCompleted,Tag,QUuid));
-    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onExpungeTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(m_pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeTagFailed,Tag,ErrorString,QUuid),
+                     this, QNSLOT(TagLocalStorageManagerAsyncTester,onExpungeTagFailed,Tag,ErrorString,QUuid));
 }
 
 #undef HANDLE_WRONG_STATE

@@ -36,7 +36,7 @@ bool TestSavedSearchAddFindUpdateExpungeInLocalStorage(SavedSearch & search,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!search.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -161,7 +161,7 @@ bool TestLinkedNotebookAddFindUpdateExpungeInLocalStorage(const LinkedNotebook &
                                                           LocalStorageManager & localStorageManager,
                                                           QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!linkedNotebook.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -270,7 +270,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
                                                LocalStorageManager & localStorageManager,
                                                QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!tag.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -417,7 +417,7 @@ bool TestTagAddFindUpdateExpungeInLocalStorage(Tag & tag,
 bool TestResourceAddFindUpdateExpungeInLocalStorage(Resource & resource, LocalStorageManager & localStorageManager,
                                                     QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!resource.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -584,7 +584,7 @@ bool TestNoteFindUpdateDeleteExpungeInLocalStorage(Note & note, const Notebook &
                                                    LocalStorageManager & localStorageManager,
                                                    QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!note.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -879,7 +879,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
                                                        LocalStorageManager & localStorageManager,
                                                        QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!notebook.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -1093,7 +1093,7 @@ bool TestNotebookFindUpdateDeleteExpungeInLocalStorage(Notebook & notebook,
 bool TestUserAddFindUpdateDeleteExpungeInLocalStorage(const User & user, LocalStorageManager & localStorageManager,
                                                       QString & errorDescription)
 {
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     if (!user.checkParameters(errorMessage)) {
         errorDescription = errorMessage.nonLocalizedString();
@@ -1314,7 +1314,7 @@ bool TestSequentialUpdatesInLocalStorage(QString & errorDescription)
 
     user.setAccountLimits(std::move(accountLimits));
 
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     // 3) ============ Add user to local storage ==============
     bool res = localStorageManager.addUser(user, errorMessage);

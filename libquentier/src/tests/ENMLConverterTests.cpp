@@ -20,7 +20,7 @@
 #include <quentier/enml/ENMLConverter.h>
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <QXmlStreamReader>
 #include <QFile>
 
@@ -248,7 +248,7 @@ bool convertNoteToHtmlAndBackImpl(const QString & noteContent, DecryptedTextMana
     ENMLConverter converter;
     QString html;
     ENMLConverter::NoteContentToHtmlExtraData extraData;
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     bool res = converter.noteContentToHtml(originalNoteContent, html, errorMessage, decryptedTextManager, extraData);
     if (!res) {
         error = QStringLiteral("Unable to convert the note content to HTML: ");
@@ -596,7 +596,7 @@ bool convertHtmlWithModifiedDecryptedTextToEnml(QString & error)
     QString html;
     ENMLConverter converter;
     ENMLConverter::NoteContentToHtmlExtraData extraData;
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     bool res = converter.noteContentToHtml(originalENML, html, errorMessage, decryptedTextManager, extraData);
     if (!res) {
         error = QStringLiteral("Unable to convert the note content to HTML: ");
@@ -681,7 +681,7 @@ bool convertHtmlWithTableHelperTagsToEnml(QString & error)
     skipRules << skipRule;
 
     QString processedNoteContent;
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, errorMessage, skipRules);
     if (!res) {
         error = QStringLiteral("Unable to convert HTML to note content: ");
@@ -738,7 +738,7 @@ bool convertHtmlWithTableAndHilitorHelperTagsToEnml(QString & error)
     skipRules << hilitorSkipRule;
 
     QString processedNoteContent;
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     bool res = converter.htmlToNoteContent(html, processedNoteContent, decryptedTextManager, errorMessage, skipRules);
     if (!res) {
         error = QStringLiteral("Unable to convert HTML to note content: ");

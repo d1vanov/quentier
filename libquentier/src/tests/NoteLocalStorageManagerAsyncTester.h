@@ -61,16 +61,16 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onNoteCountCompleted(int count, QUuid requestId);
-    void onNoteCountFailed(QNLocalizedString errorDescription, QUuid requestId);
+    void onNoteCountFailed(ErrorString errorDescription, QUuid requestId);
     void onAddNoteCompleted(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
     void onUpdateNoteCompleted(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                            QNLocalizedString errorDescription, QUuid requestId);
+                            ErrorString errorDescription, QUuid requestId);
     void onFindNoteCompleted(Note note, bool withResourceBinaryData, QUuid requestId);
-    void onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId);
     void onListNotesPerNotebookCompleted(Notebook notebook, bool withResourceBinaryData,
                                          LocalStorageManager::ListObjectsOptions flag,
                                          size_t limit, size_t offset,
@@ -82,11 +82,11 @@ private Q_SLOTS:
                                       size_t limit, size_t offset,
                                       LocalStorageManager::ListNotesOrder::type order,
                                       LocalStorageManager::OrderDirection::type orderDirection,
-                                      QNLocalizedString errorDescription, QUuid requestId);
+                                      ErrorString errorDescription, QUuid requestId);
     void onExpungeNoteCompleted(Note note, QUuid requestId);
-    void onExpungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
 
-    void onFailure(QNLocalizedString errorDescription);
+    void onFailure(ErrorString errorDescription);
 
 private:
     void createConnections();

@@ -19,7 +19,7 @@
 #include "EncryptionManagerTests.h"
 #include <quentier/utility/EncryptionManager.h>
 #include <quentier/logging/QuentierLogger.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 
 namespace quentier {
 namespace test {
@@ -43,7 +43,7 @@ bool decryptAesTest(QString & error)
                                                 "is going to be long also.&nbsp;</span>");
 
     QString decryptedText;
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     bool res = manager.decrypt(encryptedText, passphrase, QStringLiteral("AES"), 128, decryptedText, errorMessage);
     if (!res) {
         error = errorMessage.nonLocalizedString();
@@ -68,7 +68,7 @@ bool encryptDecryptTest(QString & error)
     const QString textToEncrypt = QStringLiteral("Very-very secret");
     const QString passphrase = QStringLiteral("rough_awakening^");
 
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     QString encryptedText;
     QString cipher;
     size_t keyLength = 0;
@@ -112,7 +112,7 @@ bool decryptRc2Test(QString & error)
     const QString originalText = QStringLiteral("<span style=\"display: inline !important; float: none; \">"
                                                 "Ok, here's a piece of text I'm going to encrypt now</span>");
 
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
     QString decryptedText;
     bool res = manager.decrypt(encryptedText, passphrase, QStringLiteral("RC2"), 64, decryptedText, errorMessage);
     if (!res) {

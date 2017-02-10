@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TESTS_USER_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/User.h>
 #include <QUuid>
 
@@ -55,19 +55,19 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetUserCountCompleted(int count, QUuid requestId);
-    void onGetUserCountFailed(QNLocalizedString errorDescription, QUuid requestId);
+    void onGetUserCountFailed(ErrorString errorDescription, QUuid requestId);
     void onAddUserCompleted(User user, QUuid requestId);
-    void onAddUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onUpdateUserCompleted(User user, QUuid requestId);
-    void onUpdateUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onFindUserCompleted(User user, QUuid requestId);
-    void onFindUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onDeleteUserCompleted(User user, QUuid requestId);
-    void onDeleteUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onDeleteUserFailed(User user, ErrorString errorDescription, QUuid requestId);
     void onExpungeUserCompleted(User user, QUuid requestId);
-    void onExpungeUserFailed(User user, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeUserFailed(User user, ErrorString errorDescription, QUuid requestId);
 
-    void onFailure(QNLocalizedString errorDescription);
+    void onFailure(ErrorString errorDescription);
 
 private:
     void createConnections();

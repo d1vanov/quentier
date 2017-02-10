@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TESTS_LINKED_NOTEBOOK_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/LinkedNotebook.h>
 
@@ -58,13 +58,13 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetLinkedNotebookCountCompleted(int count, QUuid requestId);
-    void onGetLinkedNotebookCountFailed(QNLocalizedString errorDescription, QUuid requestId);
+    void onGetLinkedNotebookCountFailed(ErrorString errorDescription, QUuid requestId);
     void onAddLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
-    void onAddLinkedNotebookFailed(LinkedNotebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddLinkedNotebookFailed(LinkedNotebook notebook, ErrorString errorDescription, QUuid requestId);
     void onUpdateLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
-    void onUpdateLinkedNotebookFailed(LinkedNotebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateLinkedNotebookFailed(LinkedNotebook notebook, ErrorString errorDescription, QUuid requestId);
     void onFindLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
-    void onFindLinkedNotebookFailed(LinkedNotebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindLinkedNotebookFailed(LinkedNotebook notebook, ErrorString errorDescription, QUuid requestId);
     void onListAllLinkedNotebooksCompleted(size_t limit, size_t offset,
                                            LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                            LocalStorageManager::OrderDirection::type orderDirection,
@@ -73,11 +73,11 @@ private Q_SLOTS:
     void onListAllLinkedNotebooksFailed(size_t limit, size_t offset,
                                         LocalStorageManager::ListLinkedNotebooksOrder::type order,
                                         LocalStorageManager::OrderDirection::type orderDirection,
-                                        QNLocalizedString errorDescription, QUuid requestId);
+                                        ErrorString errorDescription, QUuid requestId);
     void onExpungeLinkedNotebookCompleted(LinkedNotebook notebook, QUuid requestId);
-    void onExpungeLinkedNotebookFailed(LinkedNotebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeLinkedNotebookFailed(LinkedNotebook notebook, ErrorString errorDescription, QUuid requestId);
 
-    void onFailure(QNLocalizedString errorDescription);
+    void onFailure(ErrorString errorDescription);
 
 private:
     void createConnections();

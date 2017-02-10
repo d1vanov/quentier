@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TESTS_SAVED_SEARCH_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/local_storage/LocalStorageManager.h>
 #include <quentier/types/SavedSearch.h>
 
@@ -58,13 +58,13 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onGetSavedSearchCountCompleted(int count, QUuid requestId);
-    void onGetSavedSearchCountFailed(QNLocalizedString errorDescription, QUuid requestId);
+    void onGetSavedSearchCountFailed(ErrorString errorDescription, QUuid requestId);
     void onAddSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onUpdateSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onFindSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
     void onListAllSavedSearchesCompleted(size_t limit, size_t offset,
                                          LocalStorageManager::ListSavedSearchesOrder::type order,
                                          LocalStorageManager::OrderDirection::type orderDirection,
@@ -72,11 +72,11 @@ private Q_SLOTS:
     void onListAllSavedSearchedFailed(size_t limit, size_t offset,
                                       LocalStorageManager::ListSavedSearchesOrder::type order,
                                       LocalStorageManager::OrderDirection::type orderDirection,
-                                      QNLocalizedString errorDescription, QUuid requestId);
+                                      ErrorString errorDescription, QUuid requestId);
     void onExpungeSavedSearchCompleted(SavedSearch search, QUuid requestId);
-    void onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId);
 
-    void onFailure(QNLocalizedString errorDescription);
+    void onFailure(ErrorString errorDescription);
 
 private:
     void createConnections();

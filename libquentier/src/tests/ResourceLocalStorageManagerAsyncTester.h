@@ -20,7 +20,7 @@
 #define LIB_QUENTIER_TESTS_RESOURCE_LOCAL_STORAGE_MANAGER_ASYNC_TESTER_H
 
 #include <quentier/utility/Macros.h>
-#include <quentier/utility/QNLocalizedString.h>
+#include <quentier/types/ErrorString.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
 #include <quentier/types/Resource.h>
@@ -57,22 +57,22 @@ Q_SIGNALS:
 private Q_SLOTS:
     void onWorkerInitialized();
     void onAddNotebookCompleted(Notebook notebook, QUuid requestId);
-    void onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onAddNoteCompleted(Note note, QUuid requestId);
-    void onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId);
     void onGetResourceCountCompleted(int count, QUuid requestId);
-    void onGetResourceCountFailed(QNLocalizedString errorDescription, QUuid requestId);
+    void onGetResourceCountFailed(ErrorString errorDescription, QUuid requestId);
     void onAddResourceCompleted(Resource resource, QUuid requestId);
-    void onAddResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onAddResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId);
     void onUpdateResourceCompleted(Resource resource, QUuid requestId);
-    void onUpdateResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onUpdateResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId);
     void onFindResourceCompleted(Resource resource, bool withBinaryData, QUuid requestId);
     void onFindResourceFailed(Resource resource, bool withBinaryData,
-                              QNLocalizedString errorDescription, QUuid requestId);
+                              ErrorString errorDescription, QUuid requestId);
     void onExpungeResourceCompleted(Resource resource, QUuid requestId);
-    void onExpungeResourceFailed(Resource resource, QNLocalizedString errorDescription, QUuid requestId);
+    void onExpungeResourceFailed(Resource resource, ErrorString errorDescription, QUuid requestId);
 
-    void onFailure(QNLocalizedString errorDescription);
+    void onFailure(ErrorString errorDescription);
 
 private:
     void createConnections();

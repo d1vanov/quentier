@@ -32,7 +32,7 @@ namespace test {
 bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
                       const QVector<bool> expectedContainedNotesIndices,
                       const LocalStorageManager & localStorageManager,
-                      QNLocalizedString & errorDescription)
+                      ErrorString & errorDescription)
 {
     NoteSearchQuery noteSearchQuery;
     bool res = noteSearchQuery.setQueryString(queryString, errorDescription);
@@ -50,12 +50,12 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
 
         if (errorDescription.isEmpty())
         {
-            errorDescription = "Internal error: no notes corresponding to note search query "
-                               "were found and the error description is empty as well; "
-                               "query string: ";
-            errorDescription += queryString;
-            errorDescription += QStringLiteral("; \nNoteSearchQuery: ");
-            errorDescription += noteSearchQuery.toString();
+            errorDescription.base() = QStringLiteral("Internal error: no notes corresponding to note search query "
+                                                     "were found and the error description is empty as well; "
+                                                     "query string");
+            errorDescription.details() = queryString;
+            errorDescription.details() += QStringLiteral("; \nNoteSearchQuery: ");
+            errorDescription.details() += noteSearchQuery.toString();
         }
 
         return false;
@@ -71,42 +71,42 @@ bool CheckQueryString(const QString & queryString, const QVector<Note> & notes,
 
     if (!res)
     {
-        errorDescription = "Internal error: unexpected result of note search query processing: \n";
+        errorDescription.base() = QStringLiteral("Internal error: unexpected result of note search query processing");
 
         for(int i = 0; i < numOriginalNotes; ++i)
         {
-            errorDescription += QStringLiteral("foundNotes.contains(notes[");
-            errorDescription += QString::number(i);
-            errorDescription += QStringLiteral("]) = ");
-            errorDescription += (foundNotes.contains(notes[i]) ? QStringLiteral("true") : QStringLiteral("false"));
-            errorDescription += QStringLiteral("; expected: ");
-            errorDescription += (expectedContainedNotesIndices[i] ? QStringLiteral("true") : QStringLiteral("false"));
-            errorDescription += QStringLiteral("\n");
+            errorDescription.details() = QStringLiteral("foundNotes.contains(notes[");
+            errorDescription.details() += QString::number(i);
+            errorDescription.details() += QStringLiteral("]) = ");
+            errorDescription.details() += (foundNotes.contains(notes[i]) ? QStringLiteral("true") : QStringLiteral("false"));
+            errorDescription.details() += QStringLiteral("; expected: ");
+            errorDescription.details() += (expectedContainedNotesIndices[i] ? QStringLiteral("true") : QStringLiteral("false"));
+            errorDescription.details() += QStringLiteral("\n");
         }
 
-        errorDescription += QStringLiteral("Query string: ");
-        errorDescription += queryString;
-        errorDescription += QStringLiteral("; \nNoteSearchQuery: ");
-        errorDescription += noteSearchQuery.toString();
+        errorDescription.details() += QStringLiteral("Query string: ");
+        errorDescription.details() += queryString;
+        errorDescription.details() += QStringLiteral("; \nNoteSearchQuery: ");
+        errorDescription.details() += noteSearchQuery.toString();
 
         for(int i = 0; i < numFoundNotes; ++i)
         {
             const Note & note = foundNotes[i];
-            errorDescription += QStringLiteral("foundNotes[");
-            errorDescription += QString::number(i);
-            errorDescription += QStringLiteral("]: ");
-            errorDescription += note.toString();
-            errorDescription += QStringLiteral("\n");
+            errorDescription.details() += QStringLiteral("foundNotes[");
+            errorDescription.details() += QString::number(i);
+            errorDescription.details() += QStringLiteral("]: ");
+            errorDescription.details() += note.toString();
+            errorDescription.details() += QStringLiteral("\n");
         }
 
         for(int i = 0; i < numOriginalNotes; ++i)
         {
             const Note & note = notes[i];
-            errorDescription += QStringLiteral("originalNotes[");
-            errorDescription += QString::number(i);
-            errorDescription += QStringLiteral("]: ");
-            errorDescription += note.toString();
-            errorDescription += QStringLiteral("\n");
+            errorDescription.details() += QStringLiteral("originalNotes[");
+            errorDescription.details() += QString::number(i);
+            errorDescription.details() += QStringLiteral("]: ");
+            errorDescription.details() += note.toString();
+            errorDescription.details() += QStringLiteral("\n");
         }
 
         return false;
@@ -564,7 +564,7 @@ bool LocalStorageManagerNoteSearchQueryTest(QString & errorDescription)
     Account account(QStringLiteral("LocalStorageManagerNoteSearchQueryTestFakeUser"), Account::Type::Local);
     LocalStorageManager localStorageManager(account, startFromScratch, overrideLock);
 
-    QNLocalizedString errorMessage;
+    ErrorString errorMessage;
 
     for(int i = 0; i < numNotebooks; ++i)
     {
