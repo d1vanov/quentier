@@ -2372,13 +2372,13 @@ QModelIndex TagModel::createTag(const QString & tagName, const QString & parentT
     int tagNameSize = tagName.size();
 
     if (tagNameSize < qevercloud::EDAM_TAG_NAME_LEN_MIN) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Tag name's minimal acceptable length is");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Tag name size is below the minimal acceptable length");
         errorDescription.details() = QString::number(qevercloud::EDAM_TAG_NAME_LEN_MIN);
         return QModelIndex();
     }
 
     if (tagNameSize > qevercloud::EDAM_TAG_NAME_LEN_MAX) {
-        errorDescription.base() = QT_TRANSLATE_NOOP("", "Tag name's maximal acceptable length is");
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Tag name size is above the maximal acceptable length");
         errorDescription.details() = QString::number(qevercloud::EDAM_TAG_NAME_LEN_MAX);
         return QModelIndex();
     }
