@@ -441,11 +441,7 @@ set(RESOURCES
     src/note_editor/javascript/rangy/rangy.qrc
     src/enml/enml.qrc)
 
-if(USE_QT5)
-  qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
-else()
-  qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
-endif()
+qt_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
 set(FORMS
     src/note_editor/dialogs/DecryptionDialog.ui
@@ -459,11 +455,7 @@ if(NOT QUENTIER_USE_QT_WEB_ENGINE)
        src/note_editor/GenericResourceDisplayWidget.ui)
 endif()
 
-if(USE_QT5)
-  qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
-else()
-  qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
-endif()
+qt_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
 add_library(${PROJECT_NAME} SHARED
             ${${PROJECT_NAME}_HEADERS}
@@ -477,6 +469,32 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
                       MACOSX_RPATH 1
                       INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
+
+set(${PROJECT_NAME}_TR_SOURCES
+    ${${PROJECT_NAME}_HEADERS}
+    ${${PROJECT_NAME}_SOURCES}
+    ${FORMS})
+
+set(${PROJECT_NAME}_TR_FILES
+    translations/libquentier_ru.ts)
+
+if(UPDATE_TRANSLATIONS)
+  qt_create_translation(${PROJECT_NAME}_TRANSLATION ${${PROJECT_NAME}_TR_SOURCES} ${${PROJECT_NAME}_TR_FILES})
+  qt_add_translation(${PROJECT_NAME}_QM_FILES ${${PROJECT_NAME}_TR_FILES})
+  add_custom_target(${PROJECT_NAME}_TRANSLATION_TARGET DEPENDS ${${PROJECT_NAME}_TRANSLATION})
+  add_custom_target(${PROJECT_NAME}_QM_FILES_TARGET DEPENDS ${${PROJECT_NAME}_QM_FILES})
+
+  if(NOT QT_TRANSLATIONS_DIR)
+    # This means Qt5 is used
+    get_target_property(QT5_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+    # Ask Qt5 of the most appropriate location for translations
+    execute_process(COMMAND ${QT5_QMAKE_EXECUTABLE} -query QT_INSTALL_TRANSLATIONS
+                    OUTPUT_VARIABLE qt_translations_dir OUTPUT_STRIP_TRAILING_WHITESPACE)
+    # Make sure to replace \ with / on Windows
+    file(TO_CMAKE_PATH "${qt_translations_dir}" qt_translations_dir)
+    set(QT_TRANSLATIONS_DIR ${qt_translations_dir} CACHE PATH "The location of the Qt translations" FORCE)
+  endif()
+endif()
 
 set(TEST_HEADERS
     src/tests/EncryptionManagerTests.h
@@ -516,11 +534,7 @@ set(TEST_SOURCES
 set(TEST_RESOURCES
     src/tests/test_resources.qrc)
 
-if(USE_QT5)
-    qt5_add_resources(${PROJECT_NAME}_TEST_RESOURCES_RCC ${TEST_RESOURCES})
-else()
-    qt4_add_resources(${PROJECT_NAME}_TEST_RESOURCES_RCC ${TEST_RESOURCES})
-endif()
+qt_add_resources(${PROJECT_NAME}_TEST_RESOURCES_RCC ${TEST_RESOURCES})
 
 add_executable(test_${PROJECT_NAME} ${TEST_HEADERS} ${TEST_SOURCES} ${${PROJECT_NAME}_TEST_RESOURCES_RCC})
 add_test(test_${PROJECT_NAME} test_${PROJECT_NAME})
@@ -587,3 +601,7 @@ endforeach()
 foreach(ITEM ${UTILITY_HEADERS})
   install(FILES ${ITEM} DESTINATION include/quentier/utility)
 endforeach()
+
+if(UPDATE_TRANSLATIONS)
+  install(FILES ${${PROJECT_NAME}_QM_FILES} DESTINATION ${QT_TRANSLATIONS_DIR})
+endif()

@@ -32,6 +32,8 @@ enable_testing()
 
 set(CREATE_BUNDLE ON CACHE BOOL "Create application bundle")
 
+set(UPDATE_TRANSLATIONS OFF CACHE BOOL "Update translations")
+
 if(WIN32 AND USE_QT5)
   set (DEPLOYQT_TOOL ${Qt5Core_DIR}/../../../bin/windeployqt)
   message(STATUS "Windeployqt path: ${DEPLOYQT_TOOL}")

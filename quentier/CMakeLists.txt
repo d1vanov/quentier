@@ -217,11 +217,7 @@ set(FORMS
     src/widgets/SavedSearchModelItemInfoWidget.ui
     src/widgets/TagModelItemInfoWidget.ui)
 
-if(USE_QT5)
-  qt5_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
-else()
-  qt4_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
-endif()
+qt_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
 set(RESOURCES
     resource/icons/themes/tango/tango.qrc
@@ -229,11 +225,7 @@ set(RESOURCES
     resource/icons/other/icons.qrc
     src/tests/test_notes.qrc)
 
-if(USE_QT5)
-  qt5_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
-else()
-  qt4_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
-endif()
+qt_add_resources(${PROJECT_NAME}_RESOURCES_RCC ${RESOURCES})
 
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_HEADERS}
