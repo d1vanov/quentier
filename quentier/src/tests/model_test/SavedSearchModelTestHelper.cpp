@@ -31,21 +31,21 @@ SavedSearchModelTestHelper::SavedSearchModelTestHelper(LocalStorageManagerThread
     QObject(parent),
     m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
 {
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
-                     this, QNSLOT(SavedSearchModelTestHelper,onAddSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
-                     this, QNSLOT(SavedSearchModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
-                     this, QNSLOT(SavedSearchModelTestHelper,onFindSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+                     this, QNSLOT(SavedSearchModelTestHelper,onAddSavedSearchFailed,SavedSearch,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+                     this, QNSLOT(SavedSearchModelTestHelper,onUpdateSavedSearchFailed,SavedSearch,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+                     this, QNSLOT(SavedSearchModelTestHelper,onFindSavedSearchFailed,SavedSearch,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listSavedSearchesFailed,
                                                                 LocalStorageManager::ListObjectsOptions,
                                                                 size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                                                                LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(SavedSearchModelTestHelper,onListSavedSearchesFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListSavedSearchesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid),
-                     this, QNSLOT(SavedSearchModelTestHelper,onExpungeSavedSearchFailed,SavedSearch,QNLocalizedString,QUuid));
+                                  ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeSavedSearchFailed,SavedSearch,ErrorString,QUuid),
+                     this, QNSLOT(SavedSearchModelTestHelper,onExpungeSavedSearchFailed,SavedSearch,ErrorString,QUuid));
 }
 
 void SavedSearchModelTestHelper::test()
@@ -272,7 +272,7 @@ void SavedSearchModelTestHelper::test()
         model->updateAccount(account);
 
         // Should not be able to create the saved search with existing name
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         QModelIndex fifthSavedSearchIndex = model->createSavedSearch(third.name(), QStringLiteral("My search"), errorDescription);
         if (fifthSavedSearchIndex.isValid()) {
             FAIL(QStringLiteral("Was able to create saved search with the same name as the already existing one"));
@@ -337,7 +337,7 @@ void SavedSearchModelTestHelper::test()
     emit failure();
 }
 
-void SavedSearchModelTestHelper::onAddSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
+void SavedSearchModelTestHelper::onAddSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onAddSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -345,7 +345,7 @@ void SavedSearchModelTestHelper::onAddSavedSearchFailed(SavedSearch search, QNLo
     emit failure();
 }
 
-void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
+void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onUpdateSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -353,7 +353,7 @@ void SavedSearchModelTestHelper::onUpdateSavedSearchFailed(SavedSearch search, Q
     emit failure();
 }
 
-void SavedSearchModelTestHelper::onFindSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
+void SavedSearchModelTestHelper::onFindSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onFindSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -365,7 +365,7 @@ void SavedSearchModelTestHelper::onListSavedSearchesFailed(LocalStorageManager::
                                                            size_t limit, size_t offset,
                                                            LocalStorageManager::ListSavedSearchesOrder::type order,
                                                            LocalStorageManager::OrderDirection::type orderDirection,
-                                                           QNLocalizedString errorDescription, QUuid requestId)
+                                                           ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onListSavedSearchesFailed: flag = ") << flag << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
@@ -375,7 +375,7 @@ void SavedSearchModelTestHelper::onListSavedSearchesFailed(LocalStorageManager::
     emit failure();
 }
 
-void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(SavedSearch search, QNLocalizedString errorDescription, QUuid requestId)
+void SavedSearchModelTestHelper::onExpungeSavedSearchFailed(SavedSearch search, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("SavedSearchModelTestHelper::onExpungeSavedSearchFailed: search = ") << search
             << QStringLiteral(", error description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);

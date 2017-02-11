@@ -40,31 +40,31 @@ NoteModelTestHelper::NoteModelTestHelper(LocalStorageManagerThreadWorker * pLoca
 {
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onAddNoteComplete,Note,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onAddNoteFailed,Note,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNoteFailed,Note,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onAddNoteFailed,Note,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteComplete,Note,bool,bool,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onUpdateNoteComplete,Note,bool,bool,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onUpdateNoteFailed,Note,bool,bool,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onFindNoteFailed,Note,bool,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNoteFailed,Note,bool,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onUpdateNoteFailed,Note,bool,bool,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNoteFailed,Note,bool,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onFindNoteFailed,Note,bool,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotesFailed,
                                                                 LocalStorageManager::ListObjectsOptions,bool,
                                                                 size_t,size_t,LocalStorageManager::ListNotesOrder::type,
-                                                                LocalStorageManager::OrderDirection::type,QNLocalizedString,QUuid),
+                                                                LocalStorageManager::OrderDirection::type,ErrorString,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onListNotesFailed,LocalStorageManager::ListObjectsOptions,bool,
                                   size_t,size_t,LocalStorageManager::ListNotesOrder::type,LocalStorageManager::OrderDirection::type,
-                                  QNLocalizedString,QUuid));
+                                  ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteComplete,Note,QUuid),
                      this, QNSLOT(NoteModelTestHelper,onExpungeNoteComplete,Note,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onExpungeNoteFailed,Note,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onAddNotebookFailed,Notebook,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onUpdateNotebookFailed,Notebook,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,QNLocalizedString,QUuid),
-                     this, QNSLOT(NoteModelTestHelper,onAddTagFailed,Tag,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNoteFailed,Note,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onExpungeNoteFailed,Note,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onAddNotebookFailed,Notebook,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addTagFailed,Tag,ErrorString,QUuid),
+                     this, QNSLOT(NoteModelTestHelper,onAddTagFailed,Tag,ErrorString,QUuid));
 }
 
 void NoteModelTestHelper::launchTest()
@@ -481,7 +481,7 @@ void NoteModelTestHelper::onAddNoteComplete(Note note, QUuid requestId)
     emit failure();
 }
 
-void NoteModelTestHelper::onAddNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
+void NoteModelTestHelper::onAddNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onAddNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -577,7 +577,7 @@ void NoteModelTestHelper::onUpdateNoteComplete(Note note, bool updateResources, 
 }
 
 void NoteModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
-                                             QNLocalizedString errorDescription, QUuid requestId)
+                                             ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onUpdateNoteFailed: note = ") << note << QStringLiteral("\nUpdate resources = ")
             << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
@@ -587,7 +587,7 @@ void NoteModelTestHelper::onUpdateNoteFailed(Note note, bool updateResources, bo
     emit failure();
 }
 
-void NoteModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryData, QNLocalizedString errorDescription, QUuid requestId)
+void NoteModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryData, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onFindNoteFailed: note = ") << note << QStringLiteral("\nWith resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", error description = ")
@@ -599,7 +599,7 @@ void NoteModelTestHelper::onFindNoteFailed(Note note, bool withResourceBinaryDat
 void NoteModelTestHelper::onListNotesFailed(LocalStorageManager::ListObjectsOptions flag, bool withResourceBinaryData,
                                             size_t limit, size_t offset, LocalStorageManager::ListNotesOrder::type order,
                                             LocalStorageManager::OrderDirection::type orderDirection,
-                                            QNLocalizedString errorDescription, QUuid requestId)
+                                            ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onListNotesFailed: flag = ") << flag << QStringLiteral(", with resource binary data = ")
             << (withResourceBinaryData ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", limit = ")
@@ -641,7 +641,7 @@ void NoteModelTestHelper::onExpungeNoteComplete(Note note, QUuid requestId)
     emit failure();
 }
 
-void NoteModelTestHelper::onExpungeNoteFailed(Note note, QNLocalizedString errorDescription, QUuid requestId)
+void NoteModelTestHelper::onExpungeNoteFailed(Note note, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onExpungeNoteFailed: note = ") << note << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -649,7 +649,7 @@ void NoteModelTestHelper::onExpungeNoteFailed(Note note, QNLocalizedString error
     emit failure();
 }
 
-void NoteModelTestHelper::onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NoteModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onAddNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -657,7 +657,7 @@ void NoteModelTestHelper::onAddNotebookFailed(Notebook notebook, QNLocalizedStri
     emit failure();
 }
 
-void NoteModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NoteModelTestHelper::onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onUpdateNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -665,7 +665,7 @@ void NoteModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QNLocalizedS
     emit failure();
 }
 
-void NoteModelTestHelper::onAddTagFailed(Tag tag, QNLocalizedString errorDescription, QUuid requestId)
+void NoteModelTestHelper::onAddTagFailed(Tag tag, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NoteModelTestHelper::onAddTagFailed: tag = ") << tag << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);

@@ -50,7 +50,7 @@ using quentier::NoteTagsWidget;
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
-        emit notifyError(QT_TR_NOOP("No note is set to the editor")); \
+        emit notifyError(QT_TRANSLATE_NOOP("", "No note is set to the editor")); \
         return; \
     }
 
@@ -369,13 +369,13 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
         int result = eventLoop.exec(QEventLoop::ExcludeUserInputEvents);
 
         if (result == EventLoopWithExitStatus::ExitStatus::Failure) {
-            errorDescription = QT_TR_NOOP("Failed to convert the editor contents to note");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "Failed to convert the editor contents to note");
             QNWARNING(errorDescription);
             return NoteSaveStatus::Failed;
         }
         else if (result == EventLoopWithExitStatus::ExitStatus::Timeout) {
-            errorDescription = QT_TR_NOOP("The conversion of note editor contents "
-                                          "to note failed to finish in time");
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "The conversion of note editor contents "
+                                                        "to note failed to finish in time");
             QNWARNING(errorDescription);
             return NoteSaveStatus::Timeout;
         }
@@ -727,7 +727,7 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
               << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error description: ") << errorDescription << QStringLiteral("\nRequest id = ") << requestId);
 
-    ErrorString error = QT_TR_NOOP("Failed to save the updated note");
+    ErrorString error(QT_TRANSLATE_NOOP("", "Failed to save the updated note"));
     error.additionalBases().append(errorDescription.base());
     error.additionalBases().append(errorDescription.additionalBases());
     error.details() = errorDescription.details();
@@ -803,7 +803,7 @@ void NoteEditorWidget::onFindNoteFailed(Note note, bool withResourceBinaryData, 
 
     clear();
 
-    emit notifyError(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor"));
+    emit notifyError(ErrorString(QT_TRANSLATE_NOOP("", "Can't find the note attempted to be selected in the note editor")));
 }
 
 void NoteEditorWidget::onExpungeNoteComplete(Note note, QUuid requestId)
@@ -883,7 +883,7 @@ void NoteEditorWidget::onFindNotebookFailed(Notebook notebook, ErrorString error
 
     m_findCurrentNotebookRequestId = QUuid();
     clear();
-    emit notifyError(QT_TR_NOOP("Can't find the note attempted to be selected in the note editor"));
+    emit notifyError(ErrorString(QT_TRANSLATE_NOOP("", "Can't find the note attempted to be selected in the note editor")));
 }
 
 void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)

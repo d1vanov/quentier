@@ -32,22 +32,22 @@ NotebookModelTestHelper::NotebookModelTestHelper(LocalStorageManagerThreadWorker
     QObject(parent),
     m_pLocalStorageManagerThreadWorker(pLocalStorageManagerThreadWorker)
 {
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NotebookModelTestHelper,onAddNotebookFailed,Notebook,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NotebookModelTestHelper,onUpdateNotebookFailed,Notebook,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NotebookModelTestHelper,onFindNotebookFailed,Notebook,QNLocalizedString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,addNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NotebookModelTestHelper,onAddNotebookFailed,Notebook,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,updateNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NotebookModelTestHelper,onUpdateNotebookFailed,Notebook,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,findNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NotebookModelTestHelper,onFindNotebookFailed,Notebook,ErrorString,QUuid));
     QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,listNotebooksFailed,
                                                                 LocalStorageManager::ListObjectsOptions,size_t,size_t,
                                                                 LocalStorageManager::ListNotebooksOrder::type,
                                                                 LocalStorageManager::OrderDirection::type,
-                                                                QString,QNLocalizedString,QUuid),
+                                                                QString,ErrorString,QUuid),
                      this, QNSLOT(NotebookModelTestHelper,onListNotebooksFailed,LocalStorageManager::ListObjectsOptions,
                                   size_t,size_t,LocalStorageManager::ListNotebooksOrder::type,
-                                  LocalStorageManager::OrderDirection::type,QString,QNLocalizedString,QUuid));
-    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookFailed,Notebook,QNLocalizedString,QUuid),
-                     this, QNSLOT(NotebookModelTestHelper,onExpungeNotebookFailed,Notebook,QNLocalizedString,QUuid));
+                                  LocalStorageManager::OrderDirection::type,QString,ErrorString,QUuid));
+    QObject::connect(pLocalStorageManagerThreadWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookFailed,Notebook,ErrorString,QUuid),
+                     this, QNSLOT(NotebookModelTestHelper,onExpungeNotebookFailed,Notebook,ErrorString,QUuid));
 }
 
 void NotebookModelTestHelper::test()
@@ -552,7 +552,7 @@ void NotebookModelTestHelper::test()
         model->updateAccount(account);
 
         // Should not be able to create the notebook with existing name
-        QNLocalizedString errorDescription;
+        ErrorString errorDescription;
         QModelIndex eleventhNotebookIndex = model->createNotebook(tenth.name(), tenth.stack(), errorDescription);
         if (eleventhNotebookIndex.isValid()) {
             FAIL(QStringLiteral("Was able to create notebook with the same name as the already existing one"));
@@ -617,7 +617,7 @@ void NotebookModelTestHelper::test()
     emit failure();
 }
 
-void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onAddNotebookFailed: notebook = ") << notebook
             << QStringLiteral("\nError description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -625,7 +625,7 @@ void NotebookModelTestHelper::onAddNotebookFailed(Notebook notebook, QNLocalized
     emit failure();
 }
 
-void NotebookModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NotebookModelTestHelper::onUpdateNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onUpdateNotebookFailed: notebook = ") << notebook
             << QStringLiteral("\nError description = ") << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -633,7 +633,7 @@ void NotebookModelTestHelper::onUpdateNotebookFailed(Notebook notebook, QNLocali
     emit failure();
 }
 
-void NotebookModelTestHelper::onFindNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NotebookModelTestHelper::onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onFindNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);
@@ -644,7 +644,7 @@ void NotebookModelTestHelper::onFindNotebookFailed(Notebook notebook, QNLocalize
 void NotebookModelTestHelper::onListNotebooksFailed(LocalStorageManager::ListObjectsOptions flag, size_t limit, size_t offset,
                                                     LocalStorageManager::ListNotebooksOrder::type order,
                                                     LocalStorageManager::OrderDirection::type orderDirection,
-                                                    QString linkedNotebookGuid, QNLocalizedString errorDescription, QUuid requestId)
+                                                    QString linkedNotebookGuid, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onListNotebooksFailed: flag = ") << flag << QStringLiteral(", limit = ")
             << limit << QStringLiteral(", offset = ") << offset << QStringLiteral(", order = ") << order << QStringLiteral(", direction = ")
@@ -654,7 +654,7 @@ void NotebookModelTestHelper::onListNotebooksFailed(LocalStorageManager::ListObj
     emit failure();
 }
 
-void NotebookModelTestHelper::onExpungeNotebookFailed(Notebook notebook, QNLocalizedString errorDescription, QUuid requestId)
+void NotebookModelTestHelper::onExpungeNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId)
 {
     QNDEBUG(QStringLiteral("NotebookModelTestHelper::onExpungeNotebookFailed: notebook = ") << notebook << QStringLiteral("\nError description = ")
             << errorDescription << QStringLiteral(", request id = ") << requestId);

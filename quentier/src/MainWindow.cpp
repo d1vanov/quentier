@@ -2046,7 +2046,7 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
 
     QAction * action = qobject_cast<QAction*>(sender());
     if (Q_UNLIKELY(!action)) {
-        NOTIFY_ERROR(QT_TR_NOOP("Internal error: account switching action is unexpectedly null"));
+        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Internal error: account switching action is unexpectedly null"));
         return;
     }
 
@@ -2054,8 +2054,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     bool conversionResult = false;
     int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
-        NOTIFY_ERROR(QT_TR_NOOP("Internal error: can't get identification data "
-                                "from the account switching action"));
+        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't get identification data "
+                                       "from the account switching action"));
         return;
     }
 
@@ -2063,8 +2063,8 @@ void MainWindow::onSwitchAccountActionToggled(bool checked)
     const int numAvailableAccounts = availableAccounts.size();
 
     if ((index < 0) || (index >= numAvailableAccounts)) {
-        NOTIFY_ERROR(QT_TR_NOOP("Internal error: wrong index into available accounts "
-                                "in account switching action"));
+        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Internal error: wrong index into available accounts "
+                                       "in account switching action"));
         return;
     }
 
@@ -2386,7 +2386,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     m_lastLocalStorageSwitchUserRequest = QUuid();
 
     if (!expected) {
-        NOTIFY_ERROR(QT_TR_NOOP("Local storage user was switched without explicit user action"));
+        NOTIFY_ERROR(QT_TRANSLATE_NOOP("", "Local storage user was switched without explicit user action"));
         // Trying to undo it
         m_pAccountManager->switchAccount(*m_pAccount); // This should trigger the switch in local storage as well
         return;
