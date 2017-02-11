@@ -680,7 +680,7 @@ void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, boo
         else
         {
             if (Q_UNLIKELY(!m_pCurrentNote->hasNotebookLocalUid() && !m_pCurrentNote->hasNotebookGuid())) {
-                ErrorString error(QT_TRANSLATE_NOOP("", "Note has neither notebook local uid nor notebook guid");
+                ErrorString error(QT_TRANSLATE_NOOP("", "Note has neither notebook local uid nor notebook guid"));
                 if (note.hasTitle()) {
                     error.details() = note.title();
                 }

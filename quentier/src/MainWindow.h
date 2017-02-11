@@ -126,7 +126,7 @@ private Q_SLOTS:
                                  qevercloud::UserID userId);
     void onRateLimitExceeded(qint32 secondsToWait);
     void onRemoteToLocalSyncDone();
-    void onSynchronizationProgressUpdate(ErrorString message, double workDonePercentage);
+    void onSynchronizationProgressUpdate(QString message, double workDonePercentage);
     void onRemoteToLocalSyncStopped();
     void onSendLocalChangesStopped();
 

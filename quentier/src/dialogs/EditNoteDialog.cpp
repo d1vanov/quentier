@@ -148,7 +148,7 @@ void EditNoteDialog::accept()
 
         const NotebookItem * pNotebookItem = pNotebookModelItem->notebookItem();
         if (Q_UNLIKELY(!pNotebookItem)) {
-            ErrorString error(QT_TRANSLATE_NOOP("Can't edit note: internal error, the notebook model item corresponding "
+            ErrorString error(QT_TRANSLATE_NOOP("", "Can't edit note: internal error, the notebook model item corresponding "
                                                 "to the chosen notebook has null pointer to the notebook item"));
             QNINFO(error);
             QToolTip::showText(m_pUi->notebookComboBox->geometry().bottomLeft(),

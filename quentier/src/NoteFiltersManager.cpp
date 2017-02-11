@@ -257,8 +257,8 @@ void NoteFiltersManager::createConnections()
                      QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryComplete,QStringList,NoteSearchQuery,QUuid),
                      this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryCompleted,QStringList,NoteSearchQuery,QUuid));
     QObject::connect(&m_localStorageManager,
-                     QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryFailed,NoteSearhQuery,ErrorString,QUuid),
-                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearhQuery,ErrorString,QUuid));
+                     QNSIGNAL(LocalStorageManagerThreadWorker,findNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid),
+                     this, QNSLOT(NoteFiltersManager,onFindNoteLocalUidsWithSearchQueryFailed,NoteSearchQuery,ErrorString,QUuid));
 }
 
 void NoteFiltersManager::evaluate()
@@ -351,7 +351,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     QModelIndex itemIndex = pSavedSearchModel->indexForSavedSearchName(currentSavedSearchName);
     if (Q_UNLIKELY(!itemIndex.isValid())) {
-        ErrorString error(QT_TRANSLATE_NOOP("" "Internal error: can't set the filter by saved search, the saved search model "
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't set the filter by saved search, the saved search model "
                                             "returned invalid model index for the given saved search name"));
         QNWARNING(error);
         emit notifyError(error);
@@ -360,7 +360,7 @@ bool NoteFiltersManager::setFilterBySavedSearch()
 
     const SavedSearchModelItem * pItem = pSavedSearchModel->itemForIndex(itemIndex);
     if (Q_UNLIKELY(!pItem)) {
-        ErrorString error(QT_TRANSLATE_NOOP("Internal error: can't set the filter by saved search, the saved search model "
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't set the filter by saved search, the saved search model "
                                             "returned null item for the given valid model index"));
         QNWARNING(error);
         emit notifyError(error);

@@ -524,8 +524,8 @@ void MainWindow::connectSynchronizationManager()
                      this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                      this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
-    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,ErrorString,double),
-                     this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,ErrorString,double));
+    QObject::connect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QString,double),
+                     this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QString,double));
 }
 
 void MainWindow::disconnectSynchronizationManager()
@@ -558,8 +558,8 @@ void MainWindow::disconnectSynchronizationManager()
                         this, QNSLOT(MainWindow,onRateLimitExceeded,qint32));
     QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,remoteToLocalSyncDone),
                         this, QNSLOT(MainWindow,onRemoteToLocalSyncDone));
-    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,ErrorString,double),
-                        this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,ErrorString,double));
+    QObject::disconnect(m_pSynchronizationManager, QNSIGNAL(SynchronizationManager,progress,QString,double),
+                        this, QNSLOT(MainWindow,onSynchronizationProgressUpdate,QString,double));
 }
 
 void MainWindow::onSyncStopped()
@@ -1446,7 +1446,7 @@ void MainWindow::onRemoteToLocalSyncDone()
     QNINFO(QStringLiteral("Remote to local sync done"));
 }
 
-void MainWindow::onSynchronizationProgressUpdate(ErrorString message, double workDonePercentage)
+void MainWindow::onSynchronizationProgressUpdate(QString message, double workDonePercentage)
 {
     QNDEBUG(QStringLiteral("MainWindow::onSynchronizationProgressUpdate: message = ")
             << message << QStringLiteral(", work done percentage = ") << workDonePercentage);
@@ -1464,7 +1464,7 @@ void MainWindow::onSynchronizationProgressUpdate(ErrorString message, double wor
     workDonePercentage = std::floor(workDonePercentage + 0.5);
     workDonePercentage *= 1.0e-2;
 
-    QString messageToShow = message.localizedString();
+    QString messageToShow = message;
     if (showProgress) {
         messageToShow += QStringLiteral(", ");
         messageToShow += tr("progress");
@@ -1570,7 +1570,7 @@ void MainWindow::onCreateTagButtonPressed()
     QNDEBUG(QStringLiteral("MainWindow::onCreateTagButtonPressed"));
 
     if (Q_UNLIKELY(!m_pTagModel)) {
-        ErrorString error(QT_TRANSLATE_NOOP("" "Can't create a new tag: no tag model is set up"));
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new tag: no tag model is set up"));
         QNWARNING(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -2281,7 +2281,7 @@ void MainWindow::onSwitchIconsToTangoAction()
     QString tango = QStringLiteral("tango");
 
     if (QIcon::themeName() == tango) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Already using tango icon theme", this);
+        ErrorString error(QT_TRANSLATE_NOOP("", "Already using tango icon theme"));
         QNDEBUG(error);
         onSetStatusBarText(error.localizedString());
         return;
@@ -3092,7 +3092,7 @@ void MainWindow::persistChosenNoteSortingMode(int index)
         ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
                                             "the selected note sorting mode, "
                                             "can't convert the current account "
-                                            "to the string key", this));
+                                            "to the string key"));
         QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
         onSetStatusBarText(error.localizedString());
         return;
