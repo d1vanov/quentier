@@ -457,19 +457,6 @@ endif()
 
 qt_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
-add_library(${PROJECT_NAME} SHARED
-            ${${PROJECT_NAME}_HEADERS}
-            ${${PROJECT_NAME}_SOURCES}
-            ${${PROJECT_NAME}_RESOURCES_RCC}
-            ${${PROJECT_NAME}_FORMS_HEADERS})
-set_target_properties(${PROJECT_NAME} PROPERTIES
-                      PREFIX ""
-                      VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
-                      SOVERSION "${PROJECT_VERSION_MAJOR}"
-                      MACOSX_RPATH 1
-                      INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
-
 set(${PROJECT_NAME}_TR_SOURCES
     ${${PROJECT_NAME}_HEADERS}
     ${${PROJECT_NAME}_SOURCES}
@@ -479,22 +466,28 @@ set(${PROJECT_NAME}_TR_FILES
     translations/libquentier_ru.ts)
 
 if(UPDATE_TRANSLATIONS)
-  qt_create_translation(${PROJECT_NAME}_TRANSLATION ${${PROJECT_NAME}_TR_SOURCES} ${${PROJECT_NAME}_TR_FILES})
+  qt_create_translation(${PROJECT_NAME}_MESSAGES ${${PROJECT_NAME}_TR_SOURCES} ${${PROJECT_NAME}_TR_FILES})
   qt_add_translation(${PROJECT_NAME}_QM_FILES ${${PROJECT_NAME}_TR_FILES})
-  add_custom_target(${PROJECT_NAME}_TRANSLATION_TARGET DEPENDS ${${PROJECT_NAME}_TRANSLATION})
-  add_custom_target(${PROJECT_NAME}_QM_FILES_TARGET DEPENDS ${${PROJECT_NAME}_QM_FILES})
-
-  if(NOT QT_TRANSLATIONS_DIR)
-    # This means Qt5 is used
-    get_target_property(QT5_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-    # Ask Qt5 of the most appropriate location for translations
-    execute_process(COMMAND ${QT5_QMAKE_EXECUTABLE} -query QT_INSTALL_TRANSLATIONS
-                    OUTPUT_VARIABLE qt_translations_dir OUTPUT_STRIP_TRAILING_WHITESPACE)
-    # Make sure to replace \ with / on Windows
-    file(TO_CMAKE_PATH "${qt_translations_dir}" qt_translations_dir)
-    set(QT_TRANSLATIONS_DIR ${qt_translations_dir} CACHE PATH "The location of the Qt translations" FORCE)
-  endif()
+  add_custom_target(${PROJECT_NAME}_messages DEPENDS ${${PROJECT_NAME}_TRANSLATION})
+  add_custom_target(${PROJECT_NAME}_translations DEPENDS ${${PROJECT_NAME}_QM_FILES})
+else()
+  set(${PROJECT_NAME}_QM_FILES "")
 endif()
+
+add_library(${PROJECT_NAME} SHARED
+            ${${PROJECT_NAME}_HEADERS}
+            ${${PROJECT_NAME}_SOURCES}
+            ${${PROJECT_NAME}_RESOURCES_RCC}
+            ${${PROJECT_NAME}_FORMS_HEADERS}
+            ${${PROJECT_NAME}_QM_FILES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+                      PREFIX ""
+                      VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
+                      SOVERSION "${PROJECT_VERSION_MAJOR}"
+                      MACOSX_RPATH 1
+                      INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
 
 set(TEST_HEADERS
     src/tests/EncryptionManagerTests.h
@@ -571,37 +564,37 @@ install(TARGETS ${PROJECT_NAME}
 
 # install headers
 foreach(ITEM ${NOTE_EDITOR_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/note_editor)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/note_editor)
 endforeach()
 
 foreach(ITEM ${TYPES_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/types)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/types)
 endforeach()
 
 foreach(ITEM ${ENML_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/enml)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/enml)
 endforeach()
 
 foreach(ITEM ${LOCAL_STORAGE_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/local_storage)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/local_storage)
 endforeach()
 
 foreach(ITEM ${SYNCHRONIZATION_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/synchronization)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/synchronization)
 endforeach()
 
 foreach(ITEM ${LOGGING_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/logging)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/logging)
 endforeach()
 
 foreach(ITEM ${EXCEPTION_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/exception)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/exception)
 endforeach()
 
 foreach(ITEM ${UTILITY_HEADERS})
-  install(FILES ${ITEM} DESTINATION include/quentier/utility)
+  install(FILES ${ITEM} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/quentier/utility)
 endforeach()
 
 if(UPDATE_TRANSLATIONS)
-  install(FILES ${${PROJECT_NAME}_QM_FILES} DESTINATION ${QT_TRANSLATIONS_DIR})
+  install(FILES ${${PROJECT_NAME}_QM_FILES} DESTINATION ${CMAKE_INSTALL_TRANSLATIONSDIR})
 endif()
