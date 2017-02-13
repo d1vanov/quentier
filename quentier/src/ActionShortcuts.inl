@@ -15,6 +15,7 @@ PROCESS_ACTION_SHORTCUT(Paste, QKeySequence::Paste);
 PROCESS_ACTION_SHORTCUT(PasteUnformatted, ShortcutManager::PasteUnformatted);
 PROCESS_ACTION_SHORTCUT(SelectAll, QKeySequence::SelectAll);
 PROCESS_ACTION_SHORTCUT(Delete, QKeySequence::Delete);
+PROCESS_ACTION_SHORTCUT(SaveNote, QKeySequence::Save);
 
 // Find and replace menu
 PROCESS_ACTION_SHORTCUT(FindNote, ShortcutManager::NoteSearch);

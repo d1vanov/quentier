@@ -192,6 +192,8 @@ public Q_SLOTS:
 
     virtual void setBlankPageHtml(const QString & html) Q_DECL_OVERRIDE;
 
+    virtual bool isNoteLoaded() const Q_DECL_OVERRIDE;
+
     virtual void undo() Q_DECL_OVERRIDE;
     virtual void redo() Q_DECL_OVERRIDE;
     virtual void cut() Q_DECL_OVERRIDE;

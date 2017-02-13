@@ -92,6 +92,7 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_pUi->setupUi(this);
 
     m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker);
+    m_pUi->saveNotePushButton->setEnabled(false);
 
     m_pUi->noteNameLineEdit->installEventFilter(this);
 
@@ -604,6 +605,18 @@ void NoteEditorWidget::onSelectAllAction()
     m_pUi->noteEditor->selectAll();
 }
 
+void NoteEditorWidget::onSaveNoteAction()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onSaveNoteAction"));
+
+    if (!m_pUi->noteEditor->isModified()) {
+        return;
+    }
+
+    m_pUi->saveNotePushButton->setEnabled(false);
+    m_pUi->noteEditor->convertToNote();
+}
+
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
 {
     if (!m_pCurrentNote || (m_pCurrentNote->localUid() != note.localUid())) {
@@ -726,6 +739,8 @@ void NoteEditorWidget::onUpdateNoteFailed(Note note, bool updateResources, bool 
               << (updateResources ? QStringLiteral("true") : QStringLiteral("false")) << QStringLiteral(", update tags = ")
               << (updateTags ? QStringLiteral("true") : QStringLiteral("false"))
               << QStringLiteral(", error description: ") << errorDescription << QStringLiteral("\nRequest id = ") << requestId);
+
+    m_pUi->saveNotePushButton->setEnabled(true);
 
     ErrorString error(QT_TRANSLATE_NOOP("", "Failed to save the updated note"));
     error.additionalBases().append(errorDescription.base());
@@ -890,6 +905,20 @@ void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
 {
     QNTRACE(QStringLiteral("NoteEditorWidget::onNoteTitleEdited: ") << noteTitle);
     m_noteTitleIsEdited = true;
+}
+
+void NoteEditorWidget::onNoteEditorContentChanged()
+{
+    QNTRACE(QStringLiteral("NoteEditorWidget::onNoteEditorContentChanged"));
+
+    if (!m_pUi->noteEditor->isNoteLoaded()) {
+        QNTRACE(QStringLiteral("The note is still being loaded"));
+        return;
+    }
+
+    if (Q_LIKELY(m_pUi->noteEditor->isModified())) {
+        m_pUi->saveNotePushButton->setEnabled(true);
+    }
 }
 
 void NoteEditorWidget::onNoteTitleUpdated()
@@ -1238,7 +1267,13 @@ void NoteEditorWidget::onEditorSpellCheckerReady()
 
 void NoteEditorWidget::onEditorHtmlUpdate(QString html)
 {
+    QNTRACE(QStringLiteral("NoteEditorWidget::onEditorHtmlUpdate"));
+
     m_lastNoteEditorHtml = html;
+
+    if (Q_LIKELY(m_pUi->noteEditor->isModified())) {
+        m_pUi->saveNotePushButton->setEnabled(true);
+    }
 
     if (!m_pUi->noteSourceView->isVisible()) {
         return;
@@ -1410,6 +1445,8 @@ void NoteEditorWidget::updateNoteInLocalStorage()
         return;
     }
 
+    m_pUi->saveNotePushButton->setEnabled(false);
+
     qint64 newModificationTimestamp = QDateTime::currentMSecsSinceEpoch();
     m_pCurrentNote->setModificationTimestamp(newModificationTimestamp);
 
@@ -1467,6 +1504,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteLoaded),
                      this, QNSIGNAL(NoteEditorWidget,noteLoaded));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,contentChanged),
+                     this, QNSLOT(NoteEditorWidget,onNoteEditorContentChanged));
 
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textBoldState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldStateChanged,bool));
@@ -1566,6 +1605,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      m_pUi->noteEditor, QNSLOT(NoteEditor,undo));
     QObject::connect(m_pUi->redoPushButton, QNSIGNAL(QPushButton,clicked),
                      m_pUi->noteEditor, QNSLOT(NoteEditor,redo));
+    QObject::connect(m_pUi->saveNotePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NoteEditorWidget,onSaveNoteAction));
 }
 
 void NoteEditorWidget::clear()

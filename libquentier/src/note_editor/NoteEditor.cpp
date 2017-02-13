@@ -88,6 +88,11 @@ bool NoteEditor::isModified() const
     return m_backend->isModified();
 }
 
+bool NoteEditor::isNoteLoaded() const
+{
+    return m_backend->isNoteLoaded();
+}
+
 void NoteEditor::setFocus()
 {
     m_backend->setFocusToEditor();

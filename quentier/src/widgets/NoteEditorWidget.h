@@ -228,6 +228,8 @@ public Q_SLOTS:
 
     void onSelectAllAction();
 
+    void onSaveNoteAction();
+
     // Slots for find and replace actions
     void onFindInsideNoteAction();
     void onFindPreviousInsideNoteAction();
@@ -254,6 +256,12 @@ private Q_SLOTS:
      * edit has started (so the line edit has "more recent" title that the note itself)
      */
     void onNoteTitleEdited(const QString & noteTitle);
+
+    /**
+     * @brief onNoteEditorContentChanged is called when the note editor emits
+     * @link contentChanged @endlink signal
+     */
+    void onNoteEditorContentChanged();
 
     /**
      * This slot is called when the editing of the note title should be considered finished

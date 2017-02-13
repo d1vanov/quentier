@@ -112,6 +112,7 @@ private Q_SLOTS:
     void onNoteTextRemoveHyperlinkAction();
     void onNoteTextSpellCheckToggled();
     void onShowNoteSource();
+    void onSaveNoteAction();
 
     void onFindInsideNoteAction();
     void onFindPreviousInsideNoteAction();

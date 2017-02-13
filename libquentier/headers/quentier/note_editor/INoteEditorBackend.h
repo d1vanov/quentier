@@ -50,6 +50,8 @@ public:
 
     virtual void setBlankPageHtml(const QString & html) = 0;
 
+    virtual bool isNoteLoaded() const = 0;
+
     virtual void convertToNote() = 0;
     virtual void undo() = 0;
     virtual void redo() = 0;

@@ -322,6 +322,15 @@ void NoteEditorPrivate::setBlankPageHtml(const QString & html)
     }
 }
 
+bool NoteEditorPrivate::isNoteLoaded() const
+{
+    if (!m_pNote || !m_pNotebook) {
+        return false;
+    }
+
+    return !m_pendingNotePageLoad && !m_pendingJavaScriptExecution;
+}
+
 void NoteEditorPrivate::onNoteLoadFinished(bool ok)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onNoteLoadFinished: ok = ") << (ok ? QStringLiteral("true") : QStringLiteral("false")));
@@ -3916,6 +3925,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
                      q, QNSIGNAL(NoteEditor,noteEditorHtmlUpdated,QString));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,currentNoteChanged,Note),
                      q, QNSIGNAL(NoteEditor,currentNoteChanged,Note));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,contentChanged),
+                     q, QNSIGNAL(NoteEditor,contentChanged));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerNotReady),
                      q, QNSIGNAL(NoteEditor,spellCheckerNotReady));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerReady),

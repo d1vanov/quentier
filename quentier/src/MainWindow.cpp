@@ -302,6 +302,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onNoteTextCopyHyperlinkAction));
     QObject::connect(m_pUI->ActionRemoveHyperlink, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNoteTextRemoveHyperlinkAction));
+    QObject::connect(m_pUI->ActionSaveNote, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onSaveNoteAction));
     // Toggle view actions
     QObject::connect(m_pUI->ActionShowSidePanel, QNSIGNAL(QAction,toggled,bool),
                      this, QNSLOT(MainWindow,onShowSidePanelActionToggled,bool));
@@ -1521,17 +1523,29 @@ void MainWindow::onShowNoteSource()
 {
     QNDEBUG(QStringLiteral("MainWindow::onShowNoteSource"));
 
-    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
-    if (!noteEditorWidget) {
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditor();
+    if (!pNoteEditorWidget) {
         return;
     }
 
-    if (!noteEditorWidget->isNoteSourceShown()) {
-        noteEditorWidget->showNoteSource();
+    if (!pNoteEditorWidget->isNoteSourceShown()) {
+        pNoteEditorWidget->showNoteSource();
     }
     else {
-        noteEditorWidget->hideNoteSource();
+        pNoteEditorWidget->hideNoteSource();
     }
+}
+
+void MainWindow::onSaveNoteAction()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSaveNoteAction"));
+
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditor();
+    if (!pNoteEditorWidget) {
+        return;
+    }
+
+    pNoteEditorWidget->onSaveNoteAction();
 }
 
 void MainWindow::onCreateNotebookButtonPressed()

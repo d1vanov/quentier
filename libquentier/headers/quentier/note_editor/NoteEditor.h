@@ -98,6 +98,12 @@ public:
     bool isModified() const;
 
     /**
+     * @return true if the note last set to the editor has been fully loaded already,
+     * false otherwise
+     */
+    bool isNoteLoaded() const;
+
+    /**
      * Sets the focus to the backend note editor widget
      */
     void setFocus();
