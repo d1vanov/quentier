@@ -4,12 +4,18 @@
 
 namespace quentier {
 
-ErrorString::ErrorString(const QString & base, const QString & details) :
+ErrorString::ErrorString(const char * error) :
     Printable(),
     d(new ErrorStringData)
 {
-    d->m_base = base;
-    d->m_details = details;
+    d->m_base = QString::fromUtf8(error);
+}
+
+ErrorString::ErrorString(const QString & error) :
+    Printable(),
+    d(new ErrorStringData)
+{
+    d->m_base = error;
 }
 
 ErrorString::ErrorString(const ErrorString & other) :

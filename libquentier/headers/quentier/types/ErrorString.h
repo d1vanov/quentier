@@ -38,7 +38,8 @@ QT_FORWARD_DECLARE_CLASS(ErrorStringData)
 class QUENTIER_EXPORT ErrorString: public Printable
 {
 public:
-    explicit ErrorString(const QString & base = QString(), const QString & details = QString());
+    explicit ErrorString(const char * error = Q_NULLPTR);
+    explicit ErrorString(const QString & error);
     ErrorString(const ErrorString & other);
     ErrorString & operator=(const ErrorString & other);
     virtual ~ErrorString();
