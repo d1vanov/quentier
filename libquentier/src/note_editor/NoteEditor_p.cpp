@@ -495,7 +495,7 @@ void NoteEditorPrivate::onContentChanged()
         pushNoteContentEditUndoCommand();
     }
 
-    m_modified = true;
+    setModified();
 
     if (Q_LIKELY(m_watchingForContentChange)) {
         m_contentChangedSinceWatchingStart = true;
@@ -778,6 +778,8 @@ void NoteEditorPrivate::onResourceFileReadFromStorage(QUuid requestId, QByteArra
         return;
     }
 
+    setModified();
+
     if (!oldResourceHash.isEmpty() && (oldResourceHash != dataHash))
     {
         m_resourceInfo.removeResourceInfo(oldResourceHash);
@@ -868,6 +870,8 @@ void NoteEditorPrivate::onHyperlinkClicked(QUrl url)
 void NoteEditorPrivate::onToDoCheckboxClicked(quint64 enToDoCheckboxId)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onToDoCheckboxClicked: ") << enToDoCheckboxId);
+
+    setModified();
 
     ToDoCheckboxUndoCommand * pCommand = new ToDoCheckboxUndoCommand(enToDoCheckboxId, *this);
     QObject::connect(pCommand, QNSIGNAL(ToDoCheckboxUndoCommand,notifyError,ErrorString),
@@ -1343,6 +1347,7 @@ void NoteEditorPrivate::onAddResourceDelegateFinished(Resource addedResource, QS
         delegate->deleteLater();
     }
 
+    setModified();
     convertToNote();
 }
 
@@ -1505,6 +1510,9 @@ void NoteEditorPrivate::onImageResourceRotationDelegateFinished(QByteArray resou
     }
 
     highlightRecognizedImageAreas(m_lastSearchHighlightedText, m_lastSearchHighlightedTextCaseSensitivity);
+
+    setModified();
+    convertToNote();
 }
 
 void NoteEditorPrivate::onImageResourceRotationDelegateError(ErrorString error)
@@ -1552,6 +1560,8 @@ void NoteEditorPrivate::onHideDecryptedTextFinished(const QVariant & data, const
         emit notifyError(error);
         return;
     }
+
+    setModified();
 
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
     provideSrcAndOnClickScriptForImgEnCryptTags();
@@ -1623,6 +1633,7 @@ void NoteEditorPrivate::onEncryptSelectedTextDelegateFinished()
         delegate->deleteLater();
     }
 
+    setModified();
     convertToNote();
 
 #ifdef QUENTIER_USE_QT_WEB_ENGINE
@@ -1698,6 +1709,8 @@ void NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished(QString encrypted
                                                                bool decryptPermanently)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onDecryptEncryptedTextDelegateFinished"));
+
+    setModified();
 
     EncryptDecryptUndoCommandInfo info;
     info.m_encryptedText = encryptedText;
@@ -1814,6 +1827,7 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextDelegateFinished()
         delegate->deleteLater();
     }
 
+    setModified();
     convertToNote();
 }
 
@@ -1879,6 +1893,8 @@ void NoteEditorPrivate::onAddHyperlinkToSelectedTextUndoRedoFinished(const QVari
 void NoteEditorPrivate::onEditHyperlinkDelegateFinished()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onEditHyperlinkDelegateFinished"));
+
+    setModified();
 
     EditHyperlinkUndoCommand * pCommand =
         new EditHyperlinkUndoCommand(*this, NoteEditorCallbackFunctor<QVariant>(this, &NoteEditorPrivate::onEditHyperlinkUndoRedoFinished));
@@ -1957,6 +1973,8 @@ void NoteEditorPrivate::onEditHyperlinkUndoRedoFinished(const QVariant & data, c
 void NoteEditorPrivate::onRemoveHyperlinkDelegateFinished()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onRemoveHyperlinkDelegateFinished"));
+
+    setModified();
 
     RemoveHyperlinkUndoCommand * pCommand =
         new RemoveHyperlinkUndoCommand(*this,
@@ -2373,8 +2391,8 @@ void NoteEditorPrivate::changeFontSize(const bool increase)
 void NoteEditorPrivate::changeIndentation(const bool increase)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::changeIndentation: increase = ") << (increase ? QStringLiteral("true") : QStringLiteral("false")));
-
     execJavascriptCommand(increase ? QStringLiteral("indent") : QStringLiteral("outdent"));
+    setModified();
 }
 
 void NoteEditorPrivate::findText(const QString & textToFind, const bool matchCase, const bool searchBackward,
@@ -3496,7 +3514,7 @@ void NoteEditorPrivate::updateResource(const QString & resourceLocalUid, const Q
         return;
     }
 
-    emit currentNoteChanged(*m_pNote);
+    emit convertedToNote(*m_pNote);
 
     m_resourceInfo.removeResourceInfo(previousResourceHash);
 
@@ -3910,6 +3928,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
     QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
                      this, QNSIGNAL(NoteEditorPrivate,contentChanged));
     QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
+                     this, QNSIGNAL(NoteEditorPrivate,noteModified));
+    QObject::connect(m_pPageMutationHandler, QNSIGNAL(PageMutationHandler,contentsChanged),
                      this, QNSLOT(NoteEditorPrivate,onContentChanged));
     QObject::connect(m_pContextMenuEventJavaScriptHandler, QNSIGNAL(ContextMenuEventJavaScriptHandler,contextMenuEventReply,QString,QString,bool,QStringList,quint64),
                      this, QNSLOT(NoteEditorPrivate,onContextMenuEventReply,QString,QString,bool,QStringList,quint64));
@@ -3927,6 +3947,8 @@ void NoteEditorPrivate::setupGeneralSignalSlotConnections()
                      q, QNSIGNAL(NoteEditor,currentNoteChanged,Note));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,contentChanged),
                      q, QNSIGNAL(NoteEditor,contentChanged));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,noteModified),
+                     q, QNSIGNAL(NoteEditor,noteModified));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerNotReady),
                      q, QNSIGNAL(NoteEditor,spellCheckerNotReady));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,spellCheckerReady),
@@ -4217,6 +4239,9 @@ void NoteEditorPrivate::onPageHtmlReceived(const QString & html,
 
     m_pNote->setContent(m_enmlCachedMemory);
     m_pendingConversionToNote = false;
+
+    m_modified = false;
+
     emit convertedToNote(*m_pNote);
 }
 
@@ -4245,6 +4270,7 @@ void NoteEditorPrivate::onTableActionDone(const QVariant & dummy, const QVector<
     Q_UNUSED(dummy);
     Q_UNUSED(extraData);
 
+    setModified();
     convertToNote();
 }
 
@@ -4930,6 +4956,7 @@ void NoteEditorPrivate::updateFromNote()
 void NoteEditorPrivate::setNoteHtml(const QString & html)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setNoteHtml"));
+
     m_pendingConversionToNote = true;
     onPageHtmlReceived(html);
 
@@ -4949,6 +4976,7 @@ void NoteEditorPrivate::addResourceToNote(const Resource & resource)
     }
 
     m_pNote->addResource(resource);
+    emit convertedToNote(*m_pNote);
 
     if (resource.hasDataHash() && resource.hasRecognitionDataBody())
     {
@@ -4958,8 +4986,6 @@ void NoteEditorPrivate::addResourceToNote(const Resource & resource)
             QNDEBUG(QStringLiteral("Set recognition indices for new resource: ") << recoIndices);
         }
     }
-
-    emit currentNoteChanged(*m_pNote);
 
     saveResourceToLocalFile(resource);
 }
@@ -4977,6 +5003,7 @@ void NoteEditorPrivate::removeResourceFromNote(const Resource & resource)
     }
 
     m_pNote->removeResource(resource);
+    emit convertedToNote(*m_pNote);
 
     if (resource.hasDataHash())
     {
@@ -4991,9 +5018,6 @@ void NoteEditorPrivate::removeResourceFromNote(const Resource & resource)
             Q_UNUSED(m_genericResourceImageFilePathsByResourceHash.erase(imageIt))
         }
     }
-
-
-    emit currentNoteChanged(*m_pNote);
 }
 
 void NoteEditorPrivate::replaceResourceInNote(const Resource & resource)
@@ -5055,6 +5079,8 @@ void NoteEditorPrivate::setNoteResources(const QList<Resource> & resources)
     }
 
     m_pNote->setResources(resources);
+    emit convertedToNote(*m_pNote);
+
     rebuildRecognitionIndicesCache();
 }
 
@@ -5067,6 +5093,22 @@ void NoteEditorPrivate::setFocusToEditor()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setFocusToEditor"));
     setFocus();
+}
+
+void NoteEditorPrivate::setModified()
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::setModified"));
+
+    if (!m_pNote) {
+        QNDEBUG(QStringLiteral("No note is set to the editor"));
+        return;
+    }
+
+    if (!m_modified) {
+        m_modified = true;
+        QNTRACE(QStringLiteral("Emitting noteModified signal"));
+        emit noteModified();
+    }
 }
 
 QString NoteEditorPrivate::noteEditorPagePath() const
@@ -5235,6 +5277,8 @@ const Resource NoteEditorPrivate::attachResourceToNote(const QByteArray & data, 
     }
 
     m_pNote->addResource(resource);
+    emit convertedToNote(*m_pNote);
+
     return resource;
 }
 
@@ -5293,7 +5337,11 @@ void NoteEditorPrivate::undo()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::undo"));
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't perform undo"))
-    m_pUndoStack->undo();
+
+    if (m_pUndoStack->canUndo()) {
+        m_pUndoStack->undo();
+        setModified();
+    }
 }
 
 void NoteEditorPrivate::redo()
@@ -5301,7 +5349,11 @@ void NoteEditorPrivate::redo()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::redo"));
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't perform redo"))
-    m_pUndoStack->redo();
+
+    if (m_pUndoStack->canRedo()) {
+        m_pUndoStack->redo();
+        setModified();
+    }
 }
 
 void NoteEditorPrivate::undoPageAction()
@@ -5312,6 +5364,7 @@ void NoteEditorPrivate::undoPageAction()
 
     GET_PAGE()
     page->executeJavaScript(QStringLiteral("textEditingUndoRedoManager.undo()"));
+    setModified();
     updateJavaScriptBindings();
 }
 
@@ -5323,6 +5376,8 @@ void NoteEditorPrivate::redoPageAction()
 
     GET_PAGE()
     page->executeJavaScript(QStringLiteral("textEditingUndoRedoManager.redo()"));
+    setModified();
+    updateJavaScriptBindings();
 }
 
 void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
@@ -5334,6 +5389,7 @@ void NoteEditorPrivate::flipEnToDoCheckboxState(const quint64 enToDoIdNumber)
     GET_PAGE()
     QString javascript = QString("flipEnToDoCheckboxState(%1);").arg(QString::number(enToDoIdNumber));
     page->executeJavaScript(javascript);
+    setModified();
 }
 
 qint64 NoteEditorPrivate::noteResourcesSize() const
@@ -5633,6 +5689,7 @@ void NoteEditorPrivate::paste()
     if (Q_UNLIKELY(!pClipboard)) {
         QNWARNING(QStringLiteral("Can't access the application clipboard to analyze the pasted content"));
         page->triggerAction(WebPage::Paste);
+        setModified();
         return;
     }
 
@@ -5657,6 +5714,7 @@ void NoteEditorPrivate::paste()
         if (!url.isValid()) {
             QNTRACE(QStringLiteral("The pasted text seemed like file url but the url isn't valid after all, fallback to simple paste"));
             page->triggerAction(WebPage::Paste);
+            setModified();
         }
         else {
             dropFile(url.toLocalFile());
@@ -5672,6 +5730,7 @@ void NoteEditorPrivate::paste()
     if (!url.isValid()) {
         QNDEBUG(QStringLiteral("It appears we don't paste a url"));
         page->triggerAction(WebPage::Paste);
+        setModified();
         return;
     }
 
@@ -5693,6 +5752,7 @@ void NoteEditorPrivate::pasteUnformatted()
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't paste the unformatted text"));
     GET_PAGE()
     page->triggerAction(WebPage::PasteAndMatchStyle);
+    setModified();
 }
 
 void NoteEditorPrivate::selectAll()
@@ -5732,6 +5792,7 @@ void NoteEditorPrivate::cut()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::cut"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't cut note content"))
     execJavascriptCommand(QStringLiteral("cut"));
+    setModified();
 }
 
 void NoteEditorPrivate::textBold()
@@ -5739,6 +5800,7 @@ void NoteEditorPrivate::textBold()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::textBold"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't toggle bold text"))
     execJavascriptCommand(QStringLiteral("bold"));
+    setModified();
 }
 
 void NoteEditorPrivate::textItalic()
@@ -5746,6 +5808,7 @@ void NoteEditorPrivate::textItalic()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::textItalic"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't toggle italic text"))
     execJavascriptCommand(QStringLiteral("italic"));
+    setModified();
 }
 
 void NoteEditorPrivate::textUnderline()
@@ -5753,6 +5816,7 @@ void NoteEditorPrivate::textUnderline()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::textUnderline"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't toggle underline text"))
     execJavascriptCommand(QStringLiteral("underline"));
+    setModified();
 }
 
 void NoteEditorPrivate::textStrikethrough()
@@ -5760,6 +5824,7 @@ void NoteEditorPrivate::textStrikethrough()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::textStrikethrough"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't toggle strikethrough text"))
     execJavascriptCommand(QStringLiteral("strikethrough"));
+    setModified();
 }
 
 void NoteEditorPrivate::textHighlight()
@@ -5768,6 +5833,7 @@ void NoteEditorPrivate::textHighlight()
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't highlight text"))
     setBackgroundColor(QColor(255, 255, 127));
+    setModified();
 }
 
 void NoteEditorPrivate::alignLeft()
@@ -5775,6 +5841,7 @@ void NoteEditorPrivate::alignLeft()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::alignLeft"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't justify the text to the left"))
     execJavascriptCommand(QStringLiteral("justifyleft"));
+    setModified();
 }
 
 void NoteEditorPrivate::alignCenter()
@@ -5782,6 +5849,7 @@ void NoteEditorPrivate::alignCenter()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::alignCenter"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't justify the text to the center"))
     execJavascriptCommand(QStringLiteral("justifycenter"));
+    setModified();
 }
 
 void NoteEditorPrivate::alignRight()
@@ -5789,6 +5857,7 @@ void NoteEditorPrivate::alignRight()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::alignRight"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't justify the text to the right"))
     execJavascriptCommand(QStringLiteral("justifyright"));
+    setModified();
 }
 
 QString NoteEditorPrivate::selectedText() const
@@ -5873,7 +5942,9 @@ void NoteEditorPrivate::onReplaceJavaScriptDone(const QVariant & data)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onReplaceJavaScriptDone"));
 
-    Q_UNUSED(data);
+    Q_UNUSED(data)
+
+    setModified();
     convertToNote();
 }
 
@@ -5889,6 +5960,7 @@ void NoteEditorPrivate::insertToDoCheckbox()
     javascript += m_setupEnToDoTagsJs;
 
     page->executeJavaScript(javascript);
+    setModified();
 }
 
 void NoteEditorPrivate::setSpellcheck(const bool enabled)
@@ -5933,6 +6005,10 @@ void NoteEditorPrivate::setFont(const QFont & font)
     QString fontName = font.family();
     execJavascriptCommand(QStringLiteral("fontName"), fontName);
     emit textFontFamilyChanged(font.family());
+
+    if (hasSelection()) {
+        setModified();
+    }
 }
 
 void NoteEditorPrivate::setFontHeight(const int height)
@@ -5953,6 +6029,10 @@ void NoteEditorPrivate::setFontHeight(const int height)
     GET_PAGE()
     page->executeJavaScript(QStringLiteral("changeFontSizeForSelection(") + QString::number(height) + QStringLiteral(");"));
     emit textFontSizeChanged(height);
+
+    if (hasSelection()) {
+        setModified();
+    }
 }
 
 void NoteEditorPrivate::setFontColor(const QColor & color)
@@ -5971,6 +6051,10 @@ void NoteEditorPrivate::setFontColor(const QColor & color)
     }
 
     execJavascriptCommand(QStringLiteral("foreColor"), color.name());
+
+    if (hasSelection()) {
+        setModified();
+    }
 }
 
 void NoteEditorPrivate::setBackgroundColor(const QColor & color)
@@ -5989,6 +6073,10 @@ void NoteEditorPrivate::setBackgroundColor(const QColor & color)
     }
 
     execJavascriptCommand(QStringLiteral("hiliteColor"), color.name());
+
+    if (hasSelection()) {
+        setModified();
+    }
 }
 
 void NoteEditorPrivate::insertHorizontalLine()
@@ -5997,6 +6085,7 @@ void NoteEditorPrivate::insertHorizontalLine()
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't insert a horizontal line"))
     execJavascriptCommand(QStringLiteral("insertHorizontalRule"));
+    setModified();
 }
 
 void NoteEditorPrivate::increaseFontSize()
@@ -6025,6 +6114,7 @@ void NoteEditorPrivate::insertBulletedList()
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't insert an unordered list"))
     execJavascriptCommand(QStringLiteral("insertUnorderedList"));
+    setModified();
 }
 
 void NoteEditorPrivate::insertNumberedList()
@@ -6033,6 +6123,7 @@ void NoteEditorPrivate::insertNumberedList()
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't insert a numbered list"))
     execJavascriptCommand(QStringLiteral("insertOrderedList"));
+    setModified();
 }
 
 void NoteEditorPrivate::insertTableDialog()
@@ -6045,7 +6136,7 @@ void NoteEditorPrivate::insertTableDialog()
 
 #define CHECK_NUM_COLUMNS() \
     if (columns <= 0) { \
-        ErrorString error(QT_TRANSLATE_NOOP("", "detected attempt to insert table with bad number of columns")); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected attempt to insert a table with negative or zero number of columns")); \
         error.details() = QString::number(columns); \
         QNWARNING(error); \
         emit notifyError(error); \
@@ -6054,7 +6145,7 @@ void NoteEditorPrivate::insertTableDialog()
 
 #define CHECK_NUM_ROWS() \
     if (rows <= 0) { \
-        ErrorString error(QT_TRANSLATE_NOOP("", "detected attempt to insert table with bad number of rows")); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "detected attempt to insert a table with negative or zero number of rows")); \
         error.details() = QString::number(rows); \
         QNWARNING(error); \
         emit notifyError(error); \
@@ -6104,6 +6195,7 @@ void NoteEditorPrivate::insertFixedWidthTable(const int rows, const int columns,
     QString htmlTable = composeHtmlTable(widthInPixels, singleColumnWidth, rows, columns,
                                          /* relative = */ false);
     execJavascriptCommand(QStringLiteral("insertHTML"), htmlTable);
+    setModified();
     updateColResizableTableBindings();
 }
 
@@ -6140,6 +6232,7 @@ void NoteEditorPrivate::insertRelativeWidthTable(const int rows, const int colum
     QString htmlTable = composeHtmlTable(relativeWidth, singleColumnWidth, rows, columns,
                                          /* relative = */ true);
     execJavascriptCommand(QStringLiteral("insertHTML"), htmlTable);
+    setModified();
     updateColResizableTableBindings();
 }
 

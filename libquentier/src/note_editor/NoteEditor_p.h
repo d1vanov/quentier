@@ -101,6 +101,7 @@ public:
 
 Q_SIGNALS:
     void contentChanged();
+    void noteModified();
     void notifyError(ErrorString error) const;
 
     void convertedToNote(Note note);
@@ -157,6 +158,7 @@ public:
                         Resource updatedResource);
 
     Note * notePtr() { return m_pNote.data(); }
+    void setModified();
 
     bool isPageEditable() const { return m_isPageEditable; }
 

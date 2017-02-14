@@ -907,9 +907,9 @@ void NoteEditorWidget::onNoteTitleEdited(const QString & noteTitle)
     m_noteTitleIsEdited = true;
 }
 
-void NoteEditorWidget::onNoteEditorContentChanged()
+void NoteEditorWidget::onNoteEditorModified()
 {
-    QNTRACE(QStringLiteral("NoteEditorWidget::onNoteEditorContentChanged"));
+    QNTRACE(QStringLiteral("NoteEditorWidget::onNoteEditorModified"));
 
     if (!m_pUi->noteEditor->isNoteLoaded()) {
         QNTRACE(QStringLiteral("The note is still being loaded"));
@@ -1504,8 +1504,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorHtmlUpdate,QString));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteLoaded),
                      this, QNSIGNAL(NoteEditorWidget,noteLoaded));
-    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,contentChanged),
-                     this, QNSLOT(NoteEditorWidget,onNoteEditorContentChanged));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,noteModified),
+                     this, QNSLOT(NoteEditorWidget,onNoteEditorModified));
 
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textBoldState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldStateChanged,bool));

@@ -109,7 +109,21 @@ public:
     void setFocus();
 
 Q_SIGNALS:
+    /**
+     * @brief contentChanged signal is emitted when the note's content (text) gets modified via manual editing
+     * (i.e. not any action like paste or cut)
+     */
     void contentChanged();
+
+    /**
+     * @brief noteModified signal is emitted when the note's content within the editor gets modified via some way -
+     * either via manual editing or via some action (like paste or cut)
+     */
+    void noteModified();
+
+    /**
+     * @brief notifyError signal is emitted when NoteEditor encounters some problem worth letting the user to know about
+     */
     void notifyError(ErrorString error);
 
     void convertedToNote(Note note);

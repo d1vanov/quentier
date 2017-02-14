@@ -258,10 +258,9 @@ private Q_SLOTS:
     void onNoteTitleEdited(const QString & noteTitle);
 
     /**
-     * @brief onNoteEditorContentChanged is called when the note editor emits
-     * @link contentChanged @endlink signal
+     * @brief onNoteEditorModified is connected to the note editor's @link noteModified @endlink signal
      */
-    void onNoteEditorContentChanged();
+    void onNoteEditorModified();
 
     /**
      * This slot is called when the editing of the note title should be considered finished
