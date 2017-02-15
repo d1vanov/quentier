@@ -79,6 +79,11 @@ void TextCursorPositionJavaScriptHandler::setTextCursorPositionAlignRightState(b
     emit textCursorPositionAlignRightState(state);
 }
 
+void TextCursorPositionJavaScriptHandler::setTextCursorPositionAlignFullState(bool state)
+{
+    emit textCursorPositionAlignFullState(state);
+}
+
 void TextCursorPositionJavaScriptHandler::setTextCursorPositionInsideOrderedListState(bool insideOrderedList)
 {
     emit textCursorPositionInsideOrderedListState(insideOrderedList);

@@ -45,6 +45,7 @@ Q_SIGNALS:
     void textCursorPositionAlignLeftState(bool state);
     void textCursorPositionAlignCenterState(bool state);
     void textCursorPositionAlignRightState(bool state);
+    void textCursorPositionAlignFullState(bool state);
 
     void textCursorPositionInsideOrderedListState(bool insideOrderedList);
     void textCursorPositionInsideUnorderedListState(bool insideUnorderedList);
@@ -69,6 +70,7 @@ public Q_SLOTS:
     void setTextCursorPositionAlignLeftState(bool state);
     void setTextCursorPositionAlignCenterState(bool state);
     void setTextCursorPositionAlignRightState(bool state);
+    void setTextCursorPositionAlignFullState(bool state);
 
     void setTextCursorPositionInsideOrderedListState(bool insideOrderedList);
     void setTextCursorPositionInsideUnorderedListState(bool insideUnorderedList);

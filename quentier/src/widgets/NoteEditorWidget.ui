@@ -477,6 +477,22 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="formatJustifyFullPushButton">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="icon">
+               <iconset theme="format-justify-fill"/>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="insertToDoCheckboxPushButton">
               <property name="minimumSize">
                <size>

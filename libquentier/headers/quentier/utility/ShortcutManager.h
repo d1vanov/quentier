@@ -67,6 +67,7 @@ public:
         AlignLeft,
         AlignCenter,
         AlignRight,
+        AlignFull,
         IncreaseIndentation,
         DecreaseIndentation,
         IncreaseFontSize,

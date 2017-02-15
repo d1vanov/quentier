@@ -2962,6 +2962,7 @@ border-bottom: 1px solid black;</string>
      <addaction name="ActionAlignLeft"/>
      <addaction name="ActionAlignCenter"/>
      <addaction name="ActionAlignRight"/>
+     <addaction name="ActionAlignFull"/>
     </widget>
     <widget class="QMenu" name="menuImage">
      <property name="title">
@@ -4354,13 +4355,28 @@ border-bottom: 1px solid black;</string>
   </action>
   <action name="ActionSaveNote">
    <property name="icon">
-    <iconset theme="document-save"/>
+    <iconset theme="document-save">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Save note</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WindowShortcut</enum>
+   </property>
+  </action>
+  <action name="ActionAlignFull">
+   <property name="icon">
+    <iconset theme="format-justify-fill"/>
+   </property>
+   <property name="text">
+    <string>Align f&amp;ull</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::WindowShortcut</enum>

@@ -284,6 +284,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onNoteTextAlignCenterAction));
     QObject::connect(m_pUI->ActionAlignRight, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNoteTextAlignRightAction));
+    QObject::connect(m_pUI->ActionAlignFull, QNSIGNAL(QAction,triggered),
+                     this, QNSLOT(MainWindow,onNoteTextAlignFullAction));
     QObject::connect(m_pUI->ActionInsertHorizontalLine, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onNoteTextAddHorizontalLineAction));
     QObject::connect(m_pUI->ActionIncreaseIndentation, QNSIGNAL(QAction,triggered),
@@ -1344,6 +1346,7 @@ DISPATCH_TO_NOTE_EDITOR(onNoteTextStrikethroughToggled, onEditorTextStrikethroug
 DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignLeftAction, onEditorTextAlignLeftAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignCenterAction, onEditorTextAlignCenterAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignRightAction, onEditorTextAlignRightAction)
+DISPATCH_TO_NOTE_EDITOR(onNoteTextAlignFullAction, onEditorTextAlignFullAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextAddHorizontalLineAction, onEditorTextAddHorizontalLineAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextIncreaseFontSizeAction, onEditorTextIncreaseFontSizeAction)
 DISPATCH_TO_NOTE_EDITOR(onNoteTextDecreaseFontSizeAction, onEditorTextDecreaseFontSizeAction)

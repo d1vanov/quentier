@@ -183,6 +183,11 @@ void NoteEditor::alignRight()
     m_backend->alignRight();
 }
 
+void NoteEditor::alignFull()
+{
+    m_backend->alignFull();
+}
+
 QString NoteEditor::selectedText() const
 {
     return m_backend->selectedText();

@@ -1177,6 +1177,18 @@ void NoteEditorPrivate::onTextCursorAlignRightStateChanged(bool state)
     emit textAlignRightState(state);
 }
 
+void NoteEditorPrivate::onTextCursorAlignFullStateChanged(bool state)
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::onTextCursorAlignFullStateChanged: ")
+            << (state ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (state) {
+        m_currentTextFormattingState.m_alignment = Alignment::Full;
+    }
+
+    emit textAlignFullState(state);
+}
+
 void NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged(bool state)
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::onTextCursorInsideOrderedListStateChanged: ")
@@ -4042,6 +4054,8 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
                      this, QNSLOT(NoteEditorPrivate,onTextCursorAlignCenterStateChanged,bool));
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignRightState,bool),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorAlignRightStateChanged,bool));
+    QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionAlignFullState,bool),
+                     this, QNSLOT(NoteEditorPrivate,onTextCursorAlignFullStateChanged,bool));
 
     QObject::connect(m_pTextCursorPositionJavaScriptHandler, QNSIGNAL(TextCursorPositionJavaScriptHandler,textCursorPositionInsideOrderedListState,bool),
                      this, QNSLOT(NoteEditorPrivate,onTextCursorInsideOrderedListStateChanged,bool));
@@ -4073,6 +4087,7 @@ void NoteEditorPrivate::setupTextCursorPositionJavaScriptHandlerConnections()
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignLeftState,bool), q, QNSIGNAL(NoteEditor,textAlignLeftState,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignCenterState,bool), q, QNSIGNAL(NoteEditor,textAlignCenterState,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignRightState,bool), q, QNSIGNAL(NoteEditor,textAlignRightState,bool));
+    QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textAlignFullState,bool), q, QNSIGNAL(NoteEditor,textAlignFullState,bool));
 
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textInsideOrderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool));
     QObject::connect(this, QNSIGNAL(NoteEditorPrivate,textInsideUnorderedListState,bool), q, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool));
@@ -5857,6 +5872,14 @@ void NoteEditorPrivate::alignRight()
     QNDEBUG(QStringLiteral("NoteEditorPrivate::alignRight"));
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't justify the text to the right"))
     execJavascriptCommand(QStringLiteral("justifyright"));
+    setModified();
+}
+
+void NoteEditorPrivate::alignFull()
+{
+    QNDEBUG(QStringLiteral("NoteEditorPrivate::alignFull"));
+    CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't do full text justification"))
+    execJavascriptCommand(QStringLiteral("justifyfull"));
     setModified();
 }
 

@@ -71,6 +71,7 @@ public:
     virtual void alignLeft() = 0;
     virtual void alignCenter() = 0;
     virtual void alignRight() = 0;
+    virtual void alignFull() = 0;
 
     virtual QString selectedText() const = 0;
     virtual bool hasSelection() const = 0;

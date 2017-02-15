@@ -197,6 +197,7 @@ public Q_SLOTS:
     void onEditorTextAlignLeftAction();
     void onEditorTextAlignCenterAction();
     void onEditorTextAlignRightAction();
+    void onEditorTextAlignFullAction();
     void onEditorTextAddHorizontalLineAction();
     void onEditorTextIncreaseFontSizeAction();
     void onEditorTextDecreaseFontSizeAction();
@@ -278,6 +279,7 @@ private Q_SLOTS:
     void onEditorTextAlignLeftStateChanged(bool state);
     void onEditorTextAlignCenterStateChanged(bool state);
     void onEditorTextAlignRightStateChanged(bool state);
+    void onEditorTextAlignFullStateChanged(bool state);
     void onEditorTextInsideOrderedListStateChanged(bool state);
     void onEditorTextInsideUnorderedListStateChanged(bool state);
     void onEditorTextInsideTableStateChanged(bool state);

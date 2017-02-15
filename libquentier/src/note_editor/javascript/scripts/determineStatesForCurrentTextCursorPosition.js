@@ -46,6 +46,7 @@ function determineStatesForCurrentTextCursorPosition() {
     var foundAlignLeft = false;
     var foundAlignCenter = false;
     var foundAlignRight = false;
+    var foundAlignFull = false;
 
     var foundOrderedList = false;
     var foundUnorderedList = false;
@@ -132,7 +133,7 @@ function determineStatesForCurrentTextCursorPosition() {
             console.log("Found table");
         }
 
-        if (!foundAlignLeft && !foundAlignCenter && !foundAlignRight)
+        if (!foundAlignLeft && !foundAlignCenter && !foundAlignRight && !foundAlignFull)
         {
             textAlign = element.style.textAlign;
             if (textAlign) {
@@ -147,6 +148,10 @@ function determineStatesForCurrentTextCursorPosition() {
                 else if (textAlign == "right") {
                     foundAlignRight = true;
                     console.log("Found text align right");
+                }
+                else if (textAlign == "justify") {
+                    foundAlignFull = true;
+                    console.log("Found text align justify");
                 }
             }
             else {
@@ -177,6 +182,7 @@ function determineStatesForCurrentTextCursorPosition() {
     textCursorPositionHandler.setTextCursorPositionAlignLeftState(foundAlignLeft);
     textCursorPositionHandler.setTextCursorPositionAlignCenterState(foundAlignCenter);
     textCursorPositionHandler.setTextCursorPositionAlignRightState(foundAlignRight);
+    textCursorPositionHandler.setTextCursorPositionAlignFullState(foundAlignFull);
 
     textCursorPositionHandler.setTextCursorPositionInsideOrderedListState(foundOrderedList);
     textCursorPositionHandler.setTextCursorPositionInsideUnorderedListState(foundUnorderedList);

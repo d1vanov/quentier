@@ -66,6 +66,7 @@ PROCESS_ACTION_SHORTCUT(RotateCounterClockwise, ShortcutManager::ImageRotateCoun
 PROCESS_ACTION_SHORTCUT(AlignLeft, ShortcutManager::AlignLeft);
 PROCESS_ACTION_SHORTCUT(AlignCenter, ShortcutManager::AlignCenter);
 PROCESS_ACTION_SHORTCUT(AlignRight, ShortcutManager::AlignRight);
+PROCESS_ACTION_SHORTCUT(AlignFull, ShortcutManager::AlignFull);
 
 PROCESS_ACTION_SHORTCUT(InsertBulletedList, ShortcutManager::InsertBulletedList);
 PROCESS_ACTION_SHORTCUT(InsertNumberedList, ShortcutManager::InsertNumberedList);

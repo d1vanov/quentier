@@ -146,6 +146,7 @@ Q_SIGNALS:
     void textAlignLeftState(bool state);
     void textAlignCenterState(bool state);
     void textAlignRightState(bool state);
+    void textAlignFullState(bool state);
     void textInsideOrderedListState(bool state);
     void textInsideUnorderedListState(bool state);
     void textInsideTableState(bool state);
@@ -181,6 +182,7 @@ public Q_SLOTS:
     void alignLeft();
     void alignCenter();
     void alignRight();
+    void alignFull();
 
     QString selectedText() const;
     bool hasSelection() const;

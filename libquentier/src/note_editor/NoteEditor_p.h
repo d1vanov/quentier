@@ -124,6 +124,7 @@ Q_SIGNALS:
     void textAlignLeftState(bool state);
     void textAlignCenterState(bool state);
     void textAlignRightState(bool state);
+    void textAlignFullState(bool state);
     void textInsideOrderedListState(bool state);
     void textInsideUnorderedListState(bool state);
     void textInsideTableState(bool state);
@@ -212,6 +213,7 @@ public Q_SLOTS:
     virtual void alignLeft() Q_DECL_OVERRIDE;
     virtual void alignCenter() Q_DECL_OVERRIDE;
     virtual void alignRight() Q_DECL_OVERRIDE;
+    virtual void alignFull() Q_DECL_OVERRIDE;
 
     virtual QString selectedText() const Q_DECL_OVERRIDE;
     virtual bool hasSelection() const Q_DECL_OVERRIDE;
@@ -355,6 +357,7 @@ private Q_SLOTS:
     void onTextCursorAlignLeftStateChanged(bool state);
     void onTextCursorAlignCenterStateChanged(bool state);
     void onTextCursorAlignRightStateChanged(bool state);
+    void onTextCursorAlignFullStateChanged(bool state);
     void onTextCursorInsideOrderedListStateChanged(bool state);
     void onTextCursorInsideUnorderedListStateChanged(bool state);
     void onTextCursorInsideTableStateChanged(bool state);
@@ -584,7 +587,8 @@ private:
         enum type {
             Left = 0,
             Center,
-            Right
+            Right,
+            Full
         };
     };
 

@@ -452,6 +452,7 @@ void NoteEditorWidget::onEditorTextAlignLeftAction()
     if (m_pUi->formatJustifyLeftPushButton->isChecked()) {
         m_pUi->formatJustifyCenterPushButton->setChecked(false);
         m_pUi->formatJustifyRightPushButton->setChecked(false);
+        m_pUi->formatJustifyFullPushButton->setChecked(false);
     }
 
     m_pUi->noteEditor->alignLeft();
@@ -462,6 +463,7 @@ void NoteEditorWidget::onEditorTextAlignCenterAction()
     if (m_pUi->formatJustifyCenterPushButton->isChecked()) {
         m_pUi->formatJustifyLeftPushButton->setChecked(false);
         m_pUi->formatJustifyRightPushButton->setChecked(false);
+        m_pUi->formatJustifyFullPushButton->setChecked(false);
     }
 
     m_pUi->noteEditor->alignCenter();
@@ -472,9 +474,21 @@ void NoteEditorWidget::onEditorTextAlignRightAction()
     if (m_pUi->formatJustifyRightPushButton->isChecked()) {
         m_pUi->formatJustifyLeftPushButton->setChecked(false);
         m_pUi->formatJustifyCenterPushButton->setChecked(false);
+        m_pUi->formatJustifyFullPushButton->setChecked(false);
     }
 
     m_pUi->noteEditor->alignRight();
+}
+
+void NoteEditorWidget::onEditorTextAlignFullAction()
+{
+    if (m_pUi->formatJustifyFullPushButton->isChecked()) {
+        m_pUi->formatJustifyLeftPushButton->setChecked(false);
+        m_pUi->formatJustifyCenterPushButton->setChecked(false);
+        m_pUi->formatJustifyRightPushButton->setChecked(false);
+    }
+
+    m_pUi->noteEditor->alignFull();
 }
 
 void NoteEditorWidget::onEditorTextAddHorizontalLineAction()
@@ -1043,6 +1057,7 @@ void NoteEditorWidget::onEditorTextAlignLeftStateChanged(bool state)
     if (state) {
         m_pUi->formatJustifyCenterPushButton->setChecked(false);
         m_pUi->formatJustifyRightPushButton->setChecked(false);
+        m_pUi->formatJustifyFullPushButton->setChecked(false);
     }
 }
 
@@ -1056,6 +1071,7 @@ void NoteEditorWidget::onEditorTextAlignCenterStateChanged(bool state)
     if (state) {
         m_pUi->formatJustifyLeftPushButton->setChecked(false);
         m_pUi->formatJustifyRightPushButton->setChecked(false);
+        m_pUi->formatJustifyFullPushButton->setChecked(false);
     }
 }
 
@@ -1069,6 +1085,21 @@ void NoteEditorWidget::onEditorTextAlignRightStateChanged(bool state)
     if (state) {
         m_pUi->formatJustifyLeftPushButton->setChecked(false);
         m_pUi->formatJustifyCenterPushButton->setChecked(false);
+        m_pUi->formatJustifyFullPushButton->setChecked(false);
+    }
+}
+
+void NoteEditorWidget::onEditorTextAlignFullStateChanged(bool state)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onEditorTextAlignFullStateChanged: ")
+            << (state ? QStringLiteral("enabled") : QStringLiteral("disabled")));
+
+    m_pUi->formatJustifyFullPushButton->setChecked(state);
+
+    if (state) {
+        m_pUi->formatJustifyLeftPushButton->setChecked(false);
+        m_pUi->formatJustifyCenterPushButton->setChecked(false);
+        m_pUi->formatJustifyRightPushButton->setChecked(false);
     }
 }
 
@@ -1523,6 +1554,8 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorTextAlignCenterStateChanged,bool));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textAlignRightState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextAlignRightStateChanged,bool));
+    QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textAlignFullState,bool),
+                     this, QNSLOT(NoteEditorWidget,onEditorTextAlignFullStateChanged,bool));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textInsideOrderedListState,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorTextInsideOrderedListStateChanged,bool));
     QObject::connect(m_pUi->noteEditor, QNSIGNAL(NoteEditor,textInsideUnorderedListState,bool),
@@ -1559,29 +1592,31 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onReplaceAllInsideNote,const QString&,const QString&,const bool));
 
     // Connect toolbar buttons actions to local slots
-    QObject::connect(m_pUi->fontBoldPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->fontBoldPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextBoldToggled));
-    QObject::connect(m_pUi->fontItalicPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->fontItalicPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextItalicToggled));
-    QObject::connect(m_pUi->fontUnderlinePushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->fontUnderlinePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextUnderlineToggled));
-    QObject::connect(m_pUi->fontStrikethroughPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->fontStrikethroughPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextStrikethroughToggled));
-    QObject::connect(m_pUi->formatJustifyLeftPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatJustifyLeftPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextAlignLeftAction));
-    QObject::connect(m_pUi->formatJustifyCenterPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatJustifyCenterPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextAlignCenterAction));
-    QObject::connect(m_pUi->formatJustifyRightPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatJustifyRightPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextAlignRightAction));
-    QObject::connect(m_pUi->insertHorizontalLinePushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatJustifyFullPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NoteEditorWidget,onEditorTextAlignFullAction));
+    QObject::connect(m_pUi->insertHorizontalLinePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextAddHorizontalLineAction));
-    QObject::connect(m_pUi->formatIndentMorePushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatIndentMorePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextIncreaseIndentationAction));
-    QObject::connect(m_pUi->formatIndentLessPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatIndentLessPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextDecreaseIndentationAction));
-    QObject::connect(m_pUi->formatListUnorderedPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatListUnorderedPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextInsertUnorderedListAction));
-    QObject::connect(m_pUi->formatListOrderedPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->formatListOrderedPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorTextInsertOrderedListAction));
     QObject::connect(m_pUi->chooseTextColorToolButton, QNSIGNAL(ColorPickerToolButton,colorSelected,QColor),
                      this, QNSLOT(NoteEditorWidget,onEditorChooseTextColor,QColor));
@@ -1589,7 +1624,7 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorChooseBackgroundColor,QColor));
     QObject::connect(m_pUi->spellCheckBox, QNSIGNAL(QCheckBox,stateChanged,int),
                      this, QNSLOT(NoteEditorWidget,onEditorSpellCheckStateChanged,int));
-    QObject::connect(m_pUi->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton,released),
+    QObject::connect(m_pUi->insertToDoCheckboxPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(NoteEditorWidget,onEditorInsertToDoCheckBoxAction));
     QObject::connect(m_pUi->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorInsertTable,int,int,double,bool));
