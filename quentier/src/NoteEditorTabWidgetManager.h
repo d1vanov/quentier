@@ -91,6 +91,7 @@ private Q_SLOTS:
 
     void onTabContextMenuRequested(const QPoint & pos);
     void onTabContextMenuCloseEditorAction();
+    void onTabContextMenuSaveNoteAction();
 
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
@@ -105,6 +106,9 @@ private:
     void setupSpellChecker();
 
     QString shortenTabName(const QString & tabName) const;
+
+    void persistLocalUidsOfOpenNotes();
+    void restoreLastOpenNotes();
 
 private:
     Account                             m_currentAccount;

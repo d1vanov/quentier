@@ -236,6 +236,11 @@ bool NoteEditorWidget::isResolved() const
     return !m_pCurrentNote.isNull() && !m_pCurrentNotebook.isNull();
 }
 
+bool NoteEditorWidget::isModified() const
+{
+    return !m_pCurrentNote.isNull() && m_pUi->noteEditor->isModified();
+}
+
 QString NoteEditorWidget::titleOrPreview() const
 {
     if (Q_UNLIKELY(m_pCurrentNote.isNull())) {

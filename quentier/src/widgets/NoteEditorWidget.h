@@ -88,6 +88,12 @@ public:
     bool isResolved() const;
 
     /**
+     * @return true if the widget currently has a note loaded and somehow changed and the change has not yet been saved
+     * within the local storage; false otherwise
+     */
+    bool isModified() const;
+
+    /**
      * @return title or preview text of the note managed by the editor, if any; empty string otherwise
      */
     QString titleOrPreview() const;
