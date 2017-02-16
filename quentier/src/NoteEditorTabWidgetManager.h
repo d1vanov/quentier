@@ -110,6 +110,8 @@ private Q_SLOTS:
 
 private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget, const NoteEditorMode::type noteEditorMode);
+
+    void removeNoteEditorTab(int tabIndex, const bool closeEditor);
     void checkAndCloseOlderNoteEditorTabs();
     void setCurrentNoteEditorWidgetTab(const QString & noteLocalUid);
 

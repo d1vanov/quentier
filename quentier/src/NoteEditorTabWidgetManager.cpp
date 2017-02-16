@@ -407,67 +407,7 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
 void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested: ") << tabIndex);
-
-    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
-    if (Q_UNLIKELY(!pNoteEditorWidget)) {
-        QNWARNING(QStringLiteral("Detected attempt to close the note editor tab but can't cast the tab widget's tab to note editor"));
-        return;
-    }
-
-    if (pNoteEditorWidget == m_pBlankNoteEditor) {
-        QNDEBUG(QStringLiteral("Silently refusing to remove the blank note editor tab"));
-        return;
-    }
-
-    ErrorString errorDescription;
-    NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-    QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
-            << QStringLiteral(", error description: ") << errorDescription);
-
-    QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
-
-    auto it = std::find(m_localUidsOfNotesInTabbedEditors.begin(), m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
-    if (it != m_localUidsOfNotesInTabbedEditors.end()) {
-        Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
-        QNTRACE(QStringLiteral("Removed note local uid ") << pNoteEditorWidget->noteLocalUid());
-        persistLocalUidsOfNotesInEditorTabs();
-    }
-
-    QStringLiteral("Remaining tabbed note local uids: ");
-    for(auto sit = m_localUidsOfNotesInTabbedEditors.begin(), end = m_localUidsOfNotesInTabbedEditors.end(); sit != end; ++sit) {
-        QNTRACE(*sit);
-    }
-
-    if (m_lastCurrentTabNoteLocalUid == noteLocalUid) {
-        m_lastCurrentTabNoteLocalUid.clear();
-        QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
-        emit currentNoteChanged(QString());
-    }
-
-    if (m_pTabWidget->count() == 1)
-    {
-        if (m_pBlankNoteEditor) {
-            m_pBlankNoteEditor->close();
-            m_pBlankNoteEditor = Q_NULLPTR;
-        }
-
-        // That should remove the note from the editor (if any)
-        pNoteEditorWidget->setNoteLocalUid(QString());
-        m_pBlankNoteEditor = pNoteEditorWidget;
-        m_pTabWidget->setTabText(0, BLANK_NOTE_KEY);
-        m_pTabWidget->tabBar()->hide();
-        m_pTabWidget->setTabsClosable(false);
-
-        return;
-    }
-
-    m_pTabWidget->removeTab(tabIndex);
-    Q_UNUSED(pNoteEditorWidget->close());
-
-    if (m_pTabWidget->count() == 1) {
-        m_pTabWidget->tabBar()->hide();
-        m_pTabWidget->setTabsClosable(false);
-    }
+    removeNoteEditorTab(tabIndex, /* close editor = */ true);
 }
 
 void NoteEditorTabWidgetManager::onNoteLoadedInEditor()
@@ -847,6 +787,76 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
     checkAndCloseOlderNoteEditorTabs();
 }
 
+void NoteEditorTabWidgetManager::removeNoteEditorTab(int tabIndex, const bool closeEditor)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::removeNoteEditorTab: tab index = ")
+            << tabIndex << QStringLiteral(", close editor = ") << (closeEditor ? QStringLiteral("true") : QStringLiteral("false")));
+
+    NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(tabIndex));
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        QNWARNING(QStringLiteral("Detected attempt to close the note editor tab but can't cast the tab widget's tab to note editor"));
+        return;
+    }
+
+    if (pNoteEditorWidget == m_pBlankNoteEditor) {
+        QNDEBUG(QStringLiteral("Silently refusing to remove the blank note editor tab"));
+        return;
+    }
+
+    ErrorString errorDescription;
+    NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+    QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+            << QStringLiteral(", error description: ") << errorDescription);
+
+    QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+
+    auto it = std::find(m_localUidsOfNotesInTabbedEditors.begin(), m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
+    if (it != m_localUidsOfNotesInTabbedEditors.end()) {
+        Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
+        QNTRACE(QStringLiteral("Removed note local uid ") << pNoteEditorWidget->noteLocalUid());
+        persistLocalUidsOfNotesInEditorTabs();
+    }
+
+    QStringLiteral("Remaining tabbed note local uids: ");
+    for(auto sit = m_localUidsOfNotesInTabbedEditors.begin(), end = m_localUidsOfNotesInTabbedEditors.end(); sit != end; ++sit) {
+        QNTRACE(*sit);
+    }
+
+    if (m_lastCurrentTabNoteLocalUid == noteLocalUid) {
+        m_lastCurrentTabNoteLocalUid.clear();
+        QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
+        emit currentNoteChanged(QString());
+    }
+
+    if (m_pTabWidget->count() == 1)
+    {
+        if (m_pBlankNoteEditor) {
+            m_pBlankNoteEditor->close();
+            m_pBlankNoteEditor = Q_NULLPTR;
+        }
+
+        // That should remove the note from the editor (if any)
+        pNoteEditorWidget->setNoteLocalUid(QString());
+        m_pBlankNoteEditor = pNoteEditorWidget;
+        m_pTabWidget->setTabText(0, BLANK_NOTE_KEY);
+        m_pTabWidget->tabBar()->hide();
+        m_pTabWidget->setTabsClosable(false);
+
+        return;
+    }
+
+    m_pTabWidget->removeTab(tabIndex);
+
+    if (closeEditor) {
+        Q_UNUSED(pNoteEditorWidget->close());
+    }
+
+    if (m_pTabWidget->count() == 1) {
+        m_pTabWidget->tabBar()->hide();
+        m_pTabWidget->setTabsClosable(false);
+    }
+}
+
 void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditorTabs()
 {
     for(int i = 0; i < m_pTabWidget->count(); ++i)
@@ -977,15 +987,7 @@ void NoteEditorTabWidgetManager::moveNoteEditorTabToWindow(const QString & noteL
             continue;
         }
 
-        m_pTabWidget->removeTab(i);
-
-        auto it = std::find(m_localUidsOfNotesInTabbedEditors.begin(),
-                            m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
-        if (it != m_localUidsOfNotesInTabbedEditors.end()) {
-            Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
-            persistLocalUidsOfNotesInEditorTabs();
-        }
-
+        removeNoteEditorTab(i, /* close editor = */ false);
         insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Window);
         return;
     }
