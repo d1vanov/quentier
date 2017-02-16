@@ -27,6 +27,8 @@
 #include <quentier/types/Note.h>
 #include <QTabWidget>
 #include <QSet>
+#include <QMap>
+#include <QPointer>
 #include <QUuid>
 
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
@@ -63,9 +65,21 @@ public:
 
     int numNotesInTabs() const;
 
-    void addNote(const QString & noteLocalUid);
+    struct NoteEditorMode
+    {
+        enum type
+        {
+            Tab = 0,
+            Window,
+            Any
+        };
+    };
+
+    void addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode = NoteEditorMode::Any);
 
     void createNewNote(const QString & notebookLocalUid, const QString & notebookGuid);
+
+    virtual bool eventFilter(QObject * pWatched, QEvent * pEvent) Q_DECL_OVERRIDE;
 
 Q_SIGNALS:
     void notifyError(ErrorString error);
@@ -92,11 +106,12 @@ private Q_SLOTS:
     void onTabContextMenuRequested(const QPoint & pos);
     void onTabContextMenuCloseEditorAction();
     void onTabContextMenuSaveNoteAction();
+    void onTabContextMenuMoveToWindowAction();
 
 private:
-    void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget);
+    void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget, const NoteEditorMode::type noteEditorMode);
     void checkAndCloseOlderNoteEditorTabs();
-    void setCurrentNoteEditorWidget(const QString & noteLocalUid);
+    void setCurrentNoteEditorWidgetTab(const QString & noteLocalUid);
 
 private:
     void connectToLocalStorage();
@@ -107,7 +122,11 @@ private:
 
     QString shortenTabName(const QString & tabName) const;
 
-    void persistLocalUidsOfOpenNotes();
+    void moveNoteEditorTabToWindow(const QString & noteLocalUid);
+    void moveNoteEditorWindowToTab(NoteEditorWidget * pNoteEditorWidget);
+
+    void persistLocalUidsOfNotesInEditorTabs();
+    void persistLocalUidsOfNotesInEditorWindows();
     void restoreLastOpenNotes();
 
 private:
@@ -128,7 +147,10 @@ private:
     int                                 m_maxNumNotesInTabs;
 
     boost::circular_buffer<QString>     m_localUidsOfNotesInTabbedEditors;
-    QString                             m_lastCurrentNoteLocalUid;
+    QString                             m_lastCurrentTabNoteLocalUid;
+
+    typedef QMap<QString, QPointer<NoteEditorWidget> > NoteEditorWindowsByNoteLocalUid;
+    NoteEditorWindowsByNoteLocalUid     m_noteEditorWindowsByNoteLocalUid;
 
     QSet<QUuid>                         m_createNoteRequestIds;
 

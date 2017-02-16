@@ -39,7 +39,8 @@
 #define BLANK_NOTE_KEY QStringLiteral("BlankNoteId")
 #define MAX_TAB_NAME_SIZE (10)
 
-#define OPEN_NOTES_LOCAL_UIDS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
+#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
+#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")
 
 namespace quentier {
 
@@ -61,7 +62,8 @@ NoteEditorTabWidgetManager::NoteEditorTabWidgetManager(const Account & account, 
     m_pSpellChecker(Q_NULLPTR),
     m_maxNumNotesInTabs(-1),
     m_localUidsOfNotesInTabbedEditors(),
-    m_lastCurrentNoteLocalUid(),
+    m_lastCurrentTabNoteLocalUid(),
+    m_noteEditorWindowsByNoteLocalUid(),
     m_createNoteRequestIds(),
     m_pTabBarContextMenu(Q_NULLPTR)
 {
@@ -161,38 +163,73 @@ int NoteEditorTabWidgetManager::numNotesInTabs() const
     }
 }
 
-void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
+void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid, const NoteEditorMode::type noteEditorMode)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::addNote: ") << noteLocalUid);
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::addNote: ") << noteLocalUid
+            << QStringLiteral(", note editor mode = ") << noteEditorMode);
 
-    // First, check if this note is already open in some existing tab
+    // First, check if this note is already open in some existing tab/window
+
     for(auto it = m_localUidsOfNotesInTabbedEditors.begin(), end = m_localUidsOfNotesInTabbedEditors.end(); it != end; ++it)
     {
-        QNTRACE(QStringLiteral("Examining tabbed note local uid = ") << *it);
+        QNTRACE(QStringLiteral("Examining tab editor's note local uid = ") << *it);
 
         const QString & existingNoteLocalUid = *it;
-        if (Q_UNLIKELY(existingNoteLocalUid == noteLocalUid)) {
-            QNDEBUG(QStringLiteral("The note attempted to be added to the note editor tab widget has already been added to it, "
-                                   "making it the current one"));
-            setCurrentNoteEditorWidget(noteLocalUid);
+        if (Q_UNLIKELY(existingNoteLocalUid == noteLocalUid))
+        {
+            QNDEBUG(QStringLiteral("The requested note is already open within one of note editor tabs"));
+
+            if (noteEditorMode == NoteEditorMode::Window) {
+                moveNoteEditorTabToWindow(noteLocalUid);
+            }
+            else {
+                setCurrentNoteEditorWidgetTab(noteLocalUid);
+            }
+
             return;
         }
     }
 
-    if (m_localUidsOfNotesInTabbedEditors.empty() && m_pBlankNoteEditor)
+    for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(), end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
     {
-        QNDEBUG(QStringLiteral("Currently only the blank note tab is displayed, inserting the new note into its editor"));
+        QNTRACE(QStringLiteral("Examining window editor's note local uid = ") << it.key());
+
+        const QPointer<NoteEditorWidget> & pNoteEditorWidget = it.value();
+        if (pNoteEditorWidget.isNull()) {
+            QNTRACE(QStringLiteral("The note editor widget is gone, skipping"));
+            continue;
+        }
+
+        const QString & existingNoteLocalUid = it.key();
+        if (Q_UNLIKELY(existingNoteLocalUid == noteLocalUid))
+        {
+            QNDEBUG(QStringLiteral("The requested note is already open within one of note editor windows"));
+
+            if (noteEditorMode == NoteEditorMode::Tab) {
+                moveNoteEditorWindowToTab(pNoteEditorWidget.data());
+                setCurrentNoteEditorWidgetTab(noteLocalUid);
+            }
+
+            return;
+        }
+    }
+
+    // If we got here, the note with specified local uid was not found within already open windows or tabs
+
+    if ((noteEditorMode != NoteEditorMode::Window) && m_localUidsOfNotesInTabbedEditors.empty() && m_pBlankNoteEditor)
+    {
+        QNDEBUG(QStringLiteral("Currently only the blank note tab is displayed, inserting the new note into the blank tab"));
         // There's only the blank note's note editor displayed, just set the note into it
         NoteEditorWidget * pNoteEditorWidget = m_pBlankNoteEditor;
         m_pBlankNoteEditor = Q_NULLPTR;
 
         pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
-        insertNoteEditorWidget(pNoteEditorWidget);
+        insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Tab);
 
-        m_lastCurrentNoteLocalUid = noteLocalUid;
-        QNTRACE(QStringLiteral("Emitting the update of last current note local uid to ")
-                << m_lastCurrentNoteLocalUid);
-        emit currentNoteChanged(m_lastCurrentNoteLocalUid);
+        m_lastCurrentTabNoteLocalUid = noteLocalUid;
+        QNTRACE(QStringLiteral("Emitting the update of last current tab note local uid to ")
+                << m_lastCurrentTabNoteLocalUid);
+        emit currentNoteChanged(m_lastCurrentTabNoteLocalUid);
         return;
     }
 
@@ -203,7 +240,7 @@ void NoteEditorTabWidgetManager::addNote(const QString & noteLocalUid)
                                                                 m_tagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
     pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
-    insertNoteEditorWidget(pNoteEditorWidget);
+    insertNoteEditorWidget(pNoteEditorWidget, noteEditorMode);
 }
 
 void NoteEditorTabWidgetManager::createNewNote(const QString & notebookLocalUid, const QString & notebookGuid)
@@ -241,6 +278,39 @@ void NoteEditorTabWidgetManager::createNewNote(const QString & notebookLocalUid,
     QNTRACE(QStringLiteral("Emitting the request to add a new note to the local storage: request id = ")
             << requestId << QStringLiteral(", note = ") << newNote);
     emit requestAddNote(newNote, requestId);
+}
+
+bool NoteEditorTabWidgetManager::eventFilter(QObject * pWatched, QEvent * pEvent)
+{
+    if (Q_UNLIKELY(!pEvent)) {
+        return true;
+    }
+
+    if (pEvent && ((pEvent->type() == QEvent::Close) || (pEvent->type() == QEvent::Destroy)))
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(pWatched);
+        if (pNoteEditorWidget)
+        {
+            QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+            QNTRACE(QStringLiteral("Intercepted close of note editor window, note local uid = ") << noteLocalUid);
+
+            if (pNoteEditorWidget->isModified())
+            {
+                ErrorString errorDescription;
+                NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+                QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                        << QStringLiteral(", error description: ") << errorDescription);
+            }
+
+            auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
+            if (Q_LIKELY(it != m_noteEditorWindowsByNoteLocalUid.end())) {
+                Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
+                persistLocalUidsOfNotesInEditorWindows();
+            }
+        }
+    }
+
+    return QObject::eventFilter(pWatched, pEvent);
 }
 
 void NoteEditorTabWidgetManager::onNoteEditorWidgetResolved()
@@ -360,7 +430,7 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
     if (it != m_localUidsOfNotesInTabbedEditors.end()) {
         Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
         QNTRACE(QStringLiteral("Removed note local uid ") << pNoteEditorWidget->noteLocalUid());
-        persistLocalUidsOfOpenNotes();
+        persistLocalUidsOfNotesInEditorTabs();
     }
 
     QStringLiteral("Remaining tabbed note local uids: ");
@@ -368,9 +438,9 @@ void NoteEditorTabWidgetManager::onNoteEditorTabCloseRequested(int tabIndex)
         QNTRACE(*sit);
     }
 
-    if (m_lastCurrentNoteLocalUid == noteLocalUid) {
-        m_lastCurrentNoteLocalUid.clear();
-        QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+    if (m_lastCurrentTabNoteLocalUid == noteLocalUid) {
+        m_lastCurrentTabNoteLocalUid.clear();
+        QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
         emit currentNoteChanged(QString());
     }
 
@@ -478,9 +548,9 @@ void NoteEditorTabWidgetManager::onCurrentTabChanged(int currentIndex)
 
     if (currentIndex < 0)
     {
-        if (!m_lastCurrentNoteLocalUid.isEmpty()) {
-            m_lastCurrentNoteLocalUid.clear();
-            QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+        if (!m_lastCurrentTabNoteLocalUid.isEmpty()) {
+            m_lastCurrentTabNoteLocalUid.clear();
+            QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
             emit currentNoteChanged(QString());
         }
 
@@ -493,9 +563,9 @@ void NoteEditorTabWidgetManager::onCurrentTabChanged(int currentIndex)
         QNWARNING(QStringLiteral("Detected current tab change in the note editor tab widget "
                                  "but can't cast the tab widget's tab to note editor"));
 
-        if (!m_lastCurrentNoteLocalUid.isEmpty()) {
-            m_lastCurrentNoteLocalUid.clear();
-            QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+        if (!m_lastCurrentTabNoteLocalUid.isEmpty()) {
+            m_lastCurrentTabNoteLocalUid.clear();
+            QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
             emit currentNoteChanged(QString());
         }
 
@@ -506,9 +576,9 @@ void NoteEditorTabWidgetManager::onCurrentTabChanged(int currentIndex)
     {
         QNTRACE(QStringLiteral("Switched to blank note editor"));
 
-        if (!m_lastCurrentNoteLocalUid.isEmpty()) {
-            m_lastCurrentNoteLocalUid.clear();
-            QNTRACE(QStringLiteral("Emitting last current note local uid update to empty"));
+        if (!m_lastCurrentTabNoteLocalUid.isEmpty()) {
+            m_lastCurrentTabNoteLocalUid.clear();
+            QNTRACE(QStringLiteral("Emitting last current tab note local uid update to empty"));
             emit currentNoteChanged(QString());
         }
 
@@ -516,9 +586,9 @@ void NoteEditorTabWidgetManager::onCurrentTabChanged(int currentIndex)
     }
 
     QString currentNoteLocalUid = pNoteEditorWidget->noteLocalUid();
-    if (m_lastCurrentNoteLocalUid != currentNoteLocalUid) {
-        m_lastCurrentNoteLocalUid = currentNoteLocalUid;
-        QNTRACE(QStringLiteral("Emitting last current note local uid update to ") << m_lastCurrentNoteLocalUid);
+    if (m_lastCurrentTabNoteLocalUid != currentNoteLocalUid) {
+        m_lastCurrentTabNoteLocalUid = currentNoteLocalUid;
+        QNTRACE(QStringLiteral("Emitting last current tab note local uid update to ") << m_lastCurrentTabNoteLocalUid);
         emit currentNoteChanged(currentNoteLocalUid);
     }
 }
@@ -560,6 +630,11 @@ void NoteEditorTabWidgetManager::onTabContextMenuRequested(const QPoint & pos)
 
     if (pNoteEditorWidget->isModified()) {
         ADD_CONTEXT_MENU_ACTION(tr("Save"), m_pTabBarContextMenu, onTabContextMenuSaveNoteAction,
+                                pNoteEditorWidget->noteLocalUid(), true);
+    }
+
+    if (m_pTabWidget->count() != 1) {
+        ADD_CONTEXT_MENU_ACTION(tr("Open in separate window"), m_pTabBarContextMenu, onTabContextMenuMoveToWindowAction,
                                 pNoteEditorWidget->noteLocalUid(), true);
     }
 
@@ -674,9 +749,35 @@ void NoteEditorTabWidgetManager::onTabContextMenuSaveNoteAction()
     return;
 }
 
-void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget)
+void NoteEditorTabWidgetManager::onTabContextMenuMoveToWindowAction()
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::insertNoteEditorWidget: ") << pNoteEditorWidget->noteLocalUid());
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::onTabContextMenuMoveToWindowAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't move the note editor tab to window, "
+                                            "can't cast the slot invoker to QAction"));
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString noteLocalUid = pAction->data().toString();
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't move the note editor tab to window, "
+                                            "can't get the note local uid corresponding to the editor"));
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    moveNoteEditorTabToWindow(noteLocalUid);
+}
+
+void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget, const NoteEditorMode::type noteEditorMode)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::insertNoteEditorWidget: ") << pNoteEditorWidget->noteLocalUid()
+            << QStringLiteral(", note editor mode = ") << noteEditorMode);
 
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,titleOrPreviewChanged,QString),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteTitleOrPreviewTextChanged,QString));
@@ -689,14 +790,34 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,notifyError,ErrorString),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorError,ErrorString));
 
-    QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
+    QString displayName = shortenTabName(pNoteEditorWidget->titleOrPreview());
+
+    if (noteEditorMode == NoteEditorMode::Window)
+    {
+        QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+
+        pNoteEditorWidget->setWindowFlags(Qt::WindowFlags(Qt::Window));
+        pNoteEditorWidget->setWindowTitle(displayName);
+        pNoteEditorWidget->setAttribute(Qt::WA_DeleteOnClose, true);
+        pNoteEditorWidget->installEventFilter(this);
+
+        if (!noteLocalUid.isEmpty()) {
+            m_noteEditorWindowsByNoteLocalUid[noteLocalUid] = QPointer<NoteEditorWidget>(pNoteEditorWidget);
+            persistLocalUidsOfNotesInEditorWindows();
+        }
+
+        pNoteEditorWidget->show();
+        return;
+    }
+
+    // If we got here, will insert the note editor as a tab
 
     int tabIndex = m_pTabWidget->indexOf(pNoteEditorWidget);
     if (tabIndex < 0) {
-        tabIndex = m_pTabWidget->addTab(pNoteEditorWidget, tabName);
+        tabIndex = m_pTabWidget->addTab(pNoteEditorWidget, displayName);
     }
     else {
-        m_pTabWidget->setTabText(tabIndex, tabName);
+        m_pTabWidget->setTabText(tabIndex, displayName);
     }
 
     m_pTabWidget->setCurrentIndex(tabIndex);
@@ -704,7 +825,7 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
     m_localUidsOfNotesInTabbedEditors.push_back(pNoteEditorWidget->noteLocalUid());
     QNTRACE(QStringLiteral("Added tabbed note local uid: ") << pNoteEditorWidget->noteLocalUid()
             << QStringLiteral(", the number of tabbed note local uids = ") << m_localUidsOfNotesInTabbedEditors.size());
-    persistLocalUidsOfOpenNotes();
+    persistLocalUidsOfNotesInEditorTabs();
 
     int currentNumNotesInTabs = numNotesInTabs();
 
@@ -757,9 +878,9 @@ void NoteEditorTabWidgetManager::checkAndCloseOlderNoteEditorTabs()
     }
 }
 
-void NoteEditorTabWidgetManager::setCurrentNoteEditorWidget(const QString & noteLocalUid)
+void NoteEditorTabWidgetManager::setCurrentNoteEditorWidgetTab(const QString & noteLocalUid)
 {
-    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setCurrentNoteEditorWidget: ") << noteLocalUid);
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setCurrentNoteEditorWidgetTab: ") << noteLocalUid);
 
     for(int i = 0; i < m_pTabWidget->count(); ++i)
     {
@@ -840,9 +961,61 @@ QString NoteEditorTabWidgetManager::shortenTabName(const QString & tabName) cons
     return result;
 }
 
-void NoteEditorTabWidgetManager::persistLocalUidsOfOpenNotes()
+void NoteEditorTabWidgetManager::moveNoteEditorTabToWindow(const QString & noteLocalUid)
 {
-    QNDEBUG("NoteEditorTabWidgetManager::persistLocalUidsOfOpenNotes");
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::moveNoteEditorTabToWindow: note local uid = ")
+            << noteLocalUid);
+
+    for(int i = 0; i < m_pTabWidget->count(); ++i)
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
+        if (Q_UNLIKELY(!pNoteEditorWidget)) {
+            continue;
+        }
+
+        if (pNoteEditorWidget->noteLocalUid() != noteLocalUid) {
+            continue;
+        }
+
+        m_pTabWidget->removeTab(i);
+
+        auto it = std::find(m_localUidsOfNotesInTabbedEditors.begin(),
+                            m_localUidsOfNotesInTabbedEditors.end(), noteLocalUid);
+        if (it != m_localUidsOfNotesInTabbedEditors.end()) {
+            Q_UNUSED(m_localUidsOfNotesInTabbedEditors.erase(it))
+            persistLocalUidsOfNotesInEditorTabs();
+        }
+
+        insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Window);
+        return;
+    }
+
+    ErrorString error(QT_TRANSLATE_NOOP("", "Could not find the note editor widget to be moved from tab to window"));
+    error.details() = noteLocalUid;
+    QNWARNING(error);
+    emit notifyError(error);
+}
+
+void NoteEditorTabWidgetManager::moveNoteEditorWindowToTab(NoteEditorWidget * pNoteEditorWidget)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::moveNoteEditorWindowToTab: note local uid = ")
+            << (pNoteEditorWidget ? pNoteEditorWidget->noteLocalUid() : QStringLiteral("<null>")));
+
+    if (Q_UNLIKELY(!pNoteEditorWidget)) {
+        return;
+    }
+
+    pNoteEditorWidget->setAttribute(Qt::WA_DeleteOnClose, false);
+    pNoteEditorWidget->removeEventFilter(this);
+    pNoteEditorWidget->setWindowFlags(Qt::WindowFlags(Qt::Widget));
+
+    insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Tab);
+    pNoteEditorWidget->show();
+}
+
+void NoteEditorTabWidgetManager::persistLocalUidsOfNotesInEditorTabs()
+{
+    QNDEBUG("NoteEditorTabWidgetManager::persistLocalUidsOfNotesInEditorTabs");
 
     QStringList openNotesLocalUids;
     size_t size = m_localUidsOfNotesInTabbedEditors.size();
@@ -856,7 +1029,30 @@ void NoteEditorTabWidgetManager::persistLocalUidsOfOpenNotes()
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(QStringLiteral("NoteEditor"));
-    appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_SETTINGS_KEY, openNotesLocalUids);
+    appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY, openNotesLocalUids);
+    appSettings.endGroup();
+}
+
+void NoteEditorTabWidgetManager::persistLocalUidsOfNotesInEditorWindows()
+{
+    QNDEBUG("NoteEditorTabWidgetManager::persistLocalUidsOfNotesInEditorWindows");
+
+    QStringList openNotesLocalUids;
+    openNotesLocalUids.reserve(m_noteEditorWindowsByNoteLocalUid.size());
+
+    for(auto it = m_noteEditorWindowsByNoteLocalUid.constBegin(),
+        end = m_noteEditorWindowsByNoteLocalUid.constEnd(); it != end; ++it)
+    {
+        if (Q_UNLIKELY(it.value().isNull())) {
+            continue;
+        }
+
+        openNotesLocalUids << it.key();
+    }
+
+    ApplicationSettings appSettings;
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY, openNotesLocalUids);
     appSettings.endGroup();
 }
 
@@ -866,16 +1062,16 @@ void NoteEditorTabWidgetManager::restoreLastOpenNotes()
 
     ApplicationSettings appSettings;
     appSettings.beginGroup(QStringLiteral("NoteEditor"));
-    QStringList lastOpenNoteLocalUids = appSettings.value(OPEN_NOTES_LOCAL_UIDS_SETTINGS_KEY).toStringList();
+    QStringList localUidsOfLastNotesInTabs = appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY).toStringList();
+    QStringList localUidsOfLastNotesInWindows = appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY).toStringList();
     appSettings.endGroup();
 
-    if (lastOpenNoteLocalUids.isEmpty()) {
-        QNDEBUG(QStringLiteral("No last open note local uids"));
-        return;
+    for(auto it = localUidsOfLastNotesInTabs.constBegin(), end = localUidsOfLastNotesInTabs.constEnd(); it != end; ++it) {
+        addNote(*it, NoteEditorMode::Tab);
     }
 
-    for(auto it = lastOpenNoteLocalUids.constBegin(), end = lastOpenNoteLocalUids.constEnd(); it != end; ++it) {
-        addNote(*it);
+    for(auto it = localUidsOfLastNotesInWindows.constBegin(), end = localUidsOfLastNotesInWindows.constEnd(); it != end; ++it) {
+        addNote(*it, NoteEditorMode::Window);
     }
 
     return;
