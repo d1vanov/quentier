@@ -19,6 +19,7 @@
 #include "AddAccountDialog.h"
 #include "ui_AddAccountDialog.h"
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/DesktopServices.h>
 #include <QStringListModel>
 #include <QPushButton>
 
@@ -28,7 +29,8 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
                                    QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::AddAccountDialog),
-    m_availableAccounts(availableAccounts)
+    m_availableAccounts(availableAccounts),
+    m_onceSuggestedFullName(false)
 {
     m_pUi->setupUi(this);
 
@@ -43,7 +45,7 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
     QObject::connect(m_pUi->accountTypeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(onCurrentAccountTypeChanged(int)));
 
-    QObject::connect(m_pUi->accountNameLineEdit, QNSIGNAL(QLineEdit,editingFinished),
+    QObject::connect(m_pUi->accountUsernameLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(AddAccountDialog,onLocalAccountNameChosen));
 
     QStringList evernoteServers;
@@ -57,9 +59,13 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
     m_pUi->accountTypeComboBox->setCurrentIndex(0);
     m_pUi->evernoteServerComboBox->setCurrentIndex(0);
 
-    // The name for Evernote account would be acquired through OAuth
-    m_pUi->accountNameLabel->setHidden(true);
-    m_pUi->accountNameLineEdit->setHidden(true);
+    // The username for Evernote account would be acquired through OAuth
+    m_pUi->accountUsernameLabel->setHidden(true);
+    m_pUi->accountUsernameLineEdit->setHidden(true);
+
+    // As well as the full name
+    m_pUi->accountFullNameLabel->setHidden(true);
+    m_pUi->accountFullNameLineEdit->setHidden(true);
 }
 
 AddAccountDialog::~AddAccountDialog()
@@ -74,7 +80,7 @@ bool AddAccountDialog::isLocal() const
 
 QString AddAccountDialog::localAccountName() const
 {
-    return m_pUi->accountNameLineEdit->text();
+    return m_pUi->accountUsernameLineEdit->text();
 }
 
 QString AddAccountDialog::evernoteServerUrl() const
@@ -90,6 +96,11 @@ QString AddAccountDialog::evernoteServerUrl() const
     }
 }
 
+QString AddAccountDialog::userFullName() const
+{
+    return m_pUi->accountFullNameLineEdit->text();
+}
+
 void AddAccountDialog::onCurrentAccountTypeChanged(int index)
 {
     QNDEBUG(QStringLiteral("AddAccountDialog::onCurrentAccountTypeChanged: index = ") << index);
@@ -99,30 +110,42 @@ void AddAccountDialog::onCurrentAccountTypeChanged(int index)
     m_pUi->evernoteServerComboBox->setHidden(isLocal);
     m_pUi->evernoteServerLabel->setHidden(isLocal);
 
-    m_pUi->accountNameLineEdit->setHidden(!isLocal);
-    m_pUi->accountNameLabel->setHidden(!isLocal);
+    m_pUi->accountUsernameLineEdit->setHidden(!isLocal);
+    m_pUi->accountUsernameLabel->setHidden(!isLocal);
+
+    m_pUi->accountFullNameLineEdit->setHidden(!isLocal);
+    m_pUi->accountFullNameLabel->setHidden(!isLocal);
+
+    if (isLocal && !m_onceSuggestedFullName &&
+        m_pUi->accountFullNameLineEdit->text().isEmpty())
+    {
+        m_onceSuggestedFullName = true;
+        QString fullName = getCurrentUserFullName();
+        QNTRACE(QStringLiteral("Suggesting the current user's full name: ") << fullName);
+        m_pUi->accountFullNameLineEdit->setText(fullName);
+    }
 }
 
 void AddAccountDialog::onLocalAccountNameChosen()
 {
     QNDEBUG(QStringLiteral("AddAccountDialog::onLocalAccountNameChosen: ")
-            << m_pUi->accountNameLineEdit->text());
+            << m_pUi->accountUsernameLineEdit->text());
 
     m_pUi->statusText->setHidden(true);
 
-    QPushButton * okButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
-    if (okButton) {
-        okButton->setDisabled(false);
+    QPushButton * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+    if (pOkButton) {
+        pOkButton->setDisabled(false);
     }
 
-    if (localAccountAlreadyExists(m_pUi->accountNameLineEdit->text()))
+    if (localAccountAlreadyExists(m_pUi->accountUsernameLineEdit->text()))
     {
         QNDEBUG(QStringLiteral("Local account with such name already exists"));
 
         m_pUi->statusText->setText(tr("Account with such name already exists"));
         m_pUi->statusText->setHidden(false);
-        if (okButton) {
-            okButton->setDisabled(true);
+        if (pOkButton) {
+            pOkButton->setDisabled(true);
         }
     }
 }
@@ -151,7 +174,7 @@ void AddAccountDialog::accept()
     QString name;
     if (isLocal)
     {
-        name = m_pUi->accountNameLineEdit->text();
+        name = m_pUi->accountUsernameLineEdit->text();
         if (name.isEmpty()) {
             m_pUi->statusText->setText(tr("Please enter the name for the account"));
             m_pUi->statusText->setHidden(false);
@@ -164,7 +187,8 @@ void AddAccountDialog::accept()
     }
 
     if (isLocal) {
-        emit localAccountAdditionRequested(name);
+        QString fullName = userFullName();
+        emit localAccountAdditionRequested(name, fullName);
     }
     else {
         QString server = evernoteServerUrl();

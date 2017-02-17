@@ -38,7 +38,7 @@ public:
 
 Q_SIGNALS:
     void evernoteAccountAdditionRequested(QString evernoteServer);
-    void localAccountAdditionRequested(QString name);
+    void localAccountAdditionRequested(QString name, QString fullName);
     void revokeAuthentication(qevercloud::UserID id);
 
 public Q_SLOTS:

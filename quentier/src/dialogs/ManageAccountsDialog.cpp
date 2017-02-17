@@ -62,8 +62,8 @@ void ManageAccountsDialog::onAddAccountButtonPressed()
     addAccountDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString),
                      this, QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString));
-    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString),
-                     this, QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString));
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString,QString),
+                     this, QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString));
     Q_UNUSED(addAccountDialog->exec())
 }
 

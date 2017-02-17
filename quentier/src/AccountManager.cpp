@@ -78,8 +78,8 @@ void AccountManager::raiseAddAccountDialog()
     addAccountDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,evernoteAccountAdditionRequested,QString),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
-    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString),
-                     this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString));
+    QObject::connect(addAccountDialog.data(), QNSIGNAL(AddAccountDialog,localAccountAdditionRequested,QString,QString),
+                     this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
     Q_UNUSED(addAccountDialog->exec())
 }
 
@@ -93,8 +93,8 @@ void AccountManager::raiseManageAccountsDialog()
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
-    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString),
-                     this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString));
+    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
+                     this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
     Q_UNUSED(manageAccountsDialog->exec())
 }
 
@@ -142,11 +142,12 @@ void AccountManager::switchAccount(const Account & account)
     emit switchedAccount(complementedAccount);
 }
 
-void AccountManager::onLocalAccountAdditionRequested(QString name)
+void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullName)
 {
-    QNDEBUG(QStringLiteral("AccountManager::onLocalAccountAdditionRequested: ") << name);
+    QNDEBUG(QStringLiteral("AccountManager::onLocalAccountAdditionRequested: name = ")
+            << name << QStringLiteral(", full name = ") << fullName);
 
-    // Double-check that no local account with such username already exists
+    // Double-check that no local account with such name already exists
     for(auto it = m_availableAccounts.constBegin(), end = m_availableAccounts.constEnd(); it != end; ++it)
     {
         const Account & availableAccount = *it;
@@ -163,7 +164,7 @@ void AccountManager::onLocalAccountAdditionRequested(QString name)
     }
 
     ErrorString errorDescription;
-    QSharedPointer<Account> pNewAccount = createLocalAccount(name, errorDescription);
+    QSharedPointer<Account> pNewAccount = createLocalAccount(name, fullName, errorDescription);
     if (Q_UNLIKELY(pNewAccount.isNull())) {
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't create a new local account"));
         error.additionalBases().append(errorDescription.base());
@@ -280,15 +281,21 @@ QSharedPointer<Account> AccountManager::createDefaultAccount(ErrorString & error
         username = QStringLiteral("Default user");
     }
 
-    return createLocalAccount(username, errorDescription);
+    QString fullName = getCurrentUserFullName();
+    if (Q_UNLIKELY(fullName.isEmpty())) {
+        QNDEBUG(QStringLiteral("Couldn't get the current user's full name, fallback to \"Defaulr user\""));
+        fullName = QStringLiteral("Default user");
+    }
+
+    return createLocalAccount(username, fullName, errorDescription);
 }
 
 QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
+                                                           const QString & displayName,
                                                            ErrorString & errorDescription)
 {
-    QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: ") << name);
-
-    QString displayName = getCurrentUserFullName();
+    QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: name = ") << name
+            << QStringLiteral(", display name = ") << displayName);
 
     bool res = writeAccountInfo(name, displayName, /* is local = */ true, /* user id = */ -1,
                                 /* Evernote account type = */ QString(),

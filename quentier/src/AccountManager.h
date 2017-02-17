@@ -66,13 +66,14 @@ public Q_SLOTS:
     void switchAccount(const Account & account);
 
 private Q_SLOTS:
-    void onLocalAccountAdditionRequested(QString name);
+    void onLocalAccountAdditionRequested(QString name, QString fullName);
 
 private:
     void detectAvailableAccounts();
 
     QSharedPointer<Account> createDefaultAccount(ErrorString & errorDescription);
-    QSharedPointer<Account> createLocalAccount(const QString & name, ErrorString & errorDescription);
+    QSharedPointer<Account> createLocalAccount(const QString & name, const QString & displayName,
+                                               ErrorString & errorDescription);
     bool createAccountInfo(const Account & account);
 
     bool writeAccountInfo(const QString & name, const QString & displayName, const bool isLocal,

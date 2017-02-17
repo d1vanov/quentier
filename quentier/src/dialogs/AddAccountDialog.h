@@ -37,10 +37,11 @@ public:
     bool isLocal() const;
     QString localAccountName() const;
     QString evernoteServerUrl() const;
+    QString userFullName() const;
 
 Q_SIGNALS:
     void evernoteAccountAdditionRequested(QString evernoteServer);
-    void localAccountAdditionRequested(QString name);
+    void localAccountAdditionRequested(QString name, QString fullName);
 
 private Q_SLOTS:
     void onCurrentAccountTypeChanged(int index);
@@ -52,6 +53,7 @@ private Q_SLOTS:
 private:
     Ui::AddAccountDialog *      m_pUi;
     QVector<quentier::Account>  m_availableAccounts;
+    bool                        m_onceSuggestedFullName;
 };
 
 #endif // QUENTIER_DIALOGS_ADD_ACCOUNT_DIALOG_H
