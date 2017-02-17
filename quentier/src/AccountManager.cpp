@@ -288,7 +288,10 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
 {
     QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: ") << name);
 
-    bool res = writeAccountInfo(name, /* is local = */ true, /* user id = */ -1,
+    QString displayName;
+    // TODO: suggest display name equal to the full user's name
+
+    bool res = writeAccountInfo(name, displayName, /* is local = */ true, /* user id = */ -1,
                                 /* Evernote account type = */ QString(),
                                 /* Evernote host = */ QString(),
                                 errorDescription);
@@ -324,8 +327,8 @@ bool AccountManager::createAccountInfo(const Account & account)
     }
 
     ErrorString errorDescription;
-    bool res = writeAccountInfo(account.name(), isLocal, account.id(), evernoteAccountType,
-                                account.evernoteHost(), errorDescription);
+    bool res = writeAccountInfo(account.name(), account.displayName(), isLocal, account.id(),
+                                evernoteAccountType, account.evernoteHost(), errorDescription);
     if (Q_UNLIKELY(!res)) {
         emit notifyError(errorDescription);
         return false;
@@ -334,13 +337,14 @@ bool AccountManager::createAccountInfo(const Account & account)
     return true;
 }
 
-bool AccountManager::writeAccountInfo(const QString & name, const bool isLocal,
-                                      const qevercloud::UserID id,
+bool AccountManager::writeAccountInfo(const QString & name, const QString & displayName,
+                                      const bool isLocal, const qevercloud::UserID id,
                                       const QString & evernoteAccountType,
                                       const QString & evernoteHost,
                                       ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("AccountManager::writeAccountInfo: name = ") << name
+            << QStringLiteral(", display name = ") << displayName
             << QStringLiteral(", is local = ") << (isLocal ? QStringLiteral("true") : QStringLiteral("false"))
             << QStringLiteral(", user id = ") << id << QStringLiteral(", Evernote account type = ")
             << evernoteAccountType << QStringLiteral(", Evernote host = ") << evernoteHost);
@@ -487,6 +491,10 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
             else if (currentElementName == QStringLiteral("evernoteHost"))
             {
                 account.setEvernoteHost(reader.text().toString());
+            }
+            else if (currentElementName == QStringLiteral("displayName"))
+            {
+                account.setDisplayName(reader.text().toString());
             }
         }
     }

@@ -13,6 +13,7 @@ namespace quentier {
 AccountData::AccountData() :
     QSharedData(),
     m_name(),
+    m_displayName(),
     m_accountType(Account::Type::Local),
     m_evernoteAccountType(Account::EvernoteAccountType::Free),
     m_userId(-1),
@@ -38,6 +39,7 @@ AccountData::~AccountData()
 AccountData::AccountData(const AccountData & other) :
     QSharedData(other),
     m_name(other.m_name),
+    m_displayName(other.m_displayName),
     m_accountType(other.m_accountType),
     m_evernoteAccountType(other.m_evernoteAccountType),
     m_userId(other.m_userId),
@@ -56,6 +58,7 @@ AccountData::AccountData(const AccountData & other) :
 AccountData::AccountData(AccountData && other) :
     QSharedData(std::move(other)),
     m_name(std::move(other.m_name)),
+    m_displayName(std::move(other.m_displayName)),
     m_accountType(std::move(other.m_accountType)),
     m_evernoteAccountType(std::move(other.m_evernoteAccountType)),
     m_userId(std::move(other.m_userId)),

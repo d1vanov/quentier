@@ -75,7 +75,7 @@ private:
     QSharedPointer<Account> createLocalAccount(const QString & name, ErrorString & errorDescription);
     bool createAccountInfo(const Account & account);
 
-    bool writeAccountInfo(const QString & name, const bool isLocal,
+    bool writeAccountInfo(const QString & name, const QString & displayName, const bool isLocal,
                           const qevercloud::UserID id, const QString & evernoteAccountType,
                           const QString & evernoteHost, ErrorString & errorDescription);
 

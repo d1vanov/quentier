@@ -69,6 +69,17 @@ public:
     QString name() const;
 
     /**
+     * @return printable user's name that is not used to uniquely identify the account, so this name
+     * may repeat across different local and Evernote accounts
+     */
+    QString displayName() const;
+
+    /**
+     * Set the printable name of the account
+     */
+    void setDisplayName(const QString & displayName);
+
+    /**
      * @return the type of the account: either local of Evernote
      */
     Type::type type() const;

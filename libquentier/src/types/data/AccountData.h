@@ -19,6 +19,7 @@ public:
     void setEvernoteAccountLimits(const qevercloud::AccountLimits & limits);
 
     QString                             m_name;
+    QString                             m_displayName;
     Account::Type::type                 m_accountType;
     Account::EvernoteAccountType::type  m_evernoteAccountType;
     qevercloud::UserID                  m_userId;

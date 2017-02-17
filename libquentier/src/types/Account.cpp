@@ -46,6 +46,7 @@ bool Account::operator==(const Account & other) const
         return true;
     }
 
+    // NOTE: display name intentionally does not take part in the comparison
     if ((d->m_name == other.d->m_name) &&
         (d->m_accountType == other.d->m_accountType) &&
         (d->m_evernoteAccountType == other.d->m_evernoteAccountType) &&
@@ -101,6 +102,16 @@ void Account::setEvernoteAccountLimits(const qevercloud::AccountLimits & limits)
 QString Account::name() const
 {
     return d->m_name;
+}
+
+QString Account::displayName() const
+{
+    return d->m_displayName;
+}
+
+void Account::setDisplayName(const QString & displayName)
+{
+    d->m_displayName = displayName;
 }
 
 qevercloud::UserID Account::id() const
@@ -177,6 +188,7 @@ QTextStream & Account::print(QTextStream & strm) const
 {
     strm << QStringLiteral("Account: {\n");
     strm << QStringLiteral("    name = ") << d->m_name << QStringLiteral(";\n");
+    strm << QStringLiteral("    display name = ") << d->m_displayName << QStringLiteral(";\n");
     strm << QStringLiteral("    id = ") << d->m_userId << QStringLiteral(";\n");
 
     strm << QStringLiteral("    type = ");
