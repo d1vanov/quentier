@@ -18,7 +18,7 @@
 
 #include "MainWindow.h"
 #include "EditNoteDialogsManager.h"
-#include "NoteEditorTabWidgetManager.h"
+#include "NoteEditorTabsAndWindowsCoordinator.h"
 #include "AccountToKey.h"
 #include "NoteFiltersManager.h"
 #include "models/NoteFilterModel.h"
@@ -139,7 +139,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_blankModel(),
     m_pNoteFilterModel(Q_NULLPTR),
     m_pNoteFiltersManager(Q_NULLPTR),
-    m_pNoteEditorTabWidgetManager(Q_NULLPTR),
+    m_pNoteEditorTabsAndWindowsCoordinator(Q_NULLPTR),
     m_pEditNoteDialogsManager(Q_NULLPTR),
     m_testNotebook(),
     m_testNote(),
@@ -1843,7 +1843,7 @@ void MainWindow::onNewNoteButtonPressed()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNewNoteButtonPressed"));
 
-    if (Q_UNLIKELY(!m_pNoteEditorTabWidgetManager)) {
+    if (Q_UNLIKELY(!m_pNoteEditorTabsAndWindowsCoordinator)) {
         QNDEBUG(QStringLiteral("No note editor tab widget manager, probably the button was pressed too quickly on startup, skipping"));
         return;
     }
@@ -1887,19 +1887,19 @@ void MainWindow::onNewNoteButtonPressed()
         return;
     }
 
-    m_pNoteEditorTabWidgetManager->createNewNote(pNotebookItem->localUid(), pNotebookItem->guid());
+    m_pNoteEditorTabsAndWindowsCoordinator->createNewNote(pNotebookItem->localUid(), pNotebookItem->guid());
 }
 
 void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
 {
     QNDEBUG(QStringLiteral("MainWindow::onCurrentNoteInListChanged: ") << noteLocalUid);
-    m_pNoteEditorTabWidgetManager->addNote(noteLocalUid);
+    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid);
 }
 
 void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
 {
     QNDEBUG(QStringLiteral("MainWindow::onOpenNoteInSeparateWindow: ") << noteLocalUid);
-    m_pNoteEditorTabWidgetManager->addNote(noteLocalUid, NoteEditorTabWidgetManager::NoteEditorMode::Window);
+    m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid, NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
 }
 
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
@@ -2521,8 +2521,8 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
 {
     QNDEBUG(QStringLiteral("MainWindow::closeEvent"));
 
-    if (m_pNoteEditorTabWidgetManager) {
-        m_pNoteEditorTabWidgetManager->clear();
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        m_pNoteEditorTabsAndWindowsCoordinator->clear();
     }
 
     QMainWindow::closeEvent(pEvent);
@@ -2956,17 +2956,15 @@ void MainWindow::setupNoteEditorTabWidgetManager()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupNoteEditorTabWidgetManager"));
 
-    delete m_pNoteEditorTabWidgetManager;
-    m_pNoteEditorTabWidgetManager = new NoteEditorTabWidgetManager(*m_pAccount, *m_pLocalStorageManager,
-                                                                   m_noteCache, m_notebookCache,
-                                                                   m_tagCache, *m_pTagModel,
-                                                                   m_pUI->noteEditorsTabWidget);
-    QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,notifyError,ErrorString),
+    delete m_pNoteEditorTabsAndWindowsCoordinator;
+    m_pNoteEditorTabsAndWindowsCoordinator = new NoteEditorTabsAndWindowsCoordinator(*m_pAccount, *m_pLocalStorageManager,
+                                                                                     m_noteCache, m_notebookCache,
+                                                                                     m_tagCache, *m_pTagModel,
+                                                                                     m_pUI->noteEditorsTabWidget);
+    QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onNoteEditorError,ErrorString));
-    QObject::connect(m_pNoteEditorTabWidgetManager, QNSIGNAL(NoteEditorTabWidgetManager,currentNoteChanged,QString),
+    QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,currentNoteChanged,QString),
                      m_pUI->noteListView, QNSLOT(NoteListView,onCurrentNoteChanged,QString));
-
-    // TODO: connect other relevant signals-slots
 }
 
 void MainWindow::setupSynchronizationManager()

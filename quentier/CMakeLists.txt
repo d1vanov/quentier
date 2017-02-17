@@ -49,7 +49,7 @@ set(${PROJECT_NAME}_HEADERS
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/EditNoteDialogsManager.h
-    src/NoteEditorTabWidgetManager.h
+    src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
@@ -123,7 +123,7 @@ set(${PROJECT_NAME}_SOURCES
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/EditNoteDialogsManager.cpp
-    src/NoteEditorTabWidgetManager.cpp
+    src/NoteEditorTabsAndWindowsCoordinator.cpp
     src/NoteFiltersManager.cpp
     src/color-picker-tool-button/ColorPickerActionWidget.cpp
     src/color-picker-tool-button/ColorPickerToolButton.cpp

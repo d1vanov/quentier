@@ -16,8 +16,8 @@
  * along with Quentier. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUENTIER_WIDGETS_NOTE_EDITOR_TAB_WIDGET_MANAGER_H
-#define QUENTIER_WIDGETS_NOTE_EDITOR_TAB_WIDGET_MANAGER_H
+#ifndef QUENTIER_WIDGETS_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
+#define QUENTIER_WIDGETS_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
 
 #include "models/NoteCache.h"
 #include "models/NotebookCache.h"
@@ -50,15 +50,15 @@ QT_FORWARD_DECLARE_CLASS(TabWidget)
 QT_FORWARD_DECLARE_CLASS(FileIOThreadWorker)
 QT_FORWARD_DECLARE_CLASS(SpellChecker)
 
-class NoteEditorTabWidgetManager: public QObject
+class NoteEditorTabsAndWindowsCoordinator: public QObject
 {
     Q_OBJECT
 public:
-    explicit NoteEditorTabWidgetManager(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
-                                        NoteCache & noteCache, NotebookCache & notebookCache,
-                                        TagCache & tagCache, TagModel & tagModel,
-                                        TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
-    ~NoteEditorTabWidgetManager();
+    explicit NoteEditorTabsAndWindowsCoordinator(const Account & account, LocalStorageManagerThreadWorker & localStorageWorker,
+                                                 NoteCache & noteCache, NotebookCache & notebookCache,
+                                                 TagCache & tagCache, TagModel & tagModel,
+                                                 TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
+    ~NoteEditorTabsAndWindowsCoordinator();
 
     // Closes all note editor windows and tabs, should be called when the app is about to quit
     void clear();
@@ -164,4 +164,4 @@ private:
 
 } // namespace quentier
 
-#endif // QUENTIER_WIDGETS_NOTE_EDITOR_TAB_WIDGET_MANAGER_H
+#endif // QUENTIER_WIDGETS_NOTE_EDITOR_TABS_AND_WINDOWS_COORDINATOR_H
