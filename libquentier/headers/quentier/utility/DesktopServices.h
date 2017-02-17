@@ -70,6 +70,9 @@ const QString QUENTIER_EXPORT relativePathFromAbsolutePath(const QString & absol
 // Get the system user name of the currently logged in user
 const QString QUENTIER_EXPORT getCurrentUserName();
 
+// Get the full name of the currently logged in user
+const QString QUENTIER_EXPORT getCurrentUserFullName();
+
 // Convenience function to send URL opening request
 void QUENTIER_EXPORT openUrl(const QUrl url);
 

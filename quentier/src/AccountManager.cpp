@@ -288,8 +288,7 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
 {
     QNDEBUG(QStringLiteral("AccountManager::createLocalAccount: ") << name);
 
-    QString displayName;
-    // TODO: suggest display name equal to the full user's name
+    QString displayName = getCurrentUserFullName();
 
     bool res = writeAccountInfo(name, displayName, /* is local = */ true, /* user id = */ -1,
                                 /* Evernote account type = */ QString(),

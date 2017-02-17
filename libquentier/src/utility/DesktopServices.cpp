@@ -300,6 +300,52 @@ const QString getCurrentUserName()
     return userName;
 }
 
+const QString getCurrentUserFullName()
+{
+    QNDEBUG(QStringLiteral("getCurrentUserFullName"));
+
+    QString userFullName;
+
+#if defined(Q_OS_WIN)
+    TCHAR acUserName[UNLEN+1];
+    DWORD nUserName = sizeof(acUserName);
+    const int userNameFormat = 3; // NameDisplay
+    if (GetUserNameEx(userNameFormat, acUserName, &nUserName)) {
+        userFullName = static_cast<LPSTR>(acUserName);
+    }
+
+    if (userFullName.isEmpty())
+    {
+        // GetUserNameEx with NameDisplay format doesn't work when the computer is offline.
+        // It's serious. Take a look here: http://stackoverflow.com/a/2997257
+        // I've never had any serious business with WinAPI but I nearly killed myself
+        // with a facepalm when I figured this thing out. God help Microsoft - nothing else will.
+        //
+        // Falling back to the login name
+        userFullName = getCurrentUserName();
+     }
+#else
+    uid_t uid = geteuid();
+    struct passwd * pw = getpwuid(uid);
+    if (Q_LIKELY(pw))
+    {
+        struct passwd * pwf = getpwnam(pw->pw_name);
+        if (Q_LIKELY(pwf)) {
+            userFullName = QString::fromLocal8Bit(pwf->pw_gecos);
+        }
+    }
+
+    // NOTE: some Unix systems put more than full user name into this field but also something about the location etc.
+    // The convention is to use comma to split the values of different kind and the user's full name is the first one
+    int commaIndex = userFullName.indexOf(QChar(','));
+    if (commaIndex > 0) {   // NOTE: not >= but >
+        userFullName.truncate(commaIndex);
+    }
+#endif
+
+    return userFullName;
+}
+
 void openUrl(const QUrl url)
 {
     QNDEBUG(QStringLiteral("openUrl: ") << url);
