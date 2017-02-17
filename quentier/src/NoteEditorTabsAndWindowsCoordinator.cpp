@@ -489,6 +489,23 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteTitleOrPreviewTextChanged(QStrin
         return;
     }
 
+    for(auto it = m_noteEditorWindowsByNoteLocalUid.begin(),
+        end = m_noteEditorWindowsByNoteLocalUid.end(); it != end; ++it)
+    {
+        if (it.value().isNull()) {
+            continue;
+        }
+
+        NoteEditorWidget * pWindowNoteEditor = it.value().data();
+        if (pWindowNoteEditor != pNoteEditorWidget) {
+            continue;
+        }
+
+        QString windowName = shortenEditorName(titleOrPreview, MAX_WINDOW_NAME_SIZE);
+        pWindowNoteEditor->setWindowTitle(windowName);
+        return;
+    }
+
     ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't find the note editor which has sent "
                                         "the title or preview text update"));
     QNWARNING(error);
