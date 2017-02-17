@@ -120,6 +120,74 @@ NoteEditorTabWidgetManager::~NoteEditorTabWidgetManager()
     }
 }
 
+void NoteEditorTabWidgetManager::clear()
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::clear: num tabs = ")
+            << m_pTabWidget->count() << QStringLiteral(", num windows = ")
+            << m_noteEditorWindowsByNoteLocalUid.size());
+
+    while(m_pTabWidget->count() != 0)
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(0));
+        if (Q_UNLIKELY(!pNoteEditorWidget))
+        {
+            QNWARNING(QStringLiteral("Detected some widget other than NoteEditorWidget within the tab widget"));
+            QWidget * pWidget = m_pTabWidget->widget(0);
+            m_pTabWidget->removeTab(0);
+            if (pWidget) {
+                pWidget->hide();
+                pWidget->deleteLater();
+            }
+
+            continue;
+        }
+
+        QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+        QNTRACE(QStringLiteral("Safely closing note editor tab: ") << noteLocalUid);
+
+        ErrorString errorDescription;
+        NoteEditorWidget::NoteSaveStatus::type res = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        if (Q_UNLIKELY(res != NoteEditorWidget::NoteSaveStatus::Ok)) {
+            QNINFO(QStringLiteral("Could not save note: ") << pNoteEditorWidget->noteLocalUid()
+                   << QStringLiteral(", status: ") << res << QStringLiteral(", error: ") << errorDescription);
+        }
+
+        m_pTabWidget->removeTab(0);
+        pNoteEditorWidget->hide();
+        pNoteEditorWidget->deleteLater();
+
+        QNTRACE(QStringLiteral("Removed note editor tab: ") << noteLocalUid);
+    }
+
+    while(!m_noteEditorWindowsByNoteLocalUid.isEmpty())
+    {
+        auto it = m_noteEditorWindowsByNoteLocalUid.begin();
+        if (Q_UNLIKELY(it.value().isNull())) {
+            Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
+            continue;
+        }
+
+        NoteEditorWidget * pNoteEditorWidget = it.value().data();
+
+        QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+        QNTRACE(QStringLiteral("Safely closing note editor window: ") << noteLocalUid);
+
+        ErrorString errorDescription;
+        NoteEditorWidget::NoteSaveStatus::type res = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+        if (Q_UNLIKELY(res != NoteEditorWidget::NoteSaveStatus::Ok)) {
+            QNINFO(QStringLiteral("Could not save note: ") << pNoteEditorWidget->noteLocalUid()
+                   << QStringLiteral(", status: ") << res << QStringLiteral(", error: ") << errorDescription);
+        }
+
+        pNoteEditorWidget->removeEventFilter(this);
+        pNoteEditorWidget->hide();
+        pNoteEditorWidget->deleteLater();
+        Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
+
+        QNTRACE(QStringLiteral("Closed note editor window: ") << noteLocalUid);
+    }
+}
+
 void NoteEditorTabWidgetManager::setMaxNumNotesInTabs(const int maxNumNotesInTabs)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabWidgetManager::setMaxNumNotesInTabs: ") << maxNumNotesInTabs);

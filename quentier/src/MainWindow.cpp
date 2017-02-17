@@ -2511,6 +2511,17 @@ void MainWindow::resizeEvent(QResizeEvent * pEvent)
     }
 }
 
+void MainWindow::closeEvent(QCloseEvent * pEvent)
+{
+    QNDEBUG(QStringLiteral("MainWindow::closeEvent"));
+
+    if (m_pNoteEditorTabWidgetManager) {
+        m_pNoteEditorTabWidgetManager->clear();
+    }
+
+    QMainWindow::closeEvent(pEvent);
+}
+
 void MainWindow::setupThemeIcons()
 {
     QNTRACE(QStringLiteral("MainWindow::setupThemeIcons"));

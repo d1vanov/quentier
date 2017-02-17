@@ -213,6 +213,7 @@ private Q_SLOTS:
 
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void setupThemeIcons();

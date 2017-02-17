@@ -60,6 +60,9 @@ public:
                                         TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
     ~NoteEditorTabWidgetManager();
 
+    // Closes all note editor windows and tabs, should be called when the app is about to quit
+    void clear();
+
     int maxNumNotesInTabs() const { return m_maxNumNotesInTabs; }
     void setMaxNumNotesInTabs(const int maxNumNotesInTabs);
 
