@@ -186,6 +186,7 @@ private Q_SLOTS:
     void onNewNoteButtonPressed();
 
     void onCurrentNoteInListChanged(QString noteLocalUid);
+    void onOpenNoteInSeparateWindow(QString noteLocalUid);
 
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);

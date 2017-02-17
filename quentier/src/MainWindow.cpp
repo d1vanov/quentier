@@ -1896,6 +1896,12 @@ void MainWindow::onCurrentNoteInListChanged(QString noteLocalUid)
     m_pNoteEditorTabWidgetManager->addNote(noteLocalUid);
 }
 
+void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onOpenNoteInSeparateWindow: ") << noteLocalUid);
+    m_pNoteEditorTabWidgetManager->addNote(noteLocalUid, NoteEditorTabWidgetManager::NoteEditorMode::Window);
+}
+
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
@@ -2832,6 +2838,8 @@ void MainWindow::setupViews()
 #endif
     QObject::connect(pNoteListView, QNSIGNAL(NoteListView,currentNoteChanged,QString),
                      this, QNSLOT(MainWindow,onCurrentNoteInListChanged,QString));
+    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,openNoteInSeparateWindowRequested,QString),
+                     this, QNSLOT(MainWindow,onOpenNoteInSeparateWindow,QString));
 
     QStringList noteSortingModes;
     noteSortingModes.reserve(8);

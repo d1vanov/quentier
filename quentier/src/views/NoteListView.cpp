@@ -200,6 +200,20 @@ void NoteListView::onMoveToOtherNotebookAction()
     pNoteModel->moveNoteToNotebook(noteLocalUid, notebookName);
 }
 
+void NoteListView::onOpenNoteInSeparateWindowAction()
+{
+    QNDEBUG(QStringLiteral("NoteListView::onOpenNoteInSeparateWindowAction"));
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Can't open note in a separate window: internal error, "
+                                       "can't cast the slot invoker to QAction"));
+        return;
+    }
+
+    emit openNoteInSeparateWindowRequested(pAction->data().toString());
+}
+
 void NoteListView::onUnfavoriteAction()
 {
     QNDEBUG(QStringLiteral("NoteListView::onUnfavoriteAction"));
@@ -343,6 +357,9 @@ void NoteListView::contextMenuEvent(QContextMenuEvent * pEvent)
 
     ADD_CONTEXT_MENU_ACTION(tr("Create new note"), m_pNoteItemContextMenu,
                             onCreateNewNoteAction, QString(), canCreateNote);
+
+    ADD_CONTEXT_MENU_ACTION(tr("Open in separate window"), m_pNoteItemContextMenu,
+                            onOpenNoteInSeparateWindowAction, pItem->localUid(), true);
 
     m_pNoteItemContextMenu->addSeparator();
 

@@ -49,6 +49,7 @@ Q_SIGNALS:
     void newNoteCreationRequested();
     void editNoteDialogRequested(QString noteLocalUid);
     void noteInfoDialogRequested(QString noteLocalUid);
+    void openNoteInSeparateWindowRequested(QString noteLocalUid);
 
 public Q_SLOTS:
     /**
@@ -76,6 +77,7 @@ protected Q_SLOTS:
     void onDeleteNoteAction();
     void onEditNoteAction();
     void onMoveToOtherNotebookAction();
+    void onOpenNoteInSeparateWindowAction();
 
     void onUnfavoriteAction();
     void onFavoriteAction();
