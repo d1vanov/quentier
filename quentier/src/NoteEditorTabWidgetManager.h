@@ -125,7 +125,7 @@ private:
     void setupFileIO();
     void setupSpellChecker();
 
-    QString shortenTabName(const QString & tabName) const;
+    QString shortenEditorName(const QString & name, int maxSize = -1) const;
 
     void moveNoteEditorTabToWindow(const QString & noteLocalUid);
     void moveNoteEditorWindowToTab(NoteEditorWidget * pNoteEditorWidget);

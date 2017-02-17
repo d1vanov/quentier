@@ -38,6 +38,7 @@
 
 #define BLANK_NOTE_KEY QStringLiteral("BlankNoteId")
 #define MAX_TAB_NAME_SIZE (10)
+#define MAX_WINDOW_NAME_SIZE (120)
 
 #define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
 #define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")
@@ -396,28 +397,50 @@ void NoteEditorTabWidgetManager::onNoteEditorWidgetResolved()
     QObject::disconnect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,resolved),
                         this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorWidgetResolved));
 
-    int tabIndex = -1;
-    for(int i = 0, size = m_pTabWidget->count(); i < size; ++i)
+    QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+
+    bool foundTab = false;
+    for(int i = 0, count = m_pTabWidget->count(); i < count; ++i)
     {
-        NoteEditorWidget * pCurrentNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
-        if (!pCurrentNoteEditorWidget) {
+        NoteEditorWidget * pTabNoteEditorWidget = qobject_cast<NoteEditorWidget*>(m_pTabWidget->widget(i));
+        if (Q_UNLIKELY(!pTabNoteEditorWidget)) {
             continue;
         }
 
-        if (pCurrentNoteEditorWidget == pNoteEditorWidget) {
-            tabIndex = i;
-            break;
+        if (pTabNoteEditorWidget->noteLocalUid() != noteLocalUid) {
+            continue;
         }
+
+        QString displayName = shortenEditorName(pNoteEditorWidget->titleOrPreview());
+        m_pTabWidget->setTabText(i, displayName);
+        QNTRACE(QStringLiteral("Updated tab text for note editor with note ") << noteLocalUid
+                << QStringLiteral(": ") << displayName);
+        foundTab = true;
+        break;
     }
 
-    if (Q_UNLIKELY(tabIndex < 0)) {
-        QNWARNING(QStringLiteral("Couldn't find the resolved note editor widget within tabs: ")
-                  << pNoteEditorWidget->noteLocalUid());
+    if (foundTab) {
         return;
     }
 
-    QString tabName = shortenTabName(pNoteEditorWidget->titleOrPreview());
-    m_pTabWidget->setTabText(tabIndex, tabName);
+    auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
+    if (it == m_noteEditorWindowsByNoteLocalUid.end()) {
+        QNTRACE(QStringLiteral("Couldn't find the note editor window corresponding to note local uid ")
+                << noteLocalUid);
+        return;
+    }
+
+    if (Q_UNLIKELY(it.value().isNull())) {
+        QNTRACE(QStringLiteral("The note editor corresponding to note local uid ") << noteLocalUid
+                << QStringLiteral(" is gone already"));
+        return;
+    }
+
+    NoteEditorWidget * pWindowNoteEditor = it.value().data();
+    QString displayName = shortenEditorName(pWindowNoteEditor->titleOrPreview(), MAX_WINDOW_NAME_SIZE);
+    pWindowNoteEditor->setWindowTitle(displayName);
+    QNTRACE(QStringLiteral("Updated window title for note editor with note ") << noteLocalUid
+            << QStringLiteral(": ") << displayName);
 }
 
 void NoteEditorTabWidgetManager::onNoteEditorWidgetInvalidated()
@@ -461,7 +484,7 @@ void NoteEditorTabWidgetManager::onNoteTitleOrPreviewTextChanged(QString titleOr
             continue;
         }
 
-        QString tabName = shortenTabName(titleOrPreview);
+        QString tabName = shortenEditorName(titleOrPreview);
         m_pTabWidget->setTabText(i, tabName);
         return;
     }
@@ -798,13 +821,13 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
     QObject::connect(pNoteEditorWidget, QNSIGNAL(NoteEditorWidget,notifyError,ErrorString),
                      this, QNSLOT(NoteEditorTabWidgetManager,onNoteEditorError,ErrorString));
 
-    QString displayName = shortenTabName(pNoteEditorWidget->titleOrPreview());
-
     if (noteEditorMode == NoteEditorMode::Window)
     {
         QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
 
         pNoteEditorWidget->setWindowFlags(Qt::WindowFlags(Qt::Window));
+
+        QString displayName = shortenEditorName(pNoteEditorWidget->titleOrPreview(), MAX_WINDOW_NAME_SIZE);
         pNoteEditorWidget->setWindowTitle(displayName);
         pNoteEditorWidget->setAttribute(Qt::WA_DeleteOnClose, true);
         pNoteEditorWidget->installEventFilter(this);
@@ -819,6 +842,8 @@ void NoteEditorTabWidgetManager::insertNoteEditorWidget(NoteEditorWidget * pNote
     }
 
     // If we got here, will insert the note editor as a tab
+
+    QString displayName = shortenEditorName(pNoteEditorWidget->titleOrPreview());
 
     int tabIndex = m_pTabWidget->indexOf(pNoteEditorWidget);
     if (tabIndex < 0) {
@@ -1027,14 +1052,18 @@ void NoteEditorTabWidgetManager::setupSpellChecker()
     }
 }
 
-QString NoteEditorTabWidgetManager::shortenTabName(const QString & tabName) const
+QString NoteEditorTabWidgetManager::shortenEditorName(const QString & name, int maxSize) const
 {
-    if (tabName.size() <= MAX_TAB_NAME_SIZE) {
-        return tabName;
+    if (maxSize < 0) {
+        maxSize = MAX_TAB_NAME_SIZE;
     }
 
-    QString result = tabName;
-    result.truncate(std::max(MAX_TAB_NAME_SIZE - 3, 0));
+    if (name.size() <= maxSize) {
+        return name;
+    }
+
+    QString result = name;
+    result.truncate(std::max(maxSize - 3, 0));
     result += QStringLiteral("...");
     return result;
 }
