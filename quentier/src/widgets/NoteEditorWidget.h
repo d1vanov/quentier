@@ -256,8 +256,6 @@ private Q_SLOTS:
     void onFindNotebookFailed(Notebook notebook, ErrorString errorDescription, QUuid requestId);
     void onExpungeNotebookComplete(Notebook notebook, QUuid requestId);
 
-    // Slot for note's title updates handling
-
     /**
      * This slot is called when the editing is still going on, so here we just set the flag that the note title
      * edit has started (so the line edit has "more recent" title that the note itself)

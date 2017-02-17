@@ -54,7 +54,7 @@ using quentier::NoteTagsWidget;
         return; \
     }
 
-#define DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT (5)
+#define DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT (500)
 
 namespace quentier {
 
@@ -339,11 +339,11 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
         if (!conversionResult) {
             QNDEBUG(QStringLiteral("Can't read the timeout for note editor to note conversion from the application settings, "
                                    "fallback to the default value of ") << DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT
-                    << QStringLiteral(" seconds"));
+                    << QStringLiteral(" milliseconds"));
             editorConvertToNoteTimeout = DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT;
         }
         else {
-            editorConvertToNoteTimeout = std::max(editorConvertToNoteTimeout, 1);
+            editorConvertToNoteTimeout = std::max(editorConvertToNoteTimeout, 100);
         }
 
         if (m_pConvertToNoteDeadlineTimer) {
