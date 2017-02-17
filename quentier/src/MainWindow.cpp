@@ -444,8 +444,12 @@ void MainWindow::addMenuActionsToMainWindow()
         switchAccountSubMenu->addAction(accountAction);
 
         accountAction->setData(i);
-
         accountAction->setCheckable(true);
+
+        if (!m_pAccount.isNull() && (*m_pAccount == availableAccount)) {
+            accountAction->setChecked(true);
+        }
+
         addAction(accountAction);
         QObject::connect(accountAction, QNSIGNAL(QAction,toggled,bool),
                          this, QNSLOT(MainWindow,onSwitchAccountActionToggled,bool));

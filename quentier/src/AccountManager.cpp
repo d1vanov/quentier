@@ -89,7 +89,10 @@ void AccountManager::raiseManageAccountsDialog()
 
     QWidget * parentWidget = qobject_cast<QWidget*>(parent());
 
-    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, parentWidget));
+    Account account = currentAccount();
+    int currentAccountRow = m_availableAccounts.indexOf(account);
+
+    QScopedPointer<ManageAccountsDialog> manageAccountsDialog(new ManageAccountsDialog(m_availableAccounts, currentAccountRow, parentWidget));
     manageAccountsDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,evernoteAccountAdditionRequested,QString),
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
@@ -186,11 +189,11 @@ void AccountManager::detectAvailableAccounts()
 
     QString localAccountsStoragePath = appPersistenceStoragePath + QStringLiteral("/LocalAccounts");
     QDir localAccountsStorageDir(localAccountsStoragePath);
-    QFileInfoList localAccountsDirInfos = localAccountsStorageDir.entryInfoList(QDir::AllDirs);
+    QFileInfoList localAccountsDirInfos = localAccountsStorageDir.entryInfoList(QDir::Filters(QDir::AllDirs | QDir::NoDotAndDotDot));
 
     QString evernoteAccountsStoragePath = appPersistenceStoragePath + QStringLiteral("/EvernoteAccounts");
     QDir evernoteAccountsStorageDir(evernoteAccountsStoragePath);
-    QFileInfoList evernoteAccountsDirInfos = evernoteAccountsStorageDir.entryInfoList(QDir::AllDirs);
+    QFileInfoList evernoteAccountsDirInfos = evernoteAccountsStorageDir.entryInfoList(QDir::Filters(QDir::AllDirs | QDir::NoDotAndDotDot));
 
     int numPotentialLocalAccountDirs = localAccountsDirInfos.size();
     int numPotentialEvernoteAccountDirs = evernoteAccountsDirInfos.size();
@@ -200,20 +203,19 @@ void AccountManager::detectAvailableAccounts()
     for(int i = 0; i < numPotentialLocalAccountDirs; ++i)
     {
         const QFileInfo & accountDirInfo = localAccountsDirInfos[i];
-        QDir accountDir = accountDirInfo.absoluteDir();
-        QFileInfo accountBasicInfoFileInfo(accountDir.absolutePath() + QStringLiteral("/accountInfo.txt"));
+        QFileInfo accountBasicInfoFileInfo(accountDirInfo.absoluteFilePath() + QStringLiteral("/accountInfo.txt"));
         if (!accountBasicInfoFileInfo.exists()) {
             continue;
         }
 
-        QString accountName = accountDir.dirName();
+        QString accountName = accountDirInfo.baseName();
         qevercloud::UserID userId = -1;
 
         Account availableAccount(accountName, Account::Type::Local, userId);
         readComplementaryAccountInfo(availableAccount);
         m_availableAccounts << availableAccount;
         QNDEBUG(QStringLiteral("Found available local account: name = ") << accountName
-                << QStringLiteral(", dir ") << accountDir.absolutePath());
+                << QStringLiteral(", dir ") << accountDirInfo.absoluteFilePath());
     }
 
     for(int i = 0; i < numPotentialEvernoteAccountDirs; ++i)

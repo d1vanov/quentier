@@ -33,7 +33,7 @@ class ManageAccountsDialog: public QDialog
     Q_OBJECT
 public:
     explicit ManageAccountsDialog(const QVector<quentier::Account> & availableAccounts,
-                                  QWidget * parent = Q_NULLPTR);
+                                  const int currentAccountRow = -1, QWidget * parent = Q_NULLPTR);
     virtual ~ManageAccountsDialog();
 
 Q_SIGNALS:
@@ -49,7 +49,7 @@ private Q_SLOTS:
     void onRevokeAuthenticationButtonPressed();
 
 private:
-    void updateAvailableAccountsInView();
+    void updateAvailableAccountsInView(const int currentRow);
 
 private:
     Ui::ManageAccountsDialog *  m_pUi;

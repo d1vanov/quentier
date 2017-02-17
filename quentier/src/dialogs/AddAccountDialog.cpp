@@ -33,6 +33,7 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
     m_onceSuggestedFullName(false)
 {
     m_pUi->setupUi(this);
+    setWindowTitle(tr("Add account"));
 
     m_pUi->statusText->setHidden(true);
 

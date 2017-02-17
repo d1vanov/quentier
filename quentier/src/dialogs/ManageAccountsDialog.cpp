@@ -24,16 +24,17 @@
 using namespace quentier;
 
 ManageAccountsDialog::ManageAccountsDialog(const QVector<Account> & availableAccounts,
-                                           QWidget * parent) :
+                                           const int currentAccountRow, QWidget * parent) :
     QDialog(parent),
     m_pUi(new Ui::ManageAccountsDialog),
     m_availableAccounts(availableAccounts),
     m_accountListModel()
 {
     m_pUi->setupUi(this);
+    setWindowTitle(tr("Manage accounts"));
 
     m_pUi->listView->setModel(&m_accountListModel);
-    updateAvailableAccountsInView();
+    updateAvailableAccountsInView(currentAccountRow);
 
     QObject::connect(m_pUi->addNewAccountButton, QNSIGNAL(QPushButton,released),
                      this, QNSLOT(ManageAccountsDialog,onAddAccountButtonPressed));
@@ -50,8 +51,21 @@ void ManageAccountsDialog::onAvailableAccountsChanged(const QVector<Account> & a
 {
     QNDEBUG(QStringLiteral("ManageAccountsDialog::onAvailableAccountsChanged"));
 
+    int newCurrentRow = -1;
+
+    QModelIndex currentIndex = m_pUi->listView->currentIndex();
+    if (currentIndex.isValid())
+    {
+        int currentRow = currentIndex.row();
+        if ((currentRow >= 0) && (currentRow <= m_availableAccounts.size()))
+        {
+            const Account & currentAccount = m_availableAccounts[currentRow];
+            newCurrentRow = availableAccounts.indexOf(currentAccount);
+        }
+    }
+
     m_availableAccounts = availableAccounts;
-    updateAvailableAccountsInView();
+    updateAvailableAccountsInView(newCurrentRow);
 }
 
 void ManageAccountsDialog::onAddAccountButtonPressed()
@@ -97,9 +111,10 @@ void ManageAccountsDialog::onRevokeAuthenticationButtonPressed()
     emit revokeAuthentication(availableAccount.id());
 }
 
-void ManageAccountsDialog::updateAvailableAccountsInView()
+void ManageAccountsDialog::updateAvailableAccountsInView(const int currentRow)
 {
-    QNDEBUG(QStringLiteral("ManageAccountsDialog::updateAvailableAccountsInView"));
+    QNDEBUG(QStringLiteral("ManageAccountsDialog::updateAvailableAccountsInView: current row = ")
+            << currentRow);
 
     int numAvailableAccounts = m_availableAccounts.size();
     QStringList accountsList;
@@ -120,4 +135,9 @@ void ManageAccountsDialog::updateAvailableAccountsInView()
     }
 
     m_accountListModel.setStringList(accountsList);
+
+    if ((currentRow >= 0) && (currentRow < numAvailableAccounts)) {
+        QModelIndex index = m_accountListModel.index(currentRow);
+        m_pUi->listView->setCurrentIndex(index);
+    }
 }
