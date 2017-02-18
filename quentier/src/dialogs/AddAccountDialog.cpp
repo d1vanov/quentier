@@ -20,6 +20,7 @@
 #include "ui_AddAccountDialog.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/DesktopServices.h>
+#include <quentier/types/ErrorString.h>
 #include <QStringListModel>
 #include <QPushButton>
 
@@ -48,6 +49,8 @@ AddAccountDialog::AddAccountDialog(const QVector<Account> & availableAccounts,
 
     QObject::connect(m_pUi->accountUsernameLineEdit, QNSIGNAL(QLineEdit,editingFinished),
                      this, QNSLOT(AddAccountDialog,onLocalAccountNameChosen));
+    QObject::connect(m_pUi->accountUsernameLineEdit, QNSIGNAL(QLineEdit,textEdited,QString),
+                     this, QNSLOT(AddAccountDialog,onLocalAccountUsernameEdited,QString));
 
     QStringList evernoteServers;
     evernoteServers.reserve(3);
@@ -141,10 +144,7 @@ void AddAccountDialog::onLocalAccountNameChosen()
 
     if (localAccountAlreadyExists(m_pUi->accountUsernameLineEdit->text()))
     {
-        QNDEBUG(QStringLiteral("Local account with such name already exists"));
-
-        m_pUi->statusText->setText(tr("Account with such name already exists"));
-        m_pUi->statusText->setHidden(false);
+        showLocalAccountAlreadyExistsMessage();
         if (pOkButton) {
             pOkButton->setDisabled(true);
         }
@@ -166,6 +166,35 @@ bool AddAccountDialog::localAccountAlreadyExists(const QString & name) const
     }
 
     return false;
+}
+
+void AddAccountDialog::onLocalAccountUsernameEdited(const QString & username)
+{
+    QNDEBUG(QStringLiteral("AddAccountDialog::onLocalAccountUsernameEdited: ") << username);
+
+    bool isLocal = (m_pUi->accountTypeComboBox->currentIndex() != 0);
+    if (!isLocal) {
+        QNTRACE(QStringLiteral("The chosen account type is not local, won't do anything"));
+        return;
+    }
+
+    QPushButton * pOkButton = m_pUi->buttonBox->button(QDialogButtonBox::Ok);
+
+    if (localAccountAlreadyExists(username))
+    {
+        showLocalAccountAlreadyExistsMessage();
+        if (pOkButton) {
+            pOkButton->setDisabled(true);
+        }
+
+        return;
+    }
+
+    m_pUi->statusText->setText(QString());
+    m_pUi->statusText->setHidden(true);
+    if (pOkButton) {
+        pOkButton->setDisabled(false);
+    }
 }
 
 void AddAccountDialog::accept()
@@ -197,4 +226,12 @@ void AddAccountDialog::accept()
     }
 
     QDialog::accept();
+}
+
+void AddAccountDialog::showLocalAccountAlreadyExistsMessage()
+{
+    ErrorString message(QT_TRANSLATE_NOOP("", "Account with such username already exists"));
+    QNDEBUG(message);
+    m_pUi->statusText->setText(message.localizedString());
+    m_pUi->statusText->setHidden(false);
 }

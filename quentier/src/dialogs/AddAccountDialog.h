@@ -47,8 +47,12 @@ private Q_SLOTS:
     void onCurrentAccountTypeChanged(int index);
     void onLocalAccountNameChosen();
     bool localAccountAlreadyExists(const QString & name) const;
+    void onLocalAccountUsernameEdited(const QString & username);
 
     virtual void accept() Q_DECL_OVERRIDE;
+
+private:
+    void showLocalAccountAlreadyExistsMessage();
 
 private:
     Ui::AddAccountDialog *      m_pUi;
