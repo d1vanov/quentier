@@ -20,14 +20,27 @@
       <string>A&amp;ccounts:</string>
      </property>
      <property name="buddy">
-      <cstring>listView</cstring>
+      <cstring>tableView</cstring>
      </property>
     </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="buttonsAndTableHorizontalLayout">
      <item>
-      <widget class="QListView" name="listView"/>
+      <widget class="QTableView" name="tableView">
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <attribute name="horizontalHeaderHighlightSections">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderHighlightSections">
+        <bool>false</bool>
+       </attribute>
+      </widget>
      </item>
      <item>
       <layout class="QVBoxLayout" name="buttonsVerticalLayout">

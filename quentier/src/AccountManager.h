@@ -60,6 +60,7 @@ public:
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host);
     void switchedAccount(Account account);
+    void accountUpdated(Account account);
     void notifyError(ErrorString error);
 
 public Q_SLOTS:
@@ -67,6 +68,7 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void onLocalAccountAdditionRequested(QString name, QString fullName);
+    void onAccountDisplayNameChanged(Account account);
 
 private:
     void detectAvailableAccounts();
@@ -79,6 +81,8 @@ private:
     bool writeAccountInfo(const QString & name, const QString & displayName, const bool isLocal,
                           const qevercloud::UserID id, const QString & evernoteAccountType,
                           const QString & evernoteHost, ErrorString & errorDescription);
+
+    QString evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const;
 
     void readComplementaryAccountInfo(Account & account);
 

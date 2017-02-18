@@ -98,6 +98,8 @@ void AccountManager::raiseManageAccountsDialog()
                      this, QNSIGNAL(AccountManager,evernoteAccountAuthenticationRequested,QString));
     QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,localAccountAdditionRequested,QString,QString),
                      this, QNSLOT(AccountManager,onLocalAccountAdditionRequested,QString,QString));
+    QObject::connect(manageAccountsDialog.data(), QNSIGNAL(ManageAccountsDialog,accountDisplayNameChanged,QString),
+                     this, QNSLOT(AccountManager,onAccountDisplayNameChanged,QString));
     Q_UNUSED(manageAccountsDialog->exec())
 }
 
@@ -135,6 +137,8 @@ void AccountManager::switchAccount(const Account & account)
         if (!res) {
             return;
         }
+
+        m_availableAccounts << account;
     }
     else
     {
@@ -179,6 +183,40 @@ void AccountManager::onLocalAccountAdditionRequested(QString name, QString fullN
     }
 
     switchAccount(*pNewAccount);
+}
+
+void AccountManager::onAccountDisplayNameChanged(Account account)
+{
+    QNDEBUG(QStringLiteral("AccountManager::onAccountDisplayNameChanged: ") << account);
+
+    int index = m_availableAccounts.indexOf(account);
+    if (Q_UNLIKELY(index < 0)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't process the change of account's display name, "
+                                            "can't find the account within the list of available ones"));
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    QString evernoteAccountType = evernoteAccountTypeToString(account.evernoteAccountType());
+
+    ErrorString errorDescription;
+    bool res = writeAccountInfo(account.name(), account.displayName(),
+                                (account.type() == Account::Type::Local),
+                                account.id(), evernoteAccountType,
+                                account.evernoteHost(), errorDescription);
+    if (Q_UNLIKELY(!res)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't save the changed account display name"));
+        error.additionalBases().append(errorDescription.base());
+        error.additionalBases().append(errorDescription.additionalBases());
+        error.details() = errorDescription.details();
+        QNWARNING(error);
+        emit notifyError(error);
+        return;
+    }
+
+    m_availableAccounts[index].setDisplayName(account.displayName());
+    emit accountUpdated(account);
 }
 
 void AccountManager::detectAvailableAccounts()
@@ -307,6 +345,10 @@ QSharedPointer<Account> AccountManager::createLocalAccount(const QString & name,
         return QSharedPointer<Account>();
     }
 
+    Account availableAccount(name, Account::Type::Local, qevercloud::UserID(-1));
+    availableAccount.setDisplayName(displayName);
+    m_availableAccounts << availableAccount;
+
     QSharedPointer<Account> result(new Account(name, Account::Type::Local));
     return result;
 }
@@ -317,22 +359,7 @@ bool AccountManager::createAccountInfo(const Account & account)
 
     bool isLocal = (account.type() == Account::Type::Local);
 
-    QString evernoteAccountType;
-    switch(account.evernoteAccountType())
-    {
-    case Account::EvernoteAccountType::Plus:
-        evernoteAccountType = QStringLiteral("Plus");
-        break;
-    case Account::EvernoteAccountType::Premium:
-        evernoteAccountType = QStringLiteral("Premium");
-        break;
-    case Account::EvernoteAccountType::Business:
-        evernoteAccountType = QStringLiteral("Business");
-        break;
-    default:
-        evernoteAccountType = QStringLiteral("Free");
-        break;
-    }
+    QString evernoteAccountType = evernoteAccountTypeToString(account.evernoteAccountType());
 
     ErrorString errorDescription;
     bool res = writeAccountInfo(account.name(), account.displayName(), isLocal, account.id(),
@@ -391,31 +418,63 @@ bool AccountManager::writeAccountInfo(const QString & name, const QString & disp
 
     writer.writeStartDocument();
 
-    writer.writeStartElement(QStringLiteral("accountName"));
-    writer.writeCharacters(name);
-    writer.writeEndElement();
+    writer.writeStartElement(QStringLiteral("data"));
+
+    if (!name.isEmpty()) {
+        writer.writeStartElement(QStringLiteral("accountName"));
+        writer.writeCharacters(name);
+        writer.writeEndElement();
+    }
+
+    if (!displayName.isEmpty()) {
+        writer.writeStartElement(QStringLiteral("displayName"));
+        writer.writeCDATA(displayName);
+        writer.writeEndElement();
+    }
 
     writer.writeStartElement(QStringLiteral("accountType"));
     writer.writeCharacters(isLocal ? QStringLiteral("Local") : QStringLiteral("Evernote"));
     writer.writeEndElement();
 
-    writer.writeStartElement(QStringLiteral("evernoteAccountType"));
-    writer.writeCharacters(evernoteAccountType);
-    writer.writeEndElement();
+    if (!evernoteAccountType.isEmpty()) {
+        writer.writeStartElement(QStringLiteral("evernoteAccountType"));
+        writer.writeCharacters(evernoteAccountType);
+        writer.writeEndElement();
+    }
 
-    writer.writeStartElement(QStringLiteral("evernoteHost"));
-    writer.writeCharacters(evernoteHost);
-    writer.writeEndElement();
+    if (!evernoteHost.isEmpty()) {
+        writer.writeStartElement(QStringLiteral("evernoteHost"));
+        writer.writeCharacters(evernoteHost);
+        writer.writeEndElement();
+    }
 
+    writer.writeEndElement();
     writer.writeEndDocument();
 
     accountInfo.close();
-
-    Account availableAccount(name, (isLocal ? Account::Type::Local : Account::Type::Evernote),
-                             /* user id = */ (isLocal ? qevercloud::UserID(-1) : id));
-    m_availableAccounts << availableAccount;
-
     return true;
+}
+
+QString AccountManager::evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const
+{
+    QString evernoteAccountType;
+    switch(type)
+    {
+    case Account::EvernoteAccountType::Plus:
+        evernoteAccountType = QStringLiteral("Plus");
+        break;
+    case Account::EvernoteAccountType::Premium:
+        evernoteAccountType = QStringLiteral("Premium");
+        break;
+    case Account::EvernoteAccountType::Business:
+        evernoteAccountType = QStringLiteral("Business");
+        break;
+    default:
+        evernoteAccountType = QStringLiteral("Free");
+        break;
+    }
+
+    return evernoteAccountType;
 }
 
 void AccountManager::readComplementaryAccountInfo(Account & account)
@@ -500,10 +559,10 @@ void AccountManager::readComplementaryAccountInfo(Account & account)
             {
                 account.setEvernoteHost(reader.text().toString());
             }
-            else if (currentElementName == QStringLiteral("displayName"))
-            {
-                account.setDisplayName(reader.text().toString());
-            }
+        }
+
+        if (reader.isCDATA() && (currentElementName == QStringLiteral("displayName"))) {
+            account.setDisplayName(reader.text().toString());
         }
     }
 

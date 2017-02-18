@@ -20,19 +20,23 @@
 #define QUENTIER_MANAGE_ACCOUNTS_DIALOG_H
 
 #include <quentier/types/Account.h>
+#include <quentier/types/ErrorString.h>
 #include <QDialog>
 #include <QVector>
-#include <QStringListModel>
+#include <QSharedPointer>
+#include <QScopedPointer>
 
 namespace Ui {
 class ManageAccountsDialog;
 }
 
+namespace quentier {
+
 class ManageAccountsDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ManageAccountsDialog(const QVector<quentier::Account> & availableAccounts,
+    explicit ManageAccountsDialog(const QVector<Account> & availableAccounts,
                                   const int currentAccountRow = -1, QWidget * parent = Q_NULLPTR);
     virtual ~ManageAccountsDialog();
 
@@ -40,21 +44,29 @@ Q_SIGNALS:
     void evernoteAccountAdditionRequested(QString evernoteServer);
     void localAccountAdditionRequested(QString name, QString fullName);
     void revokeAuthentication(qevercloud::UserID id);
+    void accountDisplayNameChanged(Account account);
 
 public Q_SLOTS:
-    void onAvailableAccountsChanged(const QVector<quentier::Account> & availableAccounts);
+    void onAvailableAccountsChanged(const QVector<Account> & availableAccounts);
 
 private Q_SLOTS:
     void onAddAccountButtonPressed();
     void onRevokeAuthenticationButtonPressed();
+    void onBadAccountDisplayNameEntered(ErrorString errorDescription, int row);
 
 private:
     void updateAvailableAccountsInView(const int currentRow);
 
 private:
-    Ui::ManageAccountsDialog *  m_pUi;
-    QVector<quentier::Account>  m_availableAccounts;
-    QStringListModel            m_accountListModel;
+    class AccountsModel;
+    class AccountsModelDelegate;
+
+private:
+    Ui::ManageAccountsDialog *          m_pUi;
+    QSharedPointer<QVector<Account> >   m_pAvailableAccounts;
+    QScopedPointer<AccountsModel>       m_pAccountsModel;
 };
+
+} // namespace quentier
 
 #endif // QUENTIER_MANAGE_ACCOUNTS_DIALOG_H
