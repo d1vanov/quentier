@@ -136,6 +136,7 @@ private Q_SLOTS:
     void onEvernoteAccountAuthenticationRequested(QString host);
     void onAccountSwitched(Account account);
     void onAccountUpdated(Account account);
+    void onAccountAdded(Account account);
     void onAccountManagerError(ErrorString errorDescription);
 
     // Toggle view slots
@@ -249,6 +250,7 @@ private:
     void connectToolbarButtonsToSlots();
 
     void addMenuActionsToMainWindow();
+    void updateSubMenuWithAvailableAccounts();
 
     void setWindowTitleForAccount(const Account & account);
 
@@ -334,8 +336,8 @@ private:
     QString                 m_lastNoteEditorHtml;
 
     QString                 m_nativeIconThemeName;
-
-    QActionGroup *          m_availableAccountsActionGroup;
+    QActionGroup *          m_pAvailableAccountsActionGroup;
+    QMenu *                 m_pAvailableAccountsSubMenu;
 
     AccountManager *            m_pAccountManager;
     QScopedPointer<Account>     m_pAccount;

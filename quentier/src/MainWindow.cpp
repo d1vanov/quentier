@@ -95,6 +95,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QPalette>
 #include <QToolTip>
 #include <QResizeEvent>
+#include <QMenu>
 
 #define NOTIFY_ERROR(error) \
     QNWARNING(error); \
@@ -111,7 +112,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_currentStatusBarChildWidget(Q_NULLPTR),
     m_lastNoteEditorHtml(),
     m_nativeIconThemeName(),
-    m_availableAccountsActionGroup(new QActionGroup(this)),
+    m_pAvailableAccountsActionGroup(new QActionGroup(this)),
+    m_pAvailableAccountsSubMenu(Q_NULLPTR),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
     m_pLocalStorageManagerThread(Q_NULLPTR),
@@ -164,7 +166,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     collectBaseStyleSheets();
     setupPanelOverlayStyleSheets();
 
-    m_availableAccountsActionGroup->setExclusive(true);
+    m_pAvailableAccountsActionGroup->setExclusive(true);
 
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     fixupQt4StyleSheets();
@@ -423,10 +425,30 @@ void MainWindow::addMenuActionsToMainWindow()
         }
     }
 
-    QMenu * switchAccountSubMenu = new QMenu(tr("Switch account"));
+    m_pAvailableAccountsSubMenu = new QMenu(tr("Switch account"));
     QAction * separatorAction = m_pUI->menuFile->insertSeparator(m_pUI->ActionQuit);
-    QAction * switchAccountSubMenuAction = m_pUI->menuFile->insertMenu(separatorAction, switchAccountSubMenu);
+
+    QAction * switchAccountSubMenuAction =
+            m_pUI->menuFile->insertMenu(separatorAction, m_pAvailableAccountsSubMenu);
     Q_UNUSED(m_pUI->menuFile->insertSeparator(switchAccountSubMenuAction));
+
+    updateSubMenuWithAvailableAccounts();
+}
+
+void MainWindow::updateSubMenuWithAvailableAccounts()
+{
+    QNDEBUG(QStringLiteral("MainWindow::updateSubMenuWithAvailableAccounts"));
+
+    if (Q_UNLIKELY(!m_pAvailableAccountsSubMenu)) {
+        QNDEBUG(QStringLiteral("No available accounts sub-menu"));
+        return;
+    }
+
+    delete m_pAvailableAccountsActionGroup;
+    m_pAvailableAccountsActionGroup = new QActionGroup(this);
+    m_pAvailableAccountsActionGroup->setExclusive(true);
+
+    m_pAvailableAccountsSubMenu->clear();
 
     const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
 
@@ -441,35 +463,35 @@ void MainWindow::addMenuActionsToMainWindow()
             availableAccountRepresentationName += QStringLiteral(")");
         }
 
-        QAction * accountAction = new QAction(availableAccountRepresentationName, Q_NULLPTR);
-        switchAccountSubMenu->addAction(accountAction);
+        QAction * pAccountAction = new QAction(availableAccountRepresentationName, Q_NULLPTR);
+        m_pAvailableAccountsSubMenu->addAction(pAccountAction);
 
-        accountAction->setData(i);
-        accountAction->setCheckable(true);
+        pAccountAction->setData(i);
+        pAccountAction->setCheckable(true);
 
         if (!m_pAccount.isNull() && (*m_pAccount == availableAccount)) {
-            accountAction->setChecked(true);
+            pAccountAction->setChecked(true);
         }
 
-        addAction(accountAction);
-        QObject::connect(accountAction, QNSIGNAL(QAction,toggled,bool),
+        addAction(pAccountAction);
+        QObject::connect(pAccountAction, QNSIGNAL(QAction,toggled,bool),
                          this, QNSLOT(MainWindow,onSwitchAccountActionToggled,bool));
 
-        m_availableAccountsActionGroup->addAction(accountAction);
+        m_pAvailableAccountsActionGroup->addAction(pAccountAction);
     }
 
     if (Q_LIKELY(numAvailableAccounts != 0)) {
-        Q_UNUSED(switchAccountSubMenu->addSeparator())
+        Q_UNUSED(m_pAvailableAccountsSubMenu->addSeparator())
     }
 
-    QAction * addAccountAction = switchAccountSubMenu->addAction(tr("Add account"));
-    addAction(addAccountAction);
-    QObject::connect(addAccountAction, QNSIGNAL(QAction,triggered,bool),
+    QAction * pAddAccountAction = m_pAvailableAccountsSubMenu->addAction(tr("Add account"));
+    addAction(pAddAccountAction);
+    QObject::connect(pAddAccountAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onAddAccountActionTriggered,bool));
 
-    QAction * manageAccountsAction = switchAccountSubMenu->addAction(tr("Manage accounts"));
-    addAction(manageAccountsAction);
-    QObject::connect(manageAccountsAction, QNSIGNAL(QAction,triggered,bool),
+    QAction * pManageAccountsAction = m_pAvailableAccountsSubMenu->addAction(tr("Manage accounts"));
+    addAction(pManageAccountsAction);
+    QObject::connect(pManageAccountsAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
 }
 
@@ -2167,6 +2189,12 @@ void MainWindow::onAccountUpdated(Account account)
     setWindowTitleForAccount(account);
 }
 
+void MainWindow::onAccountAdded(Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAccountAdded: ") << account);
+    updateSubMenuWithAvailableAccounts();
+}
+
 void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ") << errorDescription);
@@ -2532,7 +2560,7 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
     const int numAvailableAccounts = availableAccounts.size();
 
     // Trying to restore the previously selected account as the current one in the UI
-    QList<QAction*> availableAccountActions = m_availableAccountsActionGroup->actions();
+    QList<QAction*> availableAccountActions = m_pAvailableAccountsActionGroup->actions();
     for(auto it = availableAccountActions.constBegin(), end = availableAccountActions.constEnd(); it != end; ++it)
     {
         QAction * action = *it;
@@ -2629,6 +2657,8 @@ void MainWindow::setupAccountManager()
                      this, QNSLOT(MainWindow,onAccountSwitched,Account));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,accountUpdated,Account),
                      this, QNSLOT(MainWindow,onAccountUpdated,Account));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,accountAdded,Account),
+                     this, QNSLOT(MainWindow,onAccountAdded,Account));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onAccountManagerError,ErrorString));
 }

@@ -139,6 +139,7 @@ void AccountManager::switchAccount(const Account & account)
         }
 
         m_availableAccounts << account;
+        emit accountAdded(account);
     }
     else
     {

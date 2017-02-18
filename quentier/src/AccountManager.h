@@ -62,6 +62,7 @@ Q_SIGNALS:
     void switchedAccount(Account account);
     void accountUpdated(Account account);
     void notifyError(ErrorString error) const;
+    void accountAdded(Account account);
 
 public Q_SLOTS:
     void switchAccount(const Account & account);
