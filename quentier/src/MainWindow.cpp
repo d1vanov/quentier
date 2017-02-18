@@ -176,6 +176,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
+    setWindowTitleForAccount(*m_pAccount);
 
     setupLocalStorageManager();
     setupModels();
@@ -470,6 +471,27 @@ void MainWindow::addMenuActionsToMainWindow()
     addAction(manageAccountsAction);
     QObject::connect(manageAccountsAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
+}
+
+void MainWindow::setWindowTitleForAccount(const Account & account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ") << account);
+
+    QString username = account.name();
+    QString displayName = account.displayName();
+
+    QString title = qApp->applicationName() + QStringLiteral(": ");
+    if (!displayName.isEmpty()) {
+        title += displayName;
+        title += QStringLiteral(" (");
+        title += username;
+        title += QStringLiteral(")");
+    }
+    else {
+        title += username;
+    }
+
+    setWindowTitle(title);
 }
 
 NoteEditorWidget * MainWindow::currentNoteEditor()
@@ -2110,6 +2132,41 @@ void MainWindow::onAccountSwitched(Account account)
                                        m_lastLocalStorageSwitchUserRequest);
 }
 
+void MainWindow::onAccountUpdated(Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAccountUpdated: ") << account);
+
+    if (!m_pAccount) {
+        QNDEBUG(QStringLiteral("No account is current at the moment"));
+        return;
+    }
+
+    if (m_pAccount->type() != account.type()) {
+        QNDEBUG(QStringLiteral("Not an update for the current account: it has another type"));
+        QNTRACE(*m_pAccount);
+        return;
+    }
+
+    bool isLocal = (m_pAccount->type() == Account::Type::Local);
+
+    if (isLocal && (m_pAccount->name() != account.name())) {
+        QNDEBUG(QStringLiteral("Not an update for the current account: it has another name"));
+        QNTRACE(*m_pAccount);
+        return;
+    }
+
+    if (!isLocal &&
+        ((m_pAccount->id() != account.id()) || (m_pAccount->name() != account.name())))
+    {
+        QNDEBUG(QStringLiteral("Not an update for the current account: either id or name don't match"));
+        QNTRACE(*m_pAccount);
+        return;
+    }
+
+    *m_pAccount = account;
+    setWindowTitleForAccount(account);
+}
+
 void MainWindow::onAccountManagerError(ErrorString errorDescription)
 {
     QNDEBUG(QStringLiteral("MainWindow::onAccountManagerError: ") << errorDescription);
@@ -2420,6 +2477,7 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     }
 
     *m_pAccount = account;
+    setWindowTitleForAccount(account);
 
     if (m_pAccount->type() == Account::Type::Local)
     {
@@ -2569,6 +2627,8 @@ void MainWindow::setupAccountManager()
                      this, QNSLOT(MainWindow,onEvernoteAccountAuthenticationRequested,QString));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,switchedAccount,Account),
                      this, QNSLOT(MainWindow,onAccountSwitched,Account));
+    QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,accountUpdated,Account),
+                     this, QNSLOT(MainWindow,onAccountUpdated,Account));
     QObject::connect(m_pAccountManager, QNSIGNAL(AccountManager,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onAccountManagerError,ErrorString));
 }

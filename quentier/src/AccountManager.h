@@ -61,7 +61,7 @@ Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host);
     void switchedAccount(Account account);
     void accountUpdated(Account account);
-    void notifyError(ErrorString error);
+    void notifyError(ErrorString error) const;
 
 public Q_SLOTS:
     void switchAccount(const Account & account);
@@ -84,7 +84,7 @@ private:
 
     QString evernoteAccountTypeToString(const Account::EvernoteAccountType::type type) const;
 
-    void readComplementaryAccountInfo(Account & account);
+    void readComplementaryAccountInfo(Account & account) const;
 
     QDir accountStorageDir(const QString & name, const bool isLocal, const qevercloud::UserID id, const QString & evernoteHost) const;
 

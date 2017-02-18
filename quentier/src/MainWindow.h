@@ -135,6 +135,7 @@ private Q_SLOTS:
     // AccountManager slots
     void onEvernoteAccountAuthenticationRequested(QString host);
     void onAccountSwitched(Account account);
+    void onAccountUpdated(Account account);
     void onAccountManagerError(ErrorString errorDescription);
 
     // Toggle view slots
@@ -248,6 +249,8 @@ private:
     void connectToolbarButtonsToSlots();
 
     void addMenuActionsToMainWindow();
+
+    void setWindowTitleForAccount(const Account & account);
 
     NoteEditorWidget * currentNoteEditor();
 

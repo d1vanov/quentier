@@ -477,7 +477,7 @@ QString AccountManager::evernoteAccountTypeToString(const Account::EvernoteAccou
     return evernoteAccountType;
 }
 
-void AccountManager::readComplementaryAccountInfo(Account & account)
+void AccountManager::readComplementaryAccountInfo(Account & account) const
 {
     QNDEBUG(QStringLiteral("AccountManager::readComplementaryAccountInfo: ") << account);
 
@@ -689,6 +689,7 @@ QSharedPointer<Account> AccountManager::lastUsedAccount() const
         result = QSharedPointer<Account>(new Account(accountName,
                                                      (isLocal ? Account::Type::Local : Account::Type::Evernote),
                                                      id, evernoteAccountType, evernoteHost));
+        readComplementaryAccountInfo(*result);
     }
 
     return result;
