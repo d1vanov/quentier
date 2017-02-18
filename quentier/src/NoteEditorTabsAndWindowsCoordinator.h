@@ -60,8 +60,11 @@ public:
                                                  TabWidget * tabWidget, QObject * parent = Q_NULLPTR);
     ~NoteEditorTabsAndWindowsCoordinator();
 
-    // Closes all note editor windows and tabs, should be called when the app is about to quit
+    // Closes all note editor windows and tabs;
+    // should be called when the app is about to quit, called automatically when the account is switched
     void clear();
+
+    void switchAccount(const Account & account, quentier::TagModel & tagModel);
 
     int maxNumNotesInTabs() const { return m_maxNumNotesInTabs; }
     void setMaxNumNotesInTabs(const int maxNumNotesInTabs);
@@ -140,7 +143,7 @@ private:
     NoteCache &                         m_noteCache;
     NotebookCache &                     m_notebookCache;
     TagCache &                          m_tagCache;
-    TagModel &                          m_tagModel;
+    QPointer<TagModel>                  m_pTagModel;
 
     TabWidget *                         m_pTabWidget;
     NoteEditorWidget *                  m_pBlankNoteEditor;

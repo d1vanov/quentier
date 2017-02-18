@@ -17,6 +17,7 @@
  */
 
 #include "NoteEditorTabsAndWindowsCoordinator.h"
+#include "AccountToKey.h"
 #include "models/TagModel.h"
 #include "widgets/NoteEditorWidget.h"
 #include "widgets/TabWidget.h"
@@ -40,8 +41,8 @@
 #define MAX_TAB_NAME_SIZE (10)
 #define MAX_WINDOW_NAME_SIZE (120)
 
-#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
-#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")
+#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("_LocalUidsOfNotesLastOpenInNoteEditorTabs")
+#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("_LocalUidsOfNotesLastOpenInNoteEditorWindows")
 
 namespace quentier {
 
@@ -55,7 +56,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_noteCache(noteCache),
     m_notebookCache(notebookCache),
     m_tagCache(tagCache),
-    m_tagModel(tagModel),
+    m_pTagModel(&tagModel),
     m_pTabWidget(tabWidget),
     m_pBlankNoteEditor(Q_NULLPTR),
     m_pIOThread(Q_NULLPTR),
@@ -95,7 +96,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_pBlankNoteEditor = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
                                               *m_pFileIOThreadWorker, *m_pSpellChecker,
                                               m_noteCache, m_notebookCache, m_tagCache,
-                                              m_tagModel, pUndoStack, m_pTabWidget);
+                                              *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(m_pBlankNoteEditor);
 
     Q_UNUSED(m_pTabWidget->addTab(m_pBlankNoteEditor, BLANK_NOTE_KEY))
@@ -126,6 +127,8 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::clear: num tabs = ")
             << m_pTabWidget->count() << QStringLiteral(", num windows = ")
             << m_noteEditorWindowsByNoteLocalUid.size());
+
+    m_pBlankNoteEditor = Q_NULLPTR;
 
     while(m_pTabWidget->count() != 0)
     {
@@ -187,6 +190,28 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
 
         QNTRACE(QStringLiteral("Closed note editor window: ") << noteLocalUid);
     }
+
+    m_localUidsOfNotesInTabbedEditors.clear();
+    m_lastCurrentTabNoteLocalUid.clear();
+    m_noteEditorWindowsByNoteLocalUid.clear();
+    m_createNoteRequestIds.clear();
+}
+
+void NoteEditorTabsAndWindowsCoordinator::switchAccount(const Account & account, TagModel & tagModel)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::switchAccount: ") << account);
+
+    if (account == m_currentAccount) {
+        QNDEBUG(QStringLiteral("The account has not changed, nothing to do"));
+        return;
+    }
+
+    clear();
+
+    m_pTagModel = QPointer<TagModel>(&tagModel);
+    m_currentAccount = account;
+
+    restoreLastOpenNotes();
 }
 
 void NoteEditorTabsAndWindowsCoordinator::setMaxNumNotesInTabs(const int maxNumNotesInTabs)
@@ -306,7 +331,7 @@ void NoteEditorTabsAndWindowsCoordinator::addNote(const QString & noteLocalUid, 
     NoteEditorWidget * pNoteEditorWidget = new NoteEditorWidget(m_currentAccount, m_localStorageWorker,
                                                                 *m_pFileIOThreadWorker, *m_pSpellChecker,
                                                                 m_noteCache, m_notebookCache, m_tagCache,
-                                                                m_tagModel, pUndoStack, m_pTabWidget);
+                                                                *m_pTagModel, pUndoStack, m_pTabWidget);
     pUndoStack->setParent(pNoteEditorWidget);
     pNoteEditorWidget->setNoteLocalUid(noteLocalUid);
     insertNoteEditorWidget(pNoteEditorWidget, noteEditorMode);
@@ -1133,6 +1158,17 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
 {
     QNDEBUG("NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs");
 
+    QString accountKey = accountToKey(m_currentAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
+                                            "the local uids of notes opened in "
+                                            "note editor tabs: can't convert "
+                                            "the current account to the string key"));
+        QNWARNING(error << QStringLiteral(", account: ") << m_currentAccount);
+        emit notifyError(error);
+        return;
+    }
+
     QStringList openNotesLocalUids;
     size_t size = m_localUidsOfNotesInTabbedEditors.size();
     openNotesLocalUids.reserve(static_cast<int>(size));
@@ -1144,7 +1180,7 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
     }
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    appSettings.beginGroup(accountKey + QStringLiteral("/NoteEditor"));
     appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY, openNotesLocalUids);
     appSettings.endGroup();
 }
@@ -1152,6 +1188,17 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
 void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows()
 {
     QNDEBUG("NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows");
+
+    QString accountKey = accountToKey(m_currentAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
+                                            "the local uids of notes opened in "
+                                            "note editor windows: can't convert "
+                                            "the current account to the string key"));
+        QNWARNING(error << QStringLiteral(", account: ") << m_currentAccount);
+        emit notifyError(error);
+        return;
+    }
 
     QStringList openNotesLocalUids;
     openNotesLocalUids.reserve(m_noteEditorWindowsByNoteLocalUid.size());
@@ -1167,7 +1214,7 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows
     }
 
     ApplicationSettings appSettings;
-    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    appSettings.beginGroup(accountKey + QStringLiteral("/NoteEditor"));
     appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY, openNotesLocalUids);
     appSettings.endGroup();
 }
@@ -1176,10 +1223,23 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes"));
 
+    QString accountKey = accountToKey(m_currentAccount);
+    if (Q_UNLIKELY(accountKey.isEmpty())) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
+                                            "the last notes opened in note editor "
+                                            "tabs and windows: can't convert "
+                                            "the current account to the string key"));
+        QNWARNING(error << QStringLiteral(", account: ") << m_currentAccount);
+        emit notifyError(error);
+        return;
+    }
+
     ApplicationSettings appSettings;
-    appSettings.beginGroup(QStringLiteral("NoteEditor"));
-    QStringList localUidsOfLastNotesInTabs = appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY).toStringList();
-    QStringList localUidsOfLastNotesInWindows = appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY).toStringList();
+    appSettings.beginGroup(accountKey + QStringLiteral("/NoteEditor"));
+    QStringList localUidsOfLastNotesInTabs =
+            appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY).toStringList();
+    QStringList localUidsOfLastNotesInWindows =
+            appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY).toStringList();
     appSettings.endGroup();
 
     for(auto it = localUidsOfLastNotesInTabs.constBegin(), end = localUidsOfLastNotesInTabs.constEnd(); it != end; ++it) {

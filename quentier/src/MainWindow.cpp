@@ -2504,6 +2504,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
         return;
     }
 
+    m_notebookCache.clear();
+    m_tagCache.clear();
+    m_savedSearchCache.clear();
+    m_noteCache.clear();
+
     *m_pAccount = account;
     setWindowTitleForAccount(account);
 
@@ -2530,11 +2535,15 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
 
     setupModels();
 
+    if (m_pNoteEditorTabsAndWindowsCoordinator) {
+        m_pNoteEditorTabsAndWindowsCoordinator->switchAccount(*m_pAccount, *m_pTagModel);
+    }
+
     m_pUI->filterByNotebooksWidget->switchAccount(*m_pAccount, m_pNotebookModel);
     m_pUI->filterByTagsWidget->switchAccount(*m_pAccount, m_pTagModel);
     m_pUI->filterBySavedSearchComboBox->switchAccount(*m_pAccount, m_pSavedSearchModel);
 
-    showHideViewColumnsForAccountType(m_pAccount->type());
+    setupViews();
 }
 
 void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId)
@@ -2976,13 +2985,16 @@ void MainWindow::setupViews()
     pDeletedNotesTableView->header()->setResizeMode(QHeaderView::ResizeToContents);
 #endif
 
-    m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
-    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
-                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
-    QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
-                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
-    QObject::connect(pDeletedNotesTableView, QNSIGNAL(DeletedNoteItemView,deletedNoteInfoRequested,QString),
-                     m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+    if (!m_pEditNoteDialogsManager)
+    {
+        m_pEditNoteDialogsManager = new EditNoteDialogsManager(*m_pLocalStorageManager, m_noteCache, m_pNotebookModel, this);
+        QObject::connect(pNoteListView, QNSIGNAL(NoteListView,editNoteDialogRequested,QString),
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onEditNoteDialogRequested,QString));
+        QObject::connect(pNoteListView, QNSIGNAL(NoteListView,noteInfoDialogRequested,QString),
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+        QObject::connect(pDeletedNotesTableView, QNSIGNAL(DeletedNoteItemView,deletedNoteInfoRequested,QString),
+                         m_pEditNoteDialogsManager, QNSLOT(EditNoteDialogsManager,onNoteInfoDialogRequested,QString));
+    }
 
     Account::Type::type currentAccountType = Account::Type::Local;
     if (m_pAccount) {
