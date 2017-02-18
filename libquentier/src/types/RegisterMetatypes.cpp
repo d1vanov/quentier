@@ -17,6 +17,7 @@
  */
 
 #include <quentier/types/RegisterMetatypes.h>
+#include <quentier/types/Account.h>
 #include <quentier/types/ErrorString.h>
 #include <quentier/types/Notebook.h>
 #include <quentier/types/Note.h>
@@ -41,6 +42,7 @@ void registerMetatypes()
     qRegisterMetaType<User>("User");
     qRegisterMetaType<LinkedNotebook>("LinkedNotebook");
     qRegisterMetaType<SavedSearch>("SavedSearch");
+    qRegisterMetaType<Account>("Account");
 
     qRegisterMetaType< QList<Notebook> >("QList<Notebook>");
     qRegisterMetaType< QList<Note> >("QList<Note>");
