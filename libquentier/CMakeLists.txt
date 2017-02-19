@@ -487,6 +487,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
                       SOVERSION "${PROJECT_VERSION_MAJOR}"
                       MACOSX_RPATH 1
                       INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+
+if(MSVC)
+  list(APPEND THIRDPARTY_LIBS secur32.lib)
+endif()
+
 target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${THIRDPARTY_LIBS})
 
 set(TEST_HEADERS

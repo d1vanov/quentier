@@ -30,6 +30,9 @@
 #include <windows.h>
 #include <Lmcons.h>
 
+#define SECURITY_WIN32
+#include <security.h>
+
 #else
 
 #if defined Q_OS_MAC
@@ -309,8 +312,8 @@ const QString getCurrentUserFullName()
 #if defined(Q_OS_WIN)
     TCHAR acUserName[UNLEN+1];
     DWORD nUserName = sizeof(acUserName);
-    const int userNameFormat = 3; // NameDisplay
-    if (GetUserNameEx(userNameFormat, acUserName, &nUserName)) {
+    bool res = GetUserNameEx(NameDisplay, acUserName, &nUserName);
+    if (res) {
         userFullName = static_cast<LPSTR>(acUserName);
     }
 
