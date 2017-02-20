@@ -117,6 +117,11 @@ var observer = new MutationObserver(function(mutations, observer) {
                 }
             }
 
+            if (!mutation.target.parentNode) {
+                console.log("Mutaton target has no parent node, skipping");
+                continue;
+            }
+
             ++numApprovedMutations;
             textEditingUndoRedoManager.pushNode(mutation.target.parentNode);
         }
