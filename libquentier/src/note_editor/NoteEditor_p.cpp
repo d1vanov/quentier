@@ -4101,7 +4101,7 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion"));
 
-    m_skipRulesForHtmlToEnmlConversion.reserve(6);
+    m_skipRulesForHtmlToEnmlConversion.reserve(7);
 
     ENMLConverter::SkipHtmlElementRule tableSkipRule;
     tableSkipRule.m_attributeValueToSkip = QStringLiteral("JCLRgrip");
@@ -4143,6 +4143,13 @@ void NoteEditorPrivate::setupSkipRulesForHtmlToEnmlConversion()
     resizableImageHandleRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
     resizableImageHandleRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
     m_skipRulesForHtmlToEnmlConversion << resizableImageHandleRule;
+
+    ENMLConverter::SkipHtmlElementRule resizableImageHelperDivRule;
+    resizableImageHelperDivRule.m_includeElementContents = true;
+    resizableImageHelperDivRule.m_attributeValueToSkip = QStringLiteral("ui-wrapper");
+    resizableImageHelperDivRule.m_attributeValueCaseSensitivity = Qt::CaseSensitive;
+    resizableImageHelperDivRule.m_attributeValueComparisonRule = ENMLConverter::SkipHtmlElementRule::Contains;
+    m_skipRulesForHtmlToEnmlConversion << resizableImageHelperDivRule;
 }
 
 QString NoteEditorPrivate::initialPageHtml() const
