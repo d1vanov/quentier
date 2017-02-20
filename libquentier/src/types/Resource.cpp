@@ -422,26 +422,30 @@ const QByteArray & Resource::dataHash() const
     return d->m_qecResource.data->bodyHash;
 }
 
-#define CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(empty_condition, data_field, field, \
-                                              other_field1, other_field2) \
-    if (empty_condition && enResource.data_field.isSet() && enResource.data_field->field.isSet()) \
-    { \
-        qevercloud::Optional<qevercloud::Data> & data_field = enResource.data_field; \
-        data_field->field.clear(); \
-        if (!data_field->other_field1.isSet() && !data_field->other_field2.isSet()) { \
-            data_field.clear(); \
-        } \
-        return; \
-    } \
-    \
-    if (!enResource.data_field.isSet()) { \
-        enResource.data_field = qevercloud::Data(); \
-    }
-
 void Resource::setDataHash(const QByteArray & hash)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), data, bodyHash, body, size);
+
+    if (!enResource.data.isSet())
+    {
+        if (hash.isEmpty()) {
+            return;
+        }
+
+        enResource.data = qevercloud::Data();
+    }
+
+    if (hash.isEmpty())
+    {
+        enResource.data->bodyHash.clear();
+
+        if (!enResource.data->body.isSet() && !enResource.data->size.isSet()) {
+            enResource.data.clear();
+        }
+
+        return;
+    }
+
     enResource.data->bodyHash = hash;
 }
 
@@ -462,7 +466,27 @@ qint32 Resource::dataSize() const
 void Resource::setDataSize(const qint32 size)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), data, size, body, bodyHash);
+
+    if (!enResource.data.isSet())
+    {
+        if (size == 0) {
+            return;
+        }
+
+        enResource.data = qevercloud::Data();
+    }
+
+    if (size == 0)
+    {
+        enResource.data->size.clear();
+
+        if (!enResource.data->body.isSet() && !enResource.data->bodyHash.isSet()) {
+            enResource.data.clear();
+        }
+
+        return;
+    }
+
     enResource.data->size = size;
 }
 
@@ -482,14 +506,14 @@ const QByteArray & Resource::dataBody() const
 
 void Resource::setDataBody(const QByteArray & body)
 {
-    QNTRACE(QStringLiteral("Resource::setDataBody: body to set is ") << (body.isEmpty() ? QStringLiteral("empty") : QStringLiteral("not empty")));
+    QNTRACE(QStringLiteral("Resource::setDataBody: body to set is ")
+            << (body.isEmpty() ? QStringLiteral("empty") : QStringLiteral("not empty")));
 
     qevercloud::Resource & enResource = d->m_qecResource;
 
     if (!enResource.data.isSet())
     {
         if (body.isEmpty()) {
-            QNTRACE(QStringLiteral("Body to set is empty and resource's data is not set as well"));
             return;
         }
 
@@ -499,18 +523,15 @@ void Resource::setDataBody(const QByteArray & body)
     if (body.isEmpty())
     {
         enResource.data->body.clear();
-        QNTRACE(QStringLiteral("Cleared data body"));
 
         if (!enResource.data->bodyHash.isSet() && !enResource.data->size.isSet()) {
             enResource.data.clear();
-            QNTRACE(QStringLiteral("Cleared the entire data field"));
         }
+
+        return;
     }
-    else
-    {
-        enResource.data->body = body;
-        QNTRACE(QStringLiteral("Set resource data body"));
-    }
+
+    enResource.data->body = body;
 }
 
 bool Resource::hasMime() const
@@ -590,7 +611,27 @@ const QByteArray & Resource::recognitionDataHash() const
 void Resource::setRecognitionDataHash(const QByteArray & hash)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), recognition, bodyHash, body, size);
+
+    if (!enResource.recognition.isSet())
+    {
+        if (hash.isEmpty()) {
+            return;
+        }
+
+        enResource.recognition = qevercloud::Data();
+    }
+
+    if (hash.isEmpty())
+    {
+        enResource.recognition->bodyHash.clear();
+
+        if (!enResource.recognition->body.isSet() && !enResource.recognition->size.isSet()) {
+            enResource.recognition.clear();
+        }
+
+        return;
+    }
+
     enResource.recognition->bodyHash = hash;
 }
 
@@ -611,7 +652,27 @@ qint32 Resource::recognitionDataSize() const
 void Resource::setRecognitionDataSize(const qint32 size)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), recognition, size, body, bodyHash);
+
+    if (!enResource.recognition.isSet())
+    {
+        if (size == 0) {
+            return;
+        }
+
+        enResource.recognition = qevercloud::Data();
+    }
+
+    if (size == 0)
+    {
+        enResource.recognition->size.clear();
+
+        if (!enResource.recognition->body.isSet() && !enResource.recognition->bodyHash.isSet()) {
+            enResource.recognition.clear();
+        }
+
+        return;
+    }
+
     enResource.recognition->size = size;
 }
 
@@ -632,7 +693,27 @@ const QByteArray & Resource::recognitionDataBody() const
 void Resource::setRecognitionDataBody(const QByteArray & body)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), recognition, body, size, bodyHash);
+
+    if (!enResource.recognition.isSet())
+    {
+        if (body.isEmpty()) {
+            return;
+        }
+
+        enResource.recognition = qevercloud::Data();
+    }
+
+    if (body.isEmpty())
+    {
+        enResource.recognition->body.clear();
+
+        if (!enResource.recognition->bodyHash.isSet() && !enResource.recognition->size.isSet()) {
+            enResource.recognition.clear();
+        }
+
+        return;
+    }
+
     enResource.recognition->body = body;
 }
 
@@ -658,7 +739,27 @@ const QByteArray & Resource::alternateDataHash() const
 void Resource::setAlternateDataHash(const QByteArray & hash)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(hash.isEmpty(), alternateData, bodyHash, size, body);
+
+    if (!enResource.alternateData.isSet())
+    {
+        if (hash.isEmpty()) {
+            return;
+        }
+
+        enResource.alternateData = qevercloud::Data();
+    }
+
+    if (hash.isEmpty())
+    {
+        enResource.alternateData->bodyHash.clear();
+
+        if (!enResource.alternateData->body.isSet() && !enResource.alternateData->size.isSet()) {
+            enResource.alternateData.clear();
+        }
+
+        return;
+    }
+
     enResource.alternateData->bodyHash = hash;
 }
 
@@ -679,7 +780,27 @@ qint32 Resource::alternateDataSize() const
 void Resource::setAlternateDataSize(const qint32 size)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD((size <= 0), alternateData, size, body, bodyHash);
+
+    if (!enResource.alternateData.isSet())
+    {
+        if (size == 0) {
+            return;
+        }
+
+        enResource.alternateData = qevercloud::Data();
+    }
+
+    if (size == 0)
+    {
+        enResource.alternateData->size.clear();
+
+        if (!enResource.alternateData->body.isSet() && !enResource.alternateData->bodyHash.isSet()) {
+            enResource.alternateData.clear();
+        }
+
+        return;
+    }
+
     enResource.alternateData->size = size;
 }
 
@@ -700,11 +821,29 @@ const QByteArray & Resource::alternateDataBody() const
 void Resource::setAlternateDataBody(const QByteArray & body)
 {
     qevercloud::Resource & enResource = d->m_qecResource;
-    CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD(body.isEmpty(), alternateData, body, size, bodyHash);
+
+    if (!enResource.alternateData.isSet())
+    {
+        if (body.isEmpty()) {
+            return;
+        }
+
+        enResource.alternateData = qevercloud::Data();
+    }
+
+    if (body.isEmpty())
+    {
+        enResource.alternateData->body.clear();
+
+        if (!enResource.alternateData->bodyHash.isSet() && !enResource.alternateData->size.isSet()) {
+            enResource.alternateData.clear();
+        }
+
+        return;
+    }
+
     enResource.alternateData->body = body;
 }
-
-#undef CHECK_AND_EMPTIFY_RESOURCE_DATA_FIELD
 
 bool Resource::hasResourceAttributes() const
 {
