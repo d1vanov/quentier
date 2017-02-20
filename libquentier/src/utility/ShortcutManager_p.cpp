@@ -72,7 +72,9 @@ QKeySequence ShortcutManagerPrivate::shortcut(const int key, const QString & con
         QNTRACE(QStringLiteral("Converted to key sequence: ") << value);
     }
 
-    return qvariant_cast<QKeySequence>(value);
+    QKeySequence keySequence = qvariant_cast<QKeySequence>(value);
+    QNTRACE(QStringLiteral("Key sequence: ") << keySequence);
+    return keySequence;
 }
 
 QKeySequence ShortcutManagerPrivate::shortcut(const QString & nonStandardKey, const QString & context) const
@@ -106,7 +108,9 @@ QKeySequence ShortcutManagerPrivate::shortcut(const QString & nonStandardKey, co
         QNTRACE(QStringLiteral("Converted to key sequence: ") << value);
     }
 
-    return qvariant_cast<QKeySequence>(value);
+    QKeySequence keySequence = qvariant_cast<QKeySequence>(value);
+    QNTRACE(QStringLiteral("Key sequence: ") << keySequence);
+    return keySequence;
 }
 
 void ShortcutManagerPrivate::setUserShortcut(int key, QKeySequence shortcut, QString context)
@@ -227,7 +231,9 @@ QKeySequence ShortcutManagerPrivate::defaultShortcut(const int key, const QStrin
         }
     }
 
-    return qvariant_cast<QKeySequence>(value);
+    QKeySequence keySequence = qvariant_cast<QKeySequence>(value);
+    QNTRACE(QStringLiteral("Key sequence: ") << keySequence);
+    return keySequence;
 }
 
 QKeySequence ShortcutManagerPrivate::defaultShortcut(const QString & nonStandardKey, const QString & context) const
