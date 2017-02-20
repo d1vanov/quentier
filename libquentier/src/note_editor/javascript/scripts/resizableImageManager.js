@@ -50,13 +50,19 @@ function ResizableImageManager() {
     }
 
     this.onResizeStart = function(event, ui) {
-        observer.stop();
+        if (window.hasOwnProperty("observer")) {
+            observer.stop();
+        }
     }
 
     this.onResizeStop = function(event, ui) {
         undoNodes.push(ui.originalElement[0]);
         undoSizes.push(ui.originalSize);
-        observer.start();
+
+        if (window.hasOwnProperty("observer")) {
+            observer.start();
+        }
+
         resizableImageHandler.notifyImageResourceResized(true);
     }
 
@@ -74,7 +80,10 @@ function ResizableImageManager() {
 
         if (document.body.contentEditable && resource.nodeName === "IMG") {
             $(resource).load(function() {
-                var observerWasRunning = observer.running;
+                var observerWasRunning = false;
+                if (window.hasOwnProperty("observer")) {
+                    observerWasRunning = observer.running;
+                }
                 console.log("observerWasRunning = " + observerWasRunning);
 
                 if (observerWasRunning) {
@@ -98,6 +107,37 @@ function ResizableImageManager() {
                         resize: resizableImageManager.onResize
                     });
                     $(this).resizable("enable");
+
+                    // Setting the initial size
+                    height = this.getAttribute("height");
+                    if (height) {
+                        height = Number(height.replace(/[^\d\.\-]/g, ''));
+                    }
+                    else {
+                        height = this.naturalHeight;
+                    }
+
+                    width = this.getAttribute("width");
+                    if (width) {
+                        width = Number(width.replace(/[^\d\.\-]/g, ''));
+                    }
+                    else {
+                        width = this.naturalWidth;
+                    }
+
+                    console.log("Will set the initial size of the image to: height = " + height +
+                                ", width = " + width);
+
+                    var $wrapper = $(this).resizable('widget');
+                    var $handle = $wrapper.find('.ui-resizable');
+                    dx = $handle.width() - width;
+                    dy = $handle.height() - height;
+
+                    $handle.width(width);
+                    $wrapper.width($wrapper.width() - dx);
+
+                    $handle.height(height);
+                    $wrapper.height($wrapper.height() - dy);
                 }
                 finally {
                     if (observerWasRunning) {
