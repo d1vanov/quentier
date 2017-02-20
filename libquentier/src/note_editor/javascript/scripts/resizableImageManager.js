@@ -92,8 +92,18 @@ function ResizableImageManager() {
                 }
 
                 try {
+                    this.style.height = "";
+                    this.style.width = "";
+                    this.style.margin = "";
+                    this.style.resize = "";
+                    this.style.position = "";
+                    this.style.zoom = "";
+                    this.style.display = "";
+                    console.log("Updated style: " + this.style);
+
                     var height = this.naturalHeight;
                     var width = this.naturalWidth;
+
                     console.log("Applying resizable to image: " + this.outerHTML + "; height = " + height + ", width = " + width);
                     $(this).height(height);
                     $(this).width(width);
@@ -108,13 +118,12 @@ function ResizableImageManager() {
                     });
                     $(this).resizable("enable");
 
-                    // Setting the initial size
                     height = this.getAttribute("height");
                     if (height) {
                         height = Number(height.replace(/[^\d\.\-]/g, ''));
                     }
                     else {
-                        height = this.naturalHeight;
+                        height = $(this).height();
                     }
 
                     width = this.getAttribute("width");
@@ -122,22 +131,18 @@ function ResizableImageManager() {
                         width = Number(width.replace(/[^\d\.\-]/g, ''));
                     }
                     else {
-                        width = this.naturalWidth;
+                        width = $(this).width();
                     }
 
-                    console.log("Will set the initial size of the image to: height = " + height +
-                                ", width = " + width);
+                    var $wrapper = $(this).resizable("widget");
+                    var $element = $wrapper.find(".ui-resizable");
 
-                    var $wrapper = $(this).resizable('widget');
-                    var $handle = $wrapper.find('.ui-resizable');
-                    dx = $handle.width() - width;
-                    dy = $handle.height() - height;
+                    $element.width(width);
+                    $wrapper.width(width);
+                    $element.height(height);
+                    $wrapper.height(height);
 
-                    $handle.width(width);
-                    $wrapper.width($wrapper.width() - dx);
-
-                    $handle.height(height);
-                    $wrapper.height($wrapper.height() - dy);
+                    console.log("Resized element and wrapper to height = " + $element.height() + ", width = " + $element.width());
                 }
                 finally {
                     if (observerWasRunning) {
@@ -163,7 +168,9 @@ function ResizableImageManager() {
         var node = sourceNodes.pop();
         var size = sourceSizes.pop();
 
-        observer.stop();
+        if (window.hasOwnProperty("observer")) {
+            observer.stop();
+        }
 
         try {
             if (!node) {
@@ -201,7 +208,9 @@ function ResizableImageManager() {
             resizableImageHandler.notifyImageResourceResized(false);
         }
         finally {
-            observer.start();
+            if (window.hasOwnProperty("observer")) {
+                observer.start();
+            }
         }
     }
 }
