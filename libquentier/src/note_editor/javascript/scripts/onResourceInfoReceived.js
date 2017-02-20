@@ -23,20 +23,27 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
 
     var resources = document.querySelectorAll("[hash=\"" + resourceHash + "\"]");
     if (!resources) {
+        console.log("The resource with the given hash was not found, skipping");
         return;
     }
 
     var resource = resources[0];
     if (!resource) {
+        console.log("The resource is null, skipping");
         return;
     }
 
     var escapedPath = filePath.replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0');
+    console.log("Escaped path to the resource image: " + escapedPath);
 
-    observer.stop();
+    if (window.hasOwnProperty("observer")) {
+        observer.stop();
+    }
 
     try {
         resource.setAttribute("src", escapedPath);
+        console.log("Set the src attribute for resource with hash \"" + resourceHash + "\" to " + escapedPath);
+
         resizableImageManager.setResizable(resource);
 
         var resourceName = resource.getElementsByClassName("resource-name");
@@ -57,7 +64,13 @@ function onResourceInfoReceived(resourceHash, filePath, displayName, displaySize
             console.log("Can't find child element for resource display size");
         }
     }
+    catch(e) {
+        console.log("Caught exception while trying to set the src attribute to a resource image: " +
+                    e.name + ": " + e.message + " - " + e.stack);
+    }
     finally {
-        observer.start();
+        if (window.hasOwnProperty("observer")) {
+            observer.start();
+        }
     }
 }
