@@ -816,6 +816,10 @@ bool Note::isInkNote() const
 
     // NOTE: it is not known for sure how many resources there might be within an ink note. Probably just one in most cases.
     const int numResources = resources.size();
+    if (numResources == 0) {
+        return false;
+    }
+
     for(int i = 0; i < numResources; ++i)
     {
         const qevercloud::Resource & resource = resources[i];
