@@ -3066,7 +3066,7 @@ void MainWindow::setupNoteEditorTabWidgetManager()
     m_pNoteEditorTabsAndWindowsCoordinator = new NoteEditorTabsAndWindowsCoordinator(*m_pAccount, *m_pLocalStorageManager,
                                                                                      m_noteCache, m_notebookCache,
                                                                                      m_tagCache, *m_pTagModel,
-                                                                                     m_pUI->noteEditorsTabWidget);
+                                                                                     m_pUI->noteEditorsTabWidget, this);
     QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,notifyError,ErrorString),
                      this, QNSLOT(MainWindow,onNoteEditorError,ErrorString));
     QObject::connect(m_pNoteEditorTabsAndWindowsCoordinator, QNSIGNAL(NoteEditorTabsAndWindowsCoordinator,currentNoteChanged,QString),
