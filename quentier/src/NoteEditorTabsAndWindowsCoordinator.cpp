@@ -26,12 +26,15 @@
 #include <quentier/utility/DesktopServices.h>
 #include <quentier/utility/FileIOThreadWorker.h>
 #include <quentier/note_editor/SpellChecker.h>
+#include <quentier/note_editor/NoteEditor.h>
 #include <QUndoStack>
 #include <QTabBar>
 #include <QCloseEvent>
 #include <QThread>
 #include <QMenu>
 #include <QContextMenuEvent>
+#include <QKeyEvent>
+#include <QEvent>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES_IN_TABS (5)
@@ -157,6 +160,8 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
         }
 
         m_pTabWidget->removeTab(0);
+
+        pNoteEditorWidget->removeEventFilter(this);
         pNoteEditorWidget->hide();
         pNoteEditorWidget->deleteLater();
 
@@ -386,20 +391,83 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
         if (pNoteEditorWidget)
         {
             QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
-            QNTRACE(QStringLiteral("Intercepted close of note editor window, note local uid = ") << noteLocalUid);
-
-            if (pNoteEditorWidget->isModified())
-            {
-                ErrorString errorDescription;
-                NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
-                QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
-                        << QStringLiteral(", error description: ") << errorDescription);
-            }
-
             auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
-            if (Q_LIKELY(it != m_noteEditorWindowsByNoteLocalUid.end())) {
+            if (it != m_noteEditorWindowsByNoteLocalUid.end())
+            {
+                QNTRACE(QStringLiteral("Intercepted close of note editor window, note local uid = ") << noteLocalUid);
+
+                if (pNoteEditorWidget->isModified())
+                {
+                    ErrorString errorDescription;
+                    NoteEditorWidget::NoteSaveStatus::type status = pNoteEditorWidget->checkAndSaveModifiedNote(errorDescription);
+                    QNDEBUG(QStringLiteral("Check and save modified note, status: ") << status
+                            << QStringLiteral(", error description: ") << errorDescription);
+                }
+
                 Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
                 persistLocalUidsOfNotesInEditorWindows();
+            }
+        }
+    }
+    else if (pEvent && (pEvent->type() == QEvent::KeyRelease))
+    {
+        /**
+         * WARNING: it is a very-very dirty hack intended to work around the situation
+         * in which the note editor's backend eats the keyboard shortcut key itself
+         * and doesn't let it properly propagate to the top level widget (MainWindow).
+         *
+         * For simplicity, here the following approach is presented: if we are indeed
+         * dealing with a note editor having a key press containing Ctrl and/or Alt modifiers,
+         * we go to the top level parent (MainWindow), get all its child actions and find the one
+         * matching the key sequence encoded in the event.
+         *
+         * It is extremely ugly and I deeply regret about this but it's the only way
+         * I can make this thing work right now
+         */
+
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(pWatched);
+        NoteEditor * pNoteEditor = qobject_cast<NoteEditor*>(pWatched);
+
+        QKeyEvent * pKeyEvent = dynamic_cast<QKeyEvent*>(pEvent);
+        if (pKeyEvent && (pNoteEditorWidget || pNoteEditor))
+        {
+            Qt::KeyboardModifiers modifiers = pKeyEvent->modifiers();
+            if (modifiers.testFlag(Qt::ControlModifier) ||
+                modifiers.testFlag(Qt::AltModifier))
+            {
+                QNTRACE(QStringLiteral("Detected key press event with Ctrl and/or Alt "
+                                       "modifiers, rejecting the event"));
+
+                QObject * pTarget = parent();
+                while(pTarget)
+                {
+                    QObject * pNextParent = pTarget->parent();
+                    if (!pNextParent) {
+                        break;
+                    }
+                    pTarget = pNextParent;
+                }
+
+                if (!pTarget) {
+                    QNDEBUG(QStringLiteral("Wasn't able to find the target for the event "
+                                           "to be re-sent to; allowing the event to proceed "
+                                           "the default path"));
+                    return true;
+                }
+
+                QKeySequence keySequence(pKeyEvent->key() | static_cast<int>(modifiers));
+
+                QList<QAction*> actions = pTarget->findChildren<QAction*>();
+                for(auto it = actions.begin(), end = actions.end(); it != end; ++it)
+                {
+                    QAction * pAction = *it;
+                    if (pAction->shortcut() == keySequence) {
+                        pAction->trigger();
+                        return false;
+                    }
+                }
+
+                return true;
             }
         }
     }
@@ -897,6 +965,7 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(NoteEditorWidge
 
     m_pTabWidget->setCurrentIndex(tabIndex);
 
+    pNoteEditorWidget->installEventFilter(this);
     m_localUidsOfNotesInTabbedEditors.push_back(pNoteEditorWidget->noteLocalUid());
     QNTRACE(QStringLiteral("Added tabbed note local uid: ") << pNoteEditorWidget->noteLocalUid()
             << QStringLiteral(", the number of tabbed note local uids = ") << m_localUidsOfNotesInTabbedEditors.size());
@@ -1147,7 +1216,6 @@ void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorWindowToTab(NoteEditorWi
     }
 
     pNoteEditorWidget->setAttribute(Qt::WA_DeleteOnClose, false);
-    pNoteEditorWidget->removeEventFilter(this);
     pNoteEditorWidget->setWindowFlags(Qt::WindowFlags(Qt::Widget));
 
     insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Tab);
