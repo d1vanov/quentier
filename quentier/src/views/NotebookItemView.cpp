@@ -17,7 +17,7 @@
  */
 
 #include "NotebookItemView.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include "../models/NotebookModel.h"
 #include "../dialogs/AddOrEditNotebookDialog.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -633,15 +633,8 @@ void NotebookItemView::onNotebookStackRenamed(const QString & previousStackName,
         return;
     }
 
-    QString accountKey = accountToKey(pNotebookModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pNotebookModel->account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NotebookItemView"));
+    ApplicationSettings appSettings(pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
     QStringList expandedStacks = appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
@@ -1011,13 +1004,6 @@ void NotebookItemView::saveNotebookStackItemsState()
         return;
     }
 
-    QString accountKey = accountToKey(pNotebookModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pNotebookModel->account());
-        return;
-    }
-
     QStringList result;
 
     QModelIndexList indexes = pNotebookModel->persistentIndexes();
@@ -1037,8 +1023,8 @@ void NotebookItemView::saveNotebookStackItemsState()
         result << stackItemName;
     }
 
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NotebookItemView"));
+    ApplicationSettings appSettings(pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
     appSettings.setValue(LAST_EXPANDED_STACK_ITEMS_KEY, result);
     appSettings.endGroup();
 }
@@ -1047,15 +1033,8 @@ void NotebookItemView::restoreNotebookStackItemsState(const NotebookModel & mode
 {
     QNDEBUG(QStringLiteral("NotebookItemView::restoreNotebookStackItemsState"));
 
-    QString accountKey = accountToKey(model.account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(model.account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NotebookItemView"));
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
     QStringList expandedStacks = appSettings.value(LAST_EXPANDED_STACK_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
@@ -1092,15 +1071,8 @@ void NotebookItemView::restoreLastSavedSelectionOrAutoSelectNotebook(const Noteb
         return;
     }
 
-    QString accountKey = accountToKey(model.account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(model.account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NotebookItemView"));
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
     QString lastSelectedNotebookLocalUid = appSettings.value(LAST_SELECTED_NOTEBOOK_KEY).toString();
     appSettings.endGroup();
 
@@ -1223,15 +1195,8 @@ void NotebookItemView::selectionChangedImpl(const QItemSelection & selected,
         return;
     }
 
-    QString accountKey = accountToKey(pNotebookModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pNotebookModel->account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NotebookItemView"));
+    ApplicationSettings appSettings(pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NotebookItemView"));
     appSettings.setValue(LAST_SELECTED_NOTEBOOK_KEY, pNotebookItem->localUid());
     appSettings.endGroup();
 

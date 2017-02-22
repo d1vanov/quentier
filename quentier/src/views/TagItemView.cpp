@@ -17,7 +17,7 @@
  */
 
 #include "TagItemView.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include "../models/TagModel.h"
 #include "../dialogs/AddOrEditTagDialog.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -842,13 +842,6 @@ void TagItemView::saveTagItemsState()
         return;
     }
 
-    QString accountKey = accountToKey(pTagModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pTagModel->account());
-        return;
-    }
-
     QStringList result;
 
     QModelIndexList indexes = pTagModel->persistentIndexes();
@@ -871,8 +864,8 @@ void TagItemView::saveTagItemsState()
         QNTRACE(QStringLiteral("Found expanded tag item: local uid = ") << pItem->localUid());
     }
 
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/TagItemView"));
+    ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("TagItemView"));
     appSettings.setValue(LAST_EXPANDED_TAG_ITEMS_KEY, result);
     appSettings.endGroup();
 }
@@ -881,15 +874,8 @@ void TagItemView::restoreTagItemsState(const TagModel & model)
 {
     QNDEBUG(QStringLiteral("TagItemView::restoreTagItemsState"));
 
-    QString accountKey = accountToKey(model.account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(model.account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/TagItemView"));
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("TagItemView"));
     QStringList expandedTagLocalUids = appSettings.value(LAST_EXPANDED_TAG_ITEMS_KEY).toStringList();
     appSettings.endGroup();
 
@@ -928,15 +914,8 @@ void TagItemView::restoreLastSavedSelection(const TagModel & model)
         return;
     }
 
-    QString accountKey = accountToKey(model.account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(model.account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/TagItemView"));
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("TagItemView"));
     QString lastSelectedTagLocalUid = appSettings.value(LAST_SELECTED_TAG_KEY).toString();
     appSettings.endGroup();
 
@@ -1000,15 +979,8 @@ void TagItemView::selectionChangedImpl(const QItemSelection & selected,
 
     QNTRACE(QStringLiteral("Currently selected tag item: ") << *pTagItem);
 
-    QString accountKey = accountToKey(pTagModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pTagModel->account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/TagItemView"));
+    ApplicationSettings appSettings(pTagModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("TagItemView"));
     appSettings.setValue(LAST_SELECTED_TAG_KEY, pTagItem->localUid());
     appSettings.endGroup();
 

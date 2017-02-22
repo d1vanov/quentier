@@ -17,7 +17,7 @@
  */
 
 #include "FavoriteItemView.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include "../models/FavoritesModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -409,15 +409,8 @@ void FavoriteItemView::restoreLastSavedSelection(const FavoritesModel & model)
         return;
     }
 
-    QString accountKey = accountToKey(model.account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(model.account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/FavoriteItemView"));
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("FavoriteItemView"));
     QString lastSelectedItemLocalUid = appSettings.value(LAST_SELECTED_FAVORITED_ITEM_KEY).toString();
     appSettings.endGroup();
 
@@ -478,15 +471,8 @@ void FavoriteItemView::selectionChangedImpl(const QItemSelection & selected,
         return;
     }
 
-    QString accountKey = accountToKey(pFavoritesModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pFavoritesModel->account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/FavoriteItemView"));
+    ApplicationSettings appSettings(pFavoritesModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("FavoriteItemView"));
     appSettings.setValue(LAST_SELECTED_FAVORITED_ITEM_KEY, pItem->localUid());
     appSettings.endGroup();
 

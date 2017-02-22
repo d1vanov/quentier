@@ -17,7 +17,7 @@
  */
 
 #include "SavedSearchItemView.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include "../models/SavedSearchModel.h"
 #include "../dialogs/AddOrEditSavedSearchDialog.h"
 #include <quentier/logging/QuentierLogger.h>
@@ -506,15 +506,8 @@ void SavedSearchItemView::restoreLastSavedSelection(const SavedSearchModel & mod
         return;
     }
 
-    QString accountKey = accountToKey(model.account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(model.account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/SavedSearchItemView"));
+    ApplicationSettings appSettings(model.account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("SavedSearchItemView"));
     QString lastSelectedSavedSearchLocalUid = appSettings.value(LAST_SELECTED_SAVED_SEARCH_KEY).toString();
     appSettings.endGroup();
 
@@ -578,15 +571,8 @@ void SavedSearchItemView::selectionChangedImpl(const QItemSelection & selected,
 
     QNTRACE(QStringLiteral("Currently selected saved search item: ") << *pSavedSearchItem);
 
-    QString accountKey = accountToKey(pSavedSearchModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        REPORT_ERROR(QT_TRANSLATE_NOOP("", "Internal error: can't create application settings key from account"))
-        QNWARNING(pSavedSearchModel->account());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/SavedSearchItemView"));
+    ApplicationSettings appSettings(pSavedSearchModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("SavedSearchItemView"));
     appSettings.setValue(LAST_SELECTED_SAVED_SEARCH_KEY, pSavedSearchItem->m_localUid);
     appSettings.endGroup();
 

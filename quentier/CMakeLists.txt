@@ -51,6 +51,7 @@ set(${PROJECT_NAME}_HEADERS
     src/EditNoteDialogsManager.h
     src/NoteEditorTabsAndWindowsCoordinator.h
     src/NoteFiltersManager.h
+    src/SettingsNames.h
     src/color-picker-tool-button/ColorPickerActionWidget.h
     src/color-picker-tool-button/ColorPickerToolButton.h
     src/dialogs/AddAccountDialog.h

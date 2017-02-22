@@ -1,6 +1,6 @@
 #include "AddOrEditTagDialog.h"
 #include "ui_AddOrEditTagDialog.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
@@ -46,19 +46,15 @@ AddOrEditTagDialog::AddOrEditTagDialog(TagModel * pTagModel, QWidget * parent,
     }
     else if (!tagNames.isEmpty() && !m_pTagModel.isNull())
     {
-        QString accountKey = accountToKey(m_pTagModel->account());
-        if (Q_LIKELY(!accountKey.isEmpty()))
-        {
-            ApplicationSettings appSettings;
-            appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditTagDialog"));
-            QString lastSelectedParentTagName = appSettings.value(LAST_SELECTED_PARENT_TAG_NAME_KEY).toString();
-            appSettings.endGroup();
+        ApplicationSettings appSettings(m_pTagModel->account(), QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));
+        QString lastSelectedParentTagName = appSettings.value(LAST_SELECTED_PARENT_TAG_NAME_KEY).toString();
+        appSettings.endGroup();
 
-            auto it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), lastSelectedParentTagName);
-            if ((it != tagNames.constEnd()) && (*it == lastSelectedParentTagName)) {
-                int index = static_cast<int>(std::distance(tagNames.constBegin(), it));
-                m_pUi->parentTagNameComboBox->setCurrentIndex(index);
-            }
+        auto it = std::lower_bound(tagNames.constBegin(), tagNames.constEnd(), lastSelectedParentTagName);
+        if ((it != tagNames.constEnd()) && (*it == lastSelectedParentTagName)) {
+            int index = static_cast<int>(std::distance(tagNames.constBegin(), it));
+            m_pUi->parentTagNameComboBox->setCurrentIndex(index);
         }
     }
 
@@ -247,15 +243,8 @@ void AddOrEditTagDialog::onParentTagNameChanged(const QString & parentTagName)
         return;
     }
 
-    QString accountKey = accountToKey(m_pTagModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNWARNING(QStringLiteral("Can't persist the last selected parent tag name: "
-                                 "can't convert the account to key string"));
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditTagDialog"));
+    ApplicationSettings appSettings(m_pTagModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("AddOrEditTagDialog"));
     appSettings.setValue(LAST_SELECTED_PARENT_TAG_NAME_KEY, parentTagName);
     appSettings.endGroup();
 }

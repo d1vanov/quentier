@@ -1,0 +1,6 @@
+#ifndef QUENTIER_SETTINGS_NAMES_H
+#define QUENTIER_SETTINGS_NAMES_H
+
+#define QUENTIER_UI_SETTINGS QStringLiteral("UserInterface")
+
+#endif // QUENTIER_SETTINGS_NAMES_H

@@ -1,12 +1,12 @@
 #include "AddOrEditNotebookDialog.h"
 #include "ui_AddOrEditNotebookDialog.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QStringListModel>
 #include <QPushButton>
 
-#define LAST_SELECTED_STACK QStringLiteral("_LastSelectedNotebookStack")
+#define LAST_SELECTED_STACK QStringLiteral("LastSelectedNotebookStack")
 
 namespace quentier {
 
@@ -72,18 +72,14 @@ AddOrEditNotebookDialog::AddOrEditNotebookDialog(NotebookModel * pNotebookModel,
     }
     else if (!stacks.isEmpty() && !m_pNotebookModel.isNull())
     {
-        QString accountKey = accountToKey(m_pNotebookModel->account());
-        if (Q_LIKELY(!accountKey.isEmpty()))
-        {
-            ApplicationSettings appSettings;
-            appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditNotebookDialog"));
-            QString lastSelectedStack = appSettings.value(LAST_SELECTED_STACK).toString();
-            appSettings.endGroup();
+        ApplicationSettings appSettings(m_pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));
+        QString lastSelectedStack = appSettings.value(LAST_SELECTED_STACK).toString();
+        appSettings.endGroup();
 
-            int index = stacks.indexOf(lastSelectedStack);
-            if (index >= 0) {
-                m_pUi->notebookStackComboBox->setCurrentIndex(index);
-            }
+        int index = stacks.indexOf(lastSelectedStack);
+        if (index >= 0) {
+            m_pUi->notebookStackComboBox->setCurrentIndex(index);
         }
     }
 
@@ -228,15 +224,8 @@ void AddOrEditNotebookDialog::onNotebookStackChanged(const QString & stack)
         return;
     }
 
-    QString accountKey = accountToKey(m_pNotebookModel->account());
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNWARNING(QStringLiteral("Can't persist the last selected notebook stack: "
-                                 "can't convert the account to key string"));
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/AddOrEditNotebookDialog"));
+    ApplicationSettings appSettings(m_pNotebookModel->account(), QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("AddOrEditNotebookDialog"));
     appSettings.setValue(LAST_SELECTED_STACK, stack);
     appSettings.endGroup();
 }
