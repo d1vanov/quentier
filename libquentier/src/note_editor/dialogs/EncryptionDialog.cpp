@@ -24,9 +24,11 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <QLineEdit>
 
+#define NOTE_EDITOR_SETTINGS_NAME QStringLiteral("NoteEditor")
+
 namespace quentier {
 
-EncryptionDialog::EncryptionDialog(const QString & textToEncrypt,
+EncryptionDialog::EncryptionDialog(const QString & textToEncrypt, const Account & account,
                                    QSharedPointer<EncryptionManager> encryptionManager,
                                    QSharedPointer<DecryptedTextManager> decryptedTextManager,
                                    QWidget * parent) :
@@ -34,6 +36,7 @@ EncryptionDialog::EncryptionDialog(const QString & textToEncrypt,
     m_pUI(new Ui::EncryptionDialog),
     m_textToEncrypt(textToEncrypt),
     m_cachedEncryptedText(),
+    m_account(account),
     m_encryptionManager(encryptionManager),
     m_decryptedTextManager(decryptedTextManager)
 {
@@ -41,8 +44,8 @@ EncryptionDialog::EncryptionDialog(const QString & textToEncrypt,
     QUENTIER_CHECK_PTR(encryptionManager.data())
 
     bool rememberPassphraseForSessionDefault = false;
-    ApplicationSettings appSettings;
-    QVariant rememberPassphraseForSessionSetting = appSettings.value(QStringLiteral("General/rememberPassphraseForSession"));
+    ApplicationSettings appSettings(m_account, NOTE_EDITOR_SETTINGS_NAME);
+    QVariant rememberPassphraseForSessionSetting = appSettings.value(QStringLiteral("Encryption/rememberPassphraseForSession"));
     if (!rememberPassphraseForSessionSetting.isNull()) {
         rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
     }
@@ -88,12 +91,12 @@ void EncryptionDialog::onRememberPassphraseStateChanged(int checked)
 {
     Q_UNUSED(checked)
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_account, NOTE_EDITOR_SETTINGS_NAME);
     if (!appSettings.isWritable()) {
         QNINFO(QStringLiteral("Can't persist remember passphrase for session setting: settings are not writable"));
     }
     else {
-        appSettings.setValue("General/rememberPassphraseForSession",
+        appSettings.setValue("Encryption/rememberPassphraseForSession",
                              QVariant(m_pUI->rememberPasswordForSessionCheckBox->isChecked()));
     }
 }

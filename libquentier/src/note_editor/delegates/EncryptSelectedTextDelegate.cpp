@@ -29,11 +29,19 @@ namespace quentier {
         return; \
     }
 
+#define CHECK_ACCOUNT() \
+    if (Q_UNLIKELY(!m_pNoteEditor->accountPtr())) { \
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't encrypt the selected text: no account is set to the note editor")); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
+
 #define GET_PAGE() \
     CHECK_NOTE_EDITOR() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_pNoteEditor->page()); \
     if (Q_UNLIKELY(!page)) { \
-        ErrorString error(QT_TRANSLATE_NOOP("", "can't encrypt the selected text: no note editor page")); \
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't encrypt the selected text: no note editor page")); \
         QNWARNING(error); \
         emit notifyError(error); \
         return; \
@@ -76,8 +84,12 @@ void EncryptSelectedTextDelegate::raiseEncryptionDialog()
 {
     QNDEBUG(QStringLiteral("EncryptSelectedTextDelegate::raiseEncryptionDialog"));
 
-    QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_selectionHtml, m_encryptionManager,
-                                                                            m_decryptedTextManager, m_pNoteEditor));
+    CHECK_NOTE_EDITOR()
+    CHECK_ACCOUNT()
+
+    QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_selectionHtml, *m_pNoteEditor->accountPtr(),
+                                                                            m_encryptionManager, m_decryptedTextManager,
+                                                                            m_pNoteEditor));
     pEncryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pEncryptionDialog.data(), QNSIGNAL(EncryptionDialog,accepted,QString,QString,QString,size_t,QString,bool),
                      this, QNSLOT(EncryptSelectedTextDelegate,onSelectedTextEncrypted,QString,QString,QString,size_t,QString,bool));
