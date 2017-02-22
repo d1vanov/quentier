@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Linkage.h>
 #include <quentier/utility/Macros.h>
+#include <quentier/types/Account.h>
 #include <QObject>
 #include <QKeySequence>
 
@@ -110,19 +111,22 @@ public:
         UnknownKey = 100000
     };
 
-    QKeySequence shortcut(const int key, const QString & context = QString()) const;
-    QKeySequence shortcut(const QString & nonStandardKey, const QString & context = QString()) const;
+    QKeySequence shortcut(const int key, const Account & account, const QString & context = QString()) const;
+    QKeySequence shortcut(const QString & nonStandardKey, const Account & account, const QString & context = QString()) const;
 
 Q_SIGNALS:
-    void shortcutChanged(int key, QKeySequence shortcut, QString context);
-    void nonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut, QString context);
+    void shortcutChanged(int key, QKeySequence shortcut, const Account & account, QString context);
+    void nonStandardShortcutChanged(QString nonStandardKey, QKeySequence shortcut,
+                                    const Account & account, QString context);
 
 public Q_SLOTS:
-    void setUserShortcut(int key, QKeySequence shortcut, QString context = QString());
-    void setNonStandardUserShortcut(QString nonStandardKey, QKeySequence shortcut, QString context = QString());
+    void setUserShortcut(int key, QKeySequence shortcut, const Account & account, QString context = QString());
+    void setNonStandardUserShortcut(QString nonStandardKey, QKeySequence shortcut,
+                                    const Account & account, QString context = QString());
 
-    void setDefaultShortcut(int key, QKeySequence shortcut, QString context = QString());
-    void setNonStandardDefaultShortcut(QString nonStandardKey, QKeySequence shortcut, QString context = QString());
+    void setDefaultShortcut(int key, QKeySequence shortcut, const Account & account, QString context = QString());
+    void setNonStandardDefaultShortcut(QString nonStandardKey, QKeySequence shortcut,
+                                       const Account & account, QString context = QString());
 
 private:
     ShortcutManagerPrivate * const d_ptr;

@@ -3773,8 +3773,13 @@ void NoteEditorPrivate::setupEncryptedTextContextMenu(const QString & cipher, co
 void NoteEditorPrivate::setupActionShortcut(const int key, const QString & context,
                                             QAction & action)
 {
+    if (Q_UNLIKELY(!m_pAccount)) {
+        QNDEBUG(QStringLiteral("Can't set shortcut to the action: no account is set to the note editor"));
+        return;
+    }
+
     ShortcutManager shortcutManager;
-    QKeySequence shortcut = shortcutManager.shortcut(key, context);
+    QKeySequence shortcut = shortcutManager.shortcut(key, *m_pAccount, context);
     if (!shortcut.isEmpty()) {
         QNTRACE(QStringLiteral("Setting shortcut ") << shortcut << QStringLiteral(" for action ") << action.objectName());
         action.setShortcut(shortcut);
