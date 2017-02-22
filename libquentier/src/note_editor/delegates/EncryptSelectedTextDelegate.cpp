@@ -30,6 +30,7 @@ namespace quentier {
     }
 
 #define CHECK_ACCOUNT() \
+    CHECK_NOTE_EDITOR() \
     if (Q_UNLIKELY(!m_pNoteEditor->accountPtr())) { \
         ErrorString error(QT_TRANSLATE_NOOP("", "Can't encrypt the selected text: no account is set to the note editor")); \
         QNWARNING(error); \
@@ -84,7 +85,6 @@ void EncryptSelectedTextDelegate::raiseEncryptionDialog()
 {
     QNDEBUG(QStringLiteral("EncryptSelectedTextDelegate::raiseEncryptionDialog"));
 
-    CHECK_NOTE_EDITOR()
     CHECK_ACCOUNT()
 
     QScopedPointer<EncryptionDialog> pEncryptionDialog(new EncryptionDialog(m_selectionHtml, *m_pNoteEditor->accountPtr(),

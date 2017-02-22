@@ -18,13 +18,12 @@
 
 #include "EncryptionDialog.h"
 #include "ui_EncryptionDialog.h"
+#include "../NoteEditorSettingsName.h"
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <QLineEdit>
-
-#define NOTE_EDITOR_SETTINGS_NAME QStringLiteral("NoteEditor")
 
 namespace quentier {
 

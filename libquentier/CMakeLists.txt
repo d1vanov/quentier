@@ -147,6 +147,7 @@ set(PRIVATE_HEADERS
     src/logging/QuentierLogger_p.h
     src/note_editor/GenericResourceImageManager.h
     src/note_editor/DecryptedTextManager_p.h
+    src/note_editor/NoteEditorSettingsName.h
     src/note_editor/NoteEditorPage.h
     src/note_editor/NoteEditor_p.h
     src/note_editor/JavaScriptInOrderExecutor.h

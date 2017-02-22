@@ -18,7 +18,7 @@
 
 #include "NoteEditor_p.h"
 #include "GenericResourceImageManager.h"
-#include "dialogs/DecryptionDialog.h"
+#include "NoteEditorSettingsName.h"
 #include "delegates/AddResourceDelegate.h"
 #include "delegates/RemoveResourceDelegate.h"
 #include "delegates/RenameResourceDelegate.h"
@@ -146,8 +146,6 @@ typedef QWebEngineSettings WebSettings;
         emit notifyError(error); \
         return __VA_ARGS__; \
     }
-
-#define NOTE_EDITOR_SETTINGS_NAME QStringLiteral("NoteEditor")
 
 namespace quentier {
 

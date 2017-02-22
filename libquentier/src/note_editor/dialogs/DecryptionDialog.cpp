@@ -18,6 +18,7 @@
 
 #include "DecryptionDialog.h"
 #include "ui_DecryptionDialog.h"
+#include "../NoteEditorSettingsName.h"
 #include <quentier/note_editor/DecryptedTextManager.h>
 #include <quentier/utility/QuentierCheckPtr.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -25,8 +26,8 @@
 
 namespace quentier {
 
-DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString & cipher,
-                                   const QString & hint, const size_t keyLength,
+DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString & cipher, const QString & hint,
+                                   const size_t keyLength, const Account & account,
                                    QSharedPointer<EncryptionManager> encryptionManager,
                                    QSharedPointer<DecryptedTextManager> decryptedTextManager,
                                    QWidget * parent, bool decryptPermanentlyFlag) :
@@ -36,6 +37,7 @@ DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString 
     m_cipher(cipher),
     m_hint(hint),
     m_cachedDecryptedText(),
+    m_account(account),
     m_encryptionManager(encryptionManager),
     m_decryptedTextManager(decryptedTextManager),
     m_keyLength(keyLength)
@@ -48,8 +50,8 @@ DecryptionDialog::DecryptionDialog(const QString & encryptedText, const QString 
     setHint(m_hint);
 
     bool rememberPassphraseForSessionDefault = false;
-    ApplicationSettings appSettings;
-    QVariant rememberPassphraseForSessionSetting = appSettings.value(QStringLiteral("General/rememberPassphraseForSession"));
+    ApplicationSettings appSettings(m_account, NOTE_EDITOR_SETTINGS_NAME);
+    QVariant rememberPassphraseForSessionSetting = appSettings.value(QStringLiteral("Encryption/rememberPassphraseForSession"));
     if (!rememberPassphraseForSessionSetting.isNull()) {
         rememberPassphraseForSessionDefault = rememberPassphraseForSessionSetting.toBool();
     }
@@ -111,12 +113,12 @@ void DecryptionDialog::onRememberPassphraseStateChanged(int checked)
 {
     Q_UNUSED(checked)
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_account, NOTE_EDITOR_SETTINGS_NAME);
     if (!appSettings.isWritable()) {
         QNINFO(QStringLiteral("Can't persist remember passphrase for session setting: settings are not writable"));
     }
     else {
-        appSettings.setValue(QStringLiteral("General/rememberPassphraseForSession"),
+        appSettings.setValue(QStringLiteral("Encryption/rememberPassphraseForSession"),
                              QVariant(m_pUI->rememberPasswordCheckBox->isChecked()));
     }
 }

@@ -22,6 +22,7 @@
 #include <quentier/utility/EncryptionManager.h>
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/types/Account.h>
 #include <QDialog>
 #include <QSharedPointer>
 
@@ -37,8 +38,9 @@ class DecryptionDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit DecryptionDialog(const QString & encryptedText, const QString & cipher, const QString & hint,
-                              const size_t keyLength, QSharedPointer<EncryptionManager> encryptionManager,
+    explicit DecryptionDialog(const QString & encryptedText, const QString & cipher,
+                              const QString & hint, const size_t keyLength, const Account & account,
+                              QSharedPointer<EncryptionManager> encryptionManager,
                               QSharedPointer<DecryptedTextManager> decryptedTextManager,
                               QWidget * parent = Q_NULLPTR, bool decryptPermanentlyFlag = false);
     virtual ~DecryptionDialog();
@@ -74,6 +76,8 @@ private:
     QString                                 m_hint;
 
     QString                                 m_cachedDecryptedText;
+
+    Account                                 m_account;
 
     QSharedPointer<EncryptionManager>       m_encryptionManager;
     QSharedPointer<DecryptedTextManager>    m_decryptedTextManager;

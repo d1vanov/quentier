@@ -39,6 +39,15 @@ namespace quentier {
         return; \
     }
 
+#define CHECK_ACCOUNT() \
+    CHECK_NOTE_EDITOR() \
+    if (Q_UNLIKELY(!m_pNoteEditor->accountPtr())) { \
+        ErrorString error(QT_TRANSLATE_NOOP("", "Can't decrypt the encrypted text: no account is set to the note editor")); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return; \
+    }
+
 #define GET_PAGE() \
     CHECK_NOTE_EDITOR() \
     NoteEditorPage * page = qobject_cast<NoteEditorPage*>(m_pNoteEditor->page()); \
@@ -123,12 +132,15 @@ void DecryptEncryptedTextDelegate::raiseDecryptionDialog()
 {
     QNDEBUG(QStringLiteral("DecryptEncryptedTextDelegate::raiseDecryptionDialog"));
 
+    CHECK_ACCOUNT()
+
     if (m_cipher.isEmpty()) {
         m_cipher = "AES";
     }
 
     QScopedPointer<DecryptionDialog> pDecryptionDialog(new DecryptionDialog(m_encryptedText, m_cipher, m_hint, m_length,
-                                                                            m_encryptionManager, m_decryptedTextManager, m_pNoteEditor));
+                                                                            *m_pNoteEditor->accountPtr(), m_encryptionManager,
+                                                                            m_decryptedTextManager, m_pNoteEditor));
     pDecryptionDialog->setWindowModality(Qt::WindowModal);
     QObject::connect(pDecryptionDialog.data(), QNSIGNAL(DecryptionDialog,accepted,QString,size_t,QString,QString,QString,bool,bool),
                      this, QNSLOT(DecryptEncryptedTextDelegate,onEncryptedTextDecrypted,QString,size_t,QString,QString,QString,bool,bool));
