@@ -138,6 +138,17 @@ typedef QWebEngineSettings WebSettings;
         return; \
     }
 
+#define CHECK_ACCOUNT(message, ...) \
+    if (Q_UNLIKELY(m_pAccount.isNull())) { \
+        ErrorString error(message); \
+        error.additionalBases().append(QT_TRANSLATE_NOOP("", "no account is associated with the note editor")); \
+        QNWARNING(error); \
+        emit notifyError(error); \
+        return __VA_ARGS__; \
+    }
+
+#define NOTE_EDITOR_SETTINGS_NAME QStringLiteral("NoteEditor")
+
 namespace quentier {
 
 NoteEditorPrivate::NoteEditorPrivate(NoteEditor & noteEditor) :
@@ -2125,12 +2136,7 @@ void NoteEditorPrivate::init()
 {
     QNDEBUG(QStringLiteral("NoteEditorPrivate::init"));
 
-    if (Q_UNLIKELY(m_pAccount.isNull())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Can't initialize the note editor: account is not set"));
-        QNWARNING(error);
-        emit notifyError(error);
-        return;
-    }
+    CHECK_ACCOUNT(QT_TRANSLATE_NOOP("", "Can't initialize the note editor"))
 
     QString accountName = m_pAccount->name();
     if (Q_UNLIKELY(accountName.isEmpty())) {
@@ -2202,13 +2208,7 @@ bool NoteEditorPrivate::checkNoteSize(const QString & newNoteContent) const
     {
         QNTRACE(QStringLiteral("Note has no its own limits, will use the account-wise limits to check the note size"));
 
-        if (Q_UNLIKELY(m_pAccount.isNull())) {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't check the note size on note editor update: no account "
-                                                "is associated with the note editor; the note was not saved!"));
-            QNWARNING(error);
-            emit notifyError(error);
-            return false;
-        }
+        CHECK_ACCOUNT(QT_TRANSLATE_NOOP("", "Internal error: can't check the note size on note editor update"), false)
 
         if (Q_UNLIKELY(noteSize > m_pAccount->noteSizeMax())) {
             ErrorString error(QT_TRANSLATE_NOOP("", "Can't save note: note size (text + resources) exceeds the allowed maximum"));
@@ -2993,7 +2993,9 @@ void NoteEditorPrivate::manualSaveResourceToFile(const Resource & resource)
     const QStringList & preferredSuffixes = preferredSuffixesIter.value();
     if (!preferredSuffixes.isEmpty())
     {
-        ApplicationSettings appSettings;
+        CHECK_ACCOUNT(QT_TRANSLATE_NOOP("", "Internal error: can't save the attachment"))
+
+        ApplicationSettings appSettings(*m_pAccount, NOTE_EDITOR_SETTINGS_NAME);
         QStringList childGroups = appSettings.childGroups();
         int attachmentsSaveLocGroupIndex = childGroups.indexOf(QStringLiteral("AttachmentSaveLocations"));
         if (attachmentsSaveLocGroupIndex >= 0)
@@ -6328,9 +6330,11 @@ void NoteEditorPrivate::addAttachmentDialog()
 
     CHECK_NOTE_EDITABLE(QT_TRANSLATE_NOOP("", "Can't add an attachment"))
 
+    CHECK_ACCOUNT(QT_TRANSLATE_NOOP("", "Internal error, can't add an attachment"))
+
     QString addAttachmentInitialFolderPath;
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, NOTE_EDITOR_SETTINGS_NAME);
     QVariant lastAttachmentAddLocation = appSettings.value(QStringLiteral("LastAttachmentAddLocation"));
     if (!lastAttachmentAddLocation.isNull() && lastAttachmentAddLocation.isValid())
     {
