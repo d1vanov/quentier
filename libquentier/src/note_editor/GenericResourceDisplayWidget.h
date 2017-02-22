@@ -21,6 +21,7 @@
 
 #include <quentier/utility/Macros.h>
 #include <quentier/types/ErrorString.h>
+#include <quentier/types/Account.h>
 #include <QWidget>
 #include <QUuid>
 
@@ -47,7 +48,7 @@ public:
     void initialize(const QIcon & icon, const QString & name,
                     const QString & size, const QStringList & preferredFileSuffixes,
                     const QString & filterString, const Resource & resource,
-                    const ResourceFileStorageManager & resourceFileStorageManager,
+                    const Account & account, const ResourceFileStorageManager & resourceFileStorageManager,
                     const FileIOThreadWorker & fileIOThreadWorker);
 
     QString resourceLocalUid() const;
@@ -92,6 +93,8 @@ private:
 
     QUuid                               m_saveResourceToFileRequestId;
     QUuid                               m_saveResourceToStorageRequestId;
+
+    Account                             m_account;
 
     QByteArray                          m_resourceHash;
     bool                                m_savedResourceToStorage;

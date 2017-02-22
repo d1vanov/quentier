@@ -328,6 +328,12 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
     QNDEBUG(QStringLiteral("NoteEditorPluginFactory::createResourcePlugin: argument names = ") << argumentNames.join(QStringLiteral(","))
             << QStringLiteral("; argument values = ") << argumentValues.join(QStringLiteral(",")));
 
+    const Account * pAccount = m_noteEditor.accountPtr();
+    if (Q_UNLIKELY(!pAccount)) {
+        QNFATAL(QStringLiteral("Can't create note editor resource plugin: no account is set to the note editor"));
+        return Q_NULLPTR;
+    }
+
     int resourceHashIndex = argumentNames.indexOf(QStringLiteral("hash"));
     if (resourceHashIndex < 0) {
         QNFATAL(QStringLiteral("Can't create note editor resource plugin: hash argument was not found"));
@@ -465,7 +471,7 @@ QObject * NoteEditorPluginFactory::createResourcePlugin(const QStringList & argu
 
     pGenericResourceDisplayWidget->initialize(cachedIconIt.value(), resourceDisplayName,
                                               resourceDataSize, fileSuffixes, filterString,
-                                              *pCurrentResource, *m_pResourceFileStorageManager,
+                                              *pCurrentResource, *pAccount, *m_pResourceFileStorageManager,
                                               *m_pFileIOThreadWorker);
 
     m_genericResourceDisplayWidgetPlugins.push_back(QPointer<GenericResourceDisplayWidget>(pGenericResourceDisplayWidget));

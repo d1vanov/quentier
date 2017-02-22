@@ -38,8 +38,7 @@
 namespace quentier {
 
 SpellCheckerPrivate::SpellCheckerPrivate(FileIOThreadWorker * pFileIOThreadWorker,
-                                         QObject * parent,
-                                         const QString & userDictionaryPath) :
+                                         QObject * parent, const QString & userDictionaryPath) :
     QObject(parent),
     m_pFileIOThreadWorker(pFileIOThreadWorker),
     m_systemDictionaries(),

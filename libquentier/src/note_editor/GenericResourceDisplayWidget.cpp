@@ -18,6 +18,7 @@
 
 #include "GenericResourceDisplayWidget.h"
 #include "ui_GenericResourceDisplayWidget.h"
+#include "NoteEditorSettingsName.h"
 #include <quentier/note_editor/ResourceFileStorageManager.h>
 #include <quentier/utility/FileIOThreadWorker.h>
 #include <quentier/utility/QuentierCheckPtr.h>
@@ -45,6 +46,7 @@ GenericResourceDisplayWidget::GenericResourceDisplayWidget(QWidget * parent) :
     m_filterString(),
     m_saveResourceToFileRequestId(),
     m_saveResourceToStorageRequestId(),
+    m_account(),
     m_resourceHash(),
     m_savedResourceToStorage(false),
     m_pendingSaveResourceToStorage(false)
@@ -61,7 +63,7 @@ GenericResourceDisplayWidget::~GenericResourceDisplayWidget()
 void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString & name,
                                               const QString & size, const QStringList & preferredFileSuffixes,
                                               const QString & filterString,
-                                              const Resource & resource,
+                                              const Resource & resource, const Account & account,
                                               const ResourceFileStorageManager & resourceFileStorageManager,
                                               const FileIOThreadWorker & fileIOThreadWorker)
 {
@@ -71,6 +73,8 @@ void GenericResourceDisplayWidget::initialize(const QIcon & icon, const QString 
     m_pResourceFileStorageManager = &resourceFileStorageManager;
     m_pFileIOThreadWorker = &fileIOThreadWorker;
     m_preferredFileSuffixes = preferredFileSuffixes;
+
+    m_account = account;
 
     setupFilterString(filterString);
 
@@ -187,7 +191,7 @@ void GenericResourceDisplayWidget::onSaveAsButtonPressed()
 
     if (!m_preferredFileSuffixes.isEmpty())
     {
-        ApplicationSettings appSettings;
+        ApplicationSettings appSettings(m_account, NOTE_EDITOR_SETTINGS_NAME);
         QStringList childGroups = appSettings.childGroups();
         int attachmentsSaveLocGroupIndex = childGroups.indexOf(QStringLiteral("AttachmentSaveLocations"));
         if (attachmentsSaveLocGroupIndex >= 0)
