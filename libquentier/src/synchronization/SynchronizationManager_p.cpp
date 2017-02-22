@@ -17,6 +17,7 @@
  */
 
 #include "SynchronizationManager_p.h"
+#include "SynchronizationPersistenceName.h"
 #include <quentier/utility/Utility.h>
 #include <quentier/local_storage/LocalStorageManagerThreadWorker.h>
 #include <quentier/logging/QuentierLogger.h>
@@ -722,7 +723,7 @@ void SynchronizationManagerPrivate::readLastSyncParameters()
     m_cachedLinkedNotebookLastUpdateCountByGuid.clear();
     m_cachedLinkedNotebookLastSyncTimeByGuid.clear();
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_remoteToLocalSyncManager.account(), SYNCHRONIZATION_PERSISTENCE_NAME);
     const QString keyGroup = QStringLiteral("Synchronization/") + m_host + QStringLiteral("/") +
                              QString::number(m_OAuthResult.userId) + QStringLiteral("/") +
                              LAST_SYNC_PARAMS_KEY_GROUP + QStringLiteral("/");
@@ -810,7 +811,7 @@ void SynchronizationManagerPrivate::authenticateImpl(const AuthContext::type aut
 
     QNTRACE(QStringLiteral("Trying to restore persistent authentication settings..."));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_remoteToLocalSyncManager.account(), SYNCHRONIZATION_PERSISTENCE_NAME);
     QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
                        QString::number(m_OAuthResult.userId) + QStringLiteral("/");
 
@@ -957,7 +958,7 @@ void SynchronizationManagerPrivate::launchStoreOAuthResult(const qevercloud::Eve
 
 void SynchronizationManagerPrivate::finalizeStoreOAuthResult()
 {
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_remoteToLocalSyncManager.account(), SYNCHRONIZATION_PERSISTENCE_NAME);
 
     QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
                        QString::number(m_writtenOAuthResult.userId) + QStringLiteral("/");
@@ -1159,7 +1160,7 @@ void SynchronizationManagerPrivate::authenticateToLinkedNotebooks()
         return;
     }
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_remoteToLocalSyncManager.account(), SYNCHRONIZATION_PERSISTENCE_NAME);
     QString keyGroup = QStringLiteral("Authentication/") + m_host + QStringLiteral("/") +
                        QString::number(m_OAuthResult.userId) + QStringLiteral("/");
 
@@ -1522,7 +1523,7 @@ void SynchronizationManagerPrivate::updatePersistentSyncSettings()
 {
     QNDEBUG(QStringLiteral("SynchronizationManagerPrivate::updatePersistentSyncSettings"));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_remoteToLocalSyncManager.account(), SYNCHRONIZATION_PERSISTENCE_NAME);
 
     const QString keyGroup = QStringLiteral("Synchronization/") + m_host + QStringLiteral("/") +
                              QString::number(m_OAuthResult.userId) + QStringLiteral("/") +

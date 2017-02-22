@@ -17,6 +17,7 @@
  */
 
 #include "RemoteToLocalSynchronizationManager.h"
+#include "SynchronizationPersistenceName.h"
 #include "InkNoteImageDownloader.h"
 #include "NoteThumbnailDownloader.h"
 #include <quentier/utility/Utility.h>
@@ -3061,7 +3062,7 @@ bool RemoteToLocalSynchronizationManager::checkAndSyncAccountLimits(const bool w
         return false;
     }
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(account(), SYNCHRONIZATION_PERSISTENCE_NAME);
     const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_user.id()) + QStringLiteral("/");
 
     QVariant accountLimitsLastSyncTime = appSettings.value(keyGroup + ACCOUNT_LIMITS_LAST_SYNC_TIME_KEY);
@@ -3170,7 +3171,7 @@ void RemoteToLocalSynchronizationManager::readSavedAccountLimits()
 
     m_accountLimits = qevercloud::AccountLimits();
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(account(), SYNCHRONIZATION_PERSISTENCE_NAME);
     const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_user.id()) + QStringLiteral("/");
 
     QVariant userMailLimitDaily = appSettings.value(keyGroup + ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY);
@@ -3341,7 +3342,7 @@ void RemoteToLocalSynchronizationManager::writeAccountLimitsToAppSettings()
         return;
     }
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(account(), SYNCHRONIZATION_PERSISTENCE_NAME);
     const QString keyGroup = ACCOUNT_LIMITS_KEY_GROUP + QString::number(m_user.id()) + QStringLiteral("/");
 
     appSettings.setValue(keyGroup + ACCOUNT_LIMITS_USER_MAIL_LIMIT_DAILY_KEY,
