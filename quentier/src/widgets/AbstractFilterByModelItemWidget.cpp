@@ -20,7 +20,7 @@
 #include "FlowLayout.h"
 #include "ListItemWidget.h"
 #include "NewListItemLineEdit.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include "../models/ItemModel.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/ApplicationSettings.h>
@@ -401,15 +401,8 @@ void AbstractFilterByModelItemWidget::persistFilteredItems()
         return;
     }
 
-    QString accountKey = accountToKey(m_account);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNWARNING(QStringLiteral("Internal error: can't convert the account to string key for persisting the filter settings: filter ")
-                  << m_name);
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/") + m_name + QStringLiteral("Filter"));
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(m_name + QStringLiteral("Filter"));
 
     QStringList filteredItemsLocalUids;
     filteredItemsLocalUids.reserve(static_cast<int>(m_filteredItemsLocalUidToNameBimap.size()));
@@ -439,15 +432,8 @@ void AbstractFilterByModelItemWidget::restoreFilteredItems()
         return;
     }
 
-    QString accountKey = accountToKey(m_account);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNWARNING(QStringLiteral("Internal error: can't convert the account to string key for restoring the persisted filter settings: filter ")
-                  << m_name);
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/") + m_name + QStringLiteral("Filter"));
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(m_name + QStringLiteral("Filter"));
     QStringList itemLocalUids = appSettings.value(LAST_FILTERED_ITEMS_LOCAL_UIDS_KEY).toStringList();
     appSettings.endGroup();
 

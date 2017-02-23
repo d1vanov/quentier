@@ -17,7 +17,7 @@
  */
 
 #include "NoteEditorTabsAndWindowsCoordinator.h"
-#include "AccountToKey.h"
+#include "SettingsNames.h"
 #include "models/TagModel.h"
 #include "widgets/NoteEditorWidget.h"
 #include "widgets/TabWidget.h"
@@ -72,7 +72,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_createNoteRequestIds(),
     m_pTabBarContextMenu(Q_NULLPTR)
 {
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("NoteEditor"));
     QVariant maxNumNoteTabsData = appSettings.value(QStringLiteral("MaxNumNoteTabs"));
     appSettings.endGroup();
@@ -1226,17 +1226,6 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
 {
     QNDEBUG("NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs");
 
-    QString accountKey = accountToKey(m_currentAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
-                                            "the local uids of notes opened in "
-                                            "note editor tabs: can't convert "
-                                            "the current account to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << m_currentAccount);
-        emit notifyError(error);
-        return;
-    }
-
     QStringList openNotesLocalUids;
     size_t size = m_localUidsOfNotesInTabbedEditors.size();
     openNotesLocalUids.reserve(static_cast<int>(size));
@@ -1247,8 +1236,8 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
         openNotesLocalUids << *it;
     }
 
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NoteEditor"));
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
     appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY, openNotesLocalUids);
     appSettings.endGroup();
 }
@@ -1256,17 +1245,6 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorTabs()
 void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows()
 {
     QNDEBUG("NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows");
-
-    QString accountKey = accountToKey(m_currentAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
-                                            "the local uids of notes opened in "
-                                            "note editor windows: can't convert "
-                                            "the current account to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << m_currentAccount);
-        emit notifyError(error);
-        return;
-    }
 
     QStringList openNotesLocalUids;
     openNotesLocalUids.reserve(m_noteEditorWindowsByNoteLocalUid.size());
@@ -1281,8 +1259,8 @@ void NoteEditorTabsAndWindowsCoordinator::persistLocalUidsOfNotesInEditorWindows
         openNotesLocalUids << it.key();
     }
 
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NoteEditor"));
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
     appSettings.setValue(OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY, openNotesLocalUids);
     appSettings.endGroup();
 }
@@ -1291,19 +1269,8 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes"));
 
-    QString accountKey = accountToKey(m_currentAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
-                                            "the last notes opened in note editor "
-                                            "tabs and windows: can't convert "
-                                            "the current account to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << m_currentAccount);
-        emit notifyError(error);
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NoteEditor"));
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
     QStringList localUidsOfLastNotesInTabs =
             appSettings.value(OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY).toStringList();
     QStringList localUidsOfLastNotesInWindows =

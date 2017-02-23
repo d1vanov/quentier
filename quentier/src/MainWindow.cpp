@@ -17,9 +17,9 @@
  */
 
 #include "MainWindow.h"
+#include "SettingsNames.h"
 #include "EditNoteDialogsManager.h"
 #include "NoteEditorTabsAndWindowsCoordinator.h"
-#include "AccountToKey.h"
 #include "NoteFiltersManager.h"
 #include "models/NoteFilterModel.h"
 #include "color-picker-tool-button/ColorPickerToolButton.h"
@@ -781,7 +781,7 @@ void MainWindow::persistChosenIconTheme(const QString & iconThemeName)
 {
     QNDEBUG(QStringLiteral("MainWindow::persistChosenIconTheme: ") << iconThemeName);
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("LookAndFeel"));
     appSettings.setValue(QStringLiteral("iconTheme"), iconThemeName);
     appSettings.endGroup();
@@ -894,7 +894,7 @@ void MainWindow::setupPanelOverlayStyleSheets()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupPanelOverlayStyleSheets"));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("LookAndFeel"));
     QString panelStyle = appSettings.value(QStringLiteral("panelStyle")).toString();
     appSettings.endGroup();
@@ -1821,19 +1821,8 @@ void MainWindow::onFiltersViewTogglePushButtonPressed()
         foldFiltersView();
     }
 
-    QString accountKey = accountToKey(*m_pAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't save "
-                                            "the filters view expanded state, "
-                                            "can't convert the last used account "
-                                            "to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/FiltersView"));
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("FiltersView"));
     appSettings.setValue(FILTERS_VIEW_STATUS_KEY, QVariant(m_filtersViewExpanded));
     appSettings.endGroup();
 }
@@ -2206,7 +2195,7 @@ void MainWindow::onShowSidePanelActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowSidePanelActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowSidePanel"), checked);
     appSettings.endGroup();
@@ -2224,7 +2213,7 @@ void MainWindow::onShowFavoritesActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowFavoritesActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowFavorites"), checked);
     appSettings.endGroup();
@@ -2242,7 +2231,7 @@ void MainWindow::onShowNotebooksActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowNotebooksActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowNotebooks"), checked);
     appSettings.endGroup();
@@ -2260,7 +2249,7 @@ void MainWindow::onShowTagsActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowTagsActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowTags"), checked);
     appSettings.endGroup();
@@ -2278,7 +2267,7 @@ void MainWindow::onShowSavedSearchesActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowSavedSearchesActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowSavedSearches"), checked);
     appSettings.endGroup();
@@ -2296,7 +2285,7 @@ void MainWindow::onShowDeletedNotesActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowDeletedNotesActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowDeletedNotes"), checked);
     appSettings.endGroup();
@@ -2314,7 +2303,7 @@ void MainWindow::onShowNoteListActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowNoteListActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowNotesList"), checked);
     appSettings.endGroup();
@@ -2332,7 +2321,7 @@ void MainWindow::onShowToolbarActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowToolbarActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowToolbar"), checked);
     appSettings.endGroup();
@@ -2350,7 +2339,7 @@ void MainWindow::onShowStatusBarActionToggled(bool checked)
     QNDEBUG(QStringLiteral("MainWindow::onShowStatusBarActionToggled: checked = ")
             << (checked ? QStringLiteral("true") : QStringLiteral("false")));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     appSettings.setValue(QStringLiteral("ShowStatusBar"), checked);
     appSettings.endGroup();
@@ -2435,7 +2424,7 @@ void MainWindow::onSwitchPanelStyleToBuiltIn()
 
     m_currentPanelStyle.clear();
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup("LookAndFeel");
     appSettings.remove(QStringLiteral("panelStyle"));
     appSettings.endGroup();
@@ -2456,7 +2445,7 @@ void MainWindow::onSwitchPanelStyleToLighter()
 
     m_currentPanelStyle = QStringLiteral("Lighter");
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup("LookAndFeel");
     appSettings.setValue(QStringLiteral("panelStyle"), m_currentPanelStyle);
     appSettings.endGroup();
@@ -2479,7 +2468,7 @@ void MainWindow::onSwitchPanelStyleToDarker()
 
     m_currentPanelStyle = QStringLiteral("Darker");
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup("LookAndFeel");
     appSettings.setValue(QStringLiteral("panelStyle"), m_currentPanelStyle);
     appSettings.endGroup();
@@ -2640,7 +2629,7 @@ void MainWindow::setupThemeIcons()
         m_nativeIconThemeName.clear();
     }
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("LookAndFeel"));
     QString iconThemeName = appSettings.value(QStringLiteral("iconTheme")).toString();
     appSettings.endGroup();
@@ -2779,7 +2768,7 @@ void MainWindow::setupShowHideStartupSettings()
 {
     QNDEBUG(QStringLiteral("MainWindow::setupShowHideStartupSettings"));
 
-    ApplicationSettings appSettings;
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
 
 #define CHECK_AND_SET_SHOW_SETTING(name, action, widget) \
@@ -3035,19 +3024,8 @@ void MainWindow::setupNoteFilters()
     // TODO: set up the object which would watch for changes in these widgets and
     // set stuff to the NoteFilterModel accordingly
 
-    QString accountKey = accountToKey(*m_pAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
-                                            "the filters view expanded state, "
-                                            "can't convert the last used account "
-                                            "to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/FiltersView"));
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("FiltersView"));
     m_filtersViewExpanded = appSettings.value(FILTERS_VIEW_STATUS_KEY).toBool();
     appSettings.endGroup();
 
@@ -3227,19 +3205,8 @@ void MainWindow::persistChosenNoteSortingMode(int index)
 {
     QNDEBUG(QStringLiteral("MainWindow::persistChosenNoteSortingMode: index = ") << index);
 
-    QString accountKey = accountToKey(*m_pAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't persist "
-                                            "the selected note sorting mode, "
-                                            "can't convert the current account "
-                                            "to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NoteListView"));
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteListView"));
     appSettings.setValue(NOTE_SORTING_MODE_KEY, index);
     appSettings.endGroup();
 }
@@ -3248,19 +3215,8 @@ void MainWindow::restoreNoteSortingMode()
 {
     QNDEBUG(QStringLiteral("MainWindow::restoreNoteSortingMode"));
 
-    QString accountKey = accountToKey(*m_pAccount);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore "
-                                            "the last used note sorting mode, "
-                                            "can't convert the current account "
-                                            "to the string key"));
-        QNWARNING(error << QStringLiteral(", account: ") << *m_pAccount);
-        onSetStatusBarText(error.localizedString());
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/NoteListView"));
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteListView"));
     QVariant data = appSettings.value(NOTE_SORTING_MODE_KEY);
     appSettings.endGroup();
 

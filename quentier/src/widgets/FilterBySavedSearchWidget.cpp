@@ -18,7 +18,7 @@
 
 #include "FilterBySavedSearchWidget.h"
 #include "../models/SavedSearchModel.h"
-#include "../AccountToKey.h"
+#include "../SettingsNames.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QModelIndex>
@@ -159,15 +159,8 @@ void FilterBySavedSearchWidget::persistSelectedSavedSearch()
         return;
     }
 
-    QString accountKey = accountToKey(m_account);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNWARNING(QStringLiteral("Internal error: can't convert the account to string key for persisting "
-                                 "the saved search filter"));
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/SavedSearchFilter"));
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
     appSettings.setValue(LAST_FILTERED_SAVED_SEARCH_KEY, m_currentSavedSearchLocalUid);
     appSettings.endGroup();
 
@@ -189,15 +182,8 @@ void FilterBySavedSearchWidget::restoreSelectedSavedSearch()
         return;
     }
 
-    QString accountKey = accountToKey(m_account);
-    if (Q_UNLIKELY(accountKey.isEmpty())) {
-        QNWARNING(QStringLiteral("Internal error: can't convert the account to string key for restoring "
-                                 "the saved search filter"));
-        return;
-    }
-
-    ApplicationSettings appSettings;
-    appSettings.beginGroup(accountKey + QStringLiteral("/SavedSearchFilter"));
+    ApplicationSettings appSettings(m_account, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("SavedSearchFilter"));
     m_currentSavedSearchLocalUid = appSettings.value(LAST_FILTERED_SAVED_SEARCH_KEY).toString();
     appSettings.endGroup();
 
