@@ -1,7 +1,0 @@
-Checkbox_yes.png and checkbox_no.png by Ian Martinez (http://kwuus.deviantart.com) / CC BY
-
-Source:
-checkbox_yes.png: http://findicons.com/icon/468907/checkbox
-checkbox_no.png: http://findicons.com/icon/469012/rounded_rectangle
-
-Full icon set Horizon: http://findicons.com/pack/2566/horizon

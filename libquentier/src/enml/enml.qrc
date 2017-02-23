@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>enml2.dtd</file>
-    </qresource>
-</RCC>

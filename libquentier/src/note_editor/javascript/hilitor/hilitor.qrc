@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/javascript/hilitor">
-        <file>hilitor-utf8.js</file>
-    </qresource>
-</RCC>

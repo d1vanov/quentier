@@ -1,6 +1,0 @@
-<RCC>
-    <qresource prefix="/javascript/rangy">
-        <file>rangy-core.js</file>
-        <file>rangy-selectionsaverestore.js</file>
-    </qresource>
-</RCC>
