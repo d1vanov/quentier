@@ -44,8 +44,8 @@
 #define MAX_TAB_NAME_SIZE (10)
 #define MAX_WINDOW_NAME_SIZE (120)
 
-#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("_LocalUidsOfNotesLastOpenInNoteEditorTabs")
-#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("_LocalUidsOfNotesLastOpenInNoteEditorWindows")
+#define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
+#define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")
 
 namespace quentier {
 

@@ -26,7 +26,7 @@
 #include <quentier/utility/ApplicationSettings.h>
 #include <QModelIndex>
 
-#define LAST_FILTERED_ITEMS_LOCAL_UIDS_KEY QStringLiteral("_LastFilteredItems")
+#define LAST_FILTERED_ITEMS_LOCAL_UIDS_KEY QStringLiteral("LastFilteredItems")
 
 namespace quentier {
 
