@@ -233,6 +233,9 @@ void MainWindow::show()
     if (!m_filtersViewExpanded) {
         foldFiltersView();
     }
+    else {
+        expandFiltersView();
+    }
 }
 
 void MainWindow::connectActionsToSlots()
