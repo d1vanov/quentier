@@ -154,6 +154,9 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
+    setupAccountManager();
+    m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
+
     setupThemeIcons();
 
     m_pUI->setupUi(this);
@@ -176,8 +179,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pUI->searchQueryLineEdit->setClearButtonEnabled(true);
 #endif
 
-    setupAccountManager();
-    m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
     setWindowTitleForAccount(*m_pAccount);
 
     setupLocalStorageManager();
