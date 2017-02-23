@@ -75,14 +75,19 @@ QString accountApplicationStoragePath(const Account & account, const QString & s
 
     storagePath += QStringLiteral("/settings/");
 
-    if (!settingsName.isEmpty()) {
+    if (!settingsName.isEmpty())
+    {
         storagePath += settingsName;
+
+        if (!settingsName.endsWith(QStringLiteral(".ini"))) {
+            storagePath += QStringLiteral(".ini");
+        }
     }
-    else {
-        storagePath += QStringLiteral("config");
+    else
+    {
+        storagePath += QStringLiteral("config.ini");
     }
 
-    storagePath += QStringLiteral(".ini");
     return storagePath;
 }
 
