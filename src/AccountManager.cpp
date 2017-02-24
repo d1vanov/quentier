@@ -103,6 +103,13 @@ void AccountManager::raiseManageAccountsDialog()
     Q_UNUSED(manageAccountsDialog->exec())
 }
 
+QString AccountManager::accountDataStorageDir(const Account & account) const
+{
+    bool isLocal = (account.type() == Account::Type::Local);
+    QDir dir = accountStorageDir(account.name(), isLocal, account.id(), account.evernoteHost());
+    return dir.absolutePath();
+}
+
 void AccountManager::switchAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("AccountManager::switchAccount: ") << account);
