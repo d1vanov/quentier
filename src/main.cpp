@@ -47,8 +47,6 @@ int main(int argc, char *argv[])
         qputenv("QUENTIER_PERSISTENCE_STORAGE_PATH", storageDir.toLocal8Bit());
     }
 
-    loadDependencies();
-
     quentier::QuentierApplication app(argc, argv);
     app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
@@ -56,6 +54,8 @@ int main(int argc, char *argv[])
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
+
+    loadDependencies();
 
     quentier::initializeLibquentier();
 
