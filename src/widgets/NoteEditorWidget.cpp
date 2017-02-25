@@ -40,6 +40,7 @@ using quentier::NoteTagsWidget;
 #include <quentier/utility/EventLoopWithExitStatus.h>
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/utility/FileIOThreadWorker.h>
+#include <quentier/utility/DesktopServices.h>
 #include <quentier/note_editor/SpellChecker.h>
 #include <QDateTime>
 #include <QFontDatabase>
@@ -48,6 +49,8 @@ using quentier::NoteTagsWidget;
 #include <QPalette>
 #include <QTimer>
 #include <QToolTip>
+#include <QPrintDialog>
+#include <QFileDialog>
 
 #define CHECK_NOTE_SET() \
     if (Q_UNLIKELY(m_pCurrentNote.isNull()) { \
@@ -56,6 +59,8 @@ using quentier::NoteTagsWidget;
     }
 
 #define DEFAULT_EDITOR_CONVERT_TO_NOTE_TIMEOUT (500)
+
+#define LAST_EXPORT_NOTE_TO_PDF_PATH_KEY QStringLiteral("LastExportNoteToPdfPath")
 
 namespace quentier {
 
@@ -91,6 +96,11 @@ NoteEditorWidget::NoteEditorWidget(const Account & account, LocalStorageManagerT
     m_noteTitleIsEdited(false)
 {
     m_pUi->setupUi(this);
+
+    // Originally the NoteEditorWidget is not a window, so hide these two buttons,
+    // they are for the separate-window mode only
+    m_pUi->printNotePushButton->setHidden(true);
+    m_pUi->exportNoteToPdfPushButton->setHidden(true);
 
     m_pUi->noteEditor->initialize(m_fileIOThreadWorker, m_spellChecker);
     m_pUi->saveNotePushButton->setEnabled(false);
@@ -330,7 +340,7 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
 
     if (noteContentModified || noteTitleUpdated)
     {
-        ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
+        ApplicationSettings appSettings;
         appSettings.beginGroup(QStringLiteral("NoteEditor"));
         QVariant editorConvertToNoteTimeoutData = appSettings.value(QStringLiteral("ConvertToNoteTimeout"));
         appSettings.endGroup();
@@ -389,6 +399,125 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
     }
 
     return NoteSaveStatus::Ok;
+}
+
+bool NoteEditorWidget::isSeparateWindow() const
+{
+    Qt::WindowFlags flags = windowFlags();
+    return flags.testFlag(Qt::Window);
+}
+
+bool NoteEditorWidget::makeSeparateWindow()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::makeSeparateWindow"));
+
+    if (isSeparateWindow()) {
+        return false;
+    }
+
+    Qt::WindowFlags flags = windowFlags();
+    flags |= Qt::Window;
+
+    QWidget::setWindowFlags(flags);
+
+    m_pUi->printNotePushButton->setHidden(false);
+    m_pUi->exportNoteToPdfPushButton->setHidden(false);
+    return true;
+}
+
+bool NoteEditorWidget::makeNonWindow()
+{
+    if (!isSeparateWindow()) {
+        return false;
+    }
+
+    Qt::WindowFlags flags = windowFlags();
+    flags &= (~Qt::Window);
+
+    QWidget::setWindowFlags(flags);
+
+    m_pUi->printNotePushButton->setHidden(true);
+    m_pUi->exportNoteToPdfPushButton->setHidden(true);
+    return true;
+}
+
+bool NoteEditorWidget::printNote(ErrorString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::printNote"));
+
+    if (Q_UNLIKELY(m_pCurrentNote.isNull())) {
+        errorDescription.base() = QT_TRANSLATE_NOOP("", "Can't print note: no note is set to the editor");
+        QNDEBUG(errorDescription);
+        return false;
+    }
+
+    QPrinter printer;
+    QScopedPointer<QPrintDialog> pPrintDialog(new QPrintDialog(&printer, this));
+    pPrintDialog->setWindowModality(Qt::WindowModal);
+
+    QAbstractPrintDialog::PrintDialogOptions options;
+    options |= QAbstractPrintDialog::PrintToFile;
+    options |= QAbstractPrintDialog::PrintCollateCopies;
+
+    pPrintDialog->setOptions(options);
+
+    if (pPrintDialog->exec() == QDialog::Accepted) {
+        return m_pUi->noteEditor->print(printer, errorDescription);
+    }
+
+    QNTRACE(QStringLiteral("Note printing has been cancelled"));
+    return false;
+}
+
+bool NoteEditorWidget::exportNoteToPdf(ErrorString & errorDescription)
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::exportNoteToPdf"));
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    QString lastExportNoteToPdfPath = appSettings.value(LAST_EXPORT_NOTE_TO_PDF_PATH_KEY).toString();
+    appSettings.endGroup();
+
+    if (lastExportNoteToPdfPath.isEmpty()) {
+        lastExportNoteToPdfPath = documentsPath();
+    }
+
+    QScopedPointer<QFileDialog> pFileDialog(new QFileDialog(this,
+                                                            tr("Please select the output pdf file"),
+                                                            lastExportNoteToPdfPath));
+    pFileDialog->setWindowModality(Qt::WindowModal);
+    pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
+    pFileDialog->setFileMode(QFileDialog::AnyFile);
+    pFileDialog->setDefaultSuffix(QStringLiteral("pdf"));
+
+    if (pFileDialog->exec() == QDialog::Accepted)
+    {
+        QStringList selectedFiles = pFileDialog->selectedFiles();
+        int numSelectedFiles = selectedFiles.size();
+
+        if (numSelectedFiles == 0) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "No pdf file was selected to export the note into");
+            return false;
+        }
+
+        if (numSelectedFiles > 1) {
+            errorDescription.base() = QT_TRANSLATE_NOOP("", "More than one file were selected as output pdf files");
+            errorDescription.details() = selectedFiles.join(QStringLiteral(", "));
+            return false;
+        }
+
+        lastExportNoteToPdfPath = pFileDialog->directory().absolutePath();
+        if (!lastExportNoteToPdfPath.isEmpty()) {
+            appSettings.beginGroup(QStringLiteral("NoteEditor"));
+            appSettings.setValue(LAST_EXPORT_NOTE_TO_PDF_PATH_KEY, lastExportNoteToPdfPath);
+            appSettings.endGroup();
+        }
+
+        return m_pUi->noteEditor->exportToPdf(selectedFiles[0], errorDescription);
+    }
+
+    QNTRACE(QStringLiteral("Exporting the note to pdf has been cancelled"));
+    return false;
 }
 
 void NoteEditorWidget::closeEvent(QCloseEvent * pEvent)
@@ -1494,6 +1623,28 @@ void NoteEditorWidget::updateNoteInLocalStorage()
     emit updateNote(*m_pCurrentNote, /* update resources = */ true, /* update tags = */ false, requestId);
 }
 
+void NoteEditorWidget::onPrintNoteButtonPressed()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onPrintNoteButtonPressed"));
+
+    ErrorString errorDescription;
+    bool res = printNote(errorDescription);
+    if (!res) {
+        emit notifyError(errorDescription);
+    }
+}
+
+void NoteEditorWidget::onExportNoteToPdfButtonPressed()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onExportNoteToPdfButtonPressed"));
+
+    ErrorString errorDescription;
+    bool res = exportNoteToPdf(errorDescription);
+    if (!res) {
+        emit notifyError(errorDescription);
+    }
+}
+
 void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & localStorageWorker)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::createConnections"));
@@ -1634,6 +1785,10 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onEditorInsertToDoCheckBoxAction));
     QObject::connect(m_pUi->insertTableToolButton, QNSIGNAL(InsertTableToolButton,createdTable,int,int,double,bool),
                      this, QNSLOT(NoteEditorWidget,onEditorInsertTable,int,int,double,bool));
+    QObject::connect(m_pUi->printNotePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NoteEditorWidget,onPrintNoteButtonPressed));
+    QObject::connect(m_pUi->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(NoteEditorWidget,onExportNoteToPdfButtonPressed));
 
     // Connect toolbar button actions to editor slots
     QObject::connect(m_pUi->copyPushButton, QNSIGNAL(QPushButton,clicked),
@@ -1710,6 +1865,9 @@ void NoteEditorWidget::setNoteAndNotebook(const Note & note, const Notebook & no
 
     m_pUi->noteEditor->setNoteAndNotebook(note, notebook);
     m_pUi->tagNameLabelsContainer->setCurrentNoteAndNotebook(note, notebook);
+
+    m_pUi->printNotePushButton->setDisabled(false);
+    m_pUi->exportNoteToPdfPushButton->setDisabled(false);
 }
 
 QString NoteEditorWidget::blankPageHtml() const
@@ -1758,6 +1916,9 @@ QString NoteEditorWidget::blankPageHtml() const
 void NoteEditorWidget::setupBlankEditor()
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::setupBlankEditor"));
+
+    m_pUi->printNotePushButton->setDisabled(true);
+    m_pUi->exportNoteToPdfPushButton->setDisabled(true);
 
     m_pUi->noteNameLineEdit->hide();
     m_pUi->tagNameLabelsContainer->hide();

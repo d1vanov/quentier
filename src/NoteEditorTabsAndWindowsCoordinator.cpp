@@ -935,7 +935,7 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(NoteEditorWidge
     {
         QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
 
-        pNoteEditorWidget->setWindowFlags(Qt::WindowFlags(Qt::Window));
+        Q_UNUSED(pNoteEditorWidget->makeSeparateWindow())
 
         QString displayName = shortenEditorName(pNoteEditorWidget->titleOrPreview(), MAX_WINDOW_NAME_SIZE);
         pNoteEditorWidget->setWindowTitle(displayName);
@@ -1216,7 +1216,7 @@ void NoteEditorTabsAndWindowsCoordinator::moveNoteEditorWindowToTab(NoteEditorWi
     }
 
     pNoteEditorWidget->setAttribute(Qt::WA_DeleteOnClose, false);
-    pNoteEditorWidget->setWindowFlags(Qt::WindowFlags(Qt::Widget));
+    pNoteEditorWidget->makeNonWindow();
 
     insertNoteEditorWidget(pNoteEditorWidget, NoteEditorMode::Tab);
     pNoteEditorWidget->show();

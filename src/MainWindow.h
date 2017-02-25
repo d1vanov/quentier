@@ -190,6 +190,9 @@ private Q_SLOTS:
     void onCurrentNoteInListChanged(QString noteLocalUid);
     void onOpenNoteInSeparateWindow(QString noteLocalUid);
 
+    void onPrintNoteButtonPressed();
+    void onExportNoteToPdfButtonPressed();
+
     // Note search-related slots
     void onNoteSearchQueryChanged(const QString & query);
     void onNoteSearchQueryReady();
@@ -254,7 +257,7 @@ private:
 
     void setWindowTitleForAccount(const Account & account);
 
-    NoteEditorWidget * currentNoteEditor();
+    NoteEditorWidget * currentNoteEditorTab();
 
     void connectSynchronizationManager();
     void disconnectSynchronizationManager();

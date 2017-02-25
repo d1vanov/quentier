@@ -406,6 +406,10 @@ void MainWindow::connectToolbarButtonsToSlots()
 
     QObject::connect(m_pUI->addNotePushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onNewNoteButtonPressed));
+    QObject::connect(m_pUI->printNotePushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onPrintNoteButtonPressed));
+    QObject::connect(m_pUI->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
+                     this, QNSLOT(MainWindow,onExportNoteToPdfButtonPressed));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -536,9 +540,9 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
     setWindowTitle(title);
 }
 
-NoteEditorWidget * MainWindow::currentNoteEditor()
+NoteEditorWidget * MainWindow::currentNoteEditorTab()
 {
-    QNDEBUG(QStringLiteral("MainWindow::currentNoteEditor"));
+    QNDEBUG(QStringLiteral("MainWindow::currentNoteEditorTab"));
 
     if (Q_UNLIKELY(m_pUI->noteEditorsTabWidget->count() == 0)) {
         QNTRACE(QStringLiteral("No open note editors"));
@@ -1393,7 +1397,7 @@ void MainWindow::onSetStatusBarText(QString message, const int duration)
     { \
         QNDEBUG(QStringLiteral("MainWindow::" #MainWindowMethod)); \
         \
-        NoteEditorWidget * noteEditorWidget = currentNoteEditor(); \
+        NoteEditorWidget * noteEditorWidget = currentNoteEditorTab(); \
         if (!noteEditorWidget) { \
             return; \
         } \
@@ -1577,7 +1581,7 @@ void MainWindow::onNoteTextSpellCheckToggled()
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteTextSpellCheckToggled"));
 
-    NoteEditorWidget * noteEditorWidget = currentNoteEditor();
+    NoteEditorWidget * noteEditorWidget = currentNoteEditorTab();
     if (!noteEditorWidget) {
         return;
     }
@@ -1594,7 +1598,7 @@ void MainWindow::onShowNoteSource()
 {
     QNDEBUG(QStringLiteral("MainWindow::onShowNoteSource"));
 
-    NoteEditorWidget * pNoteEditorWidget = currentNoteEditor();
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
         return;
     }
@@ -1611,7 +1615,7 @@ void MainWindow::onSaveNoteAction()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSaveNoteAction"));
 
-    NoteEditorWidget * pNoteEditorWidget = currentNoteEditor();
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
     if (!pNoteEditorWidget) {
         return;
     }
@@ -1959,6 +1963,50 @@ void MainWindow::onOpenNoteInSeparateWindow(QString noteLocalUid)
     m_pNoteEditorTabsAndWindowsCoordinator->addNote(noteLocalUid, NoteEditorTabsAndWindowsCoordinator::NoteEditorMode::Window);
 }
 
+void MainWindow::onPrintNoteButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onPrintNoteButtonPressed"));
+
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
+    if (!pNoteEditorWidget) {
+        onSetStatusBarText(tr("Can't print note: no note editor tabs"));
+        return;
+    }
+
+    ErrorString errorDescription;
+    bool res = pNoteEditorWidget->printNote(errorDescription);
+    if (!res)
+    {
+        if (errorDescription.isEmpty()) {
+            return;
+        }
+
+        onSetStatusBarText(errorDescription.localizedString(), 300);
+    }
+}
+
+void MainWindow::onExportNoteToPdfButtonPressed()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onExportNoteToPdfButtonPressed"));
+
+    NoteEditorWidget * pNoteEditorWidget = currentNoteEditorTab();
+    if (!pNoteEditorWidget) {
+        onSetStatusBarText(tr("Can't export note to pdf: no note editor tabs"));
+        return;
+    }
+
+    ErrorString errorDescription;
+    bool res = pNoteEditorWidget->exportNoteToPdf(errorDescription);
+    if (!res)
+    {
+        if (errorDescription.isEmpty()) {
+            return;
+        }
+
+        onSetStatusBarText(errorDescription.localizedString(), 300);
+    }
+}
+
 void MainWindow::onNoteSearchQueryChanged(const QString & query)
 {
     QNDEBUG(QStringLiteral("MainWindow::onNoteSearchQueryChanged: ") << query);
@@ -2068,7 +2116,7 @@ void MainWindow::onNoteEditorSpellCheckerNotReady()
         return;
     }
 
-    NoteEditorWidget * currentEditor = currentNoteEditor();
+    NoteEditorWidget * currentEditor = currentNoteEditorTab();
     if (!currentEditor || (currentEditor != noteEditor)) {
         QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
         return;
@@ -2087,7 +2135,7 @@ void MainWindow::onNoteEditorSpellCheckerReady()
         return;
     }
 
-    NoteEditorWidget * currentEditor = currentNoteEditor();
+    NoteEditorWidget * currentEditor = currentNoteEditorTab();
     if (!currentEditor || (currentEditor != noteEditor)) {
         QNTRACE(QStringLiteral("Not an update from current note editor, skipping"));
         return;

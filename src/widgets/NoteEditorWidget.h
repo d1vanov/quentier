@@ -35,6 +35,7 @@
 #include <QStringList>
 #include <QPointer>
 #include <QUndoStack>
+#include <QPrinter>
 
 namespace Ui {
 class NoteEditorWidget;
@@ -153,6 +154,44 @@ public:
      * @return the result of the attempt to save the note synchronously
      */
     NoteSaveStatus::type checkAndSaveModifiedNote(ErrorString & errorDescription);
+
+    /**
+     * @brief isSeparateWindow
+     * @return true if the widget has Qt::Window attribute, false otherwise
+     */
+    bool isSeparateWindow() const;
+
+    /**
+     * @brief makeSeparateWindow - sets Qt::Window attribute on NoteEditorWidget +
+     * unhides print and export to pdf buttons on the toolbar
+     * @return true if the widget did not have Qt::Window attribute before the call,
+     * false otherwise
+     */
+    bool makeSeparateWindow();
+
+    /**
+     * @brief makeNonWindow - unset Qt::Window attribute from NoteEditorWidget +
+     * hides print and export to pdf buttons on the toolbar
+     * @return true if the widget had Qt::Window attribute before the call, false otherwise
+     */
+    bool makeNonWindow();
+
+    /**
+     * @brief printNote - attempts to print the note within the editor (if any)
+     * @param errorDescription - the textual description of the error if the note
+     * from the editor could not be printed
+     * @return true if the note was printed successfully, false otherwise
+     */
+    bool printNote(ErrorString & errorDescription);
+
+    /**
+     * @brief exportNoteToPdf - attempts to export the note within the editor (if any)
+     * to a pdf file
+     * @param errorDescription - the textual description of the error if the note
+     * could not be exported to pdf
+     * @return true if the note was exported to pdf successfully, false otherwise
+     */
+    bool exportNoteToPdf(ErrorString & errorDescription);
 
 Q_SIGNALS:
     void notifyError(ErrorString error);
@@ -304,8 +343,12 @@ private Q_SLOTS:
     void onReplaceInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
     void onReplaceAllInsideNote(const QString & textToReplace, const QString & replacementText, const bool matchCase);
 
-    // Fake slot called from QTimer::singleShot
+    // Helper slot called from QTimer::singleShot
     void updateNoteInLocalStorage();
+
+    // Slots for print/export to pdf buttons
+    void onPrintNoteButtonPressed();
+    void onExportNoteToPdfButtonPressed();
 
 private:
     void createConnections(LocalStorageManagerThreadWorker & localStorageWorker);

@@ -482,7 +482,8 @@
                <enum>Qt::NoFocus</enum>
               </property>
               <property name="icon">
-               <iconset theme="format-justify-fill"/>
+               <iconset theme="format-justify-fill">
+                <normaloff>.</normaloff>.</iconset>
               </property>
               <property name="checkable">
                <bool>true</bool>
@@ -875,6 +876,44 @@
               <property name="icon">
                <iconset theme="document-save">
                 <normaloff>.</normaloff>.</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="printNotePushButton">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="icon">
+               <iconset theme="document-print"/>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>16</width>
+                <height>16</height>
+               </size>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="exportNoteToPdfPushButton">
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="icon">
+               <iconset theme="application-pdf"/>
               </property>
               <property name="iconSize">
                <size>
