@@ -22,6 +22,7 @@
         <file alias="16x16/x-office-presentation.png">16x16/mimetypes/x-office-presentation.png</file>
         <file alias="16x16/audio-x-generic.png">16x16/mimetypes/audio-x-generic.png</file>
         <file alias="16x16/image-x-generic.png">16x16/mimetypes/image-x-generic.png</file>
+        <file alias="16x16/application-pdf.png">16x16/mimetypes/application-pdf.png</file>
         <file alias="16x16/emblem-photos.png">16x16/emblems/emblem-photos.png</file>
         <file alias="16x16/emblem-readonly.png">16x16/emblems/emblem-readonly.png</file>
         <file alias="16x16/emblem-system.png">16x16/emblems/emblem-system.png</file>
@@ -247,6 +248,7 @@
         <file alias="22x22/x-office-presentation.png">22x22/mimetypes/x-office-presentation.png</file>
         <file alias="22x22/audio-x-generic.png">22x22/mimetypes/audio-x-generic.png</file>
         <file alias="22x22/image-x-generic.png">22x22/mimetypes/image-x-generic.png</file>
+        <file alias="22x22/application-pdf.png">22x22/mimetypes/application-pdf.png</file>
         <file alias="22x22/emblem-photos.png">22x22/emblems/emblem-photos.png</file>
         <file alias="22x22/emblem-readonly.png">22x22/emblems/emblem-readonly.png</file>
         <file alias="22x22/emblem-system.png">22x22/emblems/emblem-system.png</file>
@@ -472,6 +474,7 @@
         <file alias="32x32/x-office-presentation.png">32x32/mimetypes/x-office-presentation.png</file>
         <file alias="32x32/audio-x-generic.png">32x32/mimetypes/audio-x-generic.png</file>
         <file alias="32x32/image-x-generic.png">32x32/mimetypes/image-x-generic.png</file>
+        <file alias="32x32/application-pdf.png">32x32/mimetypes/application-pdf.png</file>
         <file alias="32x32/emblem-photos.png">32x32/emblems/emblem-photos.png</file>
         <file alias="32x32/emblem-readonly.png">32x32/emblems/emblem-readonly.png</file>
         <file alias="32x32/emblem-system.png">32x32/emblems/emblem-system.png</file>
