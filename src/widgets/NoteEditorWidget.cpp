@@ -17,6 +17,7 @@
  */
 
 #include "NoteEditorWidget.h"
+#include "../SettingsNames.h"
 #include "../models/TagModel.h"
 
 // Doh, Qt Designer's inability to work with namespaces in the expected way
@@ -329,7 +330,7 @@ NoteEditorWidget::NoteSaveStatus::type NoteEditorWidget::checkAndSaveModifiedNot
 
     if (noteContentModified || noteTitleUpdated)
     {
-        ApplicationSettings appSettings;
+        ApplicationSettings appSettings(m_currentAccount, QUENTIER_AUXILIARY_SETTINGS);
         appSettings.beginGroup(QStringLiteral("NoteEditor"));
         QVariant editorConvertToNoteTimeoutData = appSettings.value(QStringLiteral("ConvertToNoteTimeout"));
         appSettings.endGroup();

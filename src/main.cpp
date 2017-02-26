@@ -17,68 +17,45 @@
  */
 
 #include "MainWindow.h"
+#include "LoadDependencies.h"
+#include "CommandLineParser.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
 #include <quentier/utility/Utility.h>
-#include <QStringList>
-#include <QDirIterator>
-#include <QSqlDatabase>
+#include <iostream>
 
 int main(int argc, char *argv[])
 {
-#ifdef Q_OS_WIN
-    QStringList paths = QCoreApplication::libraryPaths();
-    paths.append(QStringLiteral("."));
-    paths.append(QStringLiteral("imageformats"));
-    paths.append(QStringLiteral("platforms"));
-    paths.append(QStringLiteral("sqldrivers"));
-    QCoreApplication::setLibraryPaths(paths);
-
-    // Need to load the SQL drivers manually, for some reason Qt doesn't wish to load them on its own
-    QDirIterator sqlDriversIter(QStringLiteral("sqldrivers"));
-    while(sqlDriversIter.hasNext())
+    quentier::CommandLineParser cmdParser(argc, argv);
+    if (cmdParser.shouldQuit())
     {
-        QString fileName = sqlDriversIter.next();
-        if ( (fileName == QStringLiteral("sqldrivers/.")) ||
-             (fileName == QStringLiteral("sqldrivers/..")) )
-        {
-            continue;
+        if (cmdParser.hasError()) {
+            std::cerr << cmdParser.errorDescription().nonLocalizedString().toLocal8Bit().constData();
+            return 1;
         }
 
-        QPluginLoader pluginLoader(fileName);
-        if (!pluginLoader.load()) {
-            QNDEBUG(QStringLiteral("Failed to load plugin ") << fileName);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Loaded plugin ") << fileName);
-        }
+        std::cout << cmdParser.responseMessage().toLocal8Bit().constData();
+        return 0;
     }
 
-    QStringList drivers = QSqlDatabase::drivers();
-    for(auto it = drivers.constBegin(), end = drivers.constEnd(); it != end; ++it) {
-        QNDEBUG(QStringLiteral("Available SQL driver: ") << *it);
+    typedef CommandLineParser::CommandLineOptions CmdOptions;
+    CmdOptions cmdOptions = cmdParser.options();
+
+    CmdOptions::const_iterator storageDirIt = cmdOptions.find(QStringLiteral("storageDir"));
+    if (storageDirIt != cmdOptions.constEnd()) {
+        QString storageDir = storageDirIt.value().toString();
+        qputenv("QUENTIER_PERSISTENCE_STORAGE_PATH", storageDir.toLocal8Bit());
     }
-
-#ifdef QUENTIER_USE_QT_WEB_ENGINE
-    QString qWebEngineProcessPath = QDir::currentPath() +
-#ifdef QT_DEBUG
-                                    QStringLiteral("/QtWebEngineProcessd.exe");
-#else
-                                    QStringLiteral("/QtWebEngineProcess.exe");
-#endif
-    qputenv("QTWEBENGINEPROCESS_PATH", QByteArray(qWebEngineProcessPath.toLocal8Bit()));
-    QNDEBUG(QStringLiteral("Set QTWEBENGINEPROCESS_PATH to ") << qWebEngineProcessPath);
-#endif
-
-#endif // Q_OS_WIN
 
     quentier::QuentierApplication app(argc, argv);
-    app.setOrganizationName(QStringLiteral("org.quentier.qnt"));
+    app.setOrganizationName(QStringLiteral("quentier.org"));
     app.setApplicationName(QStringLiteral("Quentier"));
 
     QUENTIER_INITIALIZE_LOGGING();
     QUENTIER_SET_MIN_LOG_LEVEL(Trace);
     QUENTIER_ADD_STDOUT_LOG_DESTINATION();
+
+    loadDependencies();
 
     quentier::initializeLibquentier();
 

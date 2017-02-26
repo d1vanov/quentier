@@ -2,5 +2,6 @@
 #define QUENTIER_SETTINGS_NAMES_H
 
 #define QUENTIER_UI_SETTINGS QStringLiteral("UserInterface")
+#define QUENTIER_AUXILIARY_SETTINGS QStringLiteral("Auxiliary")
 
 #endif // QUENTIER_SETTINGS_NAMES_H

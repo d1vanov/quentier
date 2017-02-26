@@ -57,6 +57,8 @@ public:
     void raiseAddAccountDialog();
     void raiseManageAccountsDialog();
 
+    QString accountDataStorageDir(const Account & account) const;
+
 Q_SIGNALS:
     void evernoteAccountAuthenticationRequested(QString host);
     void switchedAccount(Account account);

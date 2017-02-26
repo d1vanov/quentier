@@ -503,18 +503,34 @@ void MainWindow::setWindowTitleForAccount(const Account & account)
 {
     QNDEBUG(QStringLiteral("MainWindow::setWindowTitleForAccount: ") << account);
 
+    bool nonStandardPersistencePath = false;
+    Q_UNUSED(applicationPersistentStoragePath(&nonStandardPersistencePath))
+
     QString username = account.name();
     QString displayName = account.displayName();
 
     QString title = qApp->applicationName() + QStringLiteral(": ");
-    if (!displayName.isEmpty()) {
+    if (!displayName.isEmpty())
+    {
         title += displayName;
         title += QStringLiteral(" (");
         title += username;
+        if (nonStandardPersistencePath)
+        {
+            title += QStringLiteral(", ");
+            title += m_pAccountManager->accountDataStorageDir(account);
+        }
         title += QStringLiteral(")");
     }
-    else {
+    else
+    {
         title += username;
+
+        if (nonStandardPersistencePath) {
+            title += QStringLiteral(" (");
+            title += m_pAccountManager->accountDataStorageDir(account);
+            title += QStringLiteral(")");
+        }
     }
 
     setWindowTitle(title);

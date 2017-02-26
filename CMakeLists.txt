@@ -58,6 +58,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
+    src/CommandLineParser.h
+    src/LoadDependencies.h
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/EditNoteDialogsManager.h
@@ -131,6 +133,8 @@ set(${PROJECT_NAME}_HEADERS
 
 set(${PROJECT_NAME}_SOURCES
     src/MainWindow.cpp
+    src/CommandLineParser.cpp
+    src/LoadDependencies.cpp
     src/AccountManager.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
