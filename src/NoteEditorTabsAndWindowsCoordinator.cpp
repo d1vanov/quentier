@@ -953,6 +953,11 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(NoteEditorWidge
 
     // If we got here, will insert the note editor as a tab
 
+    m_localUidsOfNotesInTabbedEditors.push_back(pNoteEditorWidget->noteLocalUid());
+    QNTRACE(QStringLiteral("Added tabbed note local uid: ") << pNoteEditorWidget->noteLocalUid()
+            << QStringLiteral(", the number of tabbed note local uids = ") << m_localUidsOfNotesInTabbedEditors.size());
+    persistLocalUidsOfNotesInEditorTabs();
+
     QString displayName = shortenEditorName(pNoteEditorWidget->titleOrPreview());
 
     int tabIndex = m_pTabWidget->indexOf(pNoteEditorWidget);
@@ -966,10 +971,6 @@ void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(NoteEditorWidge
     m_pTabWidget->setCurrentIndex(tabIndex);
 
     pNoteEditorWidget->installEventFilter(this);
-    m_localUidsOfNotesInTabbedEditors.push_back(pNoteEditorWidget->noteLocalUid());
-    QNTRACE(QStringLiteral("Added tabbed note local uid: ") << pNoteEditorWidget->noteLocalUid()
-            << QStringLiteral(", the number of tabbed note local uids = ") << m_localUidsOfNotesInTabbedEditors.size());
-    persistLocalUidsOfNotesInEditorTabs();
 
     int currentNumNotesInTabs = numNotesInTabs();
 
