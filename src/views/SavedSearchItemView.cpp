@@ -27,7 +27,7 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
-#define LAST_SELECTED_SAVED_SEARCH_KEY QStringLiteral("_LastSelectedSavedSearchLocalUid")
+#define LAST_SELECTED_SAVED_SEARCH_KEY QStringLiteral("LastSelectedSavedSearchLocalUid")
 
 #define REPORT_ERROR(error) \
     { \

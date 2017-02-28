@@ -27,8 +27,8 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
-#define LAST_SELECTED_NOTEBOOK_KEY QStringLiteral("_LastSelectedNotebookLocalUid")
-#define LAST_EXPANDED_STACK_ITEMS_KEY QStringLiteral("_LastExpandedStackItems")
+#define LAST_SELECTED_NOTEBOOK_KEY QStringLiteral("LastSelectedNotebookLocalUid")
+#define LAST_EXPANDED_STACK_ITEMS_KEY QStringLiteral("LastExpandedStackItems")
 
 #define REPORT_ERROR(error) \
     { \

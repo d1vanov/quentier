@@ -27,8 +27,8 @@
 #include <QContextMenuEvent>
 #include <QScopedPointer>
 
-#define LAST_SELECTED_TAG_KEY QStringLiteral("_LastSelectedTagLocalUid")
-#define LAST_EXPANDED_TAG_ITEMS_KEY QStringLiteral("_LastExpandedTagLocalUids")
+#define LAST_SELECTED_TAG_KEY QStringLiteral("LastSelectedTagLocalUid")
+#define LAST_EXPANDED_TAG_ITEMS_KEY QStringLiteral("LastExpandedTagLocalUids")
 
 #define REPORT_ERROR(error) \
     { \

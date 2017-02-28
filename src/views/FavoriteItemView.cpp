@@ -27,7 +27,7 @@
 #include <QScopedPointer>
 #include <set>
 
-#define LAST_SELECTED_FAVORITED_ITEM_KEY QStringLiteral("_LastSelectedFavoritedItemLocalUid")
+#define LAST_SELECTED_FAVORITED_ITEM_KEY QStringLiteral("LastSelectedFavoritedItemLocalUid")
 
 #define REPORT_ERROR(error) \
     { \
