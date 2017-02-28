@@ -220,6 +220,7 @@ private Q_SLOTS:
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void setupThemeIcons();
@@ -255,6 +256,8 @@ private:
     void addMenuActionsToMainWindow();
     void updateSubMenuWithAvailableAccounts();
 
+    void setupInitialChildWidgetsWidths();
+
     void setWindowTitleForAccount(const Account & account);
 
     NoteEditorWidget * currentNoteEditorTab();
@@ -273,6 +276,11 @@ private:
 
     void persistChosenNoteSortingMode(int index);
     void restoreNoteSortingMode();
+
+    void persistGeometryAndState();
+    void restoreGeometryAndState();
+
+    void scheduleGeometryAndStatePersisting();
 
     template <class T>
     void refreshThemeIcons();
@@ -416,6 +424,11 @@ private:
     quentier::ShortcutManager   m_shortcutManager;
 
     bool                    m_filtersViewExpanded;
+
+    bool                    m_geometryRestored;
+    bool                    m_stateRestored;
+
+    int                     m_geometryAndStatePersistingDelayTimerId;
 };
 
 #endif // QUENTIER_MAINWINDOW_H

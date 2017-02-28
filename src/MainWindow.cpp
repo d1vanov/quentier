@@ -95,6 +95,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QPalette>
 #include <QToolTip>
 #include <QResizeEvent>
+#include <QTimerEvent>
 #include <QMenu>
 
 #define NOTIFY_ERROR(error) \
@@ -103,6 +104,11 @@ using quentier::FilterBySavedSearchWidget;
 
 #define FILTERS_VIEW_STATUS_KEY QStringLiteral("ViewExpandedStatus")
 #define NOTE_SORTING_MODE_KEY QStringLiteral("NoteSortingMode")
+
+#define MAIN_WINDOW_GEOMETRY_KEY QStringLiteral("Geometry")
+#define MAIN_WINDOW_STATE_KEY QStringLiteral("State")
+
+#define PERSIST_GEOMETRY_AND_STATE_DELAY (3000)
 
 using namespace quentier;
 
@@ -150,7 +156,10 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_styleSheetInfo(),
     m_currentPanelStyle(),
     m_shortcutManager(this),
-    m_filtersViewExpanded(false)
+    m_filtersViewExpanded(false),
+    m_geometryRestored(false),
+    m_stateRestored(false),
+    m_geometryAndStatePersistingDelayTimerId(0)
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
 
@@ -200,6 +209,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     connectNoteSearchActionsToSlots();
     connectToolbarButtonsToSlots();
 
+    restoreGeometryAndState();
+
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
                      this, QNSLOT(MainWindow, onShowNoteSource));
@@ -235,6 +246,11 @@ void MainWindow::show()
     }
     else {
         expandFiltersView();
+    }
+
+    if (!m_geometryRestored) {
+        setupInitialChildWidgetsWidths();
+        persistGeometryAndState();
     }
 }
 
@@ -501,6 +517,28 @@ void MainWindow::updateSubMenuWithAvailableAccounts()
     addAction(pManageAccountsAction);
     QObject::connect(pManageAccountsAction, QNSIGNAL(QAction,triggered,bool),
                      this, QNSLOT(MainWindow,onManageAccountsActionTriggered,bool));
+}
+
+void MainWindow::setupInitialChildWidgetsWidths()
+{
+    QNDEBUG(QStringLiteral("MainWindow::setupInitialChildWidgetsWidths"));
+
+    int totalWidth = width();
+
+    // 1/5 - for side view, 1/5 - for note list view, 3/5 - for the note editor
+    int partWidth = totalWidth / 5;
+
+    QNTRACE(QStringLiteral("Total width = ") << totalWidth << QStringLiteral(", part width = ") << partWidth);
+
+    QRect sidePanelRect = m_pUI->sidePanelSplitter->geometry();
+    sidePanelRect.setWidth(partWidth);
+    m_pUI->sidePanelSplitter->setGeometry(sidePanelRect.x(), sidePanelRect.y(),
+                                          sidePanelRect.width(), sidePanelRect.height());
+
+    QRect notesListAndFiltersFrameRect = m_pUI->notesListAndFiltersFrame->geometry();
+    notesListAndFiltersFrameRect.setWidth(partWidth);
+    m_pUI->notesListAndFiltersFrame->setGeometry(notesListAndFiltersFrameRect.x(), notesListAndFiltersFrameRect.y(),
+                                                 notesListAndFiltersFrameRect.width(), notesListAndFiltersFrameRect.height());
 }
 
 void MainWindow::setWindowTitleForAccount(const Account & account)
@@ -2566,6 +2604,11 @@ void MainWindow::onLocalStorageSwitchUserRequestComplete(Account account, QUuid 
     m_savedSearchCache.clear();
     m_noteCache.clear();
 
+    if (m_geometryAndStatePersistingDelayTimerId != 0) {
+        killTimer(m_geometryAndStatePersistingDelayTimerId);
+    }
+    m_geometryAndStatePersistingDelayTimerId = 0;
+
     *m_pAccount = account;
     setWindowTitleForAccount(account);
 
@@ -2671,6 +2714,8 @@ void MainWindow::resizeEvent(QResizeEvent * pEvent)
         // about the size of note filters header panel and that doesn't look good
         adjustNoteListAndFiltersSplitterSizes();
     }
+
+    scheduleGeometryAndStatePersisting();
 }
 
 void MainWindow::closeEvent(QCloseEvent * pEvent)
@@ -2681,7 +2726,24 @@ void MainWindow::closeEvent(QCloseEvent * pEvent)
         m_pNoteEditorTabsAndWindowsCoordinator->clear();
     }
 
+    persistGeometryAndState();
     QMainWindow::closeEvent(pEvent);
+}
+
+void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
+{
+    QNDEBUG(QStringLiteral("MainWindow::timerEvent: timer id = ")
+            << (pTimerEvent ? QString::number(pTimerEvent->timerId()) : QStringLiteral("<null>")));
+
+    if (Q_UNLIKELY(!pTimerEvent)) {
+        return;
+    }
+
+    if (pTimerEvent->timerId() == m_geometryAndStatePersistingDelayTimerId) {
+        persistGeometryAndState();
+        killTimer(m_geometryAndStatePersistingDelayTimerId);
+        m_geometryAndStatePersistingDelayTimerId = 0;
+    }
 }
 
 void MainWindow::setupThemeIcons()
@@ -3306,6 +3368,53 @@ void MainWindow::restoreNoteSortingMode()
     }
 
     m_pUI->noteSortingModeComboBox->setCurrentIndex(index);
+}
+
+void MainWindow::persistGeometryAndState()
+{
+    QNDEBUG(QStringLiteral("MainWindow::persistGeometryAndState"));
+
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    appSettings.setValue(MAIN_WINDOW_GEOMETRY_KEY, saveGeometry());
+    appSettings.setValue(MAIN_WINDOW_STATE_KEY, saveState());
+    appSettings.endGroup();
+}
+
+void MainWindow::restoreGeometryAndState()
+{
+    QNDEBUG(QStringLiteral("MainWindow::restoreGeometryAndState"));
+
+    ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("MainWindow"));
+    QByteArray savedGeometry = appSettings.value(MAIN_WINDOW_GEOMETRY_KEY).toByteArray();
+    QByteArray savedState = appSettings.value(MAIN_WINDOW_STATE_KEY).toByteArray();
+    appSettings.endGroup();
+
+    m_geometryRestored = restoreGeometry(savedGeometry);
+    m_stateRestored = restoreState(savedState);
+
+    QNTRACE(QStringLiteral("Geometry restored = ") << (m_geometryRestored ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", state restored = )") << (m_stateRestored ? QStringLiteral("true") : QStringLiteral("false")));
+}
+
+void MainWindow::scheduleGeometryAndStatePersisting()
+{
+    QNDEBUG(QStringLiteral("MainWindow::scheduleGeometryAndStatePersisting"));
+
+    if (m_geometryAndStatePersistingDelayTimerId != 0) {
+        QNDEBUG(QStringLiteral("Persisting already scheduled, timer id = ") << m_geometryAndStatePersistingDelayTimerId);
+        return;
+    }
+
+    m_geometryAndStatePersistingDelayTimerId = startTimer(PERSIST_GEOMETRY_AND_STATE_DELAY);
+    if (Q_UNLIKELY(m_geometryAndStatePersistingDelayTimerId == 0)) {
+        QNWARNING(QStringLiteral("Failed to start the timer to delay the persistence of MainWindow's state and geometry"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Started the timer to delay the persistence of MainWindow's state and geometry: timer id = ")
+            << m_geometryAndStatePersistingDelayTimerId);
 }
 
 template <class T>
