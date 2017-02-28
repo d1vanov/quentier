@@ -135,6 +135,7 @@ private:
 
     void persistLocalUidsOfNotesInEditorTabs();
     void persistLocalUidsOfNotesInEditorWindows();
+    void persistLastCurrentTabNoteLocalUid();
     void restoreLastOpenNotes();
 
 private:
@@ -163,6 +164,8 @@ private:
     QSet<QUuid>                         m_createNoteRequestIds;
 
     QMenu *                             m_pTabBarContextMenu;
+
+    bool                                m_trackingCurrentTab;
 };
 
 } // namespace quentier
