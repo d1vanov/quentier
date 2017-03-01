@@ -427,6 +427,7 @@ private:
 
     bool                    m_geometryRestored;
     bool                    m_stateRestored;
+    bool                    m_shown;
 
     int                     m_geometryAndStatePersistingDelayTimerId;
 };

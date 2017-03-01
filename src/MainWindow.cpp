@@ -108,6 +108,15 @@ using quentier::FilterBySavedSearchWidget;
 #define MAIN_WINDOW_GEOMETRY_KEY QStringLiteral("Geometry")
 #define MAIN_WINDOW_STATE_KEY QStringLiteral("State")
 
+#define MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY QStringLiteral("SidePanelWidth")
+#define MAIN_WINDOW_NOTE_LIST_WIDTH_KEY QStringLiteral("NoteListWidth")
+
+#define MAIN_WINDOW_FAVORITES_VIEW_HEIGHT QStringLiteral("FavoritesViewHeight")
+#define MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT QStringLiteral("NotebooksViewHeight")
+#define MAIN_WINDOW_TAGS_VIEW_HEIGHT QStringLiteral("TagsViewHeight")
+#define MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT QStringLiteral("SavedSearchesViewHeight")
+#define MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT QStringLiteral("DeletedNotesViewHeight")
+
 #define PERSIST_GEOMETRY_AND_STATE_DELAY (3000)
 
 using namespace quentier;
@@ -159,6 +168,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_filtersViewExpanded(false),
     m_geometryRestored(false),
     m_stateRestored(false),
+    m_shown(false),
     m_geometryAndStatePersistingDelayTimerId(0)
 {
     QNTRACE(QStringLiteral("MainWindow constructor"));
@@ -209,8 +219,6 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     connectNoteSearchActionsToSlots();
     connectToolbarButtonsToSlots();
 
-    restoreGeometryAndState();
-
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
                      this, QNSLOT(MainWindow, onShowNoteSource));
@@ -238,7 +246,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::show()
 {
+    QNDEBUG(QStringLiteral("MainWindow::show"));
+
     QWidget::show();
+
+    m_shown = true;
 
     // sadly, can't get it to work any other way :(
     if (!m_filtersViewExpanded) {
@@ -247,6 +259,8 @@ void MainWindow::show()
     else {
         expandFiltersView();
     }
+
+    restoreGeometryAndState();
 
     if (!m_geometryRestored) {
         setupInitialChildWidgetsWidths();
@@ -3376,8 +3390,71 @@ void MainWindow::persistGeometryAndState()
 
     ApplicationSettings appSettings(*m_pAccount, QUENTIER_UI_SETTINGS);
     appSettings.beginGroup(QStringLiteral("MainWindow"));
+
     appSettings.setValue(MAIN_WINDOW_GEOMETRY_KEY, saveGeometry());
     appSettings.setValue(MAIN_WINDOW_STATE_KEY, saveState());
+
+    bool showSidePanel = m_pUI->ActionShowSidePanel->isChecked();
+
+    bool showFavoritesView = m_pUI->ActionShowFavorites->isChecked();
+    bool showNotebooksView = m_pUI->ActionShowNotebooks->isChecked();
+    bool showTagsView = m_pUI->ActionShowTags->isChecked();
+    bool showSavedSearches = m_pUI->ActionShowSavedSearches->isChecked();
+    bool showDeletedNotes = m_pUI->ActionShowDeletedNotes->isChecked();
+
+    if (showSidePanel &&
+        (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
+    {
+        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, m_pUI->sidePanelSplitter->width());
+    }
+    else
+    {
+        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, QVariant());
+    }
+
+    bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
+    if (showNotesList) {
+        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, m_pUI->notesListAndFiltersFrame->width());
+    }
+    else {
+        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, QVariant());
+    }
+
+    if (showFavoritesView) {
+        appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, m_pUI->favoritesTableView->height());
+    }
+    else {
+        appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, QVariant());
+    }
+
+    if (showNotebooksView) {
+        appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, m_pUI->notebooksTreeView->height());
+    }
+    else {
+        appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, QVariant());
+    }
+
+    if (showTagsView) {
+        appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, m_pUI->tagsTreeView->height());
+    }
+    else {
+        appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, QVariant());
+    }
+
+    if (showSavedSearches) {
+        appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, m_pUI->savedSearchesTableView->height());
+    }
+    else {
+        appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, QVariant());
+    }
+
+    if (showDeletedNotes) {
+        appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT, m_pUI->deletedNotesTableView->height());
+    }
+    else {
+        appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT, QVariant());
+    }
+
     appSettings.endGroup();
 }
 
@@ -3389,18 +3466,167 @@ void MainWindow::restoreGeometryAndState()
     appSettings.beginGroup(QStringLiteral("MainWindow"));
     QByteArray savedGeometry = appSettings.value(MAIN_WINDOW_GEOMETRY_KEY).toByteArray();
     QByteArray savedState = appSettings.value(MAIN_WINDOW_STATE_KEY).toByteArray();
+
+    QVariant sidePanelWidth = appSettings.value(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY);
+    QVariant notesListWidth = appSettings.value(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY);
+
+    QVariant favoritesViewHeight = appSettings.value(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT);
+    QVariant notebooksViewHeight = appSettings.value(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT);
+    QVariant tagsViewHeight = appSettings.value(MAIN_WINDOW_TAGS_VIEW_HEIGHT);
+    QVariant savedSearchesViewHeight = appSettings.value(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT);
+    QVariant deletedNotesViewHeight = appSettings.value(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT);
+
     appSettings.endGroup();
 
     m_geometryRestored = restoreGeometry(savedGeometry);
     m_stateRestored = restoreState(savedState);
 
     QNTRACE(QStringLiteral("Geometry restored = ") << (m_geometryRestored ? QStringLiteral("true") : QStringLiteral("false"))
-            << QStringLiteral(", state restored = )") << (m_stateRestored ? QStringLiteral("true") : QStringLiteral("false")));
+            << QStringLiteral(", state restored = )") << (m_stateRestored ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", side panel width = ") << sidePanelWidth << QStringLiteral(", notes list width = ")
+            << notesListWidth << QStringLiteral(", favorites view height = ") << favoritesViewHeight
+            << QStringLiteral(", notebooks view height = ") << notebooksViewHeight << QStringLiteral(", tags view height = ")
+            << tagsViewHeight << QStringLiteral(", saved searches view height = ") << savedSearchesViewHeight
+            << QStringLiteral(", deleted notes view height = ") << deletedNotesViewHeight);
+
+    bool showSidePanel = m_pUI->ActionShowSidePanel->isChecked();
+
+    bool showFavoritesView = m_pUI->ActionShowFavorites->isChecked();
+    bool showNotebooksView = m_pUI->ActionShowNotebooks->isChecked();
+    bool showTagsView = m_pUI->ActionShowTags->isChecked();
+    bool showSavedSearches = m_pUI->ActionShowSavedSearches->isChecked();
+    bool showDeletedNotes = m_pUI->ActionShowDeletedNotes->isChecked();
+
+    if (sidePanelWidth.isValid() && showSidePanel &&
+        (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
+    {
+        bool conversionResult = false;
+        int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->sidePanelSplitter->geometry();
+            rect.setWidth(sidePanelWidthInt);
+            m_pUI->sidePanelSplitter->setGeometry(rect);
+            m_pUI->sidePanelSplitter->update();
+            QNTRACE(QStringLiteral("Restored side panel width: ") << sidePanelWidthInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the side panel width: can't convert the persisted width to int: ")
+                    << sidePanelWidth);
+        }
+    }
+
+    bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
+    if (notesListWidth.isValid() && showNotesList)
+    {
+        bool conversionResult = false;
+        int notesListWidthInt = notesListWidth.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->notesListAndFiltersFrame->geometry();
+            rect.setWidth(notesListWidthInt);
+            m_pUI->notesListAndFiltersFrame->setGeometry(rect);
+            m_pUI->notesListAndFiltersFrame->update();
+            QNTRACE(QStringLiteral("Restored notes list panel width: ") << notesListWidthInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the notes list panel width: can't convert the persisted width to int: ")
+                    << notesListWidth);
+        }
+    }
+
+    if (showFavoritesView && favoritesViewHeight.isValid())
+    {
+        bool conversionResult = false;
+        int favoritesViewHeightInt = favoritesViewHeight.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->favoritesTableView->geometry();
+            rect.setHeight(favoritesViewHeightInt);
+            m_pUI->favoritesTableView->setGeometry(rect);
+            m_pUI->favoritesTableView->update();
+            QNTRACE(QStringLiteral("Restored favorites view height: ") << favoritesViewHeightInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the favorites view height: can't convert the persisted height to int: ")
+                    << favoritesViewHeight);
+        }
+    }
+
+    if (showNotebooksView && notebooksViewHeight.isValid())
+    {
+        bool conversionResult = false;
+        int notebooksViewHeightInt = notebooksViewHeight.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->notebooksTreeView->geometry();
+            rect.setHeight(notebooksViewHeightInt);
+            m_pUI->notebooksTreeView->setGeometry(rect);
+            m_pUI->notebooksTreeView->update();
+            QNTRACE(QStringLiteral("Restored notebooks view height: ") << notebooksViewHeightInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the notebooks view height: can't convert the persisted height to int: ")
+                    << notebooksViewHeight);
+        }
+    }
+
+    if (showTagsView && tagsViewHeight.isValid())
+    {
+        bool conversionResult = false;
+        int tagsViewHeightInt = tagsViewHeight.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->tagsTreeView->geometry();
+            rect.setHeight(tagsViewHeightInt);
+            m_pUI->tagsTreeView->setGeometry(rect);
+            m_pUI->tagsTreeView->update();
+            QNTRACE(QStringLiteral("Restored tags view height: ") << tagsViewHeightInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the tags view height: can't convert the persisted height to int: ")
+                    << tagsViewHeight);
+        }
+    }
+
+    if (showSavedSearches && savedSearchesViewHeight.isValid())
+    {
+        bool conversionResult = false;
+        int savedSearchesViewHeightInt = savedSearchesViewHeight.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->savedSearchesTableView->geometry();
+            rect.setHeight(savedSearchesViewHeightInt);
+            m_pUI->savedSearchesTableView->setGeometry(rect);
+            m_pUI->savedSearchesTableView->update();
+            QNTRACE(QStringLiteral("Restored saved searches view height: ") << savedSearchesViewHeightInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the saved searches view height: can't convert the persisted height to int: ")
+                    << savedSearchesViewHeight);
+        }
+    }
+
+    if (showDeletedNotes && deletedNotesViewHeight.isValid())
+    {
+        bool conversionResult = false;
+        int deletedNotesViewHeightInt = deletedNotesViewHeight.toInt(&conversionResult);
+        if (conversionResult) {
+            QRect rect = m_pUI->deletedNotesTableView->geometry();
+            rect.setHeight(deletedNotesViewHeightInt);
+            m_pUI->deletedNotesTableView->setGeometry(rect);
+            m_pUI->deletedNotesTableView->update();
+            QNTRACE(QStringLiteral("Restored deleted notes view height: ") << deletedNotesViewHeightInt);
+        }
+        else {
+            QNDEBUG(QStringLiteral("Can't restore the deleted notes view height: can't convert the persisted height to int: ")
+                    << deletedNotesViewHeight);
+        }
+    }
 }
 
 void MainWindow::scheduleGeometryAndStatePersisting()
 {
     QNDEBUG(QStringLiteral("MainWindow::scheduleGeometryAndStatePersisting"));
+
+    if (!m_shown) {
+        QNDEBUG(QStringLiteral("Not shown yet, won't do anything"));
+        return;
+    }
 
     if (m_geometryAndStatePersistingDelayTimerId != 0) {
         QNDEBUG(QStringLiteral("Persisting already scheduled, timer id = ") << m_geometryAndStatePersistingDelayTimerId);
