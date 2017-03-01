@@ -544,15 +544,22 @@ void MainWindow::setupInitialChildWidgetsWidths()
 
     QNTRACE(QStringLiteral("Total width = ") << totalWidth << QStringLiteral(", part width = ") << partWidth);
 
-    QRect sidePanelRect = m_pUI->sidePanelSplitter->geometry();
-    sidePanelRect.setWidth(partWidth);
-    m_pUI->sidePanelSplitter->setGeometry(sidePanelRect.x(), sidePanelRect.y(),
-                                          sidePanelRect.width(), sidePanelRect.height());
+    QList<int> splitterSizes = m_pUI->splitter->sizes();
+    int splitterSizesCount = splitterSizes.count();
+    if (Q_UNLIKELY(splitterSizesCount != 3)) {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't setup the proper initial widths "
+                                            "for side panel, note list view and note editors view: "
+                                            "wrong number of sizes within the splitter"));
+        QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
+        onSetStatusBarText(error.localizedString());
+        return;
+    }
 
-    QRect notesListAndFiltersFrameRect = m_pUI->notesListAndFiltersFrame->geometry();
-    notesListAndFiltersFrameRect.setWidth(partWidth);
-    m_pUI->notesListAndFiltersFrame->setGeometry(notesListAndFiltersFrameRect.x(), notesListAndFiltersFrameRect.y(),
-                                                 notesListAndFiltersFrameRect.width(), notesListAndFiltersFrameRect.height());
+    splitterSizes[0] = partWidth;
+    splitterSizes[1] = partWidth;
+    splitterSizes[2] = totalWidth - 2 * partWidth;
+
+    m_pUI->splitter->setSizes(splitterSizes);
 }
 
 void MainWindow::setWindowTitleForAccount(const Account & account)
@@ -3402,10 +3409,40 @@ void MainWindow::persistGeometryAndState()
     bool showSavedSearches = m_pUI->ActionShowSavedSearches->isChecked();
     bool showDeletedNotes = m_pUI->ActionShowDeletedNotes->isChecked();
 
-    if (showSidePanel &&
+    QList<int> splitterSizes = m_pUI->splitter->sizes();
+    int splitterSizesCount = splitterSizes.count();
+    bool splitterSizesCountOk = (splitterSizesCount == 3);
+
+    QList<int> sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
+    int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
+    bool sidePanelSplitterSizesOk = (sidePanelSplitterSizesCount == 5);
+
+    QNTRACE(QStringLiteral("Show side panel = ") << (showSidePanel ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", show favorites view = ") << (showFavoritesView ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", show notebooks view = ") << (showNotebooksView ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", show tags view = ") << (showTagsView ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", show saved searches view = ") << (showSavedSearches ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", show deleted notes view = ") << (showDeletedNotes ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", splitter sizes ok = ") << (showDeletedNotes ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", side panel splitter sizes ok = ") << (showDeletedNotes ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+    {
+        QNTRACE(QStringLiteral("Splitter sizes: " ));
+        for(auto it = splitterSizes.constBegin(), end = splitterSizes.constEnd(); it != end; ++it) {
+            QNTRACE(*it);
+        }
+
+        QNTRACE(QStringLiteral("Side panel splitter sizes: "));
+        for(auto it = sidePanelSplitterSizes.constBegin(), end = sidePanelSplitterSizes.constEnd(); it != end; ++it) {
+            QNTRACE(*it);
+        }
+    }
+
+    if (splitterSizesCountOk && showSidePanel &&
         (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
     {
-        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, m_pUI->sidePanelSplitter->width());
+        appSettings.setValue(MAIN_WINDOW_SIDE_PANEL_WIDTH_KEY, splitterSizes[0]);
     }
     else
     {
@@ -3413,43 +3450,43 @@ void MainWindow::persistGeometryAndState()
     }
 
     bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
-    if (showNotesList) {
-        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, m_pUI->notesListAndFiltersFrame->width());
+    if (splitterSizesCountOk && showNotesList) {
+        appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, splitterSizes[1]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_NOTE_LIST_WIDTH_KEY, QVariant());
     }
 
-    if (showFavoritesView) {
-        appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, m_pUI->favoritesTableView->height());
+    if (sidePanelSplitterSizesOk && showFavoritesView) {
+        appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, sidePanelSplitterSizes[0]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_FAVORITES_VIEW_HEIGHT, QVariant());
     }
 
-    if (showNotebooksView) {
-        appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, m_pUI->notebooksTreeView->height());
+    if (sidePanelSplitterSizesOk && showNotebooksView) {
+        appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, sidePanelSplitterSizes[1]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_NOTEBOOKS_VIEW_HEIGHT, QVariant());
     }
 
-    if (showTagsView) {
-        appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, m_pUI->tagsTreeView->height());
+    if (sidePanelSplitterSizesOk && showTagsView) {
+        appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, sidePanelSplitterSizes[2]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_TAGS_VIEW_HEIGHT, QVariant());
     }
 
-    if (showSavedSearches) {
-        appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, m_pUI->savedSearchesTableView->height());
+    if (sidePanelSplitterSizesOk && showSavedSearches) {
+        appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, sidePanelSplitterSizes[3]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_SAVED_SEARCHES_VIEW_HEIGHT, QVariant());
     }
 
-    if (showDeletedNotes) {
-        appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT, m_pUI->deletedNotesTableView->height());
+    if (sidePanelSplitterSizesOk && showDeletedNotes) {
+        appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT, sidePanelSplitterSizes[4]);
     }
     else {
         appSettings.setValue(MAIN_WINDOW_DELETED_NOTES_VIEW_HEIGHT, QVariant());
@@ -3490,6 +3527,7 @@ void MainWindow::restoreGeometryAndState()
             << QStringLiteral(", deleted notes view height = ") << deletedNotesViewHeight);
 
     bool showSidePanel = m_pUI->ActionShowSidePanel->isChecked();
+    bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
 
     bool showFavoritesView = m_pUI->ActionShowFavorites->isChecked();
     bool showNotebooksView = m_pUI->ActionShowNotebooks->isChecked();
@@ -3497,125 +3535,159 @@ void MainWindow::restoreGeometryAndState()
     bool showSavedSearches = m_pUI->ActionShowSavedSearches->isChecked();
     bool showDeletedNotes = m_pUI->ActionShowDeletedNotes->isChecked();
 
-    if (sidePanelWidth.isValid() && showSidePanel &&
-        (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
+    QList<int> splitterSizes = m_pUI->splitter->sizes();
+    int splitterSizesCount = splitterSizes.count();
+    if (splitterSizesCount == 3)
     {
-        bool conversionResult = false;
-        int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->sidePanelSplitter->geometry();
-            rect.setWidth(sidePanelWidthInt);
-            m_pUI->sidePanelSplitter->setGeometry(rect);
-            m_pUI->sidePanelSplitter->update();
-            QNTRACE(QStringLiteral("Restored side panel width: ") << sidePanelWidthInt);
+        int totalWidth = splitterSizes[0] + splitterSizes[1] + splitterSizes[2];
+
+        if (sidePanelWidth.isValid() && showSidePanel &&
+            (showFavoritesView || showNotebooksView || showTagsView || showSavedSearches || showDeletedNotes))
+        {
+            bool conversionResult = false;
+            int sidePanelWidthInt = sidePanelWidth.toInt(&conversionResult);
+            if (conversionResult) {
+                splitterSizes[0] = sidePanelWidthInt;
+                QNTRACE(QStringLiteral("Restored side panel width: ") << sidePanelWidthInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the side panel width: can't convert the persisted width to int: ")
+                        << sidePanelWidth);
+            }
         }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the side panel width: can't convert the persisted width to int: ")
-                    << sidePanelWidth);
+
+        if (notesListWidth.isValid() && showNotesList)
+        {
+            bool conversionResult = false;
+            int notesListWidthInt = notesListWidth.toInt(&conversionResult);
+            if (conversionResult) {
+                splitterSizes[1] = notesListWidthInt;
+                QNTRACE(QStringLiteral("Restored notes list panel width: ") << notesListWidthInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the notes list panel width: can't convert the persisted width to int: ")
+                        << notesListWidth);
+            }
         }
+
+        splitterSizes[2] = totalWidth - splitterSizes[0] - splitterSizes[1];
+        m_pUI->splitter->setSizes(splitterSizes);
+        QNTRACE(QStringLiteral("Set splitter sizes"));
+    }
+    else
+    {
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the widths "
+                                            "for side panel, note list view and note editors view: "
+                                            "wrong number of sizes within the splitter"));
+        QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
+        onSetStatusBarText(error.localizedString());
     }
 
-    bool showNotesList = m_pUI->ActionShowNotesList->isChecked();
-    if (notesListWidth.isValid() && showNotesList)
+    QList<int> sidePanelSplitterSizes = m_pUI->sidePanelSplitter->sizes();
+    int sidePanelSplitterSizesCount = sidePanelSplitterSizes.count();
+    if (sidePanelSplitterSizesCount == 5)
     {
-        bool conversionResult = false;
-        int notesListWidthInt = notesListWidth.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->notesListAndFiltersFrame->geometry();
-            rect.setWidth(notesListWidthInt);
-            m_pUI->notesListAndFiltersFrame->setGeometry(rect);
-            m_pUI->notesListAndFiltersFrame->update();
-            QNTRACE(QStringLiteral("Restored notes list panel width: ") << notesListWidthInt);
+        int totalHeight = 0;
+        for(int i = 0; i < 5; ++i) {
+            totalHeight += sidePanelSplitterSizes[i];
         }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the notes list panel width: can't convert the persisted width to int: ")
-                    << notesListWidth);
+
+        if (showFavoritesView && favoritesViewHeight.isValid())
+        {
+            bool conversionResult = false;
+            int favoritesViewHeightInt = favoritesViewHeight.toInt(&conversionResult);
+            if (conversionResult) {
+                sidePanelSplitterSizes[0] = favoritesViewHeightInt;
+                QNTRACE(QStringLiteral("Restored favorites view height: ") << favoritesViewHeightInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the favorites view height: can't convert the persisted height to int: ")
+                        << favoritesViewHeight);
+            }
+        }
+
+        if (showNotebooksView && notebooksViewHeight.isValid())
+        {
+            bool conversionResult = false;
+            int notebooksViewHeightInt = notebooksViewHeight.toInt(&conversionResult);
+            if (conversionResult) {
+                sidePanelSplitterSizes[1] = notebooksViewHeightInt;
+                QNTRACE(QStringLiteral("Restored notebooks view height: ") << notebooksViewHeightInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the notebooks view height: can't convert the persisted height to int: ")
+                        << notebooksViewHeight);
+            }
+        }
+
+        if (showTagsView && tagsViewHeight.isValid())
+        {
+            bool conversionResult = false;
+            int tagsViewHeightInt = tagsViewHeight.toInt(&conversionResult);
+            if (conversionResult) {
+                sidePanelSplitterSizes[2] = tagsViewHeightInt;
+                QNTRACE(QStringLiteral("Restored tags view height: ") << tagsViewHeightInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the tags view height: can't convert the persisted height to int: ")
+                        << tagsViewHeight);
+            }
+        }
+
+        if (showSavedSearches && savedSearchesViewHeight.isValid())
+        {
+            bool conversionResult = false;
+            int savedSearchesViewHeightInt = savedSearchesViewHeight.toInt(&conversionResult);
+            if (conversionResult) {
+                sidePanelSplitterSizes[3] = savedSearchesViewHeightInt;
+                QNTRACE(QStringLiteral("Restored saved searches view height: ") << savedSearchesViewHeightInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the saved searches view height: can't convert the persisted height to int: ")
+                        << savedSearchesViewHeight);
+            }
+        }
+
+        if (showDeletedNotes && deletedNotesViewHeight.isValid())
+        {
+            bool conversionResult = false;
+            int deletedNotesViewHeightInt = deletedNotesViewHeight.toInt(&conversionResult);
+            if (conversionResult) {
+                sidePanelSplitterSizes[4] = deletedNotesViewHeightInt;
+                QNTRACE(QStringLiteral("Restored deleted notes view height: ") << deletedNotesViewHeightInt);
+            }
+            else {
+                QNDEBUG(QStringLiteral("Can't restore the deleted notes view height: can't convert the persisted height to int: ")
+                        << deletedNotesViewHeight);
+            }
+        }
+
+        int totalHeightAfterRestore = 0;
+        for(int i = 0; i < 5; ++i) {
+            totalHeightAfterRestore += sidePanelSplitterSizes[i];
+        }
+
+        if (Q_LIKELY(totalHeight == totalHeightAfterRestore))
+        {
+            m_pUI->sidePanelSplitter->setSizes(sidePanelSplitterSizes);
+            QNTRACE(QStringLiteral("Set side panel splitter sizes"));
+        }
+        else
+        {
+            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the heights "
+                                                "of side panel's views: total height after restoring from the settings "
+                                                "doesn't match the initial height"));
+            QNWARNING(error << QStringLiteral(", total height before restoring = ") << totalHeight
+                      << QStringLiteral(", total height after restoring = ") << totalHeightAfterRestore);
+            onSetStatusBarText(error.localizedString());
         }
     }
-
-    if (showFavoritesView && favoritesViewHeight.isValid())
+    else
     {
-        bool conversionResult = false;
-        int favoritesViewHeightInt = favoritesViewHeight.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->favoritesTableView->geometry();
-            rect.setHeight(favoritesViewHeightInt);
-            m_pUI->favoritesTableView->setGeometry(rect);
-            m_pUI->favoritesTableView->update();
-            QNTRACE(QStringLiteral("Restored favorites view height: ") << favoritesViewHeightInt);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the favorites view height: can't convert the persisted height to int: ")
-                    << favoritesViewHeight);
-        }
-    }
-
-    if (showNotebooksView && notebooksViewHeight.isValid())
-    {
-        bool conversionResult = false;
-        int notebooksViewHeightInt = notebooksViewHeight.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->notebooksTreeView->geometry();
-            rect.setHeight(notebooksViewHeightInt);
-            m_pUI->notebooksTreeView->setGeometry(rect);
-            m_pUI->notebooksTreeView->update();
-            QNTRACE(QStringLiteral("Restored notebooks view height: ") << notebooksViewHeightInt);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the notebooks view height: can't convert the persisted height to int: ")
-                    << notebooksViewHeight);
-        }
-    }
-
-    if (showTagsView && tagsViewHeight.isValid())
-    {
-        bool conversionResult = false;
-        int tagsViewHeightInt = tagsViewHeight.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->tagsTreeView->geometry();
-            rect.setHeight(tagsViewHeightInt);
-            m_pUI->tagsTreeView->setGeometry(rect);
-            m_pUI->tagsTreeView->update();
-            QNTRACE(QStringLiteral("Restored tags view height: ") << tagsViewHeightInt);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the tags view height: can't convert the persisted height to int: ")
-                    << tagsViewHeight);
-        }
-    }
-
-    if (showSavedSearches && savedSearchesViewHeight.isValid())
-    {
-        bool conversionResult = false;
-        int savedSearchesViewHeightInt = savedSearchesViewHeight.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->savedSearchesTableView->geometry();
-            rect.setHeight(savedSearchesViewHeightInt);
-            m_pUI->savedSearchesTableView->setGeometry(rect);
-            m_pUI->savedSearchesTableView->update();
-            QNTRACE(QStringLiteral("Restored saved searches view height: ") << savedSearchesViewHeightInt);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the saved searches view height: can't convert the persisted height to int: ")
-                    << savedSearchesViewHeight);
-        }
-    }
-
-    if (showDeletedNotes && deletedNotesViewHeight.isValid())
-    {
-        bool conversionResult = false;
-        int deletedNotesViewHeightInt = deletedNotesViewHeight.toInt(&conversionResult);
-        if (conversionResult) {
-            QRect rect = m_pUI->deletedNotesTableView->geometry();
-            rect.setHeight(deletedNotesViewHeightInt);
-            m_pUI->deletedNotesTableView->setGeometry(rect);
-            m_pUI->deletedNotesTableView->update();
-            QNTRACE(QStringLiteral("Restored deleted notes view height: ") << deletedNotesViewHeightInt);
-        }
-        else {
-            QNDEBUG(QStringLiteral("Can't restore the deleted notes view height: can't convert the persisted height to int: ")
-                    << deletedNotesViewHeight);
-        }
+        ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the heights "
+                                            "of side panel's views: wrong number of sizes within the splitter"));
+        QNWARNING(error << QStringLiteral(", sizes count: ") << splitterSizesCount);
+        onSetStatusBarText(error.localizedString());
     }
 }
 
