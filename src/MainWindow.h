@@ -217,6 +217,9 @@ private Q_SLOTS:
     void onLocalStorageSwitchUserRequestComplete(Account account, QUuid requestId);
     void onLocalStorageSwitchUserRequestFailed(Account account, ErrorString errorDescription, QUuid requestId);
 
+    void onSplitterHandleMoved(int pos, int index);
+    void onSidePanelSplittedHandleMoved(int pos, int index);
+
 private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;

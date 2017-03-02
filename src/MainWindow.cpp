@@ -219,6 +219,11 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     connectNoteSearchActionsToSlots();
     connectToolbarButtonsToSlots();
 
+    QObject::connect(m_pUI->splitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
+                     this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int));
+    QObject::connect(m_pUI->sidePanelSplitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
+                     this, QNSLOT(MainWindow,onSidePanelSplittedHandleMoved,int,int));
+
     // Stuff primarily for manual testing
     QObject::connect(m_pUI->ActionShowNoteSource, QNSIGNAL(QAction, triggered),
                      this, QNSLOT(MainWindow, onShowNoteSource));
@@ -2724,6 +2729,22 @@ void MainWindow::onLocalStorageSwitchUserRequestFailed(Account account, ErrorStr
 
     // If we got here, it means we haven't found the proper previous account
     QNDEBUG(QStringLiteral("Couldn't find the action corresponding to the previous available account: ") << *m_pAccount);
+}
+
+void MainWindow::onSplitterHandleMoved(int pos, int index)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSplitterHandleMoved: pos = ") << pos
+            << QStringLiteral(", index = ") << index);
+
+    scheduleGeometryAndStatePersisting();
+}
+
+void MainWindow::onSidePanelSplittedHandleMoved(int pos, int index)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSidePanelSplittedHandleMoved: pos = ") << pos
+            << QStringLiteral(", index = ") << index);
+
+    scheduleGeometryAndStatePersisting();
 }
 
 void MainWindow::resizeEvent(QResizeEvent * pEvent)
