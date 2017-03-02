@@ -35,6 +35,7 @@
 #include <QContextMenuEvent>
 #include <QKeyEvent>
 #include <QEvent>
+#include <QTimerEvent>
 #include <algorithm>
 
 #define DEFAULT_MAX_NUM_NOTES_IN_TABS (5)
@@ -47,6 +48,10 @@
 #define OPEN_NOTES_LOCAL_UIDS_IN_TABS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorTabs")
 #define OPEN_NOTES_LOCAL_UIDS_IN_WINDOWS_SETTINGS_KEY QStringLiteral("LocalUidsOfNotesLastOpenInNoteEditorWindows")
 #define LAST_CURRENT_TAB_NOTE_LOCAL_UID QStringLiteral("LastCurrentTabNoteLocalUid")
+
+#define NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX QStringLiteral("NoteEditorWindowGeometry_")
+
+#define PERSIST_NOTE_EDITOR_WINDOW_GEOMETRY_DELAY (3000)
 
 namespace quentier {
 
@@ -70,6 +75,7 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
     m_localUidsOfNotesInTabbedEditors(),
     m_lastCurrentTabNoteLocalUid(),
     m_noteEditorWindowsByNoteLocalUid(),
+    m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap(),
     m_createNoteRequestIds(),
     m_pTabBarContextMenu(Q_NULLPTR),
     m_trackingCurrentTab(true)
@@ -205,6 +211,15 @@ void NoteEditorTabsAndWindowsCoordinator::clear()
     m_localUidsOfNotesInTabbedEditors.clear();
     m_lastCurrentTabNoteLocalUid.clear();
     m_noteEditorWindowsByNoteLocalUid.clear();
+
+    for(auto it = m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.left.begin(),
+        end = m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.left.end(); it != end; ++it)
+    {
+        killTimer(it->second);
+    }
+
+    m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.clear();
+
     m_createNoteRequestIds.clear();
 }
 
@@ -403,6 +418,11 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
         if (pNoteEditorWidget)
         {
             QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+
+            if (pNoteEditorWidget->isSeparateWindow()) {
+                clearPersistedNoteEditorWindowGeometry(noteLocalUid);
+            }
+
             auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
             if (it != m_noteEditorWindowsByNoteLocalUid.end())
             {
@@ -419,6 +439,14 @@ bool NoteEditorTabsAndWindowsCoordinator::eventFilter(QObject * pWatched, QEvent
                 Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
                 persistLocalUidsOfNotesInEditorWindows();
             }
+        }
+    }
+    else if (pEvent && (pEvent->type() == QEvent::Resize))
+    {
+        NoteEditorWidget * pNoteEditorWidget = qobject_cast<NoteEditorWidget*>(pWatched);
+        if (pNoteEditorWidget && pNoteEditorWidget->isSeparateWindow()) {
+            QString noteLocalUid = pNoteEditorWidget->noteLocalUid();
+            scheduleNoteEditorWindowGeometrySave(noteLocalUid);
         }
     }
     else if (pEvent && (pEvent->type() == QEvent::KeyRelease))
@@ -943,6 +971,26 @@ void NoteEditorTabsAndWindowsCoordinator::onTabContextMenuMoveToWindowAction()
     moveNoteEditorTabToWindow(noteLocalUid);
 }
 
+void NoteEditorTabsAndWindowsCoordinator::timerEvent(QTimerEvent * pTimerEvent)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::timerEvent: id = ")
+            << (pTimerEvent ? QString::number(pTimerEvent->timerId()) : QStringLiteral("<null>")));
+
+    if (Q_UNLIKELY(!pTimerEvent)) {
+        return;
+    }
+
+    int timerId = pTimerEvent->timerId();
+    auto it = m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.right.find(timerId);
+    if (it != m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.right.end())
+    {
+        QString noteLocalUid = it->second;
+        Q_UNUSED(m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.right.erase(it))
+        killTimer(timerId);
+        persistNoteEditorWindowGeometry(noteLocalUid);
+    }
+}
+
 void NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget, const NoteEditorMode::type noteEditorMode)
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::insertNoteEditorWidget: ") << pNoteEditorWidget->noteLocalUid()
@@ -1146,6 +1194,118 @@ void NoteEditorTabsAndWindowsCoordinator::setCurrentNoteEditorWidgetTab(const QS
     }
 }
 
+void NoteEditorTabsAndWindowsCoordinator::scheduleNoteEditorWindowGeometrySave(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::scheduleNoteEditorWindowGeometrySave: ")
+            << noteLocalUid);
+
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        return;
+    }
+
+    auto it = m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.left.find(noteLocalUid);
+    if (it != m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.left.end()) {
+        QNDEBUG(QStringLiteral("The timer delaying the save of this note editor window's geometry "
+                               "has already been started: timer id = ") << it->second);
+        return;
+    }
+
+    int timerId = startTimer(PERSIST_NOTE_EDITOR_WINDOW_GEOMETRY_DELAY);
+    if (Q_UNLIKELY(timerId == 0)) {
+        QNWARNING(QStringLiteral("Failed to start timer to postpone saving the note editor window's geometry"));
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Started the timer to postpone saving the note editor window's geometry: timer id = ")
+            << timerId << QStringLiteral(", note local uid = ") << noteLocalUid);
+
+    Q_UNUSED(m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap.insert(NoteLocalUidToTimerIdBimap::value_type(noteLocalUid, timerId)))
+}
+
+void NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::persistNoteEditorWindowGeometry: ")
+            << noteLocalUid);
+
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        return;
+    }
+
+    auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
+    if (Q_UNLIKELY(it == m_noteEditorWindowsByNoteLocalUid.end())) {
+        QNDEBUG(QStringLiteral("Can't persist note editor window geometry: could not find the note editor window "
+                               "for note local uid ") << noteLocalUid);
+        return;
+    }
+
+    if (it.value().isNull()) {
+        QNDEBUG(QStringLiteral("Can't persist the note editor window geometry: the note editor window is gone "
+                               "for note local uid ") << noteLocalUid);
+        Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    appSettings.setValue(NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX + noteLocalUid,
+                         it.value().data()->saveGeometry());
+    appSettings.endGroup();
+}
+
+void NoteEditorTabsAndWindowsCoordinator::clearPersistedNoteEditorWindowGeometry(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::clearPersistedNoteEditorWindowGeometry: ")
+            << noteLocalUid);
+
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    appSettings.remove(NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX + noteLocalUid);
+    appSettings.endGroup();
+}
+
+void NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry(const QString & noteLocalUid)
+{
+    QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::restoreNoteEditorWindowGeometry: ")
+            << noteLocalUid);
+
+    if (Q_UNLIKELY(noteLocalUid.isEmpty())) {
+        return;
+    }
+
+    auto it = m_noteEditorWindowsByNoteLocalUid.find(noteLocalUid);
+    if (Q_UNLIKELY(it == m_noteEditorWindowsByNoteLocalUid.end())) {
+        QNDEBUG(QStringLiteral("Can't restore note editor window's geometry: could not find the note editor window "
+                               "for note local uid ") << noteLocalUid);
+        return;
+    }
+
+    if (it.value().isNull()) {
+        QNDEBUG(QStringLiteral("Can't restore the note editor window geometry: the note editor window is gone "
+                               "for note local uid ") << noteLocalUid);
+        Q_UNUSED(m_noteEditorWindowsByNoteLocalUid.erase(it))
+        clearPersistedNoteEditorWindowGeometry(noteLocalUid);
+        return;
+    }
+
+    ApplicationSettings appSettings(m_currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("NoteEditor"));
+    QByteArray noteEditorWindowGeometry = appSettings.value(NOTE_EDITOR_WINDOW_GEOMETRY_KEY_PREFIX + noteLocalUid).toByteArray();
+    appSettings.endGroup();
+
+    bool res = it.value().data()->restoreGeometry(noteEditorWindowGeometry);
+    if (!res) {
+        QNDEBUG(QStringLiteral("Could not restore the geometry for note editor window with note local uid ")
+                << noteLocalUid);
+        return;
+    }
+
+    QNTRACE(QStringLiteral("Restored the geometry for note editor window with note local uid ") << noteLocalUid);
+}
+
 void NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage()
 {
     QNDEBUG(QStringLiteral("NoteEditorTabsAndWindowsCoordinator::connectToLocalStorage"));
@@ -1333,6 +1493,7 @@ void NoteEditorTabsAndWindowsCoordinator::restoreLastOpenNotes()
 
     for(auto it = localUidsOfLastNotesInWindows.constBegin(), end = localUidsOfLastNotesInWindows.constEnd(); it != end; ++it) {
         addNote(*it, NoteEditorMode::Window);
+        restoreNoteEditorWindowGeometry(*it);
     }
 
     m_trackingCurrentTab = true;

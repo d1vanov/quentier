@@ -34,6 +34,7 @@
 // NOTE: Workaround a bug in Qt4 which may prevent building with some boost versions
 #ifndef Q_MOC_RUN
 #include <boost/circular_buffer.hpp>
+#include <boost/bimap.hpp>
 #endif
 
 QT_FORWARD_DECLARE_CLASS(QUndoStack)
@@ -115,11 +116,19 @@ private Q_SLOTS:
     void onTabContextMenuMoveToWindowAction();
 
 private:
+    virtual void timerEvent(QTimerEvent * pTimerEvent) Q_DECL_OVERRIDE;
+
+private:
     void insertNoteEditorWidget(NoteEditorWidget * pNoteEditorWidget, const NoteEditorMode::type noteEditorMode);
 
     void removeNoteEditorTab(int tabIndex, const bool closeEditor);
     void checkAndCloseOlderNoteEditorTabs();
     void setCurrentNoteEditorWidgetTab(const QString & noteLocalUid);
+
+    void scheduleNoteEditorWindowGeometrySave(const QString & noteLocalUid);
+    void persistNoteEditorWindowGeometry(const QString & noteLocalUid);
+    void clearPersistedNoteEditorWindowGeometry(const QString & noteLocalUid);
+    void restoreNoteEditorWindowGeometry(const QString & noteLocalUid);
 
 private:
     void connectToLocalStorage();
@@ -160,6 +169,9 @@ private:
 
     typedef QMap<QString, QPointer<NoteEditorWidget> > NoteEditorWindowsByNoteLocalUid;
     NoteEditorWindowsByNoteLocalUid     m_noteEditorWindowsByNoteLocalUid;
+
+    typedef boost::bimap<QString, int> NoteLocalUidToTimerIdBimap;
+    NoteLocalUidToTimerIdBimap          m_saveNoteEditorWindowGeometryPostponeTimerIdToNoteLocalUidBimap;
 
     QSet<QUuid>                         m_createNoteRequestIds;
 
