@@ -3592,6 +3592,15 @@ void MainWindow::restoreGeometryAndState()
             totalHeight += sidePanelSplitterSizes[i];
         }
 
+        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
+        {
+            QNTRACE(QStringLiteral("Side panel splitter sizes before restoring (total")
+                    << totalHeight << QStringLiteral(": "));
+            for(auto it = sidePanelSplitterSizes.constBegin(), end = sidePanelSplitterSizes.constEnd(); it != end; ++it) {
+                QNTRACE(*it);
+            }
+        }
+
         if (showFavoritesView && favoritesViewHeight.isValid())
         {
             bool conversionResult = false;
@@ -3667,20 +3676,17 @@ void MainWindow::restoreGeometryAndState()
             totalHeightAfterRestore += sidePanelSplitterSizes[i];
         }
 
-        if (Q_LIKELY(totalHeight == totalHeightAfterRestore))
+        if (QuentierIsLogLevelActive(LogLevel::TraceLevel))
         {
-            m_pUI->sidePanelSplitter->setSizes(sidePanelSplitterSizes);
-            QNTRACE(QStringLiteral("Set side panel splitter sizes"));
+            QNTRACE(QStringLiteral("Side panel splitter sizes after restoring (total")
+                    << totalHeightAfterRestore << QStringLiteral(": "));
+            for(auto it = sidePanelSplitterSizes.constBegin(), end = sidePanelSplitterSizes.constEnd(); it != end; ++it) {
+                QNTRACE(*it);
+            }
         }
-        else
-        {
-            ErrorString error(QT_TRANSLATE_NOOP("", "Internal error: can't restore the heights "
-                                                "of side panel's views: total height after restoring from the settings "
-                                                "doesn't match the initial height"));
-            QNWARNING(error << QStringLiteral(", total height before restoring = ") << totalHeight
-                      << QStringLiteral(", total height after restoring = ") << totalHeightAfterRestore);
-            onSetStatusBarText(error.localizedString());
-        }
+
+        m_pUI->sidePanelSplitter->setSizes(sidePanelSplitterSizes);
+        QNTRACE(QStringLiteral("Set side panel splitter sizes"));
     }
     else
     {
