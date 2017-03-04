@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include "LoadDependencies.h"
+#include "SetupApplicationIcon.h"
 #include "CommandLineParser.h"
 #include <quentier/logging/QuentierLogger.h>
 #include <quentier/utility/QuentierApplication.h>
@@ -58,6 +59,7 @@ int main(int argc, char *argv[])
     loadDependencies();
 
     quentier::initializeLibquentier();
+    quentier::setupApplicationIcon(app);
 
     MainWindow w;
     w.show();

@@ -60,6 +60,7 @@ set(${PROJECT_NAME}_HEADERS
     src/MainWindow.h
     src/CommandLineParser.h
     src/LoadDependencies.h
+    src/SetupApplicationIcon.h
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/EditNoteDialogsManager.h
@@ -136,6 +137,7 @@ set(${PROJECT_NAME}_SOURCES
     src/CommandLineParser.cpp
     src/LoadDependencies.cpp
     src/AccountManager.cpp
+    src/SetupApplicationIcon.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/EditNoteDialogsManager.cpp
@@ -222,6 +224,7 @@ set(FORMS
 qt_wrap_ui(${PROJECT_NAME}_FORMS_HEADERS ${FORMS})
 
 set(RESOURCES
+    resource/icons/app/app_icons.qrc
     resource/icons/themes/tango/tango.qrc
     resource/icons/themes/oxygen/oxygen.qrc
     resource/icons/other/icons.qrc

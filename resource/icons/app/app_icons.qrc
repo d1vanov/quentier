@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/app_icons">
+        <file>quentier_icon_16.png</file>
+        <file>quentier_icon_32.png</file>
+        <file>quentier_icon_48.png</file>
+        <file>quentier_icon_64.png</file>
+        <file>quentier_icon_128.png</file>
+        <file>quentier_icon_256.png</file>
+        <file>quentier_icon_512.png</file>
+    </qresource>
+</RCC>
