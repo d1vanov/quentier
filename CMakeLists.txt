@@ -61,6 +61,7 @@ set(${PROJECT_NAME}_HEADERS
     src/CommandLineParser.h
     src/LoadDependencies.h
     src/SetupApplicationIcon.h
+    src/SystemTrayIconManager.h
     src/AccountManager.h
     src/BasicXMLSyntaxHighlighter.h
     src/EditNoteDialogsManager.h
@@ -138,6 +139,7 @@ set(${PROJECT_NAME}_SOURCES
     src/LoadDependencies.cpp
     src/AccountManager.cpp
     src/SetupApplicationIcon.cpp
+    src/SystemTrayIconManager.cpp
     src/ActionShortcuts.inl
     src/BasicXMLSyntaxHighlighter.cpp
     src/EditNoteDialogsManager.cpp
