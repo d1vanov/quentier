@@ -237,6 +237,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   list(APPEND THIRDPARTY_LIBS wsock32 ws2_32)
 endif()
 
+if(WIN32)
+  # Disable boost auto-linking which gets in the way of CMake's dependencies resolution
+  add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_ALL_DYN_LINK)
+endif()
+
 add_executable(${PROJECT_NAME} MACOSX_BUNDLE
                ${${PROJECT_NAME}_HEADERS}
                ${${PROJECT_NAME}_SOURCES}
@@ -328,70 +333,18 @@ install(TARGETS ${PROJECT_NAME}
         BUNDLE DESTINATION .)
 
 # install application bundle
-if((WIN32 OR APPLE) AND CREATE_BUNDLE)
-  if(WIN32)
-    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-      set(DEBUG_SUFFIX "d")
-    else()
-      set(DEBUG_SUFFIX "")
-    endif()
-  endif()
+include(QuentierCreateBundle)
 
-  if(WIN32)
-    set(APPS ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.exe)
-  elseif(APPLE)
-    set(APPS ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app)
-  endif()
-
-  set(DIRS ${THIRDPARTY_LIB_DIRS})
-  foreach(THIRDPARTY_LIB_DIR ${THIRDPARTY_LIB_DIRS})
-    list(APPEND DIRS ${THIRDPARTY_LIB_DIR}/../bin)
-  endforeach()
-
-  if(WIN32)
-    if(USE_QT5)
-      install(CODE "
-              message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-              execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${APPS})
-              " COMPONENT Runtime)
-
-      if(QUENTIER_USE_QT_WEB_ENGINE)
-        set(QTWEBENGINEPROCESS ${Qt5Core_DIR}/../../../bin/QtWebEngineProcess${DEBUG_SUFFIX}.exe)
-        install(FILES ${QTWEBENGINEPROCESS} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-        install(DIRECTORY ${Qt5Core_DIR}/../../../resources DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-        install(DIRECTORY ${Qt5Core_DIR}/../../../translations/qtwebengine_locales DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/translations)
-      endif()
-
-      # deploying the SQLite driver which windeployqt/macdeployqt misses for some reason
-      install(FILES ${Qt5Core_DIR}/../../../plugins/sqldrivers/qsqlite${DEBUG_SUFFIX}.dll DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/sqldrivers)
-
-      # fixup other dependencies not taken care of by windeployqt
-      install(CODE "
-              include(CMakeParseArguments)
-              if(${CMAKE_VERSION} VERSION_LESS \"3.8.0\")
-                include(${QUENTIER_CMAKE_MODULE_PATH}/BundleUtilities.cmake)
-              else()
-                include(BundleUtilities)
-              endif()
-              include(InstallRequiredSystemLibraries)
-              fixup_bundle(\"${APPS}\"   \"\"   \"${DIRS}\")
-              " COMPONENT Runtime)
-    else()
-      install(CODE "
-              include(DeployQt4)
-              include(InstallRequiredSystemLibraries)
-              fixup_qt4_executable(${APPS} \"qsqlite\" \"\" \"${DIRS}\")
-              " COMPONENT Runtime)
-    endif(USE_QT5)
-  elseif(APPLE)
-    install(CODE "
-            message(STATUS \"Running deploy Qt tool: ${DEPLOYQT_TOOL}\")
-            execute_process(COMMAND \"${DEPLOYQT_TOOL}\" ${APPS} -no-strip ERROR_QUIET)
-            execute_process(COMMAND \"${CMAKE_INSTALL_NAME_TOOL}\" -add_rpath @executable_path/../Frameworks ${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app/Contents/MacOS/${PROJECT_NAME})
-            " COMPONENT Runtime)
-  endif()
+if(WIN32 OR APPLE)
+  set(DEFAULT_CREATE_BUNDLE ON BOOL)
+else()
+  set(DEFAULT_CREATE_BUNDLE OFF BOOL)
 endif()
 
+set(CREATE_BUNDLE ${DEFAULT_CREATE_BUNDLE} CACHE BOOL "Create application standalone bundle/installation")
+CreateQuentierBundle()
+
+# list headers/sources and include dirs for cppcheck
 set(QUENTIER_CPPCHECKABLE_SOURCES "${${PROJECT_NAME}_SOURCES}")
 
 set(QUENTIER_CPPCHECKABLE_INCLUDE_DIRS "${${PROJECT_NAME}_INCLUDE_DIRS}")
