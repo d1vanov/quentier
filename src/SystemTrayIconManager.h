@@ -26,6 +26,9 @@
 #include <QPointer>
 #include <QSystemTrayIcon>
 
+QT_FORWARD_DECLARE_CLASS(QMenu)
+QT_FORWARD_DECLARE_CLASS(QActionGroup)
+
 namespace quentier {
 
 QT_FORWARD_DECLARE_CLASS(AccountManager)
@@ -52,14 +55,35 @@ public:
 Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
 
+    void newTextNoteAdditionRequested();
+    void quitRequested();
+
+    void accountSwitchRequested(Account account);
+
     // private signals
     void switchAccount(Account account);
 
 private Q_SLOTS:
+    // Slots for AccountManager signals
     void onAccountSwitched(Account account);
+    void onAccountUpdated(Account account);
+    void onAccountAdded(Account account);
+
+    // Slots for context menu actions
+    void onNewTextNoteContextMenuAction();
+    void onSwitchAccountContextMenuAction(bool checked);
+    void onShowMainWindowContextMenuAction();
+    void onHideMainWindowContextMenuAction();
+    void onQuitContextMenuAction();
 
 private:
     void createConnections();
+    void setupSystemTrayIcon();
+
+    void setupContextMenu();
+    void setupAccountsSubMenu();
+
+    void onShowHideMainWindowContextMenuAction(const bool show);
 
     void persistTrayIconState();
     void restoreTrayIconState();
@@ -67,6 +91,9 @@ private:
 private:
     QPointer<AccountManager>    m_pAccountManager;
     QSystemTrayIcon *           m_pSystemTrayIcon;
+    QMenu *                     m_pTrayIconContextMenu;
+    QMenu *                     m_pAccountsTrayIconSubMenu;
+    QActionGroup *              m_pAvailableAccountsActionGroup;
 };
 
 } // namespace quentier

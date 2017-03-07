@@ -19,9 +19,13 @@
 #include "SystemTrayIconManager.h"
 #include "AccountManager.h"
 #include "SettingsNames.h"
+#include "MainWindow.h"
 #include <quentier/utility/ApplicationSettings.h>
 #include <quentier/logging/QuentierLogger.h>
 #include <QApplication>
+#include <QMenu>
+#include <QActionGroup>
+#include <QWidget>
 
 #define SHOW_SYSTEM_TRAY_ICON_KEY QStringLiteral("ShowIconInSystemTray")
 #define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY QStringLiteral("OverrideSystemTrayAvailability")
@@ -32,10 +36,14 @@ SystemTrayIconManager::SystemTrayIconManager(AccountManager & accountManager,
                                              QObject * parent) :
     QObject(parent),
     m_pAccountManager(&accountManager),
-    m_pSystemTrayIcon(Q_NULLPTR)
+    m_pSystemTrayIcon(Q_NULLPTR),
+    m_pTrayIconContextMenu(Q_NULLPTR),
+    m_pAccountsTrayIconSubMenu(Q_NULLPTR),
+    m_pAvailableAccountsActionGroup(Q_NULLPTR)
 {
     createConnections();
     restoreTrayIconState();
+    setupContextMenu();
 }
 
 bool SystemTrayIconManager::isSystemTrayAvailable() const
@@ -83,11 +91,8 @@ void SystemTrayIconManager::show()
     }
 
     if (!m_pSystemTrayIcon) {
-        m_pSystemTrayIcon = new QSystemTrayIcon(this);
+        setupSystemTrayIcon();
     }
-
-    QIcon appIcon = qApp->windowIcon();
-    m_pSystemTrayIcon->setIcon(appIcon);
 
     m_pSystemTrayIcon->show();
     persistTrayIconState();
@@ -109,8 +114,92 @@ void SystemTrayIconManager::hide()
 void SystemTrayIconManager::onAccountSwitched(Account account)
 {
     QNDEBUG(QStringLiteral("SystemTrayIconManager::onAccountSwitched: ") << account);
+    setupAccountsSubMenu();
+}
 
-    // TODO: implement, set up the account-specific things
+void SystemTrayIconManager::onAccountUpdated(Account account)
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onAccountUpdated: ") << account);
+    setupAccountsSubMenu();
+}
+
+void SystemTrayIconManager::onAccountAdded(Account account)
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onAccountAdded: ") << account);
+    setupAccountsSubMenu();
+}
+
+void SystemTrayIconManager::onNewTextNoteContextMenuAction()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onNewTextNoteContextMenuAction"));
+    emit newTextNoteAdditionRequested();
+}
+
+void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onSwitchAccountContextMenuAction: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (!checked) {
+        QNTRACE(QStringLiteral("Ignoring the unchecking of account"));
+        return;
+    }
+
+    QAction * action = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!action)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: account switching "
+                                                       "action is unexpectedly null"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    QVariant indexData = action->data();
+    bool conversionResult = false;
+    int index = indexData.toInt(&conversionResult);
+    if (Q_UNLIKELY(!conversionResult)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: can't get "
+                                                       "identification data from "
+                                                       "the account switching action"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
+    const int numAvailableAccounts = availableAccounts.size();
+
+    if ((index < 0) || (index >= numAvailableAccounts)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: wrong index "
+                                                       "into available accounts "
+                                                       "in account switching action"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    const Account & availableAccount = availableAccounts[index];
+
+    QNTRACE(QStringLiteral("Emitting the request to switch account: ") << availableAccount);
+    emit accountSwitchRequested(availableAccount);
+}
+
+void SystemTrayIconManager::onShowMainWindowContextMenuAction()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onShowMainWindowContextMenuAction"));
+    onShowHideMainWindowContextMenuAction(/* show = */ true);
+}
+
+void SystemTrayIconManager::onHideMainWindowContextMenuAction()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onHideMainWindowContextMenuAction"));
+    onShowHideMainWindowContextMenuAction(/* show = */ false);
+}
+
+void SystemTrayIconManager::onQuitContextMenuAction()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onQuitContextMenuAction"));
+    emit quitRequested();
 }
 
 void SystemTrayIconManager::createConnections()
@@ -122,6 +211,177 @@ void SystemTrayIconManager::createConnections()
                      this, QNSLOT(SystemTrayIconManager,onAccountSwitched,Account));
     QObject::connect(this, QNSIGNAL(SystemTrayIconManager,switchAccount,Account),
                      m_pAccountManager.data(), QNSLOT(AccountManager,switchAccount,Account));
+    QObject::connect(m_pAccountManager.data(), QNSIGNAL(AccountManager,accountUpdated,Account),
+                     this, QNSLOT(SystemTrayIconManager,onAccountUpdated,Account));
+    QObject::connect(m_pAccountManager.data(), QNSIGNAL(AccountManager,accountAdded,Account),
+                     this, QNSLOT(SystemTrayIconManager,onAccountAdded,Account));
+}
+
+void SystemTrayIconManager::setupSystemTrayIcon()
+{
+    m_pSystemTrayIcon = new QSystemTrayIcon(this);
+
+    QIcon appIcon = qApp->windowIcon();
+    m_pSystemTrayIcon->setIcon(appIcon);
+}
+
+void SystemTrayIconManager::setupContextMenu()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::setupContextMenu"));
+
+    MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
+    if (Q_UNLIKELY(!pMainWindow))
+    {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't set up the tray icon's context menu: "
+                                                       "internal error, the parent of SystemTrayIconManager "
+                                                       "is not a MainWindow"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+
+        if (m_pSystemTrayIcon) {
+            m_pSystemTrayIcon->setContextMenu(Q_NULLPTR);
+        }
+
+        return;
+    }
+
+    if (!isSystemTrayAvailable())
+    {
+        QNDEBUG(QStringLiteral("The system tray is not available, can't set up "
+                               "the context menu for the system tray icon"));
+
+        if (m_pSystemTrayIcon) {
+            m_pSystemTrayIcon->setContextMenu(Q_NULLPTR);
+        }
+
+        return;
+    }
+
+    if (!m_pTrayIconContextMenu) {
+        m_pTrayIconContextMenu = new QMenu(pMainWindow);
+    }
+    else {
+        m_pTrayIconContextMenu->clear();
+    }
+
+#define ADD_CONTEXT_MENU_ACTION(name, menu, slot, enabled) \
+    { \
+        QAction * pAction = new QAction(name, menu); \
+        pAction->setEnabled(enabled); \
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered), this, QNSLOT(SystemTrayIconManager,slot)); \
+        menu->addAction(pAction); \
+    }
+
+    ADD_CONTEXT_MENU_ACTION(tr("New text note"), m_pTrayIconContextMenu,
+                            onNewTextNoteContextMenuAction, true);
+
+    m_pTrayIconContextMenu->addSeparator();
+
+    setupAccountsSubMenu();
+
+    m_pTrayIconContextMenu->addSeparator();
+
+    ADD_CONTEXT_MENU_ACTION(tr("Show"), m_pTrayIconContextMenu,
+                            onShowMainWindowContextMenuAction, pMainWindow->isHidden());
+
+    ADD_CONTEXT_MENU_ACTION(tr("Hide"), m_pTrayIconContextMenu,
+                            onHideMainWindowContextMenuAction, !pMainWindow->isHidden());
+
+    m_pTrayIconContextMenu->addSeparator();
+
+    ADD_CONTEXT_MENU_ACTION(tr("Quit"), m_pTrayIconContextMenu,
+                            onQuitContextMenuAction, true);
+
+    if (!m_pSystemTrayIcon) {
+        setupSystemTrayIcon();
+    }
+
+    m_pSystemTrayIcon->setContextMenu(m_pTrayIconContextMenu);
+}
+
+void SystemTrayIconManager::setupAccountsSubMenu()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::setupAccountsSubMenu"));
+
+    if (Q_UNLIKELY(!m_pTrayIconContextMenu)) {
+        QNDEBUG(QStringLiteral("No primary tray icon context menu"));
+        return;
+    }
+
+    if (!m_pAccountsTrayIconSubMenu) {
+        m_pAccountsTrayIconSubMenu = m_pTrayIconContextMenu->addMenu(tr("Switch account"));
+    }
+    else {
+        m_pAccountsTrayIconSubMenu->clear();
+    }
+
+    delete m_pAvailableAccountsActionGroup;
+    m_pAvailableAccountsActionGroup = new QActionGroup(this);
+    m_pAvailableAccountsActionGroup->setExclusive(true);
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        QNDEBUG(QStringLiteral("No account manager"));
+        return;
+    }
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    const QVector<Account> & availableAccounts = m_pAccountManager->availableAccounts();
+
+    for(int i = 0, size = availableAccounts.size(); i < size; ++i)
+    {
+        const Account & availableAccount = availableAccounts[i];
+
+        QString availableAccountRepresentationName = availableAccount.name();
+
+        if (availableAccount.type() == Account::Type::Local) {
+            availableAccountRepresentationName += QStringLiteral(" (");
+            availableAccountRepresentationName += tr("local");
+            availableAccountRepresentationName += QStringLiteral(")");
+        }
+
+        QAction * pAction = new QAction(availableAccountRepresentationName, Q_NULLPTR);
+        m_pAccountsTrayIconSubMenu->addAction(pAction);
+        pAction->setData(i);
+        pAction->setCheckable(true);
+
+        if (availableAccount == currentAccount) {
+            pAction->setChecked(true);
+        }
+
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered,bool),
+                         this, QNSLOT(SystemTrayIconManager,onSwitchAccountContextMenuAction,bool));
+
+        m_pAvailableAccountsActionGroup->addAction(pAction);
+    }
+}
+
+void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(const bool show)
+{
+    MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
+    if (Q_UNLIKELY(!pMainWindow)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show/hide the main window: "
+                                                       "internal error, the parent of SystemTrayIconManager "
+                                                       "is not a MainWindow"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    if (show && !pMainWindow->isHidden()) {
+        QNDEBUG(QStringLiteral("The main window is already shown, nothing to do"));
+        return;
+    }
+    else if (!show && pMainWindow->isHidden()) {
+        QNDEBUG(QStringLiteral("The main window is already hidden, nothing to do"));
+        return;
+    }
+
+    if (show) {
+        pMainWindow->show();
+    }
+    else {
+        pMainWindow->hide();
+    }
 }
 
 void SystemTrayIconManager::persistTrayIconState()
