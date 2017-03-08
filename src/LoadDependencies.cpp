@@ -54,8 +54,8 @@ void loadDependencies()
         qtWebEngineProcessPath = QDir::currentPath() + QStringLiteral("/QtWebEngineProcessd.exe");
     }
 
-    qputenv("QTWEBENGINEPROCESS_PATH", QByteArray(qWebEngineProcessPath.toLocal8Bit()));
-    QNDEBUG(QStringLiteral("Set QTWEBENGINEPROCESS_PATH to ") << qWebEngineProcessPath);
+    qputenv("QTWEBENGINEPROCESS_PATH", QByteArray(qtWebEngineProcessPath.toLocal8Bit()));
+    QNDEBUG(QStringLiteral("Set QTWEBENGINEPROCESS_PATH to ") << qtWebEngineProcessPath);
 #endif
 
 #endif // Q_OS_WIN
