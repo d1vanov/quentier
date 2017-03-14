@@ -136,6 +136,7 @@ void NewListItemLineEdit::focusOutEvent(QFocusEvent * pEvent)
     // The attempt to ignore such event is not fruitful as the keyboard focus still ends up lost
     // so accepting the event and immediately moving the focus back
     if (pEvent && (pEvent->type() == QEvent::FocusOut) && (pEvent->reason() == Qt::OtherFocusReason)) {
+        QNDEBUG(QStringLiteral("Working around the glitch in Qt5 with focus lost for \"other focus reason\": moving the focus back"));
         setFocus();
     }
 #endif
