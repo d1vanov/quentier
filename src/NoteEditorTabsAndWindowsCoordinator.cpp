@@ -124,6 +124,18 @@ NoteEditorTabsAndWindowsCoordinator::NoteEditorTabsAndWindowsCoordinator(const A
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onNoteEditorTabCloseRequested,int));
     QObject::connect(m_pTabWidget, QNSIGNAL(TabWidget,currentChanged,int),
                      this, QNSLOT(NoteEditorTabsAndWindowsCoordinator,onCurrentTabChanged,int));
+
+    NoteEditorWidget * pCurrentEditor = qobject_cast<NoteEditorWidget*>(m_pTabWidget->currentWidget());
+    if (pCurrentEditor)
+    {
+        if (pCurrentEditor->hasFocus()) {
+            QNDEBUG(QStringLiteral("The tab widget's current tab widget already has focus"));
+            return;
+        }
+
+        QNDEBUG(QStringLiteral("Setting the focus to the current tab widget"));
+        pCurrentEditor->setFocusToEditor();
+    }
 }
 
 NoteEditorTabsAndWindowsCoordinator::~NoteEditorTabsAndWindowsCoordinator()
@@ -549,6 +561,12 @@ void NoteEditorTabsAndWindowsCoordinator::onNoteEditorWidgetResolved()
         QNTRACE(QStringLiteral("Updated tab text for note editor with note ") << noteLocalUid
                 << QStringLiteral(": ") << displayName);
         foundTab = true;
+
+        if (i == m_pTabWidget->currentIndex()) {
+            QNTRACE(QStringLiteral("Setting the focus to the current tab's note editor"));
+            pNoteEditorWidget->setFocusToEditor();
+        }
+
         break;
     }
 
@@ -758,6 +776,8 @@ void NoteEditorTabsAndWindowsCoordinator::onCurrentTabChanged(int currentIndex)
 
         return;
     }
+
+    pNoteEditorWidget->setFocusToEditor();
 
     if (pNoteEditorWidget == m_pBlankNoteEditor)
     {

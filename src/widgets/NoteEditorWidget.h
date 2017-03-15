@@ -176,6 +176,8 @@ public:
      */
     bool makeNonWindow();
 
+    void setFocusToEditor();
+
     /**
      * @brief printNote - attempts to print the note within the editor (if any)
      * @param errorDescription - the textual description of the error if the note

@@ -441,6 +441,12 @@ bool NoteEditorWidget::makeNonWindow()
     return true;
 }
 
+void NoteEditorWidget::setFocusToEditor()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::setFocusToEditor"));
+    m_pUi->noteEditor->setFocus();
+}
+
 bool NoteEditorWidget::printNote(ErrorString & errorDescription)
 {
     QNDEBUG(QStringLiteral("NoteEditorWidget::printNote"));
@@ -556,6 +562,16 @@ bool NoteEditorWidget::eventFilter(QObject * pWatched, QEvent * pEvent)
         }
         else if (eventType == QEvent::FocusOut) {
             QNDEBUG(QStringLiteral("Note title editor lost focus"));
+        }
+    }
+    else if (pWatched == m_pUi->noteEditor)
+    {
+        QEvent::Type eventType = pEvent->type();
+        if (eventType == QEvent::FocusIn) {
+            QNDEBUG(QStringLiteral("Note editor gained focus"));
+        }
+        else if (eventType == QEvent::FocusOut) {
+            QNDEBUG(QStringLiteral("Note editor lost focus"));
         }
     }
 

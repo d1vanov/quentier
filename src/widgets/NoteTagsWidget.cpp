@@ -342,6 +342,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
         m_lastDisplayedTagLocalUids << addedTagLocalUid;
         m_currentNoteTagLocalUidToNameBimap.insert(TagLocalUidToNameBimap::value_type(addedTagLocalUid, tagName));
 
+        bool newItemLineEditHadFocus = false;
         NewListItemLineEdit * pNewItemLineEdit = findNewItemWidget();
         if (pNewItemLineEdit)
         {
@@ -349,6 +350,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
             reservedTagNames << tagName;
             pNewItemLineEdit->updateReservedItemNames(reservedTagNames);
 
+            newItemLineEditHadFocus = pNewItemLineEdit->hasFocus();
             Q_UNUSED(m_pLayout->removeWidget(pNewItemLineEdit);)
         }
 
@@ -366,7 +368,7 @@ void NoteTagsWidget::onUpdateNoteComplete(Note note, bool updateResources,
             m_pLayout->addWidget(pNewItemLineEdit);
             pNewItemLineEdit->setText(QString());
 
-            if (!pNewItemLineEdit->hasFocus()) {
+            if (newItemLineEditHadFocus) {
                 pNewItemLineEdit->setFocus();
             }
         }

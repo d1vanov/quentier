@@ -96,6 +96,7 @@ using quentier::FilterBySavedSearchWidget;
 #include <QToolTip>
 #include <QResizeEvent>
 #include <QTimerEvent>
+#include <QFocusEvent>
 #include <QMenu>
 
 #define NOTIFY_ERROR(error) \
@@ -2786,6 +2787,36 @@ void MainWindow::timerEvent(QTimerEvent * pTimerEvent)
         killTimer(m_geometryAndStatePersistingDelayTimerId);
         m_geometryAndStatePersistingDelayTimerId = 0;
     }
+}
+
+void MainWindow::focusInEvent(QFocusEvent * pFocusEvent)
+{
+    QNDEBUG(QStringLiteral("MainWindow::focusInEvent"));
+
+    if (Q_UNLIKELY(!pFocusEvent)) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Reason = ") << pFocusEvent->reason());
+
+    QMainWindow::focusInEvent(pFocusEvent);
+
+    NoteEditorWidget * pCurrentNoteEditorTab = currentNoteEditorTab();
+    if (pCurrentNoteEditorTab) {
+        pCurrentNoteEditorTab->setFocusToEditor();
+    }
+}
+
+void MainWindow::focusOutEvent(QFocusEvent * pFocusEvent)
+{
+    QNDEBUG(QStringLiteral("MainWindow::focusOutEvent"));
+
+    if (Q_UNLIKELY(!pFocusEvent)) {
+        return;
+    }
+
+    QNDEBUG(QStringLiteral("Reason = ") << pFocusEvent->reason());
+    QMainWindow::focusOutEvent(pFocusEvent);
 }
 
 void MainWindow::setupThemeIcons()
