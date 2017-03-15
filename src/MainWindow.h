@@ -224,6 +224,8 @@ private:
     virtual void resizeEvent(QResizeEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void closeEvent(QCloseEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
+    virtual void focusInEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
+    virtual void focusOutEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
 
 private:
     void setupThemeIcons();

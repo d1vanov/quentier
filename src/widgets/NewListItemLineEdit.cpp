@@ -20,6 +20,7 @@
 #include "ui_NewListItemLineEdit.h"
 #include "../models/TagModel.h"
 #include <quentier/logging/QuentierLogger.h>
+#include <quentier/utility/VersionInfo.h>
 #include <QKeyEvent>
 #include <QCompleter>
 #include <QModelIndex>
@@ -120,6 +121,16 @@ void NewListItemLineEdit::focusInEvent(QFocusEvent * pEvent)
     QNTRACE(QStringLiteral("NewListItemLineEdit::focusInEvent: ") << this
             << QStringLiteral(", event type = ") << pEvent->type()
             << QStringLiteral(", reason = ") << pEvent->reason());
+
+#ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
+    QNDEBUG(QStringLiteral("Working around the QWebEngineView-based note editor's problem with focus "
+                           "being stolen from it"));
+    if (pEvent->reason() == Qt::ActiveWindowFocusReason) {
+        pEvent->ignore();
+        return;
+    }
+#endif
+
     QLineEdit::focusInEvent(pEvent);
 }
 
@@ -214,6 +225,12 @@ void NewListItemLineEdit::setupCompleter()
 
     m_pCompleter->setModel(m_pItemNamesModel);
     setCompleter(m_pCompleter);
+
+#ifdef LIB_QUENTIER_USE_QT_WEB_ENGINE
+    QNDEBUG(QStringLiteral("Working around Qt bug https://bugreports.qt.io/browse/QTBUG-56652"));
+    m_pCompleter->setCompletionMode(QCompleter::InlineCompletion);
+#endif
+
 }
 
 } // namespace quentier
