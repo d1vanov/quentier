@@ -74,6 +74,7 @@ private Q_SLOTS:
     void onSwitchAccountContextMenuAction(bool checked);
     void onShowMainWindowContextMenuAction();
     void onHideMainWindowContextMenuAction();
+    void onSwitchTrayIconContextMenuAction(bool checked);
     void onQuitContextMenuAction();
 
     // Slots for MainWindow signals
@@ -86,6 +87,7 @@ private:
 
     void setupContextMenu();
     void setupAccountsSubMenu();
+    void setupTrayIconKindSubMenu();
     void evaluateShowHideMenuActions();
 
     void onShowHideMainWindowContextMenuAction(const bool show);
@@ -98,7 +100,9 @@ private:
     QSystemTrayIcon *           m_pSystemTrayIcon;
     QMenu *                     m_pTrayIconContextMenu;
     QMenu *                     m_pAccountsTrayIconSubMenu;
+    QMenu *                     m_pTrayIconKindSubMenu;
     QActionGroup *              m_pAvailableAccountsActionGroup;
+    QActionGroup *              m_pTrayIconKindsActionGroup;
 };
 
 } // namespace quentier

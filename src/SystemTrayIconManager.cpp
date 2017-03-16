@@ -26,9 +26,11 @@
 #include <QMenu>
 #include <QActionGroup>
 #include <QWidget>
+#include <QStringList>
 
 #define SHOW_SYSTEM_TRAY_ICON_KEY QStringLiteral("ShowIconInSystemTray")
 #define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY QStringLiteral("OverrideSystemTrayAvailability")
+#define TRAY_ICON_KIND_KEY QStringLiteral("TrayIconKind")
 
 namespace quentier {
 
@@ -39,7 +41,9 @@ SystemTrayIconManager::SystemTrayIconManager(AccountManager & accountManager,
     m_pSystemTrayIcon(Q_NULLPTR),
     m_pTrayIconContextMenu(Q_NULLPTR),
     m_pAccountsTrayIconSubMenu(Q_NULLPTR),
-    m_pAvailableAccountsActionGroup(Q_NULLPTR)
+    m_pTrayIconKindSubMenu(Q_NULLPTR),
+    m_pAvailableAccountsActionGroup(Q_NULLPTR),
+    m_pTrayIconKindsActionGroup(Q_NULLPTR)
 {
     createConnections();
     restoreTrayIconState();
@@ -145,8 +149,8 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
         return;
     }
 
-    QAction * action = qobject_cast<QAction*>(sender());
-    if (Q_UNLIKELY(!action)) {
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: account switching "
                                                        "action is unexpectedly null"));
         QNWARNING(errorDescription);
@@ -154,7 +158,7 @@ void SystemTrayIconManager::onSwitchAccountContextMenuAction(bool checked)
         return;
     }
 
-    QVariant indexData = action->data();
+    QVariant indexData = pAction->data();
     bool conversionResult = false;
     int index = indexData.toInt(&conversionResult);
     if (Q_UNLIKELY(!conversionResult)) {
@@ -194,6 +198,41 @@ void SystemTrayIconManager::onHideMainWindowContextMenuAction()
 {
     QNDEBUG(QStringLiteral("SystemTrayIconManager::onHideMainWindowContextMenuAction"));
     onShowHideMainWindowContextMenuAction(/* show = */ false);
+}
+
+void SystemTrayIconManager::onSwitchTrayIconContextMenuAction(bool checked)
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onSwitchTrayIconContextMenuAction: checked = ")
+            << (checked ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (!checked) {
+        QNTRACE(QStringLiteral("Ignoring the unchecking of current tray icon kind"));
+        return;
+    }
+
+    QAction * pAction = qobject_cast<QAction*>(sender());
+    if (Q_UNLIKELY(!pAction)) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Internal error: tray icon kind switching "
+                                                       "action is unexpectedly null"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    if (Q_UNLIKELY(m_pAccountManager.isNull())) {
+        ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't change the tray icon kind: account manager is null"));
+        QNWARNING(errorDescription);
+        emit notifyError(errorDescription);
+        return;
+    }
+
+    Account currentAccount = m_pAccountManager->currentAccount();
+    ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+    appSettings.beginGroup(QStringLiteral("SystemTray"));
+    appSettings.setValue(TRAY_ICON_KIND_KEY, pAction->data().toString());
+    appSettings.endGroup();
+
+    setupSystemTrayIcon();
 }
 
 void SystemTrayIconManager::onQuitContextMenuAction()
@@ -243,10 +282,51 @@ void SystemTrayIconManager::createConnections()
 
 void SystemTrayIconManager::setupSystemTrayIcon()
 {
-    m_pSystemTrayIcon = new QSystemTrayIcon(this);
+    if (!m_pSystemTrayIcon) {
+        m_pSystemTrayIcon = new QSystemTrayIcon(this);
+    }
 
-    QIcon appIcon = qApp->windowIcon();
-    m_pSystemTrayIcon->setIcon(appIcon);
+    QString whichIcon = QStringLiteral("_simple_dark");
+
+    if (!m_pAccountManager.isNull())
+    {
+        Account currentAccount = m_pAccountManager->currentAccount();
+        ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(QStringLiteral("SystemTray"));
+        QString trayIconKind = appSettings.value(TRAY_ICON_KIND_KEY).toString();
+        appSettings.endGroup();
+
+        if (trayIconKind.isEmpty()) {
+            QNDEBUG(QStringLiteral("The tray icon kind is empty, will use the default simple dark tray icon"));
+        }
+        else if (trayIconKind == QStringLiteral("dark")) {
+            QNDEBUG(QStringLiteral("Will use the simple dark tray icon"));
+        }
+        else if (trayIconKind == QStringLiteral("light")) {
+            QNDEBUG(QStringLiteral("Will use the simple light tray icon"));
+            whichIcon = QStringLiteral("_simple_light");
+        }
+        else if (trayIconKind == QStringLiteral("colored")) {
+            QNDEBUG(QStringLiteral("Will use the colored tray icon"));
+            whichIcon.clear();
+        }
+    }
+    else
+    {
+        QNINFO(QStringLiteral("Can't find out which tray icon kind should be used for the current account: "
+                              "the account manager is null; will use the default dark tray icon"));
+    }
+
+    QIcon icon;
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_512.png"), QSize(512, 512));
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_256.png"), QSize(256, 256));
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_128.png"), QSize(128, 128));
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_64.png"), QSize(64, 64));
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_48.png"), QSize(48, 48));
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_32.png"), QSize(32, 32));
+    icon.addFile(QStringLiteral(":/app_icons/quentier_icon") + whichIcon + QStringLiteral("_16.png"), QSize(16, 16));
+
+    m_pSystemTrayIcon->setIcon(icon);
 }
 
 void SystemTrayIconManager::setupContextMenu()
@@ -313,6 +393,10 @@ void SystemTrayIconManager::setupContextMenu()
 
     m_pTrayIconContextMenu->addSeparator();
 
+    setupTrayIconKindSubMenu();
+
+    m_pTrayIconContextMenu->addSeparator();
+
     ADD_CONTEXT_MENU_ACTION(tr("Quit"), m_pTrayIconContextMenu,
                             onQuitContextMenuAction, true);
 
@@ -376,6 +460,69 @@ void SystemTrayIconManager::setupAccountsSubMenu()
                          this, QNSLOT(SystemTrayIconManager,onSwitchAccountContextMenuAction,bool));
 
         m_pAvailableAccountsActionGroup->addAction(pAction);
+    }
+}
+
+void SystemTrayIconManager::setupTrayIconKindSubMenu()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::setupTrayIconKindSubMenu"));
+
+    if (Q_UNLIKELY(!m_pTrayIconContextMenu)) {
+        QNDEBUG(QStringLiteral("No primary tray icon context menu"));
+        return;
+    }
+
+    if (!m_pTrayIconKindSubMenu) {
+        m_pTrayIconKindSubMenu = m_pTrayIconContextMenu->addMenu(tr("Tray icon kind"));
+    }
+    else {
+        m_pTrayIconKindSubMenu->clear();
+    }
+
+    delete m_pTrayIconKindsActionGroup;
+    m_pTrayIconKindsActionGroup = new QActionGroup(this);
+    m_pTrayIconKindsActionGroup->setExclusive(true);
+
+    QString currentTrayIconKind = QStringLiteral("dark");
+
+    if (!m_pAccountManager.isNull())
+    {
+        Account currentAccount = m_pAccountManager->currentAccount();
+        ApplicationSettings appSettings(currentAccount, QUENTIER_UI_SETTINGS);
+        appSettings.beginGroup(QStringLiteral("SystemTray"));
+        currentTrayIconKind = appSettings.value(TRAY_ICON_KIND_KEY).toString();
+        appSettings.endGroup();
+
+        if ( (currentTrayIconKind != QStringLiteral("dark")) &&
+             (currentTrayIconKind != QStringLiteral("light")) &&
+             (currentTrayIconKind != QStringLiteral("colored")) )
+        {
+            QNDEBUG(QStringLiteral("Wrong/unrecognized value of current tray icon kind setting: ")
+                    << currentTrayIconKind << QStringLiteral(", fallback to dark"));
+            currentTrayIconKind = QStringLiteral("dark");
+        }
+    }
+
+    QNDEBUG(QStringLiteral("Current tray icon kind = ") << currentTrayIconKind);
+
+    QStringList actionNames;
+    actionNames << QStringLiteral("dark")
+                << QStringLiteral("light")
+                << QStringLiteral("colored");
+    for(auto it = actionNames.constBegin(), end = actionNames.constEnd(); it != end; ++it)
+    {
+        const QString & actionName = *it;
+
+        QAction * pAction = new QAction(actionName, Q_NULLPTR);
+        m_pTrayIconKindSubMenu->addAction(pAction);
+        pAction->setData(actionName);
+        pAction->setCheckable(true);
+        pAction->setChecked(actionName == currentTrayIconKind);
+
+        QObject::connect(pAction, QNSIGNAL(QAction,triggered,bool),
+                         this, QNSLOT(SystemTrayIconManager,onSwitchTrayIconContextMenuAction,bool));
+
+        m_pTrayIconKindsActionGroup->addAction(pAction);
     }
 }
 
