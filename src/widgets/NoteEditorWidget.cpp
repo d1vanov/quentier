@@ -23,6 +23,7 @@
 // Doh, Qt Designer's inability to work with namespaces in the expected way
 // is deeply disappointing
 #include "NoteTagsWidget.h"
+#include "NewListItemLineEdit.h"
 #include "FindAndReplaceWidget.h"
 #include "../BasicXMLSyntaxHighlighter.h"
 #include "../insert-table-tool-button/InsertTableToolButton.h"
@@ -780,6 +781,25 @@ void NoteEditorWidget::onSaveNoteAction()
 
     m_pUi->saveNotePushButton->setEnabled(false);
     m_pUi->noteEditor->convertToNote();
+}
+
+void NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem()
+{
+    QNDEBUG(QStringLiteral("NoteEditorWidget::onNewTagLineEditReceivedFocusFromWindowSystem"));
+
+    QWidget * pFocusWidget = qApp->focusWidget();
+    if (pFocusWidget)
+    {
+        NewListItemLineEdit * pNewTagLineEdit = qobject_cast<NewListItemLineEdit*>(pFocusWidget);
+        if (pNewTagLineEdit) {
+            pNewTagLineEdit->setExpectFocusOut();
+        }
+
+        QNTRACE(QStringLiteral("Clearing the focus from the widget having it currently: ") << pFocusWidget);
+        pFocusWidget->clearFocus();
+    }
+
+    setFocusToEditor();
 }
 
 void NoteEditorWidget::onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId)
@@ -1692,6 +1712,10 @@ void NoteEditorWidget::createConnections(LocalStorageManagerThreadWorker & local
                      this, QNSLOT(NoteEditorWidget,onFindNotebookFailed,Notebook,ErrorString,QUuid));
     QObject::connect(&localStorageWorker, QNSIGNAL(LocalStorageManagerThreadWorker,expungeNotebookComplete,Notebook,QUuid),
                      this, QNSLOT(NoteEditorWidget,onExpungeNotebookComplete,Notebook,QUuid));
+
+    // Connect to note tags widget's signals
+    QObject::connect(m_pUi->tagNameLabelsContainer, QNSIGNAL(NoteTagsWidget,newTagLineEditReceivedFocusFromWindowSystem),
+                     this, QNSLOT(NoteEditorWidget,onNewTagLineEditReceivedFocusFromWindowSystem));
 
     // Connect to note title updates
     QObject::connect(m_pUi->noteNameLineEdit, QNSIGNAL(QLineEdit,textEdited,const QString&),

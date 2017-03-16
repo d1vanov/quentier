@@ -72,15 +72,14 @@ Q_SIGNALS:
     void notifyError(ErrorString errorDescription);
     void canUpdateNoteRestrictionChanged(bool canUpdateNote);
 
+    void newTagLineEditReceivedFocusFromWindowSystem();
+
 // private signals
     void updateNote(Note note, bool updateResources, bool updateTags, QUuid requestId);
 
 private Q_SLOTS:
     void onTagRemoved(QString tagName);
-
-private Q_SLOTS:
     void onNewTagNameEntered();
-
     void onAllTagsListed();
 
     // Slots for response to events from local storage
