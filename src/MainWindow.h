@@ -62,6 +62,7 @@ QT_FORWARD_DECLARE_CLASS(NoteEditorTabsAndWindowsCoordinator)
 QT_FORWARD_DECLARE_CLASS(NoteFilterModel)
 QT_FORWARD_DECLARE_CLASS(NoteFiltersManager)
 QT_FORWARD_DECLARE_CLASS(EditNoteDialogsManager)
+QT_FORWARD_DECLARE_CLASS(SystemTrayIconManager)
 }
 
 using namespace quentier;
@@ -79,6 +80,9 @@ public Q_SLOTS:
     void onSetStatusBarText(QString message, const int duration = 0);
 
 Q_SIGNALS:
+    void shown();
+    void hidden();
+
     // private signals
     void localStorageSwitchUserRequest(Account account, bool startFromScratch, QUuid requestId);
     void authenticate();
@@ -198,6 +202,12 @@ private Q_SLOTS:
     void onNoteSearchQueryReady();
     void onSaveNoteSearchQueryButtonPressed();
 
+    // SystemTrayIconManager slots
+    void onNewNoteRequestedFromSystemTrayIcon();
+    void onQuitRequestedFromSystemTrayIcon();
+    void onAccountSwitchRequestedFromSystemTrayIcon(Account account);
+    void onSystemTrayIconManagerError(ErrorString errorDescription);
+
     // Test notes for debugging
     void onSetTestNoteWithEncryptedData();
     void onSetTestNoteWithResources();
@@ -226,6 +236,9 @@ private:
     virtual void timerEvent(QTimerEvent * pEvent) Q_DECL_OVERRIDE;
     virtual void focusInEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
     virtual void focusOutEvent(QFocusEvent * pFocusEvent) Q_DECL_OVERRIDE;
+    virtual void showEvent(QShowEvent * pShowEvent) Q_DECL_OVERRIDE;
+    virtual void hideEvent(QHideEvent * pHideEvent) Q_DECL_OVERRIDE;
+    virtual void changeEvent(QEvent * pEvent) Q_DECL_OVERRIDE;
 
 private:
     void setupThemeIcons();
@@ -257,6 +270,7 @@ private:
     void connectViewButtonsToSlots();
     void connectNoteSearchActionsToSlots();
     void connectToolbarButtonsToSlots();
+    void connectSystemTrayIconManagerSignalsToSlots();
 
     void addMenuActionsToMainWindow();
     void updateSubMenuWithAvailableAccounts();
@@ -357,6 +371,8 @@ private:
 
     AccountManager *            m_pAccountManager;
     QScopedPointer<Account>     m_pAccount;
+
+    SystemTrayIconManager *     m_pSystemTrayIconManager;
 
     QThread *                   m_pLocalStorageManagerThread;
     LocalStorageManagerThreadWorker *   m_pLocalStorageManager;

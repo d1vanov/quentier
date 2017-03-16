@@ -76,12 +76,17 @@ private Q_SLOTS:
     void onHideMainWindowContextMenuAction();
     void onQuitContextMenuAction();
 
+    // Slots for MainWindow signals
+    void onMainWindowShown();
+    void onMainWindowHidden();
+
 private:
     void createConnections();
     void setupSystemTrayIcon();
 
     void setupContextMenu();
     void setupAccountsSubMenu();
+    void evaluateShowHideMenuActions();
 
     void onShowHideMainWindowContextMenuAction(const bool show);
 

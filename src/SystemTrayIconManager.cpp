@@ -202,6 +202,18 @@ void SystemTrayIconManager::onQuitContextMenuAction()
     emit quitRequested();
 }
 
+void SystemTrayIconManager::onMainWindowShown()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onMainWindowShown"));
+    evaluateShowHideMenuActions();
+}
+
+void SystemTrayIconManager::onMainWindowHidden()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::onMainWindowHidden"));
+    evaluateShowHideMenuActions();
+}
+
 void SystemTrayIconManager::createConnections()
 {
     QNDEBUG(QStringLiteral("SystemTrayIconManager::createConnections"));
@@ -215,6 +227,18 @@ void SystemTrayIconManager::createConnections()
                      this, QNSLOT(SystemTrayIconManager,onAccountUpdated,Account));
     QObject::connect(m_pAccountManager.data(), QNSIGNAL(AccountManager,accountAdded,Account),
                      this, QNSLOT(SystemTrayIconManager,onAccountAdded,Account));
+
+    // MainWindow connections
+    MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
+    if (Q_UNLIKELY(!pMainWindow)) {
+        QNWARNING(QStringLiteral("Internal error: can't cast the parent of SystemTrayIconManager to MainWindow"));
+        return;
+    }
+
+    QObject::connect(pMainWindow, QNSIGNAL(MainWindow,shown),
+                     this, QNSLOT(SystemTrayIconManager,onMainWindowShown));
+    QObject::connect(pMainWindow, QNSIGNAL(MainWindow,hidden),
+                     this, QNSLOT(SystemTrayIconManager,onMainWindowHidden));
 }
 
 void SystemTrayIconManager::setupSystemTrayIcon()
@@ -355,10 +379,80 @@ void SystemTrayIconManager::setupAccountsSubMenu()
     }
 }
 
+void SystemTrayIconManager::evaluateShowHideMenuActions()
+{
+    QNDEBUG(QStringLiteral("SystemTrayIconManager::evaluateShowHideMenuActions"));
+
+    if (Q_UNLIKELY(!m_pTrayIconContextMenu)) {
+        QNDEBUG(QStringLiteral("No tray icon context menu"));
+        return;
+    }
+
+    MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
+    if (Q_UNLIKELY(!pMainWindow)) {
+        QNDEBUG(QStringLiteral("Parent is not MainWindow"));
+        return;
+    }
+
+    QList<QAction*> actions = m_pTrayIconContextMenu->actions();
+    QAction * pShowAction = Q_NULLPTR;
+    QAction * pHideAction = Q_NULLPTR;
+
+    QString showText = tr("Show");
+    QString hideText = tr("Hide");
+
+    for(auto it = actions.begin(), end = actions.end(); it != end; ++it)
+    {
+        QAction * pAction = *it;
+        if (Q_UNLIKELY(!pAction)) {
+            continue;
+        }
+
+        QString text = pAction->text();
+        if (text == showText) {
+            pShowAction = pAction;
+        }
+        else if (text == hideText) {
+            pHideAction = pAction;
+        }
+
+        if (pShowAction && pHideAction) {
+            break;
+        }
+    }
+
+    bool mainWindowIsVisible = pMainWindow->isVisible();
+    Qt::WindowStates mainWindowState = pMainWindow->windowState();
+    bool mainWindowIsMinimized = (mainWindowState & Qt::WindowMinimized);
+    if (mainWindowIsMinimized) {
+        mainWindowIsVisible = false;
+    }
+
+    QNDEBUG(QStringLiteral("Main window is minimized: ") << (mainWindowIsMinimized ? QStringLiteral("true") : QStringLiteral("false"))
+            << QStringLiteral(", main window is visible: ") << (mainWindowIsVisible ? QStringLiteral("true") : QStringLiteral("false")));
+
+    if (pShowAction) {
+        pShowAction->setEnabled(!mainWindowIsVisible);
+        QNDEBUG(QStringLiteral("Show action is ") << (pShowAction->isEnabled() ? QStringLiteral("enabled") : QStringLiteral("disabled")));
+    }
+    else {
+        QNDEBUG(QStringLiteral("Show action was not found"));
+    }
+
+    if (pHideAction) {
+        pHideAction->setEnabled(mainWindowIsVisible);
+        QNDEBUG(QStringLiteral("Hide action is ") << (pHideAction->isEnabled() ? QStringLiteral("enabled") : QStringLiteral("disabled")));
+    }
+    else {
+        QNDEBUG(QStringLiteral("Hide action was not found"));
+    }
+}
+
 void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(const bool show)
 {
     MainWindow * pMainWindow = qobject_cast<MainWindow*>(parent());
-    if (Q_UNLIKELY(!pMainWindow)) {
+    if (Q_UNLIKELY(!pMainWindow))
+    {
         ErrorString errorDescription(QT_TRANSLATE_NOOP("", "Can't show/hide the main window: "
                                                        "internal error, the parent of SystemTrayIconManager "
                                                        "is not a MainWindow"));
@@ -367,19 +461,35 @@ void SystemTrayIconManager::onShowHideMainWindowContextMenuAction(const bool sho
         return;
     }
 
-    if (show && !pMainWindow->isHidden()) {
+    bool mainWindowIsVisible = pMainWindow->isVisible();
+    Qt::WindowStates mainWindowState = pMainWindow->windowState();
+    bool mainWindowIsMinimized = (mainWindowState & Qt::WindowMinimized);
+    if (mainWindowIsMinimized) {
+        mainWindowIsVisible = false;
+    }
+
+    if (show && mainWindowIsVisible) {
         QNDEBUG(QStringLiteral("The main window is already shown, nothing to do"));
         return;
     }
-    else if (!show && pMainWindow->isHidden()) {
+    else if (!show && !mainWindowIsVisible) {
         QNDEBUG(QStringLiteral("The main window is already hidden, nothing to do"));
         return;
     }
 
-    if (show) {
-        pMainWindow->show();
+    if (show)
+    {
+        if (mainWindowIsMinimized) {
+            mainWindowState = mainWindowState & (~Qt::WindowMinimized);
+            pMainWindow->setWindowState(mainWindowState);
+        }
+
+        if (!pMainWindow->isVisible()) {
+            pMainWindow->show();
+        }
     }
-    else {
+    else
+    {
         pMainWindow->hide();
     }
 }

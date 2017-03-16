@@ -18,6 +18,7 @@
 
 #include "MainWindow.h"
 #include "SettingsNames.h"
+#include "SystemTrayIconManager.h"
 #include "EditNoteDialogsManager.h"
 #include "NoteEditorTabsAndWindowsCoordinator.h"
 #include "NoteFiltersManager.h"
@@ -132,6 +133,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     m_pAvailableAccountsSubMenu(Q_NULLPTR),
     m_pAccountManager(new AccountManager(this)),
     m_pAccount(),
+    m_pSystemTrayIconManager(Q_NULLPTR),
     m_pLocalStorageManagerThread(Q_NULLPTR),
     m_pLocalStorageManager(Q_NULLPTR),
     m_lastLocalStorageSwitchUserRequest(),
@@ -177,6 +179,8 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     setupAccountManager();
     m_pAccount.reset(new Account(m_pAccountManager->currentAccount()));
 
+    m_pSystemTrayIconManager = new SystemTrayIconManager(*m_pAccountManager, this);
+
     setupThemeIcons();
 
     m_pUI->setupUi(this);
@@ -219,6 +223,7 @@ MainWindow::MainWindow(QWidget * pParentWidget) :
     connectViewButtonsToSlots();
     connectNoteSearchActionsToSlots();
     connectToolbarButtonsToSlots();
+    connectSystemTrayIconManagerSignalsToSlots();
 
     QObject::connect(m_pUI->splitter, QNSIGNAL(QSplitter,splitterMoved,int,int),
                      this, QNSLOT(MainWindow,onSplitterHandleMoved,int,int));
@@ -286,6 +291,8 @@ void MainWindow::connectActionsToSlots()
                      this, QNSLOT(MainWindow,onFindPreviousInsideNoteAction));
     QObject::connect(m_pUI->ActionReplaceInNote, QNSIGNAL(QAction,triggered),
                      this, QNSLOT(MainWindow,onReplaceInsideNoteAction));
+    QObject::connect(m_pUI->ActionQuit, QNSIGNAL(QAction,triggered),
+                     QApplication::instance(), QNSLOT(QCoreApplication,quit));
 
     // Undo/redo actions
     QObject::connect(m_pUI->ActionUndo, QNSIGNAL(QAction,triggered),
@@ -446,6 +453,20 @@ void MainWindow::connectToolbarButtonsToSlots()
                      this, QNSLOT(MainWindow,onPrintNoteButtonPressed));
     QObject::connect(m_pUI->exportNoteToPdfPushButton, QNSIGNAL(QPushButton,clicked),
                      this, QNSLOT(MainWindow,onExportNoteToPdfButtonPressed));
+}
+
+void MainWindow::connectSystemTrayIconManagerSignalsToSlots()
+{
+    QNDEBUG(QStringLiteral("MainWindow::connectSystemTrayIconManagerSignalsToSlots"));
+
+    QObject::connect(m_pSystemTrayIconManager, QNSIGNAL(SystemTrayIconManager,notifyError,ErrorString),
+                     this, QNSLOT(MainWindow,onSystemTrayIconManagerError,ErrorString));
+    QObject::connect(m_pSystemTrayIconManager, QNSIGNAL(SystemTrayIconManager,newTextNoteAdditionRequested),
+                     this, QNSLOT(MainWindow,onNewNoteRequestedFromSystemTrayIcon));
+    QObject::connect(m_pSystemTrayIconManager, QNSIGNAL(SystemTrayIconManager,quitRequested),
+                     this, QNSLOT(MainWindow,onQuitRequestedFromSystemTrayIcon));
+    QObject::connect(m_pSystemTrayIconManager, QNSIGNAL(SystemTrayIconManager,accountSwitchRequested,Account),
+                     this, QNSLOT(MainWindow,onAccountSwitchRequestedFromSystemTrayIcon,Account));
 }
 
 void MainWindow::addMenuActionsToMainWindow()
@@ -2114,6 +2135,30 @@ void MainWindow::onSaveNoteSearchQueryButtonPressed()
     Q_UNUSED(pAddSavedSearchDialog->exec())
 }
 
+void MainWindow::onNewNoteRequestedFromSystemTrayIcon()
+{
+    QNDEBUG(QStringLiteral("MainWindow::onNewNoteRequestedFromSystemTrayIcon"));
+    onNewNoteButtonPressed();
+}
+
+void MainWindow::onQuitRequestedFromSystemTrayIcon()
+{
+    QNINFO(QStringLiteral("MainWindow::onQuitRequestedFromSystemTrayIcon"));
+    qApp->quit();
+}
+
+void MainWindow::onAccountSwitchRequestedFromSystemTrayIcon(Account account)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onAccountSwitchRequestedFromSystemTrayIcon: ") << account);
+    m_pAccountManager->switchAccount(account);
+}
+
+void MainWindow::onSystemTrayIconManagerError(ErrorString errorDescription)
+{
+    QNDEBUG(QStringLiteral("MainWindow::onSystemTrayIconManagerError: ") << errorDescription);
+    onSetStatusBarText(errorDescription.localizedString());
+}
+
 void MainWindow::onSetTestNoteWithEncryptedData()
 {
     QNDEBUG(QStringLiteral("MainWindow::onSetTestNoteWithEncryptedData"));
@@ -2817,6 +2862,60 @@ void MainWindow::focusOutEvent(QFocusEvent * pFocusEvent)
 
     QNDEBUG(QStringLiteral("Reason = ") << pFocusEvent->reason());
     QMainWindow::focusOutEvent(pFocusEvent);
+}
+
+void MainWindow::showEvent(QShowEvent * pShowEvent)
+{
+    QNDEBUG("MainWindow::showEvent");
+    QMainWindow::showEvent(pShowEvent);
+
+    Qt::WindowStates state = windowState();
+    if (!(state & Qt::WindowMinimized)) {
+        emit shown();
+    }
+}
+
+void MainWindow::hideEvent(QHideEvent * pHideEvent)
+{
+    QNDEBUG("MainWindow::hideEvent");
+
+    bool wasMinimized = false;
+    Qt::WindowStates state = windowState();
+    wasMinimized = (state & Qt::WindowMinimized);
+
+    QMainWindow::hideEvent(pHideEvent);
+
+    if (!wasMinimized) {
+        emit hidden();
+    }
+}
+
+void MainWindow::changeEvent(QEvent * pEvent)
+{
+    QMainWindow::changeEvent(pEvent);
+
+    if (pEvent && (pEvent->type() == QEvent::WindowStateChange))
+    {
+        Qt::WindowStates state = windowState();
+        bool minimized = (state & Qt::WindowMinimized);
+
+        QNDEBUG(QStringLiteral("Change event of window state change type: minimized = ")
+                << (minimized ? QStringLiteral("true") : QStringLiteral("false")));
+
+        if (!minimized)
+        {
+            QNDEBUG(QStringLiteral("MainWindow is no longer minimized"));
+
+            if (isVisible()) {
+                emit shown();
+            }
+        }
+        else if (minimized)
+        {
+            QNDEBUG(QStringLiteral("MainWindow became minimized"));
+            emit hidden();
+        }
+    }
 }
 
 void MainWindow::setupThemeIcons()
