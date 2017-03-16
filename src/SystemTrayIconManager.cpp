@@ -32,6 +32,12 @@
 #define OVERRIDE_SYSTEM_TRAY_AVAILABILITY_KEY QStringLiteral("OverrideSystemTrayAvailability")
 #define TRAY_ICON_KIND_KEY QStringLiteral("TrayIconKind")
 
+#ifdef Q_WS_MAC
+#define DEFAULT_TRAY_ICON_KIND QStringLiteral("dark")
+#else
+#define DEFAULT_TRAY_ICON_KIND QStringLiteral("colored")
+#endif
+
 namespace quentier {
 
 SystemTrayIconManager::SystemTrayIconManager(AccountManager & accountManager,
@@ -286,8 +292,6 @@ void SystemTrayIconManager::setupSystemTrayIcon()
         m_pSystemTrayIcon = new QSystemTrayIcon(this);
     }
 
-    QString whichIcon = QStringLiteral("_simple_dark");
-
     if (!m_pAccountManager.isNull())
     {
         Account currentAccount = m_pAccountManager->currentAccount();
@@ -297,24 +301,35 @@ void SystemTrayIconManager::setupSystemTrayIcon()
         appSettings.endGroup();
 
         if (trayIconKind.isEmpty()) {
-            QNDEBUG(QStringLiteral("The tray icon kind is empty, will use the default simple dark tray icon"));
+            QNDEBUG(QStringLiteral("The tray icon kind is empty, will use the default tray icon"));
+            trayIconKind = DEFAULT_TRAY_ICON_KIND;
         }
         else if (trayIconKind == QStringLiteral("dark")) {
             QNDEBUG(QStringLiteral("Will use the simple dark tray icon"));
         }
         else if (trayIconKind == QStringLiteral("light")) {
             QNDEBUG(QStringLiteral("Will use the simple light tray icon"));
-            whichIcon = QStringLiteral("_simple_light");
         }
         else if (trayIconKind == QStringLiteral("colored")) {
             QNDEBUG(QStringLiteral("Will use the colored tray icon"));
-            whichIcon.clear();
+        }
+        else {
+            QNDEBUG(QStringLiteral("Unidentified tray icon kind (") << trayIconKind << QStringLiteral(", will fallback to the default"));
+            trayIconKind = DEFAULT_TRAY_ICON_KIND;
         }
     }
     else
     {
         QNINFO(QStringLiteral("Can't find out which tray icon kind should be used for the current account: "
                               "the account manager is null; will use the default dark tray icon"));
+    }
+
+    QString whichIcon;
+    if (DEFAULT_TRAY_ICON_KIND == QStringLiteral("dark")) {
+        whichIcon = QStringLiteral("_simple_dark");
+    }
+    else if (DEFAULT_TRAY_ICON_KIND == QStringLiteral("light")) {
+        whichIcon = QStringLiteral("_simple_light");
     }
 
     QIcon icon;
