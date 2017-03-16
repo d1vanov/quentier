@@ -857,6 +857,8 @@ void NoteTagsWidget::addNewTagWidgetToLayout()
     NewListItemLineEdit * pNewTagLineEdit = new NewListItemLineEdit(m_pTagModel, existingTagNames, this);
     QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,returnPressed),
                      this, QNSLOT(NoteTagsWidget,onNewTagNameEntered));
+    QObject::connect(pNewTagLineEdit, QNSIGNAL(NewListItemLineEdit,receivedFocusFromWindowSystem),
+                     this, QNSIGNAL(NoteTagsWidget,newTagLineEditReceivedFocusFromWindowSystem));
     m_pLayout->addWidget(pNewTagLineEdit);
 }
 

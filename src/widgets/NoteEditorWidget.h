@@ -176,6 +176,9 @@ public:
      */
     bool makeNonWindow();
 
+    /**
+     * @brief setFocusToEditor - sets the focus to the note editor page
+     */
     void setFocusToEditor();
 
     /**
@@ -284,6 +287,8 @@ public Q_SLOTS:
     void onReplaceInsideNoteAction();
 
 private Q_SLOTS:
+    void onNewTagLineEditReceivedFocusFromWindowSystem();
+
     // Slots for events from local storage
     void onUpdateNoteComplete(Note note, bool updateResources, bool updateTags, QUuid requestId);
     void onUpdateNoteFailed(Note note, bool updateResources, bool updateTags,
